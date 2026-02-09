@@ -21,6 +21,8 @@ import ServicesMarketplace from "./pages/ServicesMarketplace";
 import ServiceDetail from "./pages/ServiceDetail";
 import MyBookings from "./pages/MyBookings";
 import MyRequests from "./pages/MyRequests";
+import CompaniesList from "./pages/CompaniesList";
+import CompanyDetail from "./pages/CompanyDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
