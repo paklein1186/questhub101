@@ -30,6 +30,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { notifyBooking } = useNotifications();
+  const { awardXp } = useXP();
   const [, forceUpdate] = useState(0);
   const rerender = () => forceUpdate((n) => n + 1);
 
