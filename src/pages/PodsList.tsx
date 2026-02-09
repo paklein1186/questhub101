@@ -69,7 +69,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   };
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-3xl font-bold">Pods</h1>
