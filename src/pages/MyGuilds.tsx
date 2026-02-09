@@ -52,13 +52,16 @@ export default function MyGuilds({ bare }: { bare?: boolean }) {
 
   return (
     <PageShell bare={bare}>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
-      </Button>
-
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-8">
-        <Shield className="h-7 w-7 text-primary" /> My Guilds
-      </h1>
+      {!bare && (
+        <>
+          <Button variant="ghost" size="sm" asChild className="mb-4">
+            <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
+          </Button>
+          <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-8">
+            <Shield className="h-7 w-7 text-primary" /> My Guilds
+          </h1>
+        </>
+      )}
 
       {myMemberships.length === 0 && (
         <p className="text-muted-foreground">You haven't joined any guilds yet. <Link to="/guilds" className="text-primary hover:underline">Browse guilds</Link></p>
