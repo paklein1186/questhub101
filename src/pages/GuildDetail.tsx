@@ -32,7 +32,18 @@ export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
   const guild = getGuildById(id!);
   const currentUser = useCurrentUser();
+  const { toast } = useToast();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
+  const [, forceUpdate] = useState(0);
+  const rerender = () => forceUpdate((n) => n + 1);
+
+  // Service creation form state
+  const [createSvcOpen, setCreateSvcOpen] = useState(false);
+  const [svcTitle, setSvcTitle] = useState("");
+  const [svcDesc, setSvcDesc] = useState("");
+  const [svcDuration, setSvcDuration] = useState("60");
+  const [svcPrice, setSvcPrice] = useState("0");
+  const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
