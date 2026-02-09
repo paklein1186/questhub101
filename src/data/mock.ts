@@ -147,21 +147,21 @@ export const quests: Quest[] = [
 
 // ─── Quest Topics & Territories ──────────────────────────────
 export const questTopics: QuestTopic[] = [
-  { id: "qt1", questId: "q1", topicId: "t1" },
-  { id: "qt2", questId: "q1", topicId: "t3" },
-  { id: "qt3", questId: "q2", topicId: "t2" },
-  { id: "qt4", questId: "q3", topicId: "t3" },
-  { id: "qt5", questId: "q3", topicId: "t4" },
-  { id: "qt6", questId: "q4", topicId: "t5" },
-  { id: "qt7", questId: "q5", topicId: "t1" },
+  { id: "qt1", questId: "q1", topicId: "t4" },   // Carbon Capture
+  { id: "qt2", questId: "q1", topicId: "t21" },  // Open Data & Technology
+  { id: "qt3", questId: "q2", topicId: "t2" },   // Arts & Culture
+  { id: "qt4", questId: "q3", topicId: "t21" },  // Open Data & Technology
+  { id: "qt5", questId: "q3", topicId: "t5" },   // Commons & DAO
+  { id: "qt6", questId: "q4", topicId: "t24" },  // Territorial Innovation
+  { id: "qt7", questId: "q5", topicId: "t4" },   // Carbon Capture
 ];
 
 export const questTerritories: QuestTerritory[] = [
-  { id: "qtr1", questId: "q1", territoryId: "tr5" },
-  { id: "qtr2", questId: "q2", territoryId: "tr3" },
-  { id: "qtr3", questId: "q3", territoryId: "tr2" },
-  { id: "qtr4", questId: "q4", territoryId: "tr4" },
-  { id: "qtr5", questId: "q5", territoryId: "tr1" },
+  { id: "qtr1", questId: "q1", territoryId: "tr6" },  // Remote / Global
+  { id: "qtr2", questId: "q2", territoryId: "tr3" },  // France
+  { id: "qtr3", questId: "q3", territoryId: "tr8" },  // Île-de-France
+  { id: "qtr4", questId: "q4", territoryId: "tr9" },  // Barcelona
+  { id: "qtr5", questId: "q5", territoryId: "tr7" },  // Paris
 ];
 
 // ─── Quest Participants ──────────────────────────────────────
