@@ -10,6 +10,7 @@ import {
   TerritoryLevel,
   CommentTargetType,
   NotificationType,
+  FollowTargetType,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────
