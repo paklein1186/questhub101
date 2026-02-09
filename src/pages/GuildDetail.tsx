@@ -67,9 +67,9 @@ export default function GuildDetail() {
             <div className="flex items-center gap-2">
               <h1 className="font-display text-3xl font-bold">{guild.name}</h1>
               {guild.isApproved ? (
-                <CheckCircle className="h-5 w-5 text-green-500" title="Approved" />
+                <CheckCircle className="h-5 w-5 text-primary" />
               ) : (
-                isAdmin && <Badge variant="outline" className="text-xs text-amber-600 border-amber-300"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>
+                isAdmin && <Badge variant="outline" className="text-xs"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
