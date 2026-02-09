@@ -113,6 +113,7 @@ export function AppNav() {
           >
             <ShieldCheck className="h-4 w-4" />
             <span className="hidden sm:inline">My Guilds</span>
+          </Link>
           {showAdmin && (
             <Link
               to="/admin"
