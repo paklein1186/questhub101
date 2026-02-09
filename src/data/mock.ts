@@ -265,8 +265,8 @@ export const serviceTerritories: ServiceTerritory[] = [
 
 // ─── Bookings ────────────────────────────────────────────────
 export const bookings: Booking[] = [
-  { id: "bk1", serviceId: "svc1", requesterId: "u2", providerUserId: "u1", status: BookingStatus.REQUESTED, notes: "Looking for help scoping our Q2 climate initiative.", createdAt: "2025-02-08T10:00:00Z", updatedAt: "2025-02-08T10:00:00Z" },
-  { id: "bk2", serviceId: "svc4", requesterId: "u3", providerGuildId: "g1", status: BookingStatus.ACCEPTED, requestedDateTime: "2025-02-15T14:00:00Z", notes: "Want to discuss launching a new climate-tech project.", createdAt: "2025-02-06T09:00:00Z", updatedAt: "2025-02-07T08:00:00Z" },
+  { id: "bk1", serviceId: "svc1", requesterId: "u2", providerUserId: "u1", startDateTime: "2025-02-15T09:00:00Z", endDateTime: "2025-02-15T10:30:00Z", status: BookingStatus.REQUESTED, paymentStatus: PaymentStatus.PENDING, amount: 150, currency: "EUR", notes: "Looking for help scoping our Q2 climate initiative.", createdAt: "2025-02-08T10:00:00Z", updatedAt: "2025-02-08T10:00:00Z" },
+  { id: "bk2", serviceId: "svc4", requesterId: "u3", providerGuildId: "g1", startDateTime: "2025-02-15T14:00:00Z", endDateTime: "2025-02-15T15:00:00Z", status: BookingStatus.CONFIRMED, paymentStatus: PaymentStatus.NOT_REQUIRED, amount: 0, currency: "EUR", callUrl: "https://meet.jit.si/gamechanger-bk2", requestedDateTime: "2025-02-15T14:00:00Z", notes: "Want to discuss launching a new climate-tech project.", createdAt: "2025-02-06T09:00:00Z", updatedAt: "2025-02-07T08:00:00Z" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────
