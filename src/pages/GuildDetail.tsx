@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
+  UserPlus, UserMinus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,16 +16,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import type { Service } from "@/types";
+import type { Service, Quest } from "@/types";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
   achievements as allAchievements, guildMembers, podMembers, pods, getQuestById,
-  services,
+  services, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 
@@ -45,6 +46,12 @@ export default function GuildDetail() {
   const [svcPrice, setSvcPrice] = useState("0");
   const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
 
+  // Quest creation form state
+  const [createQuestOpen, setCreateQuestOpen] = useState(false);
+  const [qTitle, setQTitle] = useState("");
+  const [qDesc, setQDesc] = useState("");
+  const [qRewardXp, setQRewardXp] = useState("100");
+
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
@@ -54,23 +61,40 @@ export default function GuildDetail() {
   const guildServices = getServicesForGuild(guild.id);
   const creator = getUserById(guild.createdByUserId);
 
-  // Is current user an admin of this guild?
   const currentMembership = guildMembers.find(
     (gm) => gm.guildId === guild.id && gm.userId === currentUser.id
   );
   const isAdmin = currentMembership?.role === GuildMemberRole.ADMIN;
+  const isMember = !!currentMembership;
 
-  // Pods: pods where at least one PodMember is a GuildMember of this guild
   const guildMemberUserIds = new Set(members.map((m) => m.userId));
   const guildPods = pods.filter((pod) =>
     podMembers.some((pm) => pm.podId === pod.id && guildMemberUserIds.has(pm.userId))
   );
 
-  // Achievements: from quests of this guild
   const guildQuestIds = new Set(quests.map((q) => q.id));
   const guildAchievements = allAchievements
     .filter((a) => guildQuestIds.has(a.questId))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const joinGuild = () => {
+    guildMembers.push({
+      id: `gm-${Date.now()}`,
+      guildId: guild.id,
+      userId: currentUser.id,
+      role: GuildMemberRole.MEMBER,
+      joinedAt: new Date().toISOString(),
+    });
+    rerender();
+    toast({ title: "Joined guild!" });
+  };
+
+  const leaveGuild = () => {
+    const idx = guildMembers.findIndex(gm => gm.guildId === guild.id && gm.userId === currentUser.id);
+    if (idx !== -1) guildMembers.splice(idx, 1);
+    rerender();
+    toast({ title: "Left guild" });
+  };
 
   const createGuildService = () => {
     if (!svcTitle.trim()) return;
@@ -93,6 +117,26 @@ export default function GuildDetail() {
     setCreateSvcOpen(false);
     rerender();
     toast({ title: "Guild service created" });
+  };
+
+  const createQuest = () => {
+    if (!qTitle.trim()) return;
+    const quest: Quest = {
+      id: `q-${Date.now()}`,
+      title: qTitle.trim(),
+      description: qDesc.trim() || undefined,
+      status: QuestStatus.OPEN,
+      monetizationType: MonetizationType.FREE,
+      rewardXp: Number(qRewardXp) || 100,
+      isFeatured: false,
+      createdByUserId: currentUser.id,
+      guildId: guild.id,
+    };
+    allQuests.push(quest);
+    setCreateQuestOpen(false);
+    setQTitle(""); setQDesc(""); setQRewardXp("100");
+    rerender();
+    toast({ title: "Quest created!", description: quest.title });
   };
 
   return (
@@ -125,6 +169,16 @@ export default function GuildDetail() {
               <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />
               {isFollowing ? "Unfollow" : "Follow"}
             </Button>
+            {!isMember && (
+              <Button size="sm" variant="outline" onClick={joinGuild}>
+                <UserPlus className="h-4 w-4 mr-1" /> Join Guild
+              </Button>
+            )}
+            {isMember && !isAdmin && (
+              <Button size="sm" variant="ghost" onClick={leaveGuild}>
+                <UserMinus className="h-4 w-4 mr-1" /> Leave
+              </Button>
+            )}
             {isAdmin && (
               <Button size="sm" variant="outline" asChild>
                 <Link to={`/guilds/${guild.id}/edit`}><Pencil className="h-4 w-4 mr-1" /> Edit guild</Link>
@@ -204,6 +258,31 @@ export default function GuildDetail() {
 
         {/* Quests */}
         <TabsContent value="quests" className="mt-6 space-y-3">
+          {isAdmin && (
+            <Dialog open={createQuestOpen} onOpenChange={setCreateQuestOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create Quest for {guild.name}</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <Input value={qTitle} onChange={e => setQTitle(e.target.value)} placeholder="Quest title" maxLength={120} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Description</label>
+                    <Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Reward XP</label>
+                    <Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} />
+                  </div>
+                  <Button onClick={createQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
           {quests.map((q) => (
             <Link
               key={q.id}
