@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
@@ -8,8 +9,17 @@ import PodsList from "./PodsList";
 import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
 
+const VALID_TABS = ["quests", "guilds", "pods", "services", "companies"];
+
 export default function ExploreHub() {
-  const [tab, setTab] = useState("quests");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = VALID_TABS.includes(searchParams.get("tab") || "") ? searchParams.get("tab")! : "quests";
+  const [tab, setTab] = useState(initialTab);
+
+  const handleTabChange = (value: string) => {
+    setTab(value);
+    setSearchParams(value === "quests" ? {} : { tab: value }, { replace: true });
+  };
 
   return (
     <PageShell>
