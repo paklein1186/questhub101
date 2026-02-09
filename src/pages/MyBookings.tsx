@@ -45,9 +45,23 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
   const updateStatus = (bookingId: string, status: BookingStatus) => {
     const booking = bookings.find((b) => b.id === bookingId);
     if (!booking) return;
+    const prevStatus = booking.status;
     booking.status = status;
     booking.updatedAt = new Date().toISOString();
     const svc = getServiceById(booking.serviceId);
+
+    // Award XP only on transition into COMPLETED (once)
+    if (status === BookingStatus.COMPLETED && prevStatus !== BookingStatus.COMPLETED) {
+      if (booking.providerUserId) {
+        const reason = booking.paymentStatus === PaymentStatus.PAID
+          ? "BOOKING_COMPLETED_PAID"
+          : "BOOKING_COMPLETED_FREE";
+        awardXp(booking.providerUserId, reason);
+      }
+      // Requester gets +2 XP for attending
+      awardXp(booking.requesterId, "BOOKING_ATTENDED");
+    }
+
     notifyBooking({
       bookingId: booking.id,
       serviceTitle: svc?.title ?? "Service",

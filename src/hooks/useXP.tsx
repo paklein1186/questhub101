@@ -61,6 +61,9 @@ function formatReason(reason: string): string {
     QUEST_UPDATE_CREATED: "Quest update posted",
     COMMENT_UPVOTED: "Comment upvoted",
     ACHIEVEMENT_RECEIVED: "Achievement earned",
+    BOOKING_COMPLETED_PAID: "Paid booking completed",
+    BOOKING_COMPLETED_FREE: "Free booking completed",
+    BOOKING_ATTENDED: "Session attended",
   };
   return map[reason] ?? reason;
 }
