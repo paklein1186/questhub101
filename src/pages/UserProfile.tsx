@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Star, MapPin, Hash, Plus } from "lucide-react";
+import { ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useFollow } from "@/hooks/useFollow";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
