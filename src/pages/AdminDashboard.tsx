@@ -300,6 +300,114 @@ function QuestsTab() {
   );
 }
 
+// ─── Stewards Tab ────────────────────────────────────────────
+function StewardsTab() {
+  const [stewardsState, setStewardsState] = useState<TopicSteward[]>([...allTopicStewards]);
+  const [newTopicId, setNewTopicId] = useState("");
+  const [newUserId, setNewUserId] = useState("");
+  const [newRole, setNewRole] = useState<TopicStewardRole>(TopicStewardRole.STEWARD);
+
+  const addSteward = () => {
+    if (!newTopicId || !newUserId) return;
+    if (stewardsState.some(s => s.topicId === newTopicId && s.userId === newUserId)) return;
+    const ts: TopicSteward = {
+      id: `ts-${Date.now()}`,
+      topicId: newTopicId,
+      userId: newUserId,
+      role: newRole,
+      createdAt: new Date().toISOString(),
+    };
+    allTopicStewards.push(ts);
+    setStewardsState([...allTopicStewards]);
+    setNewTopicId("");
+    setNewUserId("");
+  };
+
+  const removeSteward = (id: string) => {
+    const idx = allTopicStewards.findIndex(s => s.id === id);
+    if (idx !== -1) allTopicStewards.splice(idx, 1);
+    setStewardsState([...allTopicStewards]);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add steward form */}
+      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h3 className="font-display font-semibold flex items-center gap-2"><Plus className="h-4 w-4" /> Assign Steward</h3>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Topic</label>
+            <Select value={newTopicId} onValueChange={setNewTopicId}>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Select topic" /></SelectTrigger>
+              <SelectContent>
+                {topics.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">User</label>
+            <Select value={newUserId} onValueChange={setNewUserId}>
+              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Select user" /></SelectTrigger>
+              <SelectContent>
+                {allUsers.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Role</label>
+            <Select value={newRole} onValueChange={(v) => setNewRole(v as TopicStewardRole)}>
+              <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.values(TopicStewardRole).map(r => <SelectItem key={r} value={r}>{r.toLowerCase()}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button size="sm" onClick={addSteward} disabled={!newTopicId || !newUserId}>
+            <Plus className="h-4 w-4 mr-1" /> Assign
+          </Button>
+        </div>
+      </div>
+
+      {/* Current stewards */}
+      <div className="rounded-xl border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Topic</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead className="w-[60px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {stewardsState.map(s => {
+              const topic = topics.find(t => t.id === s.topicId);
+              const user = getUserById(s.userId);
+              return (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">{topic?.name}</TableCell>
+                  <TableCell className="text-sm">{user?.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="capitalize text-xs">{s.role.toLowerCase()}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => removeSteward(s.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {stewardsState.length === 0 && (
+              <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No stewards assigned.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
@@ -320,11 +428,13 @@ export default function AdminDashboard() {
             <TabsTrigger value="users"><UsersIcon className="h-4 w-4 mr-1" /> Users</TabsTrigger>
             <TabsTrigger value="guilds"><Shield className="h-4 w-4 mr-1" /> Guilds</TabsTrigger>
             <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests</TabsTrigger>
+            <TabsTrigger value="stewards"><Crown className="h-4 w-4 mr-1" /> Stewards</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6"><UsersTab /></TabsContent>
           <TabsContent value="guilds" className="mt-6"><GuildsTab /></TabsContent>
           <TabsContent value="quests" className="mt-6"><QuestsTab /></TabsContent>
+          <TabsContent value="stewards" className="mt-6"><StewardsTab /></TabsContent>
         </Tabs>
       </motion.div>
     </PageShell>
