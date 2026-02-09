@@ -109,6 +109,7 @@ export interface QuestUpdate {
   authorId: string;
   title: string;
   content: string;
+  imageUrl?: string;
   type: QuestUpdateType;
   createdAt: string;
   updatedAt: string;
