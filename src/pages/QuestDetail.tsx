@@ -44,6 +44,11 @@ export default function QuestDetail() {
   const [achUserId, setAchUserId] = useState("");
   const [achTitle, setAchTitle] = useState("");
   const [achDesc, setAchDesc] = useState("");
+  const [podOpen, setPodOpen] = useState(false);
+  const [podName, setPodName] = useState("");
+  const [podDesc, setPodDesc] = useState("");
+  const [podStart, setPodStart] = useState("");
+  const [podEnd, setPodEnd] = useState("");
 
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
 
