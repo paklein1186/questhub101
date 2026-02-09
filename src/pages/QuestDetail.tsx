@@ -12,17 +12,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
-  getParticipantsForQuest, getUpdatesForQuest,
+  getParticipantsForQuest, getUpdatesForQuest, getPodsForQuest,
   getUserById, getGuildById, users, achievements as allAchievements,
+  pods as allPods, podMembers as allPodMembers,
 } from "@/data/mock";
-import type { Achievement } from "@/types";
+import type { Achievement, Pod } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
 const updateIcons: Record<string, typeof Sparkles> = {
