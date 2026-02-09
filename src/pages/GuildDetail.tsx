@@ -11,7 +11,7 @@ import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
-  getMembersForGuild, getQuestsForGuild, getUserById,
+  getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
 } from "@/data/mock";
 
 export default function GuildDetail() {
