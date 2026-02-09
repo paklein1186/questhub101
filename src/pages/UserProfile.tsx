@@ -13,6 +13,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 import {
   getUserById, achievements as allAchievements, userTopics, userTerritories,
   getTopicById, getTerritoryById, getQuestById, quests,
