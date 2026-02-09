@@ -1,6 +1,6 @@
 import {
   User, Guild, GuildMember, Quest, QuestParticipant, QuestUpdate,
-  Topic, Territory, Comment, Achievement, Notification, Follow,
+  Topic, Territory, Comment, Achievement, Notification, Follow, Pod, PodMember,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote,
 } from "@/types";
@@ -8,6 +8,7 @@ import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
+  PodType, PodMemberRole,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
