@@ -101,6 +101,12 @@ export default function QuestDetail() {
           {territories.map((t) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 
+        <div className="flex items-center gap-3 mt-4">
+          <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+            <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />
+            {isFollowing ? "Unfollow quest" : "Follow quest"}
+          </Button>
+
         {/* Create Achievement button for quest owner */}
         {isOwner && (
           <div className="mt-4">
