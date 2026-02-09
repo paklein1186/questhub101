@@ -4,12 +4,14 @@ import {
   Service, ServiceTopic, ServiceTerritory, Booking,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
+  TopicSteward, TopicFeature,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
+  TopicStewardRole, TopicFeatureTargetType,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
