@@ -9,6 +9,7 @@ const links = [
   { to: "/", label: "Feed", icon: Home },
   { to: "/guilds", label: "Guilds", icon: Shield },
   { to: "/quests", label: "Quests", icon: Compass },
+  { to: "/pods", label: "Pods", icon: CircleDot },
 ];
 
 export function AppNav() {
