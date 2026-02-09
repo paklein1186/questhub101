@@ -85,3 +85,11 @@ export enum PodMemberRole {
   HOST = "HOST",
   MEMBER = "MEMBER",
 }
+
+export enum BookingStatus {
+  REQUESTED = "REQUESTED",
+  ACCEPTED = "ACCEPTED",
+  DECLINED = "DECLINED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
