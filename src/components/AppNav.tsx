@@ -1,11 +1,16 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Briefcase, Users, UserCircle, Bell, LayoutDashboard, Zap } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Home, Search, Briefcase, Users, UserCircle, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const mainLinks = [
+const authedLinks = [
   { to: "/", label: "Home", icon: Home },
   { to: "/explore", label: "Explore", icon: Search },
   { to: "/work", label: "Work", icon: Briefcase },
@@ -15,9 +20,16 @@ const mainLinks = [
 
 export function AppNav() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { unreadCount } = useNotifications();
-  const currentUser = useCurrentUser();
-  const showAdmin = isAdmin(currentUser.email);
+  const { user, signOut, session } = useAuth();
+  const isLoggedIn = !!session;
+  const showAdmin = isLoggedIn && user?.email && isAdmin(user.email);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -28,60 +40,117 @@ export function AppNav() {
         </Link>
 
         <nav className="flex items-center gap-1">
-          {mainLinks.map((link) => {
-            const active = link.to === "/"
-              ? pathname === "/"
-              : pathname.startsWith(link.to);
-            return (
+          {isLoggedIn ? (
+            <>
+              {authedLinks.map((link) => {
+                const active = link.to === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(link.to);
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    <link.icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{link.label}</span>
+                  </Link>
+                );
+              })}
+
+              {/* Bell */}
               <Link
-                key={link.to}
-                to={link.to}
+                to="/notifications"
+                className={cn(
+                  "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
+                  pathname === "/notifications"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                )}
+                title="Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {showAdmin && (
+                <Link
+                  to="/admin"
+                  className={cn(
+                    "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                    pathname === "/admin"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  title="Admin Dashboard"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                </Link>
+              )}
+
+              {/* Account dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="ml-2 flex items-center rounded-full hover:ring-2 hover:ring-primary/20 transition-all">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.avatarUrl} />
+                      <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium truncate">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> My profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile/edit" className="cursor-pointer">
+                      <Settings className="h-4 w-4 mr-2" /> Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" /> Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/explore"
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  active
+                  pathname.startsWith("/explore")
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
-                <link.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{link.label}</span>
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Explore</span>
               </Link>
-            );
-          })}
-
-          {/* Bell */}
-          <Link
-            to="/notifications"
-            className={cn(
-              "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
-              pathname === "/notifications"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-            title="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </Link>
-
-          {/* Admin (small icon) */}
-          {showAdmin && (
-            <Link
-              to="/admin"
-              className={cn(
-                "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
-                pathname === "/admin"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}
-              title="Admin Dashboard"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-            </Link>
+              <Button size="sm" variant="ghost" asChild className="ml-2">
+                <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link to="/signup">Sign up</Link>
+              </Button>
+            </>
           )}
         </nav>
       </div>

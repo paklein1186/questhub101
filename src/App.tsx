@@ -3,10 +3,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
+import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import ExploreHub from "./pages/ExploreHub";
 import WorkHub from "./pages/WorkHub";
 import NetworkHub from "./pages/NetworkHub";
@@ -30,37 +36,47 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CurrentUserProvider>
-        <NotificationProvider currentUserId="u1">
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              {/* Hub pages */}
-              <Route path="/explore" element={<ExploreHub />} />
-              <Route path="/work" element={<WorkHub />} />
-              <Route path="/network" element={<NetworkHub />} />
-              <Route path="/me" element={<MeHub />} />
-              {/* Detail pages */}
-              <Route path="/guilds/:id" element={<GuildDetail />} />
-              <Route path="/guilds/:id/edit" element={<GuildEdit />} />
-              <Route path="/quests/:id" element={<QuestDetail />} />
-              <Route path="/users/:id" element={<UserProfile />} />
-              <Route path="/profile/edit" element={<ProfileEdit />} />
-              <Route path="/notifications" element={<NotificationsCenter />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/achievements/:id" element={<AchievementDetail />} />
-              <Route path="/pods/:id" element={<PodDetail />} />
-              <Route path="/services/:id" element={<ServiceDetail />} />
-              <Route path="/companies/:id" element={<CompanyDetail />} />
-              <Route path="/topics/:slug" element={<TopicHouse />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </NotificationProvider>
-      </CurrentUserProvider>
+      <AuthProvider>
+        <CurrentUserProvider>
+          <NotificationProvider currentUserId="u1">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Auth pages — redirect away if already logged in */}
+                <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
+                <Route path="/signup" element={<RedirectIfAuthed><Signup /></RedirectIfAuthed>} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+
+                {/* Public pages */}
+                <Route path="/" element={<Index />} />
+                <Route path="/explore" element={<ExploreHub />} />
+                <Route path="/guilds/:id" element={<GuildDetail />} />
+                <Route path="/quests/:id" element={<QuestDetail />} />
+                <Route path="/users/:id" element={<UserProfile />} />
+                <Route path="/achievements/:id" element={<AchievementDetail />} />
+                <Route path="/pods/:id" element={<PodDetail />} />
+                <Route path="/services/:id" element={<ServiceDetail />} />
+                <Route path="/companies/:id" element={<CompanyDetail />} />
+                <Route path="/topics/:slug" element={<TopicHouse />} />
+
+                {/* Protected pages */}
+                <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+                <Route path="/work" element={<RequireAuth><WorkHub /></RequireAuth>} />
+                <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
+                <Route path="/me" element={<RequireAuth><MeHub /></RequireAuth>} />
+                <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
+                <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
+                <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
+                <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </NotificationProvider>
+        </CurrentUserProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
