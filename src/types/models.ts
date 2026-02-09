@@ -383,6 +383,7 @@ export interface Company {
   id: string;
   name: string;
   logoUrl?: string;
+  bannerUrl?: string;
   description?: string;
   sector?: string;
   size?: CompanySize;
