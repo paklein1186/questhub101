@@ -146,6 +146,7 @@ export default function QuestDetail() {
             </Dialog>
           </div>
         )}
+        </div>
       </motion.div>
 
       <Tabs defaultValue="overview">

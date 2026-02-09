@@ -44,6 +44,12 @@ export default function GuildDetail() {
           </div>
         </div>
         <p className="text-muted-foreground max-w-2xl">{guild.description}</p>
+        <div className="flex items-center gap-3 mt-3">
+          <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+            <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />
+            {isFollowing ? "Unfollow guild" : "Follow guild"}
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
           {territories.map((t) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}

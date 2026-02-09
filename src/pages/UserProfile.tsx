@@ -89,8 +89,12 @@ export default function UserProfile() {
               <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
             </div>
           </div>
+          {!isOwnProfile && (
+            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow} className="mt-2">
+              {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+            </Button>
+          )}
         </div>
-        {user.bio && <p className="text-muted-foreground max-w-2xl mb-4">{user.bio}</p>}
         <div className="flex flex-wrap gap-1.5 mb-2">
           {topics.map((t) => (
             <Badge key={t.id} variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
