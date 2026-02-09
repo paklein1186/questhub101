@@ -11,7 +11,7 @@ import {
   guildMembers, getGuildById, getMembersForGuild, getTopicsForGuild,
 } from "@/data/mock";
 
-export default function MyGuilds() {
+export default function MyGuilds({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const myMemberships = guildMembers.filter((gm) => gm.userId === currentUser.id);
   const adminGuilds = myMemberships.filter((gm) => gm.role === GuildMemberRole.ADMIN);
@@ -51,14 +51,17 @@ export default function MyGuilds() {
   };
 
   return (
-    <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
-      </Button>
-
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-8">
-        <Shield className="h-7 w-7 text-primary" /> My Guilds
-      </h1>
+    <PageShell bare={bare}>
+      {!bare && (
+        <>
+          <Button variant="ghost" size="sm" asChild className="mb-4">
+            <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
+          </Button>
+          <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-8">
+            <Shield className="h-7 w-7 text-primary" /> My Guilds
+          </h1>
+        </>
+      )}
 
       {myMemberships.length === 0 && (
         <p className="text-muted-foreground">You haven't joined any guilds yet. <Link to="/guilds" className="text-primary hover:underline">Browse guilds</Link></p>

@@ -24,7 +24,7 @@ const fadeUp = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06 } }),
 };
 
-export default function PodsList() {
+export default function PodsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const [typeFilter, setTypeFilter] = useState("ALL");
@@ -69,7 +69,7 @@ export default function PodsList() {
   };
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display text-3xl font-bold">Pods</h1>

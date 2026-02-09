@@ -23,7 +23,7 @@ const statusColors: Record<string, string> = {
   [BookingStatus.CANCELLED]: "bg-muted text-muted-foreground",
 };
 
-export default function MyBookings() {
+export default function MyBookings({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { notifyBooking } = useNotifications();
@@ -56,7 +56,7 @@ export default function MyBookings() {
   };
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Briefcase className="h-7 w-7 text-primary" /> My Bookings

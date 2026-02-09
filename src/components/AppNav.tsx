@@ -1,17 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Shield, Compass, Zap, Bell, LayoutDashboard, CircleDot, Briefcase, CalendarClock, ClipboardList, Building2, UserCircle, ShieldCheck } from "lucide-react";
+import { Home, Search, Briefcase, Users, UserCircle, Bell, LayoutDashboard, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin } from "@/lib/admin";
 
-const links = [
-  { to: "/", label: "Feed", icon: Home },
-  { to: "/guilds", label: "Guilds", icon: Shield },
-  { to: "/quests", label: "Quests", icon: Compass },
-  { to: "/pods", label: "Pods", icon: CircleDot },
-  { to: "/services", label: "Services", icon: Briefcase },
-  { to: "/companies", label: "Companies", icon: Building2 },
+const mainLinks = [
+  { to: "/", label: "Home", icon: Home },
+  { to: "/explore", label: "Explore", icon: Search },
+  { to: "/work", label: "Work", icon: Briefcase },
+  { to: "/network", label: "Network", icon: Users },
+  { to: "/me", label: "Me", icon: UserCircle },
 ];
 
 export function AppNav() {
@@ -27,9 +26,12 @@ export function AppNav() {
           <Zap className="h-5 w-5 text-primary" />
           <span>QuestHub</span>
         </Link>
+
         <nav className="flex items-center gap-1">
-          {links.map((link) => {
-            const active = pathname === link.to || (link.to !== "/" && pathname.startsWith(link.to));
+          {mainLinks.map((link) => {
+            const active = link.to === "/"
+              ? pathname === "/"
+              : pathname.startsWith(link.to);
             return (
               <Link
                 key={link.to}
@@ -42,18 +44,21 @@ export function AppNav() {
                 )}
               >
                 <link.icon className="h-4 w-4" />
-                {link.label}
+                <span className="hidden sm:inline">{link.label}</span>
               </Link>
             );
           })}
+
+          {/* Bell */}
           <Link
             to="/notifications"
             className={cn(
-              "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ml-1",
+              "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
               pathname === "/notifications"
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
+            title="Notifications"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
@@ -62,70 +67,20 @@ export function AppNav() {
               </span>
             )}
           </Link>
-          <Link
-            to="/my-bookings"
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              pathname === "/my-bookings"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-            title="My Bookings"
-          >
-            <ClipboardList className="h-4 w-4" />
-            <span className="hidden sm:inline">Bookings</span>
-          </Link>
-          <Link
-            to="/my-requests"
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              pathname === "/my-requests"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-            title="My Requests"
-          >
-            <CalendarClock className="h-4 w-4" />
-            <span className="hidden sm:inline">Requests</span>
-          </Link>
-          <Link
-            to={`/users/${currentUser.id}`}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              pathname === `/users/${currentUser.id}`
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-            title="My Profile"
-          >
-            <UserCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">My Profile</span>
-          </Link>
-          <Link
-            to="/my-guilds"
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-              pathname === "/my-guilds"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-            title="My Guilds"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            <span className="hidden sm:inline">My Guilds</span>
-          </Link>
+
+          {/* Admin (small icon) */}
           {showAdmin && (
             <Link
               to="/admin"
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
                 pathname === "/admin"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
+              title="Admin Dashboard"
             >
               <LayoutDashboard className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
         </nav>

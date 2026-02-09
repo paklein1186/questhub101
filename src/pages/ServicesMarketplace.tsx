@@ -16,7 +16,7 @@ const fadeUp = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06 } }),
 };
 
-export default function ServicesMarketplace() {
+export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   const [topicFilter, setTopicFilter] = useState("ALL");
   const [territoryFilter, setTerritoryFilter] = useState("ALL");
 
@@ -31,7 +31,7 @@ export default function ServicesMarketplace() {
   }
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold">Services</h1>
         <p className="text-muted-foreground mt-1">Browse consultancy services offered by users and guilds.</p>

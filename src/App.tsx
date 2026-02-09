@@ -7,26 +7,22 @@ import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
-import GuildsList from "./pages/GuildsList";
+import ExploreHub from "./pages/ExploreHub";
+import WorkHub from "./pages/WorkHub";
+import NetworkHub from "./pages/NetworkHub";
+import MeHub from "./pages/MeHub";
 import GuildDetail from "./pages/GuildDetail";
 import GuildEdit from "./pages/GuildEdit";
-import MyGuilds from "./pages/MyGuilds";
-import QuestsMarketplace from "./pages/QuestsMarketplace";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
+import ProfileEdit from "./pages/ProfileEdit";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
-import PodsList from "./pages/PodsList";
 import PodDetail from "./pages/PodDetail";
-import ServicesMarketplace from "./pages/ServicesMarketplace";
 import ServiceDetail from "./pages/ServiceDetail";
-import MyBookings from "./pages/MyBookings";
-import MyRequests from "./pages/MyRequests";
-import CompaniesList from "./pages/CompaniesList";
 import CompanyDetail from "./pages/CompanyDetail";
 import TopicHouse from "./pages/TopicHouse";
-import ProfileEdit from "./pages/ProfileEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,24 +38,22 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/guilds" element={<GuildsList />} />
+              {/* Hub pages */}
+              <Route path="/explore" element={<ExploreHub />} />
+              <Route path="/work" element={<WorkHub />} />
+              <Route path="/network" element={<NetworkHub />} />
+              <Route path="/me" element={<MeHub />} />
+              {/* Detail pages */}
               <Route path="/guilds/:id" element={<GuildDetail />} />
               <Route path="/guilds/:id/edit" element={<GuildEdit />} />
-              <Route path="/my-guilds" element={<MyGuilds />} />
-              <Route path="/quests" element={<QuestsMarketplace />} />
               <Route path="/quests/:id" element={<QuestDetail />} />
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
               <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/achievements/:id" element={<AchievementDetail />} />
-              <Route path="/pods" element={<PodsList />} />
               <Route path="/pods/:id" element={<PodDetail />} />
-              <Route path="/services" element={<ServicesMarketplace />} />
               <Route path="/services/:id" element={<ServiceDetail />} />
-              <Route path="/my-bookings" element={<MyBookings />} />
-              <Route path="/my-requests" element={<MyRequests />} />
-              <Route path="/companies" element={<CompaniesList />} />
               <Route path="/companies/:id" element={<CompanyDetail />} />
               <Route path="/topics/:slug" element={<TopicHouse />} />
               <Route path="*" element={<NotFound />} />

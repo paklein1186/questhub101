@@ -12,7 +12,7 @@ import {
 
 const sectors = [...new Set(companies.map(c => c.sector).filter(Boolean))] as string[];
 
-export default function CompaniesList() {
+export default function CompaniesList({ bare }: { bare?: boolean }) {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [territoryFilter, setTerritoryFilter] = useState("all");
 
@@ -23,7 +23,7 @@ export default function CompaniesList() {
   });
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Building2 className="h-7 w-7 text-primary" /> Companies

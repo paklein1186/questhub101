@@ -19,12 +19,12 @@ const statusColors: Record<string, string> = {
   [BookingStatus.CANCELLED]: "bg-muted text-muted-foreground",
 };
 
-export default function MyRequests() {
+export default function MyRequests({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const myRequests = bookings.filter((b) => b.requesterId === currentUser.id);
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <CalendarClock className="h-7 w-7 text-primary" /> My Requests
