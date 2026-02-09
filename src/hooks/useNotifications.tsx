@@ -108,6 +108,8 @@ export function linkForNotification(n: Notification): string {
       return `/quests/${data.questId as string}`;
     case NotificationType.INVITE:
       return data.guildId ? `/guilds/${data.guildId as string}` : `/quests/${data.questId as string}`;
+    case NotificationType.BOOKING:
+      return "/my-bookings";
     default:
       return "/";
   }
