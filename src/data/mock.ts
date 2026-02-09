@@ -363,3 +363,38 @@ export function isTopicSteward(topicId: string, userId: string) {
 export function getTopicBySlug(slug: string) {
   return topics.find(t => t.slug === slug);
 }
+
+// ─── Availability ────────────────────────────────────────────
+export const availabilityRules: AvailabilityRule[] = [
+  // u1 global: Mon-Fri 9:00-17:00
+  { id: "ar1", providerUserId: "u1", weekday: 0, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar2", providerUserId: "u1", weekday: 1, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar3", providerUserId: "u1", weekday: 2, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar4", providerUserId: "u1", weekday: 3, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar5", providerUserId: "u1", weekday: 4, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  // u3 global: Tue-Thu 10:00-16:00
+  { id: "ar6", providerUserId: "u3", weekday: 1, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar7", providerUserId: "u3", weekday: 2, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar8", providerUserId: "u3", weekday: 3, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  // u4 global: Mon, Wed, Fri 08:00-12:00
+  { id: "ar9", providerUserId: "u4", weekday: 0, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar10", providerUserId: "u4", weekday: 2, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar11", providerUserId: "u4", weekday: 4, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+];
+
+export const availabilityExceptions: AvailabilityException[] = [
+  // u1 blocked on 2025-02-17
+  { id: "ae1", providerUserId: "u1", date: "2025-02-17", isAvailable: false, createdAt: "2025-02-10T00:00:00Z" },
+];
+
+export function getAvailabilityRulesForUser(userId: string, serviceId?: string) {
+  return availabilityRules.filter(r => r.providerUserId === userId && (!serviceId || !r.serviceId || r.serviceId === serviceId));
+}
+
+export function getAvailabilityExceptionsForUser(userId: string) {
+  return availabilityExceptions.filter(e => e.providerUserId === userId);
+}
+
+export function getBookingsForProvider(userId: string) {
+  return bookings.filter(b => b.providerUserId === userId);
+}
