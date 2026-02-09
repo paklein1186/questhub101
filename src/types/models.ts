@@ -11,6 +11,8 @@ import {
   CommentTargetType,
   NotificationType,
   FollowTargetType,
+  PodType,
+  PodMemberRole,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────

@@ -59,6 +59,7 @@ export enum CommentTargetType {
   QUEST = "QUEST",
   QUEST_UPDATE = "QUEST_UPDATE",
   ACHIEVEMENT = "ACHIEVEMENT",
+  POD = "POD",
 }
 
 export enum NotificationType {
@@ -72,4 +73,14 @@ export enum FollowTargetType {
   USER = "USER",
   GUILD = "GUILD",
   QUEST = "QUEST",
+}
+
+export enum PodType {
+  QUEST_POD = "QUEST_POD",
+  STUDY_POD = "STUDY_POD",
+}
+
+export enum PodMemberRole {
+  HOST = "HOST",
+  MEMBER = "MEMBER",
 }
