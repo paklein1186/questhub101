@@ -289,6 +289,7 @@ export interface Service {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
   providerUserId?: string;
   providerGuildId?: string;
   durationMinutes?: number;
