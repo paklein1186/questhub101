@@ -221,6 +221,7 @@ export interface Achievement {
   questId: string;
   title: string;
   description?: string;
+  imageUrl?: string;
   createdAt: string;
   // Relations
   user?: User;
