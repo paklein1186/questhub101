@@ -10,6 +10,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import { BookingStatus, GuildMemberRole, PaymentStatus } from "@/types/enums";
+import { useXP } from "@/hooks/useXP";
 import {
   bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
