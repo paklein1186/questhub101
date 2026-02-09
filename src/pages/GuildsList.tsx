@@ -12,7 +12,7 @@ import {
   guildTopics, guildTerritories,
 } from "@/data/mock";
 
-export default function GuildsList() {
+export default function GuildsList({ bare }: { bare?: boolean }) {
   const [topicFilter, setTopicFilter] = useState<string>("all");
   const [territoryFilter, setTerritoryFilter] = useState<string>("all");
 
@@ -23,7 +23,7 @@ export default function GuildsList() {
   });
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Shield className="h-7 w-7 text-primary" /> Guilds

@@ -11,7 +11,7 @@ import {
   guildMembers, getGuildById, getMembersForGuild, getTopicsForGuild,
 } from "@/data/mock";
 
-export default function MyGuilds() {
+export default function MyGuilds({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const myMemberships = guildMembers.filter((gm) => gm.userId === currentUser.id);
   const adminGuilds = myMemberships.filter((gm) => gm.role === GuildMemberRole.ADMIN);
@@ -51,7 +51,7 @@ export default function MyGuilds() {
   };
 
   return (
-    <PageShell>
+    <PageShell bare={bare}>
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
       </Button>
