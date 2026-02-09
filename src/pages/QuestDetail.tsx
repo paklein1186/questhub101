@@ -35,6 +35,11 @@ export default function QuestDetail() {
   const quest = getQuestById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const [achOpen, setAchOpen] = useState(false);
+  const [achUserId, setAchUserId] = useState("");
+  const [achTitle, setAchTitle] = useState("");
+  const [achDesc, setAchDesc] = useState("");
+
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
 
   const guild = getGuildById(quest.guildId);
@@ -43,12 +48,7 @@ export default function QuestDetail() {
   const territories = getTerritoriesForQuest(quest.id);
   const participants = getParticipantsForQuest(quest.id);
   const updates = getUpdatesForQuest(quest.id);
-
   const isOwner = currentUser.id === quest.createdByUserId;
-  const [achOpen, setAchOpen] = useState(false);
-  const [achUserId, setAchUserId] = useState("");
-  const [achTitle, setAchTitle] = useState("");
-  const [achDesc, setAchDesc] = useState("");
 
   const createAchievement = () => {
     if (!achTitle.trim() || !achUserId) return;

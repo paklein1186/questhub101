@@ -28,19 +28,18 @@ export default function UserProfile() {
   const user = getUserById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  if (!user) return <PageShell><p>User not found.</p></PageShell>;
-
-  const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
-  const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
-
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
-    () => allAchievements.filter((a) => a.userId === user.id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
   const [createOpen, setCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newQuestId, setNewQuestId] = useState("none");
 
+  if (!user) return <PageShell><p>User not found.</p></PageShell>;
+
+  const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
+  const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
 
   const createAchievement = () => {
