@@ -22,22 +22,47 @@ export const users: User[] = [
   { id: "u4", name: "Yuki Tanaka", email: "yuki@example.com", avatarUrl: "https://api.dicebear.com/7.x/notionists/svg?seed=yuki", headline: "Design Thinker", bio: "Human-centered everything.", role: UserRole.GAMECHANGER, xp: 640, contributionIndex: 55 },
 ];
 
-// ─── Topics ──────────────────────────────────────────────────
+// ─── Topics (Houses) ─────────────────────────────────────────
 export const topics: Topic[] = [
-  { id: "t1", name: "Climate Action", slug: "climate-action" },
-  { id: "t2", name: "Education", slug: "education" },
-  { id: "t3", name: "Open Source", slug: "open-source" },
-  { id: "t4", name: "Social Inclusion", slug: "social-inclusion" },
-  { id: "t5", name: "Urban Mobility", slug: "urban-mobility" },
+  { id: "t1", name: "New Agriculture", slug: "new-agriculture" },
+  { id: "t2", name: "Arts & Culture", slug: "arts-culture" },
+  { id: "t3", name: "Bioregions", slug: "bioregions" },
+  { id: "t4", name: "Carbon Capture", slug: "carbon-capture" },
+  { id: "t5", name: "Commons & DAO", slug: "commons-dao" },
+  { id: "t6", name: "Complex Systems", slug: "complex-systems" },
+  { id: "t7", name: "CSR", slug: "csr" },
+  { id: "t8", name: "Energy", slug: "energy" },
+  { id: "t9", name: "AI", slug: "ai" },
+  { id: "t10", name: "New Economic Models", slug: "new-economic-models" },
+  { id: "t11", name: "New Gatherings", slug: "new-gatherings" },
+  { id: "t12", name: "Governance", slug: "governance" },
+  { id: "t13", name: "Healthcare", slug: "healthcare" },
+  { id: "t14", name: "Hosting & Facilitation", slug: "hosting-facilitation" },
+  { id: "t15", name: "Impact Real Estate", slug: "impact-real-estate" },
+  { id: "t16", name: "Investments & Philanthropy", slug: "investments-philanthropy" },
+  { id: "t17", name: "Land Regeneration", slug: "land-regeneration" },
+  { id: "t18", name: "Leadership", slug: "leadership" },
+  { id: "t19", name: "Metrics", slug: "metrics" },
+  { id: "t20", name: "Narratives & Storytelling", slug: "narratives-storytelling" },
+  { id: "t21", name: "Open Data & Technology", slug: "open-data-technology" },
+  { id: "t22", name: "Regenerative Crypto", slug: "regenerative-crypto" },
+  { id: "t23", name: "Symbiotic & the Living", slug: "symbiotic-living" },
+  { id: "t24", name: "Territorial Innovation", slug: "territorial-innovation" },
+  { id: "t25", name: "Third Spaces", slug: "third-spaces" },
+  { id: "t26", name: "Water & Soils", slug: "water-soils" },
 ];
 
 // ─── Territories ─────────────────────────────────────────────
 export const territories: Territory[] = [
-  { id: "tr1", name: "Paris", level: TerritoryLevel.TOWN },
-  { id: "tr2", name: "Île-de-France", level: TerritoryLevel.REGION },
+  { id: "tr1", name: "Joigny", level: TerritoryLevel.TOWN },
+  { id: "tr2", name: "Burgundy", level: TerritoryLevel.REGION },
   { id: "tr3", name: "France", level: TerritoryLevel.NATIONAL },
-  { id: "tr4", name: "Barcelona", level: TerritoryLevel.TOWN },
-  { id: "tr5", name: "Remote / Global", level: TerritoryLevel.OTHER },
+  { id: "tr4", name: "Belgium", level: TerritoryLevel.NATIONAL },
+  { id: "tr5", name: "Europe", level: TerritoryLevel.OTHER },
+  { id: "tr6", name: "Remote / Global", level: TerritoryLevel.OTHER },
+  { id: "tr7", name: "Paris", level: TerritoryLevel.TOWN },
+  { id: "tr8", name: "Île-de-France", level: TerritoryLevel.REGION },
+  { id: "tr9", name: "Barcelona", level: TerritoryLevel.TOWN },
 ];
 
 // ─── Guilds ──────────────────────────────────────────────────
@@ -60,35 +85,35 @@ export const guildMembers: GuildMember[] = [
 
 // ─── Guild Topics & Territories ──────────────────────────────
 export const guildTopics: GuildTopic[] = [
-  { id: "gt1", guildId: "g1", topicId: "t1" },
-  { id: "gt2", guildId: "g1", topicId: "t3" },
-  { id: "gt3", guildId: "g2", topicId: "t2" },
-  { id: "gt4", guildId: "g3", topicId: "t3" },
-  { id: "gt5", guildId: "g3", topicId: "t4" },
-  { id: "gt6", guildId: "g4", topicId: "t5" },
+  { id: "gt1", guildId: "g1", topicId: "t4" },   // Carbon Capture
+  { id: "gt2", guildId: "g1", topicId: "t21" },  // Open Data & Technology
+  { id: "gt3", guildId: "g2", topicId: "t2" },   // Arts & Culture
+  { id: "gt4", guildId: "g3", topicId: "t21" },  // Open Data & Technology
+  { id: "gt5", guildId: "g3", topicId: "t5" },   // Commons & DAO
+  { id: "gt6", guildId: "g4", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const guildTerritories: GuildTerritory[] = [
-  { id: "gtr1", guildId: "g1", territoryId: "tr1" },
-  { id: "gtr2", guildId: "g1", territoryId: "tr5" },
-  { id: "gtr3", guildId: "g2", territoryId: "tr3" },
-  { id: "gtr4", guildId: "g3", territoryId: "tr2" },
-  { id: "gtr5", guildId: "g4", territoryId: "tr4" },
+  { id: "gtr1", guildId: "g1", territoryId: "tr7" },  // Paris
+  { id: "gtr2", guildId: "g1", territoryId: "tr6" },  // Remote / Global
+  { id: "gtr3", guildId: "g2", territoryId: "tr3" },  // France
+  { id: "gtr4", guildId: "g3", territoryId: "tr8" },  // Île-de-France
+  { id: "gtr5", guildId: "g4", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── User Topics & Territories ───────────────────────────────
 export const userTopics: UserTopic[] = [
-  { id: "ut1", userId: "u1", topicId: "t1" },
-  { id: "ut2", userId: "u1", topicId: "t3" },
-  { id: "ut3", userId: "u2", topicId: "t5" },
-  { id: "ut4", userId: "u3", topicId: "t2" },
-  { id: "ut5", userId: "u3", topicId: "t3" },
+  { id: "ut1", userId: "u1", topicId: "t4" },   // Carbon Capture
+  { id: "ut2", userId: "u1", topicId: "t21" },  // Open Data & Technology
+  { id: "ut3", userId: "u2", topicId: "t24" },  // Territorial Innovation
+  { id: "ut4", userId: "u3", topicId: "t2" },   // Arts & Culture
+  { id: "ut5", userId: "u3", topicId: "t21" },  // Open Data & Technology
 ];
 
 export const userTerritories: UserTerritory[] = [
-  { id: "utr1", userId: "u1", territoryId: "tr1" },
-  { id: "utr2", userId: "u2", territoryId: "tr4" },
-  { id: "utr3", userId: "u3", territoryId: "tr2" },
+  { id: "utr1", userId: "u1", territoryId: "tr7" },  // Paris
+  { id: "utr2", userId: "u2", territoryId: "tr9" },  // Barcelona
+  { id: "utr3", userId: "u3", territoryId: "tr8" },  // Île-de-France
 ];
 
 // ─── Companies ───────────────────────────────────────────────
@@ -99,15 +124,15 @@ export const companies: Company[] = [
 ];
 
 export const companyTopics: CompanyTopic[] = [
-  { id: "ct1", companyId: "co1", topicId: "t1" },
-  { id: "ct2", companyId: "co2", topicId: "t2" },
-  { id: "ct3", companyId: "co3", topicId: "t5" },
+  { id: "ct1", companyId: "co1", topicId: "t4" },   // Carbon Capture
+  { id: "ct2", companyId: "co2", topicId: "t2" },   // Arts & Culture
+  { id: "ct3", companyId: "co3", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const companyTerritories: CompanyTerritory[] = [
-  { id: "ctr1", companyId: "co1", territoryId: "tr1" },
-  { id: "ctr2", companyId: "co2", territoryId: "tr3" },
-  { id: "ctr3", companyId: "co3", territoryId: "tr4" },
+  { id: "ctr1", companyId: "co1", territoryId: "tr7" },  // Paris
+  { id: "ctr2", companyId: "co2", territoryId: "tr3" },  // France
+  { id: "ctr3", companyId: "co3", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── Quests ──────────────────────────────────────────────────
@@ -122,21 +147,21 @@ export const quests: Quest[] = [
 
 // ─── Quest Topics & Territories ──────────────────────────────
 export const questTopics: QuestTopic[] = [
-  { id: "qt1", questId: "q1", topicId: "t1" },
-  { id: "qt2", questId: "q1", topicId: "t3" },
-  { id: "qt3", questId: "q2", topicId: "t2" },
-  { id: "qt4", questId: "q3", topicId: "t3" },
-  { id: "qt5", questId: "q3", topicId: "t4" },
-  { id: "qt6", questId: "q4", topicId: "t5" },
-  { id: "qt7", questId: "q5", topicId: "t1" },
+  { id: "qt1", questId: "q1", topicId: "t4" },   // Carbon Capture
+  { id: "qt2", questId: "q1", topicId: "t21" },  // Open Data & Technology
+  { id: "qt3", questId: "q2", topicId: "t2" },   // Arts & Culture
+  { id: "qt4", questId: "q3", topicId: "t21" },  // Open Data & Technology
+  { id: "qt5", questId: "q3", topicId: "t5" },   // Commons & DAO
+  { id: "qt6", questId: "q4", topicId: "t24" },  // Territorial Innovation
+  { id: "qt7", questId: "q5", topicId: "t4" },   // Carbon Capture
 ];
 
 export const questTerritories: QuestTerritory[] = [
-  { id: "qtr1", questId: "q1", territoryId: "tr5" },
-  { id: "qtr2", questId: "q2", territoryId: "tr3" },
-  { id: "qtr3", questId: "q3", territoryId: "tr2" },
-  { id: "qtr4", questId: "q4", territoryId: "tr4" },
-  { id: "qtr5", questId: "q5", territoryId: "tr1" },
+  { id: "qtr1", questId: "q1", territoryId: "tr6" },  // Remote / Global
+  { id: "qtr2", questId: "q2", territoryId: "tr3" },  // France
+  { id: "qtr3", questId: "q3", territoryId: "tr8" },  // Île-de-France
+  { id: "qtr4", questId: "q4", territoryId: "tr9" },  // Barcelona
+  { id: "qtr5", questId: "q5", territoryId: "tr7" },  // Paris
 ];
 
 // ─── Quest Participants ──────────────────────────────────────
@@ -222,20 +247,20 @@ export const services: Service[] = [
 ];
 
 export const serviceTopics: ServiceTopic[] = [
-  { id: "st1", serviceId: "svc1", topicId: "t1" },
-  { id: "st2", serviceId: "svc2", topicId: "t3" },
-  { id: "st3", serviceId: "svc2", topicId: "t4" },
-  { id: "st4", serviceId: "svc3", topicId: "t2" },
-  { id: "st5", serviceId: "svc4", topicId: "t1" },
-  { id: "st6", serviceId: "svc5", topicId: "t5" },
+  { id: "st1", serviceId: "svc1", topicId: "t4" },   // Carbon Capture
+  { id: "st2", serviceId: "svc2", topicId: "t21" },  // Open Data & Technology
+  { id: "st3", serviceId: "svc2", topicId: "t5" },   // Commons & DAO
+  { id: "st4", serviceId: "svc3", topicId: "t2" },   // Arts & Culture
+  { id: "st5", serviceId: "svc4", topicId: "t4" },   // Carbon Capture
+  { id: "st6", serviceId: "svc5", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const serviceTerritories: ServiceTerritory[] = [
-  { id: "str1", serviceId: "svc1", territoryId: "tr5" },
-  { id: "str2", serviceId: "svc2", territoryId: "tr2" },
-  { id: "str3", serviceId: "svc3", territoryId: "tr5" },
-  { id: "str4", serviceId: "svc4", territoryId: "tr1" },
-  { id: "str5", serviceId: "svc5", territoryId: "tr4" },
+  { id: "str1", serviceId: "svc1", territoryId: "tr6" },  // Remote / Global
+  { id: "str2", serviceId: "svc2", territoryId: "tr8" },  // Île-de-France
+  { id: "str3", serviceId: "svc3", territoryId: "tr6" },  // Remote / Global
+  { id: "str4", serviceId: "svc4", territoryId: "tr7" },  // Paris
+  { id: "str5", serviceId: "svc5", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── Bookings ────────────────────────────────────────────────
@@ -314,16 +339,16 @@ export function getBookingsForCompany(companyId: string) {
 
 // ─── Topic Stewards & Features ───────────────────────────────
 export const topicStewards: TopicSteward[] = [
-  { id: "ts1", topicId: "t1", userId: "u1", role: TopicStewardRole.STEWARD, createdAt: "2024-12-01T10:00:00Z" },
-  { id: "ts2", topicId: "t2", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2024-12-05T09:00:00Z" },
-  { id: "ts3", topicId: "t1", userId: "u3", role: TopicStewardRole.CURATOR, createdAt: "2025-01-10T11:00:00Z" },
-  { id: "ts4", topicId: "t3", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2025-01-15T14:00:00Z" },
+  { id: "ts1", topicId: "t4", userId: "u1", role: TopicStewardRole.STEWARD, createdAt: "2024-12-01T10:00:00Z" },   // Carbon Capture
+  { id: "ts2", topicId: "t2", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2024-12-05T09:00:00Z" },   // Arts & Culture
+  { id: "ts3", topicId: "t4", userId: "u3", role: TopicStewardRole.CURATOR, createdAt: "2025-01-10T11:00:00Z" },   // Carbon Capture
+  { id: "ts4", topicId: "t21", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2025-01-15T14:00:00Z" },  // Open Data & Technology
 ];
 
 export const topicFeatures: TopicFeature[] = [
-  { id: "tf1", topicId: "t1", targetType: TopicFeatureTargetType.QUEST, targetId: "q1", addedByUserId: "u1", createdAt: "2025-01-22T10:00:00Z" },
-  { id: "tf2", topicId: "t1", targetType: TopicFeatureTargetType.GUILD, targetId: "g1", addedByUserId: "u1", createdAt: "2025-01-23T09:00:00Z" },
-  { id: "tf3", topicId: "t2", targetType: TopicFeatureTargetType.QUEST, targetId: "q2", addedByUserId: "u3", createdAt: "2025-02-01T12:00:00Z" },
+  { id: "tf1", topicId: "t4", targetType: TopicFeatureTargetType.QUEST, targetId: "q1", addedByUserId: "u1", createdAt: "2025-01-22T10:00:00Z" },   // Carbon Capture
+  { id: "tf2", topicId: "t4", targetType: TopicFeatureTargetType.GUILD, targetId: "g1", addedByUserId: "u1", createdAt: "2025-01-23T09:00:00Z" },   // Carbon Capture
+  { id: "tf3", topicId: "t2", targetType: TopicFeatureTargetType.QUEST, targetId: "q2", addedByUserId: "u3", createdAt: "2025-02-01T12:00:00Z" },   // Arts & Culture
 ];
 
 export function getStewardsForTopic(topicId: string) {

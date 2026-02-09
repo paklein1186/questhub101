@@ -4,9 +4,12 @@ import { NotificationType, CommentTargetType } from "@/types/enums";
 import {
   notifications as seedNotifications,
   guilds, quests, questUpdates, questParticipants,
-  getUserById,
+  getUserById, getServiceById,
 } from "@/data/mock";
 import { QuestParticipantStatus } from "@/types/enums";
+import {
+  welcomeEmail, bookingRequestedEmail, bookingStatusEmail, sendEmail,
+} from "@/services/emailTemplates";
 
 interface NotificationStore {
   notifications: Notification[];
@@ -193,9 +196,23 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [currentUserId, addNotification]);
 
-  const notifyBooking = useCallback(({ bookingId, serviceTitle, requesterName, recipientUserId, action }: {
-    bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string;
+  const notifyBooking = useCallback(({ bookingId, serviceTitle, requesterName, recipientUserId, action, serviceId, requesterId }: {
+    bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string; serviceId?: string; requesterId?: string;
   }) => {
+    // Send email trigger
+    const recipient = getUserById(recipientUserId);
+    const service = serviceId ? getServiceById(serviceId) : undefined;
+    if (recipient && service) {
+      if (action === "requested" && requesterId) {
+        const requester = getUserById(requesterId);
+        if (requester) {
+          sendEmail(bookingRequestedEmail(recipient, requester, service, { id: bookingId, serviceId: service.id, requesterId: requester.id, status: "REQUESTED" as any, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any));
+        }
+      } else if (action === "accepted" || action === "declined") {
+        sendEmail(bookingStatusEmail(recipient, service, { id: bookingId, serviceId: service.id, requesterId: requesterId ?? "", status: action.toUpperCase() as any, createdAt: "", updatedAt: "" } as any, action.toUpperCase() as "ACCEPTED" | "DECLINED"));
+      }
+    }
+
     if (recipientUserId !== currentUserId) return;
     addNotification({
       userId: recipientUserId,
