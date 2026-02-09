@@ -30,7 +30,7 @@ export default function ExploreHub() {
         <p className="text-muted-foreground mt-1">Discover quests, guilds, pods, services, and companies.</p>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="guilds">Guilds</TabsTrigger>
