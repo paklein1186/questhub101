@@ -17,6 +17,8 @@ import {
   CompanySize,
   TopicStewardRole,
   TopicFeatureTargetType,
+  OnlineLocationType,
+  PaymentStatus,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────

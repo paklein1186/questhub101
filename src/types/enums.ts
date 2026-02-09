@@ -88,10 +88,26 @@ export enum PodMemberRole {
 
 export enum BookingStatus {
   REQUESTED = "REQUESTED",
+  PENDING_PAYMENT = "PENDING_PAYMENT",
+  CONFIRMED = "CONFIRMED",
   ACCEPTED = "ACCEPTED",
   DECLINED = "DECLINED",
-  COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
+  COMPLETED = "COMPLETED",
+}
+
+export enum OnlineLocationType {
+  JITSI = "JITSI",
+  ZOOM = "ZOOM",
+  OTHER = "OTHER",
+}
+
+export enum PaymentStatus {
+  NOT_REQUIRED = "NOT_REQUIRED",
+  PENDING = "PENDING",
+  PAID = "PAID",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
 }
 
 export enum CompanySize {
