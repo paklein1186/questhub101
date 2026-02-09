@@ -4,12 +4,14 @@ import {
   Service, ServiceTopic, ServiceTerritory, Booking,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
+  TopicSteward, TopicFeature,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
+  TopicStewardRole, TopicFeatureTargetType,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -308,4 +310,31 @@ export function getQuestsForCompany(companyId: string) {
 }
 export function getBookingsForCompany(companyId: string) {
   return bookings.filter(b => b.companyId === companyId);
+}
+
+// ─── Topic Stewards & Features ───────────────────────────────
+export const topicStewards: TopicSteward[] = [
+  { id: "ts1", topicId: "t1", userId: "u1", role: TopicStewardRole.STEWARD, createdAt: "2024-12-01T10:00:00Z" },
+  { id: "ts2", topicId: "t2", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2024-12-05T09:00:00Z" },
+  { id: "ts3", topicId: "t1", userId: "u3", role: TopicStewardRole.CURATOR, createdAt: "2025-01-10T11:00:00Z" },
+  { id: "ts4", topicId: "t3", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2025-01-15T14:00:00Z" },
+];
+
+export const topicFeatures: TopicFeature[] = [
+  { id: "tf1", topicId: "t1", targetType: TopicFeatureTargetType.QUEST, targetId: "q1", addedByUserId: "u1", createdAt: "2025-01-22T10:00:00Z" },
+  { id: "tf2", topicId: "t1", targetType: TopicFeatureTargetType.GUILD, targetId: "g1", addedByUserId: "u1", createdAt: "2025-01-23T09:00:00Z" },
+  { id: "tf3", topicId: "t2", targetType: TopicFeatureTargetType.QUEST, targetId: "q2", addedByUserId: "u3", createdAt: "2025-02-01T12:00:00Z" },
+];
+
+export function getStewardsForTopic(topicId: string) {
+  return topicStewards.filter(ts => ts.topicId === topicId).map(ts => ({ ...ts, user: getUserById(ts.userId) }));
+}
+export function getFeaturesForTopic(topicId: string) {
+  return topicFeatures.filter(tf => tf.topicId === topicId);
+}
+export function isTopicSteward(topicId: string, userId: string) {
+  return topicStewards.some(ts => ts.topicId === topicId && ts.userId === userId);
+}
+export function getTopicBySlug(slug: string) {
+  return topics.find(t => t.slug === slug);
 }
