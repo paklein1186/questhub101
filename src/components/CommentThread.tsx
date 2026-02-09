@@ -22,6 +22,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { notifyComment, notifyUpvote } = useNotifications();
+  const { awardXp } = useXP();
 
   const [comments, setComments] = useState<Comment[]>(() =>
     allMockComments
