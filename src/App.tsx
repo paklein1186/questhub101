@@ -44,6 +44,8 @@ const App = () => (
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/guilds" element={<GuildsList />} />
               <Route path="/guilds/:id" element={<GuildDetail />} />
+              <Route path="/guilds/:id/edit" element={<GuildEdit />} />
+              <Route path="/my-guilds" element={<MyGuilds />} />
               <Route path="/quests" element={<QuestsMarketplace />} />
               <Route path="/quests/:id" element={<QuestDetail />} />
               <Route path="/users/:id" element={<UserProfile />} />
