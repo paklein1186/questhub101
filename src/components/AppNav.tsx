@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Shield, Compass, Zap } from "lucide-react";
+import { Home, Shield, Compass, Zap, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const links = [
   { to: "/", label: "Feed", icon: Home },
@@ -10,6 +11,7 @@ const links = [
 
 export function AppNav() {
   const { pathname } = useLocation();
+  const { unreadCount } = useNotifications();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -37,6 +39,22 @@ export function AppNav() {
               </Link>
             );
           })}
+          <Link
+            to="/notifications"
+            className={cn(
+              "relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ml-1",
+              pathname === "/notifications"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
         </nav>
       </div>
     </header>

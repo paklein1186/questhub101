@@ -1,12 +1,13 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThumbsUp, MessageSquare, CornerDownRight, Send } from "lucide-react";
+import { ThumbsUp, MessageSquare, Send } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CommentTargetType } from "@/types/enums";
 import { comments as allMockComments, commentUpvotes as allMockUpvotes, getUserById } from "@/data/mock";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import type { Comment, CommentUpvote } from "@/types";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +20,8 @@ interface CommentThreadProps {
 export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { notifyComment, notifyUpvote } = useNotifications();
 
-  // Local state copies so we can mutate without touching the global mock arrays
   const [comments, setComments] = useState<Comment[]>(() =>
     allMockComments
       .filter((c) => c.targetType === targetType && c.targetId === targetId)
@@ -46,24 +47,35 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
       toast({ title: "Already upvoted", description: "You can only upvote once per comment." });
       return;
     }
-    const newUpvote: CommentUpvote = {
+    const comment = comments.find((c) => c.id === commentId);
+    const newUpvoteRecord: CommentUpvote = {
       id: `cu-${Date.now()}`,
       commentId,
       userId: currentUser.id,
       createdAt: new Date().toISOString(),
     };
-    setUpvotes((prev) => [...prev, newUpvote]);
+    setUpvotes((prev) => [...prev, newUpvoteRecord]);
     setComments((prev) =>
       prev.map((c) => (c.id === commentId ? { ...c, upvoteCount: c.upvoteCount + 1 } : c))
     );
+    // Notify the comment author
+    if (comment) {
+      notifyUpvote({
+        upvoterId: currentUser.id,
+        commentAuthorId: comment.authorId,
+        commentId,
+        commentSnippet: comment.content,
+      });
+    }
   };
 
   const addComment = (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
     if (!content) return;
 
+    const commentId = `c-${Date.now()}`;
     const comment: Comment = {
-      id: `c-${Date.now()}`,
+      id: commentId,
       content,
       createdAt: new Date().toISOString(),
       authorId: currentUser.id,
@@ -80,6 +92,15 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
       setNewComment("");
     }
     toast({ title: "Comment added" });
+
+    // Notify the target owner
+    notifyComment({
+      commentAuthorId: currentUser.id,
+      targetType,
+      targetId,
+      commentId,
+      commentSnippet: content,
+    });
   };
 
   const renderComment = (comment: Comment, isReply = false) => {
@@ -134,7 +155,6 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
           </div>
         </div>
 
-        {/* Reply input */}
         <AnimatePresence>
           {replyingTo === comment.id && (
             <motion.div
@@ -176,7 +196,6 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
           )}
         </AnimatePresence>
 
-        {/* Nested replies */}
         {replies.length > 0 && (
           <div className="mt-2 space-y-2">
             {replies.map((reply) => renderComment(reply, true))}
@@ -188,13 +207,11 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   return (
     <div className="space-y-4">
-      {/* Comment list */}
       {topLevel.length === 0 && (
         <p className="text-sm text-muted-foreground italic py-4">No comments yet. Start the conversation!</p>
       )}
       {topLevel.map((comment) => renderComment(comment))}
 
-      {/* New top-level comment */}
       <div className="pt-4 border-t border-border">
         <div className="flex gap-3">
           <Avatar className="h-8 w-8 mt-1">
