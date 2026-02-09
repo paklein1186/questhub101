@@ -1,22 +1,30 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
-  CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle,
+  CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, FollowTargetType, GuildMemberRole } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
+import type { Service } from "@/types";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
   achievements as allAchievements, guildMembers, podMembers, pods, getQuestById,
+  services,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 
@@ -24,7 +32,18 @@ export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
   const guild = getGuildById(id!);
   const currentUser = useCurrentUser();
+  const { toast } = useToast();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
+  const [, forceUpdate] = useState(0);
+  const rerender = () => forceUpdate((n) => n + 1);
+
+  // Service creation form state
+  const [createSvcOpen, setCreateSvcOpen] = useState(false);
+  const [svcTitle, setSvcTitle] = useState("");
+  const [svcDesc, setSvcDesc] = useState("");
+  const [svcDuration, setSvcDuration] = useState("60");
+  const [svcPrice, setSvcPrice] = useState("0");
+  const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
@@ -52,6 +71,29 @@ export default function GuildDetail() {
   const guildAchievements = allAchievements
     .filter((a) => guildQuestIds.has(a.questId))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const createGuildService = () => {
+    if (!svcTitle.trim()) return;
+    const newSvc: Service = {
+      id: `svc-${Date.now()}`,
+      title: svcTitle.trim(),
+      description: svcDesc.trim(),
+      providerGuildId: guild.id,
+      durationMinutes: Number(svcDuration) || 60,
+      priceAmount: Number(svcPrice) || 0,
+      priceCurrency: "EUR",
+      onlineLocationType: svcLocationType,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    services.push(newSvc);
+    setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
+    setSvcLocationType(OnlineLocationType.JITSI);
+    setCreateSvcOpen(false);
+    rerender();
+    toast({ title: "Guild service created" });
+  };
 
   return (
     <PageShell>
@@ -108,7 +150,7 @@ export default function GuildDetail() {
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
           {guildPods.length > 0 && <TabsTrigger value="pods"><CircleDot className="h-4 w-4 mr-1" /> Pods ({guildPods.length})</TabsTrigger>}
-          {guildServices.length > 0 && <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({guildServices.length})</TabsTrigger>}
+          <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({guildServices.length})</TabsTrigger>
           {guildAchievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
@@ -206,30 +248,71 @@ export default function GuildDetail() {
         )}
 
         {/* Services */}
-        {guildServices.length > 0 && (
-          <TabsContent value="services" className="mt-6 space-y-3">
-            {guildServices.map((svc) => (
-              <Link
-                key={svc.id}
-                to={`/services/${svc.id}`}
-                className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="font-display font-semibold">{svc.title}</h4>
-                  <div className="flex items-center gap-2">
-                    {svc.durationMinutes && <span className="text-xs text-muted-foreground">{svc.durationMinutes} min</span>}
-                    {svc.priceAmount != null && (
-                      <Badge className="bg-primary/10 text-primary border-0">
-                        {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
-                      </Badge>
-                    )}
+        <TabsContent value="services" className="mt-6 space-y-3">
+          {isAdmin && (
+            <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create guild service</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create Guild Service</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <Input value={svcTitle} onChange={(e) => setSvcTitle(e.target.value)} placeholder="e.g. Mentoring Session" maxLength={120} />
                   </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Description</label>
+                    <Textarea value={svcDesc} onChange={(e) => setSvcDesc(e.target.value)} placeholder="What this service includes…" maxLength={500} className="resize-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Duration (min)</label>
+                      <Input type="number" value={svcDuration} onChange={(e) => setSvcDuration(e.target.value)} min={15} max={480} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Price (€)</label>
+                      <Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} min={0} step={5} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Location type</label>
+                    <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
+                        <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
+                        <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
-              </Link>
-            ))}
-          </TabsContent>
-        )}
+              </DialogContent>
+            </Dialog>
+          )}
+          {guildServices.map((svc) => (
+            <Link
+              key={svc.id}
+              to={`/services/${svc.id}`}
+              className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="font-display font-semibold">{svc.title}</h4>
+                <div className="flex items-center gap-2">
+                  {svc.durationMinutes && <span className="text-xs text-muted-foreground">{svc.durationMinutes} min</span>}
+                  {svc.priceAmount != null && (
+                    <Badge className="bg-primary/10 text-primary border-0">
+                      {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
+            </Link>
+          ))}
+          {guildServices.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
+        </TabsContent>
 
         {/* Achievements */}
         {guildAchievements.length > 0 && (
