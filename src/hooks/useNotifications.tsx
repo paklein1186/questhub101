@@ -4,9 +4,12 @@ import { NotificationType, CommentTargetType } from "@/types/enums";
 import {
   notifications as seedNotifications,
   guilds, quests, questUpdates, questParticipants,
-  getUserById,
+  getUserById, getServiceById,
 } from "@/data/mock";
 import { QuestParticipantStatus } from "@/types/enums";
+import {
+  welcomeEmail, bookingRequestedEmail, bookingStatusEmail, sendEmail,
+} from "@/services/emailTemplates";
 
 interface NotificationStore {
   notifications: Notification[];
