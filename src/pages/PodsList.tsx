@@ -24,7 +24,7 @@ const fadeUp = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06 } }),
 };
 
-export default function PodsList() {
+export default function PodsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const [typeFilter, setTypeFilter] = useState("ALL");
