@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import GuildsList from "./pages/GuildsList";
 import GuildDetail from "./pages/GuildDetail";
+import GuildEdit from "./pages/GuildEdit";
+import MyGuilds from "./pages/MyGuilds";
 import QuestsMarketplace from "./pages/QuestsMarketplace";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
@@ -42,6 +44,8 @@ const App = () => (
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/guilds" element={<GuildsList />} />
               <Route path="/guilds/:id" element={<GuildDetail />} />
+              <Route path="/guilds/:id/edit" element={<GuildEdit />} />
+              <Route path="/my-guilds" element={<MyGuilds />} />
               <Route path="/quests" element={<QuestsMarketplace />} />
               <Route path="/quests/:id" element={<QuestDetail />} />
               <Route path="/users/:id" element={<UserProfile />} />
