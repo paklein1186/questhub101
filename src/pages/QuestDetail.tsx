@@ -1,18 +1,26 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus } from "@/types/enums";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
   getParticipantsForQuest, getUpdatesForQuest,
-  getUserById, getGuildById,
+  getUserById, getGuildById, users, achievements as allAchievements,
 } from "@/data/mock";
+import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
 const updateIcons: Record<string, typeof Sparkles> = {
@@ -25,6 +33,8 @@ const updateIcons: Record<string, typeof Sparkles> = {
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>();
   const quest = getQuestById(id!);
+  const currentUser = useCurrentUser();
+  const { toast } = useToast();
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
 
   const guild = getGuildById(quest.guildId);
@@ -33,6 +43,30 @@ export default function QuestDetail() {
   const territories = getTerritoriesForQuest(quest.id);
   const participants = getParticipantsForQuest(quest.id);
   const updates = getUpdatesForQuest(quest.id);
+
+  const isOwner = currentUser.id === quest.createdByUserId;
+  const [achOpen, setAchOpen] = useState(false);
+  const [achUserId, setAchUserId] = useState("");
+  const [achTitle, setAchTitle] = useState("");
+  const [achDesc, setAchDesc] = useState("");
+
+  const createAchievement = () => {
+    if (!achTitle.trim() || !achUserId) return;
+    const ach: Achievement = {
+      id: `a-${Date.now()}`,
+      userId: achUserId,
+      questId: quest.id,
+      title: achTitle.trim(),
+      description: achDesc.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+    allAchievements.push(ach);
+    setAchTitle("");
+    setAchDesc("");
+    setAchUserId("");
+    setAchOpen(false);
+    toast({ title: "Achievement created!", description: `Awarded to ${getUserById(achUserId)?.name}` });
+  };
 
   return (
     <PageShell>
@@ -61,6 +95,46 @@ export default function QuestDetail() {
           {topics.map((t) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
           {territories.map((t) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
+
+        {/* Create Achievement button for quest owner */}
+        {isOwner && (
+          <div className="mt-4">
+            <Dialog open={achOpen} onOpenChange={setAchOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <Trophy className="h-4 w-4 mr-1" /> Create Achievement
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Award Achievement for "{quest.title}"</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Award to</label>
+                    <Select value={achUserId} onValueChange={setAchUserId}>
+                      <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
+                      <SelectContent>
+                        {users.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <Input value={achTitle} onChange={(e) => setAchTitle(e.target.value)} placeholder="e.g. Data Pipeline Hero" maxLength={100} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Description</label>
+                    <Textarea value={achDesc} onChange={(e) => setAchDesc(e.target.value)} placeholder="What was accomplished?" maxLength={300} className="resize-none" />
+                  </div>
+                  <Button onClick={createAchievement} disabled={!achTitle.trim() || !achUserId} className="w-full">
+                    <Trophy className="h-4 w-4 mr-1" /> Award Achievement
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
       </motion.div>
 
       <Tabs defaultValue="overview">
@@ -124,7 +198,6 @@ export default function QuestDetail() {
                     <p className="text-sm text-muted-foreground mt-1">{update.content}</p>
                   </div>
                 </div>
-                {/* Embedded comments for this QuestUpdate */}
                 <div className="ml-12 pt-3 border-t border-border">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Comments on this update</p>
                   <CommentThread targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />

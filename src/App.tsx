@@ -37,6 +37,7 @@ const App = () => (
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/achievements/:id" element={<AchievementDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
