@@ -15,6 +15,8 @@ import UserProfile from "./pages/UserProfile";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
+import PodsList from "./pages/PodsList";
+import PodDetail from "./pages/PodDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
