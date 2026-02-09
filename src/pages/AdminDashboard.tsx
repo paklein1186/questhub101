@@ -37,6 +37,7 @@ function UsersTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editXp, setEditXp] = useState(0);
   const [editCI, setEditCI] = useState(0);
+  const { setXpManual } = useXP();
 
   const filtered = usersState.filter((u) => {
     if (roleFilter !== "all" && u.role !== roleFilter) return false;
