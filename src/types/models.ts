@@ -315,6 +315,7 @@ export interface Booking {
   requesterId: string;
   providerUserId?: string;
   providerGuildId?: string;
+  companyId?: string;
   requestedDateTime?: string;
   status: BookingStatus;
   notes?: string;
@@ -325,4 +326,40 @@ export interface Booking {
   requester?: User;
   providerUser?: User;
   providerGuild?: Guild;
+  company?: Company;
+}
+
+// ─── Companies ───────────────────────────────────────────────
+
+export interface Company {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  description?: string;
+  sector?: string;
+  size?: CompanySize;
+  websiteUrl?: string;
+  contactUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  contactUser?: User;
+  companyTopics?: CompanyTopic[];
+  companyTerritories?: CompanyTerritory[];
+}
+
+export interface CompanyTopic {
+  id: string;
+  companyId: string;
+  topicId: string;
+  company?: Company;
+  topic?: Topic;
+}
+
+export interface CompanyTerritory {
+  id: string;
+  companyId: string;
+  territoryId: string;
+  company?: Company;
+  territory?: Territory;
 }
