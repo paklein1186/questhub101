@@ -58,6 +58,7 @@ export default function QuestDetail() {
   const territories = getTerritoriesForQuest(quest.id);
   const participants = getParticipantsForQuest(quest.id);
   const updates = getUpdatesForQuest(quest.id);
+  const questPods = getPodsForQuest(quest.id);
   const isOwner = currentUser.id === quest.createdByUserId;
 
   const createAchievement = () => {
