@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Star, MapPin, Hash, Plus } from "lucide-react";
+import { ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useFollow } from "@/hooks/useFollow";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
@@ -30,6 +31,7 @@ export default function UserProfile() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { awardXp } = useXP();
+  const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
@@ -87,8 +89,12 @@ export default function UserProfile() {
               <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
             </div>
           </div>
+          {!isOwnProfile && (
+            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow} className="mt-2">
+              {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+            </Button>
+          )}
         </div>
-        {user.bio && <p className="text-muted-foreground max-w-2xl mb-4">{user.bio}</p>}
         <div className="flex flex-wrap gap-1.5 mb-2">
           {topics.map((t) => (
             <Badge key={t.id} variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>

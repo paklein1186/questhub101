@@ -67,3 +67,9 @@ export enum NotificationType {
   INVITE = "INVITE",
   QUEST_UPDATE = "QUEST_UPDATE",
 }
+
+export enum FollowTargetType {
+  USER = "USER",
+  GUILD = "GUILD",
+  QUEST = "QUEST",
+}

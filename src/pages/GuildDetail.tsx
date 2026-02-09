@@ -1,13 +1,14 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Users, Compass, ArrowLeft } from "lucide-react";
+import { Shield, Users, Compass, ArrowLeft, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType } from "@/types/enums";
+import { useFollow } from "@/hooks/useFollow";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild, getQuestsForGuild, getUserById,
@@ -16,6 +17,7 @@ import {
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
   const guild = getGuildById(id!);
+  const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
@@ -42,6 +44,12 @@ export default function GuildDetail() {
           </div>
         </div>
         <p className="text-muted-foreground max-w-2xl">{guild.description}</p>
+        <div className="flex items-center gap-3 mt-3">
+          <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+            <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />
+            {isFollowing ? "Unfollow guild" : "Follow guild"}
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
           {territories.map((t) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}

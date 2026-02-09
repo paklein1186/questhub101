@@ -1,13 +1,13 @@
 import {
   User, Guild, GuildMember, Quest, QuestParticipant, QuestUpdate,
-  Topic, Territory, Comment, Achievement, Notification,
+  Topic, Territory, Comment, Achievement, Notification, Follow,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
-  TerritoryLevel, CommentTargetType, NotificationType,
+  TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -160,6 +160,16 @@ export const achievements: Achievement[] = [
 export const notifications: Notification[] = [
   { id: "n1", userId: "u1", type: NotificationType.COMMENT, data: { commentId: "c1", message: "Tomás commented on GreenTech Collective" }, isRead: false },
   { id: "n2", userId: "u3", type: NotificationType.QUEST_UPDATE, data: { questUpdateId: "qu3", message: "Milestone reached on Peer Tutoring Platform" }, isRead: true },
+];
+
+// ─── Follows ─────────────────────────────────────────────────
+export const follows: Follow[] = [
+  { id: "f1", followerId: "u1", targetType: FollowTargetType.USER, targetId: "u2", createdAt: "2025-01-18T10:00:00Z" },
+  { id: "f2", followerId: "u1", targetType: FollowTargetType.GUILD, targetId: "g2", createdAt: "2025-01-20T09:00:00Z" },
+  { id: "f3", followerId: "u1", targetType: FollowTargetType.QUEST, targetId: "q2", createdAt: "2025-01-22T14:00:00Z" },
+  { id: "f4", followerId: "u1", targetType: FollowTargetType.QUEST, targetId: "q4", createdAt: "2025-01-25T08:00:00Z" },
+  { id: "f5", followerId: "u2", targetType: FollowTargetType.USER, targetId: "u1", createdAt: "2025-01-19T11:00:00Z" },
+  { id: "f6", followerId: "u3", targetType: FollowTargetType.GUILD, targetId: "g1", createdAt: "2025-01-21T15:00:00Z" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────

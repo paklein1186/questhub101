@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Compass, ArrowRight, Sparkles, Megaphone, Star, Trophy } from "lucide-react";
+import { Shield, Compass, ArrowRight, Sparkles, Megaphone, Star, Trophy, Rss } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageShell } from "@/components/PageShell";
 import {
-  guilds, quests, questUpdates, achievements,
+  guilds, quests, questUpdates, achievements, follows,
   getTopicsForGuild, getTerritoriesForGuild,
-  getUserById, getQuestById,
+  getUserById, getQuestById, getGuildById,
 } from "@/data/mock";
-import { QuestUpdateType } from "@/types/enums";
+import { QuestUpdateType, FollowTargetType } from "@/types/enums";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatDistanceToNow } from "date-fns";
 
 const updateTypeIcon: Record<string, typeof Sparkles> = {
@@ -24,9 +25,38 @@ const fadeUp = {
 };
 
 export default function Index() {
+  const currentUser = useCurrentUser();
+
+  // Followed IDs by type
+  const myFollows = follows.filter((f) => f.followerId === currentUser.id);
+  const followedUserIds = new Set(myFollows.filter((f) => f.targetType === FollowTargetType.USER).map((f) => f.targetId));
+  const followedGuildIds = new Set(myFollows.filter((f) => f.targetType === FollowTargetType.GUILD).map((f) => f.targetId));
+  const followedQuestIds = new Set(myFollows.filter((f) => f.targetType === FollowTargetType.QUEST).map((f) => f.targetId));
+
+  // "From what you follow" feed items
+  type FeedItem = { type: "quest_update" | "achievement" | "quest"; id: string; createdAt: string; data: any };
+  const feedItems: FeedItem[] = [];
+
+  // Quest updates from followed quests
+  questUpdates
+    .filter((qu) => followedQuestIds.has(qu.questId))
+    .forEach((qu) => feedItems.push({ type: "quest_update", id: qu.id, createdAt: qu.createdAt, data: qu }));
+
+  // Achievements from followed users
+  achievements
+    .filter((a) => followedUserIds.has(a.userId))
+    .forEach((a) => feedItems.push({ type: "achievement", id: a.id, createdAt: a.createdAt, data: a }));
+
+  // Quests from followed guilds
+  quests
+    .filter((q) => followedGuildIds.has(q.guildId))
+    .forEach((q) => feedItems.push({ type: "quest", id: q.id, createdAt: "2025-01-20T00:00:00Z", data: q }));
+
+  feedItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Suggested sections (existing logic)
   const suggestedGuilds = guilds.filter((g) => g.isApproved).slice(0, 3);
   const suggestedQuests = quests.filter((q) => q.isFeatured);
-  const latestUpdates = [...questUpdates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4);
   const recentAchievements = [...achievements].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4);
 
   return (
@@ -42,6 +72,103 @@ export default function Index() {
         </motion.h1>
         <p className="mt-2 text-muted-foreground max-w-xl">Discover guilds, join quests, and track the latest updates from your community.</p>
       </section>
+
+      {/* From what you follow */}
+      {feedItems.length > 0 && (
+        <section className="mb-12">
+          <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
+            <Rss className="h-5 w-5 text-primary" /> From people, guilds and quests you follow
+          </h2>
+          <div className="space-y-3">
+            {feedItems.slice(0, 8).map((item, i) => {
+              if (item.type === "quest_update") {
+                const qu = item.data;
+                const author = getUserById(qu.authorId);
+                const quest = getQuestById(qu.questId);
+                const Icon = updateTypeIcon[qu.type];
+                return (
+                  <motion.div key={`qu-${item.id}`} custom={i} variants={fadeUp} initial="hidden" animate="show"
+                    className="flex items-start gap-4 rounded-xl border border-border bg-card p-4"
+                  >
+                    <Avatar className="h-9 w-9 mt-0.5">
+                      <AvatarImage src={author?.avatarUrl} />
+                      <AvatarFallback>{author?.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">{author?.name}</span>
+                        {Icon && <Icon className="h-3.5 w-3.5 text-warning" />}
+                        <Badge variant="secondary" className="text-[10px]">Quest Update</Badge>
+                      </div>
+                      <Link to={`/quests/${qu.questId}`} className="font-display font-medium text-sm hover:text-primary transition-colors">
+                        {qu.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{qu.content}</p>
+                      <span className="text-[11px] text-muted-foreground mt-1 block">
+                        {quest?.title} · {formatDistanceToNow(new Date(qu.createdAt), { addSuffix: true })}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              }
+              if (item.type === "achievement") {
+                const ach = item.data;
+                const user = getUserById(ach.userId);
+                const quest = ach.questId ? getQuestById(ach.questId) : null;
+                return (
+                  <motion.div key={`ach-${item.id}`} custom={i} variants={fadeUp} initial="hidden" animate="show">
+                    <Link to={`/achievements/${ach.id}`}
+                      className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-warning/30 transition-all"
+                    >
+                      <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+                        <Star className="h-5 w-5 text-warning" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={user?.avatarUrl} />
+                            <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{user?.name}</span>
+                          <Badge variant="secondary" className="text-[10px]">Achievement</Badge>
+                        </div>
+                        <p className="font-display font-semibold text-sm mt-0.5">{ach.title}</p>
+                        {quest && <p className="text-xs text-muted-foreground">{quest.title}</p>}
+                      </div>
+                      <span className="text-[11px] text-muted-foreground shrink-0">
+                        {formatDistanceToNow(new Date(ach.createdAt), { addSuffix: true })}
+                      </span>
+                    </Link>
+                  </motion.div>
+                );
+              }
+              // type === "quest" from followed guild
+              const q = item.data;
+              const guild = getGuildById(q.guildId);
+              return (
+                <motion.div key={`q-${item.id}`} custom={i} variants={fadeUp} initial="hidden" animate="show">
+                  <Link to={`/quests/${q.id}`}
+                    className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all"
+                  >
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Compass className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">{guild?.name}</span>
+                        <Badge variant="secondary" className="text-[10px]">New Quest</Badge>
+                      </div>
+                      <p className="font-display font-semibold text-sm mt-0.5">{q.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{q.description}</p>
+                    </div>
+                    <Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.rewardXp} XP</Badge>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Suggested Guilds */}
       <section className="mb-12">
@@ -158,11 +285,11 @@ export default function Index() {
         </section>
       )}
 
-      {/* Latest Updates */}
+      {/* Latest Updates (suggested for you) */}
       <section>
-        <h2 className="font-display text-xl font-semibold mb-4">Latest Quest Updates</h2>
+        <h2 className="font-display text-xl font-semibold mb-4">Suggested for you — Latest Quest Updates</h2>
         <div className="space-y-3">
-          {latestUpdates.map((update, i) => {
+          {[...questUpdates].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 4).map((update, i) => {
             const author = getUserById(update.authorId);
             const quest = quests.find((q) => q.id === update.questId);
             const Icon = updateTypeIcon[update.type];

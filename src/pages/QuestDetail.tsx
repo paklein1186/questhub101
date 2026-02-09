@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -12,7 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType, QuestStatus } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType } from "@/types/enums";
+import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
@@ -37,6 +38,7 @@ export default function QuestDetail() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { awardXp } = useXP();
+  const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const [achOpen, setAchOpen] = useState(false);
   const [achUserId, setAchUserId] = useState("");
   const [achTitle, setAchTitle] = useState("");
@@ -99,6 +101,12 @@ export default function QuestDetail() {
           {territories.map((t) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 
+        <div className="flex items-center gap-3 mt-4">
+          <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+            <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />
+            {isFollowing ? "Unfollow quest" : "Follow quest"}
+          </Button>
+
         {/* Create Achievement button for quest owner */}
         {isOwner && (
           <div className="mt-4">
@@ -138,6 +146,7 @@ export default function QuestDetail() {
             </Dialog>
           </div>
         )}
+        </div>
       </motion.div>
 
       <Tabs defaultValue="overview">
