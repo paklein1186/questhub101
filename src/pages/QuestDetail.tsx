@@ -80,6 +80,27 @@ export default function QuestDetail() {
     toast({ title: "Achievement created!", description: `Awarded to ${getUserById(achUserId)?.name}` });
   };
 
+  const createPod = () => {
+    if (!podName.trim()) return;
+    const pod: Pod = {
+      id: `pod-${Date.now()}`,
+      name: podName.trim(),
+      description: podDesc.trim(),
+      type: PodType.QUEST_POD,
+      questId: quest.id,
+      creatorId: currentUser.id,
+      startDate: podStart || undefined,
+      endDate: podEnd || undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    allPods.push(pod);
+    allPodMembers.push({ id: `pm-${Date.now()}`, podId: pod.id, userId: currentUser.id, role: PodMemberRole.HOST, joinedAt: new Date().toISOString() });
+    setPodOpen(false);
+    setPodName(""); setPodDesc(""); setPodStart(""); setPodEnd("");
+    toast({ title: "Pod created!", description: pod.name });
+  };
+
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
