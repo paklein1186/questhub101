@@ -9,6 +9,9 @@ const XP_REWARDS = {
   QUEST_UPDATE_CREATED: 5,
   COMMENT_UPVOTED: 1,
   ACHIEVEMENT_RECEIVED: 20,
+  BOOKING_COMPLETED_PAID: 15,
+  BOOKING_COMPLETED_FREE: 10,
+  BOOKING_ATTENDED: 2,
 } as const;
 
 function recomputeContributionIndex(xp: number): number {
@@ -58,6 +61,9 @@ function formatReason(reason: string): string {
     QUEST_UPDATE_CREATED: "Quest update posted",
     COMMENT_UPVOTED: "Comment upvoted",
     ACHIEVEMENT_RECEIVED: "Achievement earned",
+    BOOKING_COMPLETED_PAID: "Paid booking completed",
+    BOOKING_COMPLETED_FREE: "Free booking completed",
+    BOOKING_ATTENDED: "Session attended",
   };
   return map[reason] ?? reason;
 }
