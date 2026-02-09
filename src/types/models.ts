@@ -1,0 +1,223 @@
+import {
+  UserRole,
+  GuildType,
+  GuildMemberRole,
+  QuestStatus,
+  MonetizationType,
+  QuestParticipantRole,
+  QuestParticipantStatus,
+  QuestUpdateType,
+  TerritoryLevel,
+  CommentTargetType,
+  NotificationType,
+} from "./enums";
+
+// ─── Core Entities ───────────────────────────────────────────
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  headline?: string;
+  bio?: string;
+  role: UserRole;
+  xp: number;
+  contributionIndex: number;
+  // Relations
+  guildMembers?: GuildMember[];
+  questParticipants?: QuestParticipant[];
+  userTopics?: UserTopic[];
+  userTerritories?: UserTerritory[];
+}
+
+export interface Guild {
+  id: string;
+  name: string;
+  description?: string;
+  logoUrl?: string;
+  type: GuildType;
+  createdByUserId: string;
+  // Relations
+  createdByUser?: User;
+  guildMembers?: GuildMember[];
+  guildTopics?: GuildTopic[];
+  guildTerritories?: GuildTerritory[];
+  quests?: Quest[];
+}
+
+export interface GuildMember {
+  id: string;
+  guildId: string;
+  userId: string;
+  role: GuildMemberRole;
+  joinedAt: string;
+  // Relations
+  guild?: Guild;
+  user?: User;
+}
+
+// ─── Quests ──────────────────────────────────────────────────
+
+export interface Quest {
+  id: string;
+  title: string;
+  description?: string;
+  status: QuestStatus;
+  monetizationType: MonetizationType;
+  rewardXp: number;
+  isFeatured: boolean;
+  createdByUserId: string;
+  guildId: string;
+  // Relations
+  createdByUser?: User;
+  guild?: Guild;
+  questParticipants?: QuestParticipant[];
+  questTopics?: QuestTopic[];
+  questTerritories?: QuestTerritory[];
+  questUpdates?: QuestUpdate[];
+}
+
+export interface QuestParticipant {
+  id: string;
+  questId: string;
+  userId: string;
+  role: QuestParticipantRole;
+  status: QuestParticipantStatus;
+  // Relations
+  quest?: Quest;
+  user?: User;
+}
+
+export interface QuestUpdate {
+  id: string;
+  questId: string;
+  authorId: string;
+  title: string;
+  content: string;
+  type: QuestUpdateType;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  quest?: Quest;
+  author?: User;
+}
+
+// ─── Taxonomy ────────────────────────────────────────────────
+
+export interface Topic {
+  id: string;
+  name: string;
+  slug: string;
+  // Relations
+  userTopics?: UserTopic[];
+  guildTopics?: GuildTopic[];
+  questTopics?: QuestTopic[];
+}
+
+export interface UserTopic {
+  id: string;
+  userId: string;
+  topicId: string;
+  user?: User;
+  topic?: Topic;
+}
+
+export interface GuildTopic {
+  id: string;
+  guildId: string;
+  topicId: string;
+  guild?: Guild;
+  topic?: Topic;
+}
+
+export interface QuestTopic {
+  id: string;
+  questId: string;
+  topicId: string;
+  quest?: Quest;
+  topic?: Topic;
+}
+
+export interface Territory {
+  id: string;
+  name: string;
+  level: TerritoryLevel;
+  // Relations
+  userTerritories?: UserTerritory[];
+  guildTerritories?: GuildTerritory[];
+  questTerritories?: QuestTerritory[];
+}
+
+export interface UserTerritory {
+  id: string;
+  userId: string;
+  territoryId: string;
+  user?: User;
+  territory?: Territory;
+}
+
+export interface GuildTerritory {
+  id: string;
+  guildId: string;
+  territoryId: string;
+  guild?: Guild;
+  territory?: Territory;
+}
+
+export interface QuestTerritory {
+  id: string;
+  questId: string;
+  territoryId: string;
+  quest?: Quest;
+  territory?: Territory;
+}
+
+// ─── Social ─────────────────────────────────────────────────
+
+export interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  authorId: string;
+  parentId?: string;
+  targetType: CommentTargetType;
+  targetId: string;
+  upvoteCount: number;
+  // Relations
+  author?: User;
+  parent?: Comment;
+}
+
+/** Unique constraint on (commentId, userId) */
+export interface CommentUpvote {
+  id: string;
+  commentId: string;
+  userId: string;
+  createdAt: string;
+  // Relations
+  comment?: Comment;
+  user?: User;
+}
+
+export interface Achievement {
+  id: string;
+  userId: string;
+  questId: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  // Relations
+  user?: User;
+  quest?: Quest;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  data: Record<string, unknown>;
+  isRead: boolean;
+  // Relations
+  user?: User;
+}
