@@ -55,6 +55,7 @@ const App = () => (
               <Route path="/my-requests" element={<MyRequests />} />
               <Route path="/companies" element={<CompaniesList />} />
               <Route path="/companies/:id" element={<CompanyDetail />} />
+              <Route path="/topics/:slug" element={<TopicHouse />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
