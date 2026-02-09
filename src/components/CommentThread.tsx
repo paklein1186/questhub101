@@ -11,6 +11,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import type { Comment, CommentUpvote } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 
 interface CommentThreadProps {
   targetType: CommentTargetType;
