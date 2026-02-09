@@ -1,7 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus, Briefcase } from "lucide-react";
+import {
+  ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
+  Briefcase, Shield, Compass, CircleDot, Pencil, Users,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,6 +21,7 @@ import { useXP } from "@/hooks/useXP";
 import {
   getUserById, achievements as allAchievements, userTopics, userTerritories,
   getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
+  guildMembers, getGuildById, questParticipants, podMembers, getPodById,
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -46,6 +50,24 @@ export default function UserProfile() {
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
 
+  // Guilds
+  const userGuilds = guildMembers.filter((gm) => gm.userId === user.id).map((gm) => ({
+    ...gm,
+    guild: getGuildById(gm.guildId),
+  })).filter((gm) => gm.guild);
+
+  // Quests
+  const userQuests = questParticipants.filter((qp) => qp.userId === user.id).map((qp) => ({
+    ...qp,
+    quest: getQuestById(qp.questId),
+  })).filter((qp) => qp.quest);
+
+  // Pods
+  const userPods = podMembers.filter((pm) => pm.userId === user.id).map((pm) => ({
+    ...pm,
+    pod: getPodById(pm.podId),
+  })).filter((pm) => pm.pod);
+
   const createAchievement = () => {
     if (!newTitle.trim()) return;
     const ach: Achievement = {
@@ -72,16 +94,17 @@ export default function UserProfile() {
         <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
       </Button>
 
+      {/* Header */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center gap-5 mb-4">
           <Avatar className="h-20 w-20">
             <AvatarImage src={user.avatarUrl} />
             <AvatarFallback className="text-2xl">{user.name[0]}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <h1 className="font-display text-3xl font-bold">{user.name}</h1>
             {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
               <span className="flex items-center gap-1 text-sm font-semibold text-primary">
                 <Zap className="h-4 w-4" /> {user.xp} XP
@@ -89,21 +112,37 @@ export default function UserProfile() {
               <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
             </div>
           </div>
-          {!isOwnProfile && (
-            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow} className="mt-2">
-              {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
-            </Button>
-          )}
+          <div className="flex flex-col gap-2">
+            {isOwnProfile ? (
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/profile/edit"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
+              </Button>
+            ) : (
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {topics.map((t) => (
-            <Badge key={t.id} variant="secondary" className="text-xs"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
+            <Link key={t.id} to={`/topics/${t.slug}`}>
+              <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
+            </Link>
           ))}
           {territories.map((t) => (
             <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>
           ))}
         </div>
       </motion.div>
+
+      {/* About */}
+      {user.bio && (
+        <section className="mb-8">
+          <h2 className="font-display text-lg font-semibold mb-2">About</h2>
+          <p className="text-sm text-foreground/80 leading-relaxed">{user.bio}</p>
+        </section>
+      )}
 
       {/* Achievements */}
       <section className="mb-8">
@@ -117,9 +156,7 @@ export default function UserProfile() {
                 <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" /> New Achievement</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create Achievement</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Create Achievement</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Title</label>
@@ -150,11 +187,7 @@ export default function UserProfile() {
           {achievementsState.map((a) => {
             const quest = a.questId ? getQuestById(a.questId) : null;
             return (
-              <Link
-                key={a.id}
-                to={`/achievements/${a.id}`}
-                className="rounded-lg border border-border bg-card p-4 hover:border-warning/30 hover:shadow-sm transition-all block"
-              >
+              <Link key={a.id} to={`/achievements/${a.id}`} className="rounded-lg border border-border bg-card p-4 hover:border-warning/30 hover:shadow-sm transition-all block">
                 <div className="flex items-start gap-3">
                   <Star className="h-5 w-5 text-warning mt-0.5 shrink-0" />
                   <div>
@@ -172,6 +205,71 @@ export default function UserProfile() {
         </div>
       </section>
 
+      {/* Guilds */}
+      {userGuilds.length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" /> Guilds ({userGuilds.length})
+          </h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {userGuilds.map((gm) => (
+              <Link key={gm.id} to={`/guilds/${gm.guildId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={gm.guild!.logoUrl} />
+                    <AvatarFallback>{gm.guild!.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-display font-semibold">{gm.guild!.name}</h4>
+                    <Badge variant="outline" className="text-[10px] mt-1 capitalize">{gm.role.toLowerCase()}</Badge>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Quests */}
+      {userQuests.length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <Compass className="h-5 w-5 text-primary" /> Quests ({userQuests.length})
+          </h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {userQuests.map((qp) => (
+              <Link key={qp.id} to={`/quests/${qp.questId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
+                <h4 className="font-display font-semibold">{qp.quest!.title}</h4>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="secondary" className="text-[10px] capitalize">{qp.role.toLowerCase()}</Badge>
+                  <Badge variant="outline" className="text-[10px] capitalize">{qp.status.toLowerCase()}</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Pods */}
+      {userPods.length > 0 && (
+        <section className="mb-8">
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <CircleDot className="h-5 w-5 text-primary" /> Pods ({userPods.length})
+          </h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {userPods.map((pm) => (
+              <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
+                <h4 className="font-display font-semibold">{pm.pod!.name}</h4>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="secondary" className="text-[10px] capitalize">{pm.role.toLowerCase()}</Badge>
+                  <Badge variant="outline" className="text-[10px] capitalize">{pm.pod!.type.toLowerCase().replace("_", " ")}</Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Services */}
       {(() => {
         const userServices = getServicesForUser(user.id);
@@ -183,11 +281,7 @@ export default function UserProfile() {
             </h2>
             <div className="grid gap-3 md:grid-cols-2">
               {userServices.map((svc) => (
-                <Link
-                  key={svc.id}
-                  to={`/services/${svc.id}`}
-                  className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block"
-                >
+                <Link key={svc.id} to={`/services/${svc.id}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
                   <div className="flex items-start justify-between">
                     <h4 className="font-display font-semibold">{svc.title}</h4>
                     {svc.priceAmount != null && (
@@ -206,7 +300,9 @@ export default function UserProfile() {
 
       {/* Wall */}
       <section>
-        <h2 className="font-display text-lg font-semibold mb-3">Wall</h2>
+        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+          <Users className="h-5 w-5 text-primary" /> Wall
+        </h2>
         <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
       </section>
     </PageShell>
