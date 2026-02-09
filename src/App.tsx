@@ -14,6 +14,7 @@ import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AdminDashboard from "./pages/AdminDashboard";
+import AchievementDetail from "./pages/AchievementDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
