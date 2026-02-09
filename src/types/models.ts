@@ -13,6 +13,7 @@ import {
   FollowTargetType,
   PodType,
   PodMemberRole,
+  BookingStatus,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────
