@@ -248,30 +248,71 @@ export default function GuildDetail() {
         )}
 
         {/* Services */}
-        {guildServices.length > 0 && (
-          <TabsContent value="services" className="mt-6 space-y-3">
-            {guildServices.map((svc) => (
-              <Link
-                key={svc.id}
-                to={`/services/${svc.id}`}
-                className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="font-display font-semibold">{svc.title}</h4>
-                  <div className="flex items-center gap-2">
-                    {svc.durationMinutes && <span className="text-xs text-muted-foreground">{svc.durationMinutes} min</span>}
-                    {svc.priceAmount != null && (
-                      <Badge className="bg-primary/10 text-primary border-0">
-                        {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
-                      </Badge>
-                    )}
+        <TabsContent value="services" className="mt-6 space-y-3">
+          {isAdmin && (
+            <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create guild service</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create Guild Service</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Title</label>
+                    <Input value={svcTitle} onChange={(e) => setSvcTitle(e.target.value)} placeholder="e.g. Mentoring Session" maxLength={120} />
                   </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Description</label>
+                    <Textarea value={svcDesc} onChange={(e) => setSvcDesc(e.target.value)} placeholder="What this service includes…" maxLength={500} className="resize-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Duration (min)</label>
+                      <Input type="number" value={svcDuration} onChange={(e) => setSvcDuration(e.target.value)} min={15} max={480} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Price (€)</label>
+                      <Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} min={0} step={5} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Location type</label>
+                    <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
+                        <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
+                        <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
-              </Link>
-            ))}
-          </TabsContent>
-        )}
+              </DialogContent>
+            </Dialog>
+          )}
+          {guildServices.map((svc) => (
+            <Link
+              key={svc.id}
+              to={`/services/${svc.id}`}
+              className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <h4 className="font-display font-semibold">{svc.title}</h4>
+                <div className="flex items-center gap-2">
+                  {svc.durationMinutes && <span className="text-xs text-muted-foreground">{svc.durationMinutes} min</span>}
+                  {svc.priceAmount != null && (
+                    <Badge className="bg-primary/10 text-primary border-0">
+                      {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
+            </Link>
+          ))}
+          {guildServices.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
+        </TabsContent>
 
         {/* Achievements */}
         {guildAchievements.length > 0 && (
