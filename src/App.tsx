@@ -17,6 +17,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
 import PodsList from "./pages/PodsList";
 import PodDetail from "./pages/PodDetail";
+import ServicesMarketplace from "./pages/ServicesMarketplace";
+import ServiceDetail from "./pages/ServiceDetail";
+import MyBookings from "./pages/MyBookings";
+import MyRequests from "./pages/MyRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +46,10 @@ const App = () => (
               <Route path="/achievements/:id" element={<AchievementDetail />} />
               <Route path="/pods" element={<PodsList />} />
               <Route path="/pods/:id" element={<PodDetail />} />
+              <Route path="/services" element={<ServicesMarketplace />} />
+              <Route path="/services/:id" element={<ServiceDetail />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
+              <Route path="/my-requests" element={<MyRequests />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

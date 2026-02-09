@@ -13,7 +13,6 @@ interface NotificationStore {
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  /** Called by CommentThread / other components to auto-create notifications */
   notifyComment: (params: {
     commentAuthorId: string;
     targetType: CommentTargetType;
@@ -31,6 +30,13 @@ interface NotificationStore {
     questId: string;
     questUpdateId: string;
     updateTitle: string;
+  }) => void;
+  notifyBooking: (params: {
+    bookingId: string;
+    serviceTitle: string;
+    requesterName: string;
+    recipientUserId: string;
+    action: string;
   }) => void;
 }
 
@@ -102,6 +108,8 @@ export function linkForNotification(n: Notification): string {
       return `/quests/${data.questId as string}`;
     case NotificationType.INVITE:
       return data.guildId ? `/guilds/${data.guildId as string}` : `/quests/${data.questId as string}`;
+    case NotificationType.BOOKING:
+      return "/my-bookings";
     default:
       return "/";
   }
@@ -185,8 +193,25 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [currentUserId, addNotification]);
 
+  const notifyBooking = useCallback(({ bookingId, serviceTitle, requesterName, recipientUserId, action }: {
+    bookingId: string; serviceTitle: string; requesterName: string; recipientUserId: string; action: string;
+  }) => {
+    if (recipientUserId !== currentUserId) return;
+    addNotification({
+      userId: recipientUserId,
+      type: NotificationType.BOOKING,
+      data: {
+        bookingId,
+        message: action === "requested"
+          ? `${requesterName} requested a session for "${serviceTitle}"`
+          : `Your booking for "${serviceTitle}" was ${action}`,
+      },
+      isRead: false,
+    });
+  }, [currentUserId, addNotification]);
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllAsRead, notifyComment, notifyUpvote, notifyQuestUpdate }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllAsRead, notifyComment, notifyUpvote, notifyQuestUpdate, notifyBooking }}>
       {children}
     </NotificationContext.Provider>
   );

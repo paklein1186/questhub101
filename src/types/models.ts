@@ -13,6 +13,7 @@ import {
   FollowTargetType,
   PodType,
   PodMemberRole,
+  BookingStatus,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────
@@ -268,4 +269,57 @@ export interface PodMember {
   // Relations
   pod?: Pod;
   user?: User;
+}
+
+// ─── Services & Bookings ─────────────────────────────────────
+
+export interface Service {
+  id: string;
+  title: string;
+  description: string;
+  providerUserId?: string;
+  providerGuildId?: string;
+  durationMinutes?: number;
+  priceCurrency: string;
+  priceAmount?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  providerUser?: User;
+  providerGuild?: Guild;
+}
+
+export interface ServiceTopic {
+  id: string;
+  serviceId: string;
+  topicId: string;
+  service?: Service;
+  topic?: Topic;
+}
+
+export interface ServiceTerritory {
+  id: string;
+  serviceId: string;
+  territoryId: string;
+  service?: Service;
+  territory?: Territory;
+}
+
+export interface Booking {
+  id: string;
+  serviceId: string;
+  requesterId: string;
+  providerUserId?: string;
+  providerGuildId?: string;
+  requestedDateTime?: string;
+  status: BookingStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  service?: Service;
+  requester?: User;
+  providerUser?: User;
+  providerGuild?: Guild;
 }

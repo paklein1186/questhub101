@@ -67,6 +67,7 @@ export enum NotificationType {
   UPVOTE = "UPVOTE",
   INVITE = "INVITE",
   QUEST_UPDATE = "QUEST_UPDATE",
+  BOOKING = "BOOKING",
 }
 
 export enum FollowTargetType {
@@ -83,4 +84,12 @@ export enum PodType {
 export enum PodMemberRole {
   HOST = "HOST",
   MEMBER = "MEMBER",
+}
+
+export enum BookingStatus {
+  REQUESTED = "REQUESTED",
+  ACCEPTED = "ACCEPTED",
+  DECLINED = "DECLINED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }

@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus } from "lucide-react";
+import { ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
   getUserById, achievements as allAchievements, userTopics, userTerritories,
-  getTopicById, getTerritoryById, getQuestById, quests,
+  getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -171,6 +171,38 @@ export default function UserProfile() {
           })}
         </div>
       </section>
+
+      {/* Services */}
+      {(() => {
+        const userServices = getServicesForUser(user.id);
+        if (userServices.length === 0) return null;
+        return (
+          <section className="mb-8">
+            <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" /> Services ({userServices.length})
+            </h2>
+            <div className="grid gap-3 md:grid-cols-2">
+              {userServices.map((svc) => (
+                <Link
+                  key={svc.id}
+                  to={`/services/${svc.id}`}
+                  className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block"
+                >
+                  <div className="flex items-start justify-between">
+                    <h4 className="font-display font-semibold">{svc.title}</h4>
+                    {svc.priceAmount != null && (
+                      <Badge className="bg-primary/10 text-primary border-0 text-xs">
+                        {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Wall */}
       <section>

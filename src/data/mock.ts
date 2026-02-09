@@ -1,6 +1,7 @@
 import {
   User, Guild, GuildMember, Quest, QuestParticipant, QuestUpdate,
   Topic, Territory, Comment, Achievement, Notification, Follow, Pod, PodMember,
+  Service, ServiceTopic, ServiceTerritory, Booking,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote,
 } from "@/types";
@@ -8,7 +9,7 @@ import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
-  PodType, PodMemberRole,
+  PodType, PodMemberRole, BookingStatus,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -189,6 +190,38 @@ export const podMembers: PodMember[] = [
   { id: "pm6", podId: "pod3", userId: "u4", role: PodMemberRole.MEMBER, joinedAt: "2025-02-04T10:00:00Z" },
 ];
 
+// ─── Services ────────────────────────────────────────────────
+export const services: Service[] = [
+  { id: "svc1", title: "Climate Strategy Workshop", description: "A 90-minute interactive workshop helping organizations define their climate action roadmap with concrete, measurable goals.", providerUserId: "u1", durationMinutes: 90, priceCurrency: "EUR", priceAmount: 150, isActive: true, createdAt: "2025-01-15T10:00:00Z", updatedAt: "2025-01-15T10:00:00Z" },
+  { id: "svc2", title: "Open Data Audit", description: "Comprehensive audit of your organization's data practices, identifying opportunities for open data publishing and civic transparency.", providerUserId: "u3", durationMinutes: 120, priceCurrency: "EUR", priceAmount: 200, isActive: true, createdAt: "2025-01-20T09:00:00Z", updatedAt: "2025-01-20T09:00:00Z" },
+  { id: "svc3", title: "UX Design Sprint Facilitation", description: "Facilitated design sprint for your team — from problem framing to tested prototype in 5 days.", providerUserId: "u4", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 120, isActive: true, createdAt: "2025-01-22T14:00:00Z", updatedAt: "2025-01-22T14:00:00Z" },
+  { id: "svc4", title: "GreenTech Mentoring Session", description: "One-on-one mentoring from the GreenTech Collective on launching climate-tech projects.", providerGuildId: "g1", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 0, isActive: true, createdAt: "2025-02-01T08:00:00Z", updatedAt: "2025-02-01T08:00:00Z" },
+  { id: "svc5", title: "Mobility Data Analysis", description: "Custom analysis of urban mobility patterns using open transport datasets.", providerGuildId: "g4", durationMinutes: 180, priceCurrency: "EUR", priceAmount: 300, isActive: true, createdAt: "2025-02-05T11:00:00Z", updatedAt: "2025-02-05T11:00:00Z" },
+];
+
+export const serviceTopics: ServiceTopic[] = [
+  { id: "st1", serviceId: "svc1", topicId: "t1" },
+  { id: "st2", serviceId: "svc2", topicId: "t3" },
+  { id: "st3", serviceId: "svc2", topicId: "t4" },
+  { id: "st4", serviceId: "svc3", topicId: "t2" },
+  { id: "st5", serviceId: "svc4", topicId: "t1" },
+  { id: "st6", serviceId: "svc5", topicId: "t5" },
+];
+
+export const serviceTerritories: ServiceTerritory[] = [
+  { id: "str1", serviceId: "svc1", territoryId: "tr5" },
+  { id: "str2", serviceId: "svc2", territoryId: "tr2" },
+  { id: "str3", serviceId: "svc3", territoryId: "tr5" },
+  { id: "str4", serviceId: "svc4", territoryId: "tr1" },
+  { id: "str5", serviceId: "svc5", territoryId: "tr4" },
+];
+
+// ─── Bookings ────────────────────────────────────────────────
+export const bookings: Booking[] = [
+  { id: "bk1", serviceId: "svc1", requesterId: "u2", providerUserId: "u1", status: BookingStatus.REQUESTED, notes: "Looking for help scoping our Q2 climate initiative.", createdAt: "2025-02-08T10:00:00Z", updatedAt: "2025-02-08T10:00:00Z" },
+  { id: "bk2", serviceId: "svc4", requesterId: "u3", providerGuildId: "g1", status: BookingStatus.ACCEPTED, requestedDateTime: "2025-02-15T14:00:00Z", notes: "Want to discuss launching a new climate-tech project.", createdAt: "2025-02-06T09:00:00Z", updatedAt: "2025-02-07T08:00:00Z" },
+];
+
 // ─── Helpers ─────────────────────────────────────────────────
 export function getUserById(id: string) { return users.find(u => u.id === id); }
 export function getGuildById(id: string) { return guilds.find(g => g.id === id); }
@@ -196,6 +229,7 @@ export function getQuestById(id: string) { return quests.find(q => q.id === id);
 export function getTopicById(id: string) { return topics.find(t => t.id === id); }
 export function getTerritoryById(id: string) { return territories.find(t => t.id === id); }
 export function getPodById(id: string) { return pods.find(p => p.id === id); }
+export function getServiceById(id: string) { return services.find(s => s.id === id); }
 
 export function getTopicsForGuild(guildId: string) {
   return guildTopics.filter(gt => gt.guildId === guildId).map(gt => getTopicById(gt.topicId)!).filter(Boolean);
@@ -208,6 +242,12 @@ export function getTopicsForQuest(questId: string) {
 }
 export function getTerritoriesForQuest(questId: string) {
   return questTerritories.filter(qt => qt.questId === questId).map(qt => getTerritoryById(qt.territoryId)!).filter(Boolean);
+}
+export function getTopicsForService(serviceId: string) {
+  return serviceTopics.filter(st => st.serviceId === serviceId).map(st => getTopicById(st.topicId)!).filter(Boolean);
+}
+export function getTerritoriesForService(serviceId: string) {
+  return serviceTerritories.filter(st => st.serviceId === serviceId).map(st => getTerritoryById(st.territoryId)!).filter(Boolean);
 }
 export function getCommentsForTarget(targetType: CommentTargetType, targetId: string) {
   return comments.filter(c => c.targetType === targetType && c.targetId === targetId);
@@ -229,4 +269,10 @@ export function getMembersForPod(podId: string) {
 }
 export function getPodsForQuest(questId: string) {
   return pods.filter(p => p.questId === questId);
+}
+export function getServicesForUser(userId: string) {
+  return services.filter(s => s.providerUserId === userId && s.isActive);
+}
+export function getServicesForGuild(guildId: string) {
+  return services.filter(s => s.providerGuildId === guildId && s.isActive);
 }

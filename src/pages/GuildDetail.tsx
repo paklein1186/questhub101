@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Users, Compass, ArrowLeft, Heart } from "lucide-react";
+import { Shield, Users, Compass, ArrowLeft, Heart, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
-  getMembersForGuild, getQuestsForGuild, getUserById,
+  getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
 } from "@/data/mock";
 
 export default function GuildDetail() {
@@ -24,6 +24,7 @@ export default function GuildDetail() {
   const territories = getTerritoriesForGuild(guild.id);
   const members = getMembersForGuild(guild.id);
   const quests = getQuestsForGuild(guild.id);
+  const guildServices = getServicesForGuild(guild.id);
   const creator = getUserById(guild.createdByUserId);
 
   return (
@@ -60,6 +61,7 @@ export default function GuildDetail() {
         <TabsList>
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests</TabsTrigger>
+          {guildServices.length > 0 && <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services</TabsTrigger>}
           <TabsTrigger value="comments">Comments</TabsTrigger>
         </TabsList>
 
@@ -100,6 +102,28 @@ export default function GuildDetail() {
           ))}
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
         </TabsContent>
+
+        {guildServices.length > 0 && (
+          <TabsContent value="services" className="mt-6 space-y-3">
+            {guildServices.map((svc) => (
+              <Link
+                key={svc.id}
+                to={`/services/${svc.id}`}
+                className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-display font-semibold">{svc.title}</h4>
+                  {svc.priceAmount != null && (
+                    <Badge className="bg-primary/10 text-primary border-0">
+                      {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
+              </Link>
+            ))}
+          </TabsContent>
+        )}
 
         <TabsContent value="comments" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Shield, Compass, Zap, Bell, LayoutDashboard, CircleDot } from "lucide-react";
+import { Home, Shield, Compass, Zap, Bell, LayoutDashboard, CircleDot, Briefcase, CalendarClock, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -10,6 +10,7 @@ const links = [
   { to: "/guilds", label: "Guilds", icon: Shield },
   { to: "/quests", label: "Quests", icon: Compass },
   { to: "/pods", label: "Pods", icon: CircleDot },
+  { to: "/services", label: "Services", icon: Briefcase },
 ];
 
 export function AppNav() {
@@ -59,6 +60,32 @@ export function AppNav() {
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
+          </Link>
+          <Link
+            to="/my-bookings"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname === "/my-bookings"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title="My Bookings"
+          >
+            <ClipboardList className="h-4 w-4" />
+            <span className="hidden sm:inline">Bookings</span>
+          </Link>
+          <Link
+            to="/my-requests"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname === "/my-requests"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title="My Requests"
+          >
+            <CalendarClock className="h-4 w-4" />
+            <span className="hidden sm:inline">Requests</span>
           </Link>
           {showAdmin && (
             <Link
