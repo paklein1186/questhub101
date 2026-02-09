@@ -14,6 +14,7 @@ import {
   PodType,
   PodMemberRole,
   BookingStatus,
+  CompanySize,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────
