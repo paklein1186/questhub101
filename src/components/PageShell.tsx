@@ -1,6 +1,14 @@
 import { AppNav } from "./AppNav";
 
-export function PageShell({ children }: { children: React.ReactNode }) {
+interface PageShellProps {
+  children: React.ReactNode;
+  bare?: boolean;
+}
+
+export function PageShell({ children, bare }: PageShellProps) {
+  if (bare) {
+    return <>{children}</>;
+  }
   return (
     <div className="min-h-screen flex flex-col">
       <AppNav />
