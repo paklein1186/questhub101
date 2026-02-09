@@ -4,14 +4,14 @@ import {
   Service, ServiceTopic, ServiceTerritory, Booking,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
-  TopicSteward, TopicFeature,
+  TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
-  TopicStewardRole, TopicFeatureTargetType,
+  TopicStewardRole, TopicFeatureTargetType, OnlineLocationType, PaymentStatus,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -239,11 +239,11 @@ export const podMembers: PodMember[] = [
 
 // ─── Services ────────────────────────────────────────────────
 export const services: Service[] = [
-  { id: "svc1", title: "Climate Strategy Workshop", description: "A 90-minute interactive workshop helping organizations define their climate action roadmap with concrete, measurable goals.", providerUserId: "u1", durationMinutes: 90, priceCurrency: "EUR", priceAmount: 150, isActive: true, createdAt: "2025-01-15T10:00:00Z", updatedAt: "2025-01-15T10:00:00Z" },
-  { id: "svc2", title: "Open Data Audit", description: "Comprehensive audit of your organization's data practices, identifying opportunities for open data publishing and civic transparency.", providerUserId: "u3", durationMinutes: 120, priceCurrency: "EUR", priceAmount: 200, isActive: true, createdAt: "2025-01-20T09:00:00Z", updatedAt: "2025-01-20T09:00:00Z" },
-  { id: "svc3", title: "UX Design Sprint Facilitation", description: "Facilitated design sprint for your team — from problem framing to tested prototype in 5 days.", providerUserId: "u4", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 120, isActive: true, createdAt: "2025-01-22T14:00:00Z", updatedAt: "2025-01-22T14:00:00Z" },
-  { id: "svc4", title: "GreenTech Mentoring Session", description: "One-on-one mentoring from the GreenTech Collective on launching climate-tech projects.", providerGuildId: "g1", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 0, isActive: true, createdAt: "2025-02-01T08:00:00Z", updatedAt: "2025-02-01T08:00:00Z" },
-  { id: "svc5", title: "Mobility Data Analysis", description: "Custom analysis of urban mobility patterns using open transport datasets.", providerGuildId: "g4", durationMinutes: 180, priceCurrency: "EUR", priceAmount: 300, isActive: true, createdAt: "2025-02-05T11:00:00Z", updatedAt: "2025-02-05T11:00:00Z" },
+  { id: "svc1", title: "Climate Strategy Workshop", description: "A 90-minute interactive workshop helping organizations define their climate action roadmap with concrete, measurable goals.", providerUserId: "u1", durationMinutes: 90, priceCurrency: "EUR", priceAmount: 150, onlineLocationType: OnlineLocationType.JITSI, isActive: true, createdAt: "2025-01-15T10:00:00Z", updatedAt: "2025-01-15T10:00:00Z" },
+  { id: "svc2", title: "Open Data Audit", description: "Comprehensive audit of your organization's data practices, identifying opportunities for open data publishing and civic transparency.", providerUserId: "u3", durationMinutes: 120, priceCurrency: "EUR", priceAmount: 200, onlineLocationType: OnlineLocationType.JITSI, isActive: true, createdAt: "2025-01-20T09:00:00Z", updatedAt: "2025-01-20T09:00:00Z" },
+  { id: "svc3", title: "UX Design Sprint Facilitation", description: "Facilitated design sprint for your team — from problem framing to tested prototype in 5 days.", providerUserId: "u4", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 120, onlineLocationType: OnlineLocationType.ZOOM, onlineLocationUrlTemplate: "https://zoom.us/j/gamechanger", isActive: true, createdAt: "2025-01-22T14:00:00Z", updatedAt: "2025-01-22T14:00:00Z" },
+  { id: "svc4", title: "GreenTech Mentoring Session", description: "One-on-one mentoring from the GreenTech Collective on launching climate-tech projects.", providerGuildId: "g1", durationMinutes: 60, priceCurrency: "EUR", priceAmount: 0, onlineLocationType: OnlineLocationType.JITSI, isActive: true, createdAt: "2025-02-01T08:00:00Z", updatedAt: "2025-02-01T08:00:00Z" },
+  { id: "svc5", title: "Mobility Data Analysis", description: "Custom analysis of urban mobility patterns using open transport datasets.", providerGuildId: "g4", durationMinutes: 180, priceCurrency: "EUR", priceAmount: 300, onlineLocationType: OnlineLocationType.OTHER, isActive: true, createdAt: "2025-02-05T11:00:00Z", updatedAt: "2025-02-05T11:00:00Z" },
 ];
 
 export const serviceTopics: ServiceTopic[] = [
@@ -265,8 +265,8 @@ export const serviceTerritories: ServiceTerritory[] = [
 
 // ─── Bookings ────────────────────────────────────────────────
 export const bookings: Booking[] = [
-  { id: "bk1", serviceId: "svc1", requesterId: "u2", providerUserId: "u1", status: BookingStatus.REQUESTED, notes: "Looking for help scoping our Q2 climate initiative.", createdAt: "2025-02-08T10:00:00Z", updatedAt: "2025-02-08T10:00:00Z" },
-  { id: "bk2", serviceId: "svc4", requesterId: "u3", providerGuildId: "g1", status: BookingStatus.ACCEPTED, requestedDateTime: "2025-02-15T14:00:00Z", notes: "Want to discuss launching a new climate-tech project.", createdAt: "2025-02-06T09:00:00Z", updatedAt: "2025-02-07T08:00:00Z" },
+  { id: "bk1", serviceId: "svc1", requesterId: "u2", providerUserId: "u1", startDateTime: "2025-02-15T09:00:00Z", endDateTime: "2025-02-15T10:30:00Z", status: BookingStatus.REQUESTED, paymentStatus: PaymentStatus.PENDING, amount: 150, currency: "EUR", notes: "Looking for help scoping our Q2 climate initiative.", createdAt: "2025-02-08T10:00:00Z", updatedAt: "2025-02-08T10:00:00Z" },
+  { id: "bk2", serviceId: "svc4", requesterId: "u3", providerGuildId: "g1", startDateTime: "2025-02-15T14:00:00Z", endDateTime: "2025-02-15T15:00:00Z", status: BookingStatus.CONFIRMED, paymentStatus: PaymentStatus.NOT_REQUIRED, amount: 0, currency: "EUR", callUrl: "https://meet.jit.si/gamechanger-bk2", requestedDateTime: "2025-02-15T14:00:00Z", notes: "Want to discuss launching a new climate-tech project.", createdAt: "2025-02-06T09:00:00Z", updatedAt: "2025-02-07T08:00:00Z" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -362,4 +362,39 @@ export function isTopicSteward(topicId: string, userId: string) {
 }
 export function getTopicBySlug(slug: string) {
   return topics.find(t => t.slug === slug);
+}
+
+// ─── Availability ────────────────────────────────────────────
+export const availabilityRules: AvailabilityRule[] = [
+  // u1 global: Mon-Fri 9:00-17:00
+  { id: "ar1", providerUserId: "u1", weekday: 0, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar2", providerUserId: "u1", weekday: 1, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar3", providerUserId: "u1", weekday: 2, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar4", providerUserId: "u1", weekday: 3, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar5", providerUserId: "u1", weekday: 4, startTime: "09:00", endTime: "17:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  // u3 global: Tue-Thu 10:00-16:00
+  { id: "ar6", providerUserId: "u3", weekday: 1, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar7", providerUserId: "u3", weekday: 2, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar8", providerUserId: "u3", weekday: 3, startTime: "10:00", endTime: "16:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  // u4 global: Mon, Wed, Fri 08:00-12:00
+  { id: "ar9", providerUserId: "u4", weekday: 0, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar10", providerUserId: "u4", weekday: 2, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+  { id: "ar11", providerUserId: "u4", weekday: 4, startTime: "08:00", endTime: "12:00", timezone: "Europe/Paris", isActive: true, createdAt: "2025-01-01T00:00:00Z", updatedAt: "2025-01-01T00:00:00Z" },
+];
+
+export const availabilityExceptions: AvailabilityException[] = [
+  // u1 blocked on 2025-02-17
+  { id: "ae1", providerUserId: "u1", date: "2025-02-17", isAvailable: false, createdAt: "2025-02-10T00:00:00Z" },
+];
+
+export function getAvailabilityRulesForUser(userId: string, serviceId?: string) {
+  return availabilityRules.filter(r => r.providerUserId === userId && (!serviceId || !r.serviceId || r.serviceId === serviceId));
+}
+
+export function getAvailabilityExceptionsForUser(userId: string) {
+  return availabilityExceptions.filter(e => e.providerUserId === userId);
+}
+
+export function getBookingsForProvider(userId: string) {
+  return bookings.filter(b => b.providerUserId === userId);
 }

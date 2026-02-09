@@ -13,6 +13,7 @@ import {
 } from "@/data/mock";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
+import MyAvailability from "./MyAvailability";
 
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
@@ -47,6 +48,7 @@ export default function WorkHub() {
           <TabsTrigger value="quests">My Quests ({myQuests.length})</TabsTrigger>
           <TabsTrigger value="pods">My Pods ({myPods.length})</TabsTrigger>
           <TabsTrigger value="services">My Services ({myServices.length})</TabsTrigger>
+          <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
         </TabsList>
@@ -110,6 +112,7 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        <TabsContent value="availability"><MyAvailability bare /></TabsContent>
         <TabsContent value="bookings"><MyBookings bare /></TabsContent>
         <TabsContent value="requests"><MyRequests bare /></TabsContent>
       </Tabs>

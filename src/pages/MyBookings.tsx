@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Check, X, CheckCircle } from "lucide-react";
+import { Briefcase, Check, X, CheckCircle, Video, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus, GuildMemberRole } from "@/types/enums";
+import { BookingStatus, GuildMemberRole, PaymentStatus } from "@/types/enums";
 import {
   bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
@@ -17,6 +17,8 @@ import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
   [BookingStatus.REQUESTED]: "bg-warning/10 text-warning",
+  [BookingStatus.PENDING_PAYMENT]: "bg-amber-500/10 text-amber-600",
+  [BookingStatus.CONFIRMED]: "bg-primary/10 text-primary",
   [BookingStatus.ACCEPTED]: "bg-primary/10 text-primary",
   [BookingStatus.DECLINED]: "bg-destructive/10 text-destructive",
   [BookingStatus.COMPLETED]: "bg-emerald-500/10 text-emerald-600",
@@ -92,8 +94,21 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                 <Badge className={`${statusColors[b.status]} border-0 capitalize`}>{b.status.toLowerCase()}</Badge>
               </div>
               {b.notes && <p className="text-sm text-muted-foreground mb-2">{b.notes}</p>}
-              {b.requestedDateTime && (
+              {b.startDateTime && (
+                <p className="text-xs text-muted-foreground mb-1">
+                  📅 {new Date(b.startDateTime).toLocaleString()} – {b.endDateTime ? new Date(b.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                </p>
+              )}
+              {b.requestedDateTime && !b.startDateTime && (
                 <p className="text-xs text-muted-foreground mb-2">Preferred: {new Date(b.requestedDateTime).toLocaleString()}</p>
+              )}
+              {b.amount != null && b.amount > 0 && (
+                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.paymentStatus || "N/A"}</p>
+              )}
+              {b.callUrl && (
+                <a href={b.callUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
+                  <Video className="h-3 w-3" /> Join call <ExternalLink className="h-3 w-3" />
+                </a>
               )}
               <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.createdAt), { addSuffix: true })}</p>
 

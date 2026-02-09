@@ -17,6 +17,8 @@ import {
   CompanySize,
   TopicStewardRole,
   TopicFeatureTargetType,
+  OnlineLocationType,
+  PaymentStatus,
 } from "./enums";
 
 // ─── Core Entities ───────────────────────────────────────────
@@ -287,7 +289,10 @@ export interface Service {
   durationMinutes?: number;
   priceCurrency: string;
   priceAmount?: number;
+  onlineLocationType?: OnlineLocationType;
+  onlineLocationUrlTemplate?: string;
   isActive: boolean;
+  stripePriceId?: string;
   createdAt: string;
   updatedAt: string;
   // Relations
@@ -319,8 +324,18 @@ export interface Booking {
   providerGuildId?: string;
   companyId?: string;
   requestedDateTime?: string;
+  startDateTime?: string;
+  endDateTime?: string;
   status: BookingStatus;
   notes?: string;
+  // Payment fields
+  amount?: number;
+  currency?: string;
+  stripeCheckoutSessionId?: string;
+  stripePaymentIntentId?: string;
+  paymentStatus?: PaymentStatus;
+  // Call field
+  callUrl?: string;
   createdAt: string;
   updatedAt: string;
   // Relations
@@ -329,6 +344,31 @@ export interface Booking {
   providerUser?: User;
   providerGuild?: Guild;
   company?: Company;
+}
+
+// ─── Availability ────────────────────────────────────────────
+
+export interface AvailabilityRule {
+  id: string;
+  providerUserId: string;
+  serviceId?: string; // null = global, set = per-service override
+  weekday: number; // 0=Monday, 1=Tuesday, …, 6=Sunday
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
+  timezone: string; // e.g. "Europe/Paris"
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AvailabilityException {
+  id: string;
+  providerUserId: string;
+  date: string; // "YYYY-MM-DD"
+  isAvailable: boolean; // false = blocked, true = explicitly open
+  startTime?: string;
+  endTime?: string;
+  createdAt: string;
 }
 
 // ─── Companies ───────────────────────────────────────────────
