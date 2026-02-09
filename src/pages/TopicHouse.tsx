@@ -25,6 +25,8 @@ export default function TopicHouse() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const [, forceUpdate] = useState(0);
+  const [featureQuestId, setFeatureQuestId] = useState("");
+  const [featureGuildId, setFeatureGuildId] = useState("");
 
   if (!topic) return <PageShell><p>Topic not found.</p></PageShell>;
 
@@ -45,9 +47,6 @@ export default function TopicHouse() {
   // Non-featured items for curation
   const unfeaturedQuests = topicQuests.filter(q => !featuredQuestIds.includes(q.id));
   const unfeaturedGuilds = topicGuilds.filter(g => !featuredGuildIds.includes(g.id));
-
-  const [featureQuestId, setFeatureQuestId] = useState("");
-  const [featureGuildId, setFeatureGuildId] = useState("");
 
   const addFeature = (targetType: TopicFeatureTargetType, targetId: string) => {
     if (!targetId) return;
