@@ -88,6 +88,19 @@ export function AppNav() {
             <CalendarClock className="h-4 w-4" />
             <span className="hidden sm:inline">Requests</span>
           </Link>
+          <Link
+            to={`/users/${currentUser.id}`}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname === `/users/${currentUser.id}`
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title="My Profile"
+          >
+            <UserCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">My Profile</span>
+          </Link>
           {showAdmin && (
             <Link
               to="/admin"
