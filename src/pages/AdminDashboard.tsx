@@ -17,6 +17,7 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin } from "@/lib/admin";
+import { useXP } from "@/hooks/useXP";
 import {
   users as allUsers, guilds as allGuilds, quests as allQuests,
   topics, territories,
@@ -36,6 +37,7 @@ function UsersTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editXp, setEditXp] = useState(0);
   const [editCI, setEditCI] = useState(0);
+  const { setXpManual } = useXP();
 
   const filtered = usersState.filter((u) => {
     if (roleFilter !== "all" && u.role !== roleFilter) return false;
@@ -51,6 +53,7 @@ function UsersTab() {
   };
 
   const saveEdit = (id: string) => {
+    setXpManual(id, editXp, editCI);
     setUsersState((prev) =>
       prev.map((u) => (u.id === id ? { ...u, xp: editXp, contributionIndex: editCI } : u))
     );

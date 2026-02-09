@@ -11,6 +11,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import type { Comment, CommentUpvote } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 
 interface CommentThreadProps {
   targetType: CommentTargetType;
@@ -21,6 +22,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { notifyComment, notifyUpvote } = useNotifications();
+  const { awardXp } = useXP();
 
   const [comments, setComments] = useState<Comment[]>(() =>
     allMockComments
@@ -58,8 +60,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     setComments((prev) =>
       prev.map((c) => (c.id === commentId ? { ...c, upvoteCount: c.upvoteCount + 1 } : c))
     );
-    // Notify the comment author
+    // Award XP to comment author & notify
     if (comment) {
+      awardXp(comment.authorId, "COMMENT_UPVOTED", true);
       notifyUpvote({
         upvoterId: currentUser.id,
         commentAuthorId: comment.authorId,

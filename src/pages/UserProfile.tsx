@@ -13,6 +13,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 import {
   getUserById, achievements as allAchievements, userTopics, userTerritories,
   getTopicById, getTerritoryById, getQuestById, quests,
@@ -28,6 +29,7 @@ export default function UserProfile() {
   const user = getUserById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { awardXp } = useXP();
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
@@ -53,7 +55,8 @@ export default function UserProfile() {
       createdAt: new Date().toISOString(),
     };
     setAchievementsState((prev) => [ach, ...prev]);
-    allAchievements.push(ach); // also push to global so feed picks it up
+    allAchievements.push(ach);
+    awardXp(user.id, "ACHIEVEMENT_RECEIVED");
     setNewTitle("");
     setNewDesc("");
     setNewQuestId("none");

@@ -15,6 +15,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType, QuestStatus } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
   getParticipantsForQuest, getUpdatesForQuest,
@@ -35,6 +36,7 @@ export default function QuestDetail() {
   const quest = getQuestById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { awardXp } = useXP();
   const [achOpen, setAchOpen] = useState(false);
   const [achUserId, setAchUserId] = useState("");
   const [achTitle, setAchTitle] = useState("");
@@ -61,6 +63,7 @@ export default function QuestDetail() {
       createdAt: new Date().toISOString(),
     };
     allAchievements.push(ach);
+    awardXp(achUserId, "ACHIEVEMENT_RECEIVED");
     setAchTitle("");
     setAchDesc("");
     setAchUserId("");
