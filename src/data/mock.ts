@@ -339,16 +339,16 @@ export function getBookingsForCompany(companyId: string) {
 
 // ─── Topic Stewards & Features ───────────────────────────────
 export const topicStewards: TopicSteward[] = [
-  { id: "ts1", topicId: "t1", userId: "u1", role: TopicStewardRole.STEWARD, createdAt: "2024-12-01T10:00:00Z" },
-  { id: "ts2", topicId: "t2", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2024-12-05T09:00:00Z" },
-  { id: "ts3", topicId: "t1", userId: "u3", role: TopicStewardRole.CURATOR, createdAt: "2025-01-10T11:00:00Z" },
-  { id: "ts4", topicId: "t3", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2025-01-15T14:00:00Z" },
+  { id: "ts1", topicId: "t4", userId: "u1", role: TopicStewardRole.STEWARD, createdAt: "2024-12-01T10:00:00Z" },   // Carbon Capture
+  { id: "ts2", topicId: "t2", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2024-12-05T09:00:00Z" },   // Arts & Culture
+  { id: "ts3", topicId: "t4", userId: "u3", role: TopicStewardRole.CURATOR, createdAt: "2025-01-10T11:00:00Z" },   // Carbon Capture
+  { id: "ts4", topicId: "t21", userId: "u3", role: TopicStewardRole.STEWARD, createdAt: "2025-01-15T14:00:00Z" },  // Open Data & Technology
 ];
 
 export const topicFeatures: TopicFeature[] = [
-  { id: "tf1", topicId: "t1", targetType: TopicFeatureTargetType.QUEST, targetId: "q1", addedByUserId: "u1", createdAt: "2025-01-22T10:00:00Z" },
-  { id: "tf2", topicId: "t1", targetType: TopicFeatureTargetType.GUILD, targetId: "g1", addedByUserId: "u1", createdAt: "2025-01-23T09:00:00Z" },
-  { id: "tf3", topicId: "t2", targetType: TopicFeatureTargetType.QUEST, targetId: "q2", addedByUserId: "u3", createdAt: "2025-02-01T12:00:00Z" },
+  { id: "tf1", topicId: "t4", targetType: TopicFeatureTargetType.QUEST, targetId: "q1", addedByUserId: "u1", createdAt: "2025-01-22T10:00:00Z" },   // Carbon Capture
+  { id: "tf2", topicId: "t4", targetType: TopicFeatureTargetType.GUILD, targetId: "g1", addedByUserId: "u1", createdAt: "2025-01-23T09:00:00Z" },   // Carbon Capture
+  { id: "tf3", topicId: "t2", targetType: TopicFeatureTargetType.QUEST, targetId: "q2", addedByUserId: "u3", createdAt: "2025-02-01T12:00:00Z" },   // Arts & Culture
 ];
 
 export function getStewardsForTopic(topicId: string) {
