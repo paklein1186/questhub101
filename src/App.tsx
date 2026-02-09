@@ -24,6 +24,7 @@ import MyRequests from "./pages/MyRequests";
 import CompaniesList from "./pages/CompaniesList";
 import CompanyDetail from "./pages/CompanyDetail";
 import TopicHouse from "./pages/TopicHouse";
+import ProfileEdit from "./pages/ProfileEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/quests" element={<QuestsMarketplace />} />
               <Route path="/quests/:id" element={<QuestDetail />} />
               <Route path="/users/:id" element={<UserProfile />} />
+              <Route path="/profile/edit" element={<ProfileEdit />} />
               <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/achievements/:id" element={<AchievementDetail />} />
