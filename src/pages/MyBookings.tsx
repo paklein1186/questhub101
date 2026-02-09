@@ -9,7 +9,7 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus, GuildMemberRole } from "@/types/enums";
+import { BookingStatus, GuildMemberRole, PaymentStatus } from "@/types/enums";
 import {
   bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
