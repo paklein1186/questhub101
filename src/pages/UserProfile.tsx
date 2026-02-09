@@ -29,6 +29,7 @@ export default function UserProfile() {
   const user = getUserById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { awardXp } = useXP();
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
