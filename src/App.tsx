@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import GuildsList from "./pages/GuildsList";
 import GuildDetail from "./pages/GuildDetail";
+import GuildEdit from "./pages/GuildEdit";
+import MyGuilds from "./pages/MyGuilds";
 import QuestsMarketplace from "./pages/QuestsMarketplace";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
