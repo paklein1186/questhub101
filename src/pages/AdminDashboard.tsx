@@ -17,6 +17,7 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin } from "@/lib/admin";
+import { useXP } from "@/hooks/useXP";
 import {
   users as allUsers, guilds as allGuilds, quests as allQuests,
   topics, territories,
