@@ -36,6 +36,7 @@ export default function QuestDetail() {
   const quest = getQuestById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { awardXp } = useXP();
   const [achOpen, setAchOpen] = useState(false);
   const [achUserId, setAchUserId] = useState("");
   const [achTitle, setAchTitle] = useState("");
