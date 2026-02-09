@@ -13,6 +13,7 @@ import QuestsMarketplace from "./pages/QuestsMarketplace";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
 import NotificationsCenter from "./pages/NotificationsCenter";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/quests/:id" element={<QuestDetail />} />
               <Route path="/users/:id" element={<UserProfile />} />
               <Route path="/notifications" element={<NotificationsCenter />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
