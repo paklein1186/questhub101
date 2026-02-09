@@ -124,15 +124,15 @@ export const companies: Company[] = [
 ];
 
 export const companyTopics: CompanyTopic[] = [
-  { id: "ct1", companyId: "co1", topicId: "t1" },
-  { id: "ct2", companyId: "co2", topicId: "t2" },
-  { id: "ct3", companyId: "co3", topicId: "t5" },
+  { id: "ct1", companyId: "co1", topicId: "t4" },   // Carbon Capture
+  { id: "ct2", companyId: "co2", topicId: "t2" },   // Arts & Culture
+  { id: "ct3", companyId: "co3", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const companyTerritories: CompanyTerritory[] = [
-  { id: "ctr1", companyId: "co1", territoryId: "tr1" },
-  { id: "ctr2", companyId: "co2", territoryId: "tr3" },
-  { id: "ctr3", companyId: "co3", territoryId: "tr4" },
+  { id: "ctr1", companyId: "co1", territoryId: "tr7" },  // Paris
+  { id: "ctr2", companyId: "co2", territoryId: "tr3" },  // France
+  { id: "ctr3", companyId: "co3", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── Quests ──────────────────────────────────────────────────
