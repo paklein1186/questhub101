@@ -60,6 +60,8 @@ export enum CommentTargetType {
   QUEST_UPDATE = "QUEST_UPDATE",
   ACHIEVEMENT = "ACHIEVEMENT",
   POD = "POD",
+  SERVICE = "SERVICE",
+  COMPANY = "COMPANY",
 }
 
 export enum NotificationType {
