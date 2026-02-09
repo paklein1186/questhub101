@@ -247,20 +247,20 @@ export const services: Service[] = [
 ];
 
 export const serviceTopics: ServiceTopic[] = [
-  { id: "st1", serviceId: "svc1", topicId: "t1" },
-  { id: "st2", serviceId: "svc2", topicId: "t3" },
-  { id: "st3", serviceId: "svc2", topicId: "t4" },
-  { id: "st4", serviceId: "svc3", topicId: "t2" },
-  { id: "st5", serviceId: "svc4", topicId: "t1" },
-  { id: "st6", serviceId: "svc5", topicId: "t5" },
+  { id: "st1", serviceId: "svc1", topicId: "t4" },   // Carbon Capture
+  { id: "st2", serviceId: "svc2", topicId: "t21" },  // Open Data & Technology
+  { id: "st3", serviceId: "svc2", topicId: "t5" },   // Commons & DAO
+  { id: "st4", serviceId: "svc3", topicId: "t2" },   // Arts & Culture
+  { id: "st5", serviceId: "svc4", topicId: "t4" },   // Carbon Capture
+  { id: "st6", serviceId: "svc5", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const serviceTerritories: ServiceTerritory[] = [
-  { id: "str1", serviceId: "svc1", territoryId: "tr5" },
-  { id: "str2", serviceId: "svc2", territoryId: "tr2" },
-  { id: "str3", serviceId: "svc3", territoryId: "tr5" },
-  { id: "str4", serviceId: "svc4", territoryId: "tr1" },
-  { id: "str5", serviceId: "svc5", territoryId: "tr4" },
+  { id: "str1", serviceId: "svc1", territoryId: "tr6" },  // Remote / Global
+  { id: "str2", serviceId: "svc2", territoryId: "tr8" },  // Île-de-France
+  { id: "str3", serviceId: "svc3", territoryId: "tr6" },  // Remote / Global
+  { id: "str4", serviceId: "svc4", territoryId: "tr7" },  // Paris
+  { id: "str5", serviceId: "svc5", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── Bookings ────────────────────────────────────────────────
