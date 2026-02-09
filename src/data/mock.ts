@@ -103,17 +103,17 @@ export const guildTerritories: GuildTerritory[] = [
 
 // ─── User Topics & Territories ───────────────────────────────
 export const userTopics: UserTopic[] = [
-  { id: "ut1", userId: "u1", topicId: "t1" },
-  { id: "ut2", userId: "u1", topicId: "t3" },
-  { id: "ut3", userId: "u2", topicId: "t5" },
-  { id: "ut4", userId: "u3", topicId: "t2" },
-  { id: "ut5", userId: "u3", topicId: "t3" },
+  { id: "ut1", userId: "u1", topicId: "t4" },   // Carbon Capture
+  { id: "ut2", userId: "u1", topicId: "t21" },  // Open Data & Technology
+  { id: "ut3", userId: "u2", topicId: "t24" },  // Territorial Innovation
+  { id: "ut4", userId: "u3", topicId: "t2" },   // Arts & Culture
+  { id: "ut5", userId: "u3", topicId: "t21" },  // Open Data & Technology
 ];
 
 export const userTerritories: UserTerritory[] = [
-  { id: "utr1", userId: "u1", territoryId: "tr1" },
-  { id: "utr2", userId: "u2", territoryId: "tr4" },
-  { id: "utr3", userId: "u3", territoryId: "tr2" },
+  { id: "utr1", userId: "u1", territoryId: "tr7" },  // Paris
+  { id: "utr2", userId: "u2", territoryId: "tr9" },  // Barcelona
+  { id: "utr3", userId: "u3", territoryId: "tr8" },  // Île-de-France
 ];
 
 // ─── Companies ───────────────────────────────────────────────
