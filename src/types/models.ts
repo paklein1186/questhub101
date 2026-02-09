@@ -37,6 +37,7 @@ export interface Guild {
   description?: string;
   logoUrl?: string;
   type: GuildType;
+  isApproved: boolean;
   createdByUserId: string;
   // Relations
   createdByUser?: User;

@@ -1,7 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Shield, Compass, Zap, Bell } from "lucide-react";
+import { Home, Shield, Compass, Zap, Bell, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { isAdmin } from "@/lib/admin";
 
 const links = [
   { to: "/", label: "Feed", icon: Home },
@@ -12,6 +14,8 @@ const links = [
 export function AppNav() {
   const { pathname } = useLocation();
   const { unreadCount } = useNotifications();
+  const currentUser = useCurrentUser();
+  const showAdmin = isAdmin(currentUser.email);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -55,6 +59,20 @@ export function AppNav() {
               </span>
             )}
           </Link>
+          {showAdmin && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                pathname === "/admin"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
+          )}
         </nav>
       </div>
     </header>

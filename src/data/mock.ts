@@ -38,10 +38,10 @@ export const territories: Territory[] = [
 
 // ─── Guilds ──────────────────────────────────────────────────
 export const guilds: Guild[] = [
-  { id: "g1", name: "GreenTech Collective", description: "Accelerating climate solutions through tech and community.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=greentech", type: GuildType.COLLECTIVE, createdByUserId: "u1" },
-  { id: "g2", name: "EduForward Network", description: "Reimagining education for the 21st century.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=eduforward", type: GuildType.NETWORK, createdByUserId: "u3" },
-  { id: "g3", name: "Open Civic Guild", description: "Open data, open government, open minds.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=opencivic", type: GuildType.GUILD, createdByUserId: "u3" },
-  { id: "g4", name: "Mobility Lab", description: "Rethinking how cities move.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=mobilitylab", type: GuildType.GUILD, createdByUserId: "u2" },
+  { id: "g1", name: "GreenTech Collective", description: "Accelerating climate solutions through tech and community.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=greentech", type: GuildType.COLLECTIVE, isApproved: true, createdByUserId: "u1" },
+  { id: "g2", name: "EduForward Network", description: "Reimagining education for the 21st century.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=eduforward", type: GuildType.NETWORK, isApproved: true, createdByUserId: "u3" },
+  { id: "g3", name: "Open Civic Guild", description: "Open data, open government, open minds.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=opencivic", type: GuildType.GUILD, isApproved: false, createdByUserId: "u3" },
+  { id: "g4", name: "Mobility Lab", description: "Rethinking how cities move.", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=mobilitylab", type: GuildType.GUILD, isApproved: true, createdByUserId: "u2" },
 ];
 
 // ─── Guild Members ───────────────────────────────────────────
