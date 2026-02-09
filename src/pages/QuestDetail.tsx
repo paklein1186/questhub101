@@ -119,10 +119,19 @@ export default function QuestDetail() {
           <Link to={`/guilds/${guild?.id}`} className="hover:text-primary transition-colors">{guild?.name}</Link>
           <span>·</span>
           <span>by {creator?.name}</span>
+          {company && (
+            <>
+              <span>·</span>
+              <Link to={`/companies/${company.id}`} className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Building2 className="h-3.5 w-3.5" /> {company.name}
+              </Link>
+            </>
+          )}
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
           <Badge variant="secondary" className="capitalize">{quest.monetizationType.toLowerCase()}</Badge>
           {quest.isFeatured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
+          {quest.companyId && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client quest</Badge>}
         </div>
         <p className="text-muted-foreground max-w-2xl">{quest.description}</p>
         <div className="flex flex-wrap gap-1.5 mt-3">

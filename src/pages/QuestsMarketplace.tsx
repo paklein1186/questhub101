@@ -88,6 +88,7 @@ export default function QuestsMarketplace() {
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{guild?.name}</span>
                   <div className="flex gap-1.5">
+                    {quest.companyId && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
                     <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
                     <Badge variant="secondary" className="capitalize">{quest.monetizationType.toLowerCase()}</Badge>
                   </div>
