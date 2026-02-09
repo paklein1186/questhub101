@@ -61,6 +61,7 @@ export default function GuildDetail() {
         <TabsList>
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests</TabsTrigger>
+          {guildServices.length > 0 && <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services</TabsTrigger>}
           <TabsTrigger value="comments">Comments</TabsTrigger>
         </TabsList>
 
