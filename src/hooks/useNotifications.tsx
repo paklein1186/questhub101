@@ -13,7 +13,6 @@ interface NotificationStore {
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  /** Called by CommentThread / other components to auto-create notifications */
   notifyComment: (params: {
     commentAuthorId: string;
     targetType: CommentTargetType;
@@ -31,6 +30,13 @@ interface NotificationStore {
     questId: string;
     questUpdateId: string;
     updateTitle: string;
+  }) => void;
+  notifyBooking: (params: {
+    bookingId: string;
+    serviceTitle: string;
+    requesterName: string;
+    recipientUserId: string;
+    action: string;
   }) => void;
 }
 
