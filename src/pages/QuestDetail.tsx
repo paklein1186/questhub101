@@ -15,6 +15,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType, QuestStatus } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useXP } from "@/hooks/useXP";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
   getParticipantsForQuest, getUpdatesForQuest,
