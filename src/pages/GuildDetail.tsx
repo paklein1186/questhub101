@@ -150,7 +150,7 @@ export default function GuildDetail() {
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
           {guildPods.length > 0 && <TabsTrigger value="pods"><CircleDot className="h-4 w-4 mr-1" /> Pods ({guildPods.length})</TabsTrigger>}
-          {guildServices.length > 0 && <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({guildServices.length})</TabsTrigger>}
+          <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({guildServices.length})</TabsTrigger>
           {guildAchievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
