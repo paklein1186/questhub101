@@ -74,6 +74,7 @@ export interface Quest {
   id: string;
   title: string;
   description?: string;
+  coverImageUrl?: string;
   status: QuestStatus;
   monetizationType: MonetizationType;
   rewardXp: number;
