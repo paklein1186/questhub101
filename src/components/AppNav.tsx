@@ -10,6 +10,7 @@ const links = [
   { to: "/guilds", label: "Guilds", icon: Shield },
   { to: "/quests", label: "Quests", icon: Compass },
   { to: "/pods", label: "Pods", icon: CircleDot },
+  { to: "/services", label: "Services", icon: Briefcase },
 ];
 
 export function AppNav() {

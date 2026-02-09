@@ -103,6 +103,28 @@ export default function GuildDetail() {
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
         </TabsContent>
 
+        {guildServices.length > 0 && (
+          <TabsContent value="services" className="mt-6 space-y-3">
+            {guildServices.map((svc) => (
+              <Link
+                key={svc.id}
+                to={`/services/${svc.id}`}
+                className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="font-display font-semibold">{svc.title}</h4>
+                  {svc.priceAmount != null && (
+                    <Badge className="bg-primary/10 text-primary border-0">
+                      {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
+              </Link>
+            ))}
+          </TabsContent>
+        )}
+
         <TabsContent value="comments" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>

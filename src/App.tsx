@@ -46,6 +46,10 @@ const App = () => (
               <Route path="/achievements/:id" element={<AchievementDetail />} />
               <Route path="/pods" element={<PodsList />} />
               <Route path="/pods/:id" element={<PodDetail />} />
+              <Route path="/services" element={<ServicesMarketplace />} />
+              <Route path="/services/:id" element={<ServiceDetail />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
+              <Route path="/my-requests" element={<MyRequests />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
