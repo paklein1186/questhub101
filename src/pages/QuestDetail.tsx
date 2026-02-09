@@ -174,6 +174,41 @@ export default function QuestDetail() {
             </Dialog>
           </div>
         )}
+
+          {/* Create Pod button */}
+          <Dialog open={podOpen} onOpenChange={setPodOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <CircleDot className="h-4 w-4 mr-1" /> Create Pod
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Pod for "{quest.title}"</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-2">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Pod name</label>
+                  <Input value={podName} onChange={(e) => setPodName(e.target.value)} placeholder="e.g. Sprint Team Alpha" maxLength={100} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Description</label>
+                  <Textarea value={podDesc} onChange={(e) => setPodDesc(e.target.value)} placeholder="What will this pod focus on?" maxLength={500} className="resize-none" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Start date</label>
+                    <Input type="date" value={podStart} onChange={(e) => setPodStart(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">End date</label>
+                    <Input type="date" value={podEnd} onChange={(e) => setPodEnd(e.target.value)} />
+                  </div>
+                </div>
+                <Button onClick={createPod} disabled={!podName.trim()} className="w-full">Create Pod</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </motion.div>
 
