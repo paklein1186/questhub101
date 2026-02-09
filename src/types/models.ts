@@ -223,3 +223,14 @@ export interface Notification {
   // Relations
   user?: User;
 }
+
+/** Unique constraint on (followerId, targetType, targetId) */
+export interface Follow {
+  id: string;
+  followerId: string;
+  targetType: FollowTargetType;
+  targetId: string;
+  createdAt: string;
+  // Relations
+  follower?: User;
+}
