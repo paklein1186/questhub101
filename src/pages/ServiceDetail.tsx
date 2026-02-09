@@ -33,18 +33,16 @@ export default function ServiceDetail() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
 
-  if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
-
-  const provider = svc.providerUserId ? getUserById(svc.providerUserId) : null;
-  const guild = svc.providerGuildId ? getGuildById(svc.providerGuildId) : null;
-  const svcTopics = getTopicsForService(svc.id);
-  const svcTerrs = getTerritoriesForService(svc.id);
-  const isOwnService = svc.providerUserId === currentUser.id;
+  const provider = svc?.providerUserId ? getUserById(svc.providerUserId) : null;
+  const guild = svc?.providerGuildId ? getGuildById(svc.providerGuildId) : null;
+  const svcTopics = svc ? getTopicsForService(svc.id) : [];
+  const svcTerrs = svc ? getTerritoriesForService(svc.id) : [];
+  const isOwnService = svc?.providerUserId === currentUser.id;
+  const providerUserId = svc?.providerUserId;
 
   // Compute available slots for 1-week window
-  const providerUserId = svc.providerUserId;
   const slots = useMemo(() => {
-    if (!providerUserId || !svc.durationMinutes) return [];
+    if (!providerUserId || !svc?.durationMinutes) return [];
     const rules = getAvailabilityRulesForUser(providerUserId, svc.id);
     const exceptions = getAvailabilityExceptionsForUser(providerUserId);
     const providerBookings = getBookingsForProvider(providerUserId);
@@ -63,7 +61,7 @@ export default function ServiceDetail() {
       end.toISOString().split("T")[0],
       svc.id,
     );
-  }, [providerUserId, svc.id, svc.durationMinutes, weekOffset]);
+  }, [providerUserId, svc?.id, svc?.durationMinutes, weekOffset]);
 
   // Group slots by date
   const slotsByDate = useMemo(() => {
@@ -75,6 +73,8 @@ export default function ServiceDetail() {
     }
     return groups;
   }, [slots]);
+
+  if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
 
   const isFree = !svc.priceAmount || svc.priceAmount === 0;
 
