@@ -14,6 +14,8 @@ const links = [
 export function AppNav() {
   const { pathname } = useLocation();
   const { unreadCount } = useNotifications();
+  const currentUser = useCurrentUser();
+  const showAdmin = isAdmin(currentUser.email);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
