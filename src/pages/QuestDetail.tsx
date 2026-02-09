@@ -283,6 +283,22 @@ export default function QuestDetail() {
           })}
         </TabsContent>
 
+        <TabsContent value="pods" className="mt-6 space-y-3">
+          {questPods.length === 0 && <p className="text-muted-foreground">No pods yet. Create one above!</p>}
+          {questPods.map((pod) => {
+            const memberCount = allPodMembers.filter((pm) => pm.podId === pod.id).length;
+            return (
+              <Link key={pod.id} to={`/pods/${pod.id}`} className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-display font-semibold">{pod.name}</h4>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount}</span>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{pod.description}</p>
+              </Link>
+            );
+          })}
+        </TabsContent>
+
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
