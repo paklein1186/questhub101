@@ -17,6 +17,8 @@ import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
   [BookingStatus.REQUESTED]: "bg-warning/10 text-warning",
+  [BookingStatus.PENDING_PAYMENT]: "bg-amber-500/10 text-amber-600",
+  [BookingStatus.CONFIRMED]: "bg-primary/10 text-primary",
   [BookingStatus.ACCEPTED]: "bg-primary/10 text-primary",
   [BookingStatus.DECLINED]: "bg-destructive/10 text-destructive",
   [BookingStatus.COMPLETED]: "bg-emerald-500/10 text-emerald-600",
