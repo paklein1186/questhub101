@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
   getUserById, achievements as allAchievements, userTopics, userTerritories,
-  getTopicById, getTerritoryById, getQuestById, quests,
+  getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
