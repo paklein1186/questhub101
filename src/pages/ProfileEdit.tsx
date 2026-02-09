@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageShell } from "@/components/PageShell";
+import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/types/enums";
@@ -117,16 +117,13 @@ export default function ProfileEdit() {
 
         <div className="space-y-6 max-w-lg">
           {/* Avatar */}
-          <div>
-            <label className="text-sm font-medium mb-2 block">Avatar URL</label>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="text-xl">{name[0]}</AvatarFallback>
-              </Avatar>
-              <Input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://..." className="flex-1" />
-            </div>
-          </div>
+          <ImageUpload
+            label="Avatar"
+            currentImageUrl={avatarUrl || undefined}
+            onChange={(url) => setAvatarUrl(url ?? "")}
+            aspectRatio="1/1"
+            description="Square image works best"
+          />
 
           {/* Name */}
           <div>

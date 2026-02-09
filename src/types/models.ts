@@ -45,6 +45,7 @@ export interface Guild {
   name: string;
   description?: string;
   logoUrl?: string;
+  bannerUrl?: string;
   type: GuildType;
   isApproved: boolean;
   createdByUserId: string;
@@ -73,6 +74,7 @@ export interface Quest {
   id: string;
   title: string;
   description?: string;
+  coverImageUrl?: string;
   status: QuestStatus;
   monetizationType: MonetizationType;
   rewardXp: number;
@@ -107,6 +109,7 @@ export interface QuestUpdate {
   authorId: string;
   title: string;
   content: string;
+  imageUrl?: string;
   type: QuestUpdateType;
   createdAt: string;
   updatedAt: string;
@@ -218,6 +221,7 @@ export interface Achievement {
   questId: string;
   title: string;
   description?: string;
+  imageUrl?: string;
   createdAt: string;
   // Relations
   user?: User;
@@ -251,6 +255,7 @@ export interface Pod {
   id: string;
   name: string;
   description: string;
+  imageUrl?: string;
   type: PodType;
   questId?: string;
   topicId?: string;
@@ -284,6 +289,7 @@ export interface Service {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
   providerUserId?: string;
   providerGuildId?: string;
   durationMinutes?: number;
@@ -377,6 +383,7 @@ export interface Company {
   id: string;
   name: string;
   logoUrl?: string;
+  bannerUrl?: string;
   description?: string;
   sector?: string;
   size?: CompanySize;

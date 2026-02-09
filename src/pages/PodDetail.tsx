@@ -67,6 +67,13 @@ export default function PodDetail() {
         <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
       </Button>
 
+      {/* Pod image */}
+      {pod.imageUrl && (
+        <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
+          <img src={pod.imageUrl} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           {pod.type === PodType.QUEST_POD
