@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
-import { CommentSection } from "@/components/CommentSection";
+import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
@@ -94,7 +94,7 @@ export default function GuildDetail() {
         </TabsContent>
 
         <TabsContent value="comments" className="mt-6">
-          <CommentSection targetType={CommentTargetType.GUILD} targetId={guild.id} />
+          <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
       </Tabs>
     </PageShell>

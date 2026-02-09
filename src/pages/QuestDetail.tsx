@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
-import { CommentSection } from "@/components/CommentSection";
+import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType } from "@/types/enums";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
@@ -127,7 +127,7 @@ export default function QuestDetail() {
                 {/* Embedded comments for this QuestUpdate */}
                 <div className="ml-12 pt-3 border-t border-border">
                   <p className="text-xs font-medium text-muted-foreground mb-2">Comments on this update</p>
-                  <CommentSection targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />
+                  <CommentThread targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />
                 </div>
               </motion.div>
             );
@@ -135,7 +135,7 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6">
-          <CommentSection targetType={CommentTargetType.QUEST} targetId={quest.id} />
+          <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
       </Tabs>
     </PageShell>
