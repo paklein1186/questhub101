@@ -1,20 +1,35 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Users } from "lucide-react";
+import { Shield, Users, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
+import { GuildType, GuildMemberRole } from "@/types/enums";
+import type { Guild } from "@/types";
 import {
   guilds, topics, territories,
   getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild,
-  guildTopics, guildTerritories,
+  guildTopics, guildTerritories, guildMembers,
 } from "@/data/mock";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
+  const currentUser = useCurrentUser();
+  const { toast } = useToast();
   const [topicFilter, setTopicFilter] = useState<string>("all");
   const [territoryFilter, setTerritoryFilter] = useState<string>("all");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [gName, setGName] = useState("");
+  const [gDesc, setGDesc] = useState("");
+  const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
+  const [, forceUpdate] = useState(0);
 
   const filtered = guilds.filter((g) => {
     if (topicFilter !== "all" && !guildTopics.some((gt) => gt.guildId === g.id && gt.topicId === topicFilter)) return false;
@@ -22,13 +37,68 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
     return true;
   });
 
+  const createGuild = () => {
+    if (!gName.trim()) return;
+    const newGuild: Guild = {
+      id: `g-${Date.now()}`,
+      name: gName.trim(),
+      description: gDesc.trim() || undefined,
+      logoUrl: `https://api.dicebear.com/7.x/shapes/svg?seed=${gName.trim().toLowerCase().replace(/\s/g, "")}`,
+      type: gType,
+      isApproved: false,
+      createdByUserId: currentUser.id,
+    };
+    guilds.push(newGuild);
+    guildMembers.push({
+      id: `gm-${Date.now()}`,
+      guildId: newGuild.id,
+      userId: currentUser.id,
+      role: GuildMemberRole.ADMIN,
+      joinedAt: new Date().toISOString(),
+    });
+    setCreateOpen(false);
+    setGName(""); setGDesc(""); setGType(GuildType.GUILD);
+    forceUpdate(n => n + 1);
+    toast({ title: "Guild created!", description: `${newGuild.name} (pending approval)` });
+  };
+
   return (
     <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Shield className="h-7 w-7 text-primary" /> Guilds
         </h1>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-2">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Name</label>
+                  <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Description</label>
+                  <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Type</label>
+                  <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
+                      <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
+                      <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={createGuild} disabled={!gName.trim()} className="w-full">Create Guild</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Select value={topicFilter} onValueChange={setTopicFilter}>
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Topic" /></SelectTrigger>
             <SelectContent>
