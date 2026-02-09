@@ -112,6 +112,7 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        <TabsContent value="availability"><MyAvailability bare /></TabsContent>
         <TabsContent value="bookings"><MyBookings bare /></TabsContent>
         <TabsContent value="requests"><MyRequests bare /></TabsContent>
       </Tabs>
