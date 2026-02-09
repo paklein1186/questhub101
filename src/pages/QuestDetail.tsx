@@ -105,7 +105,7 @@ export default function QuestDetail() {
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Quests</Link>
+        <Link to="/explore?tab=quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Quests</Link>
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

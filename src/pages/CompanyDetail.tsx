@@ -63,7 +63,7 @@ export default function CompanyDetail() {
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Companies</Link>
+        <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Companies</Link>
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

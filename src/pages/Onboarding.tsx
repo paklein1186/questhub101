@@ -308,7 +308,7 @@ export default function Onboarding() {
                       <Link to="/explore?tab=guilds"><Shield className="h-4 w-4 mr-2" /> Guilds</Link>
                     </Button>
                     <Button asChild className="flex-1" variant="outline">
-                      <Link to="/quests"><Compass className="h-4 w-4 mr-2" /> Quests</Link>
+                      <Link to="/explore?tab=quests"><Compass className="h-4 w-4 mr-2" /> Quests</Link>
                     </Button>
                   </div>
                 </div>

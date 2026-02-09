@@ -64,7 +64,7 @@ export default function PodDetail() {
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
+        <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

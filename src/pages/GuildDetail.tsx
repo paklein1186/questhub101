@@ -56,7 +56,7 @@ export default function GuildDetail() {
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
+        <Link to="/explore?tab=guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
       </Button>
 
       {/* Header */}
