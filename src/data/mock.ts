@@ -162,6 +162,16 @@ export const notifications: Notification[] = [
   { id: "n2", userId: "u3", type: NotificationType.QUEST_UPDATE, data: { questUpdateId: "qu3", message: "Milestone reached on Peer Tutoring Platform" }, isRead: true },
 ];
 
+// ─── Follows ─────────────────────────────────────────────────
+export const follows: Follow[] = [
+  { id: "f1", followerId: "u1", targetType: FollowTargetType.USER, targetId: "u2", createdAt: "2025-01-18T10:00:00Z" },
+  { id: "f2", followerId: "u1", targetType: FollowTargetType.GUILD, targetId: "g2", createdAt: "2025-01-20T09:00:00Z" },
+  { id: "f3", followerId: "u1", targetType: FollowTargetType.QUEST, targetId: "q2", createdAt: "2025-01-22T14:00:00Z" },
+  { id: "f4", followerId: "u1", targetType: FollowTargetType.QUEST, targetId: "q4", createdAt: "2025-01-25T08:00:00Z" },
+  { id: "f5", followerId: "u2", targetType: FollowTargetType.USER, targetId: "u1", createdAt: "2025-01-19T11:00:00Z" },
+  { id: "f6", followerId: "u3", targetType: FollowTargetType.GUILD, targetId: "g1", createdAt: "2025-01-21T15:00:00Z" },
+];
+
 // ─── Helpers ─────────────────────────────────────────────────
 export function getUserById(id: string) { return users.find(u => u.id === id); }
 export function getGuildById(id: string) { return guilds.find(g => g.id === id); }
