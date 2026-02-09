@@ -1,22 +1,30 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
-  CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle,
+  CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, FollowTargetType, GuildMemberRole } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
+import type { Service } from "@/types";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
   achievements as allAchievements, guildMembers, podMembers, pods, getQuestById,
+  services,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 

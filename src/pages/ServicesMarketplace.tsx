@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Filter, Clock, MapPin, Hash, Euro } from "lucide-react";
+import { Filter, Clock, MapPin, Hash, Euro } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import {
@@ -19,6 +19,7 @@ const fadeUp = {
 export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   const [topicFilter, setTopicFilter] = useState("ALL");
   const [territoryFilter, setTerritoryFilter] = useState("ALL");
+  const [priceFilter, setPriceFilter] = useState("ALL");
 
   let filtered = services.filter((s) => s.isActive);
   if (topicFilter !== "ALL") {
@@ -28,6 +29,11 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   if (territoryFilter !== "ALL") {
     const svcIds = new Set(serviceTerritories.filter((st) => st.territoryId === territoryFilter).map((st) => st.serviceId));
     filtered = filtered.filter((s) => svcIds.has(s.id));
+  }
+  if (priceFilter === "FREE") {
+    filtered = filtered.filter((s) => !s.priceAmount || s.priceAmount === 0);
+  } else if (priceFilter === "PAID") {
+    filtered = filtered.filter((s) => s.priceAmount && s.priceAmount > 0);
   }
 
   return (
@@ -50,6 +56,14 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
           <SelectContent>
             <SelectItem value="ALL">All territories</SelectItem>
             {territories.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={priceFilter} onValueChange={setPriceFilter}>
+          <SelectTrigger className="w-[130px]"><Euro className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All prices</SelectItem>
+            <SelectItem value="FREE">Free</SelectItem>
+            <SelectItem value="PAID">Paid</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -77,7 +91,24 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{svc.description}</p>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">{provider?.name ?? guild?.name}</span>
+                  {provider && (
+                    <span className="flex items-center gap-1">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={provider.avatarUrl} />
+                        <AvatarFallback className="text-[10px]">{provider.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium text-foreground">{provider.name}</span>
+                    </span>
+                  )}
+                  {guild && (
+                    <span className="flex items-center gap-1">
+                      <Avatar className="h-5 w-5 rounded">
+                        <AvatarImage src={guild.logoUrl} />
+                        <AvatarFallback className="text-[10px] rounded">{guild.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium text-foreground">{guild.name}</span>
+                    </span>
+                  )}
                   {svc.durationMinutes && (
                     <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {svc.durationMinutes} min</span>
                   )}
