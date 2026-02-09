@@ -11,6 +11,7 @@ const links = [
   { to: "/quests", label: "Quests", icon: Compass },
   { to: "/pods", label: "Pods", icon: CircleDot },
   { to: "/services", label: "Services", icon: Briefcase },
+  { to: "/companies", label: "Companies", icon: Building2 },
 ];
 
 export function AppNav() {
