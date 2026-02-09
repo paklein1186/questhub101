@@ -16,7 +16,7 @@ import { BookingStatus } from "@/types/enums";
 import {
   getServiceById, getUserById, getGuildById,
   getTopicsForService, getTerritoriesForService,
-  bookings as allBookings, guildMembers,
+  bookings as allBookings, guildMembers, companies,
 } from "@/data/mock";
 import type { Booking } from "@/types";
 
