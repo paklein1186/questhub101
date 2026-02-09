@@ -9,6 +9,9 @@ const XP_REWARDS = {
   QUEST_UPDATE_CREATED: 5,
   COMMENT_UPVOTED: 1,
   ACHIEVEMENT_RECEIVED: 20,
+  BOOKING_COMPLETED_PAID: 15,
+  BOOKING_COMPLETED_FREE: 10,
+  BOOKING_ATTENDED: 2,
 } as const;
 
 function recomputeContributionIndex(xp: number): number {
