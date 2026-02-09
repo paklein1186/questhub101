@@ -17,6 +17,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
 import PodsList from "./pages/PodsList";
 import PodDetail from "./pages/PodDetail";
+import ServicesMarketplace from "./pages/ServicesMarketplace";
+import ServiceDetail from "./pages/ServiceDetail";
+import MyBookings from "./pages/MyBookings";
+import MyRequests from "./pages/MyRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
