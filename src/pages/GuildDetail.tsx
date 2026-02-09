@@ -24,6 +24,7 @@ export default function GuildDetail() {
   const territories = getTerritoriesForGuild(guild.id);
   const members = getMembersForGuild(guild.id);
   const quests = getQuestsForGuild(guild.id);
+  const guildServices = getServicesForGuild(guild.id);
   const creator = getUserById(guild.createdByUserId);
 
   return (
