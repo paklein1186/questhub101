@@ -1,13 +1,14 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Users, Compass, ArrowLeft } from "lucide-react";
+import { Shield, Users, Compass, ArrowLeft, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType } from "@/types/enums";
+import { useFollow } from "@/hooks/useFollow";
 import {
   getGuildById, getTopicsForGuild, getTerritoriesForGuild,
   getMembersForGuild, getQuestsForGuild, getUserById,
