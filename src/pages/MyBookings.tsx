@@ -102,6 +102,14 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
               {b.requestedDateTime && !b.startDateTime && (
                 <p className="text-xs text-muted-foreground mb-2">Preferred: {new Date(b.requestedDateTime).toLocaleString()}</p>
               )}
+              {b.amount != null && b.amount > 0 && (
+                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.paymentStatus || "N/A"}</p>
+              )}
+              {b.callUrl && (
+                <a href={b.callUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
+                  <Video className="h-3 w-3" /> Join call <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
               <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.createdAt), { addSuffix: true })}</p>
 
               {b.status === BookingStatus.REQUESTED && (
