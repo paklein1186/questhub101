@@ -38,6 +38,7 @@ export default function QuestDetail() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { awardXp } = useXP();
+  const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const [achOpen, setAchOpen] = useState(false);
   const [achUserId, setAchUserId] = useState("");
   const [achTitle, setAchTitle] = useState("");
