@@ -236,3 +236,36 @@ export interface Follow {
   // Relations
   follower?: User;
 }
+
+// ─── Pods ────────────────────────────────────────────────────
+
+export interface Pod {
+  id: string;
+  name: string;
+  description: string;
+  type: PodType;
+  questId?: string;
+  topicId?: string;
+  creatorId: string;
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  quest?: Quest;
+  topic?: Topic;
+  creator?: User;
+  podMembers?: PodMember[];
+}
+
+/** Unique constraint on (podId, userId) */
+export interface PodMember {
+  id: string;
+  podId: string;
+  userId: string;
+  role: PodMemberRole;
+  joinedAt: string;
+  // Relations
+  pod?: Pod;
+  user?: User;
+}
