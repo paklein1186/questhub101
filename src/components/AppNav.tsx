@@ -61,6 +61,32 @@ export function AppNav() {
               </span>
             )}
           </Link>
+          <Link
+            to="/my-bookings"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname === "/my-bookings"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title="My Bookings"
+          >
+            <ClipboardList className="h-4 w-4" />
+            <span className="hidden sm:inline">Bookings</span>
+          </Link>
+          <Link
+            to="/my-requests"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname === "/my-requests"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+            title="My Requests"
+          >
+            <CalendarClock className="h-4 w-4" />
+            <span className="hidden sm:inline">Requests</span>
+          </Link>
           {showAdmin && (
             <Link
               to="/admin"
