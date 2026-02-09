@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageShell } from "@/components/PageShell";
+import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { GuildType, GuildMemberRole } from "@/types/enums";
@@ -27,12 +28,9 @@ export default function GuildEdit() {
   const { id } = useParams<{ id: string }>();
   const guild = getGuildById(id!);
   const currentUser = useCurrentUser();
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
-  // Check admin access
   const currentMembership = guildMembers.find(
     (gm) => gm.guildId === guild.id && gm.userId === currentUser.id
   );
@@ -51,6 +49,7 @@ function GuildEditForm({ guildId }: { guildId: string }) {
 
   const [name, setName] = useState(guild.name);
   const [logoUrl, setLogoUrl] = useState(guild.logoUrl ?? "");
+  const [bannerUrl, setBannerUrl] = useState(guild.bannerUrl ?? "");
   const [description, setDescription] = useState(guild.description ?? "");
   const [type, setType] = useState<GuildType>(guild.type);
 
@@ -82,6 +81,7 @@ function GuildEditForm({ guildId }: { guildId: string }) {
         ...guilds[idx],
         name: name.trim() || guild.name,
         logoUrl: logoUrl.trim() || undefined,
+        bannerUrl: bannerUrl.trim() || undefined,
         description: description.trim() || undefined,
         type,
       };
@@ -142,14 +142,13 @@ function GuildEditForm({ guildId }: { guildId: string }) {
 
   const removeMember = (memberId: string) => {
     const gm = guildMembers.find((m) => m.id === memberId);
-    if (!gm || gm.userId === currentUser.id) return; // can't remove self
+    if (!gm || gm.userId === currentUser.id) return;
     const idx = guildMembers.indexOf(gm);
     if (idx !== -1) guildMembers.splice(idx, 1);
     setMembers(getMembersForGuild(guildId));
     toast({ title: "Member removed" });
   };
 
-  // Users not already members
   const nonMembers = users.filter(
     (u) => !guildMembers.some((gm) => gm.guildId === guildId && gm.userId === u.id)
   );
@@ -163,7 +162,6 @@ function GuildEditForm({ guildId }: { guildId: string }) {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-display text-2xl font-bold mb-2">Edit Guild</h1>
 
-        {/* Approval status */}
         <div className="flex items-center gap-2 mb-6">
           {guild.isApproved ? (
             <Badge className="bg-primary/10 text-primary border-0"><ShieldCheck className="h-3 w-3 mr-1" /> Approved</Badge>
@@ -179,13 +177,23 @@ function GuildEditForm({ guildId }: { guildId: string }) {
               <label className="text-sm font-medium mb-1 block">Name</label>
               <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Logo URL</label>
-              <div className="flex items-center gap-3">
-                {logoUrl && <img src={logoUrl} className="h-12 w-12 rounded-lg" alt="" />}
-                <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://..." className="flex-1" />
-              </div>
-            </div>
+
+            <ImageUpload
+              label="Logo"
+              currentImageUrl={logoUrl || undefined}
+              onChange={(url) => setLogoUrl(url ?? "")}
+              aspectRatio="1/1"
+              description="Square logo, recommended 256×256"
+            />
+
+            <ImageUpload
+              label="Banner (optional)"
+              currentImageUrl={bannerUrl || undefined}
+              onChange={(url) => setBannerUrl(url ?? "")}
+              aspectRatio="16/9"
+              description="Wide banner, recommended 1200×400"
+            />
+
             <div>
               <label className="text-sm font-medium mb-1 block">Description</label>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="resize-none min-h-[120px]" />
