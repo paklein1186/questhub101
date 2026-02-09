@@ -177,7 +177,7 @@ export default function Index() {
             <Shield className="h-5 w-5 text-primary" /> Suggested Guilds
           </h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/guilds">View all <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/explore?tab=guilds">View all <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -216,7 +216,7 @@ export default function Index() {
             <Compass className="h-5 w-5 text-primary" /> Featured Quests
           </h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/quests">Marketplace <ArrowRight className="ml-1 h-4 w-4" /></Link>
+            <Link to="/explore?tab=quests">Marketplace <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2">

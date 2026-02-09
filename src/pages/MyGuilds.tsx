@@ -64,7 +64,7 @@ export default function MyGuilds({ bare }: { bare?: boolean }) {
       )}
 
       {myMemberships.length === 0 && (
-        <p className="text-muted-foreground">You haven't joined any guilds yet. <Link to="/guilds" className="text-primary hover:underline">Browse guilds</Link></p>
+        <p className="text-muted-foreground">You haven't joined any guilds yet. <Link to="/explore?tab=guilds" className="text-primary hover:underline">Browse guilds</Link></p>
       )}
 
       {adminGuilds.length > 0 && (
