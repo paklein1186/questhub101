@@ -9,9 +9,9 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus } from "@/types/enums";
+import { BookingStatus, GuildMemberRole } from "@/types/enums";
 import {
-  bookings, services, getUserById, getServiceById,
+  bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 
@@ -30,25 +30,10 @@ export default function MyBookings() {
   const [, forceUpdate] = useState(0);
   const rerender = () => forceUpdate((n) => n + 1);
 
-  // Bookings where the current user is the provider
-  const incoming = bookings.filter(
-    (b) => b.providerUserId === currentUser.id ||
-    (b.providerGuildId && services.find((s) => s.id === b.serviceId)?.providerGuildId &&
-      // simplify: show if current user is providerUser
-      false) ||
-    b.providerUserId === currentUser.id
-  );
-
-  // Re-derive to include guild-based ones
   const myIncoming = bookings.filter((b) => {
     if (b.providerUserId === currentUser.id) return true;
-    // Guild provider: check if current user is admin
     if (b.providerGuildId) {
-      const svc = getServiceById(b.serviceId);
-      if (svc?.providerGuildId) {
-        const { guildMembers } = require("@/data/mock");
-        return guildMembers.some((gm: any) => gm.guildId === svc.providerGuildId && gm.userId === currentUser.id && gm.role === "ADMIN");
-      }
+      return guildMembers.some((gm) => gm.guildId === b.providerGuildId && gm.userId === currentUser.id && gm.role === GuildMemberRole.ADMIN);
     }
     return false;
   });
