@@ -23,6 +23,7 @@ import MyBookings from "./pages/MyBookings";
 import MyRequests from "./pages/MyRequests";
 import CompaniesList from "./pages/CompaniesList";
 import CompanyDetail from "./pages/CompanyDetail";
+import TopicHouse from "./pages/TopicHouse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
