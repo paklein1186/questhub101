@@ -94,7 +94,12 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                 <Badge className={`${statusColors[b.status]} border-0 capitalize`}>{b.status.toLowerCase()}</Badge>
               </div>
               {b.notes && <p className="text-sm text-muted-foreground mb-2">{b.notes}</p>}
-              {b.requestedDateTime && (
+              {b.startDateTime && (
+                <p className="text-xs text-muted-foreground mb-1">
+                  📅 {new Date(b.startDateTime).toLocaleString()} – {b.endDateTime ? new Date(b.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                </p>
+              )}
+              {b.requestedDateTime && !b.startDateTime && (
                 <p className="text-xs text-muted-foreground mb-2">Preferred: {new Date(b.requestedDateTime).toLocaleString()}</p>
               )}
               <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.createdAt), { addSuffix: true })}</p>
