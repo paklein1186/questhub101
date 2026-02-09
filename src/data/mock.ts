@@ -85,20 +85,20 @@ export const guildMembers: GuildMember[] = [
 
 // ─── Guild Topics & Territories ──────────────────────────────
 export const guildTopics: GuildTopic[] = [
-  { id: "gt1", guildId: "g1", topicId: "t1" },
-  { id: "gt2", guildId: "g1", topicId: "t3" },
-  { id: "gt3", guildId: "g2", topicId: "t2" },
-  { id: "gt4", guildId: "g3", topicId: "t3" },
-  { id: "gt5", guildId: "g3", topicId: "t4" },
-  { id: "gt6", guildId: "g4", topicId: "t5" },
+  { id: "gt1", guildId: "g1", topicId: "t4" },   // Carbon Capture
+  { id: "gt2", guildId: "g1", topicId: "t21" },  // Open Data & Technology
+  { id: "gt3", guildId: "g2", topicId: "t2" },   // Arts & Culture
+  { id: "gt4", guildId: "g3", topicId: "t21" },  // Open Data & Technology
+  { id: "gt5", guildId: "g3", topicId: "t5" },   // Commons & DAO
+  { id: "gt6", guildId: "g4", topicId: "t24" },  // Territorial Innovation
 ];
 
 export const guildTerritories: GuildTerritory[] = [
-  { id: "gtr1", guildId: "g1", territoryId: "tr1" },
-  { id: "gtr2", guildId: "g1", territoryId: "tr5" },
-  { id: "gtr3", guildId: "g2", territoryId: "tr3" },
-  { id: "gtr4", guildId: "g3", territoryId: "tr2" },
-  { id: "gtr5", guildId: "g4", territoryId: "tr4" },
+  { id: "gtr1", guildId: "g1", territoryId: "tr7" },  // Paris
+  { id: "gtr2", guildId: "g1", territoryId: "tr6" },  // Remote / Global
+  { id: "gtr3", guildId: "g2", territoryId: "tr3" },  // France
+  { id: "gtr4", guildId: "g3", territoryId: "tr8" },  // Île-de-France
+  { id: "gtr5", guildId: "g4", territoryId: "tr9" },  // Barcelona
 ];
 
 // ─── User Topics & Territories ───────────────────────────────
