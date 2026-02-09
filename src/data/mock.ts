@@ -296,3 +296,16 @@ export function getServicesForUser(userId: string) {
 export function getServicesForGuild(guildId: string) {
   return services.filter(s => s.providerGuildId === guildId && s.isActive);
 }
+export function getCompanyById(id: string) { return companies.find(c => c.id === id); }
+export function getTopicsForCompany(companyId: string) {
+  return companyTopics.filter(ct => ct.companyId === companyId).map(ct => getTopicById(ct.topicId)!).filter(Boolean);
+}
+export function getTerritoriesForCompany(companyId: string) {
+  return companyTerritories.filter(ct => ct.companyId === companyId).map(ct => getTerritoryById(ct.territoryId)!).filter(Boolean);
+}
+export function getQuestsForCompany(companyId: string) {
+  return quests.filter(q => q.companyId === companyId);
+}
+export function getBookingsForCompany(companyId: string) {
+  return bookings.filter(b => b.companyId === companyId);
+}
