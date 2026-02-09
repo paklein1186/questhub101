@@ -74,6 +74,7 @@ export enum FollowTargetType {
   USER = "USER",
   GUILD = "GUILD",
   QUEST = "QUEST",
+  COMPANY = "COMPANY",
 }
 
 export enum PodType {
