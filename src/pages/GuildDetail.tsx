@@ -72,6 +72,29 @@ export default function GuildDetail() {
     .filter((a) => guildQuestIds.has(a.questId))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+  const createGuildService = () => {
+    if (!svcTitle.trim()) return;
+    const newSvc: Service = {
+      id: `svc-${Date.now()}`,
+      title: svcTitle.trim(),
+      description: svcDesc.trim(),
+      providerGuildId: guild.id,
+      durationMinutes: Number(svcDuration) || 60,
+      priceAmount: Number(svcPrice) || 0,
+      priceCurrency: "EUR",
+      onlineLocationType: svcLocationType,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    services.push(newSvc);
+    setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
+    setSvcLocationType(OnlineLocationType.JITSI);
+    setCreateSvcOpen(false);
+    rerender();
+    toast({ title: "Guild service created" });
+  };
+
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
