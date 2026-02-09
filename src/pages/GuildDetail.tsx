@@ -17,6 +17,7 @@ import {
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
   const guild = getGuildById(id!);
+  const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
