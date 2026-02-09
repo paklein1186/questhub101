@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Shield, Compass, Zap, Bell, LayoutDashboard, CircleDot, Briefcase, CalendarClock, ClipboardList } from "lucide-react";
+import { Home, Shield, Compass, Zap, Bell, LayoutDashboard, CircleDot, Briefcase, CalendarClock, ClipboardList, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -11,6 +11,7 @@ const links = [
   { to: "/quests", label: "Quests", icon: Compass },
   { to: "/pods", label: "Pods", icon: CircleDot },
   { to: "/services", label: "Services", icon: Briefcase },
+  { to: "/companies", label: "Companies", icon: Building2 },
 ];
 
 export function AppNav() {

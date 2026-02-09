@@ -16,7 +16,7 @@ import { BookingStatus } from "@/types/enums";
 import {
   getServiceById, getUserById, getGuildById,
   getTopicsForService, getTerritoriesForService,
-  bookings as allBookings, guildMembers,
+  bookings as allBookings, guildMembers, companies,
 } from "@/data/mock";
 import type { Booking } from "@/types";
 
@@ -39,12 +39,15 @@ export default function ServiceDetail() {
   const isOwnService = svc.providerUserId === currentUser.id;
 
   const createBooking = () => {
+    // Find if current user is a contact for any company
+    const userCompany = companies.find(c => c.contactUserId === currentUser.id);
     const booking: Booking = {
       id: `bk-${Date.now()}`,
       serviceId: svc.id,
       requesterId: currentUser.id,
       providerUserId: svc.providerUserId,
       providerGuildId: svc.providerGuildId,
+      companyId: userCompany?.id,
       requestedDateTime: bookDateTime || undefined,
       status: BookingStatus.REQUESTED,
       notes: bookNotes.trim() || undefined,

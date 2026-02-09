@@ -93,3 +93,10 @@ export enum BookingStatus {
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
 }
+
+export enum CompanySize {
+  MICRO = "MICRO",
+  SME = "SME",
+  LARGE = "LARGE",
+  OTHER = "OTHER",
+}
