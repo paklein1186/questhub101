@@ -20,7 +20,7 @@ import { useXP } from "@/hooks/useXP";
 import {
   getQuestById, getTopicsForQuest, getTerritoriesForQuest,
   getParticipantsForQuest, getUpdatesForQuest, getPodsForQuest,
-  getUserById, getGuildById, users, achievements as allAchievements,
+  getUserById, getGuildById, getCompanyById, users, achievements as allAchievements,
   pods as allPods, podMembers as allPodMembers,
 } from "@/data/mock";
 import type { Achievement, Pod } from "@/types";
