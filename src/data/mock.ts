@@ -89,13 +89,33 @@ export const userTerritories: UserTerritory[] = [
   { id: "utr3", userId: "u3", territoryId: "tr2" },
 ];
 
+// ─── Companies ───────────────────────────────────────────────
+export const companies: Company[] = [
+  { id: "co1", name: "ÉcoVille Consulting", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=ecoville", description: "Sustainability consultancy helping cities achieve carbon neutrality.", sector: "Sustainability", size: CompanySize.SME, websiteUrl: "https://ecoville.example.com", contactUserId: "u2", createdAt: "2024-06-01T10:00:00Z", updatedAt: "2024-06-01T10:00:00Z" },
+  { id: "co2", name: "LearnCorp", logoUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=learncorp", description: "EdTech company focused on lifelong learning solutions for enterprises.", sector: "Education", size: CompanySize.LARGE, websiteUrl: "https://learncorp.example.com", contactUserId: "u3", createdAt: "2024-07-15T09:00:00Z", updatedAt: "2024-07-15T09:00:00Z" },
+  { id: "co3", name: "MicroMobility SAS", description: "Startup building last-mile delivery solutions with cargo bikes.", sector: "Mobility", size: CompanySize.MICRO, contactUserId: "u4", createdAt: "2025-01-05T11:00:00Z", updatedAt: "2025-01-05T11:00:00Z" },
+];
+
+export const companyTopics: CompanyTopic[] = [
+  { id: "ct1", companyId: "co1", topicId: "t1" },
+  { id: "ct2", companyId: "co2", topicId: "t2" },
+  { id: "ct3", companyId: "co3", topicId: "t5" },
+];
+
+export const companyTerritories: CompanyTerritory[] = [
+  { id: "ctr1", companyId: "co1", territoryId: "tr1" },
+  { id: "ctr2", companyId: "co2", territoryId: "tr3" },
+  { id: "ctr3", companyId: "co3", territoryId: "tr4" },
+];
+
 // ─── Quests ──────────────────────────────────────────────────
 export const quests: Quest[] = [
   { id: "q1", title: "Carbon Footprint Dashboard", description: "Build an open-source dashboard that helps communities track their collective carbon footprint in real time.", status: QuestStatus.OPEN, monetizationType: MonetizationType.FREE, rewardXp: 300, isFeatured: true, createdByUserId: "u1", guildId: "g1" },
   { id: "q2", title: "Peer Tutoring Platform", description: "Create a platform matching volunteer tutors with students in underserved areas.", status: QuestStatus.IN_PROGRESS, monetizationType: MonetizationType.MIXED, rewardXp: 500, isFeatured: true, createdByUserId: "u3", guildId: "g2" },
   { id: "q3", title: "Open Budget Visualizer", description: "Visualize municipal budget data so citizens can understand where their taxes go.", status: QuestStatus.IN_PROGRESS, monetizationType: MonetizationType.FREE, rewardXp: 400, isFeatured: false, createdByUserId: "u3", guildId: "g3" },
-  { id: "q4", title: "Bike-Share Optimization", description: "Use data analytics to optimize bike-share station placement across the city.", status: QuestStatus.OPEN, monetizationType: MonetizationType.PAID, rewardXp: 600, isFeatured: false, createdByUserId: "u2", guildId: "g4" },
+  { id: "q4", title: "Bike-Share Optimization", description: "Use data analytics to optimize bike-share station placement across the city.", status: QuestStatus.OPEN, monetizationType: MonetizationType.PAID, rewardXp: 600, isFeatured: false, createdByUserId: "u2", guildId: "g4", companyId: "co3" },
   { id: "q5", title: "Community Garden Mapper", description: "Map all community gardens and track volunteer hours and harvest yields.", status: QuestStatus.COMPLETED, monetizationType: MonetizationType.FREE, rewardXp: 200, isFeatured: false, createdByUserId: "u1", guildId: "g1" },
+  { id: "q6", title: "Corporate Sustainability Report Tool", description: "Build an automated tool for generating ESG reports from company data.", status: QuestStatus.OPEN, monetizationType: MonetizationType.PAID, rewardXp: 450, isFeatured: false, createdByUserId: "u2", guildId: "g1", companyId: "co1" },
 ];
 
 // ─── Quest Topics & Territories ──────────────────────────────
