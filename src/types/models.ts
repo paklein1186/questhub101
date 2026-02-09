@@ -75,9 +75,11 @@ export interface Quest {
   isFeatured: boolean;
   createdByUserId: string;
   guildId: string;
+  companyId?: string;
   // Relations
   createdByUser?: User;
   guild?: Guild;
+  company?: Company;
   questParticipants?: QuestParticipant[];
   questTopics?: QuestTopic[];
   questTerritories?: QuestTerritory[];
