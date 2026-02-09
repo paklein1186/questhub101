@@ -24,9 +24,10 @@ import {
   guildMembers, userTopics, userTerritories,
   questTopics, questTerritories,
   getUserById, getQuestsForGuild,
+  topicStewards as allTopicStewards,
 } from "@/data/mock";
-import { UserRole, QuestStatus, MonetizationType } from "@/types/enums";
-import type { User, Guild, Quest } from "@/types";
+import { UserRole, QuestStatus, MonetizationType, TopicStewardRole } from "@/types/enums";
+import type { User, Guild, Quest, TopicSteward } from "@/types";
 
 // ─── Users Tab ───────────────────────────────────────────────
 function UsersTab() {
