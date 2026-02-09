@@ -255,6 +255,7 @@ export interface Pod {
   id: string;
   name: string;
   description: string;
+  imageUrl?: string;
   type: PodType;
   questId?: string;
   topicId?: string;
