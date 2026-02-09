@@ -13,6 +13,7 @@ import {
 } from "@/data/mock";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
+import MyAvailability from "./MyAvailability";
 
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
