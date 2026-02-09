@@ -45,6 +45,7 @@ export interface Guild {
   name: string;
   description?: string;
   logoUrl?: string;
+  bannerUrl?: string;
   type: GuildType;
   isApproved: boolean;
   createdByUserId: string;
