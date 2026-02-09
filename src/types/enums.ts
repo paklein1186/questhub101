@@ -67,6 +67,7 @@ export enum NotificationType {
   UPVOTE = "UPVOTE",
   INVITE = "INVITE",
   QUEST_UPDATE = "QUEST_UPDATE",
+  BOOKING = "BOOKING",
 }
 
 export enum FollowTargetType {
