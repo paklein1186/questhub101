@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users as UsersIcon, Shield, Compass, Check, X,
-  Star, Pencil, Save, ChevronDown,
+  Star, Pencil, Save, ChevronDown, Crown, Hash, Plus, Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
