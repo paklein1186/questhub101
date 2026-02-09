@@ -22,22 +22,47 @@ export const users: User[] = [
   { id: "u4", name: "Yuki Tanaka", email: "yuki@example.com", avatarUrl: "https://api.dicebear.com/7.x/notionists/svg?seed=yuki", headline: "Design Thinker", bio: "Human-centered everything.", role: UserRole.GAMECHANGER, xp: 640, contributionIndex: 55 },
 ];
 
-// ─── Topics ──────────────────────────────────────────────────
+// ─── Topics (Houses) ─────────────────────────────────────────
 export const topics: Topic[] = [
-  { id: "t1", name: "Climate Action", slug: "climate-action" },
-  { id: "t2", name: "Education", slug: "education" },
-  { id: "t3", name: "Open Source", slug: "open-source" },
-  { id: "t4", name: "Social Inclusion", slug: "social-inclusion" },
-  { id: "t5", name: "Urban Mobility", slug: "urban-mobility" },
+  { id: "t1", name: "New Agriculture", slug: "new-agriculture" },
+  { id: "t2", name: "Arts & Culture", slug: "arts-culture" },
+  { id: "t3", name: "Bioregions", slug: "bioregions" },
+  { id: "t4", name: "Carbon Capture", slug: "carbon-capture" },
+  { id: "t5", name: "Commons & DAO", slug: "commons-dao" },
+  { id: "t6", name: "Complex Systems", slug: "complex-systems" },
+  { id: "t7", name: "CSR", slug: "csr" },
+  { id: "t8", name: "Energy", slug: "energy" },
+  { id: "t9", name: "AI", slug: "ai" },
+  { id: "t10", name: "New Economic Models", slug: "new-economic-models" },
+  { id: "t11", name: "New Gatherings", slug: "new-gatherings" },
+  { id: "t12", name: "Governance", slug: "governance" },
+  { id: "t13", name: "Healthcare", slug: "healthcare" },
+  { id: "t14", name: "Hosting & Facilitation", slug: "hosting-facilitation" },
+  { id: "t15", name: "Impact Real Estate", slug: "impact-real-estate" },
+  { id: "t16", name: "Investments & Philanthropy", slug: "investments-philanthropy" },
+  { id: "t17", name: "Land Regeneration", slug: "land-regeneration" },
+  { id: "t18", name: "Leadership", slug: "leadership" },
+  { id: "t19", name: "Metrics", slug: "metrics" },
+  { id: "t20", name: "Narratives & Storytelling", slug: "narratives-storytelling" },
+  { id: "t21", name: "Open Data & Technology", slug: "open-data-technology" },
+  { id: "t22", name: "Regenerative Crypto", slug: "regenerative-crypto" },
+  { id: "t23", name: "Symbiotic & the Living", slug: "symbiotic-living" },
+  { id: "t24", name: "Territorial Innovation", slug: "territorial-innovation" },
+  { id: "t25", name: "Third Spaces", slug: "third-spaces" },
+  { id: "t26", name: "Water & Soils", slug: "water-soils" },
 ];
 
 // ─── Territories ─────────────────────────────────────────────
 export const territories: Territory[] = [
-  { id: "tr1", name: "Paris", level: TerritoryLevel.TOWN },
-  { id: "tr2", name: "Île-de-France", level: TerritoryLevel.REGION },
+  { id: "tr1", name: "Joigny", level: TerritoryLevel.TOWN },
+  { id: "tr2", name: "Burgundy", level: TerritoryLevel.REGION },
   { id: "tr3", name: "France", level: TerritoryLevel.NATIONAL },
-  { id: "tr4", name: "Barcelona", level: TerritoryLevel.TOWN },
-  { id: "tr5", name: "Remote / Global", level: TerritoryLevel.OTHER },
+  { id: "tr4", name: "Belgium", level: TerritoryLevel.NATIONAL },
+  { id: "tr5", name: "Europe", level: TerritoryLevel.OTHER },
+  { id: "tr6", name: "Remote / Global", level: TerritoryLevel.OTHER },
+  { id: "tr7", name: "Paris", level: TerritoryLevel.TOWN },
+  { id: "tr8", name: "Île-de-France", level: TerritoryLevel.REGION },
+  { id: "tr9", name: "Barcelona", level: TerritoryLevel.TOWN },
 ];
 
 // ─── Guilds ──────────────────────────────────────────────────
