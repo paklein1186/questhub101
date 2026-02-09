@@ -100,3 +100,13 @@ export enum CompanySize {
   LARGE = "LARGE",
   OTHER = "OTHER",
 }
+
+export enum TopicStewardRole {
+  STEWARD = "STEWARD",
+  CURATOR = "CURATOR",
+}
+
+export enum TopicFeatureTargetType {
+  QUEST = "QUEST",
+  GUILD = "GUILD",
+}

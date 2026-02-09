@@ -365,3 +365,29 @@ export interface CompanyTerritory {
   company?: Company;
   territory?: Territory;
 }
+
+// ─── Governance ──────────────────────────────────────────────
+
+/** Unique constraint on (topicId, userId) */
+export interface TopicSteward {
+  id: string;
+  topicId: string;
+  userId: string;
+  role: TopicStewardRole;
+  createdAt: string;
+  // Relations
+  topic?: Topic;
+  user?: User;
+}
+
+export interface TopicFeature {
+  id: string;
+  topicId: string;
+  targetType: TopicFeatureTargetType;
+  targetId: string;
+  addedByUserId: string;
+  createdAt: string;
+  // Relations
+  topic?: Topic;
+  addedByUser?: User;
+}
