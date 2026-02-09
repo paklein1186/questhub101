@@ -53,6 +53,7 @@ export default function QuestDetail() {
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
 
   const guild = getGuildById(quest.guildId);
+  const company = quest.companyId ? getCompanyById(quest.companyId) : null;
   const creator = getUserById(quest.createdByUserId);
   const topics = getTopicsForQuest(quest.id);
   const territories = getTerritoriesForQuest(quest.id);
