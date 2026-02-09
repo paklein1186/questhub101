@@ -53,6 +53,7 @@ function UsersTab() {
   };
 
   const saveEdit = (id: string) => {
+    setXpManual(id, editXp, editCI);
     setUsersState((prev) =>
       prev.map((u) => (u.id === id ? { ...u, xp: editXp, contributionIndex: editCI } : u))
     );

@@ -63,6 +63,7 @@ export default function QuestDetail() {
       createdAt: new Date().toISOString(),
     };
     allAchievements.push(ach);
+    awardXp(achUserId, "ACHIEVEMENT_RECEIVED");
     setAchTitle("");
     setAchDesc("");
     setAchUserId("");

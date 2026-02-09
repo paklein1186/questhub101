@@ -55,7 +55,8 @@ export default function UserProfile() {
       createdAt: new Date().toISOString(),
     };
     setAchievementsState((prev) => [ach, ...prev]);
-    allAchievements.push(ach); // also push to global so feed picks it up
+    allAchievements.push(ach);
+    awardXp(user.id, "ACHIEVEMENT_RECEIVED");
     setNewTitle("");
     setNewDesc("");
     setNewQuestId("none");

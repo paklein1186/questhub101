@@ -60,8 +60,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     setComments((prev) =>
       prev.map((c) => (c.id === commentId ? { ...c, upvoteCount: c.upvoteCount + 1 } : c))
     );
-    // Notify the comment author
+    // Award XP to comment author & notify
     if (comment) {
+      awardXp(comment.authorId, "COMMENT_UPVOTED", true);
       notifyUpvote({
         upvoterId: currentUser.id,
         commentAuthorId: comment.authorId,
