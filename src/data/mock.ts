@@ -1,6 +1,6 @@
 import {
   User, Guild, GuildMember, Quest, QuestParticipant, QuestUpdate,
-  Topic, Territory, Comment, Achievement, Notification, Follow,
+  Topic, Territory, Comment, Achievement, Notification, Follow, Pod, PodMember,
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote,
 } from "@/types";
@@ -8,6 +8,7 @@ import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
   QuestParticipantRole, QuestParticipantStatus, QuestUpdateType,
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
+  PodType, PodMemberRole,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -172,12 +173,29 @@ export const follows: Follow[] = [
   { id: "f6", followerId: "u3", targetType: FollowTargetType.GUILD, targetId: "g1", createdAt: "2025-01-21T15:00:00Z" },
 ];
 
+// ─── Pods ────────────────────────────────────────────────────
+export const pods: Pod[] = [
+  { id: "pod1", name: "Carbon Dashboard Sprint", description: "A focused 2-week sprint to build the first version of the carbon footprint dashboard.", type: PodType.QUEST_POD, questId: "q1", creatorId: "u1", startDate: "2025-02-01", endDate: "2025-02-14", createdAt: "2025-01-28T10:00:00Z", updatedAt: "2025-01-28T10:00:00Z" },
+  { id: "pod2", name: "Climate Data Study Group", description: "Weekly study sessions exploring open climate datasets and visualization techniques.", type: PodType.STUDY_POD, topicId: "t1", creatorId: "u3", startDate: "2025-02-10", createdAt: "2025-02-05T09:00:00Z", updatedAt: "2025-02-05T09:00:00Z" },
+  { id: "pod3", name: "Tutoring Platform UX Pod", description: "Collaborative pod to redesign the tutor-student matching experience.", type: PodType.QUEST_POD, questId: "q2", creatorId: "u3", createdAt: "2025-02-03T14:00:00Z", updatedAt: "2025-02-03T14:00:00Z" },
+];
+
+export const podMembers: PodMember[] = [
+  { id: "pm1", podId: "pod1", userId: "u1", role: PodMemberRole.HOST, joinedAt: "2025-01-28T10:00:00Z" },
+  { id: "pm2", podId: "pod1", userId: "u2", role: PodMemberRole.MEMBER, joinedAt: "2025-01-29T08:00:00Z" },
+  { id: "pm3", podId: "pod2", userId: "u3", role: PodMemberRole.HOST, joinedAt: "2025-02-05T09:00:00Z" },
+  { id: "pm4", podId: "pod2", userId: "u1", role: PodMemberRole.MEMBER, joinedAt: "2025-02-06T11:00:00Z" },
+  { id: "pm5", podId: "pod3", userId: "u3", role: PodMemberRole.HOST, joinedAt: "2025-02-03T14:00:00Z" },
+  { id: "pm6", podId: "pod3", userId: "u4", role: PodMemberRole.MEMBER, joinedAt: "2025-02-04T10:00:00Z" },
+];
+
 // ─── Helpers ─────────────────────────────────────────────────
 export function getUserById(id: string) { return users.find(u => u.id === id); }
 export function getGuildById(id: string) { return guilds.find(g => g.id === id); }
 export function getQuestById(id: string) { return quests.find(q => q.id === id); }
 export function getTopicById(id: string) { return topics.find(t => t.id === id); }
 export function getTerritoryById(id: string) { return territories.find(t => t.id === id); }
+export function getPodById(id: string) { return pods.find(p => p.id === id); }
 
 export function getTopicsForGuild(guildId: string) {
   return guildTopics.filter(gt => gt.guildId === guildId).map(gt => getTopicById(gt.topicId)!).filter(Boolean);
@@ -205,4 +223,10 @@ export function getMembersForGuild(guildId: string) {
 }
 export function getParticipantsForQuest(questId: string) {
   return questParticipants.filter(qp => qp.questId === questId).map(qp => ({ ...qp, user: getUserById(qp.userId) }));
+}
+export function getMembersForPod(podId: string) {
+  return podMembers.filter(pm => pm.podId === podId).map(pm => ({ ...pm, user: getUserById(pm.userId) }));
+}
+export function getPodsForQuest(questId: string) {
+  return pods.filter(p => p.questId === questId);
 }

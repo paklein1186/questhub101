@@ -15,6 +15,8 @@ import UserProfile from "./pages/UserProfile";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
+import PodsList from "./pages/PodsList";
+import PodDetail from "./pages/PodDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +40,8 @@ const App = () => (
               <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/achievements/:id" element={<AchievementDetail />} />
+              <Route path="/pods" element={<PodsList />} />
+              <Route path="/pods/:id" element={<PodDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
