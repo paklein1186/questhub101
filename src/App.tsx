@@ -31,6 +31,7 @@ import CompanyDetail from "./pages/CompanyDetail";
 import TopicHouse from "./pages/TopicHouse";
 import BuyXpPage from "./pages/BuyXpPage";
 import PlansPage from "./pages/PlansPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
