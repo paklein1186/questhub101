@@ -59,77 +59,66 @@ import { useAdminStats } from "@/hooks/useAdminStats";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
-  const [usersState, setUsersState] = useState<User[]>(allUsers);
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [topicFilter, setTopicFilter] = useState("all");
-  const [territoryFilter, setTerritoryFilter] = useState("all");
+  const currentUser = useCurrentUser();
+  const { isSuperAdmin } = useUserRoles(currentUser.id);
+  const { setXpManual } = useXP();
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editXp, setEditXp] = useState(0);
   const [editCI, setEditCI] = useState(0);
-  const { setXpManual } = useXP();
-  const { toast } = useToast();
 
-  // Simple admin/blocked flags stored per-user via local maps (mock)
-  const [adminFlags, setAdminFlags] = useState<Record<string, boolean>>({ u1: true });
-  const [blockedFlags, setBlockedFlags] = useState<Record<string, boolean>>({});
-
-  const filtered = usersState.filter((u) => {
-    if (roleFilter !== "all" && u.role !== roleFilter) return false;
-    if (topicFilter !== "all" && !userTopics.some((ut) => ut.userId === u.id && ut.topicId === topicFilter)) return false;
-    if (territoryFilter !== "all" && !userTerritories.some((ut) => ut.userId === u.id && ut.territoryId === territoryFilter)) return false;
-    return true;
+  // Fetch all profiles
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["admin-all-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, email, avatar_url, role, xp, contribution_index, created_at")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
   });
 
-  const startEdit = (u: User) => { setEditingId(u.id); setEditXp(u.xp); setEditCI(u.contributionIndex); };
+  // Fetch all user_roles
+  const { data: allRoles = [] } = useQuery({
+    queryKey: ["admin-all-user-roles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("user_id, role");
+      return data ?? [];
+    },
+  });
 
-  const saveEdit = (id: string) => {
-    const user = usersState.find((u) => u.id === id);
-    setXpManual(id, editXp, editCI);
-    setUsersState((prev) => prev.map((u) => (u.id === id ? { ...u, xp: editXp, contributionIndex: editCI } : u)));
+  const getRoles = (userId: string) => allRoles.filter((r) => r.user_id === userId).map((r) => r.role);
+  const hasRole = (userId: string, role: string) => getRoles(userId).includes(role);
+
+  const handleToggleRole = async (targetUserId: string, role: "admin" | "superadmin", currentlyHas: boolean) => {
+    const { error } = await setUserRole(currentUser.id, targetUserId, role, !currentlyHas);
+    if (error) {
+      toast({ title: "Error", description: error, variant: "destructive" });
+      return;
+    }
+    toast({ title: currentlyHas ? `${role} removed` : `${role} granted` });
+    qc.invalidateQueries({ queryKey: ["admin-all-user-roles"] });
+    qc.invalidateQueries({ queryKey: ["user-roles"] });
+  };
+
+  const startEdit = (p: typeof profiles[0]) => {
+    setEditingId(p.user_id);
+    setEditXp(p.xp);
+    setEditCI(p.contribution_index);
+  };
+
+  const saveEdit = (userId: string) => {
+    setXpManual(userId, editXp, editCI);
     setEditingId(null);
-    logAdminAction("u1", "XP_ADJUSTMENT", "User", id, `XP set to ${editXp}, CI set to ${editCI} (was ${user?.xp}/${user?.contributionIndex})`);
-  };
-
-  const toggleAdmin = (id: string) => {
-    const wasAdmin = !!adminFlags[id];
-    setAdminFlags((p) => ({ ...p, [id]: !p[id] }));
-    logAdminAction("u1", wasAdmin ? "ADMIN_REVOKED" : "ADMIN_GRANTED", "User", id, wasAdmin ? "Admin role removed" : "Admin role granted");
-    toast({ title: wasAdmin ? "Admin removed" : "Admin granted" });
-  };
-
-  const toggleBlocked = (id: string) => {
-    const wasBlocked = !!blockedFlags[id];
-    setBlockedFlags((p) => ({ ...p, [id]: !p[id] }));
-    logAdminAction("u1", wasBlocked ? "USER_UNBLOCKED" : "USER_BLOCKED", "User", id, wasBlocked ? "User unblocked" : "User blocked");
-    toast({ title: wasBlocked ? "User unblocked" : "User blocked" });
+    toast({ title: "XP / CI updated" });
+    qc.invalidateQueries({ queryKey: ["admin-all-profiles"] });
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Role" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            {Object.values(UserRole).map((r) => <SelectItem key={r} value={r}>{r.toLowerCase().replace("_", " ")}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={topicFilter} onValueChange={setTopicFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Topic" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Topics</SelectItem>
-            {allTopics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Territory" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Territories</SelectItem>
-            {allTerritories.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="rounded-xl border border-border overflow-hidden">
         <Table>
           <TableHeader>
@@ -139,55 +128,107 @@ function UsersRolesTab() {
               <TableHead>Role</TableHead>
               <TableHead className="text-right">XP</TableHead>
               <TableHead className="text-right">CI</TableHead>
-              <TableHead>Plan</TableHead>
               <TableHead>Admin</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Superadmin</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((user) => (
-              <TableRow key={user.id} className={blockedFlags[user.id] ? "opacity-50" : ""}>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell className="text-muted-foreground text-sm">{user.email}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary" className="capitalize text-xs">{user.role.toLowerCase().replace("_", " ")}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  {editingId === user.id ? (
-                    <Input type="number" value={editXp} onChange={(e) => setEditXp(Number(e.target.value))} className="w-20 h-8 text-right ml-auto" />
-                  ) : user.xp}
-                </TableCell>
-                <TableCell className="text-right">
-                  {editingId === user.id ? (
-                    <Input type="number" value={editCI} onChange={(e) => setEditCI(Number(e.target.value))} className="w-20 h-8 text-right ml-auto" />
-                  ) : user.contributionIndex}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-xs">Free</Badge>
-                </TableCell>
-                <TableCell>
-                  <Switch checked={!!adminFlags[user.id]} onCheckedChange={() => toggleAdmin(user.id)} />
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" variant={blockedFlags[user.id] ? "destructive" : "ghost"} className="h-7 px-2 text-xs" onClick={() => toggleBlocked(user.id)}>
-                    <Ban className="h-3 w-3 mr-1" /> {blockedFlags[user.id] ? "Blocked" : "Active"}
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  {editingId === user.id ? (
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveEdit(user.id)}><Save className="h-3.5 w-3.5 text-primary" /></Button>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5 text-destructive" /></Button>
-                    </div>
-                  ) : (
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(user)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">No users match filters.</TableCell></TableRow>
+            {profiles.map((p) => {
+              const isTargetAdmin = hasRole(p.user_id, "admin") || hasRole(p.user_id, "superadmin");
+              const isTargetSuperadmin = hasRole(p.user_id, "superadmin");
+              const isSelf = p.user_id === currentUser.id;
+
+              return (
+                <TableRow key={p.user_id}>
+                  <TableCell className="font-medium">{p.name}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{p.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="capitalize text-xs">{p.role?.toLowerCase().replace("_", " ")}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {editingId === p.user_id ? (
+                      <Input type="number" value={editXp} onChange={(e) => setEditXp(Number(e.target.value))} className="w-20 h-8 text-right ml-auto" />
+                    ) : p.xp}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {editingId === p.user_id ? (
+                      <Input type="number" value={editCI} onChange={(e) => setEditCI(Number(e.target.value))} className="w-20 h-8 text-right ml-auto" />
+                    ) : p.contribution_index}
+                  </TableCell>
+                  <TableCell>
+                    {isSuperAdmin ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Switch checked={isTargetAdmin} />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{isTargetAdmin ? "Remove Admin" : "Grant Admin"}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {isTargetAdmin
+                                ? `Remove admin access from ${p.name}?${isTargetSuperadmin ? " This will also remove their superadmin status." : ""}`
+                                : `Grant admin access to ${p.name}? They will be able to access the Admin Dashboard.`}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleToggleRole(p.user_id, "admin", isTargetAdmin)}>
+                              Confirm
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <Badge variant={isTargetAdmin ? "default" : "secondary"} className="text-xs">
+                        {isTargetAdmin ? "Yes" : "No"}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isSuperAdmin && !isSelf ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Switch checked={isTargetSuperadmin} />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{isTargetSuperadmin ? "Remove Superadmin" : "Grant Superadmin"}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {isTargetSuperadmin
+                                ? `Remove superadmin from ${p.name}? They will keep admin access unless separately revoked.`
+                                : `Grant superadmin to ${p.name}? They will be able to manage all roles. Admin access will also be granted.`}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleToggleRole(p.user_id, "superadmin", isTargetSuperadmin)}>
+                              Confirm
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <Badge variant={isTargetSuperadmin ? "default" : "secondary"} className="text-xs">
+                        {isTargetSuperadmin ? "Yes" : isSelf && isSuperAdmin ? "You" : "No"}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingId === p.user_id ? (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveEdit(p.user_id)}><Save className="h-3.5 w-3.5 text-primary" /></Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5 text-destructive" /></Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(p)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {profiles.length === 0 && (
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">No users found.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
