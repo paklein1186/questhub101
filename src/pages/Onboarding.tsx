@@ -14,6 +14,9 @@ import { generateOnboardingResults, type AIOnboardingResult } from "@/services/m
 import { Link } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useXP } from "@/hooks/useXP";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const STEPS = ["Role", "Topics", "Territories", "Bio", "AI Magic", "Explore"];
 
