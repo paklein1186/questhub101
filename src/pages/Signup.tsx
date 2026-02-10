@@ -14,7 +14,10 @@ import { getReferralByCode } from "@/data/mock";
 export default function Signup() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const refCode = searchParams.get("ref") || "";
+  const referral = refCode ? getReferralByCode(refCode) : undefined;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
