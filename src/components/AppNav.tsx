@@ -119,7 +119,7 @@ export function AppNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile/edit" className="cursor-pointer">
+                    <Link to="/me/settings" className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" /> Settings
                     </Link>
                   </DropdownMenuItem>
