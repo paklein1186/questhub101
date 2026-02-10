@@ -214,13 +214,53 @@ export function useCompanyById(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("*")
+        .select("*, company_members(id, user_id, role, joined_at), company_territories(territory_id, territories(id, name))")
         .eq("id", id!)
         .single();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
+  });
+}
+
+// ─── Company members with profiles ───────────────────────────
+export function useCompanyMembersWithProfiles(companyId: string | undefined) {
+  return useQuery({
+    queryKey: ["company-members-profiles", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_members")
+        .select("*")
+        .eq("company_id", companyId!);
+      if (error) throw error;
+      const userIds = data.map((m) => m.user_id);
+      if (userIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url, headline")
+        .in("user_id", userIds);
+      return data.map((m) => ({ ...m, user: (profiles ?? []).find((p) => p.user_id === m.user_id) }));
+    },
+    enabled: !!companyId,
+  });
+}
+
+// ─── Services for company ────────────────────────────────────
+export function useServicesForCompany(companyId: string | undefined) {
+  return useQuery({
+    queryKey: ["services-for-company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("owner_type", "COMPANY")
+        .eq("owner_id", companyId!)
+        .eq("is_deleted", false);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!companyId,
   });
 }
 
