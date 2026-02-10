@@ -32,6 +32,7 @@ import {
   services, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
