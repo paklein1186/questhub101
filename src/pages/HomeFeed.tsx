@@ -25,6 +25,7 @@ import {
   TopicFeatureTargetType,
 } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAuth } from "@/hooks/useAuth";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { formatDistanceToNow } from "date-fns";
 
