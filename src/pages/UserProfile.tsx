@@ -130,6 +130,7 @@ export default function UserProfile() {
                 <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
                   <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
                 </Button>
+                <ReportButton targetType={ReportTargetType.USER} targetId={user.id} />
               </>
             )}
           </div>

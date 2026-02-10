@@ -246,6 +246,7 @@ export default function GuildDetail() {
                 <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
               </>
             )}
+            <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">

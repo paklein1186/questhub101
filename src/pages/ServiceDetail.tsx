@@ -114,9 +114,12 @@ export default function ServiceDetail() {
         </div>
 
         <p className="text-muted-foreground max-w-2xl mb-4">{svc.description}</p>
-        <div className="flex flex-wrap gap-1.5 mb-6">
+        <div className="flex flex-wrap gap-1.5 mb-4">
           {svcTopics.map(t => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {svcTerrs.map(t => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+        </div>
+        <div className="mb-6">
+          <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
         </div>
 
         {!isOwnService && (

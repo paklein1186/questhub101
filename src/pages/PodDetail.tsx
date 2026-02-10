@@ -150,6 +150,7 @@ export default function PodDetail() {
           ) : !isHost ? (
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
+          <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />
         </div>
       </motion.div>
 

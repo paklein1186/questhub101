@@ -158,6 +158,7 @@ export default function QuestDetail() {
         <div className="flex items-center gap-3 mt-4 flex-wrap">
           <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
           {!isParticipant && <Button size="sm" variant="outline" onClick={joinQuest}><UserPlus className="h-4 w-4 mr-1" /> Join Quest</Button>}
+          <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
           {isOwner && (
             <>
               <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>
