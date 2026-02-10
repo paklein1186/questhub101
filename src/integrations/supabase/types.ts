@@ -25,10 +25,14 @@ export type Database = {
           has_completed_onboarding: boolean
           headline: string | null
           id: string
+          instagram_url: string | null
+          linkedin_url: string | null
           name: string
           role: string
+          twitter_url: string | null
           updated_at: string
           user_id: string
+          website_url: string | null
           xp: number
         }
         Insert: {
@@ -41,10 +45,14 @@ export type Database = {
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           name?: string
           role?: string
+          twitter_url?: string | null
           updated_at?: string
           user_id: string
+          website_url?: string | null
           xp?: number
         }
         Update: {
@@ -57,10 +65,14 @@ export type Database = {
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           name?: string
           role?: string
+          twitter_url?: string | null
           updated_at?: string
           user_id?: string
+          website_url?: string | null
           xp?: number
         }
         Relationships: []
