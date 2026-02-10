@@ -1,18 +1,36 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import type { User } from "@/types";
-import { users } from "@/data/mock";
+import { UserRole } from "@/types/enums";
 
-// Mock: current user is always user u1 (Aïsha Koné)
-const CurrentUserContext = createContext<User>(users[0]);
-
-export function CurrentUserProvider({ children }: { children: ReactNode }) {
-  return (
-    <CurrentUserContext.Provider value={users[0]}>
-      {children}
-    </CurrentUserContext.Provider>
-  );
+/**
+ * Returns the currently authenticated user mapped to the app's User type.
+ * Previously returned a hardcoded mock user — now wired to real auth/profile data.
+ */
+export function useCurrentUser(): User {
+  const { user } = useAuth();
+  if (!user) {
+    return {
+      id: "",
+      name: "Guest",
+      email: "",
+      role: UserRole.GAMECHANGER,
+      xp: 0,
+      contributionIndex: 0,
+    };
+  }
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+    role: (user.role as UserRole) || UserRole.GAMECHANGER,
+    xp: 0,
+    contributionIndex: 0,
+  };
 }
 
-export function useCurrentUser() {
-  return useContext(CurrentUserContext);
+// Keep backward-compatible provider (now a passthrough, no longer needed)
+import type { ReactNode } from "react";
+export function CurrentUserProvider({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
