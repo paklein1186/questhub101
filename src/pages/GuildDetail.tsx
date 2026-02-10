@@ -48,7 +48,7 @@ export default function GuildDetail() {
   const { data: creator } = usePublicProfile(guild?.created_by_user_id);
 
   const limits = usePlanLimits();
-  const [showQuestXpDialog, setShowQuestXpDialog] = useState(false);
+  
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
 
   // Service creation
@@ -61,13 +61,6 @@ export default function GuildDetail() {
   const [svcImageUrl, setSvcImageUrl] = useState<string | undefined>();
   const [svcDraft, setSvcDraft] = useState(false);
 
-  // Quest creation
-  const [createQuestOpen, setCreateQuestOpen] = useState(false);
-  const [qTitle, setQTitle] = useState("");
-  const [qDesc, setQDesc] = useState("");
-  const [qRewardXp, setQRewardXp] = useState("100");
-  const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
-  const [qDraft, setQDraft] = useState(false);
 
   // Achievement query based on quest IDs
   const questIds = (guildQuests || []).map((q: any) => q.id);
@@ -104,21 +97,6 @@ export default function GuildDetail() {
     toast({ title: "Left guild" });
   };
 
-  const doCreateQuest = async () => {
-    if (!qTitle.trim()) return;
-    const { error } = await supabase.from("quests").insert({
-      title: qTitle.trim(), description: qDesc.trim() || null,
-      cover_image_url: qCoverImageUrl || null,
-      status: "OPEN" as any, monetization_type: "FREE" as any,
-      reward_xp: Number(qRewardXp) || 100, is_featured: false,
-      created_by_user_id: currentUser.id, guild_id: guild.id,
-      is_draft: qDraft,
-    });
-    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
-    qc.invalidateQueries({ queryKey: ["quests-for-guild", id] });
-    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined); setQDraft(false);
-    toast({ title: "Quest created!" });
-  };
 
   const createGuildService = async () => {
     if (!svcTitle.trim()) return;
@@ -139,7 +117,7 @@ export default function GuildDetail() {
 
   return (
     <PageShell>
-      <XpSpendDialog open={showQuestXpDialog} onOpenChange={setShowQuestXpDialog} canAfford={limits.canAffordExtraQuest} xpCost={EXTRA_QUEST_XP_COST} userXp={limits.userXp} actionLabel="create an extra quest" limitLabel="free quests for this week" onConfirm={async () => { const ok = await limits.spendXp(EXTRA_QUEST_XP_COST, `Extra quest creation`, "QUEST"); if (ok) doCreateQuest(); }} />
+      
       <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_XP_COST} userXp={limits.userXp} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendXp(EXTRA_GUILD_XP_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 
       <Button variant="ghost" size="sm" asChild className="mb-4">
@@ -224,22 +202,11 @@ export default function GuildDetail() {
         </TabsContent>
 
         <TabsContent value="quests" className="mt-6 space-y-3">
-          {isAdmin && (
+          {isMember && (
             <div className="flex items-center gap-3 mb-3">
-              <Dialog open={createQuestOpen} onOpenChange={setCreateQuestOpen}>
-                <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button></DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Create Quest for {guild.name}</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-2">
-                    <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} placeholder="Quest title" maxLength={120} /></div>
-                    <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
-                    <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
-                    <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
-                    <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
-                    <Button onClick={doCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Button size="sm" asChild>
+                <Link to={`/guilds/${guild.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create Quest for this Guild</Link>
+              </Button>
               <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_XP_COST} itemLabel="quest" />
             </div>
           )}
