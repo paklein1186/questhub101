@@ -236,6 +236,10 @@ export default function QuestDetail() {
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label><Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={QuestStatus.OPEN}>Open</SelectItem><SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem><SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem></SelectContent></Select></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+              </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
             </div>
           </DialogContent>
