@@ -143,7 +143,10 @@ export default function QuestDetail() {
       credit_reward: credits,
       price_fiat: fiat,
       monetization_type: monType as any,
-    }).eq("id", quest.id);
+      credit_budget: Number(editCreditBudget) || 0,
+      allow_fundraising: editAllowFundraising,
+      funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
+    } as any).eq("id", quest.id);
     qc.invalidateQueries({ queryKey: ["quest", id] });
     setEditOpen(false); toast({ title: "Quest updated" });
   };
