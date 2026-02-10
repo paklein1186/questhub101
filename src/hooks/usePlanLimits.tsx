@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { CREDIT_COSTS } from "@/lib/xpCreditsConfig";
 
-// XP costs for exceeding plan limits
-export const EXTRA_QUEST_XP_COST = 10;
-export const EXTRA_GUILD_XP_COST = 5;
-export const EXTRA_POD_XP_COST = 3;
+// Credit costs for exceeding plan limits (replaces old XP costs)
+export const EXTRA_QUEST_CREDIT_COST = CREDIT_COSTS.EXTRA_QUEST_CREATION;
+export const EXTRA_GUILD_CREDIT_COST = 5;
+export const EXTRA_POD_CREDIT_COST = CREDIT_COSTS.EXTRA_POD_CREATION;
+
+// Legacy aliases (backward compat)
+export const EXTRA_QUEST_XP_COST = EXTRA_QUEST_CREDIT_COST;
+export const EXTRA_GUILD_XP_COST = EXTRA_GUILD_CREDIT_COST;
+export const EXTRA_POD_XP_COST = EXTRA_POD_CREDIT_COST;
 
 interface PlanLimits {
   freeQuestsPerWeek: number;
@@ -40,6 +46,8 @@ export function usePlanLimits() {
   const [plan, setPlan] = useState<PlanLimits>(DEFAULT_PLAN);
   const [weeklyQuestsUsed, setWeeklyQuestsUsed] = useState(0);
   const [userXp, setUserXp] = useState(0);
+  const [userCredits, setUserCredits] = useState(0);
+  const [userLevel, setUserLevel] = useState(1);
   const [guildCount, setGuildCount] = useState(0);
   const [podCount, setPodCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -51,15 +59,17 @@ export function usePlanLimits() {
     }
 
     try {
-      // Fetch profile XP
+      // Fetch profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("xp, current_plan_code")
+        .select("xp, current_plan_code, xp_level, credits_balance")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (profile) {
         setUserXp(profile.xp ?? 0);
+        setUserCredits((profile as any).credits_balance ?? 0);
+        setUserLevel((profile as any).xp_level ?? 1);
       }
 
       // Fetch current plan via user_subscriptions
@@ -93,9 +103,6 @@ export function usePlanLimits() {
         .maybeSingle() as any;
 
       setWeeklyQuestsUsed(usage?.quests_created_count ?? 0);
-
-      // We don't have guild_members / pod_members in Supabase yet,
-      // so these counts are provided externally via setters
     } catch {
       // Use defaults on error
     } finally {
@@ -107,23 +114,22 @@ export function usePlanLimits() {
     fetchData();
   }, [fetchData]);
 
-  // Derived state
+  // Derived state – now using Credits for limit bypass
   const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
   const questLimitReached = freeQuestsRemaining === 0;
-  const canAffordExtraQuest = userXp >= EXTRA_QUEST_XP_COST;
+  const canAffordExtraQuest = userCredits >= EXTRA_QUEST_CREDIT_COST;
 
   const guildLimitReached = plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships;
-  const canAffordExtraGuild = userXp >= EXTRA_GUILD_XP_COST;
+  const canAffordExtraGuild = userCredits >= EXTRA_GUILD_CREDIT_COST;
 
   const podLimitReached = plan.maxPods !== null && podCount >= plan.maxPods;
-  const canAffordExtraPod = userXp >= EXTRA_POD_XP_COST;
+  const canAffordExtraPod = userCredits >= EXTRA_POD_CREDIT_COST;
 
   // Increment weekly usage after quest creation
   const recordQuestCreation = useCallback(async () => {
     if (!userId) return;
     const weekStart = getMonday(new Date());
 
-    // Upsert weekly_usage
     const { data: existing } = await supabase
       .from("weekly_usage" as any)
       .select("id, quests_created_count")
@@ -143,37 +149,48 @@ export function usePlanLimits() {
     setWeeklyQuestsUsed((prev) => prev + 1);
   }, [userId]);
 
-  // Spend XP and log transaction
-  const spendXp = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
+  // Spend Credits (replaces old spendXp for limit bypass)
+  const spendCredits = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
     if (!userId) return false;
 
-    // Deduct XP from profile
-    const { error: updateErr } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .update({ xp: Math.max(0, userXp - amount) })
+      .select("credits_balance")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const balance = (profile as any)?.credits_balance ?? 0;
+    if (balance < amount) return false;
+
+    // Insert credit transaction
+    await (supabase.from("credit_transactions" as any) as any).insert({
+      user_id: userId,
+      type: "SPENT_FEATURE",
+      amount: -amount,
+      source: description,
+      related_entity_type: entityType || null,
+      related_entity_id: entityId || null,
+    });
+
+    // Update balance
+    await supabase
+      .from("profiles")
+      .update({ credits_balance: balance - amount } as any)
       .eq("user_id", userId);
 
-    if (updateErr) return false;
-
-    // Log transaction
-    await (supabase.from("xp_transactions" as any) as any)
-      .insert({
-        user_id: userId,
-        type: "ACTION_SPEND",
-        amount_xp: -amount,
-        description,
-        related_entity_type: entityType || null,
-        related_entity_id: entityId || null,
-      });
-
-    setUserXp((prev) => Math.max(0, prev - amount));
+    setUserCredits(balance - amount);
     return true;
-  }, [userId, userXp]);
+  }, [userId]);
+
+  // Legacy alias
+  const spendXp = spendCredits;
 
   return {
     plan,
     loading,
     userXp,
+    userCredits,
+    userLevel,
     // Quest limits
     freeQuestsRemaining,
     questLimitReached,
@@ -191,7 +208,8 @@ export function usePlanLimits() {
     podLimitReached,
     canAffordExtraPod,
     // Actions
-    spendXp,
+    spendCredits,
+    spendXp, // legacy alias
     refresh: fetchData,
   };
 }
