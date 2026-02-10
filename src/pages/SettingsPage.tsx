@@ -80,12 +80,18 @@ export default function SettingsPage() {
   const [role, setRole] = useState<UserRole>(currentUser.role);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // Load full profile from Supabase on mount so we get headline/bio
+  // Social links state
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [twitterUrl, setTwitterUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+
+  // Load full profile from Supabase on mount so we get headline/bio/social
   useEffect(() => {
     if (!authUser?.id) return;
     supabase
       .from("profiles")
-      .select("name, headline, bio, avatar_url, role")
+      .select("name, headline, bio, avatar_url, role, website_url, twitter_url, linkedin_url, instagram_url")
       .eq("user_id", authUser.id)
       .single()
       .then(({ data }) => {
@@ -95,6 +101,10 @@ export default function SettingsPage() {
           setBio(data.bio || "");
           setAvatarUrl(data.avatar_url || "");
           setRole((data.role as UserRole) || UserRole.GAMECHANGER);
+          setWebsiteUrl((data as any).website_url || "");
+          setTwitterUrl((data as any).twitter_url || "");
+          setLinkedinUrl((data as any).linkedin_url || "");
+          setInstagramUrl((data as any).instagram_url || "");
           setProfileLoaded(true);
         }
       });
