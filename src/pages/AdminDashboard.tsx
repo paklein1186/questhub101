@@ -6,7 +6,7 @@ import {
   Star, Pencil, Save, ChevronDown, Crown, Hash, Plus, Trash2,
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
   ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
-  EyeOff, Send, TrendingUp,
+  EyeOff, Send, TrendingUp, Flag, ExternalLink,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
