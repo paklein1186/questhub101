@@ -46,6 +46,7 @@ export default function UserProfile() {
   const [newQuestId, setNewQuestId] = useState("none");
 
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
+  if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);

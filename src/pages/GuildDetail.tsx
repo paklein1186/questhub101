@@ -71,6 +71,7 @@ export default function GuildDetail() {
   const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
+  if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
   const territories = getTerritoriesForGuild(guild.id);
