@@ -287,6 +287,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ─── AI Guide ─── */}
+      <LandingAIGuide />
+
       {/* ─── Trust & learning ─── */}
       <section className="border-t border-border">
         <div className="container py-16 md:py-24 text-center">
