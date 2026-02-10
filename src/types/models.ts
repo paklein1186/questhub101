@@ -519,3 +519,15 @@ export interface OnboardingProgress {
   createdService: boolean;
   bookedSession: boolean;
 }
+
+// ─── Admin Action Log ───────────────────────────────────────
+
+export interface AdminActionLog {
+  id: string;
+  adminUserId: string;
+  actionType: string;
+  targetEntityType: string;
+  targetEntityId: string;
+  details: string;
+  createdAt: string;
+}

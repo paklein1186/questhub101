@@ -7,6 +7,7 @@ import {
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
   ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
   EyeOff, Send, TrendingUp, Flag, ExternalLink,
+  ScrollText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { softDelete, restoreItem, permanentDelete } from "@/lib/softDelete";
 import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/data/mock";
 import type { QuestUpdate, Company, Pod } from "@/types";
+import { adminActionLogs, logAdminAction } from "@/lib/adminLog";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
@@ -72,19 +74,25 @@ function UsersRolesTab() {
   const startEdit = (u: User) => { setEditingId(u.id); setEditXp(u.xp); setEditCI(u.contributionIndex); };
 
   const saveEdit = (id: string) => {
+    const user = usersState.find((u) => u.id === id);
     setXpManual(id, editXp, editCI);
     setUsersState((prev) => prev.map((u) => (u.id === id ? { ...u, xp: editXp, contributionIndex: editCI } : u)));
     setEditingId(null);
+    logAdminAction("u1", "XP_ADJUSTMENT", "User", id, `XP set to ${editXp}, CI set to ${editCI} (was ${user?.xp}/${user?.contributionIndex})`);
   };
 
   const toggleAdmin = (id: string) => {
+    const wasAdmin = !!adminFlags[id];
     setAdminFlags((p) => ({ ...p, [id]: !p[id] }));
-    toast({ title: adminFlags[id] ? "Admin removed" : "Admin granted" });
+    logAdminAction("u1", wasAdmin ? "ADMIN_REVOKED" : "ADMIN_GRANTED", "User", id, wasAdmin ? "Admin role removed" : "Admin role granted");
+    toast({ title: wasAdmin ? "Admin removed" : "Admin granted" });
   };
 
   const toggleBlocked = (id: string) => {
+    const wasBlocked = !!blockedFlags[id];
     setBlockedFlags((p) => ({ ...p, [id]: !p[id] }));
-    toast({ title: blockedFlags[id] ? "User unblocked" : "User blocked" });
+    logAdminAction("u1", wasBlocked ? "USER_UNBLOCKED" : "USER_BLOCKED", "User", id, wasBlocked ? "User unblocked" : "User blocked");
+    toast({ title: wasBlocked ? "User unblocked" : "User blocked" });
   };
 
   return (
@@ -240,7 +248,11 @@ function QuestsTab() {
     return true;
   });
 
-  const toggleFeatured = (id: string) => setQuestsState((prev) => prev.map((q) => (q.id === id ? { ...q, isFeatured: !q.isFeatured } : q)));
+  const toggleFeatured = (id: string) => {
+    const quest = questsState.find((q) => q.id === id);
+    setQuestsState((prev) => prev.map((q) => (q.id === id ? { ...q, isFeatured: !q.isFeatured } : q)));
+    logAdminAction("u1", quest?.isFeatured ? "QUEST_UNFEATURED" : "QUEST_FEATURED", "Quest", id, quest?.isFeatured ? `Unfeatured: ${quest?.title}` : `Featured: ${quest?.title}`);
+  };
 
   return (
     <div className="space-y-4">
@@ -1413,6 +1425,71 @@ function AnalyticsTab() {
   );
 }
 
+// ─── Audit Logs Tab ─────────────────────────────────────────
+function AuditLogsTab() {
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [, forceRender] = useState(0);
+
+  const actionTypes = [...new Set(adminActionLogs.map((l) => l.actionType))];
+  const filtered = typeFilter === "all" ? adminActionLogs : adminActionLogs.filter((l) => l.actionType === typeFilter);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All actions" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Actions</SelectItem>
+            {actionTypes.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{filtered.length} entries</span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <ScrollText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+          <p>No audit logs yet. Admin actions will appear here.</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Admin</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.slice(0, 100).map((log) => {
+                const admin = getUserById(log.adminUserId);
+                return (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(log.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium text-sm">{admin?.name ?? log.adminUserId}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">{log.actionType.replace(/_/g, " ")}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {log.targetEntityType} / {log.targetEntityId}
+                    </TableCell>
+                    <TableCell className="text-sm max-w-[300px] truncate">{log.details}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ─────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
@@ -1440,6 +1517,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="moderation"><AlertTriangle className="h-4 w-4 mr-1" /> Moderation</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="h-4 w-4 mr-1" /> Emails</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</TabsTrigger>
+            <TabsTrigger value="audit"><ScrollText className="h-4 w-4 mr-1" /> Audit Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6"><UsersRolesTab /></TabsContent>
@@ -1452,6 +1530,7 @@ export default function AdminDashboard() {
           <TabsContent value="moderation" className="mt-6"><ModerationTab /></TabsContent>
           <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
           <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
+          <TabsContent value="audit" className="mt-6"><AuditLogsTab /></TabsContent>
         </Tabs>
       </motion.div>
     </PageShell>
