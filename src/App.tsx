@@ -76,6 +76,7 @@ import CourseCreate from "./pages/CourseCreate";
 import LessonView from "./pages/LessonView";
 import MyCourses from "./pages/MyCourses";
 import ExploreUsers from "./pages/ExploreUsers";
+import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 
 const queryClient = new QueryClient();
