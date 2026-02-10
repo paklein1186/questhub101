@@ -502,7 +502,12 @@ export default function SettingsPage() {
                       </div>
                     <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
                         {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
-                      </Button>
+                       </Button>
+                       {authUser?.id && (
+                         <Button variant="ghost" size="sm" asChild className="w-full mt-2">
+                           <Link to={`/users/${authUser.id}`}><ExternalLink className="h-4 w-4 mr-1" /> View my public profile</Link>
+                         </Button>
+                       )}
                     </div>
                   </Section>
 
