@@ -22,6 +22,7 @@ import {
 } from "@/data/mock";
 import { format } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { EntityJoinButton } from "@/components/EntityJoinButton";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
