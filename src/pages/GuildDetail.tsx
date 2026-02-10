@@ -207,7 +207,7 @@ export default function GuildDetail() {
               <Button size="sm" asChild>
                 <Link to={`/guilds/${guild.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create Quest for this Guild</Link>
               </Button>
-              <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_XP_COST} itemLabel="quest" />
+              <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_CREDIT_COST} itemLabel="quest" />
             </div>
           )}
           {quests.map((q: any) => (
