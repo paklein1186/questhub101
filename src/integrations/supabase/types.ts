@@ -249,7 +249,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          contribution_index: number | null
+          created_at: string | null
+          current_plan_code: string | null
+          has_completed_onboarding: boolean | null
+          headline: string | null
+          id: string | null
+          name: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string | null
+          xp: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          contribution_index?: number | null
+          created_at?: string | null
+          current_plan_code?: string | null
+          has_completed_onboarding?: boolean | null
+          headline?: string | null
+          id?: string | null
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          contribution_index?: number | null
+          created_at?: string | null
+          current_plan_code?: string | null
+          has_completed_onboarding?: boolean | null
+          headline?: string | null
+          id?: string | null
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          xp?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
