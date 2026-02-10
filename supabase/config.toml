@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.unit-agent]
 verify_jwt = false
+
+[functions.quest-assist]
+verify_jwt = false
