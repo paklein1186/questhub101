@@ -150,7 +150,7 @@ function UsersRolesTab() {
                 <TableCell>
                   {editingId === user.id ? (
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveEdit(user.id)}><Save className="h-3.5 w-3.5 text-green-600" /></Button>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => saveEdit(user.id)}><Save className="h-3.5 w-3.5 text-primary" /></Button>
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingId(null)}><X className="h-3.5 w-3.5 text-destructive" /></Button>
                     </div>
                   ) : (
