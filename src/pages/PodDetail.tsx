@@ -23,6 +23,7 @@ import { usePodById } from "@/hooks/useEntityQueries";
 import { format } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
+import { UnitChat } from "@/components/UnitChat";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
