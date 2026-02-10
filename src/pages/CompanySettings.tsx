@@ -41,6 +41,8 @@ import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
+  { key: "membership", label: "Membership Policy", icon: ClipboardList },
+  { key: "applications", label: "Applications", icon: Users },
   { key: "team", label: "Team & Permissions", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
