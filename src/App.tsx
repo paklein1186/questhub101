@@ -70,6 +70,8 @@ const App = () => (
                 <Route path="/me" element={<RequireAuth><MeHub /></RequireAuth>} />
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
+                <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
+                <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
 
