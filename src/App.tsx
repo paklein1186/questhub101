@@ -47,6 +47,8 @@ const AdminSystemHouses = lazy(() => import("./pages/admin/AdminSystemHouses"));
 const AdminSystemGovernance = lazy(() => import("./pages/admin/AdminSystemGovernance"));
 const AdminSystemAudit = lazy(() => import("./pages/admin/AdminSystemAudit"));
 const AdminSystemIntegrations = lazy(() => import("./pages/admin/AdminSystemIntegrations"));
+const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles"));
+const AdminSuperMode = lazy(() => import("./pages/admin/AdminSuperMode"));
 const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
@@ -211,6 +213,8 @@ const App = () => (
                   <Route path="system/governance" element={<Suspense fallback={null}><AdminSystemGovernance /></Suspense>} />
                   <Route path="system/audit" element={<Suspense fallback={null}><AdminSystemAudit /></Suspense>} />
                   <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
+                  <Route path="system/feature-toggles" element={<Suspense fallback={null}><AdminFeatureToggles /></Suspense>} />
+                  <Route path="system/super-mode" element={<Suspense fallback={null}><AdminSuperMode /></Suspense>} />
                 </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />

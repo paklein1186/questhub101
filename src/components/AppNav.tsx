@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
+import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ export function AppNav() {
   const { label } = usePersona();
   const isLoggedIn = !!session;
   const { isAdmin: showAdmin } = useUserRoles(session?.user?.id);
+  const { data: flags = [] } = useFeatureFlags();
 
   const handleLogout = async () => {
     await signOut();
@@ -32,7 +34,9 @@ export function AppNav() {
     { to: "/", label: "Home", icon: Home },
     { to: "/explore", label: "Explore", icon: Search },
     { to: "/work", label: label("nav.work"), icon: Briefcase },
-    { to: "/network", label: "Network", icon: Users },
+    ...(isFeatureEnabled(flags, "feature_network_section")
+      ? [{ to: "/network", label: "Network", icon: Users }]
+      : []),
   ];
 
   return (
