@@ -2114,6 +2114,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_user_role: {
+        Args: {
+          _actor_id: string
+          _grant: boolean
+          _role: Database["public"]["Enums"]["app_role"]
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "superadmin"
