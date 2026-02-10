@@ -1794,8 +1794,9 @@ function NotificationsMonitoringTab() {
 // ─── Main Dashboard ─────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
+  const { isAdmin: userIsAdmin } = useUserRoles(currentUser.id);
 
-  if (!isAdmin(currentUser.email)) {
+  if (!userIsAdmin) {
     return <Navigate to="/" replace />;
   }
 
