@@ -66,6 +66,7 @@ export default function QuestDetail() {
   const [uContent, setUContent] = useState("");
   const [uType, setUType] = useState<QuestUpdateType>(QuestUpdateType.GENERAL);
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
+  const [uDraft, setUDraft] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
