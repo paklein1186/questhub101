@@ -253,8 +253,15 @@ export interface Notification {
   id: string;
   userId: string;
   type: NotificationType;
-  data: Record<string, unknown>;
+  title: string;
+  body?: string;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
+  deepLinkUrl: string;
   isRead: boolean;
+  createdAt: string;
+  /** @deprecated use title/body instead */
+  data?: Record<string, unknown>;
   // Relations
   user?: User;
 }
