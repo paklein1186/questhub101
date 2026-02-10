@@ -90,7 +90,7 @@ function UsersRolesTab() {
     },
   });
 
-  const getRoles = (userId: string) => allRoles.filter((r) => r.user_id === userId).map((r) => r.role);
+  const getRoles = (userId: string): string[] => allRoles.filter((r) => r.user_id === userId).map((r) => r.role as string);
   const hasRole = (userId: string, role: string) => getRoles(userId).includes(role);
 
   const handleToggleRole = async (targetUserId: string, role: "admin" | "superadmin", currentlyHas: boolean) => {
