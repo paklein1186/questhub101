@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Compass, ArrowRight, Sparkles, Megaphone, Star, Trophy, Rss } from "lucide-react";
+import { Shield, Compass, ArrowRight, Sparkles, Megaphone, Star, Trophy, Rss, Rocket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
 import {
   guilds, quests, questUpdates, achievements, follows,
@@ -12,6 +13,7 @@ import {
 } from "@/data/mock";
 import { QuestUpdateType, FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { formatDistanceToNow } from "date-fns";
 
 const updateTypeIcon: Record<string, typeof Sparkles> = {
