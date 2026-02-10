@@ -27,6 +27,7 @@ import {
 } from "@/data/mock";
 import type { Achievement, Pod, QuestUpdate, QuestParticipant } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   [QuestUpdateType.MILESTONE]: Sparkles,
