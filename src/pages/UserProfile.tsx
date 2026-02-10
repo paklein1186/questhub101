@@ -50,6 +50,27 @@ export default function UserProfile() {
   const [newDesc, setNewDesc] = useState("");
   const [newQuestId, setNewQuestId] = useState("none");
 
+  // Social links from DB
+  const [socialLinks, setSocialLinks] = useState<SocialLinksData>({});
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from("profiles")
+      .select("website_url, twitter_url, linkedin_url, instagram_url")
+      .eq("user_id", id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setSocialLinks({
+            websiteUrl: (data as any).website_url,
+            twitterUrl: (data as any).twitter_url,
+            linkedinUrl: (data as any).linkedin_url,
+            instagramUrl: (data as any).instagram_url,
+          });
+        }
+      });
+  }, [id]);
+
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
   if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
