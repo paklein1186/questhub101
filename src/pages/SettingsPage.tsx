@@ -63,7 +63,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const currentUser = useCurrentUser();
-  const { user: authUser, updatePassword, signOut } = useAuth();
+  const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -133,18 +133,41 @@ export default function SettingsPage() {
     else { toast({ title: "Password updated!" }); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }
   };
 
-  const handleSaveProfile = () => {
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  const handleSaveProfile = async () => {
+    if (!authUser) return;
+    setProfileSaving(true);
+    const updates: Record<string, unknown> = {
+      name: name.trim() || currentUser.name,
+      headline: headline.trim() || null,
+      bio: bio.trim() || null,
+      avatar_url: avatarUrl.trim() || null,
+      role,
+    };
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("user_id", authUser.id);
+    setProfileSaving(false);
+    if (error) {
+      toast({ title: "Save failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    // Also update mock data so UI reflects changes immediately
     const idx = users.findIndex((u) => u.id === currentUser.id);
     if (idx !== -1) {
       users[idx] = { ...users[idx], name: name.trim() || currentUser.name, headline: headline.trim() || undefined, bio: bio.trim() || undefined, avatarUrl: avatarUrl.trim() || undefined, role };
     }
-    // Update topic/territory relations
+    // Update topic/territory relations (still mock)
     const existingUTs = userTopics.filter((ut) => ut.userId === currentUser.id);
     existingUTs.forEach((ut) => { const i = userTopics.indexOf(ut); if (i !== -1) userTopics.splice(i, 1); });
     selectedTopics.forEach((topicId, i) => { userTopics.push({ id: `ut-${Date.now()}-${i}`, userId: currentUser.id, topicId }); });
     const existingUTrs = userTerritories.filter((ut) => ut.userId === currentUser.id);
     existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
     selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
+    // Refresh auth context so nav reflects updated name/avatar
+    await refreshProfile();
     toast({ title: "Profile updated!" });
   };
 
@@ -366,7 +389,9 @@ export default function SettingsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button onClick={handleSaveProfile} className="w-full"><Save className="h-4 w-4 mr-1" /> Save profile</Button>
+                      <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
+                        {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
+                      </Button>
                     </div>
                   </Section>
                 </div>
