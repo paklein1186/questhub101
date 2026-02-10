@@ -223,18 +223,24 @@ export default function SettingsPage() {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       return;
     }
-    // Also update mock data so UI reflects changes immediately
-    const idx = users.findIndex((u) => u.id === currentUser.id);
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], name: name.trim() || currentUser.name, headline: headline.trim() || undefined, bio: bio.trim() || undefined, avatarUrl: avatarUrl.trim() || undefined, role };
+    // Save topic/territory relations to DB
+    // Delete existing, then insert new
+    if (authUser?.id) {
+      await supabase.from("user_topics").delete().eq("user_id", authUser.id);
+      if (selectedTopics.length > 0) {
+        await supabase.from("user_topics").insert(
+          selectedTopics.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
+        );
+      }
+      await supabase.from("user_territories").delete().eq("user_id", authUser.id);
+      if (selectedTerritories.length > 0) {
+        await supabase.from("user_territories").insert(
+          selectedTerritories.map((territoryId) => ({ user_id: authUser.id, territory_id: territoryId }))
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["user-topics"] });
+      qc.invalidateQueries({ queryKey: ["user-territories"] });
     }
-    // Update topic/territory relations (still mock)
-    const existingUTs = userTopics.filter((ut) => ut.userId === currentUser.id);
-    existingUTs.forEach((ut) => { const i = userTopics.indexOf(ut); if (i !== -1) userTopics.splice(i, 1); });
-    selectedTopics.forEach((topicId, i) => { userTopics.push({ id: `ut-${Date.now()}-${i}`, userId: currentUser.id, topicId }); });
-    const existingUTrs = userTerritories.filter((ut) => ut.userId === currentUser.id);
-    existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
-    selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
     // Refresh auth context so nav reflects updated name/avatar
     await refreshProfile();
     toast({ title: "Profile updated!" });
