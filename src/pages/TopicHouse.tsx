@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X } from "lucide-react";
+import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
+import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { CommentTargetType } from "@/types/enums";
@@ -89,6 +90,7 @@ export default function TopicHouse() {
           <TabsTrigger value="featured"><Star className="h-3.5 w-3.5 mr-1" /> Featured ({featuredQuests.length + featuredGuilds.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 mr-1" /> Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> Guilds ({guilds.length})</TabsTrigger>
+          <TabsTrigger value="intelligence"><Brain className="h-3.5 w-3.5 mr-1" /> Intelligence</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
@@ -189,6 +191,10 @@ export default function TopicHouse() {
             ))}
             {guilds.length === 0 && <p className="col-span-full text-center text-muted-foreground py-8">No guilds in this topic.</p>}
           </div>
+        </TabsContent>
+
+        <TabsContent value="intelligence" className="mt-6">
+          <TerritoryIntelligencePanel territoryId={topic.id} territoryName={topic.name} />
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6">

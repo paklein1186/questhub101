@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.ai-memory]
 verify_jwt = false
+
+[functions.territory-intelligence]
+verify_jwt = false
