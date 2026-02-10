@@ -42,6 +42,11 @@ export default function Signup() {
     setLoading(false);
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
+    } else {
+      // Store ref code for onboarding completion reward
+      if (refCode) {
+        sessionStorage.setItem("referralCode", refCode);
+      }
     }
     // Redirect handled by App.tsx
   };
