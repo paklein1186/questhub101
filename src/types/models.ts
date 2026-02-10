@@ -427,6 +427,9 @@ export interface Company extends SoftDeletable {
   sector?: string;
   size?: CompanySize;
   websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   contactUserId?: string;
   createdAt: string;
   updatedAt: string;
