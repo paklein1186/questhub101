@@ -154,13 +154,11 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {myCompanies.map((company, i) => {
-            const cTopics = getTopicsForCompany(company.id);
-            const cTerrs = getTerritoriesForCompany(company.id);
             return (
               <motion.div key={company.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    {company.logoUrl && <img src={company.logoUrl} alt="" className="h-10 w-10 rounded-lg" />}
+                    {company.logo_url && <img src={company.logo_url} alt="" className="h-10 w-10 rounded-lg" />}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-display font-semibold truncate">{company.name}</h3>
                       {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
@@ -170,10 +168,6 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
                     </Button>
                   </div>
                   {company.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{company.description}</p>}
-                  <div className="flex flex-wrap gap-1.5">
-                    {cTopics.map(t => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                    {cTerrs.map(t => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                  </div>
                 </Link>
               </motion.div>
             );
