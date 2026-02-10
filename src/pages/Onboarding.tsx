@@ -22,9 +22,17 @@ import { useToast } from "@/hooks/use-toast";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import {
+  CREATIVE_INTENTION_OPTIONS,
+  CREATIVE_BIO_SUGGESTIONS,
+  HOUSES_OF_ART,
+  CREATIVE_HOUSE_KEYS,
+  type PersonaType,
+} from "@/lib/personaLabels";
 
 // ─── Step config ──────────────────────────────────────────────
-const STEP_LABELS = ["Intention", "Identity", "Project", "Offering", "Get Started"];
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Project", "Offering", "Get Started"];
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Proud Project", "Skill Session", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
@@ -65,16 +73,20 @@ export default function Onboarding() {
   const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 – Intention
-  const [intentions, setIntentions] = useState<string[]>([]);
+  // Creative vs Impact path
+  const [isCreativePath, setIsCreativePath] = useState(false);
 
-  // Step 2 – Identity
+  // Step 0 – Intention (Impact path) or Creative entry
+  const [intentions, setIntentions] = useState<string[]>([]);
+  const [creativeIntentions, setCreativeIntentions] = useState<string[]>([]);
+
+  // Identity
   const [name, setName] = useState("");
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
 
-  // Step 3 – Project
+  // Project
   const [wantsProject, setWantsProject] = useState<boolean | null>(null);
   const [projectTitle, setProjectTitle] = useState("");
   const [projectDesc, setProjectDesc] = useState("");
@@ -83,7 +95,7 @@ export default function Onboarding() {
   const [projectTerritories, setProjectTerritories] = useState<string[]>([]);
   const [projectImage, setProjectImage] = useState<string | undefined>();
 
-  // Step 4 – Service
+  // Service
   const [wantsService, setWantsService] = useState<boolean | null>(null);
   const [serviceTitle, setServiceTitle] = useState("");
   const [serviceDesc, setServiceDesc] = useState("");
@@ -105,22 +117,24 @@ export default function Onboarding() {
         if (data.name) setName(data.name);
         if (data.bio) setBio(data.bio);
       }
-      // Load existing topics
       const { data: ut } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser.id);
       if (ut?.length) setSelectedTopics(ut.map((r) => r.topic_id));
-      // Load existing territories
       const { data: utr } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser.id);
       if (utr?.length) setSelectedTerritories(utr.map((r) => r.territory_id));
       setPreloaded(true);
     })();
   }, [authUser?.id, preloaded]);
 
-  const progress = ((step + 1) / STEP_LABELS.length) * 100;
-  const personaType = inferPersona(intentions);
+  const stepLabels = isCreativePath ? STEP_LABELS_CREATIVE : STEP_LABELS_IMPACT;
+  const totalSteps = stepLabels.length;
+  const lastStepIndex = totalSteps - 1;
+  const personaType: PersonaType = isCreativePath ? "CREATIVE" : inferPersona(intentions);
   const serviceLabel = personaType === "CREATIVE" ? "Skill Sessions" : "Services";
 
   const toggleIntention = (key: string) =>
     setIntentions((p) => p.includes(key) ? p.filter((x) => x !== key) : [...p, key]);
+  const toggleCreativeIntention = (key: string) =>
+    setCreativeIntentions((p) => p.includes(key) ? p.filter((x) => x !== key) : [...p, key]);
   const toggleArr = (arr: string[], id: string) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
 
@@ -129,7 +143,6 @@ export default function Onboarding() {
     if (!authUser?.id) return;
     setSaving(true);
     try {
-      // 1. Update profile
       await supabase.from("profiles").update({
         name: name.trim() || undefined,
         bio: bio.trim() || null,
@@ -138,7 +151,6 @@ export default function Onboarding() {
         persona_source: "onboarding_intent",
       }).eq("user_id", authUser.id);
 
-      // 2. Sync user topics
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
       if (selectedTopics.length) {
         await supabase.from("user_topics").insert(
@@ -146,7 +158,6 @@ export default function Onboarding() {
         );
       }
 
-      // 3. Sync user territories
       await supabase.from("user_territories").delete().eq("user_id", authUser.id);
       if (selectedTerritories.length) {
         await supabase.from("user_territories").insert(
@@ -154,10 +165,11 @@ export default function Onboarding() {
         );
       }
 
-      // 4. Infer persona via AI in background
       supabase.functions.invoke("infer-persona", {
         body: {
-          selections: intentions.map((k) => INTENTION_OPTIONS.find((o) => o.key === k)?.label || k),
+          selections: isCreativePath
+            ? creativeIntentions.map((k) => CREATIVE_INTENTION_OPTIONS.find((o) => o.key === k)?.label || k)
+            : intentions.map((k) => INTENTION_OPTIONS.find((o) => o.key === k)?.label || k),
           freeText: bio,
           topics: selectedTopics,
         },
@@ -171,7 +183,6 @@ export default function Onboarding() {
         }
       });
 
-      // 5. Create quest if user wanted one
       if (wantsProject && projectTitle.trim()) {
         const questStatus = projectStatus === "COMPLETED" ? "COMPLETED" : projectStatus === "ONGOING" ? "IN_PROGRESS" : "OPEN";
         const { data: quest } = await supabase.from("quests").insert({
@@ -184,7 +195,6 @@ export default function Onboarding() {
         }).select("id").single();
 
         if (quest?.id) {
-          // Quest topics
           if (projectTopics.length) {
             await supabase.from("quest_topics").insert(
               projectTopics.map((topicId) => ({ quest_id: quest.id, topic_id: topicId }))
@@ -195,14 +205,12 @@ export default function Onboarding() {
               projectTerritories.map((territoryId) => ({ quest_id: quest.id, territory_id: territoryId }))
             );
           }
-          // Add creator as participant
           await supabase.from("quest_participants").insert({
             quest_id: quest.id,
             user_id: authUser.id,
             role: "LEAD",
             status: "ACTIVE",
           });
-          // If completed, also create an achievement
           if (projectStatus === "COMPLETED") {
             await supabase.from("achievements").insert({
               user_id: authUser.id,
@@ -214,7 +222,6 @@ export default function Onboarding() {
         }
       }
 
-      // 6. Create service if user wanted one
       if (wantsService && serviceTitle.trim()) {
         const { data: svc } = await supabase.from("services").insert({
           title: serviceTitle.trim(),
@@ -236,9 +243,8 @@ export default function Onboarding() {
       }
 
       await refreshProfile();
-      // Move to post-onboarding CTA step
       setDirection(1);
-      setStep(4);
+      setStep(lastStepIndex);
     } catch (e: any) {
       toast({ title: "Error saving", description: e.message, variant: "destructive" });
     } finally {
@@ -246,20 +252,22 @@ export default function Onboarding() {
     }
   };
 
+  // ─── Creative path step mapping ─────────────────────────────
+  // Creative: 0=entry choice, 1=Houses of Art, 2=territories, 3=bio, 4=project, 5=service, 6=done
+  // Impact:  0=intention, 1=identity, 2=project, 3=service, 4=done
+
   const goNext = () => {
-    // Step 3 (Project): if user said No or is done, go to step 4 (Service)
-    if (step === 2 && wantsProject === false) {
-      setDirection(1);
-      setStep(3);
-      return;
-    }
-    // Step 4 (Service): finalize
-    if (step === 3) {
-      finishOnboarding();
-      return;
+    if (isCreativePath) {
+      // Creative step 5 (service): finalize
+      if (step === 5) { finishOnboarding(); return; }
+      // Creative step 4 (project): skip if no
+      if (step === 4 && wantsProject === false) { setDirection(1); setStep(5); return; }
+    } else {
+      if (step === 2 && wantsProject === false) { setDirection(1); setStep(3); return; }
+      if (step === 3) { finishOnboarding(); return; }
     }
     setDirection(1);
-    setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
+    setStep((s) => Math.min(s + 1, lastStepIndex));
   };
 
   const goBack = () => {
@@ -267,24 +275,663 @@ export default function Onboarding() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
+  const selectCreativePath = () => {
+    setIsCreativePath(true);
+    setDirection(1);
+    setStep(1); // go to Houses of Art
+  };
+
+  const selectImpactPath = () => {
+    setIsCreativePath(false);
+    // Stay on step 0 which becomes the standard intention step
+  };
+
+  const currentStepLabel = stepLabels[step] || "";
+  const isLastStep = step === lastStepIndex;
+  const progressSteps = isCreativePath ? 6 : 4; // excluding final "done" step
+
+  // Determine which step content to render
+  const renderCreativeStep = () => {
+    switch (step) {
+      case 0: return renderEntryChoice();
+      case 1: return renderHousesOfArt();
+      case 2: return renderCreativeGround();
+      case 3: return renderCreativeEssence();
+      case 4: return renderProject(true);
+      case 5: return renderService(true);
+      case 6: return renderDone(true);
+      default: return null;
+    }
+  };
+
+  const renderImpactStep = () => {
+    switch (step) {
+      case 0: return renderEntryChoice();
+      case 1: return renderIdentity();
+      case 2: return renderProject(false);
+      case 3: return renderService(false);
+      case 4: return renderDone(false);
+      default: return null;
+    }
+  };
+
+  // ─── Step: Entry choice (Step 0 for both paths) ─────────
+  function renderEntryChoice() {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Welcome to ChangeTheGame ✨</h2>
+          <p className="text-sm text-muted-foreground mt-1">What are you up to? Select everything that resonates — or choose the Creative path.</p>
+        </div>
+
+        {/* Creative entry point */}
+        <button
+          onClick={selectCreativePath}
+          className={cn(
+            "w-full flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all",
+            isCreativePath
+              ? "border-primary bg-primary/10 shadow-md"
+              : "border-accent/50 hover:border-accent bg-accent/5"
+          )}
+        >
+          <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
+            <Palette className="h-5 w-5 text-accent-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">🎨 I'm here for creative projects, art & expression</p>
+            <p className="text-xs text-muted-foreground">Enter the Creative path — Houses of Art, Muses, Collectives</p>
+          </div>
+          <ArrowRight className="h-4 w-4 text-accent shrink-0" />
+        </button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+          <div className="relative flex justify-center"><span className="bg-card px-3 text-xs text-muted-foreground">or choose your intentions</span></div>
+        </div>
+
+        <div className="space-y-2">
+          {INTENTION_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => { selectImpactPath(); toggleIntention(opt.key); }}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                intentions.includes(opt.key)
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/30"
+              )}
+            >
+              <div className={cn(
+                "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                intentions.includes(opt.key) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              )}>
+                <opt.icon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </div>
+              {intentions.includes(opt.key) && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Creative Step 1: Houses of Art ─────────────────────
+  function renderHousesOfArt() {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Choose your Houses of Art 🎨</h2>
+          <p className="text-sm text-muted-foreground mt-1">Select 2–4 creative domains that resonate with you.</p>
+        </div>
+
+        <div className="flex items-center gap-2 mb-2">
+          <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics(dbTopics.filter(t => CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).map(t => t.id))}>Select all</Button>
+          <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear</Button>
+        </div>
+
+        <div className="space-y-2">
+          {CREATIVE_HOUSE_KEYS.map((key) => {
+            const house = HOUSES_OF_ART[key];
+            // Try to find a matching topic in DB
+            const matchingTopic = dbTopics.find(t =>
+              t.name?.toLowerCase().replace(/\s+/g, "-") === key
+            );
+            const topicId = matchingTopic?.id || key;
+            const isSelected = selectedTopics.includes(topicId);
+
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedTopics((p) => toggleArr(p, topicId))}
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/30"
+                )}
+              >
+                <span className="text-2xl">{house.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{house.creativeLabel}</p>
+                  <p className="text-xs text-muted-foreground">{house.description}</p>
+                </div>
+                {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Also show other DB topics if they don't match Houses of Art */}
+        {dbTopics.filter(t => !CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">Other Houses</p>
+            <div className="flex flex-wrap gap-1.5">
+              {dbTopics.filter(t => !CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                    selectedTopics.includes(t.id)
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border hover:border-primary/40"
+                  )}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
+      </div>
+    );
+  }
+
+  // ─── Creative Step 2: Creative Ground (Territories) ─────
+  function renderCreativeGround() {
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Your Creative Ground 🌍</h2>
+          <p className="text-sm text-muted-foreground mt-1">Which places inspire you or feel like home for your creation?</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">Name</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> Places of resonance
+          </label>
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
+            <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+            {dbTerritories.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
+                className={cn(
+                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                  selectedTerritories.includes(t.id)
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border hover:border-accent/40"
+                )}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Creative Step 3: Creative Essence (bio) ─────────────
+  function renderCreativeEssence() {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Your Creative Essence ✨</h2>
+          <p className="text-sm text-muted-foreground mt-1">Describe your creative essence in one sentence.</p>
+        </div>
+
+        <Textarea
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder="I follow curiosity until it becomes form…"
+          className="min-h-[80px] resize-none text-sm"
+          maxLength={300}
+        />
+        <div className="flex items-center justify-between">
+          <AIWriterButton
+            type="bio"
+            context={{ intentions: creativeIntentions, houses: selectedTopics, territories: selectedTerritories, personaType: "CREATIVE" }}
+            currentText={bio}
+            onAccept={(text) => setBio(text)}
+            label="✨ Write it with me"
+          />
+          <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">Or try one of these:</p>
+          <div className="space-y-1.5">
+            {CREATIVE_BIO_SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => setBio(suggestion)}
+                className="block w-full text-left text-sm px-3 py-2 rounded-lg border border-border hover:border-primary/30 hover:bg-primary/5 transition-all text-muted-foreground hover:text-foreground"
+              >
+                "{suggestion}"
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Impact Step 1: Identity ─────────────────────────────
+  function renderIdentity() {
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Who are you? 🌱</h2>
+          <p className="text-sm text-muted-foreground mt-1">A few things to help us know you better.</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">Name</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> Territory (where you live)
+          </label>
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
+            <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+            {dbTerritories.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
+                className={cn(
+                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                  selectedTerritories.includes(t.id)
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border hover:border-accent/40"
+                )}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+            <Hash className="h-3.5 w-3.5 text-primary" /> Houses (2–4 recommended)
+          </label>
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
+            <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear</Button>
+          </div>
+          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+            {dbTopics.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
+                className={cn(
+                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                  selectedTopics.includes(t.id)
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border hover:border-primary/40"
+                )}
+              >
+                {t.name}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">One-sentence bio</label>
+          <Textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="I'm passionate about…"
+            className="min-h-[80px] resize-none text-sm"
+            maxLength={300}
+          />
+          <div className="flex items-center justify-between mt-1.5">
+            <AIWriterButton
+              type="bio"
+              context={{ intentions, houses: selectedTopics, territories: selectedTerritories, personaType }}
+              currentText={bio}
+              onAccept={(text) => setBio(text)}
+            />
+            <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Shared: Project step ───────────────────────────────
+  function renderProject(creative: boolean) {
+    const statusOptions = creative
+      ? [
+          { value: "STARTING", label: "🌱 Seedling" },
+          { value: "ONGOING", label: "🌸 Blooming" },
+          { value: "COMPLETED", label: "✨ Completed" },
+        ]
+      : [
+          { value: "STARTING", label: "Starting" },
+          { value: "ONGOING", label: "Ongoing" },
+          { value: "COMPLETED", label: "Completed (Achievement)" },
+        ];
+
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">
+            {creative ? "Show us something you've made 🌟" : "A project you're proud of? 🚀"}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {creative ? "A creation, project, or piece you're proud of." : "Past or present — share something you care about."}
+          </p>
+        </div>
+
+        {wantsProject === null && (
+          <div className="flex gap-3">
+            <Button variant="default" className="flex-1" onClick={() => setWantsProject(true)}>
+              Yes, let me share
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={() => setWantsProject(false)}>
+              Skip for now
+            </Button>
+          </div>
+        )}
+
+        {wantsProject && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Title</label>
+              <Input value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder={creative ? "e.g. Sound Installation at the River" : "e.g. Regenerative Farm Network"} maxLength={120} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Short description</label>
+              <Textarea value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="What is it about?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
+              <AIWriterButton
+                type="quest_story"
+                context={{ title: projectTitle, houses: projectTopics, territories: projectTerritories, personaType }}
+                currentText={projectDesc}
+                onAccept={(text) => setProjectDesc(text)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Status</label>
+              <Select value={projectStatus} onValueChange={setProjectStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">{creative ? "Houses of Art" : "Houses"}</label>
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                {dbTopics.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setProjectTopics((p) => toggleArr(p, t.id))}
+                    className={cn(
+                      "px-2.5 py-1 rounded-full border text-xs transition-all",
+                      projectTopics.includes(t.id)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">{creative ? "Places of resonance" : "Territories"}</label>
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                {dbTerritories.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setProjectTerritories((p) => toggleArr(p, t.id))}
+                    className={cn(
+                      "px-2.5 py-1 rounded-full border text-xs transition-all",
+                      projectTerritories.includes(t.id)
+                        ? "border-accent bg-accent text-accent-foreground"
+                        : "border-border hover:border-accent/40"
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Cover image (optional)</label>
+              <ImageUpload label="Cover image" currentImageUrl={projectImage} onChange={(url) => setProjectImage(url)} />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Shared: Service step ──────────────────────────────
+  function renderService(creative: boolean) {
+    const sLabel = creative ? "Skill Session" : "Service";
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">
+            {creative ? "Share your craft as a skill session? 🎯" : `Offer ${serviceLabel}? 🎯`}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">Share your skills with the ecosystem.</p>
+        </div>
+
+        {wantsService === null && (
+          <div className="flex gap-3">
+            <Button variant="default" className="flex-1" onClick={() => setWantsService(true)}>
+              Yes, let's go
+            </Button>
+            <Button variant="outline" className="flex-1" onClick={() => { setWantsService(false); finishOnboarding(); }}>
+              Skip for now
+            </Button>
+          </div>
+        )}
+
+        {wantsService && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Title</label>
+              <Input value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} placeholder={creative ? "e.g. Live Drawing Session" : "e.g. Strategy Workshop"} maxLength={120} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Description</label>
+              <Textarea value={serviceDesc} onChange={(e) => setServiceDesc(e.target.value)} placeholder="What does this include?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
+              <AIWriterButton
+                type="bio"
+                context={{ title: serviceTitle, personaType, serviceType: sLabel }}
+                currentText={serviceDesc}
+                onAccept={(text) => setServiceDesc(text)}
+                label={`Generate ${sLabel.toLowerCase()} description`}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Price (€, optional)</label>
+              <Input type="number" value={servicePrice} onChange={(e) => setServicePrice(e.target.value)} placeholder="0 = free" min={0} step={5} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">{creative ? "Houses of Art" : "Houses"}</label>
+              <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                {dbTopics.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setServiceTopics((p) => toggleArr(p, t.id))}
+                    className={cn(
+                      "px-2.5 py-1 rounded-full border text-xs transition-all",
+                      serviceTopics.includes(t.id)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Image (optional)</label>
+              <ImageUpload label={`${sLabel} image`} currentImageUrl={serviceImage} onChange={(url) => setServiceImage(url)} />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Final: Done step ──────────────────────────────────
+  function renderDone(creative: boolean) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+        {saving ? (
+          <div className="space-y-4">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground">Setting everything up…</p>
+          </div>
+        ) : (
+          <>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+            >
+              <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-10 w-10 text-primary" />
+              </div>
+              <h2 className="font-display text-3xl font-bold">
+                {creative ? "Welcome, Creator! 🎨" : "You're all set! 🎉"}
+              </h2>
+              <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                {creative
+                  ? "Your creative profile is ready. The muses are waiting."
+                  : "Your profile is ready. Here's what you can do next."}
+              </p>
+            </motion.div>
+
+            <div className="w-full space-y-3">
+              <Button asChild className="w-full" variant="default">
+                <Link to="/">
+                  <Compass className="h-4 w-4 mr-2" /> Go to Home Feed
+                </Link>
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild variant="outline">
+                  <Link to="/explore?tab=guilds">
+                    <Users className="h-4 w-4 mr-2" /> {creative ? "Join a Collective" : "Join a Guild"}
+                  </Link>
+                </Button>
+                {creative ? (
+                  <Button asChild variant="outline">
+                    <Link to="/quests/new">
+                      <Palette className="h-4 w-4 mr-2" /> Start a Creative Quest
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline">
+                    <Link to="/me/companies">
+                      <Briefcase className="h-4 w-4 mr-2" /> Attach a Company
+                    </Link>
+                  </Button>
+                )}
+              </div>
+              {creative && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button asChild variant="outline">
+                    <Link to="/services/new">
+                      <Sparkles className="h-4 w-4 mr-2" /> Offer a Skill Session
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/explore/users">
+                      <Users className="h-4 w-4 mr-2" /> Explore Creators
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              You can revisit onboarding anytime from{" "}
+              <Link to="/me/settings" className="underline text-primary">Settings → Open Wizard</Link>.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Determine if Next button should show ─────────────────
+  const showNextButton = () => {
+    if (isLastStep) return false;
+    if (isCreativePath) {
+      if (step === 4 && wantsProject === null) return false;
+      if (step === 5 && wantsService === null) return false;
+      return true;
+    } else {
+      if (step === 2 && wantsProject === null) return false;
+      if (step === 3 && wantsService === null) return false;
+      return true;
+    }
+  };
+
+  const isFinishStep = isCreativePath ? step === 5 : step === 3;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg">
         {/* Progress */}
-        {step < STEP_LABELS.length - 1 && (
+        {!isLastStep && (
           <div className="mb-6">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-              <span>Step {step + 1} of {STEP_LABELS.length - 1}</span>
-              <span className="font-display font-semibold text-foreground">{STEP_LABELS[step]}</span>
+              <span>Step {step + 1} of {progressSteps}</span>
+              <span className="font-display font-semibold text-foreground">{currentStepLabel}</span>
             </div>
-            <Progress value={((step + 1) / (STEP_LABELS.length - 1)) * 100} className="h-1.5" />
+            <Progress value={((step + 1) / progressSteps) * 100} className="h-1.5" />
           </div>
         )}
 
         <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 min-h-[460px] flex flex-col">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              key={step}
+              key={`${isCreativePath}-${step}`}
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -293,354 +940,12 @@ export default function Onboarding() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="flex-1 flex flex-col"
             >
-              {/* ───── STEP 0: Intention ───── */}
-              {step === 0 && (
-                <div className="space-y-5">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold">Welcome to ChangeTheGame ✨</h2>
-                    <p className="text-sm text-muted-foreground mt-1">What are you up to? Select everything that resonates — you can always change this later.</p>
-                  </div>
-                  <div className="space-y-2">
-                    {INTENTION_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.key}
-                        onClick={() => toggleIntention(opt.key)}
-                        className={cn(
-                          "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
-                          intentions.includes(opt.key)
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:border-primary/30"
-                        )}
-                      >
-                        <div className={cn(
-                          "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
-                          intentions.includes(opt.key) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                        )}>
-                          <opt.icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{opt.label}</p>
-                          <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                        </div>
-                        {intentions.includes(opt.key) && <Check className="h-4 w-4 text-primary shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ───── STEP 1: Identity ───── */}
-              {step === 1 && (
-                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold">Who are you? 🌱</h2>
-                    <p className="text-sm text-muted-foreground mt-1">A few things to help us know you better.</p>
-                  </div>
-
-                  {/* Name */}
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Name</label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
-                  </div>
-
-                  {/* Territory */}
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-accent" /> Territory (where you live)
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
-                      <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-                      {dbTerritories.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
-                          className={cn(
-                            "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
-                            selectedTerritories.includes(t.id)
-                              ? "border-accent bg-accent text-accent-foreground"
-                              : "border-border hover:border-accent/40"
-                          )}
-                        >
-                          {t.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Houses (Topics) */}
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-                      <Hash className="h-3.5 w-3.5 text-primary" /> Houses (2–4 recommended)
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
-                      <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear</Button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                      {dbTopics.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
-                          className={cn(
-                            "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
-                            selectedTopics.includes(t.id)
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border hover:border-primary/40"
-                          )}
-                        >
-                          {t.name}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
-                  </div>
-
-                  {/* Bio */}
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">One-sentence bio</label>
-                    <Textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="I'm passionate about…"
-                      className="min-h-[80px] resize-none text-sm"
-                      maxLength={300}
-                    />
-                    <div className="flex items-center justify-between mt-1.5">
-                      <AIWriterButton
-                        type="bio"
-                        context={{ intentions, houses: selectedTopics, territories: selectedTerritories, personaType }}
-                        currentText={bio}
-                        onAccept={(text) => setBio(text)}
-                      />
-                      <span className="text-xs text-muted-foreground">{bio.length}/300</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ───── STEP 2: Project ───── */}
-              {step === 2 && (
-                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold">A project you're proud of? 🚀</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Past or present — share something you care about.</p>
-                  </div>
-
-                  {wantsProject === null && (
-                    <div className="flex gap-3">
-                      <Button variant="default" className="flex-1" onClick={() => setWantsProject(true)}>
-                        Yes, let me share
-                      </Button>
-                      <Button variant="outline" className="flex-1" onClick={() => setWantsProject(false)}>
-                        Skip for now
-                      </Button>
-                    </div>
-                  )}
-
-                  {wantsProject && (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Title</label>
-                        <Input value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Regenerative Farm Network" maxLength={120} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Short description</label>
-                        <Textarea value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="What is it about?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
-                        <AIWriterButton
-                          type="quest_story"
-                          context={{ title: projectTitle, houses: projectTopics, territories: projectTerritories, personaType }}
-                          currentText={projectDesc}
-                          onAccept={(text) => setProjectDesc(text)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Status</label>
-                        <Select value={projectStatus} onValueChange={setProjectStatus}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="STARTING">Starting</SelectItem>
-                            <SelectItem value="ONGOING">Ongoing</SelectItem>
-                            <SelectItem value="COMPLETED">Completed (Achievement)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1.5 block">Houses</label>
-                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-                          {dbTopics.map((t) => (
-                            <button
-                              key={t.id}
-                              onClick={() => setProjectTopics((p) => toggleArr(p, t.id))}
-                              className={cn(
-                                "px-2.5 py-1 rounded-full border text-xs transition-all",
-                                projectTopics.includes(t.id)
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-border hover:border-primary/40"
-                              )}
-                            >
-                              {t.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1.5 block">Territories</label>
-                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-                          {dbTerritories.map((t) => (
-                            <button
-                              key={t.id}
-                              onClick={() => setProjectTerritories((p) => toggleArr(p, t.id))}
-                              className={cn(
-                                "px-2.5 py-1 rounded-full border text-xs transition-all",
-                                projectTerritories.includes(t.id)
-                                  ? "border-accent bg-accent text-accent-foreground"
-                                  : "border-border hover:border-accent/40"
-                              )}
-                            >
-                              {t.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Cover image (optional)</label>
-                        <ImageUpload label="Cover image" currentImageUrl={projectImage} onChange={(url) => setProjectImage(url)} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ───── STEP 3: Service / Skill Session ───── */}
-              {step === 3 && (
-                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold">Offer {serviceLabel}? 🎯</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Share your skills with the ecosystem.</p>
-                  </div>
-
-                  {wantsService === null && (
-                    <div className="flex gap-3">
-                      <Button variant="default" className="flex-1" onClick={() => setWantsService(true)}>
-                        Yes, let's go
-                      </Button>
-                      <Button variant="outline" className="flex-1" onClick={() => { setWantsService(false); finishOnboarding(); }}>
-                        Skip for now
-                      </Button>
-                    </div>
-                  )}
-
-                  {wantsService && (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Title</label>
-                        <Input value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} placeholder={personaType === "CREATIVE" ? "e.g. Live Drawing Session" : "e.g. Strategy Workshop"} maxLength={120} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Description</label>
-                        <Textarea value={serviceDesc} onChange={(e) => setServiceDesc(e.target.value)} placeholder="What does this include?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
-                        <AIWriterButton
-                          type="bio"
-                          context={{ title: serviceTitle, personaType, serviceType: serviceLabel }}
-                          currentText={serviceDesc}
-                          onAccept={(text) => setServiceDesc(text)}
-                          label={`Generate ${serviceLabel.toLowerCase()} description`}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Price (€, optional)</label>
-                        <Input type="number" value={servicePrice} onChange={(e) => setServicePrice(e.target.value)} placeholder="0 = free" min={0} step={5} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1.5 block">Houses</label>
-                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
-                          {dbTopics.map((t) => (
-                            <button
-                              key={t.id}
-                              onClick={() => setServiceTopics((p) => toggleArr(p, t.id))}
-                              className={cn(
-                                "px-2.5 py-1 rounded-full border text-xs transition-all",
-                                serviceTopics.includes(t.id)
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-border hover:border-primary/40"
-                              )}
-                            >
-                              {t.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Image (optional)</label>
-                        <ImageUpload label="Service image" currentImageUrl={serviceImage} onChange={(url) => setServiceImage(url)} />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ───── STEP 4: Post-onboarding CTA ───── */}
-              {step === 4 && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                  {saving ? (
-                    <div className="space-y-4">
-                      <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-                      <p className="text-muted-foreground">Setting everything up…</p>
-                    </div>
-                  ) : (
-                    <>
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 200 }}
-                      >
-                        <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                          <Sparkles className="h-10 w-10 text-primary" />
-                        </div>
-                        <h2 className="font-display text-3xl font-bold">You're all set! 🎉</h2>
-                        <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
-                          Your profile is ready. Here's what you can do next.
-                        </p>
-                      </motion.div>
-
-                      <div className="w-full space-y-3">
-                        <Button asChild className="w-full" variant="default">
-                          <Link to="/">
-                            <Compass className="h-4 w-4 mr-2" /> Go to Home Feed
-                          </Link>
-                        </Button>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Button asChild variant="outline">
-                            <Link to="/explore?tab=guilds">
-                              <Users className="h-4 w-4 mr-2" /> Join a Guild
-                            </Link>
-                          </Button>
-                          <Button asChild variant="outline">
-                            <Link to="/me/companies">
-                              <Briefcase className="h-4 w-4 mr-2" /> Attach a Company
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground">
-                        You can revisit onboarding anytime from{" "}
-                        <Link to="/me/settings" className="underline text-primary">Settings → Open Wizard</Link>.
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
+              {isCreativePath ? renderCreativeStep() : renderImpactStep()}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 4 && (
+          {!isLastStep && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
               <Button
                 variant="ghost"
@@ -651,11 +956,10 @@ export default function Onboarding() {
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
-              {/* Step 2 (Project): only show Next if user chose Yes and filled title, or if they haven't chosen yet (skip is handled by the skip button) */}
-              {step === 2 && wantsProject === null ? null : step === 3 && wantsService === null ? null : (
+              {showNextButton() && (
                 <Button onClick={goNext} size="sm" disabled={saving}>
                   {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  {step === 3 ? "Finish" : "Next"} <ArrowRight className="h-4 w-4 ml-1" />
+                  {isFinishStep ? "Finish" : "Next"} <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
             </div>

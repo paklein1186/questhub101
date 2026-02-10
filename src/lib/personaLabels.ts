@@ -57,13 +57,13 @@ const LABELS: Record<string, LabelVariants> = {
   // ── Quests ──
   "quest.label": {
     IMPACT: "Quests & Missions",
-    CREATIVE: "Quests & Creations",
+    CREATIVE: "Creative Quests",
     HYBRID: "Quests",
     DEFAULT: "Quests",
   },
   "quest.label_singular": {
     IMPACT: "Quest",
-    CREATIVE: "Quest",
+    CREATIVE: "Creative Quest",
     HYBRID: "Quest",
     DEFAULT: "Quest",
   },
@@ -79,7 +79,7 @@ const LABELS: Record<string, LabelVariants> = {
   // ── Navigation ──
   "nav.work": {
     IMPACT: "Work",
-    CREATIVE: "Create",
+    CREATIVE: "Practice",
     HYBRID: "Work",
     DEFAULT: "Work",
   },
@@ -90,12 +90,86 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Services & Availability",
   },
 
+  // ── Territories ──
+  "territory.label": {
+    IMPACT: "Territories",
+    CREATIVE: "Places of Resonance",
+    HYBRID: "Territories",
+    DEFAULT: "Territories",
+  },
+  "territory.label_singular": {
+    IMPACT: "Territory",
+    CREATIVE: "Place of Resonance",
+    HYBRID: "Territory",
+    DEFAULT: "Territory",
+  },
+
+  // ── Houses ──
+  "houses.label": {
+    IMPACT: "Houses",
+    CREATIVE: "Houses of Art",
+    HYBRID: "Houses",
+    DEFAULT: "Houses",
+  },
+
   // ── Hero prompts ──
   "hero.tagline": {
     IMPACT: "Tell me what impact you want to make — I'll guide you.",
     CREATIVE: "Tell me what you want to create — I'll guide you.",
     HYBRID: "Tell me what you want to accomplish — I'll guide you.",
     DEFAULT: "Tell me what you want to accomplish — I'll guide you.",
+  },
+
+  // ── Landing hero ──
+  "landing.headline": {
+    IMPACT: "Human-powered. AI-augmented. Game-changing.",
+    CREATIVE: "Where creators gather to rewrite the world.",
+    HYBRID: "Human-powered. AI-augmented. Game-changing.",
+    DEFAULT: "Human-powered. AI-augmented. Game-changing.",
+  },
+  "landing.subline": {
+    IMPACT: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+    CREATIVE: "Start a creative quest, join a collective, and let AI muses help your imagination bloom.",
+    HYBRID: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+    DEFAULT: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+  },
+  "landing.cta_primary": {
+    IMPACT: "Join as a Gamechanger",
+    CREATIVE: "Start a Creative Quest",
+    HYBRID: "Join as a Gamechanger",
+    DEFAULT: "Join as a Gamechanger",
+  },
+  "landing.cta_secondary": {
+    IMPACT: "Join as an Ecosystem Builder",
+    CREATIVE: "Explore Creators",
+    HYBRID: "Join as an Ecosystem Builder",
+    DEFAULT: "Join as an Ecosystem Builder",
+  },
+
+  // ── Home sections ──
+  "home.quests_section": {
+    IMPACT: "Featured Quests",
+    CREATIVE: "Creative quests for you",
+    HYBRID: "Featured Quests",
+    DEFAULT: "Featured Quests",
+  },
+  "home.guilds_section": {
+    IMPACT: "Guilds to join",
+    CREATIVE: "Collectives you might join",
+    HYBRID: "Guilds to join",
+    DEFAULT: "Guilds to join",
+  },
+  "home.services_section": {
+    IMPACT: "Services",
+    CREATIVE: "Skill sessions & workshops",
+    HYBRID: "Services",
+    DEFAULT: "Services",
+  },
+  "home.territories_section": {
+    IMPACT: "In Your Territories",
+    CREATIVE: "Places of Resonance",
+    HYBRID: "In Your Territories",
+    DEFAULT: "In Your Territories",
   },
 };
 
@@ -136,3 +210,109 @@ export function getHeroPrompts(persona: PersonaType): string[] {
     "I'm ready to create a mesmerising world — guide me.",
   ];
 }
+
+// ── Houses of Art ──────────────────────────────────────────────
+// When persona is CREATIVE, Houses (topics) display with creative names.
+// This maps a topic slug or name to a creative alternative.
+
+export interface HouseOfArt {
+  creativeLabel: string;
+  description: string;
+  museName: string;
+  museDescription: string;
+  icon: string; // emoji for lightweight rendering
+}
+
+export const HOUSES_OF_ART: Record<string, HouseOfArt> = {
+  "house-of-light": {
+    creativeLabel: "House of Light",
+    description: "Visual arts — painting, illustration, photography, film",
+    museName: "The Prism",
+    museDescription: "Visual, colorful, metaphorical. Speaks in imagery and aesthetics.",
+    icon: "🎨",
+  },
+  "house-of-sound": {
+    creativeLabel: "House of Sound",
+    description: "Musical arts — composition, performance, soundscapes",
+    museName: "The Echo",
+    museDescription: "Rhythmic, harmonic, sound-based. Thinks in patterns and resonance.",
+    icon: "🎵",
+  },
+  "house-of-story": {
+    creativeLabel: "House of Story",
+    description: "Writing, narrative, dramaturgy, mythology",
+    museName: "The Storykeeper",
+    museDescription: "Narrative, mythic. Weaves meaning through arcs and characters.",
+    icon: "📖",
+  },
+  "house-of-movement": {
+    creativeLabel: "House of Movement",
+    description: "Dance, performance, theatre, body-based arts",
+    museName: "The Mover",
+    museDescription: "Embodied, flow-based. Thinks through gesture and presence.",
+    icon: "💃",
+  },
+  "house-of-form": {
+    creativeLabel: "House of Form",
+    description: "Design, craft, sculpture, architecture",
+    museName: "The Shaper",
+    museDescription: "Structural, constructive. Builds meaning through form and function.",
+    icon: "🏗️",
+  },
+  "house-of-nature": {
+    creativeLabel: "House of Nature",
+    description: "Eco-art, land art, nature-inspired creation",
+    museName: "The Green One",
+    museDescription: "Ecological, grounded, regenerative. Rooted in living systems.",
+    icon: "🌿",
+  },
+  "house-of-ritual": {
+    creativeLabel: "House of Ritual",
+    description: "Facilitation, ceremonies, immersive experiences",
+    museName: "The Threshold",
+    museDescription: "Liminal, experiential, ceremonial. Holds space for transformation.",
+    icon: "🔮",
+  },
+};
+
+/** All creative House keys for the onboarding selection */
+export const CREATIVE_HOUSE_KEYS = Object.keys(HOUSES_OF_ART);
+
+/**
+ * Given a topic name, try to find a creative House of Art mapping.
+ * Returns the creative label if found, otherwise the original name.
+ */
+export function getCreativeHouseLabel(topicName: string, persona: PersonaType): string {
+  if (persona !== "CREATIVE") return topicName;
+  const slug = topicName.toLowerCase().replace(/\s+/g, "-");
+  const house = HOUSES_OF_ART[slug];
+  return house ? house.creativeLabel : topicName;
+}
+
+/**
+ * Get the Muse info for a given set of topic names/slugs.
+ * Returns the dominant Muse (first match) or null.
+ */
+export function getMuseForTopics(topicNames: string[]): HouseOfArt | null {
+  for (const name of topicNames) {
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    if (HOUSES_OF_ART[slug]) return HOUSES_OF_ART[slug];
+  }
+  return null;
+}
+
+// ── Creative onboarding options ──────────────────────────────
+export const CREATIVE_INTENTION_OPTIONS = [
+  { key: "make", label: "I want to make something new", icon: "🎨", desc: "Bring an idea into the world" },
+  { key: "write", label: "I want to write / compose / explore ideas", icon: "✍️", desc: "Words, music, concepts" },
+  { key: "experiment", label: "I want to experiment and see what happens", icon: "🧪", desc: "Play, explore, discover" },
+  { key: "collab", label: "I want to create with others", icon: "🤝", desc: "Collaborative creativity" },
+  { key: "inspire", label: "I'm looking for inspiration", icon: "✨", desc: "Feed the creative fire" },
+  { key: "unsure", label: "I'm not sure yet, guide me", icon: "🧭", desc: "Let's figure it out together" },
+];
+
+export const CREATIVE_BIO_SUGGESTIONS = [
+  "I weave stories between people and places.",
+  "I make invisible worlds visible.",
+  "I follow curiosity until it becomes form.",
+];
