@@ -5,7 +5,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
-  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
+  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Compass, Swords, Users, GraduationCap, CalendarCheck,
