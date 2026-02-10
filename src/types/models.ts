@@ -83,7 +83,7 @@ export interface GuildMember {
 
 // ─── Quests ──────────────────────────────────────────────────
 
-export interface Quest extends SoftDeletable {
+export interface Quest extends SoftDeletable, Draftable {
   id: string;
   title: string;
   description?: string;
