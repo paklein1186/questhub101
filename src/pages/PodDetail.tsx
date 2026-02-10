@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserPlus, UserMinus, ShieldCheck, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -8,13 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
+import { XpSpendDialog } from "@/components/XpSpendDialog";
+import { PlanLimitBadge } from "@/components/PlanLimitBadge";
+import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, PodType, PodMemberRole } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import {
   getPodById, getMembersForPod, getQuestById, getTopicById, podMembers,
 } from "@/data/mock";
-import type { PodMember } from "@/types";
 import { format } from "date-fns";
 
 export default function PodDetail() {
@@ -25,6 +27,15 @@ export default function PodDetail() {
   const [, forceUpdate] = useState(0);
   const rerender = () => forceUpdate((n) => n + 1);
 
+  const limits = usePlanLimits();
+  const [showPodXpDialog, setShowPodXpDialog] = useState(false);
+
+  // Update pod count
+  useEffect(() => {
+    const count = podMembers.filter((pm) => pm.userId === currentUser.id).length;
+    limits.setPodCount(count);
+  }, [currentUser.id]);
+
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
 
   const members = getMembersForPod(pod.id);
@@ -34,15 +45,31 @@ export default function PodDetail() {
   const isHost = myMembership?.role === PodMemberRole.HOST;
   const isMember = !!myMembership;
 
-  const joinPod = () => {
+  const attemptJoinPod = () => {
+    if (limits.podLimitReached) {
+      setShowPodXpDialog(true);
+      return;
+    }
+    doJoinPod();
+  };
+
+  const doJoinPod = () => {
     podMembers.push({ id: `pm-${Date.now()}`, podId: pod.id, userId: currentUser.id, role: PodMemberRole.MEMBER, joinedAt: new Date().toISOString() });
+    limits.setPodCount((c: number) => c + 1);
     rerender();
     toast({ title: "Joined pod!" });
+  };
+
+  const handlePodXpConfirm = async () => {
+    const ok = await limits.spendXp(EXTRA_POD_XP_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id);
+    if (ok) doJoinPod();
+    else toast({ title: "Failed to spend XP", variant: "destructive" });
   };
 
   const leavePod = () => {
     const idx = podMembers.findIndex((pm) => pm.podId === pod.id && pm.userId === currentUser.id);
     if (idx !== -1) podMembers.splice(idx, 1);
+    limits.setPodCount((c: number) => Math.max(0, c - 1));
     rerender();
     toast({ title: "Left pod" });
   };
@@ -63,11 +90,21 @@ export default function PodDetail() {
 
   return (
     <PageShell>
+      <XpSpendDialog
+        open={showPodXpDialog}
+        onOpenChange={setShowPodXpDialog}
+        canAfford={limits.canAffordExtraPod}
+        xpCost={EXTRA_POD_XP_COST}
+        userXp={limits.userXp}
+        actionLabel="join one more pod"
+        limitLabel="pod memberships for your plan"
+        onConfirm={handlePodXpConfirm}
+      />
+
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
       </Button>
 
-      {/* Pod image */}
       {pod.imageUrl && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
           <img src={pod.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -97,9 +134,17 @@ export default function PodDetail() {
           {pod.endDate && <span>→ {format(new Date(pod.endDate), "MMM d, yyyy")}</span>}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 flex items-center gap-3">
           {!isMember ? (
-            <Button onClick={joinPod}><UserPlus className="h-4 w-4 mr-1" /> Join pod</Button>
+            <div className="flex flex-col gap-1">
+              <Button onClick={attemptJoinPod}><UserPlus className="h-4 w-4 mr-1" /> Join pod</Button>
+              <PlanLimitBadge
+                limitReached={limits.podLimitReached}
+                xpCost={EXTRA_POD_XP_COST}
+                itemLabel="pod slot"
+                compact
+              />
+            </div>
           ) : !isHost ? (
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
