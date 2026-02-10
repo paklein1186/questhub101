@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, UserCircle, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User, CalendarCheck, ShoppingBag } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -16,7 +16,6 @@ const authedLinks = [
   { to: "/explore", label: "Explore", icon: Search },
   { to: "/work", label: "Work", icon: Briefcase },
   { to: "/network", label: "Network", icon: Users },
-  { to: "/me", label: "Me", icon: UserCircle },
 ];
 
 export function AppNav() {
@@ -99,27 +98,50 @@ export function AppNav() {
                 </Link>
               )}
 
-              {/* Account dropdown */}
+              {/* Unified user menu (avatar + "Me") */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="ml-2 flex items-center rounded-full hover:ring-2 hover:ring-primary/20 transition-all">
+                  <button className={cn(
+                    "ml-2 flex items-center gap-1.5 rounded-full px-1.5 py-1 transition-all",
+                    pathname.startsWith("/me")
+                      ? "ring-2 ring-primary"
+                      : "hover:ring-2 hover:ring-primary/20"
+                  )}>
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatarUrl} />
                       <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
                     </Avatar>
+                    <span className="hidden sm:inline text-sm font-medium text-foreground">Me</span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium truncate">{user?.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> My profile
+                    <Link to="/me" className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> Me hub
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> My public profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/me/bookings" className="cursor-pointer">
+                      <CalendarCheck className="h-4 w-4 mr-2" /> My bookings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/me/services" className="cursor-pointer">
+                      <ShoppingBag className="h-4 w-4 mr-2" /> My services
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/me/settings" className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" /> Settings
