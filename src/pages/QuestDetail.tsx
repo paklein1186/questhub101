@@ -28,6 +28,7 @@ import { useQuestById, useQuestParticipants, useQuestUpdates, usePodsForQuest, u
 import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { FeedSection } from "@/components/feed/FeedSection";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
@@ -429,7 +430,8 @@ export default function QuestDetail() {
           {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
         </TabsContent>
 
-        <TabsContent value="discussion" className="mt-6">
+        <TabsContent value="discussion" className="mt-6 space-y-6">
+          <FeedSection contextType="QUEST" contextId={quest.id} canPost={isOwner || isParticipant} />
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
 

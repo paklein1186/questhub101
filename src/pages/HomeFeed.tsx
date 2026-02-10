@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
-import { Brain } from "lucide-react";
+import { Brain, MessageSquare } from "lucide-react";
 import { usePersona } from "@/hooks/usePersona";
 
 import { HeroAI } from "@/components/home/HeroAI";
@@ -14,6 +14,7 @@ import { HomeStats } from "@/components/home/HomeStats";
 import { ContinueWhereLeftOff } from "@/components/home/ContinueWhereLeftOff";
 import { YourUniverse } from "@/components/home/YourUniverse";
 import { ThisWeekInEcosystem } from "@/components/home/ThisWeekInEcosystem";
+import { FeedSection } from "@/components/feed/FeedSection";
 
 // Lightweight data hook for the shell (stats, topics, territories)
 function useHomeShellData(userId: string) {
@@ -139,7 +140,17 @@ export default function HomeFeed() {
           </>
         )}
 
-        {/* 6. This week in the ecosystem */}
+        {/* 6. Community feed */}
+        <section className="space-y-4">
+          <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" /> Community Feed
+          </h2>
+          <FeedSection contextType="GLOBAL" />
+        </section>
+
+        <Separator />
+
+        {/* 7. This week in the ecosystem */}
         <ThisWeekInEcosystem />
       </div>
     </PageShell>
