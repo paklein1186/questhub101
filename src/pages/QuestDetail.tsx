@@ -374,6 +374,10 @@ export default function QuestDetail() {
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
+
+        <TabsContent value="ai-chat" className="mt-6">
+          <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
+        </TabsContent>
       </Tabs>
     </PageShell>
   );
