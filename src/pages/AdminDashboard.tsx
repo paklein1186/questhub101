@@ -986,6 +986,11 @@ function ModerationTab() {
 
       <Separator />
 
+      {/* Reports */}
+      <ReportsSection />
+
+      <Separator />
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-lg border border-border bg-card p-4 text-center">
