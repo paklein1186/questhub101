@@ -138,7 +138,28 @@ const App = () => (
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
-                <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+                <Route path="/admin" element={<RequireAuth><Suspense fallback={null}><AdminLayout /></Suspense></RequireAuth>}>
+                  <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
+                  <Route path="community/users" element={<Suspense fallback={null}><AdminCommunityUsers /></Suspense>} />
+                  <Route path="community/guilds" element={<Suspense fallback={null}><AdminCommunityGuilds /></Suspense>} />
+                  <Route path="community/pods" element={<Suspense fallback={null}><AdminCommunityPods /></Suspense>} />
+                  <Route path="community/companies" element={<Suspense fallback={null}><AdminCommunityCompanies /></Suspense>} />
+                  <Route path="content/quests" element={<Suspense fallback={null}><AdminContentQuests /></Suspense>} />
+                  <Route path="content/courses" element={<Suspense fallback={null}><AdminContentCourses /></Suspense>} />
+                  <Route path="content/services" element={<Suspense fallback={null}><AdminContentServices /></Suspense>} />
+                  <Route path="content/reports" element={<Suspense fallback={null}><AdminContentReports /></Suspense>} />
+                  <Route path="economy/bookings" element={<Suspense fallback={null}><AdminEconomyBookings /></Suspense>} />
+                  <Route path="economy/payments" element={<Suspense fallback={null}><AdminEconomyPayments /></Suspense>} />
+                  <Route path="economy/xp" element={<Suspense fallback={null}><AdminEconomyXp /></Suspense>} />
+                  <Route path="economy/plans" element={<Suspense fallback={null}><AdminEconomyPlans /></Suspense>} />
+                  <Route path="economy/notifications" element={<Suspense fallback={null}><AdminEconomyNotifications /></Suspense>} />
+                  <Route path="economy/emails" element={<Suspense fallback={null}><AdminEconomyEmails /></Suspense>} />
+                  <Route path="system/roles" element={<Suspense fallback={null}><AdminSystemRoles /></Suspense>} />
+                  <Route path="system/houses" element={<Suspense fallback={null}><AdminSystemHouses /></Suspense>} />
+                  <Route path="system/governance" element={<Suspense fallback={null}><AdminSystemGovernance /></Suspense>} />
+                  <Route path="system/audit" element={<Suspense fallback={null}><AdminSystemAudit /></Suspense>} />
+                  <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
+                </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
                 <Route path="/courses/new" element={<RequireAuth><CourseCreate /></RequireAuth>} />
