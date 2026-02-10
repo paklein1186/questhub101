@@ -131,7 +131,7 @@ export default function PodDetail() {
               />
               <PlanLimitBadge
                 limitReached={limits.podLimitReached}
-                xpCost={EXTRA_POD_XP_COST}
+                xpCost={EXTRA_POD_CREDIT_COST}
                 itemLabel="pod slot"
                 compact
               />
