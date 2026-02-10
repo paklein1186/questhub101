@@ -27,6 +27,8 @@ import {
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
+import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsAdmin } from "@/lib/admin";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
