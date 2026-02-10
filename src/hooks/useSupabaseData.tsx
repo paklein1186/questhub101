@@ -88,7 +88,7 @@ export function useQuests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("*, quest_topics(topic_id), quest_territories(territory_id), guilds(id, name)")
+        .select("*, quest_topics(topic_id), quest_territories(territory_id, territories(id, name)), guilds(id, name)")
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
