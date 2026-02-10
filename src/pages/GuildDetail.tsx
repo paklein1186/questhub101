@@ -21,7 +21,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_XP_COST, EXTRA_GUILD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, GuildJoinPolicy, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
