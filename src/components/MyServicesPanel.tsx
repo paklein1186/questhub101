@@ -127,10 +127,11 @@ export function MyServicesPanel({ userId }: { userId: string }) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display text-lg font-semibold">My Services</h3>
-        <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create service</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Link to="/services/new">
+            <Button><Plus className="h-4 w-4 mr-1" /> Create Service</Button>
+          </Link>
+          <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) resetForm(); }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editId ? "Edit Service" : "Create Service"}</DialogTitle>
@@ -172,6 +173,7 @@ export function MyServicesPanel({ userId }: { userId: string }) {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
