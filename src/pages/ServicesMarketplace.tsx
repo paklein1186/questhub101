@@ -10,6 +10,7 @@ import {
   services, serviceTopics, serviceTerritories, topics, territories,
   getUserById, getGuildById, getTopicById, getTerritoryById,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
