@@ -41,6 +41,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Compass className="h-7 w-7 text-primary" /> Quests Marketplace
         </h1>
+        {isLoggedIn && <CreateQuestButton />}
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
