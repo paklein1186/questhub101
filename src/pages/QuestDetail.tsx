@@ -33,6 +33,7 @@ import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
+import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -292,6 +293,7 @@ export default function QuestDetail() {
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           {isOwner && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
           {isOwner && <TabsTrigger value="memory"><Brain className="h-3.5 w-3.5 mr-1" /> Memory</TabsTrigger>}
+          {isOwner && <TabsTrigger value="fundraising-ai"><Coins className="h-3.5 w-3.5 mr-1" /> Fundraising AI</TabsTrigger>}
           <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
         </TabsList>
 
@@ -389,6 +391,23 @@ export default function QuestDetail() {
         {isOwner && (
           <TabsContent value="memory" className="mt-6">
             <MemoryEnginePanel entityType="QUEST" entityId={quest.id} entityName={quest.title} guildId={quest.guild_id || undefined} />
+          </TabsContent>
+        )}
+
+        {isOwner && (
+          <TabsContent value="fundraising-ai" className="mt-6">
+            <FundraisingAIPanel quest={{
+              title: quest.title,
+              description: quest.description,
+              credit_budget: (quest as any).credit_budget ?? 0,
+              credit_reward: quest.credit_reward,
+              escrow_credits: (quest as any).escrow_credits ?? 0,
+              funding_goal_credits: (quest as any).funding_goal_credits,
+              price_fiat: quest.price_fiat,
+              price_currency: quest.price_currency || "EUR",
+              status: quest.status,
+              allow_fundraising: (quest as any).allow_fundraising ?? false,
+            }} />
           </TabsContent>
         )}
 
