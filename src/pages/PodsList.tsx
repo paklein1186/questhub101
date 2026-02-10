@@ -142,6 +142,10 @@ export default function PodsList({ bare }: { bare?: boolean }) {
                   <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
                 </div>
               </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Save as draft</label>
+                <Switch checked={newDraft} onCheckedChange={setNewDraft} />
+              </div>
               <Button onClick={createPod} disabled={!newName.trim()} className="w-full">Create</Button>
             </div>
           </DialogContent>

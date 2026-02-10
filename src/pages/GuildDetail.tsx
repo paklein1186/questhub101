@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
