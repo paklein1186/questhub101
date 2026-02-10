@@ -41,7 +41,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const [newEnd, setNewEnd] = useState("");
   const [podsState, setPodsState] = useState<Pod[]>(pods);
 
-  let filtered = [...podsState];
+  let filtered = filterActive([...podsState]);
   if (typeFilter !== "ALL") filtered = filtered.filter((p) => p.type === typeFilter);
   if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topicId === topicFilter);
   if (questFilter !== "ALL") filtered = filtered.filter((p) => p.questId === questFilter);
