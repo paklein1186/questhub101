@@ -53,14 +53,8 @@ export default function Onboarding() {
           // Link referee
           referral.refereeUserId = currentUser.id;
           referral.rewardGiven = true;
-          // Award referrer +50 XP
+          // Award referrer +50 XP via the XP system
           awardXp(referral.referrerUserId, "REFERRAL_REWARD");
-          // Award the XP on the user object directly
-          const referrer = users.find(u => u.id === referral.referrerUserId);
-          if (referrer) {
-            referrer.xp += 50;
-            referrer.contributionIndex = Math.floor(referrer.xp / 10);
-          }
         }
         sessionStorage.removeItem("referralCode");
         setReferralRewarded(true);
