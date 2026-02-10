@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { topics, territories, getTopicsForGuild, getReferralByCode } from "@/data/mock";
+import { topics, territories, getTopicsForGuild, getReferralByCode, users, userTopics, userTerritories } from "@/data/mock";
 import { UserRole } from "@/types/enums";
 import { generateOnboardingResults, type AIOnboardingResult } from "@/services/mockAI";
 import { Link } from "react-router-dom";
@@ -48,6 +48,24 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
   const [referralRewarded, setReferralRewarded] = useState(false);
+  const [profilePreloaded, setProfilePreloaded] = useState(false);
+
+  // Pre-fill wizard fields from Supabase profile (single source of truth)
+  useEffect(() => {
+    if (!authUser?.id || profilePreloaded) return;
+    supabase
+      .from("profiles")
+      .select("name, headline, bio, role")
+      .eq("user_id", authUser.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          if (data.role) setRole(data.role as UserRole);
+          if (data.bio) setBio(data.bio);
+        }
+        setProfilePreloaded(true);
+      });
+  }, [authUser?.id, profilePreloaded]);
 
   // Process referral reward when reaching the final step
   useEffect(() => {
@@ -115,12 +133,33 @@ export default function Onboarding() {
       return;
     }
     if (step === 4) {
-      // Mark onboarding as completed in the database
+      // Persist wizard data to Supabase (same fields as Settings → Profile)
       if (authUser?.id) {
+        const updates: Record<string, unknown> = {
+          role: role || undefined,
+          bio: bio.trim() || null,
+          headline: result?.headline || null,
+          has_completed_onboarding: true,
+        };
         await supabase
           .from("profiles")
-          .update({ has_completed_onboarding: true })
+          .update(updates)
           .eq("user_id", authUser.id);
+
+        // Sync topics/territories to mock arrays (same logic as Settings)
+        const existingUTs = userTopics.filter((ut) => ut.userId === currentUser.id);
+        existingUTs.forEach((ut) => { const i = userTopics.indexOf(ut); if (i !== -1) userTopics.splice(i, 1); });
+        selectedTopics.forEach((topicId, i) => { userTopics.push({ id: `ut-${Date.now()}-${i}`, userId: currentUser.id, topicId }); });
+        const existingUTrs = userTerritories.filter((ut) => ut.userId === currentUser.id);
+        existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
+        selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
+
+        // Update mock user object for immediate UI consistency
+        const idx = users.findIndex((u) => u.id === currentUser.id);
+        if (idx !== -1) {
+          users[idx] = { ...users[idx], role: role || users[idx].role, bio: bio.trim() || undefined, headline: result?.headline || users[idx].headline };
+        }
+
         await refreshProfile();
       }
       setDirection(1);
