@@ -75,16 +75,13 @@ function GuildEditForm({ guildId }: { guildId: string }) {
   };
 
   const handleSave = () => {
-    const idx = guilds.findIndex((g) => g.id === guildId);
-    if (idx !== -1) {
-      guilds[idx] = {
-        ...guilds[idx],
-        name: name.trim() || guild.name,
-        logoUrl: logoUrl.trim() || undefined,
-        bannerUrl: bannerUrl.trim() || undefined,
-        description: description.trim() || undefined,
-        type,
-      };
+    const target = guilds.find((g) => g.id === guildId);
+    if (target) {
+      target.name = name.trim() || guild.name;
+      target.logoUrl = logoUrl.trim() || undefined;
+      target.bannerUrl = bannerUrl.trim() || undefined;
+      target.description = description.trim() || undefined;
+      target.type = type;
     }
 
     // Update topic relations

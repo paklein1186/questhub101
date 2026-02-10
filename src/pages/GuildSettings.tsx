@@ -123,20 +123,17 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
     setDefaultQuestTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
   const handleSaveIdentity = () => {
-    const idx = guilds.findIndex((g) => g.id === guildId);
-    if (idx !== -1) {
-      guilds[idx] = {
-        ...guilds[idx],
-        name: name.trim() || guild.name,
-        logoUrl: logoUrl.trim() || undefined,
-        bannerUrl: bannerUrl.trim() || undefined,
-        description: description.trim() || undefined,
-        type,
-        websiteUrl: normalizeUrl(guildWebsiteUrl) ?? undefined,
-        twitterUrl: normalizeUrl(guildTwitterUrl) ?? undefined,
-        linkedinUrl: normalizeUrl(guildLinkedinUrl) ?? undefined,
-        instagramUrl: normalizeUrl(guildInstagramUrl) ?? undefined,
-      };
+    const target = guilds.find((g) => g.id === guildId);
+    if (target) {
+      target.name = name.trim() || guild.name;
+      target.logoUrl = logoUrl.trim() || undefined;
+      target.bannerUrl = bannerUrl.trim() || undefined;
+      target.description = description.trim() || undefined;
+      target.type = type;
+      target.websiteUrl = normalizeUrl(guildWebsiteUrl) ?? undefined;
+      target.twitterUrl = normalizeUrl(guildTwitterUrl) ?? undefined;
+      target.linkedinUrl = normalizeUrl(guildLinkedinUrl) ?? undefined;
+      target.instagramUrl = normalizeUrl(guildInstagramUrl) ?? undefined;
     }
     // Update topic relations
     const existing = guildTopics.filter((gt) => gt.guildId === guildId);
