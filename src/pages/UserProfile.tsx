@@ -25,6 +25,7 @@ import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { XP_LEVEL_THRESHOLDS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
+import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -223,6 +224,7 @@ export default function UserProfile() {
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
           <TabsTrigger value="guilds-pods">Guilds & Pods</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
 
@@ -485,6 +487,13 @@ export default function UserProfile() {
             </section>
           </div>
         </TabsContent>
+
+        {/* ─── Matchmaker ─── */}
+        {isOwnProfile && (
+          <TabsContent value="matchmaker">
+            <MatchmakerPanel matchType="user" userId={profile.userId} />
+          </TabsContent>
+        )}
 
         {/* ─── Wall ─── */}
         <TabsContent value="wall">

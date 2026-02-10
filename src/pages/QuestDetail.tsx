@@ -31,6 +31,7 @@ import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
+import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -288,6 +289,7 @@ export default function QuestDetail() {
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({(questPods || []).length})</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
+          {isOwner && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
           <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
         </TabsList>
 
@@ -375,6 +377,12 @@ export default function QuestDetail() {
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
+
+        {isOwner && (
+          <TabsContent value="matchmaker" className="mt-6">
+            <MatchmakerPanel matchType="quest" questId={quest.id} />
+          </TabsContent>
+        )}
 
         <TabsContent value="ai-chat" className="mt-6">
           <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
