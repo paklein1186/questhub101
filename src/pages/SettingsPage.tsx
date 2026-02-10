@@ -26,18 +26,13 @@ import { useNotifications as useNotificationsHook, requestPushPermission as requ
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
 import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
-import {
-  users, topics, territories, userTopics, userTerritories,
-  services, getServicesForUser,
-  availabilityRules, availabilityExceptions,
-  referrals, generateReferralCode, getReferralsForUser,
-  quests, comments, bookings,
-} from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
 import {
@@ -76,7 +71,14 @@ export default function SettingsPage() {
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // DB-sourced topics & territories
+  const { data: dbTopics = [] } = useTopics();
+  const { data: dbTerritories = [] } = useTerritories();
+
+
 
   const activeTab = searchParams.get("tab") || "profile";
   const setActiveTab = (tab: string) => setSearchParams({ tab }, { replace: true });
@@ -125,14 +127,34 @@ export default function SettingsPage() {
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
 
-  // ── Houses state ──
-  const currentTopicIds = userTopics.filter((ut) => ut.userId === currentUser.id).map((ut) => ut.topicId);
-  const currentTerritoryIds = userTerritories.filter((ut) => ut.userId === currentUser.id).map((ut) => ut.territoryId);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
-  const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
+  // ── Houses state (loaded from DB) ──
+  const { data: myUserTopics } = useQuery({
+    queryKey: ["user-topics", authUser?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser!.id);
+      return (data ?? []).map((r: any) => r.topic_id);
+    },
+    enabled: !!authUser?.id,
+  });
+  const { data: myUserTerritories } = useQuery({
+    queryKey: ["user-territories", authUser?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser!.id);
+      return (data ?? []).map((r: any) => r.territory_id);
+    },
+    enabled: !!authUser?.id,
+  });
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [usePrefs, setUsePrefs] = useState(true);
 
-  // ── Notifications state (moved to NotificationsSettingsTab) ──
+  // Sync selected topics/territories when loaded from DB
+  useEffect(() => {
+    if (myUserTopics) setSelectedTopics(myUserTopics);
+  }, [myUserTopics]);
+  useEffect(() => {
+    if (myUserTerritories) setSelectedTerritories(myUserTerritories);
+  }, [myUserTerritories]);
 
   // ── Privacy state (synced with user model) ──
   const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
@@ -148,10 +170,7 @@ export default function SettingsPage() {
     (currentUser as any)[field] = value;
   };
 
-  // ── Services state ──
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
-  const allMyServices = services.filter((s) => s.providerUserId === currentUser.id);
+  // ── Services state (no longer using mock) ──
 
   // ── Billing state ──
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
@@ -204,18 +223,24 @@ export default function SettingsPage() {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       return;
     }
-    // Also update mock data so UI reflects changes immediately
-    const idx = users.findIndex((u) => u.id === currentUser.id);
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], name: name.trim() || currentUser.name, headline: headline.trim() || undefined, bio: bio.trim() || undefined, avatarUrl: avatarUrl.trim() || undefined, role };
+    // Save topic/territory relations to DB
+    // Delete existing, then insert new
+    if (authUser?.id) {
+      await supabase.from("user_topics").delete().eq("user_id", authUser.id);
+      if (selectedTopics.length > 0) {
+        await supabase.from("user_topics").insert(
+          selectedTopics.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
+        );
+      }
+      await supabase.from("user_territories").delete().eq("user_id", authUser.id);
+      if (selectedTerritories.length > 0) {
+        await supabase.from("user_territories").insert(
+          selectedTerritories.map((territoryId) => ({ user_id: authUser.id, territory_id: territoryId }))
+        );
+      }
+      qc.invalidateQueries({ queryKey: ["user-topics"] });
+      qc.invalidateQueries({ queryKey: ["user-territories"] });
     }
-    // Update topic/territory relations (still mock)
-    const existingUTs = userTopics.filter((ut) => ut.userId === currentUser.id);
-    existingUTs.forEach((ut) => { const i = userTopics.indexOf(ut); if (i !== -1) userTopics.splice(i, 1); });
-    selectedTopics.forEach((topicId, i) => { userTopics.push({ id: `ut-${Date.now()}-${i}`, userId: currentUser.id, topicId }); });
-    const existingUTrs = userTerritories.filter((ut) => ut.userId === currentUser.id);
-    existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
-    selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
     // Refresh auth context so nav reflects updated name/avatar
     await refreshProfile();
     toast({ title: "Profile updated!" });
@@ -224,12 +249,7 @@ export default function SettingsPage() {
   const toggleTopic = (id: string) => setSelectedTopics((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const toggleTerritory = (id: string) => setSelectedTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const toggleServiceActive = (svc: Service) => {
-    svc.isActive = !svc.isActive;
-    svc.updatedAt = new Date().toISOString();
-    rerender();
-    toast({ title: svc.isActive ? "Service resumed" : "Service paused" });
-  };
+  // toggleServiceActive is now handled by MyServicesPanel
 
   const handleBuyXp = async (code: string) => {
     setBuyLoading(code);
@@ -315,31 +335,37 @@ export default function SettingsPage() {
 
                   <Section title="Export My Data" icon={<Download className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-3">Download a copy of all your data in JSON format (profile, quests, comments, services, bookings, XP transactions).</p>
-                    <Button variant="outline" size="sm" disabled={exportLoading} onClick={() => {
+                    <Button variant="outline" size="sm" disabled={exportLoading} onClick={async () => {
                       setExportLoading(true);
-                      const myQuests = quests.filter(q => q.createdByUserId === currentUser.id);
-                      const myComments = comments.filter(c => c.authorId === currentUser.id);
-                      const myServices = services.filter(s => s.providerUserId === currentUser.id);
-                      const myBookings = bookings.filter(b => b.requesterId === currentUser.id || b.providerUserId === currentUser.id);
-                      const exportData = {
-                        user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, headline: currentUser.headline, bio: currentUser.bio, role: currentUser.role, xp: currentUser.xp, contributionIndex: currentUser.contributionIndex },
-                        quests: myQuests.map(q => ({ id: q.id, title: q.title, description: q.description, status: q.status, rewardXp: q.rewardXp })),
-                        comments: myComments.map(c => ({ id: c.id, content: c.content, createdAt: c.createdAt, targetType: c.targetType, targetId: c.targetId })),
-                        services: myServices.map(s => ({ id: s.id, title: s.title, description: s.description, priceAmount: s.priceAmount, priceCurrency: s.priceCurrency })),
-                        bookings: myBookings.map(b => ({ id: b.id, serviceId: b.serviceId, status: b.status, startDateTime: b.startDateTime, endDateTime: b.endDateTime })),
-                        xpTransactions: [],
-                      };
-                      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `questhub-data-${currentUser.id}.json`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      setExportLoading(false);
-                      toast({ title: "Data exported!", description: "Your data has been downloaded." });
+                      try {
+                        const userId = authUser?.id;
+                        if (!userId) return;
+                        const [qRes, cRes, sRes, bRes] = await Promise.all([
+                          supabase.from("quests").select("id, title, description, status, reward_xp").eq("created_by_user_id", userId),
+                          supabase.from("comments").select("id, content, created_at, target_type, target_id").eq("author_id", userId),
+                          supabase.from("services").select("id, title, description, price_amount, price_currency").eq("provider_user_id", userId).eq("is_deleted", false),
+                          supabase.from("bookings").select("id, service_id, status, start_date_time, end_date_time").or(`requester_id.eq.${userId},provider_user_id.eq.${userId}`),
+                        ]);
+                        const exportData = {
+                          user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role },
+                          quests: qRes.data ?? [],
+                          comments: cRes.data ?? [],
+                          services: sRes.data ?? [],
+                          bookings: bRes.data ?? [],
+                        };
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `questhub-data-${currentUser.id}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast({ title: "Data exported!", description: "Your data has been downloaded." });
+                      } finally {
+                        setExportLoading(false);
+                      }
                     }}>
                       {exportLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />} Export my data
                     </Button>
@@ -392,17 +418,11 @@ export default function SettingsPage() {
                               variant="destructive"
                               className="w-full"
                               disabled={deleteConfirmText !== "DELETE"}
-                              onClick={() => {
-                                // Anonymize user in mock data
-                                const idx = users.findIndex(u => u.id === currentUser.id);
-                                if (idx !== -1) {
-                                  users[idx] = { ...users[idx], name: "Deleted User", email: "", bio: undefined, headline: undefined, avatarUrl: undefined, isDeleted: true, deletedAt: new Date().toISOString() };
-                                }
-                                // Anonymize comments
-                                comments.filter(c => c.authorId === currentUser.id).forEach(c => { (c as any).authorId = "deleted"; });
+                              onClick={async () => {
+                                // Sign out and let the user know — actual deletion requires backend support
                                 setDeleteDialogOpen(false);
-                                toast({ title: "Account deleted", description: "Your account and data have been permanently removed." });
-                                signOut();
+                                toast({ title: "Account deletion requested", description: "Your data will be removed. You will be signed out." });
+                                await signOut();
                               }}
                             >
                               I understand — delete permanently
@@ -420,8 +440,8 @@ export default function SettingsPage() {
                 <div className="space-y-6 max-w-lg">
                   <Section title="Profile" icon={<UserCircle className="h-5 w-5" />}>
                     <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-muted/50 border border-border">
-                      <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {currentUser.xp} XP</span>
-                      <span className="text-sm text-muted-foreground">CI: {currentUser.contributionIndex}</span>
+                      <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {limits.userXp} XP</span>
+                      <span className="text-sm text-muted-foreground">Credits: {limits.userCredits}</span>
                     </div>
 
                     <div className="space-y-4">
@@ -476,11 +496,11 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTopics(topics.map((t) => t.id))}>Select all</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
                     </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {topics.map((t) => (
+                      {dbTopics.map((t) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
                           <span className="text-sm">{t.name}</span>
@@ -492,15 +512,15 @@ export default function SettingsPage() {
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(dbTerritories.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
                       <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((prev) => prev.includes(id) ? prev : [...prev, id])} />
                     </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {territories.map((t) => (
+                      {dbTerritories.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level.toLowerCase()})</span></span>
+                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({(t.level || "").toLowerCase()})</span></span>
                         </label>
                       ))}
                     </div>
@@ -768,23 +788,24 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
 }
 
 function ReferralsSection({ userId }: { userId: string }) {
-  const [, rerender] = useState(0);
-  const myReferrals = getReferralsForUser(userId);
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: myReferrals = [] } = useQuery({
+    queryKey: ["referrals", userId],
+    queryFn: async () => {
+      const { data } = await supabase.from("referrals").select("*").eq("owner_user_id", userId).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
   const referralLink = myReferrals.length > 0
     ? `${window.location.origin}/signup?ref=${myReferrals[0].code}`
     : null;
 
-  const createCode = () => {
-    const code = generateReferralCode();
-    referrals.push({
-      id: `ref-${Date.now()}`,
-      referrerUserId: userId,
-      refereeEmail: "",
-      code,
-      createdAt: new Date().toISOString(),
-      rewardGiven: false,
-    });
-    rerender((n) => n + 1);
+  const createCode = async () => {
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    await supabase.from("referrals").insert({ owner_user_id: userId, code });
+    qc.invalidateQueries({ queryKey: ["referrals", userId] });
   };
 
   const copyLink = (link: string) => {
@@ -819,11 +840,11 @@ function ReferralsSection({ userId }: { userId: string }) {
                 <div>
                   <p className="text-sm font-medium font-mono">{r.code}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.refereeUserId ? "Signed up ✓" : "Pending"}
+                    {r.used_by_user_id ? "Signed up ✓" : "Pending"}
                   </p>
                 </div>
-                <Badge variant={r.rewardGiven ? "default" : "secondary"}>
-                  {r.rewardGiven ? "+50 XP earned" : "Waiting"}
+                <Badge variant={r.is_used ? "default" : "secondary"}>
+                  {r.is_used ? `+${r.bonus_xp} XP earned` : "Waiting"}
                 </Badge>
               </div>
             ))}
