@@ -209,8 +209,13 @@ export const achievements: Achievement[] = [
 
 // ─── Notifications ───────────────────────────────────────────
 export const notifications: Notification[] = [
-  { id: "n1", userId: "u1", type: NotificationType.COMMENT, data: { commentId: "c1", message: "Tomás commented on GreenTech Collective" }, isRead: false },
-  { id: "n2", userId: "u3", type: NotificationType.QUEST_UPDATE, data: { questUpdateId: "qu3", message: "Milestone reached on Peer Tutoring Platform" }, isRead: true },
+  { id: "n1", userId: "u1", type: NotificationType.COMMENT, title: "New comment", body: "Tomás commented on GreenTech Collective", deepLinkUrl: "/guilds/g1", isRead: false, createdAt: "2025-02-08T10:00:00Z", data: { commentId: "c1", message: "Tomás commented on GreenTech Collective" } },
+  { id: "n2", userId: "u3", type: NotificationType.QUEST_UPDATE, title: "Quest milestone", body: "Milestone reached on Peer Tutoring Platform", deepLinkUrl: "/quests/q2", isRead: true, createdAt: "2025-02-07T09:00:00Z", data: { questUpdateId: "qu3", message: "Milestone reached on Peer Tutoring Platform" } },
+  { id: "n3", userId: "u1", type: NotificationType.GUILD_MEMBER_ADDED, title: "New guild member", body: "Yuki Tanaka joined GreenTech Collective", deepLinkUrl: "/guilds/g1", isRead: false, createdAt: "2025-02-09T08:00:00Z" },
+  { id: "n4", userId: "u1", type: NotificationType.XP_GAINED, title: "+300 XP earned", body: "You earned XP for completing Community Garden Mapper", deepLinkUrl: "/me", isRead: true, createdAt: "2025-02-06T12:00:00Z" },
+  { id: "n5", userId: "u1", type: NotificationType.ACHIEVEMENT_UNLOCKED, title: "Achievement unlocked!", body: "Garden Guardian — Successfully mapped 120 community gardens.", deepLinkUrl: "/me/achievements", isRead: false, createdAt: "2025-02-06T12:01:00Z" },
+  { id: "n6", userId: "u1", type: NotificationType.FOLLOWER_NEW, title: "New follower", body: "Léa Martin started following you", deepLinkUrl: "/users/u3", isRead: false, createdAt: "2025-02-05T14:00:00Z" },
+  { id: "n7", userId: "u1", type: NotificationType.BOOKING_REQUESTED, title: "New booking request", body: "Tomás Rivera requested a session for Strategy Workshop", deepLinkUrl: "/bookings/b1", isRead: false, createdAt: "2025-02-04T16:00:00Z" },
 ];
 
 // ─── Follows ─────────────────────────────────────────────────

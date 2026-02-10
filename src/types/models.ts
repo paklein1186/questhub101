@@ -10,6 +10,7 @@ import {
   TerritoryLevel,
   CommentTargetType,
   NotificationType,
+  NotificationEntityType,
   FollowTargetType,
   PodType,
   PodMemberRole,
