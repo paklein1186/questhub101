@@ -28,6 +28,7 @@ import {
   useCompanyById, useQuestsForCompany, useBookingsForCompany,
   usePublicProfile, useCompanyMembersWithProfiles, useServicesForCompany,
 } from "@/hooks/useEntityQueries";
+import { FeedSection } from "@/components/feed/FeedSection";
 import { useGuilds } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -351,7 +352,8 @@ export default function CompanyDetail() {
         </TabsContent>
 
         {/* Wall */}
-        <TabsContent value="wall" className="mt-6">
+        <TabsContent value="wall" className="mt-6 space-y-6">
+          <FeedSection contextType="COMPANY" contextId={company.id} canPost={isMember} />
           <CommentThread targetType={CommentTargetType.COMPANY} targetId={company.id} />
         </TabsContent>
 

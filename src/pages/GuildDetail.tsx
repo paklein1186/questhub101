@@ -43,6 +43,7 @@ import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
+import { FeedSection } from "@/components/feed/FeedSection";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -422,7 +423,8 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="wall" className="mt-6">
+        <TabsContent value="wall" className="mt-6 space-y-6">
+          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} />
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
 

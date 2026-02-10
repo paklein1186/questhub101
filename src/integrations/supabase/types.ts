@@ -884,6 +884,42 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_posts: {
+        Row: {
+          author_user_id: string
+          content: string | null
+          context_id: string | null
+          context_type: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          content?: string | null
+          context_id?: string | null
+          context_type?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          content?: string | null
+          context_id?: string | null
+          context_type?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -1550,6 +1586,59 @@ export type Database = {
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_attachments: {
+        Row: {
+          created_at: string
+          embed_meta: Json | null
+          embed_provider: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          post_id: string
+          sort_order: number
+          thumbnail_url: string | null
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          embed_meta?: Json | null
+          embed_provider?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          embed_meta?: Json | null
+          embed_provider?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_attachments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
             referencedColumns: ["id"]
           },
         ]

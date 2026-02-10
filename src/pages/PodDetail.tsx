@@ -27,6 +27,7 @@ import { UnitChat } from "@/components/UnitChat";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { Sparkles } from "lucide-react";
+import { FeedSection } from "@/components/feed/FeedSection";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -191,7 +192,8 @@ export default function PodDetail() {
           {isHost && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.POD} targetId={pod.id} /></div>}
         </TabsContent>
 
-        <TabsContent value="discussion" className="mt-6">
+        <TabsContent value="discussion" className="mt-6 space-y-6">
+          <FeedSection contextType="POD" contextId={pod.id} canPost={isMember} />
           <CommentThread targetType={CommentTargetType.POD} targetId={pod.id} />
         </TabsContent>
 
