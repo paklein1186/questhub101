@@ -21,8 +21,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { isAdmin } from "@/lib/admin";
+import { useUserRoles, setUserRole } from "@/lib/admin";
 import { useXP } from "@/hooks/useXP";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   users as allUsers, guilds as allGuilds, quests as allQuests,
