@@ -55,6 +55,11 @@ export interface User extends SoftDeletable {
   showServicesPublicly?: boolean;
   allowFollows?: boolean;
   allowProfileComments?: boolean;
+  // Social links
+  websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   // Relations
   guildMembers?: GuildMember[];
   questParticipants?: QuestParticipant[];
