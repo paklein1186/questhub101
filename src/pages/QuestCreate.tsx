@@ -61,6 +61,9 @@ export default function QuestCreate() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [monetizationType, setMonetizationType] = useState("FREE");
+  const [isMonetized, setIsMonetized] = useState(false);
+  const [creditReward, setCreditReward] = useState("0");
+  const [priceFiat, setPriceFiat] = useState("0");
   const [submitting, setSubmitting] = useState(false);
   const [showXpDialog, setShowXpDialog] = useState(false);
 
@@ -74,6 +77,10 @@ export default function QuestCreate() {
       const allowed = await checkRateLimit("quest_creation");
       if (!allowed) { setSubmitting(false); return; }
 
+      const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
+      const credits = isMonetized ? (Number(creditReward) || 0) : 0;
+      const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
+
       const { data: quest, error } = await supabase
         .from("quests")
         .insert({
@@ -81,13 +88,17 @@ export default function QuestCreate() {
           description: description.trim() || null,
           cover_image_url: coverImageUrl || null,
           status: "OPEN" as any,
-          monetization_type: monetizationType as any,
+          monetization_type: monType as any,
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
           created_by_user_id: currentUser.id,
           guild_id: guildId || null,
           company_id: companyId || null,
           is_draft: isDraft,
+          credit_reward: credits,
+          price_fiat: fiatCents,
+          price_currency: "EUR",
+          payout_user_id: currentUser.id,
         })
         .select()
         .single();
@@ -201,17 +212,27 @@ export default function QuestCreate() {
               <Label htmlFor="reward">Reward XP</Label>
               <Input id="reward" type="number" value={rewardXp} onChange={(e) => setRewardXp(e.target.value)} min={0} className="mt-1" />
             </div>
-            <div>
-              <Label>Monetization</Label>
-              <Select value={monetizationType} onValueChange={setMonetizationType}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FREE">Free</SelectItem>
-                  <SelectItem value="PAID">Paid</SelectItem>
-                  <SelectItem value="MIXED">Mixed</SelectItem>
-                </SelectContent>
-              </Select>
+          </div>
+
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <Switch id="monetized" checked={isMonetized} onCheckedChange={setIsMonetized} />
+              <Label htmlFor="monetized" className="font-semibold">Is this quest monetized?</Label>
             </div>
+            {isMonetized && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="creditReward">Credit Reward (to participants)</Label>
+                  <Input id="creditReward" type="number" value={creditReward} onChange={(e) => setCreditReward(e.target.value)} min={0} className="mt-1" placeholder="0" />
+                  <p className="text-xs text-muted-foreground mt-1">Credits granted on quest completion</p>
+                </div>
+                <div>
+                  <Label htmlFor="priceFiat">Fiat Price (€ cents)</Label>
+                  <Input id="priceFiat" type="number" value={priceFiat} onChange={(e) => setPriceFiat(e.target.value)} min={0} className="mt-1" placeholder="0" />
+                  <p className="text-xs text-muted-foreground mt-1">Stripe payment required to join (in cents)</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {(topics ?? []).length > 0 && (

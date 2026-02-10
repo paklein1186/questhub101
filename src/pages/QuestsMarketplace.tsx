@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2 } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -126,10 +126,18 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{(quest as any).guilds?.name}</span>
-                  <div className="flex gap-1.5">
+                  <div className="flex gap-1.5 flex-wrap">
                     {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
                     <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-                    <Badge variant="secondary" className="capitalize">{quest.monetization_type.toLowerCase()}</Badge>
+                    {(quest as any).price_fiat > 0 && (
+                      <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
+                    )}
+                    {(quest as any).credit_reward > 0 && (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-0"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
+                    )}
+                    {(quest as any).price_fiat === 0 && (quest as any).credit_reward === 0 && (
+                      <Badge variant="secondary">Free</Badge>
+                    )}
                   </div>
                 </div>
               </div>

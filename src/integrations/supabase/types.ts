@@ -1434,6 +1434,7 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           created_by_user_id: string
+          credit_reward: number
           deleted_at: string | null
           description: string | null
           guild_id: string | null
@@ -1442,6 +1443,9 @@ export type Database = {
           is_draft: boolean
           is_featured: boolean
           monetization_type: Database["public"]["Enums"]["monetization_type"]
+          payout_user_id: string | null
+          price_currency: string
+          price_fiat: number
           reward_xp: number
           status: Database["public"]["Enums"]["quest_status"]
           title: string
@@ -1452,6 +1456,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id: string
+          credit_reward?: number
           deleted_at?: string | null
           description?: string | null
           guild_id?: string | null
@@ -1460,6 +1465,9 @@ export type Database = {
           is_draft?: boolean
           is_featured?: boolean
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          payout_user_id?: string | null
+          price_currency?: string
+          price_fiat?: number
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
           title: string
@@ -1470,6 +1478,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id?: string
+          credit_reward?: number
           deleted_at?: string | null
           description?: string | null
           guild_id?: string | null
@@ -1478,6 +1487,9 @@ export type Database = {
           is_draft?: boolean
           is_featured?: boolean
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          payout_user_id?: string | null
+          price_currency?: string
+          price_fiat?: number
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
           title?: string

@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,6 +68,8 @@ export default function QuestDetail() {
   const [editDesc, setEditDesc] = useState("");
   const [editStatus, setEditStatus] = useState<QuestStatus>(QuestStatus.OPEN);
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
+  const [editCreditReward, setEditCreditReward] = useState("0");
+  const [editPriceFiat, setEditPriceFiat] = useState("0");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -81,7 +83,24 @@ export default function QuestDetail() {
   const isParticipant = (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
+  const isPaidQuest = quest && quest.price_fiat > 0;
+
   const joinQuest = async () => {
+    if (isPaidQuest) {
+      // Redirect to Stripe checkout for paid quests
+      try {
+        const { data, error } = await supabase.functions.invoke("create-checkout", {
+          body: { quest_id: quest.id, price_fiat: quest.price_fiat, currency: quest.price_currency || "EUR" },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.open(data.url, "_blank");
+        }
+      } catch (err: any) {
+        toast({ title: "Payment error", description: err.message, variant: "destructive" });
+      }
+      return;
+    }
     await supabase.from("quest_participants").insert({ quest_id: quest.id, user_id: currentUser.id, role: "COLLABORATOR", status: "ACCEPTED" });
     qc.invalidateQueries({ queryKey: ["quest-participants", id] });
     toast({ title: "Joined quest!" });
@@ -105,10 +124,21 @@ export default function QuestDetail() {
     toast({ title: "Pod created!" });
   };
 
-  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditOpen(true); };
+  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditOpen(true); };
 
   const saveEditQuest = async () => {
-    await supabase.from("quests").update({ title: editTitle.trim() || quest.title, description: editDesc.trim() || null, status: editStatus as any, cover_image_url: editCoverImageUrl || null }).eq("id", quest.id);
+    const fiat = Number(editPriceFiat) || 0;
+    const credits = Number(editCreditReward) || 0;
+    const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
+    await supabase.from("quests").update({
+      title: editTitle.trim() || quest.title,
+      description: editDesc.trim() || null,
+      status: editStatus as any,
+      cover_image_url: editCoverImageUrl || null,
+      credit_reward: credits,
+      price_fiat: fiat,
+      monetization_type: monType as any,
+    }).eq("id", quest.id);
     qc.invalidateQueries({ queryKey: ["quest", id] });
     setEditOpen(false); toast({ title: "Quest updated" });
   };
@@ -137,7 +167,15 @@ export default function QuestDetail() {
           {creator?.xp != null && <XpLevelBadge level={computeLevelFromXp(creator.xp)} compact />}
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-          <Badge variant="secondary" className="capitalize">{quest.monetization_type.toLowerCase()}</Badge>
+          {quest.price_fiat > 0 && (
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid Quest — €{(quest.price_fiat / 100).toFixed(2)}</Badge>
+          )}
+          {quest.credit_reward > 0 && (
+            <Badge className="bg-emerald-500/10 text-emerald-600 border-0"><Coins className="h-3 w-3 mr-1" /> Reward: {quest.credit_reward} Credits</Badge>
+          )}
+          {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
+            <Badge variant="secondary" className="capitalize">Free</Badge>
+          )}
           {quest.is_featured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
         </div>
         <p className="text-muted-foreground max-w-2xl">{quest.description}</p>
@@ -148,7 +186,11 @@ export default function QuestDetail() {
 
         <div className="flex items-center gap-3 mt-4 flex-wrap">
           <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
-          {!isParticipant && <Button size="sm" variant="outline" onClick={joinQuest}><UserPlus className="h-4 w-4 mr-1" /> Join Quest</Button>}
+          {!isParticipant && (
+            <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={joinQuest}>
+              {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
+            </Button>
+          )}
           <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
           {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
           {isCollaborator && (
@@ -194,6 +236,10 @@ export default function QuestDetail() {
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label><Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={QuestStatus.OPEN}>Open</SelectItem><SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem><SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem></SelectContent></Select></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
+                <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+              </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
             </div>
           </DialogContent>
