@@ -439,6 +439,21 @@ export default function SettingsPage() {
 
                   <Separator />
 
+                  <Section title="Social & Web Links" icon={<ExternalLink className="h-5 w-5" />}>
+                    <SocialLinksEdit
+                      data={{ websiteUrl, twitterUrl, linkedinUrl, instagramUrl }}
+                      onChange={(key, value) => {
+                        if (key === "websiteUrl") setWebsiteUrl(value);
+                        else if (key === "twitterUrl") setTwitterUrl(value);
+                        else if (key === "linkedinUrl") setLinkedinUrl(value);
+                        else if (key === "instagramUrl") setInstagramUrl(value);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save profile" above.</p>
+                  </Section>
+
+                  <Separator />
+
                   <Section title="Onboarding Wizard" icon={<Compass className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-3">Reopen the onboarding wizard to review or update your profile, interests, and territories.</p>
                     <Button variant="outline" asChild>
