@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ProposalEvaluator } from "./ProposalEvaluator";
 
 interface QuestProposalsProps {
   questId: string;
@@ -349,6 +350,14 @@ export function QuestProposals({
       </div>
 
       {sorted.length === 0 && <p className="text-muted-foreground text-sm">No proposals yet.</p>}
+
+      {/* AI Evaluator – only visible to quest owner */}
+      {isOwner && pendingProposals.length > 0 && (
+        <ProposalEvaluator
+          questId={questId}
+          proposalTitles={Object.fromEntries(proposals.map((p: any) => [p.id, p.title]))}
+        />
+      )}
 
       <div className="space-y-3">
         {sorted.map((proposal: any) => {
