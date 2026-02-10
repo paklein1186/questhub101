@@ -195,12 +195,18 @@ export default function UserProfile() {
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
               {showXp && (
-                <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                  <Zap className="h-4 w-4" /> {user.xp} XP
-                </span>
+                <>
+                  <XpLevelBadge level={dbProfileExtra?.xpLevel ?? computeLevelFromXp(user.xp)} xp={user.xp} />
+                  <span className="text-xs text-muted-foreground">12m: {dbProfileExtra?.xpRecent12m ?? 0} XP</span>
+                </>
               )}
               {showCi && (
                 <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              )}
+              {canSeePrivate && (
+                <span className="flex items-center gap-1 text-sm font-medium">
+                  <Coins className="h-3.5 w-3.5 text-primary" /> {dbProfileExtra?.creditsBalance ?? 0} Credits
+                </span>
               )}
             </div>
           </div>
