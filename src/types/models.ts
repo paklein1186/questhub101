@@ -21,6 +21,13 @@ import {
   PaymentStatus,
 } from "./enums";
 
+// ─── Soft Delete Mixin ──────────────────────────────────────
+export interface SoftDeletable {
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedByUserId?: string;
+}
+
 // ─── Core Entities ───────────────────────────────────────────
 
 export interface User {
