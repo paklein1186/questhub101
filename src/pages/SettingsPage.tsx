@@ -410,10 +410,19 @@ export default function SettingsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
+                    <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
                         {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
                       </Button>
                     </div>
+                  </Section>
+
+                  <Separator />
+
+                  <Section title="Onboarding Wizard" icon={<Compass className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">Reopen the onboarding wizard to review or update your profile, interests, and territories.</p>
+                    <Button variant="outline" asChild>
+                      <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Open wizard</Link>
+                    </Button>
                   </Section>
                 </div>
               )}
