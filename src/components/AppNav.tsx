@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, Briefcase, Users, UserCircle, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User } from "lucide-react";
+import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,6 +43,7 @@ export function AppNav() {
         <nav className="flex items-center gap-1">
           {isLoggedIn ? (
             <>
+              <GlobalSearchDialog />
               {authedLinks.map((link) => {
                 const active = link.to === "/"
                   ? pathname === "/"

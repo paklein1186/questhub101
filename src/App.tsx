@@ -35,6 +35,7 @@ import BuyXpPage from "./pages/BuyXpPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import SearchPage from "./pages/SearchPage";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+                <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
