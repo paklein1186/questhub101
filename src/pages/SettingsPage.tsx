@@ -71,6 +71,16 @@ export default function SettingsPage() {
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
+  const qc = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // DB-sourced topics & territories
+  const { data: dbTopics = [] } = useTopics();
+  const { data: dbTerritories = [] } = useTerritories();
+  const currentUser = useCurrentUser();
+  const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
+  const limits = usePlanLimits();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = searchParams.get("tab") || "profile";
