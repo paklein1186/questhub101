@@ -12,7 +12,8 @@ import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus, PaymentStatus, CommentTargetType } from "@/types/enums";
+import { BookingStatus, PaymentStatus, CommentTargetType, ReportTargetType } from "@/types/enums";
+import { ReportButton } from "@/components/ReportButton";
 import {
   getServiceById, getUserById, getGuildById,
   getTopicsForService, getTerritoriesForService,

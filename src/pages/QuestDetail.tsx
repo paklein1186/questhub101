@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus, ReportTargetType } from "@/types/enums";
+import { ReportButton } from "@/components/ReportButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
