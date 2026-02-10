@@ -127,7 +127,7 @@ export interface QuestUpdate extends SoftDeletable {
 
 // ─── Taxonomy ────────────────────────────────────────────────
 
-export interface Topic {
+export interface Topic extends SoftDeletable {
   id: string;
   name: string;
   slug: string;
