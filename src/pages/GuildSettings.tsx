@@ -39,7 +39,9 @@ import { GuildApplicationsTab } from "@/components/GuildApplicationsTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
-  { key: "members", label: "Membership & Roles", icon: Users },
+  { key: "membership", label: "Membership Policy", icon: ClipboardList },
+  { key: "applications", label: "Applications", icon: Users },
+  { key: "members", label: "Members & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "documents", label: "Documents", icon: Briefcase },
