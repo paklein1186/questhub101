@@ -173,6 +173,21 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const [defaultQuestTopics, setDefaultQuestTopics] = useState<string[]>([]);
   const [defaultQuestTerritories, setDefaultQuestTerritories] = useState<string[]>([]);
 
+  // ── Features config state ──
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const parsedFeatures = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
+  const [featuresConfig, setFeaturesConfig] = useState(parsedFeatures);
+
+  const toggleFeature = (key: string) => setFeaturesConfig((prev: any) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSaveFeatures = async () => {
+    const { error } = await supabase.from("guilds").update({ features_config: featuresConfig as any }).eq("id", guildId);
+    if (error) { toast({ title: "Failed to save features", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+    toast({ title: "Features saved!" });
+  };
+
   // ── Handlers ──
   const toggleTopic = (topicId: string) =>
     setSelectedTopics((prev) => prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]);
