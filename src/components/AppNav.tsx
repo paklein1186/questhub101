@@ -43,6 +43,7 @@ export function AppNav() {
         <nav className="flex items-center gap-1">
           {isLoggedIn ? (
             <>
+              <GlobalSearchDialog />
               {authedLinks.map((link) => {
                 const active = link.to === "/"
                   ? pathname === "/"
