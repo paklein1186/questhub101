@@ -85,6 +85,7 @@ export function globalSearch(
 
   // Quests
   for (const q of filterActive(quests)) {
+    if (q.isDraft) continue;
     if (!matchesQuery(query, q.title, q.description)) continue;
     if (filters?.topicId && !hasTopicId("QUEST", q.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("QUEST", q.id, filters.territoryId)) continue;
