@@ -310,6 +310,7 @@ export default function GuildDetail() {
                       <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
                       <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
                       <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
+                      <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
                       <Button onClick={attemptCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
                     </div>
                   </DialogContent>
