@@ -30,6 +30,10 @@ export interface SoftDeletable {
   deletedByUserId?: string;
 }
 
+export interface Draftable {
+  isDraft?: boolean;
+}
+
 // ─── Core Entities ───────────────────────────────────────────
 
 export interface User extends SoftDeletable {
