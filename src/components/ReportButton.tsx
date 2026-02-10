@@ -5,13 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { reports } from "@/data/mock";
-import { ReportTargetType, ReportStatus } from "@/types/enums";
+import { supabase } from "@/integrations/supabase/client";
+import { ReportTargetType } from "@/types/enums";
 
 interface ReportButtonProps {
   targetType: ReportTargetType;
   targetId: string;
-  /** "sm" renders a small icon-only button, "inline" renders a ghost text button */
   variant?: "sm" | "inline";
 }
 
@@ -21,20 +20,19 @@ export function ReportButton({ targetType, targetId, variant = "sm" }: ReportBut
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     if (!reason.trim()) {
       toast({ title: "Please provide a reason", variant: "destructive" });
       return;
     }
-    reports.push({
-      id: `rpt-${Date.now()}`,
-      reporterId: currentUser.id,
-      targetEntityType: targetType,
-      targetEntityId: targetId,
+    const { error } = await supabase.from("reports").insert({
+      reporter_id: currentUser.id,
+      target_type: targetType,
+      target_id: targetId,
       reason: reason.trim(),
-      status: ReportStatus.OPEN,
-      createdAt: new Date().toISOString(),
+      status: "OPEN",
     });
+    if (error) { toast({ title: "Failed to submit report", variant: "destructive" }); return; }
     setReason("");
     setOpen(false);
     toast({ title: "Report submitted", description: "An admin will review it shortly." });
@@ -61,13 +59,7 @@ export function ReportButton({ targetType, targetId, variant = "sm" }: ReportBut
           <p className="text-sm text-muted-foreground">
             Please describe why you're reporting this content. An admin will review your report.
           </p>
-          <Textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Describe the issue…"
-            className="min-h-[100px] resize-none"
-            maxLength={500}
-          />
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Describe the issue…" className="min-h-[100px] resize-none" maxLength={500} />
           <Button onClick={submit} disabled={!reason.trim()} className="w-full">
             <Flag className="h-4 w-4 mr-1" /> Submit Report
           </Button>
