@@ -525,7 +525,7 @@ export default function Onboarding() {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 5 && (
+          {step < 6 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
               <Button
                 variant="ghost"
@@ -536,12 +536,12 @@ export default function Onboarding() {
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
-              {step < 4 && (
+              {step < 5 && (
                 <Button onClick={goNext} disabled={!canNext()} size="sm">
                   Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
-              {step === 4 && !loading && result && (
+              {step === 5 && !loading && result && (
                 <Button onClick={goNext} size="sm">
                   Continue <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
