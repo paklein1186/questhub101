@@ -71,12 +71,33 @@ export default function SettingsPage() {
   const activeTab = searchParams.get("tab") || "account";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
-  // ── Profile state ──
-  const [name, setName] = useState(currentUser.name);
-  const [headline, setHeadline] = useState(currentUser.headline ?? "");
-  const [bio, setBio] = useState(currentUser.bio ?? "");
-  const [avatarUrl, setAvatarUrl] = useState(currentUser.avatarUrl ?? "");
+  // ── Profile state (sourced from Supabase auth profile, NOT mock) ──
+  const [name, setName] = useState(authUser?.name ?? currentUser.name);
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState(authUser?.avatarUrl ?? "");
   const [role, setRole] = useState<UserRole>(currentUser.role);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Load full profile from Supabase on mount so we get headline/bio
+  useEffect(() => {
+    if (!authUser?.id) return;
+    supabase
+      .from("profiles")
+      .select("name, headline, bio, avatar_url, role")
+      .eq("user_id", authUser.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setName(data.name || "");
+          setHeadline(data.headline || "");
+          setBio(data.bio || "");
+          setAvatarUrl(data.avatar_url || "");
+          setRole((data.role as UserRole) || UserRole.GAMECHANGER);
+          setProfileLoaded(true);
+        }
+      });
+  }, [authUser?.id]);
 
   // ── Account state ──
   const [currentPw, setCurrentPw] = useState("");
