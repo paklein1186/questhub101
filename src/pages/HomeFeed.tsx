@@ -43,6 +43,10 @@ function useHomeShellData(userId: string) {
         xp: profileRes.data?.xp ?? 0,
         xpLevel: profileRes.data?.xp_level ?? 1,
         contributionIndex: profileRes.data?.contribution_index ?? 0,
+        recentQuests: (questsRes.data ?? []).map((q: any) => q.title),
+        recentServices: (servicesRes.data ?? []).map((s: any) => s.title),
+        recentPods: (podsRes.data ?? []).map((p: any) => p.pods?.name).filter(Boolean),
+        recentGuilds: (guildsRes.data ?? []).map((g: any) => g.guilds?.name).filter(Boolean),
       };
     },
     enabled: !!userId,
