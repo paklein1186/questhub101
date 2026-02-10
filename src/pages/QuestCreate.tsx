@@ -61,6 +61,9 @@ export default function QuestCreate() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [monetizationType, setMonetizationType] = useState("FREE");
+  const [isMonetized, setIsMonetized] = useState(false);
+  const [creditReward, setCreditReward] = useState("0");
+  const [priceFiat, setPriceFiat] = useState("0");
   const [submitting, setSubmitting] = useState(false);
   const [showXpDialog, setShowXpDialog] = useState(false);
 
