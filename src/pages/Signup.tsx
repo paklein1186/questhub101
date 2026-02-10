@@ -60,7 +60,7 @@ export default function Signup() {
       >
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold">
-            <Zap className="h-6 w-6 text-primary" /> QuestHub
+            <Zap className="h-6 w-6 text-primary" /> ChangeTheGame
           </Link>
           <p className="text-muted-foreground mt-2">Create your account and start your journey.</p>
           {referral && (

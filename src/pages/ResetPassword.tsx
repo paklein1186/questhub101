@@ -43,7 +43,7 @@ export default function ResetPassword() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold">
-            <Zap className="h-6 w-6 text-primary" /> QuestHub
+            <Zap className="h-6 w-6 text-primary" /> ChangeTheGame
           </Link>
           <p className="text-muted-foreground mt-2">Set your new password</p>
         </div>

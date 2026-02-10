@@ -400,7 +400,7 @@ export default function SettingsPage() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement("a");
                         a.href = url;
-                        a.download = `questhub-data-${currentUser.id}.json`;
+                        a.download = `changethegame-data-${currentUser.id}.json`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);

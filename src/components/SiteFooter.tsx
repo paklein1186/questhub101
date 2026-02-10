@@ -128,10 +128,10 @@ export function SiteFooter() {
           {/* Brand & Mission */}
           <div className="lg:max-w-xs shrink-0">
             <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
-              <Zap className="h-5 w-5 text-primary" /> QuestHub
+              <Zap className="h-5 w-5 text-primary" /> ChangeTheGame
             </Link>
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-              A human-powered, AI-augmented ecosystem for regeneration, creativity and collaboration.
+              Human-powered. AI-augmented. Game-changing.
             </p>
           </div>
 
@@ -165,7 +165,7 @@ export function SiteFooter() {
 
           {/* Copyright */}
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} QuestHub. All rights reserved.
+            © {new Date().getFullYear()} ChangeTheGame – All rights reserved.
           </p>
         </div>
       </div>

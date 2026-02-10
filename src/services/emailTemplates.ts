@@ -16,8 +16,8 @@ export interface EmailMessage {
   html: string;
 }
 
-const APP_NAME = "The Network";
-const BASE_URL = window?.location?.origin ?? "https://app.example.com";
+const APP_NAME = "ChangeTheGame";
+const BASE_URL = window?.location?.origin ?? "https://www.changethegame.xyz";
 
 function wrapTemplate(body: string): string {
   return `

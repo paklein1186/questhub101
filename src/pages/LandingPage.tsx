@@ -100,7 +100,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-            <Zap className="h-5 w-5 text-primary" /> QuestHub
+            <Zap className="h-5 w-5 text-primary" /> ChangeTheGame
           </Link>
           <nav className="flex items-center gap-2">
             <Button size="sm" variant="ghost" asChild>
@@ -131,9 +131,9 @@ export default function LandingPage() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
           >
-            A learning network for{" "}
-            <span className="text-primary">gamechangers</span> &{" "}
-            <span className="text-accent">ecosystems</span>
+            Human-powered.{" "}
+            <span className="text-primary">AI-augmented.</span>{" "}
+            <span className="text-accent">Game-changing.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -141,7 +141,7 @@ export default function LandingPage() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto"
           >
-            Discover quests, join guilds, and share your expertise with territories that care about regeneration and impact.
+            Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 12 }}

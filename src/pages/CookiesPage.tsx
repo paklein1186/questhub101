@@ -29,7 +29,7 @@ export default function CookiesPage() {
         <p className="text-muted-foreground leading-relaxed">You can manage your cookie preferences through the cookie consent banner or your browser settings. Note that disabling certain cookies may affect Platform functionality.</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">6. Contact</h2>
-        <p className="text-muted-foreground leading-relaxed">For questions about our cookie practices, contact us at privacy@questhub.example.com.</p>
+        <p className="text-muted-foreground leading-relaxed">For questions about our cookie practices, contact us at privacy@changethegame.xyz.</p>
       </article>
     </PageShell>
   );
