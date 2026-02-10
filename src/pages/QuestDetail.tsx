@@ -236,17 +236,41 @@ export default function QuestDetail() {
         </div>
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Edit Quest</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
               <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
               <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
-              <div><label className="text-sm font-medium mb-1 block">Status</label><Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={QuestStatus.OPEN}>Open</SelectItem><SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem><SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem></SelectContent></Select></div>
+              <div><label className="text-sm font-medium mb-1 block">Status</label>
+                <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={QuestStatus.DRAFT}>Draft</SelectItem>
+                    <SelectItem value={QuestStatus.OPEN}>Open</SelectItem>
+                    <SelectItem value={QuestStatus.OPEN_FOR_PROPOSALS}>Open for Proposals</SelectItem>
+                    <SelectItem value={QuestStatus.ACTIVE}>Active</SelectItem>
+                    <SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem>
+                    <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
+                    <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+              </div>
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <h4 className="text-sm font-semibold">Budget & Fundraising</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-sm font-medium mb-1 block">Credit Budget</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">Credits committed to pot</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target Credits amount</p></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
+                  <label htmlFor="editFundraising" className="text-sm font-medium">Allow community fundraising</label>
+                </div>
               </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
             </div>
