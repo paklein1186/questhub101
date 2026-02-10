@@ -241,9 +241,10 @@ export default function GuildDetail() {
             </Button>
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
-                <GuildJoinButton
-                  guildId={guild.id}
-                  joinPolicy={(guild as any).joinPolicy || GuildJoinPolicy.OPEN}
+                <EntityJoinButton
+                  entityType="guild"
+                  entityId={guild.id}
+                  joinPolicy={(guild as any).joinPolicy || "OPEN"}
                   applicationQuestions={(guild as any).applicationQuestions || []}
                   currentUserId={currentUser.id}
                   onJoined={rerender}
