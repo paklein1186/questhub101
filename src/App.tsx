@@ -35,6 +35,10 @@ import TopicHouse from "./pages/TopicHouse";
 import BuyXpPage from "./pages/BuyXpPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
+import MyBookings from "./pages/MyBookings";
+import MyRequests from "./pages/MyRequests";
+import MyGuilds from "./pages/MyGuilds";
+import MyAvailability from "./pages/MyAvailability";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
@@ -87,6 +91,10 @@ const App = () => (
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
                 <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
+                <Route path="/me/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
+                <Route path="/me/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
+                <Route path="/me/guilds" element={<RequireAuth><MyGuilds /></RequireAuth>} />
+                <Route path="/me/availability" element={<RequireAuth><MyAvailability /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
