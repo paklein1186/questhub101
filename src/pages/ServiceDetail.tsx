@@ -22,6 +22,7 @@ import {
 } from "@/data/mock";
 import { generateSlots, generateCallUrl, type TimeSlot } from "@/lib/slots";
 import type { Booking } from "@/types";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();

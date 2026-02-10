@@ -49,6 +49,7 @@ export default function CompanyDetail() {
   const [editBannerUrl, setEditBannerUrl] = useState<string | undefined>();
 
   if (!company) return <PageShell><p>Company not found.</p></PageShell>;
+  if (company.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This company has been removed.</p></PageShell>;
 
   const contact = company.contactUserId ? getUserById(company.contactUserId) : null;
   const cTopics = getTopicsForCompany(company.id);
