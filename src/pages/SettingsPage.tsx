@@ -335,31 +335,37 @@ export default function SettingsPage() {
 
                   <Section title="Export My Data" icon={<Download className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-3">Download a copy of all your data in JSON format (profile, quests, comments, services, bookings, XP transactions).</p>
-                    <Button variant="outline" size="sm" disabled={exportLoading} onClick={() => {
+                    <Button variant="outline" size="sm" disabled={exportLoading} onClick={async () => {
                       setExportLoading(true);
-                      const myQuests = quests.filter(q => q.createdByUserId === currentUser.id);
-                      const myComments = comments.filter(c => c.authorId === currentUser.id);
-                      const myServices = services.filter(s => s.providerUserId === currentUser.id);
-                      const myBookings = bookings.filter(b => b.requesterId === currentUser.id || b.providerUserId === currentUser.id);
-                      const exportData = {
-                        user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, headline: currentUser.headline, bio: currentUser.bio, role: currentUser.role, xp: currentUser.xp, contributionIndex: currentUser.contributionIndex },
-                        quests: myQuests.map(q => ({ id: q.id, title: q.title, description: q.description, status: q.status, rewardXp: q.rewardXp })),
-                        comments: myComments.map(c => ({ id: c.id, content: c.content, createdAt: c.createdAt, targetType: c.targetType, targetId: c.targetId })),
-                        services: myServices.map(s => ({ id: s.id, title: s.title, description: s.description, priceAmount: s.priceAmount, priceCurrency: s.priceCurrency })),
-                        bookings: myBookings.map(b => ({ id: b.id, serviceId: b.serviceId, status: b.status, startDateTime: b.startDateTime, endDateTime: b.endDateTime })),
-                        xpTransactions: [],
-                      };
-                      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `questhub-data-${currentUser.id}.json`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      setExportLoading(false);
-                      toast({ title: "Data exported!", description: "Your data has been downloaded." });
+                      try {
+                        const userId = authUser?.id;
+                        if (!userId) return;
+                        const [qRes, cRes, sRes, bRes] = await Promise.all([
+                          supabase.from("quests").select("id, title, description, status, reward_xp").eq("created_by_user_id", userId),
+                          supabase.from("comments").select("id, content, created_at, target_type, target_id").eq("author_id", userId),
+                          supabase.from("services").select("id, title, description, price_amount, price_currency").eq("provider_user_id", userId).eq("is_deleted", false),
+                          supabase.from("bookings").select("id, service_id, status, start_date_time, end_date_time").or(`requester_id.eq.${userId},provider_user_id.eq.${userId}`),
+                        ]);
+                        const exportData = {
+                          user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role },
+                          quests: qRes.data ?? [],
+                          comments: cRes.data ?? [],
+                          services: sRes.data ?? [],
+                          bookings: bRes.data ?? [],
+                        };
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `questhub-data-${currentUser.id}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        toast({ title: "Data exported!", description: "Your data has been downloaded." });
+                      } finally {
+                        setExportLoading(false);
+                      }
                     }}>
                       {exportLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />} Export my data
                     </Button>
