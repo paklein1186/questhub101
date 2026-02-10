@@ -6,7 +6,7 @@ import {
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
-  Sparkles, Compass,
+  Sparkles, Compass, Swords, Users, GraduationCap, CalendarCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
