@@ -83,6 +83,7 @@ import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
 import MyStarredExcerpts from "./pages/MyStarredExcerpts";
+import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import SupportPage from "./pages/SupportPage";
@@ -222,6 +223,7 @@ const App = () => (
                 <Route path="/courses/:id/edit" element={<RequireAuth><CourseCreate /></RequireAuth>} />
                 <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
                 <Route path="/me/starred-excerpts" element={<RequireAuth><MyStarredExcerpts /></RequireAuth>} />
+                <Route path="/me/following" element={<RequireAuth><MyFollowing /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

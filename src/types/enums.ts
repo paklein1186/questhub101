@@ -150,6 +150,11 @@ export enum FollowTargetType {
   GUILD = "GUILD",
   QUEST = "QUEST",
   COMPANY = "COMPANY",
+  POD = "POD",
+  SERVICE = "SERVICE",
+  COURSE = "COURSE",
+  EVENT = "EVENT",
+  TERRITORY = "TERRITORY",
 }
 
 export enum PodType {
