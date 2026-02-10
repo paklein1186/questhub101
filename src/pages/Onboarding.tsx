@@ -220,11 +220,13 @@ export default function Onboarding() {
           title: serviceTitle.trim(),
           description: serviceDesc.trim() || null,
           provider_user_id: authUser.id,
+          owner_type: "USER",
+          owner_id: authUser.id,
           price_amount: servicePrice ? Number(servicePrice) : 0,
           price_currency: "EUR",
           image_url: serviceImage || null,
           is_active: true,
-        }).select("id").single();
+        } as any).select("id").single();
 
         if (svc?.id && serviceTopics.length) {
           await supabase.from("service_topics").insert(

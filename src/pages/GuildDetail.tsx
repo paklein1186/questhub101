@@ -120,7 +120,8 @@ export default function GuildDetail() {
       price_amount: Number(svcPrice) || 0, price_currency: "EUR",
       online_location_type: svcLocationType, is_active: true, image_url: svcImageUrl || null,
       is_draft: svcDraft,
-    });
+      owner_type: "GUILD", owner_id: guild.id,
+    } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["services-for-guild", id] });
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");

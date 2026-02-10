@@ -39,7 +39,8 @@ export default function ServiceDetail() {
 
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
   const svcTerrs = (svc as any)?.service_territories?.map((st: any) => st.territories).filter(Boolean) || [];
-  const isOwnService = svc?.provider_user_id === currentUser.id;
+  const ownerType = (svc as any)?.owner_type || "USER";
+  const isOwnService = ownerType === "USER" ? svc?.provider_user_id === currentUser.id : false;
   const providerUserId = svc?.provider_user_id;
 
   const slots = useMemo(() => {
@@ -66,7 +67,7 @@ export default function ServiceDetail() {
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
   if (svc.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This service has been removed.</p></PageShell>;
-  if (svc.is_draft && svc.provider_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
+  if (svc.is_draft && !isOwnService && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
 
   const isFree = !svc.price_amount || svc.price_amount === 0;
 

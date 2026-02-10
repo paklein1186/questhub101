@@ -81,12 +81,14 @@ export function MyServicesPanel({ userId }: { userId: string }) {
           title: formTitle.trim(),
           description: formDesc.trim() || null,
           provider_user_id: userId,
+          owner_type: "USER",
+          owner_id: userId,
           duration_minutes: Number(formDuration) || 60,
           price_amount: Number(formPrice) || 0,
           price_currency: formCurrency,
           online_location_type: formLocationType,
           is_active: true,
-        });
+        } as any);
         if (error) throw error;
       }
     },
