@@ -50,6 +50,7 @@ const ITEMS_PER_PAGE = 8;
 
 export default function HomeFeed() {
   const currentUser = useCurrentUser();
+  const { user: authUser } = useAuth();
   const { percentage, isComplete, completedCount, totalSteps } = useOnboardingProgress();
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("All");
   const [feedPage, setFeedPage] = useState(1);
