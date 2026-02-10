@@ -1328,27 +1328,29 @@ function EmailsDigestsTab() {
 
 // ─── Analytics Tab ──────────────────────────────────────────
 function AnalyticsTab() {
-  const totalUsers = allUsers.length;
+  // ── Real DB stats (profiles, xp_transactions, subscriptions) ──
+  const { data: realStats, isLoading: loadingReal } = useAdminStats();
+
+  // ── Mock stats (no DB tables yet) ──
   const totalQuests = allQuests.length;
   const totalGuilds = allGuilds.length;
   const totalPods = allPods.length;
   const totalBookings = allBookings.length;
   const totalServices = allServices.length;
   const totalComments = allComments.length;
-  const totalXpAwarded = allUsers.reduce((sum, u) => sum + u.xp, 0);
-  const totalRevenue = allBookings.reduce((sum, b) => sum + (b.amount ?? 0), 0);
 
-  // Course stats
+  // Course stats (mock)
   const publishedCourses = (courses ?? []).filter((c: any) => c.isPublished).length;
   const totalEnrollments = (courseEnrollments ?? []).length;
   const completedEnrollments = (courseEnrollments ?? []).filter((e: any) => e.completionDate).length;
   const paidCourses = (courses ?? []).filter((c: any) => !c.isFree && c.isPublished).length;
   const courseRevenue = (coursePurchases ?? []).filter((p: any) => p.status === "PAID").reduce((sum: number, p: any) => sum + (p.amount ?? 0), 0);
 
-  // XP stats
-  const avgXp = totalUsers > 0 ? Math.round(totalXpAwarded / totalUsers) : 0;
+  // Mock revenue
+  const totalRevenue = allBookings.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+  const paidBookings = allBookings.filter((b) => b.paymentStatus === PaymentStatus.PAID || (b.amount && b.amount > 0)).length;
 
-  // Activity per week (mock recent 8 weeks)
+  // Activity per week (mock — no createdAt aggregation tables yet)
   const weeklyActivity = [
     { week: "W1", users: 1, quests: 0, bookings: 0, comments: 1 },
     { week: "W2", users: 0, quests: 1, bookings: 0, comments: 2 },
@@ -1360,31 +1362,63 @@ function AnalyticsTab() {
     { week: "W8", users: 0, quests: 0, bookings: 0, comments: 1 },
   ];
 
-  // Per-topic breakdown
+  // Per-topic breakdown (mock)
   const topicStats = allTopics.map((topic) => {
     const qCount = questTopics.filter((qt) => qt.topicId === topic.id).length;
     const uCount = userTopics.filter((ut) => ut.topicId === topic.id).length;
     return { topic, quests: qCount, users: uCount };
   }).filter((t) => t.quests > 0 || t.users > 0).sort((a, b) => b.quests - a.quests).slice(0, 10);
 
-  // Per-territory breakdown
+  // Per-territory breakdown (mock)
   const territoryStats = allTerritories.map((territory) => {
     const qCount = questTerritories.filter((qt) => qt.territoryId === territory.id).length;
     const uCount = userTerritories.filter((ut) => ut.territoryId === territory.id).length;
     return { territory, quests: qCount, users: uCount };
   }).filter((t) => t.quests > 0 || t.users > 0).sort((a, b) => b.quests - a.quests);
 
-  // Paid bookings
-  const paidBookings = allBookings.filter((b) => b.paymentStatus === PaymentStatus.PAID || (b.amount && b.amount > 0)).length;
+  const MockLabel = () => (
+    <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1 text-amber-600 border-amber-400 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400">MOCK</Badge>
+  );
+
+  const RealLabel = () => (
+    <Badge variant="outline" className="text-[9px] px-1 py-0 ml-1 text-green-600 border-green-400 bg-green-50 dark:bg-green-900/20 dark:text-green-400">LIVE</Badge>
+  );
 
   return (
     <div className="space-y-8">
+      {/* Banner */}
+      <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-700 p-4">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Data sources</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+              <span className="inline-flex items-center gap-1"><RealLabel /> = live database (profiles, XP, subscriptions)</span>{" · "}
+              <span className="inline-flex items-center gap-1"><MockLabel /> = sample data (quests, guilds, pods, bookings, courses, comments — no DB tables yet)</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* High-level KPIs */}
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Platform Overview</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Real stats */}
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-2 mb-1">
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Total Users</span>
+              <RealLabel />
+            </div>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : realStats?.totalUsers ?? 0}</p>
+            {!loadingReal && realStats && (
+              <p className="text-[10px] text-muted-foreground mt-0.5">+{realStats.recentUsers7d} (7d) · +{realStats.recentUsers30d} (30d)</p>
+            )}
+          </div>
+
+          {/* Mock stats */}
           {[
-            { label: "Total Users", value: totalUsers, icon: UsersIcon },
             { label: "Total Quests", value: totalQuests, icon: Compass },
             { label: "Total Guilds", value: totalGuilds, icon: Shield },
             { label: "Total Pods", value: totalPods, icon: Hash },
@@ -1397,6 +1431,7 @@ function AnalyticsTab() {
               <div className="flex items-center gap-2 mb-1">
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">{stat.label}</span>
+                <MockLabel />
               </div>
               <p className="text-2xl font-bold text-primary">{stat.value}</p>
             </div>
@@ -1406,18 +1441,52 @@ function AnalyticsTab() {
 
       <Separator />
 
-      {/* XP & Engagement */}
+      {/* XP & Engagement — REAL DATA */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><Zap className="h-5 w-5" /> XP & Engagement</h3>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><Zap className="h-5 w-5" /> XP & Engagement <RealLabel /></h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
             <p className="text-xs text-muted-foreground">Total XP Awarded</p>
-            <p className="text-2xl font-bold text-primary">{totalXpAwarded.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : (realStats?.totalXpAwarded ?? 0).toLocaleString()}</p>
           </div>
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground">Average XP / User</p>
-            <p className="text-2xl font-bold text-primary">{avgXp.toLocaleString()}</p>
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
+            <p className="text-xs text-muted-foreground">Total XP Spent</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : (realStats?.totalXpSpent ?? 0).toLocaleString()}</p>
           </div>
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
+            <p className="text-xs text-muted-foreground">XP Awarded (7d)</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : (realStats?.xpLast7d ?? 0).toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
+            <p className="text-xs text-muted-foreground">XP Awarded (30d)</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : (realStats?.xpLast30d ?? 0).toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Subscriptions — REAL DATA */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><CreditCard className="h-5 w-5" /> Subscriptions <RealLabel /></h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
+            <p className="text-xs text-muted-foreground">Active Subscriptions</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : realStats?.totalActiveSubscriptions ?? 0}</p>
+          </div>
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-card p-4">
+            <p className="text-xs text-muted-foreground">Avg XP / User</p>
+            <p className="text-2xl font-bold text-primary">{loadingReal ? "…" : (realStats?.avgXpPerUser ?? 0).toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Course engagement — mock */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><ScrollText className="h-5 w-5" /> Course Engagement <MockLabel /></h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Total Enrollments</p>
             <p className="text-2xl font-bold text-primary">{totalEnrollments}</p>
@@ -1425,23 +1494,6 @@ function AnalyticsTab() {
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Course Completions</p>
             <p className="text-2xl font-bold text-primary">{completedEnrollments}</p>
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Marketplace & Revenue */}
-      <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><TrendingUp className="h-5 w-5" /> Marketplace & Revenue</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground">Booking Revenue</p>
-            <p className="text-2xl font-bold text-primary">€{totalRevenue}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs text-muted-foreground">Paid Bookings</p>
-            <p className="text-2xl font-bold text-primary">{paidBookings}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Paid Courses</p>
@@ -1456,9 +1508,26 @@ function AnalyticsTab() {
 
       <Separator />
 
-      {/* Activity Chart (simple table-based) */}
+      {/* Marketplace & Revenue — mock */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Weekly Activity (last 8 weeks)</h3>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><TrendingUp className="h-5 w-5" /> Marketplace & Revenue <MockLabel /></h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Booking Revenue</p>
+            <p className="text-2xl font-bold text-primary">€{totalRevenue}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Paid Bookings</p>
+            <p className="text-2xl font-bold text-primary">{paidBookings}</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Activity Chart — mock */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Weekly Activity (last 8 weeks) <MockLabel /></h3>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
@@ -1487,9 +1556,9 @@ function AnalyticsTab() {
 
       <Separator />
 
-      {/* By Topic */}
+      {/* By Topic — mock */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Hash className="h-5 w-5" /> Breakdown by Topic</h3>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Hash className="h-5 w-5" /> Breakdown by Topic <MockLabel /></h3>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
@@ -1514,9 +1583,9 @@ function AnalyticsTab() {
 
       <Separator />
 
-      {/* By Territory */}
+      {/* By Territory — mock */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Breakdown by Territory</h3>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Breakdown by Territory <MockLabel /></h3>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
