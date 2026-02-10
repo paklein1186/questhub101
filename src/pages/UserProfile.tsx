@@ -25,7 +25,8 @@ import {
   getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
   guildMembers, getGuildById, questParticipants, podMembers, getPodById,
 } from "@/data/mock";
-import type { Achievement } from "@/types";
+import type { Achievement, User } from "@/types";
+import { UserRole } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
 import { AdminBadge } from "@/components/AdminBadge";
@@ -37,12 +38,48 @@ import {
 
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
-  const user = getUserById(id!);
+  const mockUser = getUserById(id!);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { awardXp } = useXP();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
   const { isBlocked, toggle: toggleBlock } = useBlock(id!);
+
+  // DB user state (for real Supabase users not in mock data)
+  const [dbUser, setDbUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(!mockUser);
+
+  useEffect(() => {
+    if (mockUser || !id) {
+      setLoading(false);
+      return;
+    }
+    // Fetch from DB using profiles_public view
+    supabase
+      .from("profiles_public")
+      .select("*")
+      .eq("user_id", id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setDbUser({
+            id: data.user_id!,
+            name: data.name || "Unknown",
+            email: "",
+            avatarUrl: data.avatar_url || "",
+            headline: data.headline || undefined,
+            bio: data.bio || undefined,
+            role: (data.role as any) || UserRole.GAMECHANGER,
+            xp: data.xp || 0,
+            contributionIndex: data.contribution_index || 0,
+          });
+        }
+        setLoading(false);
+      });
+  }, [id, mockUser]);
+
+  const user = mockUser || dbUser;
+
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
@@ -72,6 +109,7 @@ export default function UserProfile() {
       });
   }, [id]);
 
+  if (loading) return <PageShell><p>Loading…</p></PageShell>;
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
   if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
