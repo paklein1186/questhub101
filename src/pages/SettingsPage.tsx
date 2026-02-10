@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
 import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
+import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import {
   users, topics, territories, userTopics, userTerritories,
   services, getServicesForUser,

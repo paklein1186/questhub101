@@ -92,7 +92,7 @@ export default function Onboarding() {
   const canNext = () => {
     if (step === 0) return !!role;
     if (step === 1) return true; // allow zero interests
-    if (step === 2) return selectedTerritories.length > 0;
+    if (step === 2) return true; // allow zero territories
     if (step === 3) return true; // bio is optional
     return true;
   };
