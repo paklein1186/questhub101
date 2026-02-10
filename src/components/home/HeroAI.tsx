@@ -1,6 +1,10 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Send, Sparkles, Compass, Shield, CircleDot, BookOpen, Briefcase, Hash, User, Loader2 } from "lucide-react";
+import {
+  Bot, Send, Sparkles, Compass, Shield, CircleDot, BookOpen, Briefcase,
+  Hash, User, Loader2, MapPin, Heart, Calendar, Coins, PlusCircle,
+  FileText, Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,31 +19,52 @@ interface AIAction {
   description: string;
 }
 
+interface AIRecommended {
+  quests?: string[];
+  guilds?: string[];
+  territories?: string[];
+  collaborators?: string[];
+}
+
 interface AIResponse {
   message: string;
+  microcopy?: string;
   actions: AIAction[];
+  recommended?: AIRecommended;
 }
 
 const ACTION_ICONS: Record<string, any> = {
-  create_quest: Compass,
+  create_quest: PlusCircle,
+  join_quest: Compass,
+  submit_proposal: FileText,
   find_guild: Shield,
   join_pod: CircleDot,
   start_course: BookOpen,
   find_service: Briefcase,
+  create_service: Briefcase,
   explore_houses: Hash,
+  explore_territories: MapPin,
   view_profile: User,
   browse_quests: Compass,
+  fund_quest: Coins,
+  attend_event: Calendar,
 };
 
 const ACTION_ROUTES: Record<string, string> = {
   create_quest: "/quests/create",
+  join_quest: "/explore?tab=quests",
+  submit_proposal: "/explore?tab=quests",
   find_guild: "/explore?tab=guilds",
   join_pod: "/explore?tab=pods",
   start_course: "/explore?tab=courses",
   find_service: "/explore?tab=services",
+  create_service: "/services/new",
   explore_houses: "/explore?tab=houses",
+  explore_territories: "/explore?tab=territories",
   view_profile: "/me",
   browse_quests: "/explore?tab=quests",
+  fund_quest: "/explore?tab=quests",
+  attend_event: "/explore?tab=guilds",
 };
 
 interface HeroAIProps {
@@ -50,6 +75,10 @@ interface HeroAIProps {
     xpLevel: number;
     topics: string[];
     territories: string[];
+    recentQuests?: string[];
+    recentGuilds?: string[];
+    recentServices?: string[];
+    recentPods?: string[];
   };
 }
 
@@ -93,9 +122,11 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
     if (route) navigate(route);
   };
 
+  const rec = response?.recommended;
+  const hasRecommended = rec && (rec.quests?.length || rec.guilds?.length || rec.territories?.length || rec.collaborators?.length);
+
   return (
     <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-accent/5 p-6 md:p-10">
-      {/* Decorative blobs */}
       <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-accent/10 blur-3xl" />
 
@@ -162,6 +193,15 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="text-left space-y-4">
               <p className="text-sm leading-relaxed">{response.message}</p>
+
+              {/* Microcopy */}
+              {response.microcopy && (
+                <p className="text-xs italic text-muted-foreground flex items-center gap-1">
+                  <Heart className="h-3 w-3 text-primary" /> {response.microcopy}
+                </p>
+              )}
+
+              {/* Action cards */}
               <div className="grid gap-2 sm:grid-cols-2">
                 {response.actions.map((action, i) => {
                   const Icon = ACTION_ICONS[action.type] || Compass;
@@ -182,6 +222,41 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
                   );
                 })}
               </div>
+
+              {/* Recommended items */}
+              {hasRecommended && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                  className="space-y-2 pt-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Suggestions for you</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {rec.quests?.map((q, i) => (
+                      <Badge key={`q-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate("/explore?tab=quests")}>
+                        <Compass className="h-3 w-3 mr-1" />{q}
+                      </Badge>
+                    ))}
+                    {rec.guilds?.map((g, i) => (
+                      <Badge key={`g-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate("/explore?tab=guilds")}>
+                        <Shield className="h-3 w-3 mr-1" />{g}
+                      </Badge>
+                    ))}
+                    {rec.territories?.map((t, i) => (
+                      <Badge key={`t-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate("/explore?tab=territories")}>
+                        <MapPin className="h-3 w-3 mr-1" />{t}
+                      </Badge>
+                    ))}
+                    {rec.collaborators?.map((c, i) => (
+                      <Badge key={`c-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate("/explore?tab=users")}>
+                        <Users className="h-3 w-3 mr-1" />{c}
+                      </Badge>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               <Button variant="ghost" size="sm" onClick={() => { setResponse(null); setQuery(""); inputRef.current?.focus(); }}>
                 Ask something else
               </Button>
