@@ -35,6 +35,7 @@ import {
   services, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildDetail() {
