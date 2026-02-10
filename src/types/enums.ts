@@ -129,3 +129,20 @@ export enum TopicFeatureTargetType {
   QUEST = "QUEST",
   GUILD = "GUILD",
 }
+
+export enum ReportTargetType {
+  USER = "USER",
+  GUILD = "GUILD",
+  QUEST = "QUEST",
+  POD = "POD",
+  SERVICE = "SERVICE",
+  COMMENT = "COMMENT",
+  BOOKING = "BOOKING",
+}
+
+export enum ReportStatus {
+  OPEN = "OPEN",
+  REVIEWED = "REVIEWED",
+  RESOLVED = "RESOLVED",
+  DISMISSED = "DISMISSED",
+}

@@ -20,7 +20,8 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_XP_COST, EXTRA_GUILD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
+import { ReportButton } from "@/components/ReportButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -246,6 +247,7 @@ export default function GuildDetail() {
                 <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
               </>
             )}
+            <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">

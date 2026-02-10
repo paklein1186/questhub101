@@ -11,7 +11,8 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, PodType, PodMemberRole } from "@/types/enums";
+import { CommentTargetType, PodType, PodMemberRole, ReportTargetType } from "@/types/enums";
+import { ReportButton } from "@/components/ReportButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -150,6 +151,7 @@ export default function PodDetail() {
           ) : !isHost ? (
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
+          <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />
         </div>
       </motion.div>
 

@@ -19,6 +19,8 @@ import {
   TopicFeatureTargetType,
   OnlineLocationType,
   PaymentStatus,
+  ReportTargetType,
+  ReportStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
@@ -452,5 +454,18 @@ export interface UserBlock {
   id: string;
   blockerId: string;
   blockedId: string;
+  createdAt: string;
+}
+
+// ─── Reports ────────────────────────────────────────────────
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  targetEntityType: ReportTargetType;
+  targetEntityId: string;
+  reason: string;
+  status: ReportStatus;
+  reviewedByUserId?: string;
   createdAt: string;
 }

@@ -5,7 +5,7 @@ import {
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
   TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
-  UserBlock,
+  UserBlock, Report,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
@@ -410,3 +410,6 @@ export function isBlockedBy(blockerId: string, blockedId: string): boolean {
 export function hasBlockRelationship(userA: string, userB: string): boolean {
   return isBlockedBy(userA, userB) || isBlockedBy(userB, userA);
 }
+
+// ─── Reports ─────────────────────────────────────────────────
+export const reports: Report[] = [];

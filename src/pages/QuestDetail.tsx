@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus, ReportTargetType } from "@/types/enums";
+import { ReportButton } from "@/components/ReportButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -158,6 +159,7 @@ export default function QuestDetail() {
         <div className="flex items-center gap-3 mt-4 flex-wrap">
           <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
           {!isParticipant && <Button size="sm" variant="outline" onClick={joinQuest}><UserPlus className="h-4 w-4 mr-1" /> Join Quest</Button>}
+          <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
           {isOwner && (
             <>
               <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>
