@@ -184,6 +184,7 @@ export default function UserProfile() {
             <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>
           ))}
         </div>
+        <SocialLinksDisplay data={socialLinks} />
       </motion.div>
 
       {/* About */}
