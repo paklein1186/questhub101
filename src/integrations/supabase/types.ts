@@ -769,6 +769,88 @@ export type Database = {
         }
         Relationships: []
       }
+      decision_poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          option_index: number
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_index: number
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_index?: number
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "decision_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decision_polls: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          created_by: string
+          entity_id: string
+          entity_type: string
+          id: string
+          options: Json
+          question: string
+          status: string
+          thread_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          created_by: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          options?: Json
+          question: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          created_by?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          options?: Json
+          question?: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_polls_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "unit_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -2360,6 +2442,68 @@ export type Database = {
           is_deleted?: boolean
           name?: string
           slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      unit_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string
+          metadata_json: Json | null
+          sender_type: string
+          sender_user_id: string | null
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text: string
+          metadata_json?: Json | null
+          sender_type?: string
+          sender_user_id?: string | null
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string
+          metadata_json?: Json | null
+          sender_type?: string
+          sender_user_id?: string | null
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "unit_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unit_chat_threads: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
           updated_at?: string
         }
         Relationships: []
