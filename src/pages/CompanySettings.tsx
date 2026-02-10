@@ -24,6 +24,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { CompanySize, QuestStatus, MonetizationType } from "@/types/enums";
+import { AttachmentTargetType } from "@/types/enums";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Quest } from "@/types";
 import {
   getCompanyById, companies, topics, territories,
