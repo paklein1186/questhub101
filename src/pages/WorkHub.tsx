@@ -5,6 +5,7 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Compass, CircleDot, Zap, Building2 } from "lucide-react";
 import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts } from "@/hooks/useEntityQueries";
