@@ -29,6 +29,7 @@ import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
 import CompanyDetail from "./pages/CompanyDetail";
+import CompanySettings from "./pages/CompanySettings";
 import TopicHouse from "./pages/TopicHouse";
 import BuyXpPage from "./pages/BuyXpPage";
 import PlansPage from "./pages/PlansPage";
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/pods/:id" element={<PodDetail />} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
                 <Route path="/companies/:id" element={<CompanyDetail />} />
+                <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
 
                 {/* Protected pages */}

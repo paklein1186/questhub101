@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Building2, Globe, MapPin, Hash, Zap, Plus, Users, Heart, Pencil } from "lucide-react";
+import { ArrowLeft, Building2, Globe, MapPin, Hash, Zap, Plus, Users, Heart, Pencil, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -96,7 +96,11 @@ export default function CompanyDetail() {
           </div>
           <div className="flex flex-col gap-2 shrink-0">
             <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
-            {isContact && <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>}
+            {isContact && (
+              <>
+                <Button size="sm" variant="outline" asChild><Link to={`/companies/${company.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
+              </>
+            )}
           </div>
         </div>
 
