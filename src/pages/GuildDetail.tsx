@@ -74,6 +74,7 @@ export default function GuildDetail() {
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
   if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
+  if (guild.isDraft && guild.createdByUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
   const territories = getTerritoriesForGuild(guild.id);
