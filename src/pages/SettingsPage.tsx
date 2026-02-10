@@ -8,7 +8,7 @@ import {
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
-  Sparkles, Swords, Users, GraduationCap, CalendarCheck,
+  Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,7 @@ const TABS = [
   { key: "bookings", label: "My Bookings", icon: CalendarCheck },
   { key: "billing", label: "XP & Credits", icon: Zap },
   { key: "houses", label: "Houses & Territories", icon: Hash },
+  { key: "starred", label: "Starred Excerpts", icon: Star },
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "account", label: "Account & Security", icon: Shield },
   { key: "privacy", label: "Privacy & Visibility", icon: Eye },
@@ -545,6 +546,22 @@ export default function SettingsPage() {
                     <Button variant="outline" asChild>
                       <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Open wizard</Link>
                     </Button>
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Starred Excerpts ── */}
+              {activeTab === "starred" && (
+                <div className="space-y-4">
+                  <Section title="Starred Excerpts" icon={<Star className="h-5 w-5 text-yellow-500" />}>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Your saved highlights from AI and human messages across all units.
+                    </p>
+                    <Link to="/me/starred-excerpts">
+                      <Button variant="outline" size="sm">
+                        <Star className="h-3.5 w-3.5 mr-1" /> Open My Starred Excerpts
+                      </Button>
+                    </Link>
                   </Section>
                 </div>
               )}

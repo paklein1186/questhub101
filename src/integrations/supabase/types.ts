@@ -2254,6 +2254,57 @@ export type Database = {
           },
         ]
       }
+      starred_excerpts: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          excerpt_text: string
+          id: string
+          is_from_agent: boolean
+          message_id: string
+          tags: Json | null
+          thread_id: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          excerpt_text: string
+          id?: string
+          is_from_agent?: boolean
+          message_id: string
+          tags?: Json | null
+          thread_id: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          excerpt_text?: string
+          id?: string
+          is_from_agent?: boolean
+          message_id?: string
+          tags?: Json | null
+          thread_id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starred_excerpts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "unit_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "starred_excerpts_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "unit_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           code: string
