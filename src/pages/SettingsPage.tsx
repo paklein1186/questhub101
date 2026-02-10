@@ -305,6 +305,43 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
 
+              {/* ── Persona ── */}
+              {activeTab === "persona" && (
+                <div className="space-y-6">
+                  <Section title="How do you primarily use this space?" icon={<Compass className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">This adapts labels and suggestions across the platform to match your style. It doesn't change permissions or features.</p>
+                    <div className="space-y-2 max-w-md">
+                      {([
+                        { value: "IMPACT" as PersonaType, label: "Mainly for impact work & missions", desc: "Labels like Services, Guilds, Quests & Missions" },
+                        { value: "CREATIVE" as PersonaType, label: "Mainly for creative projects & art", desc: "Labels like Skill Sessions, Collectives, Quests & Creations" },
+                        { value: "HYBRID" as PersonaType, label: "Both", desc: "A mix of impact and creative language" },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => updatePersona(opt.value, "manual")}
+                          className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                            persona === opt.value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30"
+                          }`}
+                        >
+                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            persona === opt.value ? "border-primary bg-primary" : "border-muted-foreground/30"
+                          }`}>
+                            {persona === opt.value && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{opt.label}</p>
+                            <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {persona === "UNSET" && (
+                      <p className="text-xs text-muted-foreground mt-3">No persona set yet. Complete onboarding or select one above.</p>
+                    )}
+                  </Section>
+                </div>
+              )}
+
               {/* ── Account & Security ── */}
               {activeTab === "account" && (
                 <div className="space-y-6">
