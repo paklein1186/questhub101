@@ -56,13 +56,13 @@ export function EntityJoinButton({
       return;
     }
     (async () => {
-      const { data } = await supabase
-        .from(cfg.applications)
+      const { data } = await (supabase
+        .from(cfg.applications as any)
         .select("id, status")
-        .eq(cfg.idCol as any, entityId)
+        .eq(cfg.idCol, entityId)
         .eq("applicant_user_id", currentUserId)
-        .eq("status", "PENDING" as any)
-        .maybeSingle();
+        .eq("status", "PENDING")
+        .maybeSingle() as any);
       setPendingApp(!!data);
       setCheckingApp(false);
     })();
