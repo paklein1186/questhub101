@@ -89,8 +89,10 @@ function UsersRolesTab() {
   };
 
   const toggleBlocked = (id: string) => {
+    const wasBlocked = !!blockedFlags[id];
     setBlockedFlags((p) => ({ ...p, [id]: !p[id] }));
-    toast({ title: blockedFlags[id] ? "User unblocked" : "User blocked" });
+    logAdminAction("u1", wasBlocked ? "USER_UNBLOCKED" : "USER_BLOCKED", "User", id, wasBlocked ? "User unblocked" : "User blocked");
+    toast({ title: wasBlocked ? "User unblocked" : "User blocked" });
   };
 
   return (
