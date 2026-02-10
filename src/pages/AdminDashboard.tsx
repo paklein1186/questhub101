@@ -47,6 +47,7 @@ import { softDelete, restoreItem, permanentDelete } from "@/lib/softDelete";
 import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/data/mock";
 import type { QuestUpdate, Company, Pod } from "@/types";
 import { adminActionLogs, logAdminAction } from "@/lib/adminLog";
+import { useAdminStats } from "@/hooks/useAdminStats";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
