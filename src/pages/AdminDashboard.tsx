@@ -38,8 +38,9 @@ import { reports as allReports } from "@/data/mock";
 import {
   UserRole, QuestStatus, MonetizationType, TopicStewardRole,
   TerritoryLevel, TopicFeatureTargetType, BookingStatus, PaymentStatus,
+  ReportTargetType, ReportStatus,
 } from "@/types/enums";
-import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature, Service, Booking, Comment } from "@/types";
+import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature, Service, Booking, Comment, Report } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
 import { softDelete, restoreItem, permanentDelete } from "@/lib/softDelete";
 import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/data/mock";
