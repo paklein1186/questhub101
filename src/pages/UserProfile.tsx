@@ -172,6 +172,7 @@ export default function UserProfile() {
       )}
 
       {/* Achievements */}
+      {showAchievements && (
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
@@ -231,6 +232,7 @@ export default function UserProfile() {
           })}
         </div>
       </section>
+      )}
 
       {/* Guilds */}
       {userGuilds.length > 0 && (
