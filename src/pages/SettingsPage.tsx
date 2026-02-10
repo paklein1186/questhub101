@@ -496,11 +496,11 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTopics(topics.map((t) => t.id))}>Select all</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
                     </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {topics.map((t) => (
+                      {dbTopics.map((t) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
                           <span className="text-sm">{t.name}</span>
