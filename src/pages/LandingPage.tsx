@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { LandingAIGuide } from "@/components/home/LandingAIGuide";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -332,29 +333,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-border bg-card">
-        <div className="container py-10">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-            <div>
-              <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
-                <Zap className="h-5 w-5 text-primary" /> QuestHub
-              </Link>
-              <p className="text-xs text-muted-foreground mt-2 max-w-xs">
-                A learning network for gamechangers and ecosystems building a regenerative future.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
-              <Link to="/explore" className="hover:text-foreground transition-colors">Explore</Link>
-              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-              <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
-            </div>
-          </div>
-          <div className="mt-8 pt-6 border-t border-border text-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} QuestHub. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <CookieConsentBanner />
     </div>
