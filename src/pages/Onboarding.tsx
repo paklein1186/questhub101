@@ -354,8 +354,55 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 3: Bio */}
+              {/* Step 3: Why are you here? */}
               {step === 3 && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="font-display text-2xl font-bold flex items-center gap-2">
+                      <Compass className="h-6 w-6 text-primary" /> Why are you here?
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">What brings you to this space? Select all that apply.</p>
+                  </div>
+                  <div className="space-y-2">
+                    {WHY_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.key}
+                        onClick={() => toggleWhy(opt.key)}
+                        className={cn(
+                          "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                          whySelections.includes(opt.key)
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-5 w-5 rounded flex items-center justify-center border-2 transition-colors shrink-0",
+                          whySelections.includes(opt.key) ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        )}>
+                          {whySelections.includes(opt.key) && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{opt.label}</p>
+                          <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Describe what you're hoping to do here (optional)</label>
+                    <Textarea
+                      value={whyFreeText}
+                      onChange={(e) => setWhyFreeText(e.target.value)}
+                      placeholder="I want to collaborate on regenerative agriculture projects..."
+                      className="resize-none min-h-[80px] text-sm"
+                      maxLength={500}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Bio */}
+              {step === 4 && (
                 <div className="space-y-6">
                   <div>
                     <h2 className="font-display text-2xl font-bold">Tell us about yourself</h2>
