@@ -507,3 +507,15 @@ export interface Referral {
   createdAt: string;
   rewardGiven: boolean;
 }
+
+// ─── Onboarding Progress ────────────────────────────────────
+
+export interface OnboardingProgress {
+  userId: string;
+  completedProfile: boolean;
+  selectedHouses: boolean;
+  joinedGuild: boolean;
+  followedQuests: boolean;
+  createdService: boolean;
+  bookedSession: boolean;
+}
