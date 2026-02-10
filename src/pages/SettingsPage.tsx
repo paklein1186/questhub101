@@ -840,11 +840,11 @@ function ReferralsSection({ userId }: { userId: string }) {
                 <div>
                   <p className="text-sm font-medium font-mono">{r.code}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.refereeUserId ? "Signed up ✓" : "Pending"}
+                    {r.used_by_user_id ? "Signed up ✓" : "Pending"}
                   </p>
                 </div>
-                <Badge variant={r.rewardGiven ? "default" : "secondary"}>
-                  {r.rewardGiven ? "+50 XP earned" : "Waiting"}
+                <Badge variant={r.is_used ? "default" : "secondary"}>
+                  {r.is_used ? `+${r.bonus_xp} XP earned` : "Waiting"}
                 </Badge>
               </div>
             ))}
