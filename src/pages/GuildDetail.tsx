@@ -310,6 +310,12 @@ export default function GuildDetail() {
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="ai-chat" className="mt-6">
+            <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );
