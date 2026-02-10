@@ -16,7 +16,6 @@ const authedLinks = [
   { to: "/explore", label: "Explore", icon: Search },
   { to: "/work", label: "Work", icon: Briefcase },
   { to: "/network", label: "Network", icon: Users },
-  { to: "/me", label: "Me", icon: UserCircle },
 ];
 
 export function AppNav() {
