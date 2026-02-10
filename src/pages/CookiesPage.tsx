@@ -1,36 +1,33 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PageShell } from "@/components/PageShell";
+import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
 
 export default function CookiesPage() {
   return (
-    <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
-      </Button>
-      <article className="prose prose-sm max-w-3xl mx-auto">
-        <h1 className="font-display text-3xl font-bold mb-6">Cookie Policy</h1>
-        <p className="text-muted-foreground text-sm mb-2">Last updated: February 10, 2026</p>
+    <ContentPageShell title="Cookies Policy" subtitle="Last updated: February 10, 2026">
+      <ContentSection title="1. What Are Cookies">
+        <p>Cookies are small text files stored on your device when you visit a website. They help us remember your preferences and improve your experience.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">1. What Are Cookies</h2>
-        <p className="text-muted-foreground leading-relaxed">Cookies are small text files stored on your device when you visit a website. They help us remember your preferences and improve your experience.</p>
+      <ContentSection title="2. Types of Cookies Used">
+        <p><strong>Essential:</strong> Necessary for the Platform to function — authentication, security tokens, and session management. Cannot be disabled.</p>
+        <p><strong>Analytics:</strong> Help us understand how users interact with the Platform. Data is anonymised.</p>
+        <p><strong>Preferences:</strong> Remember your settings such as language, theme, and notification preferences.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">2. Essential Cookies</h2>
-        <p className="text-muted-foreground leading-relaxed">These cookies are necessary for the Platform to function. They handle authentication, security tokens, and session management. They cannot be disabled.</p>
+      <ContentSection title="3. How We Use Cookies">
+        <p>Cookies enable authentication, personalization, analytics, and platform optimization. We do not use cookies for advertising or tracking across other websites.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">3. Analytics Cookies</h2>
-        <p className="text-muted-foreground leading-relaxed">We use analytics cookies to understand how users interact with the Platform, which pages are visited most, and where users encounter issues. This data is anonymised.</p>
+      <ContentSection title="4. How to Manage Cookies">
+        <p>You can manage your cookie preferences through the cookie consent banner or your browser settings.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">4. Preference Cookies</h2>
-        <p className="text-muted-foreground leading-relaxed">These cookies remember your settings such as language, theme (light/dark mode), and notification preferences.</p>
+      <ContentSection title="5. Impact of Disabling Cookies">
+        <p>Disabling essential cookies may prevent you from logging in or using core platform features. Disabling analytics or preference cookies will not affect core functionality.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">5. Managing Cookies</h2>
-        <p className="text-muted-foreground leading-relaxed">You can manage your cookie preferences through the cookie consent banner or your browser settings. Note that disabling certain cookies may affect Platform functionality.</p>
-
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">6. Contact</h2>
-        <p className="text-muted-foreground leading-relaxed">For questions about our cookie practices, contact us at privacy@changethegame.xyz.</p>
-      </article>
-    </PageShell>
+      <ContentSection title="6. Contact">
+        <p>For questions about our cookie practices, contact us at <a href="mailto:privacy@changethegame.xyz" className="text-primary hover:underline">privacy@changethegame.xyz</a>.</p>
+      </ContentSection>
+    </ContentPageShell>
   );
 }

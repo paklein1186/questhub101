@@ -81,6 +81,28 @@ import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
 import MyStarredExcerpts from "./pages/MyStarredExcerpts";
+import AboutPage from "./pages/AboutPage";
+import HowItWorksPage from "./pages/HowItWorksPage";
+import SupportPage from "./pages/SupportPage";
+import ContactPage from "./pages/ContactPage";
+import SecurityPage from "./pages/SecurityPage";
+import QuestsInfoPage from "./pages/QuestsInfoPage";
+import GuildsInfoPage from "./pages/GuildsInfoPage";
+import CompaniesInfoPage from "./pages/CompaniesInfoPage";
+import PeopleInfoPage from "./pages/PeopleInfoPage";
+import TerritoriesHousesPage from "./pages/TerritoriesHousesPage";
+import CreateQuestInfoPage from "./pages/CreateQuestInfoPage";
+import ServiceInfoPage from "./pages/ServiceInfoPage";
+import CreateGuildInfoPage from "./pages/CreateGuildInfoPage";
+import CreateCompanyInfoPage from "./pages/CreateCompanyInfoPage";
+import CoursesInfoPage from "./pages/CoursesInfoPage";
+import AIInfoPage from "./pages/AIInfoPage";
+import TerritoryAgentsInfoPage from "./pages/TerritoryAgentsInfoPage";
+import AIEthicsPage from "./pages/AIEthicsPage";
+import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
+import GovernancePage from "./pages/GovernancePage";
+import RoadmapPage from "./pages/RoadmapPage";
+import BugReportingPage from "./pages/BugReportingPage";
 
 const queryClient = new QueryClient();
 
@@ -125,6 +147,28 @@ const App = () => (
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiesPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/how-it-works" element={<HowItWorksPage />} />
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/security" element={<SecurityPage />} />
+                <Route path="/explore/quests-info" element={<QuestsInfoPage />} />
+                <Route path="/explore/guilds-info" element={<GuildsInfoPage />} />
+                <Route path="/explore/companies-info" element={<CompaniesInfoPage />} />
+                <Route path="/explore/people-info" element={<PeopleInfoPage />} />
+                <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
+                <Route path="/create/quest-info" element={<CreateQuestInfoPage />} />
+                <Route path="/create/service-info" element={<ServiceInfoPage />} />
+                <Route path="/create/guild-info" element={<CreateGuildInfoPage />} />
+                <Route path="/create/company-info" element={<CreateCompanyInfoPage />} />
+                <Route path="/courses-info" element={<CoursesInfoPage />} />
+                <Route path="/ai-info" element={<AIInfoPage />} />
+                <Route path="/ai/territory-agents-info" element={<TerritoryAgentsInfoPage />} />
+                <Route path="/ai-ethics" element={<AIEthicsPage />} />
+                <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
+                <Route path="/governance" element={<GovernancePage />} />
+                <Route path="/roadmap" element={<RoadmapPage />} />
+                <Route path="/bugs" element={<BugReportingPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
