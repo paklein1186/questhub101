@@ -77,7 +77,7 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
       return;
     }
 
-    const userIds = [...new Set((data || []).map((a: any) => a.applicant_user_id))];
+    const userIds = [...new Set((data || []).map((a: any) => a.applicant_user_id as string))];
     let profiles: Record<string, any> = {};
     if (userIds.length > 0) {
       const { data: profileData } = await supabase
