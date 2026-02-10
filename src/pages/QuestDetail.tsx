@@ -32,6 +32,7 @@ import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
