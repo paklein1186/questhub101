@@ -104,11 +104,18 @@ export function useServices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("services")
-        .select("*, service_topics(topic_id, topics(id, name)), service_territories(territory_id, territories(id, name))")
+        .select("*, service_topics(topic_id, topics(id, name)), service_territories(territory_id, territories(id, name)), guilds(id, name, logo_url)")
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Enrich with provider profiles
+      const userIds = [...new Set((data || []).map(s => s.provider_user_id).filter(Boolean))] as string[];
+      let profileMap = new Map<string, any>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url, xp").in("user_id", userIds);
+        profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+      }
+      return (data || []).map(s => ({ ...s, provider_profile: s.provider_user_id ? profileMap.get(s.provider_user_id) || null : null }));
     },
   });
 }

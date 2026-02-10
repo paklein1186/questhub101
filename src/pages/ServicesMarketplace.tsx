@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, MapPin, Hash, Euro, Loader2 } from "lucide-react";
+import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageShell } from "@/components/PageShell";
@@ -60,7 +60,8 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((svc, i) => {
-          const provider = (svc as any).profiles_public;
+          const ownerType = (svc as any).owner_type || "USER";
+          const provider = (svc as any).provider_profile;
           const guild = (svc as any).guilds;
           const svcTopics = ((svc as any).service_topics ?? []).map((st: any) => st.topics).filter(Boolean);
           const svcTerrs = ((svc as any).service_territories ?? []).map((st: any) => st.territories).filter(Boolean);
@@ -84,18 +85,18 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{svc.description}</p>
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {provider && (
+                    {ownerType === "GUILD" && guild ? (
+                      <span className="flex items-center gap-1">
+                        <Shield className="h-3 w-3 text-primary" />
+                        <Avatar className="h-5 w-5 rounded"><AvatarImage src={guild.logo_url} /><AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback></Avatar>
+                        <span className="font-medium text-foreground">{guild.name}</span>
+                      </span>
+                    ) : provider ? (
                       <span className="flex items-center gap-1">
                         <Avatar className="h-5 w-5"><AvatarImage src={provider.avatar_url} /><AvatarFallback className="text-[10px]">{provider.name?.[0]}</AvatarFallback></Avatar>
                         <span className="font-medium text-foreground">{provider.name}</span>
                       </span>
-                    )}
-                    {guild && (
-                      <span className="flex items-center gap-1">
-                        <Avatar className="h-5 w-5 rounded"><AvatarImage src={guild.logo_url} /><AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback></Avatar>
-                        <span className="font-medium text-foreground">{guild.name}</span>
-                      </span>
-                    )}
+                    ) : null}
                     {svc.duration_minutes && (
                       <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {svc.duration_minutes} min</span>
                     )}

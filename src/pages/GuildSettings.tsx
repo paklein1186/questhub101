@@ -286,13 +286,15 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       title: svcTitle.trim(),
       description: svcDesc.trim() || null,
       provider_guild_id: guildId,
+      owner_type: "GUILD",
+      owner_id: guildId,
       duration_minutes: Number(svcDuration) || 60,
       price_amount: Number(svcPrice) || 0,
       price_currency: "EUR",
       online_location_type: svcLocationType,
       is_active: true,
       image_url: svcImageUrl || null,
-    });
+    } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined);

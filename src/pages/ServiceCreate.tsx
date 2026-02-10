@@ -30,12 +30,14 @@ export default function ServiceCreate() {
         title: title.trim(),
         description: description.trim() || null,
         provider_user_id: user.id,
+        owner_type: "USER",
+        owner_id: user.id,
         duration_minutes: Number(duration) || 60,
         price_amount: Number(price) || 0,
         price_currency: currency,
         online_location_type: locationType,
         is_active: true,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {

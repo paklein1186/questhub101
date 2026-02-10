@@ -2196,6 +2196,8 @@ export type Database = {
           is_draft: boolean
           online_location_type: string | null
           online_location_url_template: string | null
+          owner_id: string | null
+          owner_type: string
           price_amount: number | null
           price_currency: string
           provider_guild_id: string | null
@@ -2216,6 +2218,8 @@ export type Database = {
           is_draft?: boolean
           online_location_type?: string | null
           online_location_url_template?: string | null
+          owner_id?: string | null
+          owner_type?: string
           price_amount?: number | null
           price_currency?: string
           provider_guild_id?: string | null
@@ -2236,6 +2240,8 @@ export type Database = {
           is_draft?: boolean
           online_location_type?: string | null
           online_location_url_template?: string | null
+          owner_id?: string | null
+          owner_type?: string
           price_amount?: number | null
           price_currency?: string
           provider_guild_id?: string | null
