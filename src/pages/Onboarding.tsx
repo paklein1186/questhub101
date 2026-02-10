@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check } from "lucide-react";
@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { topics, territories, getTopicsForGuild } from "@/data/mock";
+import { topics, territories, getTopicsForGuild, getReferralByCode } from "@/data/mock";
 import { UserRole } from "@/types/enums";
 import { generateOnboardingResults, type AIOnboardingResult } from "@/services/mockAI";
 import { Link } from "react-router-dom";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useXP } from "@/hooks/useXP";
 
 const STEPS = ["Role", "Topics", "Territories", "Bio", "AI Magic", "Explore"];
 
@@ -29,6 +31,8 @@ const slideVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
+  const { awardXp } = useXP();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -37,6 +41,26 @@ export default function Onboarding() {
   const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
+  const [referralRewarded, setReferralRewarded] = useState(false);
+
+  // Process referral reward when reaching the final step
+  useEffect(() => {
+    if (step === 5 && !referralRewarded) {
+      const refCode = sessionStorage.getItem("referralCode");
+      if (refCode) {
+        const referral = getReferralByCode(refCode);
+        if (referral && !referral.rewardGiven) {
+          // Link referee
+          referral.refereeUserId = currentUser.id;
+          referral.rewardGiven = true;
+          // Award referrer +50 XP via the XP system
+          awardXp(referral.referrerUserId, "REFERRAL_REWARD");
+        }
+        sessionStorage.removeItem("referralCode");
+        setReferralRewarded(true);
+      }
+    }
+  }, [step]);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 

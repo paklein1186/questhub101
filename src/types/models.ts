@@ -495,3 +495,15 @@ export interface Attachment {
   uploadedByUserId: string;
   createdAt: string;
 }
+
+// ─── Referrals ──────────────────────────────────────────────
+
+export interface Referral {
+  id: string;
+  referrerUserId: string;
+  refereeEmail: string;
+  refereeUserId?: string;
+  code: string;
+  createdAt: string;
+  rewardGiven: boolean;
+}

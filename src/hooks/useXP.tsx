@@ -12,6 +12,7 @@ const XP_REWARDS = {
   BOOKING_COMPLETED_PAID: 15,
   BOOKING_COMPLETED_FREE: 10,
   BOOKING_ATTENDED: 2,
+  REFERRAL_REWARD: 50,
 } as const;
 
 function recomputeContributionIndex(xp: number): number {

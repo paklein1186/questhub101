@@ -31,6 +31,7 @@ import {
   users, topics, territories, userTopics, userTerritories,
   services, getServicesForUser,
   availabilityRules, availabilityExceptions,
+  referrals, generateReferralCode, getReferralsForUser,
 } from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
@@ -42,6 +43,7 @@ const TABS = [
   { key: "notifications", label: "Notifications & Emails", icon: Bell },
   { key: "services", label: "Services & Availability", icon: Briefcase },
   { key: "billing", label: "XP, Plan & Billing", icon: Zap },
+  { key: "referrals", label: "Referrals", icon: UserCircle },
   { key: "privacy", label: "Privacy & Visibility", icon: Eye },
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
@@ -448,6 +450,11 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* ── Referrals ── */}
+              {activeTab === "referrals" && (
+                <ReferralsSection userId={currentUser.id} />
+              )}
+
               {/* ── Privacy & Visibility ── */}
               {activeTab === "privacy" && (
                 <div className="space-y-6">
@@ -530,6 +537,73 @@ function NotifToggle({ label, checked, onChange }: { label: string; checked: boo
     <div className="flex items-center justify-between py-1.5">
       <span className="text-sm">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function ReferralsSection({ userId }: { userId: string }) {
+  const [, rerender] = useState(0);
+  const myReferrals = getReferralsForUser(userId);
+  const referralLink = myReferrals.length > 0
+    ? `${window.location.origin}/signup?ref=${myReferrals[0].code}`
+    : null;
+
+  const createCode = () => {
+    const code = generateReferralCode();
+    referrals.push({
+      id: `ref-${Date.now()}`,
+      referrerUserId: userId,
+      refereeEmail: "",
+      code,
+      createdAt: new Date().toISOString(),
+      rewardGiven: false,
+    });
+    rerender((n) => n + 1);
+  };
+
+  const copyLink = (link: string) => {
+    navigator.clipboard.writeText(link);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Section title="Your Referral Link" icon={<UserCircle className="h-5 w-5" />}>
+        <p className="text-sm text-muted-foreground mb-3">
+          Share your referral link. When someone signs up and completes onboarding, you earn <strong>+50 XP</strong>.
+        </p>
+        {referralLink ? (
+          <div className="flex items-center gap-2">
+            <Input value={referralLink} readOnly className="font-mono text-xs" />
+            <Button size="sm" variant="outline" onClick={() => copyLink(referralLink)}>
+              Copy
+            </Button>
+          </div>
+        ) : (
+          <Button size="sm" onClick={createCode}>
+            <Plus className="h-4 w-4 mr-1" /> Generate referral link
+          </Button>
+        )}
+      </Section>
+
+      {myReferrals.length > 0 && (
+        <Section title="Referral History" icon={<Zap className="h-5 w-5" />}>
+          <div className="space-y-2">
+            {myReferrals.map((r) => (
+              <div key={r.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium font-mono">{r.code}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.refereeUserId ? "Signed up ✓" : "Pending"}
+                  </p>
+                </div>
+                <Badge variant={r.rewardGiven ? "default" : "secondary"}>
+                  {r.rewardGiven ? "+50 XP earned" : "Waiting"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
     </div>
   );
 }

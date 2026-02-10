@@ -1,18 +1,23 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, UserPlus, Loader2 } from "lucide-react";
+import { Zap, UserPlus, Loader2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { getReferralByCode } from "@/data/mock";
 
 export default function Signup() {
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const refCode = searchParams.get("ref") || "";
+  const referral = refCode ? getReferralByCode(refCode) : undefined;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +42,11 @@ export default function Signup() {
     setLoading(false);
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
+    } else {
+      // Store ref code for onboarding completion reward
+      if (refCode) {
+        sessionStorage.setItem("referralCode", refCode);
+      }
     }
     // Redirect handled by App.tsx
   };
@@ -53,6 +63,9 @@ export default function Signup() {
             <Zap className="h-6 w-6 text-primary" /> QuestHub
           </Link>
           <p className="text-muted-foreground mt-2">Create your account and start your journey.</p>
+          {referral && (
+            <Badge variant="secondary" className="mt-2 gap-1"><Gift className="h-3 w-3" /> You were referred! Complete onboarding to earn bonus XP.</Badge>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8 space-y-5">
