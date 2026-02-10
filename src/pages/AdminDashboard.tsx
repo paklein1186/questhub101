@@ -74,9 +74,11 @@ function UsersRolesTab() {
   const startEdit = (u: User) => { setEditingId(u.id); setEditXp(u.xp); setEditCI(u.contributionIndex); };
 
   const saveEdit = (id: string) => {
+    const user = usersState.find((u) => u.id === id);
     setXpManual(id, editXp, editCI);
     setUsersState((prev) => prev.map((u) => (u.id === id ? { ...u, xp: editXp, contributionIndex: editCI } : u)));
     setEditingId(null);
+    logAdminAction("u1", "XP_ADJUSTMENT", "User", id, `XP set to ${editXp}, CI set to ${editCI} (was ${user?.xp}/${user?.contributionIndex})`);
   };
 
   const toggleAdmin = (id: string) => {
