@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,6 +63,7 @@ export default function QuestDetail() {
   const [uType, setUType] = useState("GENERAL");
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const [podOpen, setPodOpen] = useState(false);
   const [podName, setPodName] = useState("");
@@ -305,20 +307,46 @@ export default function QuestDetail() {
         </Dialog>
       </motion.div>
 
-      <Tabs defaultValue="overview">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="proposals"><FileText className="h-3.5 w-3.5 mr-1" /> Proposals</TabsTrigger>
-          <TabsTrigger value="subtasks"><ListChecks className="h-3.5 w-3.5 mr-1" /> Subtasks</TabsTrigger>
-          <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
-          <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({(questPods || []).length})</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
-          {isOwner && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
-          {isOwner && <TabsTrigger value="memory"><Brain className="h-3.5 w-3.5 mr-1" /> Memory</TabsTrigger>}
-          {isOwner && <TabsTrigger value="fundraising-ai"><Coins className="h-3.5 w-3.5 mr-1" /> Fundraising AI</TabsTrigger>}
-          <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center gap-1 flex-wrap">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="proposals">Proposals</TabsTrigger>
+            <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+            <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
+            <TabsTrigger value="discussion">Discussion</TabsTrigger>
+            <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
+          </TabsList>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 px-2.5">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="ml-1 text-sm">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setActiveTab("pods")}>
+                <CircleDot className="h-4 w-4 mr-2" /> Pods ({(questPods || []).length})
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab("documents")}>
+                <FileText className="h-4 w-4 mr-2" /> Documents
+              </DropdownMenuItem>
+              {isOwner && (
+                <>
+                  <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
+                    <Sparkles className="h-4 w-4 mr-2" /> Matchmaker
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab("memory")}>
+                    <Brain className="h-4 w-4 mr-2" /> Memory
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
+                    <Coins className="h-4 w-4 mr-2" /> Fundraising AI
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <TabsContent value="overview" className="mt-6">
           <h3 className="font-display font-semibold mb-3 flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
