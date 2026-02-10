@@ -19,7 +19,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const STEPS = ["Role", "Topics", "Territories", "Bio", "AI Magic", "Explore"];
+const STEPS = ["Role", "Topics", "Territories", "Why", "Bio", "AI Magic", "Explore"];
+
+const WHY_OPTIONS = [
+  { key: "work", label: "Work & missions", desc: "Impact projects, paid consulting" },
+  { key: "creative", label: "Creative projects", desc: "Art, writing, performances, installations" },
+  { key: "learning", label: "Learning & experimentation", desc: "Explore and grow" },
+  { key: "community", label: "Community & belonging", desc: "Connect with like-minded people" },
+  { key: "unsure", label: "I'm not sure yet", desc: "Just exploring for now" },
+];
 
 const roleOptions = [
   { value: UserRole.GAMECHANGER, label: "Gamechanger", desc: "I create bold solutions and drive innovation.", icon: Zap },
