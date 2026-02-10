@@ -1609,7 +1609,7 @@ export default function AdminDashboard() {
           <LayoutDashboard className="h-7 w-7 text-primary" /> Admin Dashboard
         </h1>
 
-        <Tabs defaultValue="users">
+        <Tabs defaultValue="analytics">
           <TabsList className="flex-wrap">
             <TabsTrigger value="users"><UsersIcon className="h-4 w-4 mr-1" /> Users & Roles</TabsTrigger>
             <TabsTrigger value="guilds"><Shield className="h-4 w-4 mr-1" /> Guilds</TabsTrigger>
