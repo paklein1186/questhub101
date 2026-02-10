@@ -21,6 +21,7 @@ import {
   PaymentStatus,
   ReportTargetType,
   ReportStatus,
+  AttachmentTargetType,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
