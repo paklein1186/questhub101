@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
+import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
+import { Brain } from "lucide-react";
 
 import { HeroAI } from "@/components/home/HeroAI";
 import { HomeStats } from "@/components/home/HomeStats";
