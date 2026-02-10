@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useCourseById, useLessonsForCourse, useCourseEnrollment, useCourseEnrollmentCount, usePublicProfile } from "@/hooks/useEntityQueries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
