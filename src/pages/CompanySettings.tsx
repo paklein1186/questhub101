@@ -78,6 +78,9 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
   const [sector, setSector] = useState(company.sector ?? "");
   const [size, setSize] = useState<CompanySize>(company.size ?? CompanySize.OTHER);
   const [websiteUrl, setWebsiteUrl] = useState(company.websiteUrl ?? "");
+  const [companyTwitterUrl, setCompanyTwitterUrl] = useState(company.twitterUrl ?? "");
+  const [companyLinkedinUrl, setCompanyLinkedinUrl] = useState(company.linkedinUrl ?? "");
+  const [companyInstagramUrl, setCompanyInstagramUrl] = useState(company.instagramUrl ?? "");
 
   const currentTopicIds = companyTopics.filter((ct) => ct.companyId === companyId).map((ct) => ct.topicId);
   const currentTerritoryIds = companyTerritories.filter((ct) => ct.companyId === companyId).map((ct) => ct.territoryId);
