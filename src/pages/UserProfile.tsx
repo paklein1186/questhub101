@@ -54,6 +54,16 @@ export default function UserProfile() {
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
+  const isAdminViewer = checkIsAdmin(currentUser.email);
+  const canSeePrivate = isOwnProfile || isAdminViewer;
+
+  // Privacy defaults: true if undefined
+  const showXp = canSeePrivate || (user.showXpPublicly !== false);
+  const showCi = canSeePrivate || (user.showContributionIndexPublicly !== false);
+  const showAchievements = canSeePrivate || (user.showAchievementsPublicly !== false);
+  const showServices = canSeePrivate || (user.showServicesPublicly !== false);
+  const showFollowBtn = canSeePrivate || (user.allowFollows !== false);
+  const showWall = canSeePrivate || (user.allowProfileComments !== false);
 
   // Guilds
   const userGuilds = guildMembers.filter((gm) => gm.userId === user.id).map((gm) => ({
