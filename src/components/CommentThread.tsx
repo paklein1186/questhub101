@@ -168,6 +168,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                     </Button>
                   </>
                 )}
+                {!isOwn && (
+                  <ReportButton targetType={ReportTargetType.COMMENT} targetId={comment.id} variant="inline" />
+                )}
               </div>
             </div>
           </div>
