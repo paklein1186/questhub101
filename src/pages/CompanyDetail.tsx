@@ -166,7 +166,7 @@ export default function CompanyDetail() {
           <TabsTrigger value="quests">Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="bookings">Booked Services ({bookings.length})</TabsTrigger>
           <TabsTrigger value="wall">Wall</TabsTrigger>
-          {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
+          {isContact && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="quests" className="mt-6">
