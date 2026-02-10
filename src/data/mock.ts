@@ -5,6 +5,7 @@ import {
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
   TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
+  UserBlock,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
