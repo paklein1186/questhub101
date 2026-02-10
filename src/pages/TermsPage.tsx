@@ -1,45 +1,55 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PageShell } from "@/components/PageShell";
+import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
 
 export default function TermsPage() {
   return (
-    <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
-      </Button>
-      <article className="prose prose-sm max-w-3xl mx-auto">
-        <h1 className="font-display text-3xl font-bold mb-6">Terms of Service</h1>
-        <p className="text-muted-foreground text-sm mb-2">Last updated: February 10, 2026</p>
+    <ContentPageShell title="Terms of Service" subtitle="Last updated: February 10, 2026">
+      <ContentSection title="1. Agreement">
+        <p>By accessing and using ChangeTheGame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">1. Acceptance of Terms</h2>
-        <p className="text-muted-foreground leading-relaxed">By accessing and using ChangeTheGame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
+      <ContentSection title="2. Accounts & Security">
+        <p>You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials and for all activities under your account.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">2. Description of Service</h2>
-        <p className="text-muted-foreground leading-relaxed">ChangeTheGame is a learning network connecting gamechangers, ecosystem builders, and organisations around regenerative projects (Quests), collaborative groups (Guilds), and expertise sharing (Services).</p>
+      <ContentSection title="3. User Responsibilities">
+        <p>You agree not to: post harmful, misleading, or illegal content; harass other users; attempt to manipulate XP or contribution metrics; or circumvent rate limits or platform restrictions.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">3. User Accounts</h2>
-        <p className="text-muted-foreground leading-relaxed">You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials and for all activities under your account.</p>
+      <ContentSection title="4. Content Ownership">
+        <p>Content you create on the Platform remains yours. By posting, you grant ChangeTheGame a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">4. User Conduct</h2>
-        <p className="text-muted-foreground leading-relaxed">You agree not to: post harmful, misleading, or illegal content; harass other users; attempt to manipulate XP or contribution metrics; or circumvent rate limits or platform restrictions.</p>
+      <ContentSection title="5. AI-Generated Content Usage">
+        <p>AI agents may generate summaries, suggestions, and drafts. AI-generated content is provided as-is. You are responsible for reviewing and approving any AI output before publishing or acting on it.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">5. Intellectual Property</h2>
-        <p className="text-muted-foreground leading-relaxed">Content you create on the Platform remains yours. By posting, you grant ChangeTheGame a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
+      <ContentSection title="6. Payments, Credits & Transactions">
+        <p>Paid plans, service bookings, and credit purchases are processed through our payment provider. Refund policies apply as described at the time of purchase.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">6. Payments & Subscriptions</h2>
-        <p className="text-muted-foreground leading-relaxed">Paid plans and service bookings are processed through our payment provider. Refund policies apply as described at the time of purchase.</p>
+      <ContentSection title="7. Listing Services and Bookings">
+        <p>Service providers are responsible for the accuracy of their listings, availability, and fulfillment. ChangeTheGame facilitates but does not guarantee service delivery.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">7. Limitation of Liability</h2>
-        <p className="text-muted-foreground leading-relaxed">QuestHub is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages arising from your use of the Platform.</p>
+      <ContentSection title="8. Collaborations and Quests">
+        <p>Quest participation is voluntary. ChangeTheGame is not liable for the outcome of collaborations between users.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">8. Changes to Terms</h2>
-        <p className="text-muted-foreground leading-relaxed">We may update these terms at any time. Continued use of the Platform after changes constitutes acceptance of the new terms.</p>
+      <ContentSection title="9. Guild, Company and Pod Governance">
+        <p>Guilds, companies, and pods are self-governed by their members. ChangeTheGame provides tools but does not enforce internal governance decisions.</p>
+      </ContentSection>
 
-        <h2 className="font-display text-xl font-semibold mt-8 mb-3">9. Contact</h2>
-        <p className="text-muted-foreground leading-relaxed">For questions about these Terms, please contact us at legal@questhub.example.com.</p>
-      </article>
-    </PageShell>
+      <ContentSection title="10. Limitations of Liability">
+        <p>ChangeTheGame is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages arising from your use of the Platform.</p>
+      </ContentSection>
+
+      <ContentSection title="11. Suspension & Termination">
+        <p>We reserve the right to suspend or terminate accounts that violate these terms. Users may delete their accounts at any time through settings.</p>
+      </ContentSection>
+
+      <ContentSection title="12. Dispute Resolution">
+        <p>Disputes will be resolved through good-faith communication. For unresolved issues, contact us at <a href="mailto:legal@changethegame.xyz" className="text-primary hover:underline">legal@changethegame.xyz</a>.</p>
+      </ContentSection>
+    </ContentPageShell>
   );
 }
