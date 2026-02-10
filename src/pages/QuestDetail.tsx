@@ -68,6 +68,8 @@ export default function QuestDetail() {
   const [editDesc, setEditDesc] = useState("");
   const [editStatus, setEditStatus] = useState<QuestStatus>(QuestStatus.OPEN);
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
+  const [editCreditReward, setEditCreditReward] = useState("0");
+  const [editPriceFiat, setEditPriceFiat] = useState("0");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
