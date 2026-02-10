@@ -37,6 +37,7 @@ import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
+import OnboardingChecklist from "./pages/OnboardingChecklist";
 
 const queryClient = new QueryClient();
 
