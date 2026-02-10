@@ -248,7 +248,11 @@ function QuestsTab() {
     return true;
   });
 
-  const toggleFeatured = (id: string) => setQuestsState((prev) => prev.map((q) => (q.id === id ? { ...q, isFeatured: !q.isFeatured } : q)));
+  const toggleFeatured = (id: string) => {
+    const quest = questsState.find((q) => q.id === id);
+    setQuestsState((prev) => prev.map((q) => (q.id === id ? { ...q, isFeatured: !q.isFeatured } : q)));
+    logAdminAction("u1", quest?.isFeatured ? "QUEST_UNFEATURED" : "QUEST_FEATURED", "Quest", id, quest?.isFeatured ? `Unfeatured: ${quest?.title}` : `Featured: ${quest?.title}`);
+  };
 
   return (
     <div className="space-y-4">
