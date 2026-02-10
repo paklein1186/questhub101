@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
-  Zap, Clock, Settings,
+  Zap, Clock, Settings, ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
