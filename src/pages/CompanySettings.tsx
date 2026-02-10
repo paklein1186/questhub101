@@ -277,6 +277,26 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                 </div>
               )}
 
+              {/* ── Membership Policy ── */}
+              {activeTab === "membership" && (
+                <MembershipPolicyEditor
+                  joinPolicy={(company as any).joinPolicy || "APPROVAL_REQUIRED"}
+                  applicationQuestions={(company as any).applicationQuestions || []}
+                  onSave={(policy, questions) => {
+                    const c = companies.find((c) => c.id === companyId);
+                    if (c) {
+                      (c as any).joinPolicy = policy;
+                      (c as any).applicationQuestions = questions;
+                    }
+                  }}
+                />
+              )}
+
+              {/* ── Applications ── */}
+              {activeTab === "applications" && (
+                <EntityApplicationsTab entityType="company" entityId={companyId} currentUserId={currentUser.id} />
+              )}
+
               {/* ── Team & Permissions ── */}
               {activeTab === "team" && (
                 <div className="space-y-6 max-w-lg">
