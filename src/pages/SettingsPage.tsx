@@ -47,14 +47,19 @@ import { MyServicesPanel } from "@/components/MyServicesPanel";
 import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
 
 const TABS = [
-  { key: "account", label: "Account & Security", icon: Shield },
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
-  { key: "houses", label: "Houses & Territories", icon: Hash },
-  { key: "notifications", label: "Notifications & Emails", icon: Bell },
+  { key: "quests", label: "My Quests", icon: Swords },
+  { key: "guilds", label: "My Guilds", icon: Users },
+  { key: "pods", label: "My Pods", icon: Users },
+  { key: "courses", label: "My Courses", icon: GraduationCap },
   { key: "services", label: "Services & Availability", icon: Briefcase },
-  { key: "billing", label: "XP, Plan & Billing", icon: Zap },
-  { key: "referrals", label: "Referrals", icon: UserCircle },
+  { key: "bookings", label: "My Bookings", icon: CalendarCheck },
+  { key: "billing", label: "XP & Credits", icon: Zap },
+  { key: "houses", label: "Houses & Territories", icon: Hash },
+  { key: "notifications", label: "Notifications", icon: Bell },
+  { key: "account", label: "Account & Security", icon: Shield },
   { key: "privacy", label: "Privacy & Visibility", icon: Eye },
+  { key: "referrals", label: "Referrals", icon: UserCircle },
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
 
