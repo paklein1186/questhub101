@@ -108,17 +108,34 @@ export function AppNav() {
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium truncate">{user?.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> My profile
+                    <Link to="/me" className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> Me hub
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> My public profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/me/bookings" className="cursor-pointer">
+                      <CalendarCheck className="h-4 w-4 mr-2" /> My bookings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/me/services" className="cursor-pointer">
+                      <ShoppingBag className="h-4 w-4 mr-2" /> My services
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/me/settings" className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" /> Settings
