@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check, Plus } from "lucide-react";
+import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
