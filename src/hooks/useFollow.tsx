@@ -1,49 +1,89 @@
-import { useState, useCallback } from "react";
-import { follows, hasBlockRelationship } from "@/data/mock";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { FollowTargetType } from "@/types/enums";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export function useFollow(targetType: FollowTargetType, targetId: string) {
-  const currentUser = useCurrentUser();
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const userId = user?.id;
 
-  const [isFollowing, setIsFollowing] = useState(() =>
-    follows.some(
-      (f) =>
-        f.followerId === currentUser.id &&
-        f.targetType === targetType &&
-        f.targetId === targetId
-    )
-  );
+  const { data: followRecord } = useQuery({
+    queryKey: ["follow", userId, targetType, targetId],
+    enabled: !!userId && !!targetId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("follows")
+        .select("id")
+        .eq("follower_id", userId!)
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const isFollowing = !!followRecord;
+
+  const followMut = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error("Not authenticated");
+      const { error } = await supabase.from("follows").insert({
+        follower_id: userId,
+        target_type: targetType,
+        target_id: targetId,
+      } as any);
+      if (error && !error.message.includes("duplicate")) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["follow", userId, targetType, targetId] });
+      qc.invalidateQueries({ queryKey: ["my-follows"] });
+    },
+  });
+
+  const unfollowMut = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error("Not authenticated");
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", userId)
+        .eq("target_type", targetType)
+        .eq("target_id", targetId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["follow", userId, targetType, targetId] });
+      qc.invalidateQueries({ queryKey: ["my-follows"] });
+    },
+  });
 
   const toggle = useCallback(() => {
-    // Block check for user follows
-    if (targetType === FollowTargetType.USER && hasBlockRelationship(currentUser.id, targetId)) {
-      toast({ title: "Cannot follow", description: "There is a block between you and this user.", variant: "destructive" });
+    if (!userId) {
+      toast.error("Please log in to follow");
       return;
     }
-
     if (isFollowing) {
-      const idx = follows.findIndex(
-        (f) =>
-          f.followerId === currentUser.id &&
-          f.targetType === targetType &&
-          f.targetId === targetId
-      );
-      if (idx !== -1) follows.splice(idx, 1);
-      setIsFollowing(false);
+      unfollowMut.mutate();
     } else {
-      follows.push({
-        id: `f-${Date.now()}`,
-        followerId: currentUser.id,
-        targetType,
-        targetId,
-        createdAt: new Date().toISOString(),
-      });
-      setIsFollowing(true);
+      followMut.mutate();
     }
-  }, [isFollowing, currentUser.id, targetType, targetId, toast]);
+  }, [isFollowing, userId, followMut, unfollowMut]);
 
-  return { isFollowing, toggle };
+  return { isFollowing, toggle, isLoading: followMut.isPending || unfollowMut.isPending };
+}
+
+/** Auto-follow an entity after creation. Fire-and-forget, won't fail the creation. */
+export async function autoFollowEntity(userId: string, targetType: string, targetId: string) {
+  try {
+    await supabase.from("follows").insert({
+      follower_id: userId,
+      target_type: targetType,
+      target_id: targetId,
+    } as any);
+  } catch {
+    // Ignore — duplicate or network error shouldn't block creation
+  }
 }

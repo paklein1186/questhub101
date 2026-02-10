@@ -11,6 +11,7 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { PageShell } from "@/components/PageShell";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { ImageUpload } from "@/components/ImageUpload";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { Button } from "@/components/ui/button";
@@ -247,6 +248,9 @@ export default function QuestCreate() {
         relatedEntityType: "Quest",
         relatedEntityId: quest.id,
       }, true);
+
+      // Auto-follow the new quest
+      await autoFollowEntity(currentUser.id, "QUEST", quest.id);
 
       qc.invalidateQueries({ queryKey: ["quests"] });
       if (guildId) qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });

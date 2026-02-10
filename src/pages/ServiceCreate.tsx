@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PageShell } from "@/components/PageShell";
+import { autoFollowEntity } from "@/hooks/useFollow";
 
 export default function ServiceCreate() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export default function ServiceCreate() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("Not authenticated");
-      const { error } = await supabase.from("services").insert({
+      const { data, error } = await supabase.from("services").insert({
         title: title.trim(),
         description: description.trim() || null,
         provider_user_id: user.id,
@@ -37,8 +38,10 @@ export default function ServiceCreate() {
         price_currency: currency,
         online_location_type: locationType,
         is_active: true,
-      } as any);
+      } as any).select("id").single();
       if (error) throw error;
+      // Auto-follow
+      if (data) await autoFollowEntity(user.id, "SERVICE", (data as any).id);
     },
     onSuccess: () => {
       toast({ title: "Service created" });
