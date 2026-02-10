@@ -6,7 +6,9 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
+  MoreHorizontal,
 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -57,6 +59,7 @@ export default function GuildDetail() {
   const limits = usePlanLimits();
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Service creation
   const [createSvcOpen, setCreateSvcOpen] = useState(false);
@@ -181,22 +184,62 @@ export default function GuildDetail() {
         </div>
       </motion.div>
 
-      <Tabs defaultValue="overview">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
-          <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
-          <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
-          {isMember && (fc as any).kanbanBoard && <TabsTrigger value="board"><LayoutGrid className="h-4 w-4 mr-1" /> Board</TabsTrigger>}
-          {isMember && (fc as any).docsSpace && <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" /> Docs</TabsTrigger>}
-          {(fc as any).events && <TabsTrigger value="events"><CalendarDays className="h-4 w-4 mr-1" /> Events</TabsTrigger>}
-          <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
-          {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
-          {isAdmin && <TabsTrigger value="matchmaker"><Sparkles className="h-4 w-4 mr-1" /> Matchmaker</TabsTrigger>}
-          {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
-          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
-          <TabsTrigger value="wall">Wall</TabsTrigger>
-          {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center gap-1 flex-wrap">
+          <TabsList>
+            <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
+            <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
+            <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
+            <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
+            <TabsTrigger value="wall">Wall</TabsTrigger>
+            {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
+          </TabsList>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 px-2.5">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="ml-1 text-sm">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {isMember && (fc as any).kanbanBoard && (
+                <DropdownMenuItem onClick={() => setActiveTab("board")}>
+                  <LayoutGrid className="h-4 w-4 mr-2" /> Board
+                </DropdownMenuItem>
+              )}
+              {isMember && (fc as any).docsSpace && (
+                <DropdownMenuItem onClick={() => setActiveTab("docs")}>
+                  <FileText className="h-4 w-4 mr-2" /> Docs
+                </DropdownMenuItem>
+              )}
+              {(fc as any).events && (
+                <DropdownMenuItem onClick={() => setActiveTab("events")}>
+                  <CalendarDays className="h-4 w-4 mr-2" /> Events
+                </DropdownMenuItem>
+              )}
+              {achievements.length > 0 && (
+                <DropdownMenuItem onClick={() => setActiveTab("achievements")}>
+                  <Star className="h-4 w-4 mr-2" /> Achievements
+                </DropdownMenuItem>
+              )}
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
+                  <Sparkles className="h-4 w-4 mr-2" /> Matchmaker
+                </DropdownMenuItem>
+              )}
+              {isMember && (
+                <DropdownMenuItem onClick={() => setActiveTab("facilitator")}>
+                  <Sparkles className="h-4 w-4 mr-2" /> Facilitator
+                </DropdownMenuItem>
+              )}
+              {isMember && (
+                <DropdownMenuItem onClick={() => setActiveTab("memory")}>
+                  <Brain className="h-4 w-4 mr-2" /> Memory
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <TabsContent value="overview" className="mt-6 space-y-6">
           <div><h3 className="font-display font-semibold mb-2">About</h3><p className="text-sm text-foreground/80 leading-relaxed">{guild.description}</p></div>
