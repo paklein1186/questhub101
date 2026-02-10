@@ -423,43 +423,7 @@ export default function SettingsPage() {
 
               {/* ── Notifications & Emails ── */}
               {activeTab === "notifications" && (
-                <div className="space-y-6">
-                  <Section title="In-App Notifications" icon={<Bell className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      <NotifToggle label="Quests I follow" checked={notifQuests} onChange={setNotifQuests} />
-                      <NotifToggle label="Guilds I'm in" checked={notifGuilds} onChange={setNotifGuilds} />
-                      <NotifToggle label="Pods I'm in" checked={notifPods} onChange={setNotifPods} />
-                      <NotifToggle label="Bookings (as provider)" checked={notifBookingProvider} onChange={setNotifBookingProvider} />
-                      <NotifToggle label="Bookings (as client)" checked={notifBookingClient} onChange={setNotifBookingClient} />
-                      <NotifToggle label="Comments on my content" checked={notifComments} onChange={setNotifComments} />
-                      <NotifToggle label="Upvotes on my comments" checked={notifUpvotes} onChange={setNotifUpvotes} />
-                    </div>
-                  </Section>
-
-                  <Section title="Email Notifications" icon={<Bell className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      <NotifToggle label="Booking confirmations" checked={emailBookings} onChange={setEmailBookings} />
-                      <NotifToggle label="System updates (platform news)" checked={emailSystem} onChange={setEmailSystem} />
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="text-sm font-medium">Weekly digest</p>
-                          <p className="text-xs text-muted-foreground">What happened in your Houses & Territories</p>
-                        </div>
-                        <Select value={emailDigest} onValueChange={(v) => setEmailDigest(v as any)}>
-                          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INSTANT">Instant</SelectItem>
-                            <SelectItem value="DAILY">Daily</SelectItem>
-                            <SelectItem value="WEEKLY">Weekly</SelectItem>
-                            <SelectItem value="NEVER">Never</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </Section>
-
-                  <Button onClick={() => toast({ title: "Notification preferences saved!" })}><Save className="h-4 w-4 mr-1" /> Save preferences</Button>
-                </div>
+                <NotificationsSettingsTab toast={toast} />
               )}
 
               {/* ── Services & Availability ── */}
