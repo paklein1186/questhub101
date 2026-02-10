@@ -28,15 +28,13 @@ import { useToast } from "@/hooks/use-toast";
 import { GuildType, GuildMemberRole, OnlineLocationType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentTargetType } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
-import type { Service } from "@/types";
-import {
-  getGuildById, guilds, topics, territories, guildTopics, guildTerritories,
-  guildMembers, users, getUserById, getMembersForGuild, getServicesForGuild, services,
-} from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -51,58 +49,105 @@ const TABS = [
 
 export default function GuildSettings() {
   const { id } = useParams<{ id: string }>();
-  const guild = getGuildById(id!);
   const currentUser = useCurrentUser();
 
+  const { data: guild, isLoading: guildLoading } = useQuery({
+    queryKey: ["guild-settings", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("guilds")
+        .select("*, guild_topics(topic_id), guild_territories(territory_id), guild_members(id, user_id, role, joined_at)")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  if (guildLoading) return <PageShell><Loader2 className="h-6 w-6 animate-spin mx-auto mt-16" /></PageShell>;
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
 
-  const currentMembership = guildMembers.find(
-    (gm) => gm.guildId === guild.id && gm.userId === currentUser.id
+  const currentMembership = guild.guild_members?.find(
+    (gm: any) => gm.user_id === currentUser.id
   );
-  if (currentMembership?.role !== GuildMemberRole.ADMIN) {
+  if (currentMembership?.role !== "ADMIN") {
     return <PageShell><p>You must be an admin of this guild to access settings.</p></PageShell>;
   }
 
-  return <GuildSettingsInner guildId={guild.id} />;
+  return <GuildSettingsInner guildId={guild.id} guild={guild} />;
 }
 
-function GuildSettingsInner({ guildId }: { guildId: string }) {
-  const guild = getGuildById(guildId)!;
+function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab = searchParams.get("tab") || "identity";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
+  const { data: allTopics = [] } = useTopics();
+  const { data: allTerritories = [] } = useTerritories();
+
   // ── Identity state ──
   const [name, setName] = useState(guild.name);
-  const [logoUrl, setLogoUrl] = useState(guild.logoUrl ?? "");
-  const [bannerUrl, setBannerUrl] = useState(guild.bannerUrl ?? "");
+  const [logoUrl, setLogoUrl] = useState(guild.logo_url ?? "");
+  const [bannerUrl, setBannerUrl] = useState(guild.banner_url ?? "");
   const [description, setDescription] = useState(guild.description ?? "");
-  const [type, setType] = useState<GuildType>(guild.type);
+  const [type, setType] = useState<GuildType>(guild.type as GuildType);
 
-  const currentTopicIds = guildTopics.filter((gt) => gt.guildId === guildId).map((gt) => gt.topicId);
-  const currentTerritoryIds = guildTerritories.filter((gt) => gt.guildId === guildId).map((gt) => gt.territoryId);
+  const currentTopicIds = (guild.guild_topics || []).map((gt: any) => gt.topic_id);
+  const currentTerritoryIds = (guild.guild_territories || []).map((gt: any) => gt.territory_id);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
 
   // Social links state
-  const [guildWebsiteUrl, setGuildWebsiteUrl] = useState(guild.websiteUrl ?? "");
-  const [guildTwitterUrl, setGuildTwitterUrl] = useState(guild.twitterUrl ?? "");
-  const [guildLinkedinUrl, setGuildLinkedinUrl] = useState(guild.linkedinUrl ?? "");
-  const [guildInstagramUrl, setGuildInstagramUrl] = useState(guild.instagramUrl ?? "");
+  const [guildWebsiteUrl, setGuildWebsiteUrl] = useState(guild.website_url ?? "");
+  const [guildTwitterUrl, setGuildTwitterUrl] = useState(guild.twitter_url ?? "");
+  const [guildLinkedinUrl, setGuildLinkedinUrl] = useState(guild.linkedin_url ?? "");
+  const [guildInstagramUrl, setGuildInstagramUrl] = useState(guild.instagram_url ?? "");
 
-  // ── Members state ──
-  const [members, setMembers] = useState(() => getMembersForGuild(guildId));
+  // ── Members ──
+  const { data: members = [], refetch: refetchMembers } = useQuery({
+    queryKey: ["guild-members-settings", guildId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("guild_members")
+        .select("id, user_id, role, joined_at")
+        .eq("guild_id", guildId);
+      if (error) throw error;
+      // fetch profiles for members
+      const userIds = data.map((m: any) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, email, avatar_url")
+        .in("user_id", userIds);
+      return data.map((m: any) => ({
+        ...m,
+        user: profiles?.find((p: any) => p.user_id === m.user_id),
+      }));
+    },
+  });
+
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteUserId, setInviteUserId] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
 
-  // ── Services state ──
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
-  const guildServices = getServicesForGuild(guildId);
+  // ── Services ──
+  const { data: guildServices = [], refetch: refetchServices } = useQuery({
+    queryKey: ["guild-services-settings", guildId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("provider_guild_id", guildId)
+        .eq("is_deleted", false);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const [createSvcOpen, setCreateSvcOpen] = useState(false);
   const [svcTitle, setSvcTitle] = useState("");
   const [svcDesc, setSvcDesc] = useState("");
@@ -113,12 +158,11 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
 
   // ── Membership policy state ──
   const [joinPolicy, setJoinPolicy] = useState<GuildJoinPolicy>(
-    (guild as any).joinPolicy || GuildJoinPolicy.OPEN
+    (guild.join_policy as GuildJoinPolicy) || GuildJoinPolicy.OPEN
   );
   const [appQuestions, setAppQuestions] = useState<string[]>(
-    (guild as any).applicationQuestions || []
+    (guild.application_questions as string[]) || []
   );
-  const [newQuestion, setNewQuestion] = useState("");
 
   // ── Defaults state ──
   const [podAccessPolicy, setPodAccessPolicy] = useState<"OPEN" | "GUILD_MEMBERS" | "INVITE_ONLY">("OPEN");
@@ -135,90 +179,112 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const toggleDefaultQuestTerritory = (id: string) =>
     setDefaultQuestTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const handleSaveIdentity = () => {
-    const target = guilds.find((g) => g.id === guildId);
-    if (target) {
-      target.name = name.trim() || guild.name;
-      target.logoUrl = logoUrl.trim() || undefined;
-      target.bannerUrl = bannerUrl.trim() || undefined;
-      target.description = description.trim() || undefined;
-      target.type = type;
-      target.websiteUrl = normalizeUrl(guildWebsiteUrl) ?? undefined;
-      target.twitterUrl = normalizeUrl(guildTwitterUrl) ?? undefined;
-      target.linkedinUrl = normalizeUrl(guildLinkedinUrl) ?? undefined;
-      target.instagramUrl = normalizeUrl(guildInstagramUrl) ?? undefined;
+  const handleSaveIdentity = async () => {
+    const { error } = await supabase
+      .from("guilds")
+      .update({
+        name: name.trim() || guild.name,
+        logo_url: logoUrl.trim() || null,
+        banner_url: bannerUrl.trim() || null,
+        description: description.trim() || null,
+        type: type as any,
+        website_url: normalizeUrl(guildWebsiteUrl) ?? null,
+        twitter_url: normalizeUrl(guildTwitterUrl) ?? null,
+        linkedin_url: normalizeUrl(guildLinkedinUrl) ?? null,
+        instagram_url: normalizeUrl(guildInstagramUrl) ?? null,
+      })
+      .eq("id", guildId);
+    if (error) { toast({ title: "Failed to save", variant: "destructive" }); return; }
+
+    // Sync topics
+    await supabase.from("guild_topics").delete().eq("guild_id", guildId);
+    if (selectedTopics.length > 0) {
+      await supabase.from("guild_topics").insert(
+        selectedTopics.map((topicId) => ({ guild_id: guildId, topic_id: topicId }))
+      );
     }
-    // Update topic relations
-    const existing = guildTopics.filter((gt) => gt.guildId === guildId);
-    existing.forEach((gt) => { const i = guildTopics.indexOf(gt); if (i !== -1) guildTopics.splice(i, 1); });
-    selectedTopics.forEach((topicId, i) => { guildTopics.push({ id: `gt-${Date.now()}-${i}`, guildId, topicId }); });
-    // Update territory relations
-    const existingT = guildTerritories.filter((gt) => gt.guildId === guildId);
-    existingT.forEach((gt) => { const i = guildTerritories.indexOf(gt); if (i !== -1) guildTerritories.splice(i, 1); });
-    selectedTerritories.forEach((territoryId, i) => { guildTerritories.push({ id: `gtr-${Date.now()}-${i}`, guildId, territoryId }); });
+    // Sync territories
+    await supabase.from("guild_territories").delete().eq("guild_id", guildId);
+    if (selectedTerritories.length > 0) {
+      await supabase.from("guild_territories").insert(
+        selectedTerritories.map((territoryId) => ({ guild_id: guildId, territory_id: territoryId }))
+      );
+    }
+    qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
     toast({ title: "Guild identity updated!" });
   };
 
-  const inviteMember = () => {
-    if (!inviteUserId) return;
-    const already = guildMembers.some((gm) => gm.guildId === guildId && gm.userId === inviteUserId);
+  const inviteMember = async () => {
+    if (!inviteEmail.trim()) return;
+    // Look up user by email
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("email", inviteEmail.trim())
+      .single();
+    if (!profile) { toast({ title: "User not found", variant: "destructive" }); return; }
+    const already = members.some((m: any) => m.user_id === profile.user_id);
     if (already) { toast({ title: "Already a member", variant: "destructive" }); return; }
-    const newMember = { id: `gm-${Date.now()}`, guildId, userId: inviteUserId, role: GuildMemberRole.MEMBER, joinedAt: new Date().toISOString() };
-    guildMembers.push(newMember);
-    setMembers((prev) => [...prev, { ...newMember, user: getUserById(inviteUserId) }]);
-    setInviteUserId(""); setInviteOpen(false);
+    const { error } = await supabase.from("guild_members").insert({
+      guild_id: guildId, user_id: profile.user_id, role: "MEMBER" as any,
+    });
+    if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
+    setInviteEmail(""); setInviteOpen(false);
+    refetchMembers();
     toast({ title: "Member added!" });
   };
 
-  const toggleMemberRole = (memberId: string) => {
-    const gm = guildMembers.find((m) => m.id === memberId);
+  const toggleMemberRole = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
     if (!gm) return;
-    const admins = guildMembers.filter((m) => m.guildId === guildId && m.role === GuildMemberRole.ADMIN);
-    if (gm.role === GuildMemberRole.ADMIN && admins.length <= 1) {
+    const admins = members.filter((m: any) => m.role === "ADMIN");
+    if (gm.role === "ADMIN" && admins.length <= 1) {
       toast({ title: "Cannot demote", description: "At least one admin must exist.", variant: "destructive" });
       return;
     }
-    gm.role = gm.role === GuildMemberRole.ADMIN ? GuildMemberRole.MEMBER : GuildMemberRole.ADMIN;
-    setMembers(getMembersForGuild(guildId));
-    toast({ title: `Role changed to ${gm.role.toLowerCase()}` });
+    const newRole = gm.role === "ADMIN" ? "MEMBER" : "ADMIN";
+    await supabase.from("guild_members").update({ role: newRole as any }).eq("id", memberId);
+    refetchMembers();
+    toast({ title: `Role changed to ${newRole.toLowerCase()}` });
   };
 
-  const removeMember = (memberId: string) => {
-    const gm = guildMembers.find((m) => m.id === memberId);
-    if (!gm || gm.userId === currentUser.id) return;
-    if (gm.role === GuildMemberRole.ADMIN) {
-      const admins = guildMembers.filter((m) => m.guildId === guildId && m.role === GuildMemberRole.ADMIN);
+  const removeMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
+    if (!gm || gm.user_id === currentUser.id) return;
+    if (gm.role === "ADMIN") {
+      const admins = members.filter((m: any) => m.role === "ADMIN");
       if (admins.length <= 1) { toast({ title: "Cannot remove the last admin", variant: "destructive" }); return; }
     }
-    const idx = guildMembers.indexOf(gm);
-    if (idx !== -1) guildMembers.splice(idx, 1);
-    setMembers(getMembersForGuild(guildId));
+    await supabase.from("guild_members").delete().eq("id", memberId);
+    refetchMembers();
     toast({ title: "Member removed" });
   };
 
-  const nonMembers = users.filter((u) => !guildMembers.some((gm) => gm.guildId === guildId && gm.userId === u.id));
-
-  const createGuildService = () => {
+  const createGuildService = async () => {
     if (!svcTitle.trim()) return;
-    const newSvc: Service = {
-      id: `svc-${Date.now()}`, title: svcTitle.trim(), description: svcDesc.trim(),
-      providerGuildId: guildId, durationMinutes: Number(svcDuration) || 60,
-      priceAmount: Number(svcPrice) || 0, priceCurrency: "EUR",
-      onlineLocationType: svcLocationType, isActive: true, imageUrl: svcImageUrl,
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    };
-    services.push(newSvc);
+    const { error } = await supabase.from("services").insert({
+      title: svcTitle.trim(),
+      description: svcDesc.trim() || null,
+      provider_guild_id: guildId,
+      duration_minutes: Number(svcDuration) || 60,
+      price_amount: Number(svcPrice) || 0,
+      price_currency: "EUR",
+      online_location_type: svcLocationType,
+      is_active: true,
+      image_url: svcImageUrl || null,
+    });
+    if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined);
-    setCreateSvcOpen(false); rerender();
+    setCreateSvcOpen(false);
+    refetchServices();
     toast({ title: "Guild service created" });
   };
 
-  const toggleServiceActive = (svc: Service) => {
-    svc.isActive = !svc.isActive;
-    svc.updatedAt = new Date().toISOString();
-    rerender();
-    toast({ title: svc.isActive ? "Service resumed" : "Service paused" });
+  const toggleServiceActive = async (svc: any) => {
+    await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
+    refetchServices();
+    toast({ title: svc.is_active ? "Service paused" : "Service resumed" });
   };
 
   return (
@@ -229,12 +295,12 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
 
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          {guild.logoUrl && <img src={guild.logoUrl} className="h-10 w-10 rounded-lg" alt="" />}
+          {guild.logo_url && <img src={guild.logo_url} className="h-10 w-10 rounded-lg" alt="" />}
           <div>
             <h1 className="font-display text-2xl font-bold">Guild Settings</h1>
             <p className="text-sm text-muted-foreground">{guild.name}</p>
           </div>
-          {guild.isApproved ? (
+          {guild.is_approved ? (
             <Badge className="bg-primary/10 text-primary border-0 ml-auto"><ShieldCheck className="h-3 w-3 mr-1" /> Approved</Badge>
           ) : (
             <Badge variant="outline" className="ml-auto"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>
@@ -290,7 +356,7 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
 
                   <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {topics.map((t) => (
+                      {allTopics.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
                           <span className="text-sm">{t.name}</span>
@@ -302,10 +368,10 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {territories.map((t) => (
+                      {allTerritories.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level.toLowerCase()})</span></span>
+                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level?.toLowerCase()})</span></span>
                         </label>
                       ))}
                     </div>
@@ -334,14 +400,15 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
               {/* ── Membership Policy ── */}
               {activeTab === "membership" && (
                 <MembershipPolicyEditor
-                  joinPolicy={(guild as any).joinPolicy || "OPEN"}
-                  applicationQuestions={(guild as any).applicationQuestions || []}
-                  onSave={(policy, questions) => {
-                    const target = guilds.find((g) => g.id === guildId);
-                    if (target) {
-                      (target as any).joinPolicy = policy;
-                      (target as any).applicationQuestions = questions;
-                    }
+                  joinPolicy={guild.join_policy || "OPEN"}
+                  applicationQuestions={(guild.application_questions as string[]) || []}
+                  onSave={async (policy, questions) => {
+                    await supabase.from("guilds").update({
+                      join_policy: policy as any,
+                      application_questions: questions as any,
+                    }).eq("id", guildId);
+                    qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                    toast({ title: "Membership policy saved!" });
                   }}
                 />
               )}
@@ -361,15 +428,11 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                       <DialogContent>
                         <DialogHeader><DialogTitle>Add Member</DialogTitle></DialogHeader>
                         <div className="space-y-4 mt-2">
-                          <Select value={inviteUserId} onValueChange={setInviteUserId}>
-                            <SelectTrigger><SelectValue placeholder="Select a user" /></SelectTrigger>
-                            <SelectContent>
-                              {nonMembers.map((u) => (
-                                <SelectItem key={u.id} value={u.id}>{u.name} ({u.email})</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button onClick={inviteMember} disabled={!inviteUserId} className="w-full">Add to guild</Button>
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">User email</label>
+                            <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="user@example.com" />
+                          </div>
+                          <Button onClick={inviteMember} disabled={!inviteEmail.trim()} className="w-full">Add to guild</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
@@ -386,11 +449,11 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {members.map((m) => (
+                        {members.map((m: any) => (
                           <tr key={m.id} className="border-t border-border">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
-                                <Avatar className="h-8 w-8"><AvatarImage src={m.user?.avatarUrl} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                                <Avatar className="h-8 w-8"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
                                 <div>
                                   <p className="font-medium">{m.user?.name}</p>
                                   <p className="text-xs text-muted-foreground">{m.user?.email}</p>
@@ -398,21 +461,21 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <Badge variant={m.role === GuildMemberRole.ADMIN ? "default" : "outline"} className="capitalize text-xs">
-                                {m.role === GuildMemberRole.ADMIN && <Crown className="h-3 w-3 mr-1" />}
+                              <Badge variant={m.role === "ADMIN" ? "default" : "outline"} className="capitalize text-xs">
+                                {m.role === "ADMIN" && <Crown className="h-3 w-3 mr-1" />}
                                 {m.role.toLowerCase()}
                               </Badge>
                             </td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">
-                              {formatDistanceToNow(new Date(m.joinedAt), { addSuffix: true })}
+                              {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}
                             </td>
                             <td className="px-4 py-3 text-right">
                               <div className="flex justify-end gap-1">
                                 <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => toggleMemberRole(m.id)}
-                                  title={m.role === GuildMemberRole.ADMIN ? "Demote to member" : "Promote to admin"}>
-                                  {m.role === GuildMemberRole.ADMIN ? "Demote" : "Promote"}
+                                  title={m.role === "ADMIN" ? "Demote to member" : "Promote to admin"}>
+                                  {m.role === "ADMIN" ? "Demote" : "Promote"}
                                 </Button>
-                                {m.userId !== currentUser.id && (
+                                {m.user_id !== currentUser.id && (
                                   <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => removeMember(m.id)}>
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
@@ -464,22 +527,22 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                     <p className="text-sm text-muted-foreground">No services yet. Create one above.</p>
                   ) : (
                     <div className="space-y-3">
-                      {guildServices.map((svc) => (
+                      {guildServices.map((svc: any) => (
                         <div key={svc.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                           <div>
                             <Link to={`/services/${svc.id}`} className="text-sm font-medium hover:text-primary transition-colors">{svc.title}</Link>
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{svc.durationMinutes} min</span>
-                              <span className="flex items-center gap-1"><Euro className="h-3 w-3" />{(!svc.priceAmount || svc.priceAmount === 0) ? "Free" : `€${svc.priceAmount}`}</span>
-                              <span className="flex items-center gap-1"><Video className="h-3 w-3" />{svc.onlineLocationType?.toLowerCase()}</span>
+                              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{svc.duration_minutes} min</span>
+                              <span className="flex items-center gap-1"><Euro className="h-3 w-3" />{(!svc.price_amount || svc.price_amount === 0) ? "Free" : `€${svc.price_amount}`}</span>
+                              <span className="flex items-center gap-1"><Video className="h-3 w-3" />{svc.online_location_type?.toLowerCase()}</span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className={svc.isActive ? "bg-primary/10 text-primary border-0" : "bg-muted text-muted-foreground border-0"}>
-                              {svc.isActive ? "Active" : "Paused"}
+                            <Badge className={svc.is_active ? "bg-primary/10 text-primary border-0" : "bg-muted text-muted-foreground border-0"}>
+                              {svc.is_active ? "Active" : "Paused"}
                             </Badge>
                             <Button size="sm" variant="ghost" onClick={() => toggleServiceActive(svc)}>
-                              {svc.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                              {svc.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                             </Button>
                           </div>
                         </div>
@@ -509,7 +572,7 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                   <Section title="Default Quest Topics" icon={<Hash className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-2">Pre-select these topics when creating quests from this guild.</p>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                      {topics.map((t) => (
+                      {allTopics.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={defaultQuestTopics.includes(t.id)} onCheckedChange={() => toggleDefaultQuestTopic(t.id)} />
                           <span className="text-sm">{t.name}</span>
@@ -522,10 +585,10 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                   <Section title="Default Quest Territories" icon={<MapPin className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-2">Pre-select these territories when creating quests from this guild.</p>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {territories.map((t) => (
+                      {allTerritories.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={defaultQuestTerritories.includes(t.id)} onCheckedChange={() => toggleDefaultQuestTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level.toLowerCase()})</span></span>
+                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level?.toLowerCase()})</span></span>
                         </label>
                       ))}
                     </div>
