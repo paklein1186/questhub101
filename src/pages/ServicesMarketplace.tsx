@@ -134,6 +134,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                   {svcTopics.map((t) => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                   {svcTerrs.map((t) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                 </div>
+                </div>
               </Link>
             </motion.div>
           );

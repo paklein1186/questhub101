@@ -204,6 +204,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                     <Badge variant="secondary" className="capitalize">{quest.monetizationType.toLowerCase()}</Badge>
                   </div>
                 </div>
+                </div>
               </Link>
             </motion.div>
           );
