@@ -1415,6 +1415,71 @@ function AnalyticsTab() {
   );
 }
 
+// ─── Audit Logs Tab ─────────────────────────────────────────
+function AuditLogsTab() {
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [, forceRender] = useState(0);
+
+  const actionTypes = [...new Set(adminActionLogs.map((l) => l.actionType))];
+  const filtered = typeFilter === "all" ? adminActionLogs : adminActionLogs.filter((l) => l.actionType === typeFilter);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder="All actions" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Actions</SelectItem>
+            {actionTypes.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-muted-foreground">{filtered.length} entries</span>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <ScrollText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+          <p>No audit logs yet. Admin actions will appear here.</p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Admin</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.slice(0, 100).map((log) => {
+                const admin = getUserById(log.adminUserId);
+                return (
+                  <TableRow key={log.id}>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(log.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium text-sm">{admin?.name ?? log.adminUserId}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">{log.actionType.replace(/_/g, " ")}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {log.targetEntityType} / {log.targetEntityId}
+                    </TableCell>
+                    <TableCell className="text-sm max-w-[300px] truncate">{log.details}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ─────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
