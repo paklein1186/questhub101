@@ -10,7 +10,7 @@ import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
-import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
+import { usePlanLimits, EXTRA_POD_CREDIT_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, PodType, PodMemberRole, ReportTargetType, AttachmentTargetType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import { ReportButton } from "@/components/ReportButton";
