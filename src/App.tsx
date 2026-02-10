@@ -76,6 +76,7 @@ import CourseCreate from "./pages/CourseCreate";
 import LessonView from "./pages/LessonView";
 import MyCourses from "./pages/MyCourses";
 import ExploreUsers from "./pages/ExploreUsers";
+import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 
 const queryClient = new QueryClient();
@@ -101,6 +102,7 @@ const App = () => (
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />
+                <Route path="/explore/houses" element={<ExploreHouses />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
                 <Route path="/guilds/:guildId/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />
                 <Route path="/companies/:companyId/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />

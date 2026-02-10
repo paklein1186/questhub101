@@ -10,8 +10,9 @@ import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
+import ExploreHouses from "./ExploreHouses";
 
-const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users"];
+const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users", "houses"];
 
 export default function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,6 +42,7 @@ export default function ExploreHub() {
           <TabsTrigger value="companies">Companies</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="houses">Houses</TabsTrigger>
         </TabsList>
 
         <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
@@ -50,6 +52,7 @@ export default function ExploreHub() {
         <TabsContent value="companies"><CompaniesList bare /></TabsContent>
         <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
+        <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
       </Tabs>
     </PageShell>
   );
