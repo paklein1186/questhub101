@@ -172,10 +172,11 @@ export default function GuildDetail() {
       priceAmount: Number(svcPrice) || 0, priceCurrency: "EUR",
       onlineLocationType: svcLocationType, isActive: true, imageUrl: svcImageUrl,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      isDraft: svcDraft,
     };
     services.push(newSvc);
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
-    setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined);
+    setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
     setCreateSvcOpen(false); rerender();
     toast({ title: "Guild service created" });
   };
