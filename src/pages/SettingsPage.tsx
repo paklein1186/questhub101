@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { usePersona } from "@/hooks/usePersona";
+import type { PersonaType } from "@/lib/personaLabels";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
