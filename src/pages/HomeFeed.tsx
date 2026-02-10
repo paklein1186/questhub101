@@ -25,6 +25,7 @@ import {
   TopicFeatureTargetType,
 } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAuth } from "@/hooks/useAuth";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { formatDistanceToNow } from "date-fns";
 
@@ -49,6 +50,7 @@ const ITEMS_PER_PAGE = 8;
 
 export default function HomeFeed() {
   const currentUser = useCurrentUser();
+  const { user: authUser } = useAuth();
   const { percentage, isComplete, completedCount, totalSteps } = useOnboardingProgress();
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("All");
   const [feedPage, setFeedPage] = useState(1);
@@ -201,9 +203,9 @@ export default function HomeFeed() {
             </Avatar>
             <div>
               <h1 className="font-display text-2xl md:text-3xl font-bold">
-                Welcome back, <span className="text-primary">{currentUser.name.split(" ")[0]}</span>
+                Welcome back, <span className="text-primary">{(authUser?.name || currentUser.name).split(" ")[0]}</span>
               </h1>
-              <p className="text-sm text-muted-foreground capitalize">{currentUser.role.toLowerCase().replace("_", " ")}</p>
+              <p className="text-sm text-muted-foreground capitalize">{(authUser?.role || currentUser.role).toLowerCase().replace("_", " ")}</p>
             </div>
           </div>
 
