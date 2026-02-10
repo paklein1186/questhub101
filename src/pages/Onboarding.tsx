@@ -36,7 +36,10 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { awardXp } = useXP();
+  const { user: authUser, refreshProfile } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
+  const [generatingBio, setGeneratingBio] = useState(false);
   const [direction, setDirection] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
