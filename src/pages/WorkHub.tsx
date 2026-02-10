@@ -50,7 +50,13 @@ export default function WorkHub() {
         </TabsList>
 
         <TabsContent value="quests">
-          {questsList.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
+          {questsList.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Compass className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground mb-4">No quests yet. Start your first quest!</p>
+              <Button asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {questsList.map((qp: any, i: number) => (
               <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
