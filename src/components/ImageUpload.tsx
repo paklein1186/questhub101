@@ -1,14 +1,16 @@
 import { useRef, useState } from "react";
-import { ImagePlus, X, Upload } from "lucide-react";
+import { ImagePlus, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
   label: string;
   currentImageUrl?: string;
   onChange: (url: string | undefined) => void;
-  aspectRatio?: string; // e.g. "1/1", "16/9", "4/3"
+  aspectRatio?: string;
   description?: string;
   className?: string;
 }
@@ -24,14 +26,35 @@ export function ImageUpload({
   const fileRef = useRef<HTMLInputElement>(null);
   const [urlMode, setUrlMode] = useState(false);
   const [urlValue, setUrlValue] = useState(currentImageUrl ?? "");
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Create object URL for local preview (mock — in production use storage upload)
-    const objectUrl = URL.createObjectURL(file);
-    onChange(objectUrl);
-    setUrlValue(objectUrl);
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const filePath = `${crypto.randomUUID()}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("entity-images")
+        .upload(filePath, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from("entity-images")
+        .getPublicUrl(filePath);
+
+      onChange(urlData.publicUrl);
+      setUrlValue(urlData.publicUrl);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleUrlSubmit = () => {
@@ -46,6 +69,9 @@ export function ImageUpload({
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  // Check if URL is a broken blob URL
+  const isValidUrl = currentImageUrl && !currentImageUrl.startsWith("blob:");
+
   return (
     <div className={cn("space-y-2", className)}>
       <label className="text-sm font-medium block">{label}</label>
@@ -53,7 +79,7 @@ export function ImageUpload({
         <p className="text-xs text-muted-foreground">{description}</p>
       )}
 
-      {currentImageUrl ? (
+      {isValidUrl ? (
         <div className="relative group inline-block">
           <div
             className="overflow-hidden rounded-lg border border-border bg-muted"
@@ -78,12 +104,19 @@ export function ImageUpload({
       ) : (
         <button
           type="button"
-          onClick={() => fileRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 p-6 hover:border-primary/40 hover:bg-muted/50 transition-all cursor-pointer w-full"
+          onClick={() => !uploading && fileRef.current?.click()}
+          disabled={uploading}
+          className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 p-6 hover:border-primary/40 hover:bg-muted/50 transition-all cursor-pointer w-full disabled:opacity-50"
           style={{ aspectRatio, maxWidth: aspectRatio === "16/9" ? "100%" : "160px" }}
         >
-          <ImagePlus className="h-8 w-8 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Click to upload</span>
+          {uploading ? (
+            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+          ) : (
+            <ImagePlus className="h-8 w-8 text-muted-foreground" />
+          )}
+          <span className="text-xs text-muted-foreground">
+            {uploading ? "Uploading…" : "Click to upload"}
+          </span>
         </button>
       )}
 
@@ -96,15 +129,16 @@ export function ImageUpload({
       />
 
       <div className="flex items-center gap-2">
-        {currentImageUrl && (
+        {isValidUrl && (
           <Button
             type="button"
             size="sm"
             variant="outline"
             className="text-xs h-7"
             onClick={() => fileRef.current?.click()}
+            disabled={uploading}
           >
-            <Upload className="h-3 w-3 mr-1" /> Replace
+            {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />} Replace
           </Button>
         )}
         <Button
