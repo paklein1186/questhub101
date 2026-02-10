@@ -7,21 +7,22 @@ import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
-import { achievements, getUserById, getQuestById } from "@/data/mock";
+import { useAchievementById, usePublicProfile, useQuestById } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
 
 export default function AchievementDetail() {
   const { id } = useParams<{ id: string }>();
-  const achievement = achievements.find((a) => a.id === id);
-  if (!achievement) return <PageShell><p>Achievement not found.</p></PageShell>;
+  const { data: achievement, isLoading } = useAchievementById(id);
+  const { data: user } = usePublicProfile(achievement?.user_id);
+  const { data: quest } = useQuestById(achievement?.quest_id ?? undefined);
 
-  const user = getUserById(achievement.userId);
-  const quest = getQuestById(achievement.questId);
+  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
+  if (!achievement) return <PageShell><p>Achievement not found.</p></PageShell>;
 
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to={`/users/${achievement.userId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to Profile</Link>
+        <Link to={`/users/${achievement.user_id}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to Profile</Link>
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -34,14 +35,14 @@ export default function AchievementDetail() {
             <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <Avatar className="h-5 w-5">
-                  <AvatarImage src={user?.avatarUrl} />
+                  <AvatarImage src={user?.avatar_url ?? undefined} />
                   <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
                 </Avatar>
-                <Link to={`/users/${user?.id}`} className="hover:text-primary transition-colors">{user?.name}</Link>
+                <Link to={`/users/${user?.user_id}`} className="hover:text-primary transition-colors">{user?.name}</Link>
               </div>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                {formatDistanceToNow(new Date(achievement.createdAt), { addSuffix: true })}
+                {formatDistanceToNow(new Date(achievement.created_at), { addSuffix: true })}
               </span>
             </div>
           </div>
@@ -58,7 +59,7 @@ export default function AchievementDetail() {
             <Link to={`/quests/${quest.id}`} className="text-sm font-medium hover:text-primary transition-colors">
               {quest.title}
             </Link>
-            <Badge className="bg-primary/10 text-primary border-0 text-xs">{quest.rewardXp} XP</Badge>
+            <Badge className="bg-primary/10 text-primary border-0 text-xs">{quest.reward_xp} XP</Badge>
           </div>
         )}
       </motion.div>
