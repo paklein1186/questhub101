@@ -72,6 +72,9 @@ export default function QuestDetail() {
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
   const [editCreditReward, setEditCreditReward] = useState("0");
   const [editPriceFiat, setEditPriceFiat] = useState("0");
+  const [editCreditBudget, setEditCreditBudget] = useState("0");
+  const [editAllowFundraising, setEditAllowFundraising] = useState(false);
+  const [editFundingGoal, setEditFundingGoal] = useState("");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
