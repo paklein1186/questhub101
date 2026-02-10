@@ -84,6 +84,8 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
+      const budget = Number(creditBudget) || 0;
+      const questStatus = isDraft ? "DRAFT" : openForProposals ? "OPEN_FOR_PROPOSALS" : "OPEN";
 
       const { data: quest, error } = await supabase
         .from("quests")
