@@ -109,14 +109,16 @@ export default function UserProfile() {
       });
   }, [id]);
 
+  const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
+
   if (loading) return <PageShell><p>Loading…</p></PageShell>;
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
-  if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
+  if (user.isDeleted && !viewerIsAdmin) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
-  const isAdminViewer = checkIsAdmin(currentUser.email);
+  const isAdminViewer = viewerIsAdmin;
   const canSeePrivate = isOwnProfile || isAdminViewer;
 
   // Privacy defaults: true if undefined
