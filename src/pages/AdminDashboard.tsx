@@ -82,8 +82,10 @@ function UsersRolesTab() {
   };
 
   const toggleAdmin = (id: string) => {
+    const wasAdmin = !!adminFlags[id];
     setAdminFlags((p) => ({ ...p, [id]: !p[id] }));
-    toast({ title: adminFlags[id] ? "Admin removed" : "Admin granted" });
+    logAdminAction("u1", wasAdmin ? "ADMIN_REVOKED" : "ADMIN_GRANTED", "User", id, wasAdmin ? "Admin role removed" : "Admin role granted");
+    toast({ title: wasAdmin ? "Admin removed" : "Admin granted" });
   };
 
   const toggleBlocked = (id: string) => {
