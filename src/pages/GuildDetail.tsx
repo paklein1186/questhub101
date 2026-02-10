@@ -326,6 +326,12 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
+        {isMember && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
+          </TabsContent>
+        )}
+
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
