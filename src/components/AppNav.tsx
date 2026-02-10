@@ -98,14 +98,20 @@ export function AppNav() {
                 </Link>
               )}
 
-              {/* Account dropdown */}
+              {/* Unified user menu (avatar + "Me") */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="ml-2 flex items-center rounded-full hover:ring-2 hover:ring-primary/20 transition-all">
+                  <button className={cn(
+                    "ml-2 flex items-center gap-1.5 rounded-full px-1.5 py-1 transition-all",
+                    pathname.startsWith("/me")
+                      ? "ring-2 ring-primary"
+                      : "hover:ring-2 hover:ring-primary/20"
+                  )}>
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatarUrl} />
                       <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
                     </Avatar>
+                    <span className="hidden sm:inline text-sm font-medium text-foreground">Me</span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
