@@ -29,6 +29,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
+import { QuestProposals } from "@/components/quest/QuestProposals";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
