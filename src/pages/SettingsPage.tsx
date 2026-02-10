@@ -453,17 +453,17 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <Section title="Profile Visibility" icon={<Eye className="h-5 w-5" />}>
                     <div className="space-y-3">
-                      <NotifToggle label="Show my XP publicly on my profile" checked={showXp} onChange={setShowXp} />
-                      <NotifToggle label="Show my contribution index on my profile" checked={showCi} onChange={setShowCi} />
-                      <NotifToggle label="Show my achievements on my profile" checked={showAchievements} onChange={setShowAchievements} />
-                      <NotifToggle label="Show services I offer on my public profile" checked={showServices} onChange={setShowServices} />
+                      <NotifToggle label="Show my XP publicly on my profile" checked={showXp} onChange={(v) => updatePrivacy("showXpPublicly", v, setShowXp)} />
+                      <NotifToggle label="Show my contribution index on my profile" checked={showCi} onChange={(v) => updatePrivacy("showContributionIndexPublicly", v, setShowCi)} />
+                      <NotifToggle label="Show my achievements on my profile" checked={showAchievements} onChange={(v) => updatePrivacy("showAchievementsPublicly", v, setShowAchievements)} />
+                      <NotifToggle label="Show services I offer on my public profile" checked={showServices} onChange={(v) => updatePrivacy("showServicesPublicly", v, setShowServices)} />
                     </div>
                   </Section>
 
                   <Section title="Social & Privacy" icon={<Shield className="h-5 w-5" />}>
                     <div className="space-y-3">
-                      <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={setAllowFollow} />
-                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={setAllowWallComments} />
+                      <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={(v) => updatePrivacy("allowFollows", v, setAllowFollow)} />
+                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={(v) => updatePrivacy("allowProfileComments", v, setAllowWallComments)} />
                     </div>
                   </Section>
 
