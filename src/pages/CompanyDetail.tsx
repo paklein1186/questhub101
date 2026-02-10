@@ -20,6 +20,7 @@ import { QuestStatus, MonetizationType, CommentTargetType, FollowTargetType } fr
 import type { Quest } from "@/types";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
+import { EntityJoinButton } from "@/components/EntityJoinButton";
 import {
   getCompanyById, getUserById, getTopicsForCompany, getTerritoriesForCompany,
   getQuestsForCompany, getBookingsForCompany, getServiceById,
