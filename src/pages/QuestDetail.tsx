@@ -132,7 +132,8 @@ export default function QuestDetail() {
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
           {guild && <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>}
-          <span>·</span><span>by {creator?.name}</span>
+          <span>·</span><span>by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
+          {creator?.xp != null && <XpLevelBadge level={creator.xp_level ?? 1} compact />}
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
           <Badge variant="secondary" className="capitalize">{quest.monetization_type.toLowerCase()}</Badge>
