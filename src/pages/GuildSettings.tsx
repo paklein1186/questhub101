@@ -371,6 +371,10 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                   </Section>
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(allTerritories.map((t: any) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
+                    </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
                       {allTerritories.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">

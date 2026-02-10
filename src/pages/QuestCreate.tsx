@@ -239,7 +239,11 @@ export default function QuestCreate() {
           {(territories ?? []).length > 0 && (
             <div>
               <Label>Territories</Label>
-              <div className="flex flex-wrap gap-2 mt-1">
+              <div className="flex items-center gap-2 mt-1 mb-2">
+                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTerritories((territories ?? []).map((t) => t.id))}>Select all</Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {(territories ?? []).map((t) => (
                   <Badge
                     key={t.id}

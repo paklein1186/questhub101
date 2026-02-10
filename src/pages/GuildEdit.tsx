@@ -228,6 +228,10 @@ function GuildEditForm({ guildId }: { guildId: string }) {
             {/* Territories */}
             <div>
               <label className="text-sm font-medium mb-2 block">Territories</label>
+              <div className="flex items-center gap-2 mb-2">
+                <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
+              </div>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
                 {territories.map((t) => (
                   <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
