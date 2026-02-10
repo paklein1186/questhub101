@@ -143,7 +143,11 @@ export function AppNav() {
                       <ShoppingBag className="h-4 w-4 mr-2" /> My services
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/me/companies" className="cursor-pointer">
+                      <Building2 className="h-4 w-4 mr-2" /> My companies
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/me/settings" className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" /> Settings
