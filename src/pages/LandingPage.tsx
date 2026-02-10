@@ -307,6 +307,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <CookieConsentBanner />
     </div>
   );
 }
