@@ -386,6 +386,12 @@ export default function QuestDetail() {
           </TabsContent>
         )}
 
+        {isOwner && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="QUEST" entityId={quest.id} entityName={quest.title} guildId={quest.guild_id || undefined} />
+          </TabsContent>
+        )}
+
         <TabsContent value="ai-chat" className="mt-6">
           <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
         </TabsContent>
