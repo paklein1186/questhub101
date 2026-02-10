@@ -47,7 +47,7 @@ export interface User extends SoftDeletable {
   userTerritories?: UserTerritory[];
 }
 
-export interface Guild {
+export interface Guild extends SoftDeletable {
   id: string;
   name: string;
   description?: string;
