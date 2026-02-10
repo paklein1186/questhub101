@@ -48,6 +48,24 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
   const [referralRewarded, setReferralRewarded] = useState(false);
+  const [profilePreloaded, setProfilePreloaded] = useState(false);
+
+  // Pre-fill wizard fields from Supabase profile (single source of truth)
+  useEffect(() => {
+    if (!authUser?.id || profilePreloaded) return;
+    supabase
+      .from("profiles")
+      .select("name, headline, bio, role")
+      .eq("user_id", authUser.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          if (data.role) setRole(data.role as UserRole);
+          if (data.bio) setBio(data.bio);
+        }
+        setProfilePreloaded(true);
+      });
+  }, [authUser?.id, profilePreloaded]);
 
   // Process referral reward when reaching the final step
   useEffect(() => {
