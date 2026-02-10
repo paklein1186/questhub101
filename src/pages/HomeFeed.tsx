@@ -18,13 +18,17 @@ function useHomeShellData(userId: string) {
     queryKey: ["home-shell-data", userId],
     queryFn: async () => {
       if (!userId) return null;
-      const [guildMembersRes, questParticipantsRes, topicsRes, territoriesRes, achievementsRes, profileRes] = await Promise.all([
+      const [guildMembersRes, questParticipantsRes, topicsRes, territoriesRes, achievementsRes, profileRes, questsRes, servicesRes, podsRes, guildsRes] = await Promise.all([
         supabase.from("guild_members").select("guild_id").eq("user_id", userId),
         supabase.from("quest_participants").select("quest_id").eq("user_id", userId),
         supabase.from("user_topics").select("topic_id, topics(id, name)").eq("user_id", userId),
         supabase.from("user_territories").select("territory_id, territories(id, name)").eq("user_id", userId),
         supabase.from("achievements").select("id, title").eq("user_id", userId).order("created_at", { ascending: false }).limit(5),
         supabase.from("profiles").select("xp, xp_level, contribution_index, credits_balance").eq("user_id", userId).single(),
+        supabase.from("quests").select("title").eq("created_by_user_id", userId).eq("is_deleted", false).order("created_at", { ascending: false }).limit(5),
+        supabase.from("services").select("title").eq("provider_user_id", userId).eq("is_deleted", false).limit(5),
+        supabase.from("pod_members").select("pods(name)").eq("user_id", userId).limit(5),
+        supabase.from("guild_members").select("guilds(name)").eq("user_id", userId).limit(5),
       ]);
 
       const myTopics = (topicsRes.data ?? []).map((r: any) => r.topics).filter(Boolean);
@@ -39,6 +43,10 @@ function useHomeShellData(userId: string) {
         xp: profileRes.data?.xp ?? 0,
         xpLevel: profileRes.data?.xp_level ?? 1,
         contributionIndex: profileRes.data?.contribution_index ?? 0,
+        recentQuests: (questsRes.data ?? []).map((q: any) => q.title),
+        recentServices: (servicesRes.data ?? []).map((s: any) => s.title),
+        recentPods: (podsRes.data ?? []).map((p: any) => p.pods?.name).filter(Boolean),
+        recentGuilds: (guildsRes.data ?? []).map((g: any) => g.guilds?.name).filter(Boolean),
       };
     },
     enabled: !!userId,
@@ -77,6 +85,10 @@ export default function HomeFeed() {
             xpLevel: data?.xpLevel ?? 1,
             topics: (data?.myTopics ?? []).map((t: any) => t.name),
             territories: (data?.myTerritories ?? []).map((t: any) => t.name),
+            recentQuests: data?.recentQuests ?? [],
+            recentGuilds: data?.recentGuilds ?? [],
+            recentServices: data?.recentServices ?? [],
+            recentPods: data?.recentPods ?? [],
           }}
         />
 
