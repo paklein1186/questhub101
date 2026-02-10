@@ -273,6 +273,7 @@ export default function QuestDetail() {
                     <h4 className="font-display font-semibold mt-1">{update.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{update.content}</p>
                     {update.imageUrl && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.imageUrl} alt="" className="w-full h-auto" /></div>}
+                    <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
                   </div>
                 </div>
                 <div className="ml-12 pt-3 border-t border-border">
