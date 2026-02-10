@@ -28,6 +28,7 @@ import {
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
+import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsAdmin } from "@/lib/admin";
 import {
