@@ -211,6 +211,23 @@ export default function Onboarding() {
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">Select the topics that matter to you.</p>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedTopics(topics.map((t) => t.id))}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTopics([])}
+                      disabled={selectedTopics.length === 0}
+                    >
+                      Clear all
+                    </Button>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {topics.map((topic) => (
                       <button
@@ -227,9 +244,7 @@ export default function Onboarding() {
                       </button>
                     ))}
                   </div>
-                  {selectedTopics.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
                 </div>
               )}
 
