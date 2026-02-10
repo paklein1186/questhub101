@@ -66,6 +66,10 @@ export default function QuestCreate() {
   const [priceFiat, setPriceFiat] = useState("0");
   const [submitting, setSubmitting] = useState(false);
   const [showXpDialog, setShowXpDialog] = useState(false);
+  const [creditBudget, setCreditBudget] = useState("0");
+  const [allowFundraising, setAllowFundraising] = useState(false);
+  const [fundingGoalCredits, setFundingGoalCredits] = useState("");
+  const [openForProposals, setOpenForProposals] = useState(false);
 
   const contextLabel = guild?.name ?? company?.name ?? "Personal";
 
@@ -80,6 +84,8 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
+      const budget = Number(creditBudget) || 0;
+      const questStatus = isDraft ? "DRAFT" : openForProposals ? "OPEN_FOR_PROPOSALS" : "OPEN";
 
       const { data: quest, error } = await supabase
         .from("quests")
@@ -87,7 +93,7 @@ export default function QuestCreate() {
           title: title.trim(),
           description: description.trim() || null,
           cover_image_url: coverImageUrl || null,
-          status: "OPEN" as any,
+          status: questStatus as any,
           monetization_type: monType as any,
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
@@ -99,7 +105,11 @@ export default function QuestCreate() {
           price_fiat: fiatCents,
           price_currency: "EUR",
           payout_user_id: currentUser.id,
-        })
+          credit_budget: budget,
+          escrow_credits: budget,
+          allow_fundraising: allowFundraising,
+          funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
+        } as any)
         .select()
         .single();
 
@@ -232,7 +242,35 @@ export default function QuestCreate() {
                   <p className="text-xs text-muted-foreground mt-1">Stripe payment required to join (in cents)</p>
                 </div>
               </div>
+          )}
+
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="text-sm font-semibold">Budget & Proposals</h3>
+            <div className="flex items-center gap-3">
+              <Switch id="openForProposals" checked={openForProposals} onCheckedChange={setOpenForProposals} />
+              <Label htmlFor="openForProposals">Open for proposals (community can submit proposals)</Label>
+            </div>
+            {openForProposals && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="creditBudget">Credit Budget (pot)</Label>
+                    <Input id="creditBudget" type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} className="mt-1" placeholder="0" />
+                    <p className="text-xs text-muted-foreground mt-1">Credits you commit to fund proposals</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="fundingGoal">Funding Goal (optional)</Label>
+                    <Input id="fundingGoal" type="number" value={fundingGoalCredits} onChange={e => setFundingGoalCredits(e.target.value)} min={0} className="mt-1" placeholder="Target" />
+                    <p className="text-xs text-muted-foreground mt-1">Target Credits for the quest</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Switch id="allowFundraising" checked={allowFundraising} onCheckedChange={setAllowFundraising} />
+                  <Label htmlFor="allowFundraising">Allow community fundraising</Label>
+                </div>
+              </>
             )}
+          </div>
           </div>
 
           {(topics ?? []).length > 0 && (

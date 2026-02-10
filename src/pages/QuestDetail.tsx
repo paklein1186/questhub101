@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +29,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
+import { QuestProposals } from "@/components/quest/QuestProposals";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -71,6 +72,9 @@ export default function QuestDetail() {
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
   const [editCreditReward, setEditCreditReward] = useState("0");
   const [editPriceFiat, setEditPriceFiat] = useState("0");
+  const [editCreditBudget, setEditCreditBudget] = useState("0");
+  const [editAllowFundraising, setEditAllowFundraising] = useState(false);
+  const [editFundingGoal, setEditFundingGoal] = useState("");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -125,7 +129,7 @@ export default function QuestDetail() {
     toast({ title: "Pod created!" });
   };
 
-  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditOpen(true); };
+  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditCreditBudget(String((quest as any).credit_budget ?? 0)); setEditAllowFundraising((quest as any).allow_fundraising ?? false); setEditFundingGoal(String((quest as any).funding_goal_credits ?? "")); setEditOpen(true); };
 
   const saveEditQuest = async () => {
     const fiat = Number(editPriceFiat) || 0;
@@ -139,7 +143,10 @@ export default function QuestDetail() {
       credit_reward: credits,
       price_fiat: fiat,
       monetization_type: monType as any,
-    }).eq("id", quest.id);
+      credit_budget: Number(editCreditBudget) || 0,
+      allow_fundraising: editAllowFundraising,
+      funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
+    } as any).eq("id", quest.id);
     qc.invalidateQueries({ queryKey: ["quest", id] });
     setEditOpen(false); toast({ title: "Quest updated" });
   };
@@ -229,17 +236,41 @@ export default function QuestDetail() {
         </div>
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Edit Quest</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
               <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
               <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
-              <div><label className="text-sm font-medium mb-1 block">Status</label><Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={QuestStatus.OPEN}>Open</SelectItem><SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem><SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem></SelectContent></Select></div>
+              <div><label className="text-sm font-medium mb-1 block">Status</label>
+                <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={QuestStatus.DRAFT}>Draft</SelectItem>
+                    <SelectItem value={QuestStatus.OPEN}>Open</SelectItem>
+                    <SelectItem value={QuestStatus.OPEN_FOR_PROPOSALS}>Open for Proposals</SelectItem>
+                    <SelectItem value={QuestStatus.ACTIVE}>Active</SelectItem>
+                    <SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem>
+                    <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
+                    <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
+              </div>
+              <div className="rounded-lg border border-border p-3 space-y-3">
+                <h4 className="text-sm font-semibold">Budget & Fundraising</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="text-sm font-medium mb-1 block">Credit Budget</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">Credits committed to pot</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target Credits amount</p></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
+                  <label htmlFor="editFundraising" className="text-sm font-medium">Allow community fundraising</label>
+                </div>
               </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
             </div>
@@ -250,6 +281,7 @@ export default function QuestDetail() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="proposals"><FileText className="h-3.5 w-3.5 mr-1" /> Proposals</TabsTrigger>
           <TabsTrigger value="subtasks"><ListChecks className="h-3.5 w-3.5 mr-1" /> Subtasks</TabsTrigger>
           <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({(questPods || []).length})</TabsTrigger>
@@ -267,6 +299,17 @@ export default function QuestDetail() {
               </Link>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="proposals" className="mt-6">
+          <QuestProposals
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            escrowCredits={(quest as any).escrow_credits ?? 0}
+            fundingGoalCredits={(quest as any).funding_goal_credits}
+            allowFundraising={(quest as any).allow_fundraising ?? false}
+            questStatus={quest.status}
+          />
         </TabsContent>
 
         <TabsContent value="subtasks" className="mt-6">
