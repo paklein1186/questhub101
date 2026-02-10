@@ -389,7 +389,9 @@ export default function SettingsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button onClick={handleSaveProfile} className="w-full"><Save className="h-4 w-4 mr-1" /> Save profile</Button>
+                      <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
+                        {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
+                      </Button>
                     </div>
                   </Section>
                 </div>
