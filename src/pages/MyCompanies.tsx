@@ -14,11 +14,8 @@ import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { CompanySize } from "@/types/enums";
-import type { Company } from "@/types";
-import {
-  companies, getTopicsForCompany, getTerritoriesForCompany,
-} from "@/data/mock";
-import { filterActive } from "@/lib/softDelete";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function MyCompanies({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
