@@ -182,7 +182,7 @@ export default function QuestCreate() {
           <div>
             <Label>Cover Image</Label>
             <div className="mt-1">
-              <ImageUpload value={coverImageUrl} onChange={setCoverImageUrl} />
+              <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
             </div>
           </div>
 
