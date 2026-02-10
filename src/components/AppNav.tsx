@@ -24,6 +24,7 @@ export function AppNav() {
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { user, signOut, session } = useAuth();
+  const currentUser = useCurrentUser();
   const isLoggedIn = !!session;
   const showAdmin = isLoggedIn && user?.email && isAdmin(user.email);
 
