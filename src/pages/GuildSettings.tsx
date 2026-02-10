@@ -26,6 +26,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { GuildType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
+import { AttachmentTargetType } from "@/types/enums";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Service } from "@/types";
 import {
   getGuildById, guilds, topics, territories, guildTopics, guildTerritories,
