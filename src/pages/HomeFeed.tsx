@@ -120,7 +120,24 @@ export default function HomeFeed() {
 
         <Separator />
 
-        {/* 5. This week in the ecosystem */}
+        {/* 5. In your territories */}
+        {(data?.myTerritories ?? []).length > 0 && (
+          <>
+            <section className="space-y-4">
+              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" /> In Your Territories
+              </h2>
+              <div className="space-y-4">
+                {(data?.myTerritories ?? []).slice(0, 2).map((t: any) => (
+                  <TerritoryIntelligencePanel key={t.id} territoryId={t.id} territoryName={t.name} compact />
+                ))}
+              </div>
+            </section>
+            <Separator />
+          </>
+        )}
+
+        {/* 6. This week in the ecosystem */}
         <ThisWeekInEcosystem />
       </div>
     </PageShell>
