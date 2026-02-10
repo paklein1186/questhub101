@@ -99,6 +99,8 @@ export default function ServiceDetail() {
         <Link to="/explore?tab=services"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Services</Link>
       </Button>
 
+      {svc.isDraft && <DraftBanner />}
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         {svc.imageUrl && (
           <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">

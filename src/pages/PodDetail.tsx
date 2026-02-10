@@ -110,6 +110,8 @@ export default function PodDetail() {
         <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
       </Button>
 
+      {pod.isDraft && <DraftBanner />}
+
       {pod.imageUrl && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
           <img src={pod.imageUrl} alt="" className="w-full h-full object-cover" />
