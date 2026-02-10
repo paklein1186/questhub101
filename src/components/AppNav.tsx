@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User, CalendarCheck, ShoppingBag } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, Zap, LogIn, LogOut, Settings, User, CalendarCheck, ShoppingBag, Building2 } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
