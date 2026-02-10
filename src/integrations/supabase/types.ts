@@ -2116,7 +2116,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "superadmin"
       guild_application_status: "PENDING" | "APPROVED" | "REJECTED"
       guild_join_policy: "OPEN" | "APPROVAL_REQUIRED" | "INVITE_ONLY"
       guild_member_role: "ADMIN" | "MEMBER"
@@ -2260,7 +2260,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "superadmin"],
       guild_application_status: ["PENDING", "APPROVED", "REJECTED"],
       guild_join_policy: ["OPEN", "APPROVAL_REQUIRED", "INVITE_ONLY"],
       guild_member_role: ["ADMIN", "MEMBER"],
