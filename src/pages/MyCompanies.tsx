@@ -21,8 +21,7 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
+  const qc = useQueryClient();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
@@ -36,34 +35,46 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [instagramUrl, setInstagramUrl] = useState("");
 
-  const myCompanies = filterActive(companies).filter(
-    (c) => c.contactUserId === currentUser.id
-  );
+  const { data: myCompanies = [] } = useQuery({
+    queryKey: ["my-companies", currentUser.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*, company_members!inner(user_id, role)")
+        .eq("is_deleted", false)
+        .eq("company_members.user_id", currentUser.id);
+      if (error) throw error;
+      return data;
+    },
+  });
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) return;
-    const newCompany: Company = {
-      id: `co-${Date.now()}`,
-      name: name.trim(),
-      description: description.trim() || undefined,
-      sector: sector.trim() || undefined,
-      size,
-      logoUrl,
-      bannerUrl,
-      websiteUrl: normalizeUrl(websiteUrl) ?? undefined,
-      twitterUrl: normalizeUrl(twitterUrl) ?? undefined,
-      linkedinUrl: normalizeUrl(linkedinUrl) ?? undefined,
-      instagramUrl: normalizeUrl(instagramUrl) ?? undefined,
-      contactUserId: currentUser.id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    companies.push(newCompany);
+    const { data: newCompany, error } = await supabase
+      .from("companies")
+      .insert({
+        name: name.trim(),
+        description: description.trim() || null,
+        sector: sector.trim() || null,
+        size,
+        logo_url: logoUrl || null,
+        banner_url: bannerUrl || null,
+        website_url: normalizeUrl(websiteUrl) ?? null,
+        twitter_url: normalizeUrl(twitterUrl) ?? null,
+        linkedin_url: normalizeUrl(linkedinUrl) ?? null,
+        instagram_url: normalizeUrl(instagramUrl) ?? null,
+        contact_user_id: currentUser.id,
+      })
+      .select()
+      .single();
+    if (error) { toast({ title: "Failed to create company", variant: "destructive" }); return; }
+    // Add creator as admin member
+    await supabase.from("company_members").insert({ company_id: newCompany.id, user_id: currentUser.id, role: "ADMIN" });
     setCreateOpen(false);
     setName(""); setDescription(""); setSector(""); setSize(CompanySize.SME);
     setLogoUrl(undefined); setBannerUrl(undefined);
     setWebsiteUrl(""); setTwitterUrl(""); setLinkedinUrl(""); setInstagramUrl("");
-    rerender();
+    qc.invalidateQueries({ queryKey: ["my-companies"] });
     toast({ title: "Company created!" });
     navigate(`/companies/${newCompany.id}`);
   };
