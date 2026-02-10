@@ -72,7 +72,7 @@ export function EntityJoinButton({
     setLoading(true);
     const insertData: any = { [cfg.idCol]: entityId, user_id: currentUserId };
     if (entityType !== "company") insertData.role = cfg.memberRole;
-    const { error } = await supabase.from(cfg.members).insert(insertData);
+    const { error } = await (supabase.from(cfg.members as any).insert(insertData) as any);
     setLoading(false);
     if (error) {
       toast({ title: "Failed to join", description: error.message, variant: "destructive" });
