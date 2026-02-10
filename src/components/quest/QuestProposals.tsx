@@ -351,6 +351,14 @@ export function QuestProposals({
 
       {sorted.length === 0 && <p className="text-muted-foreground text-sm">No proposals yet.</p>}
 
+      {/* AI Evaluator – only visible to quest owner */}
+      {isOwner && pendingProposals.length > 0 && (
+        <ProposalEvaluator
+          questId={questId}
+          proposalTitles={Object.fromEntries(proposals.map((p: any) => [p.id, p.title]))}
+        />
+      )}
+
       <div className="space-y-3">
         {sorted.map((proposal: any) => {
           const profile = profileMap[proposal.proposer_id];
