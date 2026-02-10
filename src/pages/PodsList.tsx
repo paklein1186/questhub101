@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, Filter, Plus, BookOpen, Compass } from "lucide-react";
+import { Users, Filter, Plus, BookOpen, Compass, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,16 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import {
-  pods, podMembers, topics, quests,
-  getUserById, getQuestById, getTopicById,
-} from "@/data/mock";
-import { filterActive } from "@/lib/softDelete";
-import { filterPublished } from "@/lib/drafts";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { PodType, PodMemberRole } from "@/types/enums";
-import type { Pod } from "@/types";
+import { PodType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
+import { usePods, useCreatePod, useTopics, useQuests } from "@/hooks/useSupabaseData";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -43,37 +37,39 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const [newStart, setNewStart] = useState("");
   const [newEnd, setNewEnd] = useState("");
   const [newDraft, setNewDraft] = useState(false);
-  const [podsState, setPodsState] = useState<Pod[]>(pods);
 
   const isAdm = checkIsGlobalAdmin(currentUser.email);
+  const { data: podsData, isLoading } = usePods();
+  const { data: topics } = useTopics();
+  const { data: questsData } = useQuests();
+  const createPodMut = useCreatePod();
 
-  let filtered = filterPublished(filterActive([...podsState]), currentUser.id, (p) => p.creatorId, isAdm);
+  const allPods = podsData ?? [];
+  const quests = questsData ?? [];
+
+  let filtered = allPods.filter((p) => {
+    if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
+    return true;
+  });
   if (typeFilter !== "ALL") filtered = filtered.filter((p) => p.type === typeFilter);
-  if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topicId === topicFilter);
-  if (questFilter !== "ALL") filtered = filtered.filter((p) => p.questId === questFilter);
+  if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topic_id === topicFilter);
+  if (questFilter !== "ALL") filtered = filtered.filter((p) => p.quest_id === questFilter);
 
-  const createPod = () => {
+  const handleCreate = async () => {
     if (!newName.trim()) return;
-    const pod: Pod = {
-      id: `pod-${Date.now()}`,
-      name: newName.trim(),
-      description: newDesc.trim(),
-      type: newType as PodType,
-      questId: newType === PodType.QUEST_POD && newQuestId !== "none" ? newQuestId : undefined,
-      topicId: newType === PodType.STUDY_POD && newTopicId !== "none" ? newTopicId : undefined,
-      creatorId: currentUser.id,
-      startDate: newStart || undefined,
-      endDate: newEnd || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isDraft: newDraft,
-    };
-    pods.push(pod);
-    podMembers.push({ id: `pm-${Date.now()}`, podId: pod.id, userId: currentUser.id, role: PodMemberRole.HOST, joinedAt: new Date().toISOString() });
-    setPodsState([...pods]);
-    setCreateOpen(false);
-    setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd(""); setNewDraft(false);
-    toast({ title: "Pod created!" });
+    try {
+      await createPodMut.mutateAsync({
+        name: newName, description: newDesc, type: newType,
+        questId: newType === PodType.QUEST_POD && newQuestId !== "none" ? newQuestId : undefined,
+        topicId: newType === PodType.STUDY_POD && newTopicId !== "none" ? newTopicId : undefined,
+        startDate: newStart || undefined, endDate: newEnd || undefined, isDraft: newDraft,
+      });
+      setCreateOpen(false);
+      setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd(""); setNewDraft(false);
+      toast({ title: "Pod created!" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -127,7 +123,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No topic</SelectItem>
-                      {topics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                      {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -146,13 +142,15 @@ export default function PodsList({ bare }: { bare?: boolean }) {
                 <label className="text-sm font-medium">Save as draft</label>
                 <Switch checked={newDraft} onCheckedChange={setNewDraft} />
               </div>
-              <Button onClick={createPod} disabled={!newName.trim()} className="w-full">Create</Button>
+              <Button onClick={handleCreate} disabled={!newName.trim() || createPodMut.isPending} className="w-full">
+                {createPodMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Create
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-[160px]"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
@@ -166,7 +164,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Topic" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All topics</SelectItem>
-            {topics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={questFilter} onValueChange={setQuestFilter}>
@@ -178,19 +176,16 @@ export default function PodsList({ bare }: { bare?: boolean }) {
         </Select>
       </div>
 
-      {/* Pod list */}
+      {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
+
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((pod, i) => {
-          const creator = getUserById(pod.creatorId);
-          const quest = pod.questId ? getQuestById(pod.questId) : null;
-          const topic = pod.topicId ? getTopicById(pod.topicId) : null;
-          const memberCount = podMembers.filter((pm) => pm.podId === pod.id).length;
+          const quest = (pod as any).quests;
+          const topic = (pod as any).topics;
+          const memberCount = (pod as any).pod_members?.length ?? 0;
           return (
             <motion.div key={pod.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
-              <Link
-                to={`/pods/${pod.id}`}
-                className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all"
-              >
+              <Link to={`/pods/${pod.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-2 mb-2">
                   {pod.type === PodType.QUEST_POD
                     ? <Compass className="h-4 w-4 text-primary" />
@@ -203,14 +198,13 @@ export default function PodsList({ bare }: { bare?: boolean }) {
                 <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground">
                   {quest && <Badge variant="outline" className="text-[10px]">{quest.title}</Badge>}
                   {topic && <Badge variant="secondary" className="text-[10px]">{topic.name}</Badge>}
-                  <span>by {creator?.name}</span>
-                  <span>· {formatDistanceToNow(new Date(pod.createdAt), { addSuffix: true })}</span>
+                  <span>· {formatDistanceToNow(new Date(pod.created_at), { addSuffix: true })}</span>
                 </div>
               </Link>
             </motion.div>
           );
         })}
-        {filtered.length === 0 && <p className="text-muted-foreground col-span-full">No pods match your filters.</p>}
+        {!isLoading && filtered.length === 0 && <p className="text-muted-foreground col-span-full">No pods match your filters.</p>}
       </div>
     </PageShell>
   );

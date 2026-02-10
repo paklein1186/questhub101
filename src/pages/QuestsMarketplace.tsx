@@ -1,99 +1,64 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
-import {
-  quests, topics, territories, guilds, companies,
-  questTopics, questTerritories, guildMembers,
-} from "@/data/mock";
-import { filterActive } from "@/lib/softDelete";
-import { filterPublished } from "@/lib/drafts";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { QuestStatus, MonetizationType, GuildMemberRole } from "@/types/enums";
+import { QuestStatus, MonetizationType } from "@/types/enums";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuests, useTopics, useTerritories, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
+
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
+  const { data: memberships } = useMyGuildMemberships();
+  const { data: companyMemberships } = useMyCompanies();
 
-  const myAdminGuilds = guildMembers
-    .filter((gm) => gm.userId === currentUser.id && gm.role === GuildMemberRole.ADMIN)
-    .map((gm) => guilds.find((g) => g.id === gm.guildId))
-    .filter(Boolean);
+  const myAdminGuilds = (memberships ?? []).filter((m) => m.role === "ADMIN").map((m) => m.guilds).filter(Boolean);
+  const myCompanies = (companyMemberships ?? []).map((m) => m.companies).filter(Boolean);
 
-  const myCompanies = companies.filter((c) => c.contactUserId === currentUser.id);
-
-  const hasGuilds = myAdminGuilds.length > 0;
-  const hasCompanies = myCompanies.length > 0;
-
-  const go = (path: string) => {
-    setOpen(false);
-    navigate(path);
-  };
+  const go = (path: string) => { setOpen(false); navigate(path); };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Create Quest
-        </Button>
+        <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create a new Quest</DialogTitle>
-        </DialogHeader>
+        <DialogHeader><DialogTitle>Create a new Quest</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground mb-4">
-          {hasGuilds || hasCompanies
+          {myAdminGuilds.length > 0 || myCompanies.length > 0
             ? "You can create this quest as yourself, or attach it to a Guild or Company you manage."
             : "You can create this quest as yourself."}
         </p>
-
-        {/* As myself */}
         <Button variant="outline" className="w-full justify-between" onClick={() => go("/quests/new")}>
-          <span className="flex items-center gap-2">
-            <Users className="h-4 w-4" /> Continue as myself
-          </span>
+          <span className="flex items-center gap-2"><Users className="h-4 w-4" /> Continue as myself</span>
           <ChevronRight className="h-4 w-4" />
         </Button>
-
-        {/* Guilds */}
-        {hasGuilds && (
+        {myAdminGuilds.length > 0 && (
           <div className="mt-4">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Create under a Guild</h3>
             <div className="space-y-1.5">
-              {myAdminGuilds.map((g) => (
-                <Button
-                  key={g!.id}
-                  variant="ghost"
-                  className="w-full justify-between"
-                  onClick={() => go(`/guilds/${g!.id}/quests/new`)}
-                >
-                  <span className="truncate">{g!.name}</span>
+              {myAdminGuilds.map((g: any) => (
+                <Button key={g.id} variant="ghost" className="w-full justify-between" onClick={() => go(`/guilds/${g.id}/quests/new`)}>
+                  <span className="truncate">{g.name}</span>
                   <ChevronRight className="h-4 w-4 shrink-0" />
                 </Button>
               ))}
             </div>
           </div>
         )}
-
-        {/* Companies */}
-        {hasCompanies && (
+        {myCompanies.length > 0 && (
           <div className="mt-4">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Create under a Company</h3>
             <div className="space-y-1.5">
-              {myCompanies.map((c) => (
-                <Button
-                  key={c.id}
-                  variant="ghost"
-                  className="w-full justify-between"
-                  onClick={() => go(`/companies/${c.id}/quests/new`)}
-                >
+              {myCompanies.map((c: any) => (
+                <Button key={c.id} variant="ghost" className="w-full justify-between" onClick={() => go(`/companies/${c.id}/quests/new`)}>
                   <span className="truncate">{c.name}</span>
                   <ChevronRight className="h-4 w-4 shrink-0" />
                 </Button>
@@ -117,11 +82,18 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const isLoggedIn = !!session;
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
-  const filtered = filterPublished(filterActive(quests), currentUser.id, (q) => q.createdByUserId, isAdm).filter((q) => {
-    if (topicFilter !== "all" && !questTopics.some((qt) => qt.questId === q.id && qt.topicId === topicFilter)) return false;
-    if (territoryFilter !== "all" && !questTerritories.some((qt) => qt.questId === q.id && qt.territoryId === territoryFilter)) return false;
+  const { data: questsData, isLoading } = useQuests();
+  const { data: topics } = useTopics();
+  const { data: territories } = useTerritories();
+
+  const allQuests = questsData ?? [];
+
+  const filtered = allQuests.filter((q) => {
+    if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
+    if (topicFilter !== "all" && !q.quest_topics?.some((qt: any) => qt.topic_id === topicFilter)) return false;
+    if (territoryFilter !== "all" && !q.quest_territories?.some((qt: any) => qt.territory_id === territoryFilter)) return false;
     if (statusFilter !== "all" && q.status !== statusFilter) return false;
-    if (monetizationFilter !== "all" && q.monetizationType !== monetizationFilter) return false;
+    if (monetizationFilter !== "all" && q.monetization_type !== monetizationFilter) return false;
     return true;
   });
 
@@ -139,14 +111,14 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
           <SelectTrigger className="w-[150px]"><SelectValue placeholder="Topic" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Topics</SelectItem>
-            {topics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
           <SelectTrigger className="w-[150px]"><SelectValue placeholder="Territory" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Territories</SelectItem>
-            {territories.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -165,51 +137,36 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         </Select>
       </div>
 
+      {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((quest, i) => {
-          const guild = guilds.find((g) => g.id === quest.guildId);
-          return (
-            <motion.div
-              key={quest.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Link
-                to={`/quests/${quest.id}`}
-                className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
-              >
-                {quest.coverImageUrl ? (
-                  <div className="w-full h-36 bg-muted">
-                    <img src={quest.coverImageUrl} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-full h-24 bg-muted/50 flex items-center justify-center">
-                    <Compass className="h-8 w-8 text-muted-foreground/30" />
-                  </div>
-                )}
-                <div className="p-5">
+        {filtered.map((quest, i) => (
+          <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+            <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+              {quest.cover_image_url ? (
+                <div className="w-full h-36 bg-muted"><img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" /></div>
+              ) : (
+                <div className="w-full h-24 bg-muted/50 flex items-center justify-center"><Compass className="h-8 w-8 text-muted-foreground/30" /></div>
+              )}
+              <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-display font-semibold">{quest.title}</h3>
-                  <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                    <Zap className="h-4 w-4" /> {quest.rewardXp}
-                  </span>
+                  <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{guild?.name}</span>
+                  <span>{(quest as any).guilds?.name}</span>
                   <div className="flex gap-1.5">
-                    {quest.companyId && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
+                    {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
                     <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-                    <Badge variant="secondary" className="capitalize">{quest.monetizationType.toLowerCase()}</Badge>
+                    <Badge variant="secondary" className="capitalize">{quest.monetization_type.toLowerCase()}</Badge>
                   </div>
                 </div>
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
-        {filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No quests match your filters.</p>}
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No quests match your filters.</p>}
       </div>
     </PageShell>
   );
