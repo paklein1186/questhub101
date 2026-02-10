@@ -48,7 +48,7 @@ export default function GuildDetail() {
   const { data: creator } = usePublicProfile(guild?.created_by_user_id);
 
   const limits = usePlanLimits();
-  const [showQuestXpDialog, setShowQuestXpDialog] = useState(false);
+  
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
 
   // Service creation
