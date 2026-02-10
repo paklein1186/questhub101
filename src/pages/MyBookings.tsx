@@ -15,6 +15,7 @@ import {
   bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { downloadIcs } from "@/lib/icsExport";
 
 const statusColors: Record<string, string> = {
   [BookingStatus.REQUESTED]: "bg-warning/10 text-warning",
