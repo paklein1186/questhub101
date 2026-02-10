@@ -28,6 +28,7 @@ export default function QuestCreate() {
   const qc = useQueryClient();
   const limits = usePlanLimits();
   const { checkRateLimit, isChecking } = useRateLimit();
+  const { grantXp } = useXpCredits();
 
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
