@@ -108,7 +108,7 @@ export default function QuestCreate() {
           persona,
           houses: houseNames,
           territories: territoryNames,
-          xpLevel: currentUser?.xp_level ?? 1,
+          xpLevel: (currentUser as any)?.xp_level ?? 1,
         },
       });
 
