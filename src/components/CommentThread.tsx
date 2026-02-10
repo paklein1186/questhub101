@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CommentTargetType } from "@/types/enums";
-import { comments as allMockComments, commentUpvotes as allMockUpvotes, getUserById } from "@/data/mock";
+import { comments as allMockComments, commentUpvotes as allMockUpvotes, getUserById, hasBlockRelationship } from "@/data/mock";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
