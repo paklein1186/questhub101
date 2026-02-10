@@ -36,7 +36,7 @@ import {
 } from "@/data/mock";
 import {
   UserRole, QuestStatus, MonetizationType, TopicStewardRole,
-  TerritoryLevel, TopicFeatureTargetType,
+  TerritoryLevel, TopicFeatureTargetType, BookingStatus, PaymentStatus,
 } from "@/types/enums";
 import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature } from "@/types";
 
