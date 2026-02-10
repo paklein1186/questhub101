@@ -60,11 +60,11 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
 
   const fetchApps = async () => {
     setLoading(true);
-    let query = supabase
-      .from(cfg.applications)
+    let query = (supabase
+      .from(cfg.applications as any)
       .select("*")
-      .eq(cfg.idCol as any, entityId)
-      .order("created_at", { ascending: false });
+      .eq(cfg.idCol, entityId)
+      .order("created_at", { ascending: false })) as any;
 
     if (filter !== "ALL") {
       query = query.eq("status", filter as any);
