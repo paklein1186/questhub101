@@ -1,19 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2 } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import {
-  quests, topics, territories, guilds,
-  questTopics, questTerritories,
+  quests, topics, territories, guilds, companies,
+  questTopics, questTerritories, guildMembers,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
 import { filterPublished } from "@/lib/drafts";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { QuestStatus, MonetizationType } from "@/types/enums";
+import { QuestStatus, MonetizationType, GuildMemberRole } from "@/types/enums";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const [topicFilter, setTopicFilter] = useState("all");
