@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check, Plus } from "lucide-react";
+import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -91,7 +92,7 @@ export default function Onboarding() {
   const canNext = () => {
     if (step === 0) return !!role;
     if (step === 1) return true; // allow zero interests
-    if (step === 2) return selectedTerritories.length > 0;
+    if (step === 2) return true; // allow zero territories
     if (step === 3) return true; // bio is optional
     return true;
   };
@@ -296,6 +297,11 @@ export default function Onboarding() {
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">Select your territories.</p>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
+                    <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((prev) => prev.includes(id) ? prev : [...prev, id])} />
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {territories.map((territory) => (
                       <button
@@ -313,9 +319,7 @@ export default function Onboarding() {
                       </button>
                     ))}
                   </div>
-                  {selectedTerritories.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{selectedTerritories.length} selected</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">{selectedTerritories.length} selected</p>
                 </div>
               )}
 
