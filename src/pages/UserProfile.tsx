@@ -328,12 +328,14 @@ export default function UserProfile() {
       })()}
 
       {/* Wall */}
-      <section>
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" /> Wall
-        </h2>
-        <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
-      </section>
+      {showWall && (
+        <section>
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" /> Wall
+          </h2>
+          <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
+        </section>
+      )}
     </PageShell>
   );
 }
