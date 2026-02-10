@@ -378,6 +378,12 @@ export default function QuestDetail() {
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
 
+        {isOwner && (
+          <TabsContent value="matchmaker" className="mt-6">
+            <MatchmakerPanel matchType="quest" questId={quest.id} />
+          </TabsContent>
+        )}
+
         <TabsContent value="ai-chat" className="mt-6">
           <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
         </TabsContent>
