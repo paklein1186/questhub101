@@ -285,7 +285,7 @@ export default function Onboarding() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="font-display text-2xl font-bold">Tell us about yourself</h2>
-                    <p className="text-sm text-muted-foreground mt-1">A short bio — AI will polish it for you.</p>
+                    <p className="text-sm text-muted-foreground mt-1">Write a short bio, or let AI help. You can skip this step.</p>
                   </div>
                   <Textarea
                     value={bio}
@@ -294,7 +294,21 @@ export default function Onboarding() {
                     className="min-h-[140px] resize-none text-sm"
                     maxLength={300}
                   />
-                  <p className="text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateBio}
+                      disabled={generatingBio}
+                    >
+                      {generatingBio ? (
+                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Generating…</>
+                      ) : (
+                        <><Sparkles className="h-4 w-4 mr-1" /> Generate with AI</>
+                      )}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+                  </div>
                 </div>
               )}
 
