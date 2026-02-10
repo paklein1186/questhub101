@@ -80,7 +80,7 @@ export default function Onboarding() {
 
   // Process referral reward when reaching the final step
   useEffect(() => {
-    if (step === 5 && !referralRewarded) {
+    if (step === 6 && !referralRewarded) {
       const refCode = sessionStorage.getItem("referralCode");
       if (refCode) {
         const referral = getReferralByCode(refCode);
