@@ -78,8 +78,8 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("tab") || "account";
-  const setActiveTab = (tab: string) => setSearchParams({ tab });
+  const activeTab = searchParams.get("tab") || "profile";
+  const setActiveTab = (tab: string) => setSearchParams({ tab }, { replace: true });
 
   // ── Profile state (sourced from Supabase auth profile, NOT mock) ──
   const [name, setName] = useState(authUser?.name ?? currentUser.name);
