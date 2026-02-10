@@ -13,6 +13,7 @@ import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, PodType, PodMemberRole, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { DraftBanner } from "@/components/DraftBanner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -40,6 +41,7 @@ export default function PodDetail() {
 
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
   if (pod.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This pod has been removed.</p></PageShell>;
+  if (pod.isDraft && pod.creatorId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Pod not found.</p></PageShell>;
 
   const members = getMembersForPod(pod.id);
   const quest = pod.questId ? getQuestById(pod.questId) : null;
@@ -107,6 +109,8 @@ export default function PodDetail() {
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
       </Button>
+
+      {pod.isDraft && <DraftBanner />}
 
       {pod.imageUrl && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">

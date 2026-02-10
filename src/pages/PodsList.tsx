@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, Filter, Plus, BookOpen, Compass } from "lucide-react";
@@ -16,6 +17,8 @@ import {
   getUserById, getQuestById, getTopicById,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
+import { filterPublished } from "@/lib/drafts";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { PodType, PodMemberRole } from "@/types/enums";
 import type { Pod } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -39,9 +42,12 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const [newQuestId, setNewQuestId] = useState("none");
   const [newStart, setNewStart] = useState("");
   const [newEnd, setNewEnd] = useState("");
+  const [newDraft, setNewDraft] = useState(false);
   const [podsState, setPodsState] = useState<Pod[]>(pods);
 
-  let filtered = filterActive([...podsState]);
+  const isAdm = checkIsGlobalAdmin(currentUser.email);
+
+  let filtered = filterPublished(filterActive([...podsState]), currentUser.id, (p) => p.creatorId, isAdm);
   if (typeFilter !== "ALL") filtered = filtered.filter((p) => p.type === typeFilter);
   if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topicId === topicFilter);
   if (questFilter !== "ALL") filtered = filtered.filter((p) => p.questId === questFilter);
@@ -60,12 +66,13 @@ export default function PodsList({ bare }: { bare?: boolean }) {
       endDate: newEnd || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      isDraft: newDraft,
     };
     pods.push(pod);
     podMembers.push({ id: `pm-${Date.now()}`, podId: pod.id, userId: currentUser.id, role: PodMemberRole.HOST, joinedAt: new Date().toISOString() });
     setPodsState([...pods]);
     setCreateOpen(false);
-    setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd("");
+    setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd(""); setNewDraft(false);
     toast({ title: "Pod created!" });
   };
 
@@ -134,6 +141,10 @@ export default function PodsList({ bare }: { bare?: boolean }) {
                   <label className="text-sm font-medium mb-1 block">End date</label>
                   <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
                 </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Save as draft</label>
+                <Switch checked={newDraft} onCheckedChange={setNewDraft} />
               </div>
               <Button onClick={createPod} disabled={!newName.trim()} className="w-full">Create</Button>
             </div>

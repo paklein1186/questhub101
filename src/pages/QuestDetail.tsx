@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -15,6 +16,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +66,7 @@ export default function QuestDetail() {
   const [uContent, setUContent] = useState("");
   const [uType, setUType] = useState<QuestUpdateType>(QuestUpdateType.GENERAL);
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
+  const [uDraft, setUDraft] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -74,6 +77,7 @@ export default function QuestDetail() {
   const quest = getQuestById(id!);
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
+  if (quest.isDraft && quest.createdByUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Quest not found.</p></PageShell>;
 
   const guild = getGuildById(quest.guildId);
   const company = quest.companyId ? getCompanyById(quest.companyId) : null;
@@ -105,10 +109,10 @@ export default function QuestDetail() {
 
   const postUpdate = () => {
     if (!uTitle.trim() || !uContent.trim()) return;
-    const update: QuestUpdate = { id: `qu-${Date.now()}`, questId: quest.id, authorId: currentUser.id, title: uTitle.trim(), content: uContent.trim(), imageUrl: uImageUrl, type: uType, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const update: QuestUpdate = { id: `qu-${Date.now()}`, questId: quest.id, authorId: currentUser.id, title: uTitle.trim(), content: uContent.trim(), imageUrl: uImageUrl, type: uType, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), isDraft: uDraft };
     questUpdates.push(update);
-    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType(QuestUpdateType.GENERAL); setUImageUrl(undefined);
-    rerender(); toast({ title: "Update posted!" });
+    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType(QuestUpdateType.GENERAL); setUImageUrl(undefined); setUDraft(false);
+    rerender(); toast({ title: uDraft ? "Draft saved!" : "Update posted!" });
   };
 
   const joinQuest = () => {
@@ -129,6 +133,7 @@ export default function QuestDetail() {
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Quests</Link>
       </Button>
+      {quest.isDraft && <DraftBanner />}
 
       {quest.coverImageUrl && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
@@ -188,7 +193,8 @@ export default function QuestDetail() {
                   <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
                   <div><label className="text-sm font-medium mb-1 block">Content</label><Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" /></div>
                   <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" description="Attach a screenshot or photo" />
-                  <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> Post Update</Button>
+                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
+                  <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : "Post Update"}</Button>
                 </div>
               </DialogContent>
             </Dialog>

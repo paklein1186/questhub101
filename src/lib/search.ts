@@ -76,6 +76,7 @@ export function globalSearch(
 
   // Guilds
   for (const g of filterActive(guilds)) {
+    if (g.isDraft) continue;
     if (!matchesQuery(query, g.name, g.description)) continue;
     if (filters?.topicId && !hasTopicId("GUILD", g.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("GUILD", g.id, filters.territoryId)) continue;
@@ -84,6 +85,7 @@ export function globalSearch(
 
   // Quests
   for (const q of filterActive(quests)) {
+    if (q.isDraft) continue;
     if (!matchesQuery(query, q.title, q.description)) continue;
     if (filters?.topicId && !hasTopicId("QUEST", q.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("QUEST", q.id, filters.territoryId)) continue;
@@ -92,12 +94,14 @@ export function globalSearch(
 
   // Pods
   for (const p of filterActive(pods)) {
+    if (p.isDraft) continue;
     if (!matchesQuery(query, p.name, p.description)) continue;
     results.push({ type: "POD", id: p.id, title: p.name, subtitle: p.description, url: `/pods/${p.id}` });
   }
 
   // Services
   for (const s of filterActive(services)) {
+    if (s.isDraft) continue;
     if (!matchesQuery(query, s.title, s.description)) continue;
     if (filters?.topicId && !hasTopicId("SERVICE", s.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("SERVICE", s.id, filters.territoryId)) continue;

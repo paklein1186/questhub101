@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Users, Plus } from "lucide-react";
@@ -20,6 +21,8 @@ import {
   guildTopics, guildTerritories, guildMembers,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
+import { filterPublished } from "@/lib/drafts";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
@@ -30,9 +33,12 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
   const [gName, setGName] = useState("");
   const [gDesc, setGDesc] = useState("");
   const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
+  const [gDraft, setGDraft] = useState(false);
   const [, forceUpdate] = useState(0);
 
-  const filtered = filterActive(guilds).filter((g) => {
+  const isAdm = checkIsGlobalAdmin(currentUser.email);
+
+  const filtered = filterPublished(filterActive(guilds), currentUser.id, (g) => g.createdByUserId, isAdm).filter((g) => {
     if (topicFilter !== "all" && !guildTopics.some((gt) => gt.guildId === g.id && gt.topicId === topicFilter)) return false;
     if (territoryFilter !== "all" && !guildTerritories.some((gt) => gt.guildId === g.id && gt.territoryId === territoryFilter)) return false;
     return true;
@@ -48,6 +54,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
       type: gType,
       isApproved: false,
       createdByUserId: currentUser.id,
+      isDraft: gDraft,
     };
     guilds.push(newGuild);
     guildMembers.push({
@@ -58,7 +65,8 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
       joinedAt: new Date().toISOString(),
     });
     setCreateOpen(false);
-    setGName(""); setGDesc(""); setGType(GuildType.GUILD);
+    setGName(""); setGDesc(""); setGType(GuildType.GUILD); setGDraft(false);
+    forceUpdate(n => n + 1);
     forceUpdate(n => n + 1);
     toast({ title: "Guild created!", description: `${newGuild.name} (pending approval)` });
   };
@@ -95,6 +103,10 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
                       <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Save as draft</label>
+                  <Switch checked={gDraft} onCheckedChange={setGDraft} />
                 </div>
                 <Button onClick={createGuild} disabled={!gName.trim()} className="w-full">Create Guild</Button>
               </div>

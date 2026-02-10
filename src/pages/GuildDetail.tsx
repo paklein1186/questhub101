@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
@@ -22,6 +23,7 @@ import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_XP_COST, EXTRA_GUILD_XP_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -70,9 +72,12 @@ export default function GuildDetail() {
   const [qDesc, setQDesc] = useState("");
   const [qRewardXp, setQRewardXp] = useState("100");
   const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
+  const [qDraft, setQDraft] = useState(false);
+  const [svcDraft, setSvcDraft] = useState(false);
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
   if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
+  if (guild.isDraft && guild.createdByUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Guild not found.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
   const territories = getTerritoriesForGuild(guild.id);
@@ -144,10 +149,11 @@ export default function GuildDetail() {
       status: QuestStatus.OPEN, monetizationType: MonetizationType.FREE,
       rewardXp: Number(qRewardXp) || 100, isFeatured: false,
       createdByUserId: currentUser.id, guildId: guild.id,
+      isDraft: qDraft,
     };
     allQuests.push(quest);
     limits.recordQuestCreation();
-    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined);
+    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined); setQDraft(false);
     rerender();
     toast({ title: "Quest created!", description: quest.title });
   };
@@ -166,10 +172,11 @@ export default function GuildDetail() {
       priceAmount: Number(svcPrice) || 0, priceCurrency: "EUR",
       onlineLocationType: svcLocationType, isActive: true, imageUrl: svcImageUrl,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      isDraft: svcDraft,
     };
     services.push(newSvc);
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
-    setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined);
+    setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
     setCreateSvcOpen(false); rerender();
     toast({ title: "Guild service created" });
   };
@@ -201,6 +208,8 @@ export default function GuildDetail() {
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
       </Button>
+
+      {guild.isDraft && <DraftBanner />}
 
       {/* Banner */}
       {guild.bannerUrl && (
@@ -301,6 +310,7 @@ export default function GuildDetail() {
                       <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
                       <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
                       <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
+                      <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
                       <Button onClick={attemptCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
                     </div>
                   </DialogContent>
@@ -363,6 +373,7 @@ export default function GuildDetail() {
                     <label className="text-sm font-medium mb-1 block">Location type</label>
                     <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem><SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem><SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem></SelectContent></Select>
                   </div>
+                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
                   <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
                 </div>
               </DialogContent>

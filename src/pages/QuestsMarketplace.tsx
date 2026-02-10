@@ -10,6 +10,9 @@ import {
   questTopics, questTerritories,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
+import { filterPublished } from "@/lib/drafts";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { QuestStatus, MonetizationType } from "@/types/enums";
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
@@ -18,7 +21,10 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [monetizationFilter, setMonetizationFilter] = useState("all");
 
-  const filtered = filterActive(quests).filter((q) => {
+  const currentUser = useCurrentUser();
+  const isAdm = checkIsGlobalAdmin(currentUser.email);
+
+  const filtered = filterPublished(filterActive(quests), currentUser.id, (q) => q.createdByUserId, isAdm).filter((q) => {
     if (topicFilter !== "all" && !questTopics.some((qt) => qt.questId === q.id && qt.topicId === topicFilter)) return false;
     if (territoryFilter !== "all" && !questTerritories.some((qt) => qt.questId === q.id && qt.territoryId === territoryFilter)) return false;
     if (statusFilter !== "all" && q.status !== statusFilter) return false;

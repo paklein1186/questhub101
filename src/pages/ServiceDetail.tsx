@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import { BookingStatus, PaymentStatus, CommentTargetType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { DraftBanner } from "@/components/DraftBanner";
 import {
   getServiceById, getUserById, getGuildById,
   getTopicsForService, getTerritoriesForService,
@@ -61,6 +62,7 @@ export default function ServiceDetail() {
 
   if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
   if (svc.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This service has been removed.</p></PageShell>;
+  if (svc.isDraft && svc.providerUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
 
   const isFree = !svc.priceAmount || svc.priceAmount === 0;
 
@@ -96,6 +98,8 @@ export default function ServiceDetail() {
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=services"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Services</Link>
       </Button>
+
+      {svc.isDraft && <DraftBanner />}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         {svc.imageUrl && (

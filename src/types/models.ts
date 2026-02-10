@@ -30,6 +30,10 @@ export interface SoftDeletable {
   deletedByUserId?: string;
 }
 
+export interface Draftable {
+  isDraft?: boolean;
+}
+
 // ─── Core Entities ───────────────────────────────────────────
 
 export interface User extends SoftDeletable {
@@ -49,7 +53,7 @@ export interface User extends SoftDeletable {
   userTerritories?: UserTerritory[];
 }
 
-export interface Guild extends SoftDeletable {
+export interface Guild extends SoftDeletable, Draftable {
   id: string;
   name: string;
   description?: string;
@@ -79,7 +83,7 @@ export interface GuildMember {
 
 // ─── Quests ──────────────────────────────────────────────────
 
-export interface Quest extends SoftDeletable {
+export interface Quest extends SoftDeletable, Draftable {
   id: string;
   title: string;
   description?: string;
@@ -112,7 +116,7 @@ export interface QuestParticipant {
   user?: User;
 }
 
-export interface QuestUpdate extends SoftDeletable {
+export interface QuestUpdate extends SoftDeletable, Draftable {
   id: string;
   questId: string;
   authorId: string;
@@ -260,7 +264,7 @@ export interface Follow {
 
 // ─── Pods ────────────────────────────────────────────────────
 
-export interface Pod extends SoftDeletable {
+export interface Pod extends SoftDeletable, Draftable {
   id: string;
   name: string;
   description: string;
@@ -294,7 +298,7 @@ export interface PodMember {
 
 // ─── Services & Bookings ─────────────────────────────────────
 
-export interface Service extends SoftDeletable {
+export interface Service extends SoftDeletable, Draftable {
   id: string;
   title: string;
   description: string;
