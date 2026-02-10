@@ -65,6 +65,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_entries: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           code: string
@@ -231,7 +252,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
     }
     Enums: {
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
