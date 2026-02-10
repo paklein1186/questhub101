@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
+import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import GuildsList from "./GuildsList";
 import QuestsMarketplace from "./QuestsMarketplace";
 import PodsList from "./PodsList";
