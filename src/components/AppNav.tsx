@@ -148,6 +148,16 @@ export function AppNav() {
                       <Building2 className="h-4 w-4 mr-2" /> My companies
                     </Link>
                   </DropdownMenuItem>
+                  {showAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/me/settings" className="cursor-pointer">
