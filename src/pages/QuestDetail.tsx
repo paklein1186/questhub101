@@ -124,7 +124,7 @@ export default function QuestDetail() {
     toast({ title: "Pod created!" });
   };
 
-  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditOpen(true); };
+  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditOpen(true); };
 
   const saveEditQuest = async () => {
     await supabase.from("quests").update({ title: editTitle.trim() || quest.title, description: editDesc.trim() || null, status: editStatus as any, cover_image_url: editCoverImageUrl || null }).eq("id", quest.id);
