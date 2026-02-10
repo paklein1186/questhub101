@@ -63,6 +63,9 @@ export default function Signup() {
             <Zap className="h-6 w-6 text-primary" /> QuestHub
           </Link>
           <p className="text-muted-foreground mt-2">Create your account and start your journey.</p>
+          {referral && (
+            <Badge variant="secondary" className="mt-2 gap-1"><Gift className="h-3 w-3" /> You were referred! Complete onboarding to earn bonus XP.</Badge>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8 space-y-5">
