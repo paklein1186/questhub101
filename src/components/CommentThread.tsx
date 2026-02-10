@@ -164,7 +164,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium text-foreground">{author?.name ?? "Unknown"}</span>
-                <AdminBadge email={author?.email} />
+                <AdminBadge userId={comment.author_id} />
                 <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</span>
               </div>
               {isEditing ? (

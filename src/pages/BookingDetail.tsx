@@ -67,7 +67,7 @@ export default function BookingDetail() {
           gm.role === GuildMemberRole.ADMIN
       )
     : false;
-  const userIsAdmin = isAdmin(currentUser.email);
+  const { isAdmin: userIsAdmin } = useUserRoles(currentUser.id);
   const hasAccess = isRequester || isProviderUser || isGuildAdmin || userIsAdmin;
 
   if (!hasAccess) {

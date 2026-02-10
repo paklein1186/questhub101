@@ -26,7 +26,7 @@ export function AppNav() {
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
   const isLoggedIn = !!session;
-  const showAdmin = isLoggedIn && session?.user?.email && isAdmin(session.user.email);
+  const { isAdmin: showAdmin } = useUserRoles(session?.user?.id);
 
   const handleLogout = async () => {
     await signOut();
