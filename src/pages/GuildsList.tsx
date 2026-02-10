@@ -19,6 +19,7 @@ import {
   getMembersForGuild,
   guildTopics, guildTerritories, guildMembers,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
