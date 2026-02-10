@@ -85,6 +85,10 @@ export default function GuildDetail() {
   const isAdmin = currentMembership?.role === "ADMIN";
   const isMember = !!currentMembership;
 
+  // Feature flags
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const fc = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
+
   const doJoinGuild = async () => {
     const { error } = await supabase.from("guild_members").insert({ guild_id: guild.id, user_id: currentUser.id, role: "MEMBER" as any });
     if (error) { toast({ title: "Failed to join", variant: "destructive" }); return; }
