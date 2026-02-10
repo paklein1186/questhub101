@@ -26,18 +26,13 @@ import { useNotifications as useNotificationsHook, requestPushPermission as requ
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
 import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
-import {
-  users, topics, territories, userTopics, userTerritories,
-  services, getServicesForUser,
-  availabilityRules, availabilityExceptions,
-  referrals, generateReferralCode, getReferralsForUser,
-  quests, comments, bookings,
-} from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
 import {
