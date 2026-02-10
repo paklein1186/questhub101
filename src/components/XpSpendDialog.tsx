@@ -79,10 +79,10 @@ export function XpSpendDialog({
             </p>
             <DialogFooter className="flex-col sm:flex-row gap-2">
               <Button variant="outline" asChild>
-                <Link to="/pricing">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                <Link to="/plans">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
               <Button asChild>
-                <Link to="/buy-xp"><Zap className="h-4 w-4 mr-1" /> Buy XP bundles</Link>
+                <Link to="/me/xp"><Zap className="h-4 w-4 mr-1" /> Buy XP bundles</Link>
               </Button>
             </DialogFooter>
           </div>

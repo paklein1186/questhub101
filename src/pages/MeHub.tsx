@@ -157,6 +157,16 @@ export default function MeHub() {
                 </Link>
               </Button>
               <Button asChild variant="outline" className="w-full justify-start h-12">
+                <Link to="/me/xp">
+                  <Zap className="h-5 w-5 mr-3" /> Buy XP
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12">
+                <Link to="/plans">
+                  <Briefcase className="h-5 w-5 mr-3" /> Plans & Pricing
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full justify-start h-12">
                 <Link to="/onboarding">
                   <Settings className="h-5 w-5 mr-3" /> Onboarding / Settings
                 </Link>
