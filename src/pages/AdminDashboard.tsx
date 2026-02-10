@@ -870,6 +870,138 @@ function MarketplaceTab() {
   );
 }
 
+// ─── Reports Section ────────────────────────────────────────
+function ReportsSection() {
+  const { toast } = useToast();
+  const [reportsState, setReportsState] = useState<Report[]>(() => [...allReports]);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+
+  const refresh = () => setReportsState([...allReports]);
+
+  const filtered = reportsState.filter((r) => {
+    if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
+    if (typeFilter !== "ALL" && r.targetEntityType !== typeFilter) return false;
+    return true;
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const updateStatus = (reportId: string, newStatus: ReportStatus) => {
+    const r = allReports.find((r) => r.id === reportId);
+    if (r) { r.status = newStatus; r.reviewedByUserId = "u1"; }
+    refresh();
+    toast({ title: `Report marked as ${newStatus.toLowerCase()}` });
+  };
+
+  const targetLink = (r: Report) => {
+    const map: Record<string, string> = {
+      USER: `/users/${r.targetEntityId}`,
+      GUILD: `/guilds/${r.targetEntityId}`,
+      QUEST: `/quests/${r.targetEntityId}`,
+      POD: `/pods/${r.targetEntityId}`,
+      SERVICE: `/services/${r.targetEntityId}`,
+      COMMENT: "#",
+      BOOKING: "#",
+    };
+    return map[r.targetEntityType] ?? "#";
+  };
+
+  return (
+    <div>
+      <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3">
+        <Flag className="h-5 w-5" /> Reports ({allReports.length})
+      </h3>
+
+      <div className="flex flex-wrap gap-3 mb-4">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            {Object.values(ReportStatus).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All types</SelectItem>
+            {Object.values(ReportTargetType).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No reports{statusFilter !== "ALL" || typeFilter !== "ALL" ? " matching filters" : ""}.</p>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Reporter</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="w-[240px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((r) => {
+                const reporter = getUserById(r.reporterId);
+                return (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium text-sm">{reporter?.name ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{r.targetEntityType}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm max-w-xs truncate">{r.reason}</TableCell>
+                    <TableCell>
+                      <Badge variant={r.status === "OPEN" ? "destructive" : r.status === "RESOLVED" ? "default" : "secondary"} className="text-xs">
+                        {r.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {targetLink(r) !== "#" && (
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" asChild>
+                            <a href={targetLink(r)}><ExternalLink className="h-3 w-3 mr-1" /> View</a>
+                          </Button>
+                        )}
+                        {r.status === ReportStatus.OPEN && (
+                          <>
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => updateStatus(r.id, ReportStatus.REVIEWED)}>
+                              <Eye className="h-3 w-3 mr-1" /> Reviewed
+                            </Button>
+                            <Button size="sm" variant="default" className="h-7 px-2 text-xs" onClick={() => updateStatus(r.id, ReportStatus.RESOLVED)}>
+                              <Check className="h-3 w-3 mr-1" /> Resolve
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => updateStatus(r.id, ReportStatus.DISMISSED)}>
+                              <X className="h-3 w-3 mr-1" /> Dismiss
+                            </Button>
+                          </>
+                        )}
+                        {r.status === ReportStatus.REVIEWED && (
+                          <>
+                            <Button size="sm" variant="default" className="h-7 px-2 text-xs" onClick={() => updateStatus(r.id, ReportStatus.RESOLVED)}>
+                              <Check className="h-3 w-3 mr-1" /> Resolve
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => updateStatus(r.id, ReportStatus.DISMISSED)}>
+                              <X className="h-3 w-3 mr-1" /> Dismiss
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Moderation Tab ─────────────────────────────────────────
 function ModerationTab() {
   const { toast } = useToast();
