@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
 import { Brain } from "lucide-react";
+import { usePersona } from "@/hooks/usePersona";
 
 import { HeroAI } from "@/components/home/HeroAI";
 import { HomeStats } from "@/components/home/HomeStats";
@@ -60,6 +61,7 @@ export default function HomeFeed() {
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const { data, isLoading } = useHomeShellData(currentUser.id);
+  const { persona, label } = usePersona();
 
   if (isLoading) {
     return (
@@ -125,7 +127,7 @@ export default function HomeFeed() {
           <>
             <section className="space-y-4">
               <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" /> In Your Territories
+                <Brain className="h-5 w-5 text-primary" /> {label("home.territories_section")}
               </h2>
               <div className="space-y-4">
                 {(data?.myTerritories ?? []).slice(0, 2).map((t: any) => (

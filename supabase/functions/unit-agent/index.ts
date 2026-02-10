@@ -7,7 +7,25 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string) {
+const MUSE_MAP: Record<string, { name: string; style: string }> = {
+  "house-of-light": { name: "The Prism", style: "Visual, colorful, metaphorical. Speaks in imagery and aesthetics." },
+  "house-of-sound": { name: "The Echo", style: "Rhythmic, harmonic, sound-based. Thinks in patterns and resonance." },
+  "house-of-story": { name: "The Storykeeper", style: "Narrative, mythic. Weaves meaning through arcs and characters." },
+  "house-of-movement": { name: "The Mover", style: "Embodied, flow-based. Thinks through gesture and presence." },
+  "house-of-form": { name: "The Shaper", style: "Structural, constructive. Builds meaning through form and function." },
+  "house-of-nature": { name: "The Green One", style: "Ecological, grounded, regenerative. Rooted in living systems." },
+  "house-of-ritual": { name: "The Threshold", style: "Liminal, experiential, ceremonial. Holds space for transformation." },
+};
+
+function resolveMuseFromTopicNames(topicNames: string[]): { name: string; style: string } | null {
+  for (const n of topicNames) {
+    const slug = n.toLowerCase().replace(/\s+/g, "-");
+    if (MUSE_MAP[slug]) return MUSE_MAP[slug];
+  }
+  return null;
+}
+
+function buildSystemPrompt(entityType: string, entityName: string, contextSummary: string, starredSummary: string, topicNames: string[] = []) {
   const agentNames: Record<string, string> = {
     GUILD: "Guild Spirit",
     QUEST: "Quest Companion",
@@ -24,6 +42,13 @@ function buildSystemPrompt(entityType: string, entityName: string, contextSummar
     starredSection = `\n\nImportant past insights for this unit (starred by members):\n${starredSummary}\n\nUse these to recognise recurring themes, avoid repeating old advice, and build continuity.`;
   }
 
+  // Check for creative Muse personality
+  const muse = resolveMuseFromTopicNames(topicNames);
+  let museSection = "";
+  if (muse) {
+    museSection = `\n\nYou are also known as "${muse.name}" — a creative AI muse.\nYour style: ${muse.style}\nAdapt your language, metaphors, and suggestions to match this creative sensibility. Offer creative prompts and artistic inspiration when appropriate.`;
+  }
+
   return `You are the "${agentName} of ${entityName}" — a helpful, non-authoritarian AI assistant embedded in a collaborative platform unit.
 
 Your role:
@@ -33,7 +58,7 @@ Your role:
 - Be warm, concise, and action-oriented. Use emojis sparingly.
 
 Unit context:
-${contextSummary}${starredSection}
+${contextSummary}${starredSection}${museSection}
 
 When making suggestions, you can include structured suggestions in your response using this JSON format within your message:
 - For decision polls: [POLL:{"question":"...","options":["A","B","C"]}]
@@ -44,7 +69,7 @@ Only include these when genuinely useful. Most responses should be plain text.
 Always respond helpfully even if context is limited. Highlight when you're uncertain.`;
 }
 
-async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string }> {
+async function gatherContext(supabase: any, entityType: string, entityId: string): Promise<{ name: string; summary: string; topicNames: string[] }> {
   let name = "Unknown";
   const parts: string[] = [];
 
@@ -110,7 +135,26 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     console.error("Context gathering error:", e);
   }
 
-  return { name, summary: parts.join("\n") || "No additional context available." };
+  // Extract topic names for Muse resolution
+  const topicNames: string[] = [];
+  try {
+    const topicTable: Record<string, { table: string; fk: string }> = {
+      GUILD: { table: "guild_topics", fk: "guild_id" },
+      QUEST: { table: "quest_topics", fk: "quest_id" },
+      COURSE: { table: "course_topics", fk: "course_id" },
+    };
+    const mapping = topicTable[entityType];
+    if (mapping) {
+      const { data: topicRows } = await supabase.from(mapping.table).select("topics(name)").eq(mapping.fk, entityId);
+      if (topicRows?.length) {
+        for (const r of topicRows) {
+          if (r.topics?.name) topicNames.push(r.topics.name);
+        }
+      }
+    }
+  } catch {}
+
+  return { name, summary: parts.join("\n") || "No additional context available.", topicNames };
 }
 
 async function getConversationFromDB(supabase: any, entityType: string, entityId: string, limit = 20) {
