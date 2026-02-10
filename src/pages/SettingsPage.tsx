@@ -43,6 +43,8 @@ import MyAvailability from "./MyAvailability";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { MyServicesPanel } from "@/components/MyServicesPanel";
+import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
 
 const TABS = [
   { key: "account", label: "Account & Security", icon: Shield },
