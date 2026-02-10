@@ -488,6 +488,13 @@ export default function UserProfile() {
           </div>
         </TabsContent>
 
+        {/* ─── Matchmaker ─── */}
+        {isOwnProfile && (
+          <TabsContent value="matchmaker">
+            <MatchmakerPanel matchType="user" userId={profile.userId} />
+          </TabsContent>
+        )}
+
         {/* ─── Wall ─── */}
         <TabsContent value="wall">
           <CommentThread targetType={CommentTargetType.USER} targetId={profile.userId} />
