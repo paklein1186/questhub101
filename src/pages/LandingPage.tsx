@@ -7,7 +7,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { quests, topics } from "@/data/mock";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 const fadeUp = {
@@ -52,10 +54,44 @@ const personas = [
   },
 ];
 
-const sampleTopics = topics.slice(0, 8);
-const sampleQuests = quests.filter((q) => q.isFeatured).slice(0, 3);
+function useFeaturedQuests() {
+  return useQuery({
+    queryKey: ["landing-featured-quests"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quests")
+        .select("id, title, description, reward_xp, is_featured")
+        .eq("is_deleted", false)
+        .eq("is_draft", false)
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data ?? [];
+    },
+    staleTime: 300_000,
+  });
+}
+
+function useLandingTopics() {
+  return useQuery({
+    queryKey: ["landing-topics"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("topics")
+        .select("id, name, slug")
+        .eq("is_deleted", false)
+        .order("name")
+        .limit(8);
+      return data ?? [];
+    },
+    staleTime: 300_000,
+  });
+}
 
 export default function LandingPage() {
+  const { data: sampleQuests = [], isLoading: loadingQuests } = useFeaturedQuests();
+  const { data: sampleTopics = [], isLoading: loadingTopics } = useLandingTopics();
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Nav ─── */}
@@ -196,19 +232,25 @@ export default function LandingPage() {
               </h2>
               <p className="text-sm text-muted-foreground mb-5">Open missions waiting for your contribution.</p>
               <div className="space-y-3">
-                {sampleQuests.map((q, i) => (
-                  <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                    <Link to={`/quests/${q.id}`}
-                      className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-display font-semibold text-sm">{q.title}</h3>
-                        <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.rewardXp} XP</Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
-                    </Link>
-                  </motion.div>
-                ))}
+                {loadingQuests ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)
+                ) : sampleQuests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No featured quests yet.</p>
+                ) : (
+                  sampleQuests.map((q, i) => (
+                    <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/quests/${q.id}`}
+                        className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-display font-semibold text-sm">{q.title}</h3>
+                          <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.reward_xp} XP</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
               </div>
               <Button variant="ghost" size="sm" asChild className="mt-4">
                 <Link to="/explore">See all quests <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
@@ -222,15 +264,19 @@ export default function LandingPage() {
               </h2>
               <p className="text-sm text-muted-foreground mb-5">Browse thematic communities shaping the future.</p>
               <div className="flex flex-wrap gap-2">
-                {sampleTopics.map((t, i) => (
-                  <motion.div key={t.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                    <Link to={`/topics/${t.slug}`}>
-                      <Badge variant="secondary" className="px-3 py-1.5 text-sm hover:bg-accent/10 hover:text-accent transition-colors cursor-pointer">
-                        {t.name}
-                      </Badge>
-                    </Link>
-                  </motion.div>
-                ))}
+                {loadingTopics ? (
+                  Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)
+                ) : (
+                  sampleTopics.map((t, i) => (
+                    <motion.div key={t.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/topics/${t.slug}`}>
+                        <Badge variant="secondary" className="px-3 py-1.5 text-sm hover:bg-accent/10 hover:text-accent transition-colors cursor-pointer">
+                          {t.name}
+                        </Badge>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
               </div>
               <Button variant="ghost" size="sm" asChild className="mt-6">
                 <Link to="/explore">Browse all topics <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
@@ -295,8 +341,6 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm text-muted-foreground">
               <Link to="/explore" className="hover:text-foreground transition-colors">Explore</Link>
-              <span className="hover:text-foreground transition-colors cursor-default">About</span>
-              <span className="hover:text-foreground transition-colors cursor-default">Contact</span>
               <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
               <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
               <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
