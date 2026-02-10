@@ -329,7 +329,7 @@ export interface ServiceTerritory {
   territory?: Territory;
 }
 
-export interface Booking {
+export interface Booking extends SoftDeletable {
   id: string;
   serviceId: string;
   requesterId: string;
