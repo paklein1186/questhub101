@@ -13,6 +13,7 @@ import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, PodType, PodMemberRole, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
+import { DraftBanner } from "@/components/DraftBanner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import {
