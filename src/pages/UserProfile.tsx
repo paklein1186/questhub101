@@ -38,6 +38,7 @@ export default function UserProfile() {
   const { toast } = useToast();
   const { awardXp } = useXP();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
+  const { isBlocked, toggle: toggleBlock } = useBlock(id!);
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
