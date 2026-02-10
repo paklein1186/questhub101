@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.ai-match]
 verify_jwt = false
+
+[functions.facilitate]
+verify_jwt = false

@@ -24,6 +24,8 @@ import { format } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
 import { UnitChat } from "@/components/UnitChat";
+import { FacilitatorPanel } from "@/components/FacilitatorPanel";
+import { Sparkles } from "lucide-react";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -149,6 +151,7 @@ export default function PodDetail() {
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
+          {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
@@ -189,6 +192,12 @@ export default function PodDetail() {
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.POD} targetId={pod.id} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="facilitator" className="mt-6">
+            <FacilitatorPanel entityType="POD" entityId={pod.id} entityName={pod.name} isAdmin={isHost} />
+          </TabsContent>
+        )}
 
         {isMember && (
           <TabsContent value="ai-chat" className="mt-6">
