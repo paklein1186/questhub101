@@ -104,6 +104,10 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Save as draft</label>
+                  <Switch checked={gDraft} onCheckedChange={setGDraft} />
+                </div>
                 <Button onClick={createGuild} disabled={!gName.trim()} className="w-full">Create Guild</Button>
               </div>
             </DialogContent>
