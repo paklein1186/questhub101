@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
-  UserPlus, UserMinus,
+  UserPlus, UserMinus, Settings,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -239,7 +239,11 @@ export default function GuildDetail() {
               </div>
             )}
             {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
-            {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/edit`}><Pencil className="h-4 w-4 mr-1" /> Edit guild</Link></Button>}
+            {isAdmin && (
+              <>
+                <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
+              </>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">

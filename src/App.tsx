@@ -19,6 +19,7 @@ import NetworkHub from "./pages/NetworkHub";
 import MeHub from "./pages/MeHub";
 import GuildDetail from "./pages/GuildDetail";
 import GuildEdit from "./pages/GuildEdit";
+import GuildSettings from "./pages/GuildSettings";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
                 <Route path="/me" element={<RequireAuth><MeHub /></RequireAuth>} />
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
+                <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
