@@ -19,6 +19,8 @@ import {
   TopicFeatureTargetType,
   OnlineLocationType,
   PaymentStatus,
+  ReportTargetType,
+  ReportStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
