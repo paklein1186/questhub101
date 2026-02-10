@@ -33,6 +33,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
   const [gName, setGName] = useState("");
   const [gDesc, setGDesc] = useState("");
   const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
+  const [gDraft, setGDraft] = useState(false);
   const [, forceUpdate] = useState(0);
 
   const isAdm = checkIsGlobalAdmin(currentUser.email);
