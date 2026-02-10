@@ -268,6 +268,15 @@ export default function QuestDetail() {
           </div>
         </TabsContent>
 
+        <TabsContent value="subtasks" className="mt-6">
+          <QuestSubtasks
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            guildId={quest.guild_id}
+            canManage={isOwner || isCollaborator}
+          />
+        </TabsContent>
+
         <TabsContent value="updates" className="mt-6 space-y-4">
           {(updates || []).length === 0 && <p className="text-muted-foreground">No updates yet.</p>}
           {(updates || []).map((update: any, i: number) => {
