@@ -153,6 +153,7 @@ export default function PodDetail() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
+          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
