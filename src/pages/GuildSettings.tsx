@@ -125,7 +125,18 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const handleSaveIdentity = () => {
     const idx = guilds.findIndex((g) => g.id === guildId);
     if (idx !== -1) {
-      guilds[idx] = { ...guilds[idx], name: name.trim() || guild.name, logoUrl: logoUrl.trim() || undefined, bannerUrl: bannerUrl.trim() || undefined, description: description.trim() || undefined, type };
+      guilds[idx] = {
+        ...guilds[idx],
+        name: name.trim() || guild.name,
+        logoUrl: logoUrl.trim() || undefined,
+        bannerUrl: bannerUrl.trim() || undefined,
+        description: description.trim() || undefined,
+        type,
+        websiteUrl: normalizeUrl(guildWebsiteUrl) ?? undefined,
+        twitterUrl: normalizeUrl(guildTwitterUrl) ?? undefined,
+        linkedinUrl: normalizeUrl(guildLinkedinUrl) ?? undefined,
+        instagramUrl: normalizeUrl(guildInstagramUrl) ?? undefined,
+      };
     }
     // Update topic relations
     const existing = guildTopics.filter((gt) => gt.guildId === guildId);
