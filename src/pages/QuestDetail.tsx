@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +32,7 @@ import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -290,6 +291,7 @@ export default function QuestDetail() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           {isOwner && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
+          {isOwner && <TabsTrigger value="memory"><Brain className="h-3.5 w-3.5 mr-1" /> Memory</TabsTrigger>}
           <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
         </TabsList>
 
@@ -381,6 +383,12 @@ export default function QuestDetail() {
         {isOwner && (
           <TabsContent value="matchmaker" className="mt-6">
             <MatchmakerPanel matchType="quest" questId={quest.id} />
+          </TabsContent>
+        )}
+
+        {isOwner && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="QUEST" entityId={quest.id} entityName={quest.title} guildId={quest.guild_id || undefined} />
           </TabsContent>
         )}
 

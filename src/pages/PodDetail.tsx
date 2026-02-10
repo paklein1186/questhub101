@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
 import { UnitChat } from "@/components/UnitChat";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
+import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { Sparkles } from "lucide-react";
 
 export default function PodDetail() {
@@ -152,6 +153,7 @@ export default function PodDetail() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
+          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
@@ -196,6 +198,12 @@ export default function PodDetail() {
         {isMember && (
           <TabsContent value="facilitator" className="mt-6">
             <FacilitatorPanel entityType="POD" entityId={pod.id} entityName={pod.name} isAdmin={isHost} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="POD" entityId={pod.id} entityName={pod.name} />
           </TabsContent>
         )}
 

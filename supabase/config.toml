@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.facilitate]
 verify_jwt = false
+
+[functions.ai-memory]
+verify_jwt = false

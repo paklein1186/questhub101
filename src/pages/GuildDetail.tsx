@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
-  UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles,
+  UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,6 +40,7 @@ import { GuildEvents } from "@/components/guild/GuildEvents";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
+import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -192,6 +193,7 @@ export default function GuildDetail() {
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           {isAdmin && <TabsTrigger value="matchmaker"><Sparkles className="h-4 w-4 mr-1" /> Matchmaker</TabsTrigger>}
           {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
+          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
@@ -321,6 +323,12 @@ export default function GuildDetail() {
         {isMember && (
           <TabsContent value="facilitator" className="mt-6">
             <FacilitatorPanel entityType="GUILD" entityId={guild.id} entityName={guild.name} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
           </TabsContent>
         )}
 
