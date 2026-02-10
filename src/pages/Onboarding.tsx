@@ -115,6 +115,14 @@ export default function Onboarding() {
       return;
     }
     if (step === 4) {
+      // Mark onboarding as completed in the database
+      if (authUser?.id) {
+        await supabase
+          .from("profiles")
+          .update({ has_completed_onboarding: true })
+          .eq("user_id", authUser.id);
+        await refreshProfile();
+      }
       setDirection(1);
       setStep(5);
       return;
