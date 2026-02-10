@@ -89,10 +89,10 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   const deleteComment = (commentId: string) => {
-    setComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
-    // Remove from global mock
-    const idx = allMockComments.findIndex(c => c.id === commentId);
-    if (idx !== -1) allMockComments.splice(idx, 1);
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, isDeleted: true, deletedAt: new Date().toISOString(), deletedByUserId: currentUser.id } : c));
+    // Also update global mock
+    const mockComment = allMockComments.find(c => c.id === commentId);
+    if (mockComment) { mockComment.isDeleted = true; mockComment.deletedAt = new Date().toISOString(); mockComment.deletedByUserId = currentUser.id; }
     toast({ title: "Comment deleted" });
   };
 
