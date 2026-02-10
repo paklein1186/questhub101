@@ -58,6 +58,7 @@ const App = () => (
 
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
+                <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
                 <Route path="/quests/:id" element={<QuestDetail />} />
