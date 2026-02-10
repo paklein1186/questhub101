@@ -4,6 +4,7 @@ import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin } from "@/lib/admin";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function AppNav() {
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { user, signOut, session } = useAuth();
+  const currentUser = useCurrentUser();
   const isLoggedIn = !!session;
   const showAdmin = isLoggedIn && user?.email && isAdmin(user.email);
 
@@ -126,7 +128,7 @@ export function AppNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
+                    <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
                       <User className="h-4 w-4 mr-2" /> My public profile
                     </Link>
                   </DropdownMenuItem>
