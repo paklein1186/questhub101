@@ -103,15 +103,15 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
   const handleAction = async (app: ApplicationRow, action: "APPROVED" | "REJECTED") => {
     setActing(true);
 
-    const { error } = await supabase
-      .from(cfg.applications)
+    const { error } = await (supabase
+      .from(cfg.applications as any)
       .update({
         status: action,
         reviewed_at: new Date().toISOString(),
         reviewed_by_user_id: currentUserId,
         admin_note: adminNote.trim() || null,
-      } as any)
-      .eq("id", app.id);
+      })
+      .eq("id", app.id) as any);
 
     if (error) {
       toast({ title: "Failed to update", description: error.message, variant: "destructive" });
