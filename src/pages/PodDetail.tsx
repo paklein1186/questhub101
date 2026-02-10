@@ -146,7 +146,14 @@ export default function PodDetail() {
         <div className="mt-4 flex items-center gap-3">
           {!isMember ? (
             <div className="flex flex-col gap-1">
-              <Button onClick={attemptJoinPod}><UserPlus className="h-4 w-4 mr-1" /> Join pod</Button>
+              <EntityJoinButton
+                entityType="pod"
+                entityId={pod.id}
+                joinPolicy={(pod as any).joinPolicy || "OPEN"}
+                applicationQuestions={(pod as any).applicationQuestions || []}
+                currentUserId={currentUser.id}
+                onJoined={rerender}
+              />
               <PlanLimitBadge
                 limitReached={limits.podLimitReached}
                 xpCost={EXTRA_POD_XP_COST}
