@@ -9,6 +9,7 @@ import {
   quests, topics, territories, guilds,
   questTopics, questTerritories,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 import { QuestStatus, MonetizationType } from "@/types/enums";
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
