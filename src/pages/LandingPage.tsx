@@ -297,8 +297,9 @@ export default function LandingPage() {
               <Link to="/explore" className="hover:text-foreground transition-colors">Explore</Link>
               <span className="hover:text-foreground transition-colors cursor-default">About</span>
               <span className="hover:text-foreground transition-colors cursor-default">Contact</span>
-              <span className="hover:text-foreground transition-colors cursor-default">Privacy</span>
-              <span className="hover:text-foreground transition-colors cursor-default">Terms</span>
+              <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+              <Link to="/cookies" className="hover:text-foreground transition-colors">Cookies</Link>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-border text-center text-xs text-muted-foreground">
