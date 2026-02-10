@@ -81,7 +81,24 @@ export default function QuestDetail() {
   const isParticipant = (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
+  const isPaidQuest = quest && quest.price_fiat > 0;
+
   const joinQuest = async () => {
+    if (isPaidQuest) {
+      // Redirect to Stripe checkout for paid quests
+      try {
+        const { data, error } = await supabase.functions.invoke("create-checkout", {
+          body: { quest_id: quest.id, price_fiat: quest.price_fiat, currency: quest.price_currency || "EUR" },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.open(data.url, "_blank");
+        }
+      } catch (err: any) {
+        toast({ title: "Payment error", description: err.message, variant: "destructive" });
+      }
+      return;
+    }
     await supabase.from("quest_participants").insert({ quest_id: quest.id, user_id: currentUser.id, role: "COLLABORATOR", status: "ACCEPTED" });
     qc.invalidateQueries({ queryKey: ["quest-participants", id] });
     toast({ title: "Joined quest!" });
