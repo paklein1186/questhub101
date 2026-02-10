@@ -96,13 +96,19 @@ export default function SettingsPage() {
   const [emailDigest, setEmailDigest] = useState<"INSTANT" | "DAILY" | "WEEKLY" | "NEVER">("WEEKLY");
   const [emailSystem, setEmailSystem] = useState(true);
 
-  // ── Privacy state ──
-  const [showXp, setShowXp] = useState(true);
-  const [showCi, setShowCi] = useState(true);
-  const [showAchievements, setShowAchievements] = useState(true);
-  const [showServices, setShowServices] = useState(true);
-  const [allowFollow, setAllowFollow] = useState(true);
-  const [allowWallComments, setAllowWallComments] = useState(true);
+  // ── Privacy state (synced with user model) ──
+  const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
+  const [showCi, setShowCi] = useState(currentUser.showContributionIndexPublicly !== false);
+  const [showAchievements, setShowAchievements] = useState(currentUser.showAchievementsPublicly !== false);
+  const [showServices, setShowServices] = useState(currentUser.showServicesPublicly !== false);
+  const [allowFollow, setAllowFollow] = useState(currentUser.allowFollows !== false);
+  const [allowWallComments, setAllowWallComments] = useState(currentUser.allowProfileComments !== false);
+
+  // Sync privacy changes to mock user object
+  const updatePrivacy = (field: keyof typeof currentUser, value: boolean, setter: (v: boolean) => void) => {
+    setter(value);
+    (currentUser as any)[field] = value;
+  };
 
   // ── Services state ──
   const [, forceUpdate] = useState(0);
@@ -447,17 +453,17 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <Section title="Profile Visibility" icon={<Eye className="h-5 w-5" />}>
                     <div className="space-y-3">
-                      <NotifToggle label="Show my XP publicly on my profile" checked={showXp} onChange={setShowXp} />
-                      <NotifToggle label="Show my contribution index on my profile" checked={showCi} onChange={setShowCi} />
-                      <NotifToggle label="Show my achievements on my profile" checked={showAchievements} onChange={setShowAchievements} />
-                      <NotifToggle label="Show services I offer on my public profile" checked={showServices} onChange={setShowServices} />
+                      <NotifToggle label="Show my XP publicly on my profile" checked={showXp} onChange={(v) => updatePrivacy("showXpPublicly", v, setShowXp)} />
+                      <NotifToggle label="Show my contribution index on my profile" checked={showCi} onChange={(v) => updatePrivacy("showContributionIndexPublicly", v, setShowCi)} />
+                      <NotifToggle label="Show my achievements on my profile" checked={showAchievements} onChange={(v) => updatePrivacy("showAchievementsPublicly", v, setShowAchievements)} />
+                      <NotifToggle label="Show services I offer on my public profile" checked={showServices} onChange={(v) => updatePrivacy("showServicesPublicly", v, setShowServices)} />
                     </div>
                   </Section>
 
                   <Section title="Social & Privacy" icon={<Shield className="h-5 w-5" />}>
                     <div className="space-y-3">
-                      <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={setAllowFollow} />
-                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={setAllowWallComments} />
+                      <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={(v) => updatePrivacy("allowFollows", v, setAllowFollow)} />
+                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={(v) => updatePrivacy("allowProfileComments", v, setAllowWallComments)} />
                     </div>
                   </Section>
 

@@ -54,6 +54,16 @@ export default function UserProfile() {
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
+  const isAdminViewer = checkIsAdmin(currentUser.email);
+  const canSeePrivate = isOwnProfile || isAdminViewer;
+
+  // Privacy defaults: true if undefined
+  const showXp = canSeePrivate || (user.showXpPublicly !== false);
+  const showCi = canSeePrivate || (user.showContributionIndexPublicly !== false);
+  const showAchievements = canSeePrivate || (user.showAchievementsPublicly !== false);
+  const showServices = canSeePrivate || (user.showServicesPublicly !== false);
+  const showFollowBtn = canSeePrivate || (user.allowFollows !== false);
+  const showWall = canSeePrivate || (user.allowProfileComments !== false);
 
   // Guilds
   const userGuilds = guildMembers.filter((gm) => gm.userId === user.id).map((gm) => ({
@@ -111,10 +121,14 @@ export default function UserProfile() {
             {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
-              <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                <Zap className="h-4 w-4" /> {user.xp} XP
-              </span>
-              <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              {showXp && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                  <Zap className="h-4 w-4" /> {user.xp} XP
+                </span>
+              )}
+              {showCi && (
+                <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -124,9 +138,11 @@ export default function UserProfile() {
               </Button>
             ) : (
               <>
-                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
-                  {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
-                </Button>
+                {showFollowBtn && (
+                  <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                    {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+                  </Button>
+                )}
                 <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
                   <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
                 </Button>
@@ -156,6 +172,7 @@ export default function UserProfile() {
       )}
 
       {/* Achievements */}
+      {showAchievements && (
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
@@ -215,6 +232,7 @@ export default function UserProfile() {
           })}
         </div>
       </section>
+      )}
 
       {/* Guilds */}
       {userGuilds.length > 0 && (
@@ -282,7 +300,7 @@ export default function UserProfile() {
       )}
 
       {/* Services */}
-      {(() => {
+      {showServices && (() => {
         const userServices = getServicesForUser(user.id);
         if (userServices.length === 0) return null;
         return (
@@ -310,12 +328,14 @@ export default function UserProfile() {
       })()}
 
       {/* Wall */}
-      <section>
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" /> Wall
-        </h2>
-        <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
-      </section>
+      {showWall && (
+        <section>
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" /> Wall
+          </h2>
+          <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
+        </section>
+      )}
     </PageShell>
   );
 }
