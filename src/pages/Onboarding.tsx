@@ -54,6 +54,8 @@ export default function Onboarding() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [bio, setBio] = useState("");
+  const [whySelections, setWhySelections] = useState<string[]>([]);
+  const [whyFreeText, setWhyFreeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
   const [referralRewarded, setReferralRewarded] = useState(false);
