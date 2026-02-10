@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
-  UserMinus, Settings,
+  UserMinus, Settings, LayoutGrid, FileText, CalendarDays,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +34,9 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
+import { GuildKanbanBoard } from "@/components/guild/GuildKanbanBoard";
+import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
+import { GuildEvents } from "@/components/guild/GuildEvents";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -175,6 +178,9 @@ export default function GuildDetail() {
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
+          {isMember && <TabsTrigger value="board"><LayoutGrid className="h-4 w-4 mr-1" /> Board</TabsTrigger>}
+          {isMember && <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" /> Docs</TabsTrigger>}
+          <TabsTrigger value="events"><CalendarDays className="h-4 w-4 mr-1" /> Events</TabsTrigger>
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
@@ -221,6 +227,22 @@ export default function GuildDetail() {
             </Link>
           ))}
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
+        </TabsContent>
+
+        {isMember && (
+          <TabsContent value="board" className="mt-6">
+            <GuildKanbanBoard guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="docs" className="mt-6">
+            <GuildDocsSpace guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
+
+        <TabsContent value="events" className="mt-6">
+          <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
         </TabsContent>
 
         <TabsContent value="services" className="mt-6 space-y-3">

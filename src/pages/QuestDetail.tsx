@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,7 @@ import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -247,8 +248,9 @@ export default function QuestDetail() {
       </motion.div>
 
       <Tabs defaultValue="overview">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="subtasks"><ListChecks className="h-3.5 w-3.5 mr-1" /> Subtasks</TabsTrigger>
           <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({(questPods || []).length})</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -265,6 +267,15 @@ export default function QuestDetail() {
               </Link>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="subtasks" className="mt-6">
+          <QuestSubtasks
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            guildId={quest.guild_id}
+            canManage={isOwner || isCollaborator}
+          />
         </TabsContent>
 
         <TabsContent value="updates" className="mt-6 space-y-4">

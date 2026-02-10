@@ -795,6 +795,153 @@ export type Database = {
           },
         ]
       }
+      guild_docs: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by_user_id: string
+          guild_id: string
+          id: string
+          is_pinned: boolean
+          title: string
+          updated_at: string
+          updated_by_user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by_user_id: string
+          guild_id: string
+          id?: string
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          guild_id?: string
+          id?: string
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_docs_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_event_attendees: {
+        Row: {
+          email: string | null
+          event_id: string
+          id: string
+          name: string | null
+          registered_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          email?: string | null
+          event_id: string
+          id?: string
+          name?: string | null
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string | null
+          event_id?: string
+          id?: string
+          name?: string | null
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "guild_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_events: {
+        Row: {
+          call_url: string | null
+          created_at: string
+          created_by_user_id: string
+          description: string | null
+          end_at: string | null
+          guild_id: string
+          id: string
+          is_cancelled: boolean
+          location_text: string | null
+          location_type: string
+          max_attendees: number | null
+          start_at: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          call_url?: string | null
+          created_at?: string
+          created_by_user_id: string
+          description?: string | null
+          end_at?: string | null
+          guild_id: string
+          id?: string
+          is_cancelled?: boolean
+          location_text?: string | null
+          location_type?: string
+          max_attendees?: number | null
+          start_at: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          call_url?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          description?: string | null
+          end_at?: string | null
+          guild_id?: string
+          id?: string
+          is_cancelled?: boolean
+          location_text?: string | null
+          location_type?: string
+          max_attendees?: number | null
+          start_at?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_events_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_members: {
         Row: {
           guild_id: string
@@ -1302,6 +1449,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "quest_participants_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_subtasks: {
+        Row: {
+          assignee_user_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          order_index: number
+          quest_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order_index?: number
+          quest_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order_index?: number
+          quest_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_subtasks_quest_id_fkey"
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
