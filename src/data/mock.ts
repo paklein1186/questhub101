@@ -410,3 +410,6 @@ export function isBlockedBy(blockerId: string, blockedId: string): boolean {
 export function hasBlockRelationship(userA: string, userB: string): boolean {
   return isBlockedBy(userA, userB) || isBlockedBy(userB, userA);
 }
+
+// ─── Reports ─────────────────────────────────────────────────
+export const reports: Report[] = [];
