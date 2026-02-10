@@ -29,6 +29,8 @@ import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
 import CompanyDetail from "./pages/CompanyDetail";
 import TopicHouse from "./pages/TopicHouse";
+import BuyXpPage from "./pages/BuyXpPage";
+import PlansPage from "./pages/PlansPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
