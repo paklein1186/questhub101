@@ -42,6 +42,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const [newQuestId, setNewQuestId] = useState("none");
   const [newStart, setNewStart] = useState("");
   const [newEnd, setNewEnd] = useState("");
+  const [newDraft, setNewDraft] = useState(false);
   const [podsState, setPodsState] = useState<Pod[]>(pods);
 
   const isAdm = checkIsGlobalAdmin(currentUser.email);
