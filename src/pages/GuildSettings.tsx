@@ -110,6 +110,15 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
   const [svcImageUrl, setSvcImageUrl] = useState<string | undefined>();
 
+  // ── Membership policy state ──
+  const [joinPolicy, setJoinPolicy] = useState<GuildJoinPolicy>(
+    (guild as any).joinPolicy || GuildJoinPolicy.OPEN
+  );
+  const [appQuestions, setAppQuestions] = useState<string[]>(
+    (guild as any).applicationQuestions || []
+  );
+  const [newQuestion, setNewQuestion] = useState("");
+
   // ── Defaults state ──
   const [podAccessPolicy, setPodAccessPolicy] = useState<"OPEN" | "GUILD_MEMBERS" | "INVITE_ONLY">("OPEN");
   const [defaultQuestTopics, setDefaultQuestTopics] = useState<string[]>([]);
