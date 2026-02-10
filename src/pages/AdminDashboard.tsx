@@ -1520,6 +1520,7 @@ export default function AdminDashboard() {
           <TabsContent value="moderation" className="mt-6"><ModerationTab /></TabsContent>
           <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
           <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
+          <TabsContent value="audit" className="mt-6"><AuditLogsTab /></TabsContent>
         </Tabs>
       </motion.div>
     </PageShell>
