@@ -1,39 +1,50 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash, Shield, Compass, Home, Zap, Check, Plus } from "lucide-react";
-import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import {
+  ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash,
+  Check, Compass, Heart, Palette, Rocket, Users, Briefcase,
+  GraduationCap, HelpCircle, Image as ImageIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { topics, territories, getTopicsForGuild, getReferralByCode, users, userTopics, userTerritories } from "@/data/mock";
-import { UserRole } from "@/types/enums";
-import { generateOnboardingResults, type AIOnboardingResult } from "@/services/mockAI";
-import { Link } from "react-router-dom";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useXP } from "@/hooks/useXP";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { usePersona } from "@/hooks/usePersona";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AIWriterButton } from "@/components/AIWriterButton";
+import { ImageUpload } from "@/components/ImageUpload";
+import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
 
-const STEPS = ["Role", "Topics", "Territories", "Why", "Bio", "AI Magic", "Explore"];
+// ─── Step config ──────────────────────────────────────────────
+const STEP_LABELS = ["Intention", "Identity", "Project", "Offering", "Get Started"];
 
-const WHY_OPTIONS = [
-  { key: "work", label: "Work & missions", desc: "Impact projects, paid consulting" },
-  { key: "creative", label: "Creative projects", desc: "Art, writing, performances, installations" },
-  { key: "learning", label: "Learning & experimentation", desc: "Explore and grow" },
-  { key: "community", label: "Community & belonging", desc: "Connect with like-minded people" },
-  { key: "unsure", label: "I'm not sure yet", desc: "Just exploring for now" },
+const INTENTION_OPTIONS = [
+  { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
+  { key: "creative", label: "Express myself creatively", icon: Palette, desc: "Art, writing, performance, installations" },
+  { key: "explore", label: "Explore (not sure yet)", icon: HelpCircle, desc: "Just looking around for now" },
+  { key: "project", label: "Launch or structure a project", icon: Rocket, desc: "Start a mission, initiative, or venture" },
+  { key: "community", label: "Meet people, join communities", icon: Users, desc: "Find your people and belong" },
+  { key: "work", label: "Find work / clients", icon: Briefcase, desc: "Offer your skills and get hired" },
+  { key: "learn", label: "Learn and grow skills", icon: GraduationCap, desc: "Discover new topics and train" },
 ];
 
-const roleOptions = [
-  { value: UserRole.GAMECHANGER, label: "Gamechanger", desc: "I create bold solutions and drive innovation.", icon: Zap },
-  { value: UserRole.ECOSYSTEM_BUILDER, label: "Ecosystem Builder", desc: "I connect people, ideas, and resources.", icon: Shield },
-  { value: UserRole.BOTH, label: "Both", desc: "I do it all — build and change the game.", icon: Sparkles },
-];
+function inferPersona(selections: string[]): "IMPACT" | "CREATIVE" | "HYBRID" {
+  const s = new Set(selections);
+  const hasImpact = s.has("impact") || s.has("project") || s.has("work");
+  const hasCreative = s.has("creative");
+  if (hasImpact && hasCreative) return "HYBRID";
+  if (hasCreative) return "CREATIVE";
+  if (hasImpact) return "IMPACT";
+  return "HYBRID";
+}
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 80 : -80, opacity: 0 }),
@@ -43,114 +54,111 @@ const slideVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const currentUser = useCurrentUser();
-  const { awardXp } = useXP();
   const { user: authUser, refreshProfile } = useAuth();
+  const currentUser = useCurrentUser();
+  const { updatePersona } = usePersona();
   const { toast } = useToast();
+  const { data: dbTopics = [] } = useTopics();
+  const { data: dbTerritories = [] } = useTerritories();
+
   const [step, setStep] = useState(0);
-  const [generatingBio, setGeneratingBio] = useState(false);
   const [direction, setDirection] = useState(1);
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // Step 1 – Intention
+  const [intentions, setIntentions] = useState<string[]>([]);
+
+  // Step 2 – Identity
+  const [name, setName] = useState("");
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
-  const [whySelections, setWhySelections] = useState<string[]>([]);
-  const [whyFreeText, setWhyFreeText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AIOnboardingResult | null>(null);
-  const [referralRewarded, setReferralRewarded] = useState(false);
-  const [profilePreloaded, setProfilePreloaded] = useState(false);
 
-  // Pre-fill wizard fields from Supabase profile (single source of truth)
-  useEffect(() => {
-    if (!authUser?.id || profilePreloaded) return;
-    supabase
-      .from("profiles")
-      .select("name, headline, bio, role")
-      .eq("user_id", authUser.id)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          if (data.role) setRole(data.role as UserRole);
-          if (data.bio) setBio(data.bio);
-        }
-        setProfilePreloaded(true);
-      });
-  }, [authUser?.id, profilePreloaded]);
+  // Step 3 – Project
+  const [wantsProject, setWantsProject] = useState<boolean | null>(null);
+  const [projectTitle, setProjectTitle] = useState("");
+  const [projectDesc, setProjectDesc] = useState("");
+  const [projectStatus, setProjectStatus] = useState("STARTING");
+  const [projectTopics, setProjectTopics] = useState<string[]>([]);
+  const [projectTerritories, setProjectTerritories] = useState<string[]>([]);
+  const [projectImage, setProjectImage] = useState<string | undefined>();
 
-  // Process referral reward when reaching the final step
+  // Step 4 – Service
+  const [wantsService, setWantsService] = useState<boolean | null>(null);
+  const [serviceTitle, setServiceTitle] = useState("");
+  const [serviceDesc, setServiceDesc] = useState("");
+  const [servicePrice, setServicePrice] = useState("");
+  const [serviceTopics, setServiceTopics] = useState<string[]>([]);
+  const [serviceImage, setServiceImage] = useState<string | undefined>();
+
+  // Pre-fill from profile
+  const [preloaded, setPreloaded] = useState(false);
   useEffect(() => {
-    if (step === 6 && !referralRewarded) {
-      const refCode = sessionStorage.getItem("referralCode");
-      if (refCode) {
-        const referral = getReferralByCode(refCode);
-        if (referral && !referral.rewardGiven) {
-          // Link referee
-          referral.refereeUserId = currentUser.id;
-          referral.rewardGiven = true;
-          // Award referrer +50 XP via the XP system
-          awardXp(referral.referrerUserId, "REFERRAL_REWARD");
-        }
-        sessionStorage.removeItem("referralCode");
-        setReferralRewarded(true);
+    if (!authUser?.id || preloaded) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, bio, headline")
+        .eq("user_id", authUser.id)
+        .single();
+      if (data) {
+        if (data.name) setName(data.name);
+        if (data.bio) setBio(data.bio);
       }
-    }
-  }, [step]);
+      // Load existing topics
+      const { data: ut } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser.id);
+      if (ut?.length) setSelectedTopics(ut.map((r) => r.topic_id));
+      // Load existing territories
+      const { data: utr } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser.id);
+      if (utr?.length) setSelectedTerritories(utr.map((r) => r.territory_id));
+      setPreloaded(true);
+    })();
+  }, [authUser?.id, preloaded]);
 
-  const progress = ((step + 1) / STEPS.length) * 100;
+  const progress = ((step + 1) / STEP_LABELS.length) * 100;
+  const personaType = inferPersona(intentions);
+  const serviceLabel = personaType === "CREATIVE" ? "Skill Sessions" : "Services";
 
-  const canNext = () => {
-    if (step === 0) return !!role;
-    if (step === 1) return true;
-    if (step === 2) return true;
-    if (step === 3) return true; // why step is optional
-    if (step === 4) return true; // bio is optional
-    return true;
-  };
+  const toggleIntention = (key: string) =>
+    setIntentions((p) => p.includes(key) ? p.filter((x) => x !== key) : [...p, key]);
+  const toggleArr = (arr: string[], id: string) =>
+    arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
 
-  const toggleWhy = (key: string) =>
-    setWhySelections((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
-
-  const handleGenerateBio = async () => {
-    setGeneratingBio(true);
+  // ─── Save all onboarding data ─────────────────────────────
+  const finishOnboarding = async () => {
+    if (!authUser?.id) return;
+    setSaving(true);
     try {
-      const topicNames = selectedTopics
-        .map((id) => topics.find((t) => t.id === id)?.name)
-        .filter(Boolean);
-      const context = bio.trim().length > 10
-        ? bio
-        : `I am a ${role || "changemaker"} interested in ${topicNames.join(", ") || "making an impact"}.`;
-      // Mock AI bio generation
-      await new Promise((r) => setTimeout(r, 1200));
-      const generated = `${context} Passionate about creating meaningful change and connecting with like-minded people across communities.`;
-      setBio(generated);
-    } catch {
-      toast({ title: "AI generation failed", description: "You can write your bio manually.", variant: "destructive" });
-    } finally {
-      setGeneratingBio(false);
-    }
-  };
+      // 1. Update profile
+      await supabase.from("profiles").update({
+        name: name.trim() || undefined,
+        bio: bio.trim() || null,
+        has_completed_onboarding: true,
+        persona_type: personaType,
+        persona_source: "onboarding_intent",
+      }).eq("user_id", authUser.id);
 
-  const goNext = async () => {
-    if (step === 4) {
-      // Trigger AI generation
-      setDirection(1);
-      setStep(5);
-      setLoading(true);
-      const res = await generateOnboardingResults({
-        role: role!,
-        selectedTopicIds: selectedTopics,
-        selectedTerritoryIds: selectedTerritories,
-        bio,
-      });
-      setResult(res);
-      setLoading(false);
+      // 2. Sync user topics
+      await supabase.from("user_topics").delete().eq("user_id", authUser.id);
+      if (selectedTopics.length) {
+        await supabase.from("user_topics").insert(
+          selectedTopics.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
+        );
+      }
 
-      // Infer persona in the background
+      // 3. Sync user territories
+      await supabase.from("user_territories").delete().eq("user_id", authUser.id);
+      if (selectedTerritories.length) {
+        await supabase.from("user_territories").insert(
+          selectedTerritories.map((territoryId) => ({ user_id: authUser.id, territory_id: territoryId }))
+        );
+      }
+
+      // 4. Infer persona via AI in background
       supabase.functions.invoke("infer-persona", {
         body: {
-          selections: whySelections.map(k => WHY_OPTIONS.find(o => o.key === k)?.label || k),
-          freeText: whyFreeText,
+          selections: intentions.map((k) => INTENTION_OPTIONS.find((o) => o.key === k)?.label || k),
+          freeText: bio,
           topics: selectedTopics,
         },
       }).then(({ data }) => {
@@ -163,43 +171,93 @@ export default function Onboarding() {
         }
       });
 
+      // 5. Create quest if user wanted one
+      if (wantsProject && projectTitle.trim()) {
+        const questStatus = projectStatus === "COMPLETED" ? "COMPLETED" : projectStatus === "ONGOING" ? "IN_PROGRESS" : "OPEN";
+        const { data: quest } = await supabase.from("quests").insert({
+          title: projectTitle.trim(),
+          description: projectDesc.trim() || null,
+          status: questStatus,
+          created_by_user_id: authUser.id,
+          cover_image_url: projectImage || null,
+          is_draft: false,
+        }).select("id").single();
+
+        if (quest?.id) {
+          // Quest topics
+          if (projectTopics.length) {
+            await supabase.from("quest_topics").insert(
+              projectTopics.map((topicId) => ({ quest_id: quest.id, topic_id: topicId }))
+            );
+          }
+          if (projectTerritories.length) {
+            await supabase.from("quest_territories").insert(
+              projectTerritories.map((territoryId) => ({ quest_id: quest.id, territory_id: territoryId }))
+            );
+          }
+          // Add creator as participant
+          await supabase.from("quest_participants").insert({
+            quest_id: quest.id,
+            user_id: authUser.id,
+            role: "LEAD",
+            status: "ACTIVE",
+          });
+          // If completed, also create an achievement
+          if (projectStatus === "COMPLETED") {
+            await supabase.from("achievements").insert({
+              user_id: authUser.id,
+              quest_id: quest.id,
+              title: projectTitle.trim(),
+              description: projectDesc.trim() || null,
+            });
+          }
+        }
+      }
+
+      // 6. Create service if user wanted one
+      if (wantsService && serviceTitle.trim()) {
+        const { data: svc } = await supabase.from("services").insert({
+          title: serviceTitle.trim(),
+          description: serviceDesc.trim() || null,
+          provider_user_id: authUser.id,
+          price_amount: servicePrice ? Number(servicePrice) : 0,
+          price_currency: "EUR",
+          image_url: serviceImage || null,
+          is_active: true,
+        }).select("id").single();
+
+        if (svc?.id && serviceTopics.length) {
+          await supabase.from("service_topics").insert(
+            serviceTopics.map((topicId) => ({ service_id: svc.id, topic_id: topicId }))
+          );
+        }
+      }
+
+      await refreshProfile();
+      // Move to post-onboarding CTA step
+      setDirection(1);
+      setStep(4);
+    } catch (e: any) {
+      toast({ title: "Error saving", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const goNext = () => {
+    // Step 3 (Project): if user said No or is done, go to step 4 (Service)
+    if (step === 2 && wantsProject === false) {
+      setDirection(1);
+      setStep(3);
       return;
     }
-    if (step === 5) {
-      // Persist wizard data to Supabase
-      if (authUser?.id) {
-        const updates: Record<string, unknown> = {
-          role: role || undefined,
-          bio: bio.trim() || null,
-          headline: result?.headline || null,
-          has_completed_onboarding: true,
-        };
-        await supabase
-          .from("profiles")
-          .update(updates)
-          .eq("user_id", authUser.id);
-
-        // Sync topics/territories to mock arrays (same logic as Settings)
-        const existingUTs = userTopics.filter((ut) => ut.userId === currentUser.id);
-        existingUTs.forEach((ut) => { const i = userTopics.indexOf(ut); if (i !== -1) userTopics.splice(i, 1); });
-        selectedTopics.forEach((topicId, i) => { userTopics.push({ id: `ut-${Date.now()}-${i}`, userId: currentUser.id, topicId }); });
-        const existingUTrs = userTerritories.filter((ut) => ut.userId === currentUser.id);
-        existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
-        selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
-
-        const idx = users.findIndex((u) => u.id === currentUser.id);
-        if (idx !== -1) {
-          users[idx] = { ...users[idx], role: role || users[idx].role, bio: bio.trim() || undefined, headline: result?.headline || users[idx].headline };
-        }
-
-        await refreshProfile();
-      }
-      setDirection(1);
-      setStep(6);
+    // Step 4 (Service): finalize
+    if (step === 3) {
+      finishOnboarding();
       return;
     }
     setDirection(1);
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
   };
 
   const goBack = () => {
@@ -207,25 +265,21 @@ export default function Onboarding() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const toggleTopic = (id: string) =>
-    setSelectedTopics((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  const toggleTerritory = (id: string) =>
-    setSelectedTerritories((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg">
         {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-            <span>Step {step + 1} of {STEPS.length}</span>
-            <span className="font-display font-semibold text-foreground">{STEPS[step]}</span>
+        {step < STEP_LABELS.length - 1 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+              <span>Step {step + 1} of {STEP_LABELS.length - 1}</span>
+              <span className="font-display font-semibold text-foreground">{STEP_LABELS[step]}</span>
+            </div>
+            <Progress value={((step + 1) / (STEP_LABELS.length - 1)) * 100} className="h-1.5" />
           </div>
-          <Progress value={progress} className="h-1.5" />
-        </div>
+        )}
 
-        {/* Step content */}
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 min-h-[420px] flex flex-col">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 min-h-[460px] flex flex-col">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}
@@ -237,295 +291,354 @@ export default function Onboarding() {
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="flex-1 flex flex-col"
             >
-              {/* Step 0: Role */}
+              {/* ───── STEP 0: Intention ───── */}
               {step === 0 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div>
-                    <h2 className="font-display text-2xl font-bold">What brings you here?</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Choose the role that fits you best.</p>
-                  </div>
-                  <div className="space-y-3">
-                    {roleOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setRole(opt.value)}
-                        className={cn(
-                          "w-full flex items-center gap-4 rounded-xl border-2 p-4 text-left transition-all",
-                          role === opt.value
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:border-primary/30"
-                        )}
-                      >
-                        <div className={cn(
-                          "h-10 w-10 rounded-lg flex items-center justify-center",
-                          role === opt.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                        )}>
-                          <opt.icon className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="font-display font-semibold">{opt.label}</p>
-                          <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                        </div>
-                        {role === opt.value && <Check className="ml-auto h-5 w-5 text-primary" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Step 1: Topics */}
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-                      <Hash className="h-6 w-6 text-primary" /> Pick your topics
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">Select the topics that matter to you.</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedTopics(topics.map((t) => t.id))}
-                    >
-                      Select all
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedTopics([])}
-                      disabled={selectedTopics.length === 0}
-                    >
-                      Clear all
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {topics.map((topic) => (
-                      <button
-                        key={topic.id}
-                        onClick={() => toggleTopic(topic.id)}
-                        className={cn(
-                          "px-4 py-2.5 rounded-full border-2 text-sm font-medium transition-all",
-                          selectedTopics.includes(topic.id)
-                            ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                            : "border-border hover:border-primary/40 text-foreground"
-                        )}
-                      >
-                        {topic.name}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
-                </div>
-              )}
-
-              {/* Step 2: Territories */}
-              {step === 2 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-                      <MapPin className="h-6 w-6 text-primary" /> Where are you active?
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">Select your territories.</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
-                    <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((prev) => prev.includes(id) ? prev : [...prev, id])} />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {territories.map((territory) => (
-                      <button
-                        key={territory.id}
-                        onClick={() => toggleTerritory(territory.id)}
-                        className={cn(
-                          "px-4 py-2.5 rounded-full border-2 text-sm font-medium transition-all",
-                          selectedTerritories.includes(territory.id)
-                            ? "border-accent bg-accent text-accent-foreground shadow-sm"
-                            : "border-border hover:border-accent/40 text-foreground"
-                        )}
-                      >
-                        {territory.name}
-                        <span className="ml-1 text-xs opacity-70 capitalize">({territory.level.toLowerCase()})</span>
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{selectedTerritories.length} selected</p>
-                </div>
-              )}
-
-              {/* Step 3: Why are you here? */}
-              {step === 3 && (
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-                      <Compass className="h-6 w-6 text-primary" /> Why are you here?
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">What brings you to this space? Select all that apply.</p>
+                    <h2 className="font-display text-2xl font-bold">What are you up to? ✨</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Select everything that resonates. You can always change this later.</p>
                   </div>
                   <div className="space-y-2">
-                    {WHY_OPTIONS.map((opt) => (
+                    {INTENTION_OPTIONS.map((opt) => (
                       <button
                         key={opt.key}
-                        onClick={() => toggleWhy(opt.key)}
+                        onClick={() => toggleIntention(opt.key)}
                         className={cn(
                           "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
-                          whySelections.includes(opt.key)
+                          intentions.includes(opt.key)
                             ? "border-primary bg-primary/5 shadow-sm"
                             : "border-border hover:border-primary/30"
                         )}
                       >
                         <div className={cn(
-                          "h-5 w-5 rounded flex items-center justify-center border-2 transition-colors shrink-0",
-                          whySelections.includes(opt.key) ? "border-primary bg-primary" : "border-muted-foreground/30"
+                          "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                          intentions.includes(opt.key) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                         )}>
-                          {whySelections.includes(opt.key) && <Check className="h-3 w-3 text-primary-foreground" />}
+                          <opt.icon className="h-4 w-4" />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{opt.label}</p>
                           <p className="text-xs text-muted-foreground">{opt.desc}</p>
                         </div>
+                        {intentions.includes(opt.key) && <Check className="h-4 w-4 text-primary shrink-0" />}
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* ───── STEP 1: Identity ───── */}
+              {step === 1 && (
+                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">Describe what you're hoping to do here (optional)</label>
+                    <h2 className="font-display text-2xl font-bold">Who are you? 🌱</h2>
+                    <p className="text-sm text-muted-foreground mt-1">A few things to help us know you better.</p>
+                  </div>
+
+                  {/* Name */}
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Name</label>
+                    <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
+                  </div>
+
+                  {/* Territory */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-accent" /> Territory (where you live)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
+                      <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                      {dbTerritories.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                            selectedTerritories.includes(t.id)
+                              ? "border-accent bg-accent text-accent-foreground"
+                              : "border-border hover:border-accent/40"
+                          )}
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Houses (Topics) */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+                      <Hash className="h-3.5 w-3.5 text-primary" /> Houses (2–4 recommended)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
+                      <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                      {dbTopics.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                            selectedTopics.includes(t.id)
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border hover:border-primary/40"
+                          )}
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">One-sentence bio</label>
                     <Textarea
-                      value={whyFreeText}
-                      onChange={(e) => setWhyFreeText(e.target.value)}
-                      placeholder="I want to collaborate on regenerative agriculture projects..."
-                      className="resize-none min-h-[80px] text-sm"
-                      maxLength={500}
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="I'm passionate about…"
+                      className="min-h-[80px] resize-none text-sm"
+                      maxLength={300}
                     />
+                    <div className="flex items-center justify-between mt-1.5">
+                      <AIWriterButton
+                        type="bio"
+                        context={{ intentions, houses: selectedTopics, territories: selectedTerritories, personaType }}
+                        currentText={bio}
+                        onAccept={(text) => setBio(text)}
+                      />
+                      <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 4: Bio */}
-              {step === 4 && (
-                <div className="space-y-6">
+              {/* ───── STEP 2: Project ───── */}
+              {step === 2 && (
+                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
                   <div>
-                    <h2 className="font-display text-2xl font-bold">Tell us about yourself</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Write a short bio, or let AI help. You can skip this step.</p>
+                    <h2 className="font-display text-2xl font-bold">A project you're proud of? 🚀</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Past or present — share something you care about.</p>
                   </div>
-                  <Textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="I'm passionate about building communities that..."
-                    className="min-h-[140px] resize-none text-sm"
-                    maxLength={300}
-                  />
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleGenerateBio}
-                      disabled={generatingBio}
-                    >
-                      {generatingBio ? (
-                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Generating…</>
-                      ) : (
-                        <><Sparkles className="h-4 w-4 mr-1" /> Generate with AI</>
-                      )}
-                    </Button>
-                    <span className="text-xs text-muted-foreground">{bio.length}/300</span>
-                  </div>
-                </div>
-              )}
 
-              {/* Step 5: AI Magic */}
-              {step === 5 && (
-                <div className="space-y-6 flex-1 flex flex-col items-center justify-center">
-                  {loading ? (
-                    <div className="text-center space-y-4">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                      >
-                        <Sparkles className="h-12 w-12 text-primary mx-auto" />
-                      </motion.div>
+                  {wantsProject === null && (
+                    <div className="flex gap-3">
+                      <Button variant="default" className="flex-1" onClick={() => setWantsProject(true)}>
+                        Yes, let me share
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={() => setWantsProject(false)}>
+                        Skip for now
+                      </Button>
+                    </div>
+                  )}
+
+                  {wantsProject && (
+                    <div className="space-y-4">
                       <div>
-                        <h2 className="font-display text-2xl font-bold">AI is crafting your profile…</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Generating headline, bio, and suggestions.</p>
+                        <label className="text-sm font-medium mb-1 block">Title</label>
+                        <Input value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Regenerative Farm Network" maxLength={120} />
                       </div>
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mx-auto" />
-                    </div>
-                  ) : result ? (
-                    <div className="space-y-5 w-full">
-                      <div className="text-center">
-                        <h2 className="font-display text-2xl font-bold">Your AI-Generated Profile</h2>
-                        <p className="text-sm text-muted-foreground mt-1">Here's what we came up with.</p>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Short description</label>
+                        <Textarea value={projectDesc} onChange={(e) => setProjectDesc(e.target.value)} placeholder="What is it about?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
+                        <AIWriterButton
+                          type="quest_story"
+                          context={{ title: projectTitle, houses: projectTopics, territories: projectTerritories, personaType }}
+                          currentText={projectDesc}
+                          onAccept={(text) => setProjectDesc(text)}
+                          className="mt-1"
+                        />
                       </div>
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
-                        <p className="text-xs font-medium text-primary uppercase tracking-wider">Headline</p>
-                        <p className="font-display font-bold text-lg">{result.headline}</p>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Status</label>
+                        <Select value={projectStatus} onValueChange={setProjectStatus}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="STARTING">Starting</SelectItem>
+                            <SelectItem value="ONGOING">Ongoing</SelectItem>
+                            <SelectItem value="COMPLETED">Completed (Achievement)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bio Summary</p>
-                        <p className="text-sm">{result.bioSummary}</p>
-                      </div>
-                      {result.suggestedGuilds.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Suggested Guilds</p>
-                          <div className="flex flex-wrap gap-2">
-                            {result.suggestedGuilds.map((g) => (
-                              <div key={g.id} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-                                <img src={g.logoUrl} className="h-6 w-6 rounded" alt="" />
-                                <span className="text-sm font-medium">{g.name}</span>
-                              </div>
-                            ))}
-                          </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1.5 block">Houses</label>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                          {dbTopics.map((t) => (
+                            <button
+                              key={t.id}
+                              onClick={() => setProjectTopics((p) => toggleArr(p, t.id))}
+                              className={cn(
+                                "px-2.5 py-1 rounded-full border text-xs transition-all",
+                                projectTopics.includes(t.id)
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border hover:border-primary/40"
+                              )}
+                            >
+                              {t.name}
+                            </button>
+                          ))}
                         </div>
-                      )}
-                      {result.suggestedQuests.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Suggested Quests</p>
-                          <div className="flex flex-wrap gap-2">
-                            {result.suggestedQuests.map((q) => (
-                              <Badge key={q.id} variant="secondary" className="text-xs py-1 px-2.5">
-                                <Zap className="h-3 w-3 mr-1" /> {q.title} · {q.rewardXp} XP
-                              </Badge>
-                            ))}
-                          </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1.5 block">Territories</label>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                          {dbTerritories.map((t) => (
+                            <button
+                              key={t.id}
+                              onClick={() => setProjectTerritories((p) => toggleArr(p, t.id))}
+                              className={cn(
+                                "px-2.5 py-1 rounded-full border text-xs transition-all",
+                                projectTerritories.includes(t.id)
+                                  ? "border-accent bg-accent text-accent-foreground"
+                                  : "border-border hover:border-accent/40"
+                              )}
+                            >
+                              {t.name}
+                            </button>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Cover image (optional)</label>
+                        <ImageUpload label="Cover image" currentImageUrl={projectImage} onChange={(url) => setProjectImage(url)} />
+                      </div>
                     </div>
-                  ) : null}
+                  )}
                 </div>
               )}
 
-              {/* Step 6: Start Exploring */}
-              {step === 6 && (
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 200 }}
-                  >
-                    <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <Sparkles className="h-10 w-10 text-primary" />
-                    </div>
-                    <h2 className="font-display text-3xl font-bold">You're all set!</h2>
-                    <p className="text-muted-foreground mt-2 max-w-sm mx-auto">Your profile is ready. Start exploring guilds, quests, and your personalized feed.</p>
-                  </motion.div>
-                  <div className="flex flex-col sm:flex-row gap-3 w-full">
-                    <Button asChild className="flex-1" variant="default">
-                      <Link to="/"><Home className="h-4 w-4 mr-2" /> Home Feed</Link>
-                    </Button>
-                    <Button asChild className="flex-1" variant="outline">
-                      <Link to="/explore?tab=guilds"><Shield className="h-4 w-4 mr-2" /> Guilds</Link>
-                    </Button>
-                    <Button asChild className="flex-1" variant="outline">
-                      <Link to="/explore?tab=quests"><Compass className="h-4 w-4 mr-2" /> Quests</Link>
-                    </Button>
+              {/* ───── STEP 3: Service / Skill Session ───── */}
+              {step === 3 && (
+                <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+                  <div>
+                    <h2 className="font-display text-2xl font-bold">Offer {serviceLabel}? 🎯</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Share your skills with the ecosystem.</p>
                   </div>
+
+                  {wantsService === null && (
+                    <div className="flex gap-3">
+                      <Button variant="default" className="flex-1" onClick={() => setWantsService(true)}>
+                        Yes, let's go
+                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={() => { setWantsService(false); finishOnboarding(); }}>
+                        Skip for now
+                      </Button>
+                    </div>
+                  )}
+
+                  {wantsService && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Title</label>
+                        <Input value={serviceTitle} onChange={(e) => setServiceTitle(e.target.value)} placeholder={personaType === "CREATIVE" ? "e.g. Live Drawing Session" : "e.g. Strategy Workshop"} maxLength={120} />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Description</label>
+                        <Textarea value={serviceDesc} onChange={(e) => setServiceDesc(e.target.value)} placeholder="What does this include?" className="resize-none min-h-[80px] text-sm" maxLength={500} />
+                        <AIWriterButton
+                          type="bio"
+                          context={{ title: serviceTitle, personaType, serviceType: serviceLabel }}
+                          currentText={serviceDesc}
+                          onAccept={(text) => setServiceDesc(text)}
+                          label={`Generate ${serviceLabel.toLowerCase()} description`}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Price (€, optional)</label>
+                        <Input type="number" value={servicePrice} onChange={(e) => setServicePrice(e.target.value)} placeholder="0 = free" min={0} step={5} />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1.5 block">Houses</label>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                          {dbTopics.map((t) => (
+                            <button
+                              key={t.id}
+                              onClick={() => setServiceTopics((p) => toggleArr(p, t.id))}
+                              className={cn(
+                                "px-2.5 py-1 rounded-full border text-xs transition-all",
+                                serviceTopics.includes(t.id)
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border hover:border-primary/40"
+                              )}
+                            >
+                              {t.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Image (optional)</label>
+                        <ImageUpload label="Service image" currentImageUrl={serviceImage} onChange={(url) => setServiceImage(url)} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ───── STEP 4: Post-onboarding CTA ───── */}
+              {step === 4 && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                  {saving ? (
+                    <div className="space-y-4">
+                      <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+                      <p className="text-muted-foreground">Setting everything up…</p>
+                    </div>
+                  ) : (
+                    <>
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                      >
+                        <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                          <Sparkles className="h-10 w-10 text-primary" />
+                        </div>
+                        <h2 className="font-display text-3xl font-bold">You're all set! 🎉</h2>
+                        <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                          Your profile is ready. Here's what you can do next.
+                        </p>
+                      </motion.div>
+
+                      <div className="w-full space-y-3">
+                        <Button asChild className="w-full" variant="default">
+                          <Link to="/">
+                            <Compass className="h-4 w-4 mr-2" /> Go to Home Feed
+                          </Link>
+                        </Button>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button asChild variant="outline">
+                            <Link to="/explore?tab=guilds">
+                              <Users className="h-4 w-4 mr-2" /> Join a Guild
+                            </Link>
+                          </Button>
+                          <Button asChild variant="outline">
+                            <Link to="/me/companies">
+                              <Briefcase className="h-4 w-4 mr-2" /> Attach a Company
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground">
+                        You can revisit onboarding anytime from{" "}
+                        <Link to="/me/settings" className="underline text-primary">Settings → Open Wizard</Link>.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 6 && (
+          {step < 4 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
               <Button
                 variant="ghost"
@@ -536,14 +649,11 @@ export default function Onboarding() {
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
-              {step < 5 && (
-                <Button onClick={goNext} disabled={!canNext()} size="sm">
-                  Next <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              )}
-              {step === 5 && !loading && result && (
-                <Button onClick={goNext} size="sm">
-                  Continue <ArrowRight className="h-4 w-4 ml-1" />
+              {/* Step 2 (Project): only show Next if user chose Yes and filled title, or if they haven't chosen yet (skip is handled by the skip button) */}
+              {step === 2 && wantsProject === null ? null : step === 3 && wantsService === null ? null : (
+                <Button onClick={goNext} size="sm" disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                  {step === 3 ? "Finish" : "Next"} <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
             </div>
