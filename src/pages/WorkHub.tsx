@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Briefcase, FileEdit } from "lucide-react";
+import { Briefcase, FileEdit, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Compass, CircleDot, Zap, Building2 } from "lucide-react";
 import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts } from "@/hooks/useEntityQueries";
@@ -49,7 +50,13 @@ export default function WorkHub() {
         </TabsList>
 
         <TabsContent value="quests">
-          {questsList.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
+          {questsList.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Compass className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground mb-4">No quests yet. Start your first quest!</p>
+              <Button asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {questsList.map((qp: any, i: number) => (
               <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
@@ -87,7 +94,13 @@ export default function WorkHub() {
         </TabsContent>
 
         <TabsContent value="services">
-          {servicesList.length === 0 && <p className="text-muted-foreground">No active services.</p>}
+          {servicesList.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <CircleDot className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground mb-4">No active services. Offer your first service!</p>
+              <Button asChild><Link to="/me"><Plus className="h-4 w-4 mr-1" /> Create Service</Link></Button>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {servicesList.map((svc: any, i: number) => (
               <motion.div key={svc.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
