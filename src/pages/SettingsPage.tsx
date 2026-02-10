@@ -788,23 +788,24 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
 }
 
 function ReferralsSection({ userId }: { userId: string }) {
-  const [, rerender] = useState(0);
-  const myReferrals = getReferralsForUser(userId);
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const { data: myReferrals = [] } = useQuery({
+    queryKey: ["referrals", userId],
+    queryFn: async () => {
+      const { data } = await supabase.from("referrals").select("*").eq("owner_user_id", userId).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
   const referralLink = myReferrals.length > 0
     ? `${window.location.origin}/signup?ref=${myReferrals[0].code}`
     : null;
 
-  const createCode = () => {
-    const code = generateReferralCode();
-    referrals.push({
-      id: `ref-${Date.now()}`,
-      referrerUserId: userId,
-      refereeEmail: "",
-      code,
-      createdAt: new Date().toISOString(),
-      rewardGiven: false,
-    });
-    rerender((n) => n + 1);
+  const createCode = async () => {
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    await supabase.from("referrals").insert({ owner_user_id: userId, code });
+    qc.invalidateQueries({ queryKey: ["referrals", userId] });
   };
 
   const copyLink = (link: string) => {
