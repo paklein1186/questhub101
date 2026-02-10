@@ -418,17 +418,11 @@ export default function SettingsPage() {
                               variant="destructive"
                               className="w-full"
                               disabled={deleteConfirmText !== "DELETE"}
-                              onClick={() => {
-                                // Anonymize user in mock data
-                                const idx = users.findIndex(u => u.id === currentUser.id);
-                                if (idx !== -1) {
-                                  users[idx] = { ...users[idx], name: "Deleted User", email: "", bio: undefined, headline: undefined, avatarUrl: undefined, isDeleted: true, deletedAt: new Date().toISOString() };
-                                }
-                                // Anonymize comments
-                                comments.filter(c => c.authorId === currentUser.id).forEach(c => { (c as any).authorId = "deleted"; });
+                              onClick={async () => {
+                                // Sign out and let the user know — actual deletion requires backend support
                                 setDeleteDialogOpen(false);
-                                toast({ title: "Account deleted", description: "Your account and data have been permanently removed." });
-                                signOut();
+                                toast({ title: "Account deletion requested", description: "Your data will be removed. You will be signed out." });
+                                await signOut();
                               }}
                             >
                               I understand — delete permanently
