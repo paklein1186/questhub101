@@ -14,6 +14,384 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          quest_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          quest_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          quest_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attachments: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          target_id: string
+          target_type: string
+          uploaded_by_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          target_id: string
+          target_type: string
+          uploaded_by_user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          target_id?: string
+          target_type?: string
+          uploaded_by_user_id?: string
+        }
+        Relationships: []
+      }
+      availability_exceptions: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string | null
+          id: string
+          is_available: boolean
+          provider_user_id: string
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean
+          provider_user_id: string
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string | null
+          id?: string
+          is_available?: boolean
+          provider_user_id?: string
+          start_time?: string | null
+        }
+        Relationships: []
+      }
+      availability_rules: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_active: boolean
+          provider_user_id: string
+          service_id: string | null
+          start_time: string
+          timezone: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          is_active?: boolean
+          provider_user_id: string
+          service_id?: string | null
+          start_time: string
+          timezone?: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          provider_user_id?: string
+          service_id?: string | null
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_rules_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          amount: number | null
+          call_url: string | null
+          company_id: string | null
+          created_at: string
+          currency: string | null
+          deleted_at: string | null
+          end_date_time: string | null
+          id: string
+          is_deleted: boolean
+          notes: string | null
+          payment_status: string | null
+          provider_guild_id: string | null
+          provider_user_id: string | null
+          requested_date_time: string | null
+          requester_id: string
+          service_id: string
+          start_date_time: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          call_url?: string | null
+          company_id?: string | null
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          end_date_time?: string | null
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          payment_status?: string | null
+          provider_guild_id?: string | null
+          provider_user_id?: string | null
+          requested_date_time?: string | null
+          requester_id: string
+          service_id: string
+          start_date_time?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          call_url?: string | null
+          company_id?: string | null
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          end_date_time?: string | null
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          payment_status?: string | null
+          provider_guild_id?: string | null
+          provider_user_id?: string | null
+          requested_date_time?: string | null
+          requester_id?: string
+          service_id?: string
+          start_date_time?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_provider_guild_id_fkey"
+            columns: ["provider_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_upvotes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_upvotes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean
+          parent_id: string | null
+          target_id: string
+          target_type: string
+          upvote_count: number
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          parent_id?: string | null
+          target_id: string
+          target_type: string
+          upvote_count?: number
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          parent_id?: string | null
+          target_id?: string
+          target_type?: string
+          upvote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          banner_url: string | null
+          contact_user_id: string | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          instagram_url: string | null
+          is_deleted: boolean
+          linkedin_url: string | null
+          logo_url: string | null
+          name: string
+          sector: string | null
+          size: string | null
+          twitter_url: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          contact_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_deleted?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name: string
+          sector?: string | null
+          size?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          contact_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_deleted?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name?: string
+          sector?: string | null
+          size?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       company_applications: {
         Row: {
           admin_note: string | null
@@ -51,7 +429,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["guild_application_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "company_applications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_members: {
         Row: {
@@ -74,6 +460,258 @@ export type Database = {
           joined_at?: string
           role?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_enrollments: {
+        Row: {
+          completed_at: string | null
+          course_id: string
+          enrolled_at: string
+          id: string
+          progress_percent: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_id: string
+          enrolled_at?: string
+          id?: string
+          progress_percent?: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_id?: string
+          enrolled_at?: string
+          id?: string
+          progress_percent?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_purchases: {
+        Row: {
+          amount: number | null
+          course_id: string
+          created_at: string
+          currency: string | null
+          id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          course_id: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          course_id?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_purchases_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_territories: {
+        Row: {
+          course_id: string
+          id: string
+          territory_id: string
+        }
+        Insert: {
+          course_id: string
+          id?: string
+          territory_id: string
+        }
+        Update: {
+          course_id?: string
+          id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_territories_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_topics: {
+        Row: {
+          course_id: string
+          id: string
+          topic_id: string
+        }
+        Insert: {
+          course_id: string
+          id?: string
+          topic_id: string
+        }
+        Update: {
+          course_id?: string
+          id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_topics_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_deleted: boolean
+          is_free: boolean
+          is_published: boolean
+          level: string
+          owner_company_id: string | null
+          owner_guild_id: string | null
+          owner_type: string
+          owner_user_id: string | null
+          price_amount: number | null
+          price_currency: string | null
+          stripe_price_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_free?: boolean
+          is_published?: boolean
+          level?: string
+          owner_company_id?: string | null
+          owner_guild_id?: string | null
+          owner_type?: string
+          owner_user_id?: string | null
+          price_amount?: number | null
+          price_currency?: string | null
+          stripe_price_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_free?: boolean
+          is_published?: boolean
+          level?: string
+          owner_company_id?: string | null
+          owner_guild_id?: string | null
+          owner_type?: string
+          owner_user_id?: string | null
+          price_amount?: number | null
+          price_currency?: string | null
+          stripe_price_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_owner_company_id_fkey"
+            columns: ["owner_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_owner_guild_id_fkey"
+            columns: ["owner_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          id: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          id?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          id?: string
+          target_id?: string
+          target_type?: string
         }
         Relationships: []
       }
@@ -285,6 +923,92 @@ export type Database = {
           type?: Database["public"]["Enums"]["guild_type"]
           updated_at?: string
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      lessons: {
+        Row: {
+          content_markdown: string | null
+          course_id: string
+          created_at: string
+          id: string
+          is_preview: boolean
+          position: number
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content_markdown?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          is_preview?: boolean
+          position?: number
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content_markdown?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_preview?: boolean
+          position?: number
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          data: Json | null
+          deep_link_url: string | null
+          id: string
+          is_read: boolean
+          related_entity_id: string | null
+          related_entity_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          deep_link_url?: string | null
+          id?: string
+          is_read?: boolean
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          deep_link_url?: string | null
+          id?: string
+          is_read?: boolean
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -505,6 +1229,41 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_participants: {
+        Row: {
+          created_at: string
+          id: string
+          quest_id: string
+          role: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quest_id: string
+          role?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quest_id?: string
+          role?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_participants_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_territories: {
         Row: {
           id: string
@@ -567,6 +1326,59 @@ export type Database = {
             columns: ["topic_id"]
             isOneToOne: false
             referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_updates: {
+        Row: {
+          author_id: string
+          content: string | null
+          created_at: string
+          deleted_at: string | null
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          is_draft: boolean
+          quest_id: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_draft?: boolean
+          quest_id: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_draft?: boolean
+          quest_id?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_updates_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]
@@ -657,6 +1469,209 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          bonus_xp: number
+          code: string
+          created_at: string
+          id: string
+          is_used: boolean
+          owner_user_id: string
+          used_by_user_id: string | null
+        }
+        Insert: {
+          bonus_xp?: number
+          code: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          owner_user_id: string
+          used_by_user_id?: string | null
+        }
+        Update: {
+          bonus_xp?: number
+          code?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean
+          owner_user_id?: string
+          used_by_user_id?: string | null
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      service_territories: {
+        Row: {
+          id: string
+          service_id: string
+          territory_id: string
+        }
+        Insert: {
+          id?: string
+          service_id: string
+          territory_id: string
+        }
+        Update: {
+          id?: string
+          service_id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_territories_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_topics: {
+        Row: {
+          id: string
+          service_id: string
+          topic_id: string
+        }
+        Insert: {
+          id?: string
+          service_id: string
+          topic_id: string
+        }
+        Update: {
+          id?: string
+          service_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_topics_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_deleted: boolean
+          is_draft: boolean
+          online_location_type: string | null
+          online_location_url_template: string | null
+          price_amount: number | null
+          price_currency: string
+          provider_guild_id: string | null
+          provider_user_id: string | null
+          stripe_price_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_deleted?: boolean
+          is_draft?: boolean
+          online_location_type?: string | null
+          online_location_url_template?: string | null
+          price_amount?: number | null
+          price_currency?: string
+          provider_guild_id?: string | null
+          provider_user_id?: string | null
+          stripe_price_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_deleted?: boolean
+          is_draft?: boolean
+          online_location_type?: string | null
+          online_location_url_template?: string | null
+          price_amount?: number | null
+          price_currency?: string
+          provider_guild_id?: string | null
+          provider_user_id?: string | null
+          stripe_price_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_provider_guild_id_fkey"
+            columns: ["provider_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           code: string
@@ -738,6 +1753,73 @@ export type Database = {
         }
         Relationships: []
       }
+      topic_features: {
+        Row: {
+          added_by_user_id: string
+          created_at: string
+          id: string
+          target_id: string
+          target_type: string
+          topic_id: string
+        }
+        Insert: {
+          added_by_user_id: string
+          created_at?: string
+          id?: string
+          target_id: string
+          target_type: string
+          topic_id: string
+        }
+        Update: {
+          added_by_user_id?: string
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_type?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_features_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_stewards: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_stewards_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       topics: {
         Row: {
           created_at: string
@@ -765,6 +1847,27 @@ export type Database = {
           name?: string
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
         }
         Relationships: []
       }

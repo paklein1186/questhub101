@@ -62,7 +62,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <CurrentUserProvider>
-          <NotificationProvider currentUserId="u1">
+          <NotificationProvider currentUserId="">
             <Toaster />
             <Sonner />
             <BrowserRouter>
