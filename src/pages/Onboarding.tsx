@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import { topics, territories, getTopicsForGuild, getReferralByCode, referrals, users } from "@/data/mock";
+import { topics, territories, getTopicsForGuild, getReferralByCode } from "@/data/mock";
 import { UserRole } from "@/types/enums";
 import { generateOnboardingResults, type AIOnboardingResult } from "@/services/mockAI";
 import { Link } from "react-router-dom";
