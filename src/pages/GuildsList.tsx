@@ -54,6 +54,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
       type: gType,
       isApproved: false,
       createdByUserId: currentUser.id,
+      isDraft: gDraft,
     };
     guilds.push(newGuild);
     guildMembers.push({
