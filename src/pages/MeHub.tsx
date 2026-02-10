@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   UserCircle, Pencil, Zap, Settings, Briefcase, Clock, Plus, Trash2,
-  Video, Euro, ToggleLeft, ToggleRight,
+  Video, Euro, ToggleLeft, ToggleRight, Loader2,
 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,27 +17,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { OnlineLocationType } from "@/types/enums";
-import type { Service } from "@/types";
-import {
-  userTopics, userTerritories, getTopicById, getTerritoryById,
-  services, getServicesForUser,
-} from "@/data/mock";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import MyAvailability from "./MyAvailability";
+
+function useMyTopicsAndTerritories(userId: string) {
+  return useQuery({
+    queryKey: ["my-topics-territories", userId],
+    queryFn: async () => {
+      if (!userId) return { topics: [], territories: [] };
+      const [topicsRes, terrRes] = await Promise.all([
+        supabase.from("user_topics").select("topic_id, topics(id, name)").eq("user_id", userId),
+        supabase.from("user_territories").select("territory_id, territories(id, name)").eq("user_id", userId),
+      ]);
+      return {
+        topics: (topicsRes.data ?? []).map((r: any) => r.topics).filter(Boolean),
+        territories: (terrRes.data ?? []).map((r: any) => r.territories).filter(Boolean),
+      };
+    },
+    enabled: !!userId,
+  });
+}
+
+function useMyServices(userId: string) {
+  return useQuery({
+    queryKey: ["my-services", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("provider_user_id", userId)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!userId,
+  });
+}
 
 export default function MeHub() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState("profile");
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
 
-  const topics = userTopics.filter((ut) => ut.userId === currentUser.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
-  const territories = userTerritories.filter((ut) => ut.userId === currentUser.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
-  const myServices = getServicesForUser(currentUser.id);
-  const allMyServices = services.filter((s) => s.providerUserId === currentUser.id);
+  const { data: topicsTerritories } = useMyTopicsAndTerritories(currentUser.id);
+  const { data: allMyServices = [], isLoading: loadingServices } = useMyServices(currentUser.id);
+  const topics = topicsTerritories?.topics ?? [];
+  const territories = topicsTerritories?.territories ?? [];
 
-  // Create service form
+  // Create/edit service form
   const [createOpen, setCreateOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
@@ -45,74 +76,83 @@ export default function MeHub() {
   const [formDuration, setFormDuration] = useState("60");
   const [formPrice, setFormPrice] = useState("0");
   const [formCurrency, setFormCurrency] = useState("EUR");
-  const [formLocationType, setFormLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
+  const [formLocationType, setFormLocationType] = useState("JITSI");
 
   const resetForm = () => {
     setFormTitle(""); setFormDesc(""); setFormDuration("60"); setFormPrice("0");
-    setFormCurrency("EUR"); setFormLocationType(OnlineLocationType.JITSI);
+    setFormCurrency("EUR"); setFormLocationType("JITSI");
     setEditId(null);
   };
 
-  const openEdit = (svc: Service) => {
+  const openEdit = (svc: any) => {
     setEditId(svc.id);
     setFormTitle(svc.title);
-    setFormDesc(svc.description);
-    setFormDuration(String(svc.durationMinutes ?? 60));
-    setFormPrice(String(svc.priceAmount ?? 0));
-    setFormCurrency(svc.priceCurrency);
-    setFormLocationType(svc.onlineLocationType ?? OnlineLocationType.JITSI);
+    setFormDesc(svc.description || "");
+    setFormDuration(String(svc.duration_minutes ?? 60));
+    setFormPrice(String(svc.price_amount ?? 0));
+    setFormCurrency(svc.price_currency || "EUR");
+    setFormLocationType(svc.online_location_type ?? "JITSI");
     setCreateOpen(true);
   };
 
-  const saveService = () => {
-    if (!formTitle.trim()) return;
-    if (editId) {
-      const svc = services.find((s) => s.id === editId);
-      if (svc) {
-        svc.title = formTitle.trim();
-        svc.description = formDesc.trim();
-        svc.durationMinutes = Number(formDuration) || 60;
-        svc.priceAmount = Number(formPrice) || 0;
-        svc.priceCurrency = formCurrency;
-        svc.onlineLocationType = formLocationType;
-        svc.updatedAt = new Date().toISOString();
-        toast({ title: "Service updated" });
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (editId) {
+        const { error } = await supabase.from("services").update({
+          title: formTitle.trim(),
+          description: formDesc.trim() || null,
+          duration_minutes: Number(formDuration) || 60,
+          price_amount: Number(formPrice) || 0,
+          price_currency: formCurrency,
+          online_location_type: formLocationType,
+        }).eq("id", editId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("services").insert({
+          title: formTitle.trim(),
+          description: formDesc.trim() || null,
+          provider_user_id: currentUser.id,
+          duration_minutes: Number(formDuration) || 60,
+          price_amount: Number(formPrice) || 0,
+          price_currency: formCurrency,
+          online_location_type: formLocationType,
+          is_active: true,
+        });
+        if (error) throw error;
       }
-    } else {
-      const newSvc: Service = {
-        id: `svc-${Date.now()}`,
-        title: formTitle.trim(),
-        description: formDesc.trim(),
-        providerUserId: currentUser.id,
-        durationMinutes: Number(formDuration) || 60,
-        priceAmount: Number(formPrice) || 0,
-        priceCurrency: formCurrency,
-        onlineLocationType: formLocationType,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      services.push(newSvc);
-      toast({ title: "Service created" });
-    }
-    setCreateOpen(false);
-    resetForm();
-    rerender();
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-services"] });
+      setCreateOpen(false);
+      resetForm();
+      toast({ title: editId ? "Service updated" : "Service created" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
 
-  const toggleActive = (svc: Service) => {
-    svc.isActive = !svc.isActive;
-    svc.updatedAt = new Date().toISOString();
-    rerender();
-    toast({ title: svc.isActive ? "Service resumed" : "Service paused" });
-  };
+  const toggleMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { error } = await supabase.from("services").update({ is_active: !isActive }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-services"] });
+      toast({ title: "Service status toggled" });
+    },
+  });
 
-  const deleteService = (id: string) => {
-    const idx = services.findIndex((s) => s.id === id);
-    if (idx !== -1) services.splice(idx, 1);
-    rerender();
-    toast({ title: "Service deleted" });
-  };
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-services"] });
+      toast({ title: "Service deleted" });
+    },
+  });
 
   return (
     <PageShell>
@@ -132,8 +172,8 @@ export default function MeHub() {
             <span className="text-sm text-muted-foreground">CI: {currentUser.contributionIndex}</span>
           </div>
           <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-            {topics.map((t) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
-            {territories.map((t) => <Badge key={t.id} variant="outline" className="text-xs">{t.name}</Badge>)}
+            {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+            {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs">{t.name}</Badge>)}
           </div>
         </div>
 
@@ -201,16 +241,17 @@ export default function MeHub() {
                     </div>
                     <div>
                       <label className="text-sm font-medium mb-1 block">Location type</label>
-                      <Select value={formLocationType} onValueChange={(v) => setFormLocationType(v as OnlineLocationType)}>
+                      <Select value={formLocationType} onValueChange={setFormLocationType}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
-                          <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
-                          <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
+                          <SelectItem value="JITSI">Jitsi</SelectItem>
+                          <SelectItem value="ZOOM">Zoom</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button onClick={saveService} disabled={!formTitle.trim()} className="w-full">
+                    <Button onClick={() => saveMutation.mutate()} disabled={!formTitle.trim() || saveMutation.isPending} className="w-full">
+                      {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
                       {editId ? "Save changes" : "Create service"}
                     </Button>
                   </div>
@@ -218,12 +259,14 @@ export default function MeHub() {
               </Dialog>
             </div>
 
-            {allMyServices.length === 0 && (
+            {loadingServices && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
+
+            {!loadingServices && allMyServices.length === 0 && (
               <p className="text-muted-foreground">No services yet. Create your first service above.</p>
             )}
 
             <div className="space-y-3">
-              {allMyServices.map((svc, i) => (
+              {allMyServices.map((svc: any, i: number) => (
                 <motion.div
                   key={svc.id}
                   initial={{ opacity: 0, y: 12 }}
@@ -235,31 +278,29 @@ export default function MeHub() {
                     <div>
                       <Link to={`/services/${svc.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc.title}</Link>
                       <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {svc.durationMinutes} min</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {svc.duration_minutes} min</span>
                         <span className="flex items-center gap-1">
                           <Euro className="h-3 w-3" />
-                          {(!svc.priceAmount || svc.priceAmount === 0) ? "Free" : `€${svc.priceAmount}`}
+                          {(!svc.price_amount || svc.price_amount === 0) ? "Free" : `€${svc.price_amount}`}
                         </span>
                         <Badge variant="outline" className="text-[10px]">
-                          <Video className="h-2.5 w-2.5 mr-0.5" /> {svc.onlineLocationType}
+                          <Video className="h-2.5 w-2.5 mr-0.5" /> {svc.online_location_type}
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={svc.isActive ? "bg-emerald-500/10 text-emerald-600 border-0" : "bg-muted text-muted-foreground border-0"}>
-                        {svc.isActive ? "Active" : "Paused"}
-                      </Badge>
-                    </div>
+                    <Badge className={svc.is_active ? "bg-emerald-500/10 text-emerald-600 border-0" : "bg-muted text-muted-foreground border-0"}>
+                      {svc.is_active ? "Active" : "Paused"}
+                    </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{svc.description}</p>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => openEdit(svc)}>
                       <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => toggleActive(svc)}>
-                      {svc.isActive ? <><ToggleRight className="h-3.5 w-3.5 mr-1" /> Pause</> : <><ToggleLeft className="h-3.5 w-3.5 mr-1" /> Resume</>}
+                    <Button size="sm" variant="outline" onClick={() => toggleMutation.mutate({ id: svc.id, isActive: svc.is_active })}>
+                      {svc.is_active ? <><ToggleRight className="h-3.5 w-3.5 mr-1" /> Pause</> : <><ToggleLeft className="h-3.5 w-3.5 mr-1" /> Resume</>}
                     </Button>
-                    <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteService(svc.id)}>
+                    <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteMutation.mutate(svc.id)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
