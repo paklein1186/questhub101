@@ -224,6 +224,7 @@ export default function UserProfile() {
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
           <TabsTrigger value="guilds-pods">Guilds & Pods</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
 
