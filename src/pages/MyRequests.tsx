@@ -79,7 +79,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <Link to={`/services/${svc?.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title}</Link>
+                  <Link to={`/bookings/${b.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title ?? "Booking"}</Link>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     {provider && (
                       <Link to={`/users/${provider.id}`} className="flex items-center gap-1 hover:text-primary transition-colors">

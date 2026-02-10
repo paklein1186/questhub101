@@ -71,6 +71,7 @@ const App = () => (
                 <Route path="/achievements/:id" element={<AchievementDetail />} />
                 <Route path="/pods/:id" element={<PodDetail />} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
+                <Route path="/bookings/:id" element={<RequireAuth><BookingDetail /></RequireAuth>} />
                 <Route path="/companies/:id" element={<CompanyDetail />} />
                 <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />

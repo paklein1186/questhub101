@@ -99,7 +99,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <Link to={`/services/${svc?.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title}</Link>
+                  <Link to={`/bookings/${b.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title ?? "Booking"}</Link>
                   <div className="flex items-center gap-2 mt-1">
                     <Avatar className="h-5 w-5">
                       <AvatarImage src={requester?.avatarUrl} />
