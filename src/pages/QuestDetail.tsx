@@ -271,6 +271,17 @@ export default function QuestDetail() {
           </div>
         </TabsContent>
 
+        <TabsContent value="proposals" className="mt-6">
+          <QuestProposals
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            escrowCredits={(quest as any).escrow_credits ?? 0}
+            fundingGoalCredits={(quest as any).funding_goal_credits}
+            allowFundraising={(quest as any).allow_fundraising ?? false}
+            questStatus={quest.status}
+          />
+        </TabsContent>
+
         <TabsContent value="subtasks" className="mt-6">
           <QuestSubtasks
             questId={quest.id}
