@@ -91,17 +91,7 @@ export default function SettingsPage() {
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
   const [usePrefs, setUsePrefs] = useState(true);
 
-  // ── Notifications state ──
-  const [notifQuests, setNotifQuests] = useState(true);
-  const [notifGuilds, setNotifGuilds] = useState(true);
-  const [notifPods, setNotifPods] = useState(true);
-  const [notifBookingProvider, setNotifBookingProvider] = useState(true);
-  const [notifBookingClient, setNotifBookingClient] = useState(true);
-  const [notifComments, setNotifComments] = useState(true);
-  const [notifUpvotes, setNotifUpvotes] = useState(true);
-  const [emailBookings, setEmailBookings] = useState(true);
-  const [emailDigest, setEmailDigest] = useState<"INSTANT" | "DAILY" | "WEEKLY" | "NEVER">("WEEKLY");
-  const [emailSystem, setEmailSystem] = useState(true);
+  // ── Notifications state (moved to NotificationsSettingsTab) ──
 
   // ── Privacy state (synced with user model) ──
   const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
