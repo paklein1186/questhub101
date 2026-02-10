@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Compass, Loader2 } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -8,6 +8,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { usePlanLimits, EXTRA_QUEST_CREDIT_COST } from "@/hooks/usePlanLimits";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { useXpCredits } from "@/hooks/useXpCredits";
+import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -18,8 +19,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+
+interface AiSuggestion {
+  description: string;
+  subtasks: { title: string; description: string }[];
+  rewardXp: number;
+  creditBudget: number;
+  suggestedHouses: string[];
+  suggestedTerritories: string[];
+  suggestedCollaborators: string[];
+  fundingGoal: number | null;
+  microcopy: string;
+}
 
 export default function QuestCreate() {
   const navigate = useNavigate();
@@ -29,11 +42,11 @@ export default function QuestCreate() {
   const limits = usePlanLimits();
   const { checkRateLimit, isChecking } = useRateLimit();
   const { grantXp } = useXpCredits();
+  const { persona } = usePersona();
 
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
 
-  // If guild context, fetch guild name
   const { data: guild } = useQuery({
     queryKey: ["guild-for-quest", guildId],
     enabled: !!guildId,
@@ -43,7 +56,6 @@ export default function QuestCreate() {
     },
   });
 
-  // If company context, fetch company name
   const { data: company } = useQuery({
     queryKey: ["company-for-quest", companyId],
     enabled: !!companyId,
@@ -71,13 +83,90 @@ export default function QuestCreate() {
   const [fundingGoalCredits, setFundingGoalCredits] = useState("");
   const [openForProposals, setOpenForProposals] = useState(false);
 
+  // AI state
+  const [aiKeywords, setAiKeywords] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
+  const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean }[]>([]);
+
   const contextLabel = guild?.name ?? company?.name ?? "Personal";
+
+  const generateWithAI = async () => {
+    if (!title.trim()) {
+      toast({ title: "Enter a title first", description: "The AI needs at least a quest title to generate suggestions.", variant: "destructive" });
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const houseNames = (topics ?? []).filter(t => selectedTopics.includes(t.id)).map(t => t.name);
+      const territoryNames = (territories ?? []).filter(t => selectedTerritories.includes(t.id)).map(t => t.name);
+
+      const { data, error } = await supabase.functions.invoke("quest-assist", {
+        body: {
+          title: title.trim(),
+          keywords: aiKeywords.trim(),
+          persona,
+          houses: houseNames,
+          territories: territoryNames,
+          xpLevel: currentUser?.xp_level ?? 1,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "AI unavailable", description: data.error, variant: "destructive" });
+        return;
+      }
+
+      setAiSuggestion(data);
+      setAiSubtasks((data.subtasks || []).map((s: any) => ({ ...s, accepted: true })));
+      toast({ title: "AI suggestions ready!", description: data.microcopy || "Review and edit below." });
+    } catch (e: any) {
+      toast({ title: "AI generation failed", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const acceptDescription = () => {
+    if (aiSuggestion) setDescription(aiSuggestion.description);
+    toast({ title: "Description applied" });
+  };
+
+  const acceptXpAndBudget = () => {
+    if (!aiSuggestion) return;
+    setRewardXp(String(aiSuggestion.rewardXp));
+    if (aiSuggestion.creditBudget > 0) {
+      setCreditBudget(String(aiSuggestion.creditBudget));
+      setOpenForProposals(true);
+    }
+    if (aiSuggestion.fundingGoal) {
+      setFundingGoalCredits(String(aiSuggestion.fundingGoal));
+      setAllowFundraising(true);
+    }
+    toast({ title: "XP & budget applied" });
+  };
+
+  const acceptHouses = () => {
+    if (!aiSuggestion || !topics) return;
+    const matching = topics.filter(t => aiSuggestion.suggestedHouses.some(h => t.name.toLowerCase().includes(h.toLowerCase())));
+    const newIds = [...new Set([...selectedTopics, ...matching.map(t => t.id)])];
+    setSelectedTopics(newIds);
+    toast({ title: `${matching.length} Houses added` });
+  };
+
+  const acceptTerritories = () => {
+    if (!aiSuggestion || !territories) return;
+    const matching = territories.filter(t => aiSuggestion.suggestedTerritories.some(st => t.name.toLowerCase().includes(st.toLowerCase())));
+    const newIds = [...new Set([...selectedTerritories, ...matching.map(t => t.id)])];
+    setSelectedTerritories(newIds);
+    toast({ title: `${matching.length} Territories added` });
+  };
 
   const doCreate = async () => {
     if (!title.trim()) return;
     setSubmitting(true);
     try {
-      // Rate limit check
       const allowed = await checkRateLimit("quest_creation");
       if (!allowed) { setSubmitting(false); return; }
 
@@ -118,21 +207,32 @@ export default function QuestCreate() {
         return;
       }
 
-      // Insert topic links
       if (selectedTopics.length > 0) {
         await supabase.from("quest_topics").insert(
           selectedTopics.map((topicId) => ({ quest_id: quest.id, topic_id: topicId }))
         );
       }
 
-      // Insert territory links
       if (selectedTerritories.length > 0) {
         await supabase.from("quest_territories").insert(
           selectedTerritories.map((territoryId) => ({ quest_id: quest.id, territory_id: territoryId }))
         );
       }
 
-      // Add creator as OWNER participant
+      // Insert accepted AI subtasks
+      const acceptedSubtasks = aiSubtasks.filter(s => s.accepted);
+      if (acceptedSubtasks.length > 0) {
+        await supabase.from("quest_subtasks").insert(
+          acceptedSubtasks.map((s, i) => ({
+            quest_id: quest.id,
+            title: s.title,
+            description: s.description || null,
+            order_index: i,
+            status: "TODO",
+          }))
+        );
+      }
+
       await supabase.from("quest_participants").insert({
         quest_id: quest.id,
         user_id: currentUser.id,
@@ -140,10 +240,8 @@ export default function QuestCreate() {
         status: "ACTIVE",
       });
 
-      // Record weekly usage
       await limits.recordQuestCreation();
 
-      // Grant XP for quest creation
       await grantXp(currentUser.id, {
         type: XP_EVENT_TYPES.QUEST_CREATED,
         relatedEntityType: "Quest",
@@ -204,6 +302,164 @@ export default function QuestCreate() {
             <Label htmlFor="title">Title *</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Quest title" className="mt-1" />
           </div>
+
+          {/* AI Generation Section */}
+          <Card className="p-4 border-primary/30 bg-primary/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-sm">Generate with AI</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enter a title above and optionally add keywords, then let AI draft your quest.
+            </p>
+            <div>
+              <Label htmlFor="aiKeywords" className="text-xs">Keywords / notes (optional)</Label>
+              <Input
+                id="aiKeywords"
+                value={aiKeywords}
+                onChange={(e) => setAiKeywords(e.target.value)}
+                placeholder="e.g. community garden, workshops, youth engagement"
+                className="mt-1 text-sm"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                onClick={generateWithAI}
+                disabled={aiLoading || !title.trim()}
+                size="sm"
+              >
+                {aiLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                {aiLoading ? "Generating…" : aiSuggestion ? "Regenerate" : "Generate"}
+              </Button>
+              {aiSuggestion && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setAiSuggestion(null); setAiSubtasks([]); }}>
+                  <X className="h-4 w-4 mr-1" /> Dismiss
+                </Button>
+              )}
+            </div>
+          </Card>
+
+          {/* AI Suggestion Results */}
+          {aiSuggestion && (
+            <div className="space-y-4">
+              {aiSuggestion.microcopy && (
+                <p className="text-sm italic text-primary">&ldquo;{aiSuggestion.microcopy}&rdquo;</p>
+              )}
+
+              {/* Description suggestion */}
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Suggested Description</h4>
+                  <div className="flex gap-1">
+                    <Button type="button" size="sm" variant="outline" onClick={acceptDescription}>
+                      <Check className="h-3 w-3 mr-1" /> Use
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap max-h-40 overflow-y-auto">
+                  {aiSuggestion.description}
+                </p>
+              </Card>
+
+              {/* Subtasks suggestion */}
+              {aiSubtasks.length > 0 && (
+                <Card className="p-4 space-y-2">
+                  <h4 className="text-sm font-semibold">Suggested Subtasks</h4>
+                  <p className="text-xs text-muted-foreground">Toggle subtasks to include when creating the quest.</p>
+                  <div className="space-y-1.5">
+                    {aiSubtasks.map((s, i) => (
+                      <div
+                        key={i}
+                        className={`flex items-start gap-2 p-2 rounded-md text-sm cursor-pointer transition-colors ${
+                          s.accepted ? "bg-primary/10" : "bg-muted/50 opacity-60"
+                        }`}
+                        onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}
+                      >
+                        <div className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 ${s.accepted ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                          {s.accepted && <Check className="h-3 w-3" />}
+                        </div>
+                        <div>
+                          <span className="font-medium">{s.title}</span>
+                          {s.description && <p className="text-xs text-muted-foreground">{s.description}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {/* XP, Budget, Funding */}
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">XP & Budget Suggestions</h4>
+                  <Button type="button" size="sm" variant="outline" onClick={acceptXpAndBudget}>
+                    <Check className="h-3 w-3 mr-1" /> Apply
+                  </Button>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="text-center p-2 rounded-md bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Reward XP</p>
+                    <p className="font-bold text-primary">{aiSuggestion.rewardXp}</p>
+                  </div>
+                  <div className="text-center p-2 rounded-md bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Credit Budget</p>
+                    <p className="font-bold text-primary">{aiSuggestion.creditBudget}</p>
+                  </div>
+                  <div className="text-center p-2 rounded-md bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Funding Goal</p>
+                    <p className="font-bold text-primary">{aiSuggestion.fundingGoal ?? "—"}</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Houses & Territories */}
+              <div className="grid grid-cols-2 gap-3">
+                {aiSuggestion.suggestedHouses.length > 0 && (
+                  <Card className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold">Houses</h4>
+                      <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={acceptHouses}>
+                        <Check className="h-3 w-3 mr-1" /> Add
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {aiSuggestion.suggestedHouses.map(h => (
+                        <Badge key={h} variant="secondary" className="text-xs">{h}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {aiSuggestion.suggestedTerritories.length > 0 && (
+                  <Card className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold">Territories</h4>
+                      <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={acceptTerritories}>
+                        <Check className="h-3 w-3 mr-1" /> Add
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {aiSuggestion.suggestedTerritories.map(t => (
+                        <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+              </div>
+
+              {/* Collaborators */}
+              {aiSuggestion.suggestedCollaborators.length > 0 && (
+                <Card className="p-3 space-y-2">
+                  <h4 className="text-xs font-semibold">Suggested Collaborator Profiles</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {aiSuggestion.suggestedCollaborators.map(c => (
+                      <Badge key={c} variant="outline" className="text-xs">{c}</Badge>
+                    ))}
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="desc">Description</Label>
