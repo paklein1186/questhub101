@@ -19,6 +19,7 @@ import NetworkHub from "./pages/NetworkHub";
 import MeHub from "./pages/MeHub";
 import GuildDetail from "./pages/GuildDetail";
 import GuildEdit from "./pages/GuildEdit";
+import GuildSettings from "./pages/GuildSettings";
 import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
 import ProfileEdit from "./pages/ProfileEdit";
