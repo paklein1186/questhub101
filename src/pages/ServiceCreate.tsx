@@ -8,13 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import PageShell from "@/components/PageShell";
+import { useAuth } from "@/hooks/useAuth";
+import { PageShell } from "@/components/PageShell";
 
 export default function ServiceCreate() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile } = useCurrentUser();
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -25,11 +25,11 @@ export default function ServiceCreate() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!profile?.user_id) throw new Error("Not authenticated");
+      if (!user?.id) throw new Error("Not authenticated");
       const { error } = await supabase.from("services").insert({
         title: title.trim(),
         description: description.trim() || null,
-        provider_user_id: profile.user_id,
+        provider_user_id: user.id,
         duration_minutes: Number(duration) || 60,
         price_amount: Number(price) || 0,
         price_currency: currency,
@@ -48,8 +48,9 @@ export default function ServiceCreate() {
   });
 
   return (
-    <PageShell title="Create Service" backTo="/me?tab=services">
-      <div className="max-w-xl mx-auto space-y-6">
+    <PageShell>
+      <div className="max-w-xl mx-auto py-10 px-4 space-y-6">
+        <h1 className="text-2xl font-display font-bold">Create Service</h1>
         <div>
           <label className="text-sm font-medium mb-1 block">Title</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Strategy Workshop" maxLength={120} />
