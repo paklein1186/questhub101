@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, FileEdit } from "lucide-react";
+import { Briefcase, FileEdit, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
