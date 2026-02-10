@@ -85,6 +85,10 @@ export default function HomeFeed() {
             xpLevel: data?.xpLevel ?? 1,
             topics: (data?.myTopics ?? []).map((t: any) => t.name),
             territories: (data?.myTerritories ?? []).map((t: any) => t.name),
+            recentQuests: data?.recentQuests ?? [],
+            recentGuilds: data?.recentGuilds ?? [],
+            recentServices: data?.recentServices ?? [],
+            recentPods: data?.recentPods ?? [],
           }}
         />
 
