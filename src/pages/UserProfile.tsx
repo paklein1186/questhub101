@@ -121,10 +121,14 @@ export default function UserProfile() {
             {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
-              <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                <Zap className="h-4 w-4" /> {user.xp} XP
-              </span>
-              <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              {showXp && (
+                <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+                  <Zap className="h-4 w-4" /> {user.xp} XP
+                </span>
+              )}
+              {showCi && (
+                <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-2">
