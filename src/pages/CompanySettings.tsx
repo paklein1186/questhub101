@@ -35,6 +35,7 @@ import {
   guilds, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
