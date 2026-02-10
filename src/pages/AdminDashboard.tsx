@@ -1349,12 +1349,6 @@ function AnalyticsTab() {
   const avgXp = totalUsers > 0 ? Math.round(totalXpAwarded / totalUsers) : 0;
 
   // Activity per week (mock recent 8 weeks)
-  const weekLabels = Array.from({ length: 8 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (7 - i) * 7);
-    return `W${d.getWeek ? (7 - i) : (8 - (7 - i))}`;
-  });
-  // Simple mock activity data
   const weeklyActivity = [
     { week: "W1", users: 1, quests: 0, bookings: 0, comments: 1 },
     { week: "W2", users: 0, quests: 1, bookings: 0, comments: 2 },
