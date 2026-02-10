@@ -440,8 +440,8 @@ export default function SettingsPage() {
                 <div className="space-y-6 max-w-lg">
                   <Section title="Profile" icon={<UserCircle className="h-5 w-5" />}>
                     <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-muted/50 border border-border">
-                      <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {currentUser.xp} XP</span>
-                      <span className="text-sm text-muted-foreground">CI: {currentUser.contributionIndex}</span>
+                      <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {limits.userXp} XP</span>
+                      <span className="text-sm text-muted-foreground">Credits: {limits.userCredits}</span>
                     </div>
 
                     <div className="space-y-4">

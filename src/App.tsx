@@ -141,7 +141,6 @@ const App = () => (
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/credits" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
-                <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><Suspense fallback={null}><AdminLayout /></Suspense></RequireAuth>}>
