@@ -113,7 +113,7 @@ export default function CompanyDetail() {
           {cTerrs.map(t => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-          {company.websiteUrl && <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary transition-colors"><Globe className="h-3.5 w-3.5" /> Website</a>}
+          <SocialLinksDisplay data={{ websiteUrl: company.websiteUrl, twitterUrl: company.twitterUrl, linkedinUrl: company.linkedinUrl, instagramUrl: company.instagramUrl }} />
           {contact && <Link to={`/users/${contact.id}`} className="flex items-center gap-1.5 hover:text-primary transition-colors"><Avatar className="h-5 w-5"><AvatarImage src={contact.avatarUrl} /><AvatarFallback>{contact.name[0]}</AvatarFallback></Avatar>Contact: {contact.name}</Link>}
         </div>
 

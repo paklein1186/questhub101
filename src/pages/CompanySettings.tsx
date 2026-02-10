@@ -255,6 +255,21 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                   </Section>
 
                   <Button onClick={handleSaveIdentity} className="w-full"><Save className="h-4 w-4 mr-2" /> Save identity</Button>
+
+                  <Separator />
+
+                  <Section title="Links & Social" icon={<Globe className="h-5 w-5" />}>
+                    <SocialLinksEdit
+                      data={{ websiteUrl, twitterUrl: companyTwitterUrl, linkedinUrl: companyLinkedinUrl, instagramUrl: companyInstagramUrl }}
+                      onChange={(key, value) => {
+                        if (key === "websiteUrl") setWebsiteUrl(value);
+                        else if (key === "twitterUrl") setCompanyTwitterUrl(value);
+                        else if (key === "linkedinUrl") setCompanyLinkedinUrl(value);
+                        else if (key === "instagramUrl") setCompanyInstagramUrl(value);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
+                  </Section>
                 </div>
               )}
 
