@@ -8,8 +8,9 @@ import QuestsMarketplace from "./QuestsMarketplace";
 import PodsList from "./PodsList";
 import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
+import CoursesExplore from "./CoursesExplore";
 
-const VALID_TABS = ["quests", "guilds", "pods", "services", "companies"];
+const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses"];
 
 export default function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
