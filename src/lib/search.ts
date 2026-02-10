@@ -101,6 +101,7 @@ export function globalSearch(
 
   // Services
   for (const s of filterActive(services)) {
+    if (s.isDraft) continue;
     if (!matchesQuery(query, s.title, s.description)) continue;
     if (filters?.topicId && !hasTopicId("SERVICE", s.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("SERVICE", s.id, filters.territoryId)) continue;

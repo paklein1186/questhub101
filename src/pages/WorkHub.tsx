@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase } from "lucide-react";
+import { Briefcase, FileEdit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { Compass, CircleDot, Zap, Building2 } from "lucide-react";
 import {
   questParticipants, getQuestById, podMembers, getPodById,
-  getServicesForUser,
+  getServicesForUser, quests, pods, services, guilds,
 } from "@/data/mock";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
@@ -34,6 +34,13 @@ export default function WorkHub() {
   // My services
   const myServices = getServicesForUser(currentUser.id);
 
+  // My drafts
+  const draftQuests = quests.filter((q) => q.isDraft && q.createdByUserId === currentUser.id);
+  const draftGuilds = guilds.filter((g) => g.isDraft && g.createdByUserId === currentUser.id);
+  const draftPods = pods.filter((p) => p.isDraft && p.creatorId === currentUser.id);
+  const draftServices = services.filter((s) => s.isDraft && s.providerUserId === currentUser.id);
+  const totalDrafts = draftQuests.length + draftGuilds.length + draftPods.length + draftServices.length;
+
   return (
     <PageShell>
       <div className="mb-6">
@@ -48,6 +55,7 @@ export default function WorkHub() {
           <TabsTrigger value="quests">My Quests ({myQuests.length})</TabsTrigger>
           <TabsTrigger value="pods">My Pods ({myPods.length})</TabsTrigger>
           <TabsTrigger value="services">My Services ({myServices.length})</TabsTrigger>
+          <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
@@ -109,6 +117,84 @@ export default function WorkHub() {
                 </Link>
               </motion.div>
             ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="drafts">
+          {totalDrafts === 0 && <p className="text-muted-foreground">No drafts.</p>}
+          <div className="space-y-6">
+            {draftQuests.length > 0 && (
+              <div>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Quest Drafts</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {draftQuests.map((q, i) => (
+                    <motion.div key={q.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <Link to={`/quests/${q.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-display font-semibold">{q.title}</h4>
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{q.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {draftGuilds.length > 0 && (
+              <div>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Guild Drafts</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {draftGuilds.map((g, i) => (
+                    <motion.div key={g.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <Link to={`/guilds/${g.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-display font-semibold">{g.name}</h4>
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{g.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {draftPods.length > 0 && (
+              <div>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Pod Drafts</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {draftPods.map((p, i) => (
+                    <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <Link to={`/pods/${p.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-display font-semibold">{p.name}</h4>
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {draftServices.length > 0 && (
+              <div>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Service Drafts</h3>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {draftServices.map((s, i) => (
+                    <motion.div key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                      <Link to={`/services/${s.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-display font-semibold">{s.title}</h4>
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{s.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
 
