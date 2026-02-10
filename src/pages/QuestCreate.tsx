@@ -122,9 +122,16 @@ export default function QuestCreate() {
       // Record weekly usage
       await limits.recordQuestCreation();
 
+      // Grant XP for quest creation
+      await grantXp(currentUser.id, {
+        type: XP_EVENT_TYPES.QUEST_CREATED,
+        relatedEntityType: "Quest",
+        relatedEntityId: quest.id,
+      }, true);
+
       qc.invalidateQueries({ queryKey: ["quests"] });
       if (guildId) qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });
-      toast({ title: "Quest created!" });
+      toast({ title: "Quest created! +5 XP" });
       navigate(`/quests/${quest.id}`);
     } finally {
       setSubmitting(false);
