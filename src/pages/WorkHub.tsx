@@ -14,6 +14,7 @@ import {
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
+import MyCourses from "./MyCourses";
 
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
