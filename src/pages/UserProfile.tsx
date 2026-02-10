@@ -300,7 +300,7 @@ export default function UserProfile() {
       )}
 
       {/* Services */}
-      {(() => {
+      {showServices && (() => {
         const userServices = getServicesForUser(user.id);
         if (userServices.length === 0) return null;
         return (
