@@ -40,6 +40,7 @@ export default function ExploreHub() {
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="companies">Companies</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
         <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
@@ -48,6 +49,7 @@ export default function ExploreHub() {
         <TabsContent value="services"><ServicesMarketplace bare /></TabsContent>
         <TabsContent value="companies"><CompaniesList bare /></TabsContent>
         <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
+        <TabsContent value="users"><ExploreUsers bare /></TabsContent>
       </Tabs>
     </PageShell>
   );

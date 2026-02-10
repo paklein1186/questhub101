@@ -77,6 +77,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
+                <Route path="/explore/users" element={<ExploreUsers />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
                 <Route path="/quests/:id" element={<QuestDetail />} />
                 <Route path="/users/:id" element={<UserProfile />} />
