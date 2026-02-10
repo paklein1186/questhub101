@@ -301,6 +301,11 @@ export default function QuestDetail() {
           })}
         </TabsContent>
 
+        <TabsContent value="documents" className="mt-6">
+          <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
+          {isCreator && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
+        </TabsContent>
+
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>

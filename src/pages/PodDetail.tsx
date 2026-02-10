@@ -196,6 +196,11 @@ export default function PodDetail() {
           </div>
         </TabsContent>
 
+        <TabsContent value="documents" className="mt-6">
+          <AttachmentList targetType={AttachmentTargetType.POD} targetId={pod.id} />
+          {isHost && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.POD} targetId={pod.id} /></div>}
+        </TabsContent>
+
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.POD} targetId={pod.id} />
         </TabsContent>

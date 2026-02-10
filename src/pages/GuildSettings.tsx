@@ -473,6 +473,19 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                 </div>
               )}
 
+              {/* ── Documents ── */}
+              {activeTab === "documents" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Guild Documents" icon={<Briefcase className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Upload documents, resources, and files for guild members.</p>
+                    <AttachmentList targetType={AttachmentTargetType.GUILD} targetId={guild.id} />
+                    <div className="mt-4">
+                      <AttachmentUpload targetType={AttachmentTargetType.GUILD} targetId={guild.id} />
+                    </div>
+                  </Section>
+                </div>
+              )}
+
               {/* ── Billing ── */}
               {activeTab === "billing" && (
                 <div className="space-y-6 max-w-lg">
