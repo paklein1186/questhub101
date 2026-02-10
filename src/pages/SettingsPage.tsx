@@ -32,9 +32,13 @@ import {
   services, getServicesForUser,
   availabilityRules, availabilityExceptions,
   referrals, generateReferralCode, getReferralsForUser,
+  quests, comments, bookings,
 } from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 const TABS = [
   { key: "account", label: "Account & Security", icon: Shield },
