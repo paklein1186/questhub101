@@ -65,13 +65,27 @@ function useUnitChatMessages(threadId: string | undefined) {
     queryKey: ["unit-chat-messages", threadId],
     queryFn: async () => {
       if (!threadId) return [];
-      const { data } = await supabase
+      const { data: msgs } = await supabase
         .from("unit_chat_messages")
-        .select("*, profiles:sender_user_id(name, avatar_url)")
+        .select("*")
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true })
         .limit(100);
-      return (data ?? []) as ChatMessage[];
+      if (!msgs?.length) return [];
+      // Fetch sender profiles
+      const userIds = [...new Set(msgs.filter(m => m.sender_user_id).map(m => m.sender_user_id!))];
+      let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
+      if (userIds.length) {
+        const { data: profiles } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds);
+        for (const p of profiles ?? []) {
+          profileMap[p.user_id] = { name: p.name, avatar_url: p.avatar_url };
+        }
+      }
+      return msgs.map(m => ({
+        ...m,
+        sender_type: m.sender_type as "USER" | "AGENT" | "SYSTEM",
+        profiles: m.sender_user_id ? profileMap[m.sender_user_id] || null : null,
+      })) as ChatMessage[];
     },
     enabled: !!threadId,
     staleTime: 5_000,
