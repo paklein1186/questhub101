@@ -66,12 +66,13 @@ export default function PodsList({ bare }: { bare?: boolean }) {
       endDate: newEnd || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      isDraft: newDraft,
     };
     pods.push(pod);
     podMembers.push({ id: `pm-${Date.now()}`, podId: pod.id, userId: currentUser.id, role: PodMemberRole.HOST, joinedAt: new Date().toISOString() });
     setPodsState([...pods]);
     setCreateOpen(false);
-    setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd("");
+    setNewName(""); setNewDesc(""); setNewTopicId("none"); setNewQuestId("none"); setNewStart(""); setNewEnd(""); setNewDraft(false);
     toast({ title: "Pod created!" });
   };
 
