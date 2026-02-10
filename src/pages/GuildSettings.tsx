@@ -325,7 +325,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
           {guild.is_approved ? (
             <Badge className="bg-primary/10 text-primary border-0 ml-auto"><ShieldCheck className="h-3 w-3 mr-1" /> Approved</Badge>
           ) : (
-            <Badge variant="outline" className="ml-auto"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>
+            <Badge variant="outline" className="ml-auto"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>
           )}
         </div>
 

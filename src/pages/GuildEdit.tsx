@@ -163,7 +163,7 @@ function GuildEditForm({ guildId }: { guildId: string }) {
           {guild.isApproved ? (
             <Badge className="bg-primary/10 text-primary border-0"><ShieldCheck className="h-3 w-3 mr-1" /> Approved</Badge>
           ) : (
-            <Badge variant="outline">Pending approval (admin only)</Badge>
+            <Badge variant="outline">Awaiting moderation</Badge>
           )}
         </div>
 
