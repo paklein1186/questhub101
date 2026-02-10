@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuestById, useQuestParticipants, useQuestUpdates, usePodsForQuest, usePublicProfile } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
