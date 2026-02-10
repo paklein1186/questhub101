@@ -13,7 +13,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (!session) return <Navigate to="/login" replace />;
+  if (!session) return <Navigate to="/error/login-required" replace />;
   return <>{children}</>;
 }
 

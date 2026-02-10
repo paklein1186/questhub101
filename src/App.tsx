@@ -36,6 +36,7 @@ import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
+import ErrorPage from "./pages/ErrorPage";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
 
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
+                <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
                 <Route path="/quests/:id" element={<QuestDetail />} />
