@@ -128,7 +128,7 @@ export function AppNav() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={`/users/${user?.id}`} className="cursor-pointer">
+                    <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
                       <User className="h-4 w-4 mr-2" /> My public profile
                     </Link>
                   </DropdownMenuItem>
