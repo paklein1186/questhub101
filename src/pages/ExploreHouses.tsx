@@ -256,22 +256,10 @@ export default function ExploreHouses({ bare }: Props) {
 
   // Data hooks
   const { data: stats } = useTopicStats(selectedIds);
-  const { data: quests, isLoading: questsLoading } = useFilteredByTopics<any>(
-    "houses-quests", "quest_topics", "quests", "id, title, description, reward_xp, status, cover_image_url",
-    selectedIds, matchAll, q => q.eq("is_deleted", false).eq("is_draft", false)
-  );
-  const { data: guilds, isLoading: guildsLoading } = useFilteredByTopics<any>(
-    "houses-guilds", "guild_topics", "guilds", "id, name, description, logo_url, type",
-    selectedIds, matchAll, q => q.eq("is_deleted", false).eq("is_draft", false)
-  );
-  const { data: services, isLoading: servicesLoading } = useFilteredByTopics<any>(
-    "houses-services", "service_topics", "services", "id, title, description, image_url, price_amount, price_currency",
-    selectedIds, matchAll, q => q.eq("is_deleted", false).eq("is_draft", false)
-  );
-  const { data: courses, isLoading: coursesLoading } = useFilteredByTopics<any>(
-    "houses-courses", "course_topics", "courses", "id, title, description, cover_image_url, level",
-    selectedIds, matchAll, q => q.eq("is_deleted", false).eq("is_published", true)
-  );
+  const { data: quests, isLoading: questsLoading } = useFilteredQuests(selectedIds, matchAll);
+  const { data: guilds, isLoading: guildsLoading } = useFilteredGuilds(selectedIds, matchAll);
+  const { data: services, isLoading: servicesLoading } = useFilteredServices(selectedIds, matchAll);
+  const { data: courses, isLoading: coursesLoading } = useFilteredCourses(selectedIds, matchAll);
   const { data: users, isLoading: usersLoading } = useFilteredUsers(selectedIds, matchAll);
   const { data: pods, isLoading: podsLoading } = useFilteredPods(selectedIds, matchAll);
 
