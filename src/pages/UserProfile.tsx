@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
-  Briefcase, Shield, Compass, CircleDot, Pencil, Users,
+  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
