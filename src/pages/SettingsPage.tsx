@@ -608,6 +608,81 @@ function NotifToggle({ label, checked, onChange }: { label: string; checked: boo
   );
 }
 
+function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
+  // Import notification preferences from the hook
+  const { preferences, updatePreferences } = useNotificationsHook();
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(getPushPermissionState());
+
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestPushPermissionFn();
+      if (!granted) {
+        toast({ title: "Push notifications blocked", description: "Please enable notifications in your browser settings.", variant: "destructive" });
+        return;
+      }
+      setPushPermission("granted");
+    }
+    updatePreferences({ pushEnabled: enabled });
+    toast({ title: enabled ? "Push notifications enabled" : "Push notifications disabled" });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Section title="In-App Notifications" icon={<Bell className="h-5 w-5" />}>
+        <div className="space-y-3">
+          <NotifToggle label="Quest updates I follow" checked={preferences.notifyOnQuestUpdates} onChange={(v) => updatePreferences({ notifyOnQuestUpdates: v })} />
+          <NotifToggle label="Guild activity" checked={preferences.notifyOnGuildActivity} onChange={(v) => updatePreferences({ notifyOnGuildActivity: v })} />
+          <NotifToggle label="Pod messages" checked={preferences.notifyOnPodMessages} onChange={(v) => updatePreferences({ notifyOnPodMessages: v })} />
+          <NotifToggle label="Booking notifications" checked={preferences.notifyOnBookings} onChange={(v) => updatePreferences({ notifyOnBookings: v })} />
+          <NotifToggle label="Comments & upvotes" checked={preferences.notifyOnComments} onChange={(v) => updatePreferences({ notifyOnComments: v })} />
+          <NotifToggle label="Follower activity" checked={preferences.notifyOnFollowerActivity} onChange={(v) => updatePreferences({ notifyOnFollowerActivity: v })} />
+          <NotifToggle label="XP & achievements" checked={preferences.notifyOnXpAndAchievements} onChange={(v) => updatePreferences({ notifyOnXpAndAchievements: v })} />
+        </div>
+      </Section>
+
+      <Section title="Push Notifications" icon={<Bell className="h-5 w-5" />}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-1.5">
+            <div>
+              <p className="text-sm font-medium">Browser push notifications</p>
+              <p className="text-xs text-muted-foreground">
+                {pushPermission === "unsupported" ? "Not supported in this browser" :
+                 pushPermission === "denied" ? "Blocked by browser — enable in browser settings" :
+                 "Receive desktop notifications for new activity"}
+              </p>
+            </div>
+            <Switch
+              checked={preferences.pushEnabled}
+              onCheckedChange={handlePushToggle}
+              disabled={pushPermission === "unsupported" || pushPermission === "denied"}
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Notification Frequency" icon={<Bell className="h-5 w-5" />}>
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium">Delivery frequency</p>
+            <p className="text-xs text-muted-foreground">How often you receive notifications and digest emails</p>
+          </div>
+          <Select value={preferences.notificationFrequency} onValueChange={(v) => updatePreferences({ notificationFrequency: v as any })}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="INSTANT">Instant</SelectItem>
+              <SelectItem value="DAILY">Daily digest</SelectItem>
+              <SelectItem value="WEEKLY">Weekly digest</SelectItem>
+              <SelectItem value="NEVER">Never</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Section>
+
+      <Button onClick={() => toast({ title: "Notification preferences saved!" })}><Save className="h-4 w-4 mr-1" /> Save preferences</Button>
+    </div>
+  );
+}
+
 function ReferralsSection({ userId }: { userId: string }) {
   const [, rerender] = useState(0);
   const myReferrals = getReferralsForUser(userId);
