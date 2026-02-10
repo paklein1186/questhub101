@@ -13,6 +13,7 @@ import {
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
   TopicStewardRole, TopicFeatureTargetType, OnlineLocationType, PaymentStatus,
+  AttachmentTargetType,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
