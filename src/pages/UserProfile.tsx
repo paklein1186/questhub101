@@ -32,6 +32,8 @@ import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLin
 import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/lib/admin";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
