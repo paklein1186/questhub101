@@ -138,12 +138,13 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
       : m.message_text,
   }));
 
-  // Get starred excerpts summary
+  // Get starred excerpts summary — prefer most upvoted
   const { data: starred } = await supabase
     .from("starred_excerpts")
-    .select("title, excerpt_text")
+    .select("title, excerpt_text, upvotes_count")
     .eq("thread_id", thread.id)
-    .order("created_at", { ascending: false })
+    .eq("is_deleted", false)
+    .order("upvotes_count", { ascending: false })
     .limit(10);
 
   let starredSummary = "";
@@ -151,7 +152,8 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
     starredSummary = starred.map((s: any) => {
       const title = s.title || "";
       const snippet = s.excerpt_text.slice(0, 80);
-      return `- ${title ? title + ": " : ""}${snippet}`;
+      const votes = s.upvotes_count > 0 ? ` (${s.upvotes_count} upvotes)` : "";
+      return `- ${title ? title + ": " : ""}${snippet}${votes}`;
     }).join("\n");
   }
 
