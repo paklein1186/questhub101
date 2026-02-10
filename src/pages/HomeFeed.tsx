@@ -28,7 +28,7 @@ const fadeUp = {
 
 export default function HomeFeed() {
   const currentUser = useCurrentUser();
-
+  const { percentage, isComplete, completedCount, totalSteps } = useOnboardingProgress();
   const myFollows = follows.filter((f) => f.followerId === currentUser.id);
   const followedUserIds = new Set(myFollows.filter((f) => f.targetType === FollowTargetType.USER).map((f) => f.targetId));
   const followedGuildIds = new Set(myFollows.filter((f) => f.targetType === FollowTargetType.GUILD).map((f) => f.targetId));
