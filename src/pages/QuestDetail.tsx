@@ -129,7 +129,7 @@ export default function QuestDetail() {
     toast({ title: "Pod created!" });
   };
 
-  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditOpen(true); };
+  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditCreditBudget(String((quest as any).credit_budget ?? 0)); setEditAllowFundraising((quest as any).allow_fundraising ?? false); setEditFundingGoal(String((quest as any).funding_goal_credits ?? "")); setEditOpen(true); };
 
   const saveEditQuest = async () => {
     const fiat = Number(editPriceFiat) || 0;
