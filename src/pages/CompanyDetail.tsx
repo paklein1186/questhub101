@@ -200,6 +200,12 @@ export default function CompanyDetail() {
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.COMPANY} targetId={company.id} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="ai-chat" className="mt-6">
+            <UnitChat entityType="COMPANY" entityId={company.id} entityName={company.name} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );

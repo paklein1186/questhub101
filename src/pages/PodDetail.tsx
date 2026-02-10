@@ -189,6 +189,12 @@ export default function PodDetail() {
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.POD} targetId={pod.id} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="ai-chat" className="mt-6">
+            <UnitChat entityType="POD" entityId={pod.id} entityName={pod.name} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );

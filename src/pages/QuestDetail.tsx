@@ -30,6 +30,7 @@ import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
+import { UnitChat } from "@/components/UnitChat";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,

@@ -37,6 +37,7 @@ import { EntityJoinButton } from "@/components/EntityJoinButton";
 import { GuildKanbanBoard } from "@/components/guild/GuildKanbanBoard";
 import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
 import { GuildEvents } from "@/components/guild/GuildEvents";
+import { UnitChat } from "@/components/UnitChat";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
