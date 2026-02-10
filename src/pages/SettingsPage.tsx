@@ -96,13 +96,19 @@ export default function SettingsPage() {
   const [emailDigest, setEmailDigest] = useState<"INSTANT" | "DAILY" | "WEEKLY" | "NEVER">("WEEKLY");
   const [emailSystem, setEmailSystem] = useState(true);
 
-  // ── Privacy state ──
-  const [showXp, setShowXp] = useState(true);
-  const [showCi, setShowCi] = useState(true);
-  const [showAchievements, setShowAchievements] = useState(true);
-  const [showServices, setShowServices] = useState(true);
-  const [allowFollow, setAllowFollow] = useState(true);
-  const [allowWallComments, setAllowWallComments] = useState(true);
+  // ── Privacy state (synced with user model) ──
+  const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
+  const [showCi, setShowCi] = useState(currentUser.showContributionIndexPublicly !== false);
+  const [showAchievements, setShowAchievements] = useState(currentUser.showAchievementsPublicly !== false);
+  const [showServices, setShowServices] = useState(currentUser.showServicesPublicly !== false);
+  const [allowFollow, setAllowFollow] = useState(currentUser.allowFollows !== false);
+  const [allowWallComments, setAllowWallComments] = useState(currentUser.allowProfileComments !== false);
+
+  // Sync privacy changes to mock user object
+  const updatePrivacy = (field: keyof typeof currentUser, value: boolean, setter: (v: boolean) => void) => {
+    setter(value);
+    (currentUser as any)[field] = value;
+  };
 
   // ── Services state ──
   const [, forceUpdate] = useState(0);
