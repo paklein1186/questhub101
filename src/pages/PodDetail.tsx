@@ -76,11 +76,11 @@ export default function PodDetail() {
         open={showPodXpDialog}
         onOpenChange={setShowPodXpDialog}
         canAfford={limits.canAffordExtraPod}
-        xpCost={EXTRA_POD_XP_COST}
-        userXp={limits.userXp}
+        xpCost={EXTRA_POD_CREDIT_COST}
+        userXp={limits.userCredits}
         actionLabel="join one more pod"
         limitLabel="pod memberships for your plan"
-        onConfirm={async () => { const ok = await limits.spendXp(EXTRA_POD_XP_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Failed to spend XP", variant: "destructive" }); }}
+        onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_POD_CREDIT_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Not enough Credits", variant: "destructive" }); }}
       />
 
       <Button variant="ghost" size="sm" asChild className="mb-4">
