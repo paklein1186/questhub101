@@ -36,6 +36,7 @@ import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
+import ErrorPage from "./pages/ErrorPage";
 
 const queryClient = new QueryClient();
 
