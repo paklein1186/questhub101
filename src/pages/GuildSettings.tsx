@@ -35,7 +35,8 @@ import {
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
-import { GuildApplicationsTab } from "@/components/GuildApplicationsTab";
+import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
+import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
