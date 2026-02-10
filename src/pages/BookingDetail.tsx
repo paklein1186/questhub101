@@ -16,7 +16,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { isAdmin } from "@/lib/admin";
+import { useUserRoles } from "@/lib/admin";
 import { BookingStatus, OnlineLocationType } from "@/types/enums";
 import {
   bookings, getUserById, getGuildById, getServiceById, guildMembers,
