@@ -1,16 +1,16 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
+  ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
+  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, FollowTargetType, ReportTargetType } from "@/types/enums";
@@ -18,162 +18,115 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ReportButton } from "@/components/ReportButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useBlock } from "@/hooks/useBlock";
-import { useToast } from "@/hooks/use-toast";
-import { useXP } from "@/hooks/useXP";
-import {
-  getUserById, achievements as allAchievements, userTopics, userTerritories,
-  getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
-  guildMembers, getGuildById, questParticipants, podMembers, getPodById,
-} from "@/data/mock";
-import type { Achievement, User } from "@/types";
-import { UserRole } from "@/types/enums";
-import { formatDistanceToNow } from "date-fns";
-import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
+import { useProfileData, type ProfileData } from "@/hooks/useProfileData";
 import { AdminBadge } from "@/components/AdminBadge";
-import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
-import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { XP_LEVEL_THRESHOLDS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { getLabel, type PersonaType } from "@/lib/personaLabels";
+import { Loader2 } from "lucide-react";
 
+// ─── Persona badge helper ──────────────────────────────────
+const PERSONA_META: Record<string, { label: string; color: string }> = {
+  IMPACT: { label: "Impact Maker", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+  CREATIVE: { label: "Creative Soul", color: "bg-violet-500/10 text-violet-700 border-violet-500/30" },
+  HYBRID: { label: "Hybrid Explorer", color: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+};
+
+function PersonaBadge({ persona }: { persona: PersonaType }) {
+  const meta = PERSONA_META[persona];
+  if (!meta) return null;
+  return (
+    <Badge variant="outline" className={`text-xs ${meta.color}`}>
+      <Sparkles className="h-3 w-3 mr-1" />
+      {meta.label}
+    </Badge>
+  );
+}
+
+// ─── XP Progress bar ───────────────────────────────────────
+function XpProgressBar({ xp, level }: { xp: number; level: number }) {
+  const current = XP_LEVEL_THRESHOLDS.find((t) => t.level === level);
+  const next = XP_LEVEL_THRESHOLDS.find((t) => t.level === level + 1);
+  if (!current || !next) return null;
+  const progress = ((xp - current.minXp) / (next.minXp - current.minXp)) * 100;
+  return (
+    <div className="w-full max-w-[180px]">
+      <Progress value={Math.min(progress, 100)} className="h-1.5" />
+      <p className="text-[10px] text-muted-foreground mt-0.5">{next.minXp - xp} XP to Level {next.level}</p>
+    </div>
+  );
+}
+
+// ─── Social links row ──────────────────────────────────────
+function SocialRow({ profile }: { profile: ProfileData }) {
+  const links = [
+    { url: profile.websiteUrl, icon: Globe, label: "Website" },
+    { url: profile.linkedinUrl, icon: Linkedin, label: "LinkedIn" },
+    { url: profile.twitterUrl, icon: Twitter, label: "Twitter" },
+    { url: profile.instagramUrl, icon: Instagram, label: "Instagram" },
+  ].filter((l) => l.url);
+  if (links.length === 0) return null;
+  return (
+    <div className="flex items-center gap-2">
+      {links.map((l) => (
+        <a key={l.label} href={l.url!} target="_blank" rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-foreground transition-colors">
+          <l.icon className="h-4 w-4" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ─── Territory display ─────────────────────────────────────
+function TerritoryLine({ territories }: { territories: any[] }) {
+  const liveIn = territories.filter((t) => t.attachmentType === "LIVE_IN");
+  const workIn = territories.filter((t) => t.attachmentType === "WORK_IN");
+  const careFor = territories.filter((t) => t.attachmentType === "CARE_FOR");
+
+  const parts: string[] = [];
+  if (liveIn.length) parts.push(`Lives in ${liveIn.map((t) => t.territory?.name).join(", ")}`);
+  if (workIn.length) parts.push(`Works in ${workIn.map((t) => t.territory?.name).join(", ")}`);
+  if (careFor.length) parts.push(`Cares for ${careFor.slice(0, 2).map((t) => t.territory?.name).join(", ")}`);
+
+  if (parts.length === 0) return null;
+  return (
+    <p className="text-xs text-muted-foreground flex items-center gap-1">
+      <MapPin className="h-3 w-3 shrink-0" />
+      {parts.join(" · ")}
+    </p>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
-  const mockUser = getUserById(id!);
   const currentUser = useCurrentUser();
-  const { toast } = useToast();
-  const { awardXp } = useXP();
+  const isOwnProfile = !!id && currentUser.id === id;
+
+  const {
+    profile, topics, territories, guilds, pods,
+    questsCreated, questsJoined, proposals, fundedQuests, services,
+    isLoading, isError,
+  } = useProfileData(id);
+
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
   const { isBlocked, toggle: toggleBlock } = useBlock(id!);
-
-  // DB user state (for real Supabase users not in mock data)
-  const [dbUser, setDbUser] = useState<User | null>(null);
-  const [dbProfileExtra, setDbProfileExtra] = useState<{ xpLevel: number; xpRecent12m: number; creditsBalance: number } | null>(null);
-  const [loading, setLoading] = useState(!mockUser);
-
-  useEffect(() => {
-    if (mockUser || !id) {
-      setLoading(false);
-      return;
-    }
-    // Fetch full profile data
-    supabase
-      .from("profiles")
-      .select("user_id, name, avatar_url, headline, bio, role, xp, contribution_index, xp_level, xp_recent_12m, credits_balance")
-      .eq("user_id", id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) {
-          setDbUser({
-            id: data.user_id!,
-            name: data.name || "Unknown",
-            email: "",
-            avatarUrl: data.avatar_url || "",
-            headline: data.headline || undefined,
-            bio: data.bio || undefined,
-            role: (data.role as any) || UserRole.GAMECHANGER,
-            xp: data.xp || 0,
-            contributionIndex: data.contribution_index || 0,
-          });
-          setDbProfileExtra({
-            xpLevel: (data as any).xp_level ?? 1,
-            xpRecent12m: (data as any).xp_recent_12m ?? 0,
-            creditsBalance: (data as any).credits_balance ?? 0,
-          });
-        }
-        setLoading(false);
-      });
-  }, [id, mockUser]);
-
-  const user = mockUser || dbUser;
-
-  const [achievementsState, setAchievementsState] = useState<Achievement[]>(
-    () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  );
-  const [createOpen, setCreateOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newDesc, setNewDesc] = useState("");
-  const [newQuestId, setNewQuestId] = useState("none");
-
-  // Social links from DB
-  const [socialLinks, setSocialLinks] = useState<SocialLinksData>({});
-  useEffect(() => {
-    if (!id) return;
-    supabase
-      .from("profiles")
-      .select("website_url, twitter_url, linkedin_url, instagram_url")
-      .eq("user_id", id)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setSocialLinks({
-            websiteUrl: (data as any).website_url,
-            twitterUrl: (data as any).twitter_url,
-            linkedinUrl: (data as any).linkedin_url,
-            instagramUrl: (data as any).instagram_url,
-          });
-        }
-      });
-  }, [id]);
-
   const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
 
-  if (loading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!user) return <PageShell><p>User not found.</p></PageShell>;
-  if (user.isDeleted && !viewerIsAdmin) return <PageShell><p>This user account has been deleted.</p></PageShell>;
+  const [tab, setTab] = useState("overview");
 
-  const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
-  const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
-  const isOwnProfile = currentUser.id === user.id;
-  const isAdminViewer = viewerIsAdmin;
-  const canSeePrivate = isOwnProfile || isAdminViewer;
+  if (isLoading) {
+    return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
+  }
+  if (!profile || isError) {
+    return <PageShell><p className="text-center py-20 text-muted-foreground">User not found.</p></PageShell>;
+  }
 
-  // Privacy defaults: true if undefined
-  const showXp = canSeePrivate || (user.showXpPublicly !== false);
-  const showCi = canSeePrivate || (user.showContributionIndexPublicly !== false);
-  const showAchievements = canSeePrivate || (user.showAchievementsPublicly !== false);
-  const showServices = canSeePrivate || (user.showServicesPublicly !== false);
-  const showFollowBtn = canSeePrivate || (user.allowFollows !== false);
-  const showWall = canSeePrivate || (user.allowProfileComments !== false);
-
-  // Guilds
-  const userGuilds = guildMembers.filter((gm) => gm.userId === user.id).map((gm) => ({
-    ...gm,
-    guild: getGuildById(gm.guildId),
-  })).filter((gm) => gm.guild);
-
-  // Quests
-  const userQuests = questParticipants.filter((qp) => qp.userId === user.id).map((qp) => ({
-    ...qp,
-    quest: getQuestById(qp.questId),
-  })).filter((qp) => qp.quest);
-
-  // Pods
-  const userPods = podMembers.filter((pm) => pm.userId === user.id).map((pm) => ({
-    ...pm,
-    pod: getPodById(pm.podId),
-  })).filter((pm) => pm.pod);
-
-  const createAchievement = () => {
-    if (!newTitle.trim()) return;
-    const ach: Achievement = {
-      id: `a-${Date.now()}`,
-      userId: user.id,
-      questId: newQuestId === "none" ? "" : newQuestId,
-      title: newTitle.trim(),
-      description: newDesc.trim() || undefined,
-      createdAt: new Date().toISOString(),
-    };
-    setAchievementsState((prev) => [ach, ...prev]);
-    allAchievements.push(ach);
-    awardXp(user.id, "ACHIEVEMENT_RECEIVED");
-    setNewTitle("");
-    setNewDesc("");
-    setNewQuestId("none");
-    setCreateOpen(false);
-    toast({ title: "Achievement created!" });
-  };
+  const persona = profile.personaType;
+  const canSeePrivate = isOwnProfile || viewerIsAdmin;
+  const serviceLabel = getLabel("service.label_plural", persona);
 
   return (
     <PageShell>
@@ -181,243 +134,385 @@ export default function UserProfile() {
         <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
       </Button>
 
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <div className="flex items-center gap-5 mb-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={user.avatarUrl} />
-            <AvatarFallback className="text-2xl">{user.name[0]}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl font-bold">{user.name}</h1>
-              <AdminBadge userId={user.id} />
-            </div>
-            {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
-              {showXp && (
-                <>
-                  <XpLevelBadge level={dbProfileExtra?.xpLevel ?? computeLevelFromXp(user.xp)} xp={user.xp} />
-                  <span className="text-xs text-muted-foreground">12m: {dbProfileExtra?.xpRecent12m ?? 0} XP</span>
-                </>
+      {/* ═══ Identity Banner ═══ */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-border bg-card p-6 mb-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left: avatar + identity */}
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <Avatar className="h-20 w-20 shrink-0">
+              <AvatarImage src={profile.avatarUrl || undefined} />
+              <AvatarFallback className="text-2xl">{profile.name[0]}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-display text-2xl md:text-3xl font-bold truncate">{profile.name}</h1>
+                <AdminBadge userId={profile.userId} />
+              </div>
+              {profile.headline && (
+                <p className="text-muted-foreground text-sm mt-0.5">{profile.headline}</p>
               )}
-              {showCi && (
-                <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <PersonaBadge persona={persona} />
+                <XpLevelBadge level={profile.xpLevel} xp={profile.xp} />
+                <span className="text-xs text-muted-foreground">{profile.xpRecent12m} XP last 12m</span>
+                {canSeePrivate && (
+                  <span className="flex items-center gap-1 text-xs font-medium">
+                    <Coins className="h-3 w-3 text-primary" /> {profile.creditsBalance} Credits
+                  </span>
+                )}
+              </div>
+              <XpProgressBar xp={profile.xp} level={profile.xpLevel} />
+
+              {/* Houses chips */}
+              {topics.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {topics.slice(0, 6).map((t: any) => (
+                    <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
+                      <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
+                        <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                      </Badge>
+                    </Link>
+                  ))}
+                  {topics.length > 6 && (
+                    <Badge variant="outline" className="text-[10px]">+{topics.length - 6}</Badge>
+                  )}
+                </div>
               )}
-              {canSeePrivate && (
-                <span className="flex items-center gap-1 text-sm font-medium">
-                  <Coins className="h-3.5 w-3.5 text-primary" /> {dbProfileExtra?.creditsBalance ?? 0} Credits
-                </span>
-              )}
+
+              <div className="mt-2">
+                <TerritoryLine territories={territories} />
+              </div>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
+
+          {/* Right: actions + social */}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <SocialRow profile={profile} />
             {isOwnProfile ? (
-              <Button size="sm" variant="outline" asChild>
-                <Link to="/me/settings?tab=profile"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/me"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Open wizard</Link>
+                </Button>
+                <Button size="sm" variant="ghost" asChild>
+                  <Link to="/me"><Settings className="h-4 w-4" /></Link>
+                </Button>
+              </div>
             ) : (
-              <>
-                {showFollowBtn && (
-                  <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
-                    {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
-                  </Button>
-                )}
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                  {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+                </Button>
                 <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
                   <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
                 </Button>
-                <ReportButton targetType={ReportTargetType.USER} targetId={user.id} />
-              </>
+                <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />
+              </div>
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {topics.map((t) => (
-            <Link key={t.id} to={`/topics/${t.slug}`}>
-              <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
-            </Link>
-          ))}
-          {territories.map((t) => (
-            <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>
-          ))}
-        </div>
-        <SocialLinksDisplay data={socialLinks} />
       </motion.div>
 
-      {/* About */}
-      {user.bio && (
-        <section className="mb-8">
-          <h2 className="font-display text-lg font-semibold mb-2">About</h2>
-          <p className="text-sm text-foreground/80 leading-relaxed">{user.bio}</p>
-        </section>
-      )}
+      {/* ═══ Tab Navigation ═══ */}
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="mb-6 flex-wrap">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="quests">Quests</TabsTrigger>
+          <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
+          <TabsTrigger value="guilds-pods">Guilds & Pods</TabsTrigger>
+          <TabsTrigger value="wall">Wall</TabsTrigger>
+        </TabsList>
 
-      {/* Achievements */}
-      {showAchievements && (
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Star className="h-5 w-5 text-warning" /> Achievements ({achievementsState.length})
-          </h2>
-          {isOwnProfile && (
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" /> New Achievement</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Create Achievement</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Title</label>
-                    <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="e.g. Community Champion" maxLength={100} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Description</label>
-                    <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What did you accomplish?" maxLength={300} className="resize-none" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Linked Quest (optional)</label>
-                    <Select value={newQuestId} onValueChange={setNewQuestId}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No quest</SelectItem>
-                        {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={createAchievement} disabled={!newTitle.trim()} className="w-full">Create</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-        {achievementsState.length === 0 && <p className="text-sm text-muted-foreground">No achievements yet.</p>}
-        <div className="grid gap-3 md:grid-cols-2">
-          {achievementsState.map((a) => {
-            const quest = a.questId ? getQuestById(a.questId) : null;
-            return (
-              <Link key={a.id} to={`/achievements/${a.id}`} className="rounded-lg border border-border bg-card p-4 hover:border-warning/30 hover:shadow-sm transition-all block">
-                <div className="flex items-start gap-3">
-                  <Star className="h-5 w-5 text-warning mt-0.5 shrink-0" />
-                  <div>
-                    <h4 className="font-display font-semibold">{a.title}</h4>
-                    {a.description && <p className="text-sm text-muted-foreground mt-0.5">{a.description}</p>}
-                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                      {quest && <Badge variant="secondary" className="text-[10px]">{quest.title}</Badge>}
-                      <span>{formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-      )}
+        {/* ─── Overview ─── */}
+        <TabsContent value="overview">
+          <div className="space-y-8">
+            {/* Bio */}
+            {profile.bio && (
+              <section>
+                <h2 className="font-display text-lg font-semibold mb-2">About</h2>
+                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+                  {profile.bio.length > 500 ? profile.bio.slice(0, 500) + "…" : profile.bio}
+                </p>
+              </section>
+            )}
 
-      {/* Guilds */}
-      {userGuilds.length > 0 && (
-        <section className="mb-8">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" /> Guilds ({userGuilds.length})
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {userGuilds.map((gm) => (
-              <Link key={gm.id} to={`/guilds/${gm.guildId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={gm.guild!.logoUrl} />
-                    <AvatarFallback>{gm.guild!.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h4 className="font-display font-semibold">{gm.guild!.name}</h4>
-                    <Badge variant="outline" className="text-[10px] mt-1 capitalize">{gm.role.toLowerCase()}</Badge>
-                  </div>
+            {/* Stat badges */}
+            <div className="flex flex-wrap gap-3">
+              <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
+              <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
+              <StatCard icon={Shield} label="Guilds" count={guilds.length} />
+              <StatCard icon={CircleDot} label="Pods" count={pods.length} />
+              <StatCard icon={Briefcase} label={serviceLabel} count={services.length} />
+            </div>
+
+            {/* Featured items */}
+            {(questsCreated.length > 0 || services.length > 0 || guilds.length > 0) && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Highlights</h3>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {questsCreated.slice(0, 1).map((q: any) => (
+                    <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
+                      <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                      <Badge variant="outline" className="text-[10px] capitalize mt-1">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                    </Link>
+                  ))}
+                  {services.slice(0, 1).map((s: any) => (
+                    <Link key={s.id} to={`/services/${s.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("service.label", persona)}</p>
+                      <h4 className="font-display font-semibold truncate">{s.title}</h4>
+                      {s.price_amount != null && (
+                        <Badge variant="secondary" className="text-[10px] mt-1">{s.price_amount === 0 ? "Free" : `€${s.price_amount}`}</Badge>
+                      )}
+                    </Link>
+                  ))}
+                  {guilds.slice(0, 1).map((g: any) => (
+                    <Link key={g.guildId} to={`/guilds/${g.guildId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("guild.label_singular", persona)}</p>
+                      <h4 className="font-display font-semibold truncate">{g.guild?.name}</h4>
+                      <Badge variant="outline" className="text-[10px] capitalize mt-1">{g.role?.toLowerCase()}</Badge>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            ))}
+              </section>
+            )}
+
+            {/* Own profile: continue where left off */}
+            {isOwnProfile && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Continue where you left off</h3>
+                <div className="space-y-2">
+                  {questsCreated.filter((q: any) => q.is_draft).slice(0, 3).map((q: any) => (
+                    <Link key={q.id} to={`/quests/${q.id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                      <Badge variant="outline" className="text-[10px]">Draft</Badge>
+                      <span className="text-sm font-medium truncate">{q.title}</span>
+                    </Link>
+                  ))}
+                  {proposals.filter((p: any) => p.status === "PENDING").slice(0, 3).map((p: any) => (
+                    <Link key={p.id} to={`/quests/${p.quest_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                      <Badge variant="secondary" className="text-[10px]">Pending proposal</Badge>
+                      <span className="text-sm truncate">{p.title} → {p.quests?.title}</span>
+                    </Link>
+                  ))}
+                  {questsCreated.filter((q: any) => q.is_draft).length === 0 && proposals.filter((p: any) => p.status === "PENDING").length === 0 && (
+                    <p className="text-sm text-muted-foreground">All caught up! 🎉</p>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Persona empty states */}
+            {topics.length === 0 && isOwnProfile && (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-2">Add Houses to help others understand your fields of action.</p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/me"><Hash className="h-4 w-4 mr-1" /> Add Houses</Link>
+                </Button>
+              </div>
+            )}
+            {territories.length === 0 && isOwnProfile && (
+              <div className="rounded-xl border border-dashed border-border p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-2">Add Territories you care about to receive local quests & events.</p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/me"><MapPin className="h-4 w-4 mr-1" /> Add Territories</Link>
+                </Button>
+              </div>
+            )}
+            {persona === "UNSET" && isOwnProfile && (
+              <div className="rounded-xl border border-dashed border-primary/30 p-4 text-center bg-primary/5">
+                <p className="text-sm text-foreground mb-2">Tell us why you're here to personalize your space.</p>
+                <Button size="sm" asChild>
+                  <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Take the quiz</Link>
+                </Button>
+              </div>
+            )}
           </div>
-        </section>
-      )}
+        </TabsContent>
 
-      {/* Quests */}
-      {userQuests.length > 0 && (
-        <section className="mb-8">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <Compass className="h-5 w-5 text-primary" /> Quests ({userQuests.length})
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {userQuests.map((qp) => (
-              <Link key={qp.id} to={`/quests/${qp.questId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
-                <h4 className="font-display font-semibold">{qp.quest!.title}</h4>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="secondary" className="text-[10px] capitalize">{qp.role.toLowerCase()}</Badge>
-                  <Badge variant="outline" className="text-[10px] capitalize">{qp.status.toLowerCase()}</Badge>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Pods */}
-      {userPods.length > 0 && (
-        <section className="mb-8">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <CircleDot className="h-5 w-5 text-primary" /> Pods ({userPods.length})
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {userPods.map((pm) => (
-              <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
-                <h4 className="font-display font-semibold">{pm.pod!.name}</h4>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="secondary" className="text-[10px] capitalize">{pm.role.toLowerCase()}</Badge>
-                  <Badge variant="outline" className="text-[10px] capitalize">{pm.pod!.type.toLowerCase().replace("_", " ")}</Badge>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Services */}
-      {showServices && (() => {
-        const userServices = getServicesForUser(user.id);
-        if (userServices.length === 0) return null;
-        return (
-          <section className="mb-8">
-            <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-primary" /> Services ({userServices.length})
-            </h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {userServices.map((svc) => (
-                <Link key={svc.id} to={`/services/${svc.id}`} className="rounded-lg border border-border bg-card p-4 hover:border-primary/30 hover:shadow-sm transition-all block">
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-display font-semibold">{svc.title}</h4>
-                    {svc.priceAmount != null && (
-                      <Badge className="bg-primary/10 text-primary border-0 text-xs">
-                        {svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}
-                      </Badge>
+        {/* ─── Quests ─── */}
+        <TabsContent value="quests">
+          <div className="space-y-8">
+            {/* Created */}
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-semibold">Quests created ({questsCreated.length})</h3>
+                {isOwnProfile && (
+                  <Button size="sm" asChild>
+                    <Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create quest</Link>
+                  </Button>
+                )}
+              </div>
+              <EntityGrid items={questsCreated} emptyMsg="No quests created yet." renderItem={(q: any) => (
+                <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                  <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    <Badge variant="outline" className="text-[10px] capitalize">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                    {q.credit_budget > 0 && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Coins className="h-3 w-3" /> {q.escrow_credits}/{q.credit_budget}
+                      </span>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>
                 </Link>
-              ))}
-            </div>
-          </section>
-        );
-      })()}
+              )} />
+            </section>
 
-      {/* Wall */}
-      {showWall && (
-        <section>
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" /> Wall
-          </h2>
-          <CommentThread targetType={CommentTargetType.USER} targetId={user.id} />
-        </section>
-      )}
+            {/* Joined */}
+            <section>
+              <h3 className="font-display font-semibold mb-3">Quests joined ({questsJoined.length})</h3>
+              <EntityGrid items={questsJoined} emptyMsg="Not participating in any quests." renderItem={(qp: any) => (
+                <Link key={qp.id} to={`/quests/${qp.quest?.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                  <h4 className="font-display font-semibold truncate">{qp.quest?.title}</h4>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="secondary" className="text-[10px] capitalize">{qp.role?.toLowerCase()}</Badge>
+                    <Badge variant="outline" className="text-[10px] capitalize">{qp.status?.toLowerCase()}</Badge>
+                  </div>
+                </Link>
+              )} />
+            </section>
+
+            {/* Proposals */}
+            {(isOwnProfile || proposals.length > 0) && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Proposals ({proposals.length})</h3>
+                <EntityGrid items={proposals} emptyMsg="No proposals submitted." renderItem={(p: any) => (
+                  <Link key={p.id} to={`/quests/${p.quest_id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                    <h4 className="font-display font-semibold truncate">{p.title}</h4>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">→ {p.quests?.title}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant={p.status === "ACCEPTED" ? "default" : p.status === "REJECTED" ? "destructive" : "outline"} className="text-[10px] capitalize">
+                        {p.status?.toLowerCase()}
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground">{p.requested_credits} Credits · {p.upvotes_count} votes</span>
+                    </div>
+                  </Link>
+                )} />
+              </section>
+            )}
+
+            {/* Funded */}
+            {canSeePrivate && fundedQuests.length > 0 && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Quests funded ({fundedQuests.length})</h3>
+                <EntityGrid items={fundedQuests} emptyMsg="" renderItem={(f: any) => (
+                  <Link key={f.id} to={`/quests/${f.quest_id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                    <h4 className="font-display font-semibold truncate">{f.quests?.title}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="text-[10px]">{f.type}</Badge>
+                      <span className="text-[10px] text-muted-foreground">{f.amount} {f.type === "CREDITS" ? "Credits" : f.currency}</span>
+                    </div>
+                  </Link>
+                )} />
+              </section>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* ─── Services ─── */}
+        <TabsContent value="services">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-semibold">{getLabel("service.my_label", persona)} ({services.length})</h3>
+            {isOwnProfile && (
+              <Button size="sm" asChild>
+                <Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> {getLabel("service.create_button", persona)}</Link>
+              </Button>
+            )}
+          </div>
+          <EntityGrid items={services} emptyMsg={isOwnProfile ? `Create your first ${getLabel("service.label", persona).toLowerCase()} to get started.` : `No ${serviceLabel.toLowerCase()} offered yet.`} renderItem={(svc: any) => (
+            <Link key={svc.id} to={`/services/${svc.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+              <div className="flex items-start justify-between">
+                <h4 className="font-display font-semibold truncate">{svc.title}</h4>
+                {svc.price_amount != null && (
+                  <Badge className="bg-primary/10 text-primary border-0 text-xs shrink-0 ml-2">
+                    {svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}
+                  </Badge>
+                )}
+              </div>
+              {svc.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>}
+            </Link>
+          )} />
+        </TabsContent>
+
+        {/* ─── Guilds & Pods ─── */}
+        <TabsContent value="guilds-pods">
+          <div className="space-y-8">
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-semibold">{getLabel("guild.label", persona)} ({guilds.length})</h3>
+                {isOwnProfile && (
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to="/explore?tab=guilds"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
+                  </Button>
+                )}
+              </div>
+              <EntityGrid items={guilds} emptyMsg={`Not a member of any ${getLabel("guild.label", persona).toLowerCase()} yet.`} renderItem={(gm: any) => (
+                <Link key={gm.id} to={`/guilds/${gm.guildId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 rounded-lg">
+                      <AvatarImage src={gm.guild?.logo_url} />
+                      <AvatarFallback>{gm.guild?.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h4 className="font-display font-semibold truncate">{gm.guild?.name}</h4>
+                      <Badge variant="outline" className="text-[10px] capitalize mt-0.5">{gm.role?.toLowerCase()}</Badge>
+                    </div>
+                  </div>
+                </Link>
+              )} />
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-semibold">Pods ({pods.length})</h3>
+                {isOwnProfile && (
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to="/explore?tab=pods"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
+                  </Button>
+                )}
+              </div>
+              <EntityGrid items={pods} emptyMsg="Not part of any pods yet." renderItem={(pm: any) => (
+                <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                  <h4 className="font-display font-semibold truncate">{pm.pod?.name}</h4>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="secondary" className="text-[10px] capitalize">{pm.role?.toLowerCase()}</Badge>
+                    <Badge variant="outline" className="text-[10px] capitalize">{pm.pod?.type?.toLowerCase().replace("_", " ")}</Badge>
+                  </div>
+                </Link>
+              )} />
+            </section>
+          </div>
+        </TabsContent>
+
+        {/* ─── Wall ─── */}
+        <TabsContent value="wall">
+          <CommentThread targetType={CommentTargetType.USER} targetId={profile.userId} />
+        </TabsContent>
+      </Tabs>
     </PageShell>
+  );
+}
+
+// ─── Reusable helpers ──────────────────────────────────────
+function StatCard({ icon: Icon, label, count }: { icon: any; label: string; count: number }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+      <Icon className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">{count}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+function EntityGrid({ items, emptyMsg, renderItem }: { items: any[]; emptyMsg: string; renderItem: (item: any) => React.ReactNode }) {
+  if (items.length === 0 && emptyMsg) {
+    return <p className="text-sm text-muted-foreground py-4">{emptyMsg}</p>;
+  }
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {items.map((item) => renderItem(item))}
+    </div>
   );
 }
