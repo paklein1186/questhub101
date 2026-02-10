@@ -5,6 +5,8 @@ import {
   LayoutDashboard, Users as UsersIcon, Shield, Compass, Check, X,
   Star, Pencil, Save, ChevronDown, Crown, Hash, Plus, Trash2,
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
+  ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
+  EyeOff, Send, TrendingUp,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,12 +31,15 @@ import {
   getUserById, getQuestsForGuild,
   topicStewards as allTopicStewards,
   topicFeatures as allTopicFeatures,
+  services as allServices, bookings as allBookings,
+  comments as allComments, pods as allPods, getServiceById,
 } from "@/data/mock";
 import {
   UserRole, QuestStatus, MonetizationType, TopicStewardRole,
-  TerritoryLevel, TopicFeatureTargetType,
+  TerritoryLevel, TopicFeatureTargetType, BookingStatus, PaymentStatus,
 } from "@/types/enums";
-import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature } from "@/types";
+import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature, Service, Booking, Comment } from "@/types";
+import { Textarea } from "@/components/ui/textarea";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
@@ -734,6 +739,442 @@ function GovernanceTab() {
   );
 }
 
+// ─── Marketplace Tab ────────────────────────────────────────
+function MarketplaceTab() {
+  const { toast } = useToast();
+  const [servicesState, setServicesState] = useState<Service[]>([...allServices]);
+  const [bookingsState, setBookingsState] = useState<Booking[]>([...allBookings]);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const toggleServiceActive = (id: string) => {
+    setServicesState((p) => p.map((s) => s.id === id ? { ...s, isActive: !s.isActive } : s));
+    toast({ title: "Service toggled" });
+  };
+
+  const setBookingStatus = (id: string, status: BookingStatus) => {
+    setBookingsState((p) => p.map((b) => b.id === id ? { ...b, status } : b));
+    toast({ title: `Booking set to ${status.toLowerCase()}` });
+  };
+
+  const setPaymentStatus = (id: string, paymentStatus: PaymentStatus) => {
+    setBookingsState((p) => p.map((b) => b.id === id ? { ...b, paymentStatus } : b));
+    toast({ title: `Payment set to ${paymentStatus.toLowerCase()}` });
+  };
+
+  const filteredBookings = bookingsState.filter((b) => statusFilter === "all" || b.status === statusFilter);
+
+  return (
+    <div className="space-y-8">
+      {/* Services */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><ShoppingBag className="h-5 w-5" /> Services</h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Bookings</TableHead>
+                <TableHead>Active</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {servicesState.map((svc) => {
+                const provider = svc.providerUserId ? getUserById(svc.providerUserId)?.name : allGuilds.find((g) => g.id === svc.providerGuildId)?.name;
+                const bookingCount = allBookings.filter((b) => b.serviceId === svc.id).length;
+                return (
+                  <TableRow key={svc.id} className={!svc.isActive ? "opacity-50" : ""}>
+                    <TableCell className="font-medium">{svc.title}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{provider ?? "—"}</TableCell>
+                    <TableCell className="text-right">{svc.priceAmount != null ? `${svc.priceAmount} ${svc.priceCurrency}` : "Free"}</TableCell>
+                    <TableCell className="text-right">{bookingCount}</TableCell>
+                    <TableCell><Switch checked={svc.isActive} onCheckedChange={() => toggleServiceActive(svc.id)} /></TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Bookings */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display text-lg font-semibold flex items-center gap-2"><CreditCard className="h-5 w-5" /> Bookings</h3>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              {Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Requester</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-[200px]">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredBookings.map((b) => {
+                const svc = getServiceById(b.serviceId);
+                const requester = getUserById(b.requesterId);
+                const provider = b.providerUserId ? getUserById(b.providerUserId)?.name : allGuilds.find((g) => g.id === b.providerGuildId)?.name;
+                return (
+                  <TableRow key={b.id}>
+                    <TableCell className="font-medium text-sm">{svc?.title ?? "—"}</TableCell>
+                    <TableCell className="text-sm">{requester?.name ?? "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{provider ?? "—"}</TableCell>
+                    <TableCell>
+                      <Select value={b.status} onValueChange={(v) => setBookingStatus(b.id, v as BookingStatus)}>
+                        <SelectTrigger className="h-7 w-[130px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>{Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={b.paymentStatus ?? PaymentStatus.NOT_REQUIRED} onValueChange={(v) => setPaymentStatus(b.id, v as PaymentStatus)}>
+                        <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>{Object.values(PaymentStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{b.amount != null ? `${b.amount} ${b.currency}` : "—"}</TableCell>
+                    <TableCell>
+                      <Link to={`/services/${b.serviceId}`} className="text-xs text-primary hover:underline">View service</Link>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {filteredBookings.length === 0 && (
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No bookings match filter.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Moderation Tab ─────────────────────────────────────────
+function ModerationTab() {
+  const { toast } = useToast();
+  const [commentsState, setCommentsState] = useState(allComments.map((c) => ({ ...c, isDeleted: false })));
+
+  const hideComment = (id: string) => {
+    setCommentsState((p) => p.map((c) => c.id === id ? { ...c, isDeleted: !c.isDeleted } : c));
+    toast({ title: "Comment visibility toggled" });
+  };
+
+  const sorted = [...commentsState].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const topUpvoted = [...commentsState].sort((a, b) => b.upvoteCount - a.upvoteCount).slice(0, 5);
+
+  // Most active commenters
+  const authorCounts = new Map<string, number>();
+  commentsState.forEach((c) => authorCounts.set(c.authorId, (authorCounts.get(c.authorId) || 0) + 1));
+  const topCommenters = Array.from(authorCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  return (
+    <div className="space-y-8">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{commentsState.length}</p>
+          <p className="text-sm text-muted-foreground">Total comments</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{commentsState.filter((c) => c.isDeleted).length}</p>
+          <p className="text-sm text-muted-foreground">Hidden</p>
+        </div>
+        <div className="rounded-lg border border-border bg-card p-4 text-center">
+          <p className="text-2xl font-bold text-primary">{authorCounts.size}</p>
+          <p className="text-sm text-muted-foreground">Unique authors</p>
+        </div>
+      </div>
+
+      {/* Top commenters */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><TrendingUp className="h-5 w-5" /> Most Active Commenters</h3>
+        <div className="flex flex-wrap gap-2">
+          {topCommenters.map(([userId, count]) => {
+            const user = getUserById(userId);
+            return (
+              <Badge key={userId} variant="secondary" className="text-sm py-1 px-3">
+                {user?.name ?? userId} — {count} comments
+              </Badge>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Top upvoted */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Star className="h-5 w-5" /> Most Upvoted</h3>
+        <div className="space-y-2">
+          {topUpvoted.map((c) => {
+            const author = getUserById(c.authorId);
+            return (
+              <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium">{author?.name}</span>
+                  <span className="text-xs text-muted-foreground ml-2">on {c.targetType.toLowerCase()}</span>
+                  <p className="text-sm text-muted-foreground truncate">{c.content}</p>
+                </div>
+                <Badge variant="secondary" className="ml-2 shrink-0">{c.upvoteCount} ↑</Badge>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* All comments */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MessageSquare className="h-5 w-5" /> All Comments</h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Author</TableHead>
+                <TableHead>Content</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead className="text-right">Upvotes</TableHead>
+                <TableHead>Visible</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((c) => {
+                const author = getUserById(c.authorId);
+                return (
+                  <TableRow key={c.id} className={c.isDeleted ? "opacity-50" : ""}>
+                    <TableCell className="font-medium text-sm">{author?.name ?? "—"}</TableCell>
+                    <TableCell className="text-sm max-w-xs truncate">{c.content}</TableCell>
+                    <TableCell><Badge variant="outline" className="capitalize text-xs">{c.targetType.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                    <TableCell className="text-right">{c.upvoteCount}</TableCell>
+                    <TableCell>
+                      <Button size="sm" variant={c.isDeleted ? "destructive" : "ghost"} className="h-7 px-2 text-xs" onClick={() => hideComment(c.id)}>
+                        {c.isDeleted ? <><EyeOff className="h-3 w-3 mr-1" /> Hidden</> : <><Eye className="h-3 w-3 mr-1" /> Visible</>}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Emails & Digests Tab ───────────────────────────────────
+interface EmailTemplate {
+  id: string; name: string; description: string; enabled: boolean;
+  subject: string; introText: string;
+}
+
+const DEFAULT_EMAIL_TEMPLATES: EmailTemplate[] = [
+  { id: "welcome", name: "Welcome Email", description: "Sent when a new user signs up.", enabled: true, subject: "Welcome to the platform!", introText: "We're excited to have you join our community." },
+  { id: "booking-provider", name: "Booking Confirmation (Provider)", description: "Sent to the provider when a booking is confirmed.", enabled: true, subject: "New booking confirmed", introText: "A new booking has been confirmed for your service." },
+  { id: "booking-client", name: "Booking Confirmation (Client)", description: "Sent to the client when a booking is confirmed.", enabled: true, subject: "Your booking is confirmed", introText: "Your booking has been confirmed." },
+  { id: "weekly-digest", name: "Weekly Digest", description: "Weekly summary of quests and updates in user's Houses.", enabled: true, subject: "Your weekly digest", introText: "Here's what happened this week in your Houses & Territories." },
+  { id: "plan-upgrade", name: "Plan Upgrade", description: "Sent when a user upgrades their subscription plan.", enabled: true, subject: "Your plan has been upgraded!", introText: "Congratulations on upgrading your plan." },
+  { id: "payment-failure", name: "Payment Failure", description: "Sent when a subscription payment fails.", enabled: true, subject: "Payment issue with your subscription", introText: "We were unable to process your payment." },
+];
+
+function EmailsDigestsTab() {
+  const { toast } = useToast();
+  const [templates, setTemplates] = useState<EmailTemplate[]>(DEFAULT_EMAIL_TEMPLATES);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSubject, setEditSubject] = useState("");
+  const [editIntro, setEditIntro] = useState("");
+  const [testEmail, setTestEmail] = useState("");
+
+  const toggleEnabled = (id: string) => {
+    setTemplates((p) => p.map((t) => t.id === id ? { ...t, enabled: !t.enabled } : t));
+    toast({ title: "Email template toggled" });
+  };
+
+  const startEdit = (t: EmailTemplate) => {
+    setEditingId(t.id); setEditSubject(t.subject); setEditIntro(t.introText);
+  };
+
+  const saveEdit = () => {
+    if (!editingId) return;
+    setTemplates((p) => p.map((t) => t.id === editingId ? { ...t, subject: editSubject, introText: editIntro } : t));
+    setEditingId(null);
+    toast({ title: "Template updated" });
+  };
+
+  const sendTest = (templateId: string) => {
+    if (!testEmail.trim()) { toast({ title: "Enter a test email address", variant: "destructive" }); return; }
+    toast({ title: `Test email sent to ${testEmail}` });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-2">
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2"><Mail className="h-5 w-5" /> Email Templates</h3>
+        <div className="flex-1" />
+        <Input placeholder="Test email address…" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="max-w-xs h-9" />
+      </div>
+
+      <div className="space-y-3">
+        {templates.map((tpl) => (
+          <div key={tpl.id} className={`rounded-xl border border-border bg-card p-5 ${!tpl.enabled ? "opacity-60" : ""}`}>
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <div className="flex-1">
+                <h4 className="font-display font-semibold">{tpl.name}</h4>
+                <p className="text-sm text-muted-foreground">{tpl.description}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Switch checked={tpl.enabled} onCheckedChange={() => toggleEnabled(tpl.id)} />
+                <Button size="sm" variant="outline" onClick={() => sendTest(tpl.id)} disabled={!tpl.enabled}>
+                  <Send className="h-3.5 w-3.5 mr-1" /> Test
+                </Button>
+              </div>
+            </div>
+
+            {editingId === tpl.id ? (
+              <div className="space-y-3 mt-3 border-t border-border pt-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Subject</label>
+                  <Input value={editSubject} onChange={(e) => setEditSubject(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Intro Text</label>
+                  <Textarea value={editIntro} onChange={(e) => setEditIntro(e.target.value)} className="resize-none min-h-[80px]" />
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveEdit}><Save className="h-4 w-4 mr-1" /> Save</Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2 space-y-1">
+                <p className="text-sm"><span className="text-muted-foreground">Subject:</span> {tpl.subject}</p>
+                <p className="text-sm"><span className="text-muted-foreground">Intro:</span> {tpl.introText}</p>
+                <Button size="sm" variant="ghost" className="mt-1" onClick={() => startEdit(tpl)}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" /> Edit template
+                </Button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Analytics Tab ──────────────────────────────────────────
+function AnalyticsTab() {
+  const totalUsers = allUsers.length;
+  const totalQuests = allQuests.length;
+  const totalPods = allPods.length;
+  const totalBookings = allBookings.length;
+  const totalServices = allServices.length;
+  const totalXpAwarded = allUsers.reduce((sum, u) => sum + u.xp, 0);
+  const totalRevenue = allBookings.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+
+  // Per-topic breakdown
+  const topicStats = allTopics.map((topic) => {
+    const qCount = questTopics.filter((qt) => qt.topicId === topic.id).length;
+    const bCount = allBookings.filter((b) => {
+      const svc = getServiceById(b.serviceId);
+      return svc ? allServices.some((s) => s.id === svc.id) : false;
+    });
+    return { topic, quests: qCount };
+  }).filter((t) => t.quests > 0).sort((a, b) => b.quests - a.quests).slice(0, 10);
+
+  // Per-territory breakdown
+  const territoryStats = allTerritories.map((territory) => {
+    const qCount = questTerritories.filter((qt) => qt.territoryId === territory.id).length;
+    return { territory, quests: qCount };
+  }).filter((t) => t.quests > 0).sort((a, b) => b.quests - a.quests);
+
+  return (
+    <div className="space-y-8">
+      {/* High-level metrics */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Platform Overview</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Users", value: totalUsers, icon: UsersIcon },
+            { label: "Quests", value: totalQuests, icon: Compass },
+            { label: "Pods", value: totalPods, icon: Hash },
+            { label: "Services", value: totalServices, icon: ShoppingBag },
+            { label: "Bookings", value: totalBookings, icon: CreditCard },
+            { label: "Total XP Awarded", value: totalXpAwarded.toLocaleString(), icon: Zap },
+            { label: "Marketplace Revenue", value: `€${totalRevenue}`, icon: TrendingUp },
+            { label: "Guilds", value: allGuilds.length, icon: Shield },
+          ].map((stat, i) => (
+            <div key={i} className="rounded-lg border border-border bg-card p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{stat.label}</span>
+              </div>
+              <p className="text-2xl font-bold text-primary">{stat.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* By Topic */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Hash className="h-5 w-5" /> Quests by Topic</h3>
+        <div className="space-y-2 max-w-lg">
+          {topicStats.map(({ topic, quests }) => (
+            <div key={topic.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+              <span className="text-sm font-medium">{topic.name}</span>
+              <div className="flex items-center gap-2">
+                <div className="h-2 rounded-full bg-primary/20 w-24 overflow-hidden">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (quests / Math.max(...topicStats.map((t) => t.quests))) * 100)}%` }} />
+                </div>
+                <span className="text-sm font-semibold w-8 text-right">{quests}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* By Territory */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Quests by Territory</h3>
+        <div className="space-y-2 max-w-lg">
+          {territoryStats.map(({ territory, quests }) => (
+            <div key={territory.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+              <div>
+                <span className="text-sm font-medium">{territory.name}</span>
+                <Badge variant="outline" className="ml-2 capitalize text-xs">{territory.level.toLowerCase()}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 rounded-full bg-primary/20 w-24 overflow-hidden">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (quests / Math.max(...territoryStats.map((t) => t.quests))) * 100)}%` }} />
+                </div>
+                <span className="text-sm font-semibold w-8 text-right">{quests}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ─────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
@@ -755,8 +1196,12 @@ export default function AdminDashboard() {
             <TabsTrigger value="guilds"><Shield className="h-4 w-4 mr-1" /> Guilds</TabsTrigger>
             <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests</TabsTrigger>
             <TabsTrigger value="plans"><CreditCard className="h-4 w-4 mr-1" /> Plans & XP</TabsTrigger>
-            <TabsTrigger value="houses"><Hash className="h-4 w-4 mr-1" /> Houses & Territories</TabsTrigger>
+            <TabsTrigger value="houses"><Hash className="h-4 w-4 mr-1" /> Houses</TabsTrigger>
             <TabsTrigger value="governance"><Star className="h-4 w-4 mr-1" /> Governance</TabsTrigger>
+            <TabsTrigger value="marketplace"><ShoppingBag className="h-4 w-4 mr-1" /> Marketplace</TabsTrigger>
+            <TabsTrigger value="moderation"><AlertTriangle className="h-4 w-4 mr-1" /> Moderation</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="h-4 w-4 mr-1" /> Emails</TabsTrigger>
+            <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6"><UsersRolesTab /></TabsContent>
@@ -765,6 +1210,10 @@ export default function AdminDashboard() {
           <TabsContent value="plans" className="mt-6"><PlansXpTab /></TabsContent>
           <TabsContent value="houses" className="mt-6"><HousesTerritoriesTab /></TabsContent>
           <TabsContent value="governance" className="mt-6"><GovernanceTab /></TabsContent>
+          <TabsContent value="marketplace" className="mt-6"><MarketplaceTab /></TabsContent>
+          <TabsContent value="moderation" className="mt-6"><ModerationTab /></TabsContent>
+          <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
+          <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
         </Tabs>
       </motion.div>
     </PageShell>
