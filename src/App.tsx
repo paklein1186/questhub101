@@ -136,6 +136,7 @@ const App = () => (
                 <Route path="/me/availability" element={<RequireAuth><MyAvailability /></RequireAuth>} />
                 <Route path="/me/services" element={<RequireAuth><ServicesMarketplace /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
+                <Route path="/me/credits" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
