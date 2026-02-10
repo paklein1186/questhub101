@@ -258,7 +258,7 @@ export interface Follow {
 
 // ─── Pods ────────────────────────────────────────────────────
 
-export interface Pod {
+export interface Pod extends SoftDeletable {
   id: string;
   name: string;
   description: string;
