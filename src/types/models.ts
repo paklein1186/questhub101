@@ -161,7 +161,7 @@ export interface QuestTopic {
   topic?: Topic;
 }
 
-export interface Territory {
+export interface Territory extends SoftDeletable {
   id: string;
   name: string;
   level: TerritoryLevel;
