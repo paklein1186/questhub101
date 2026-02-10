@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -21,6 +21,7 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useNotifications as useNotificationsHook, requestPushPermission as requestPushPermissionFn, getPushPermissionState } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
@@ -90,17 +91,7 @@ export default function SettingsPage() {
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
   const [usePrefs, setUsePrefs] = useState(true);
 
-  // ── Notifications state ──
-  const [notifQuests, setNotifQuests] = useState(true);
-  const [notifGuilds, setNotifGuilds] = useState(true);
-  const [notifPods, setNotifPods] = useState(true);
-  const [notifBookingProvider, setNotifBookingProvider] = useState(true);
-  const [notifBookingClient, setNotifBookingClient] = useState(true);
-  const [notifComments, setNotifComments] = useState(true);
-  const [notifUpvotes, setNotifUpvotes] = useState(true);
-  const [emailBookings, setEmailBookings] = useState(true);
-  const [emailDigest, setEmailDigest] = useState<"INSTANT" | "DAILY" | "WEEKLY" | "NEVER">("WEEKLY");
-  const [emailSystem, setEmailSystem] = useState(true);
+  // ── Notifications state (moved to NotificationsSettingsTab) ──
 
   // ── Privacy state (synced with user model) ──
   const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
@@ -423,43 +414,7 @@ export default function SettingsPage() {
 
               {/* ── Notifications & Emails ── */}
               {activeTab === "notifications" && (
-                <div className="space-y-6">
-                  <Section title="In-App Notifications" icon={<Bell className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      <NotifToggle label="Quests I follow" checked={notifQuests} onChange={setNotifQuests} />
-                      <NotifToggle label="Guilds I'm in" checked={notifGuilds} onChange={setNotifGuilds} />
-                      <NotifToggle label="Pods I'm in" checked={notifPods} onChange={setNotifPods} />
-                      <NotifToggle label="Bookings (as provider)" checked={notifBookingProvider} onChange={setNotifBookingProvider} />
-                      <NotifToggle label="Bookings (as client)" checked={notifBookingClient} onChange={setNotifBookingClient} />
-                      <NotifToggle label="Comments on my content" checked={notifComments} onChange={setNotifComments} />
-                      <NotifToggle label="Upvotes on my comments" checked={notifUpvotes} onChange={setNotifUpvotes} />
-                    </div>
-                  </Section>
-
-                  <Section title="Email Notifications" icon={<Bell className="h-5 w-5" />}>
-                    <div className="space-y-3">
-                      <NotifToggle label="Booking confirmations" checked={emailBookings} onChange={setEmailBookings} />
-                      <NotifToggle label="System updates (platform news)" checked={emailSystem} onChange={setEmailSystem} />
-                      <div className="flex items-center justify-between py-2">
-                        <div>
-                          <p className="text-sm font-medium">Weekly digest</p>
-                          <p className="text-xs text-muted-foreground">What happened in your Houses & Territories</p>
-                        </div>
-                        <Select value={emailDigest} onValueChange={(v) => setEmailDigest(v as any)}>
-                          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INSTANT">Instant</SelectItem>
-                            <SelectItem value="DAILY">Daily</SelectItem>
-                            <SelectItem value="WEEKLY">Weekly</SelectItem>
-                            <SelectItem value="NEVER">Never</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </Section>
-
-                  <Button onClick={() => toast({ title: "Notification preferences saved!" })}><Save className="h-4 w-4 mr-1" /> Save preferences</Button>
-                </div>
+                <NotificationsSettingsTab toast={toast} />
               )}
 
               {/* ── Services & Availability ── */}
@@ -640,6 +595,81 @@ function NotifToggle({ label, checked, onChange }: { label: string; checked: boo
     <div className="flex items-center justify-between py-1.5">
       <span className="text-sm">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
+  // Import notification preferences from the hook
+  const { preferences, updatePreferences } = useNotificationsHook();
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(getPushPermissionState());
+
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestPushPermissionFn();
+      if (!granted) {
+        toast({ title: "Push notifications blocked", description: "Please enable notifications in your browser settings.", variant: "destructive" });
+        return;
+      }
+      setPushPermission("granted");
+    }
+    updatePreferences({ pushEnabled: enabled });
+    toast({ title: enabled ? "Push notifications enabled" : "Push notifications disabled" });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Section title="In-App Notifications" icon={<Bell className="h-5 w-5" />}>
+        <div className="space-y-3">
+          <NotifToggle label="Quest updates I follow" checked={preferences.notifyOnQuestUpdates} onChange={(v) => updatePreferences({ notifyOnQuestUpdates: v })} />
+          <NotifToggle label="Guild activity" checked={preferences.notifyOnGuildActivity} onChange={(v) => updatePreferences({ notifyOnGuildActivity: v })} />
+          <NotifToggle label="Pod messages" checked={preferences.notifyOnPodMessages} onChange={(v) => updatePreferences({ notifyOnPodMessages: v })} />
+          <NotifToggle label="Booking notifications" checked={preferences.notifyOnBookings} onChange={(v) => updatePreferences({ notifyOnBookings: v })} />
+          <NotifToggle label="Comments & upvotes" checked={preferences.notifyOnComments} onChange={(v) => updatePreferences({ notifyOnComments: v })} />
+          <NotifToggle label="Follower activity" checked={preferences.notifyOnFollowerActivity} onChange={(v) => updatePreferences({ notifyOnFollowerActivity: v })} />
+          <NotifToggle label="XP & achievements" checked={preferences.notifyOnXpAndAchievements} onChange={(v) => updatePreferences({ notifyOnXpAndAchievements: v })} />
+        </div>
+      </Section>
+
+      <Section title="Push Notifications" icon={<Bell className="h-5 w-5" />}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-1.5">
+            <div>
+              <p className="text-sm font-medium">Browser push notifications</p>
+              <p className="text-xs text-muted-foreground">
+                {pushPermission === "unsupported" ? "Not supported in this browser" :
+                 pushPermission === "denied" ? "Blocked by browser — enable in browser settings" :
+                 "Receive desktop notifications for new activity"}
+              </p>
+            </div>
+            <Switch
+              checked={preferences.pushEnabled}
+              onCheckedChange={handlePushToggle}
+              disabled={pushPermission === "unsupported" || pushPermission === "denied"}
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Notification Frequency" icon={<Bell className="h-5 w-5" />}>
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <p className="text-sm font-medium">Delivery frequency</p>
+            <p className="text-xs text-muted-foreground">How often you receive notifications and digest emails</p>
+          </div>
+          <Select value={preferences.notificationFrequency} onValueChange={(v) => updatePreferences({ notificationFrequency: v as any })}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="INSTANT">Instant</SelectItem>
+              <SelectItem value="DAILY">Daily digest</SelectItem>
+              <SelectItem value="WEEKLY">Weekly digest</SelectItem>
+              <SelectItem value="NEVER">Never</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Section>
+
+      <Button onClick={() => toast({ title: "Notification preferences saved!" })}><Save className="h-4 w-4 mr-1" /> Save preferences</Button>
     </div>
   );
 }

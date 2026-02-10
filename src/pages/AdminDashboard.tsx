@@ -7,7 +7,7 @@ import {
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
   ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
   EyeOff, Send, TrendingUp, Flag, ExternalLink,
-  ScrollText,
+  ScrollText, Bell,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1490,6 +1490,110 @@ function AuditLogsTab() {
   );
 }
 
+// ─── Notifications Monitoring Tab ───────────────────────────
+function NotificationsMonitoringTab() {
+  const { toast } = useToast();
+  const [testUserId, setTestUserId] = useState("");
+  const volumeByType = [
+    { type: "COMMENT", count: 142, failed: 2 },
+    { type: "UPVOTE", count: 89, failed: 0 },
+    { type: "QUEST_UPDATE", count: 67, failed: 1 },
+    { type: "BOOKING_REQUESTED", count: 45, failed: 0 },
+    { type: "BOOKING_CONFIRMED", count: 38, failed: 0 },
+    { type: "GUILD_MEMBER_ADDED", count: 23, failed: 0 },
+    { type: "POD_MESSAGE", count: 156, failed: 3 },
+    { type: "FOLLOWER_NEW", count: 34, failed: 0 },
+    { type: "XP_GAINED", count: 201, failed: 0 },
+    { type: "ACHIEVEMENT_UNLOCKED", count: 12, failed: 0 },
+    { type: "SYSTEM_ANNOUNCEMENT", count: 3, failed: 0 },
+  ];
+  const totalNotifications = volumeByType.reduce((s, v) => s + v.count, 0);
+  const totalFailed = volumeByType.reduce((s, v) => s + v.failed, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Total sent (7d)</p>
+          <p className="text-2xl font-bold">{totalNotifications}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Failed deliveries</p>
+          <p className="text-2xl font-bold text-destructive">{totalFailed}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Push subscriptions</p>
+          <p className="text-2xl font-bold">24</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-xs text-muted-foreground">Digest emails (last run)</p>
+          <p className="text-2xl font-bold">18</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+          <BarChart3 className="h-5 w-5" /> Volume by Type (7 days)
+        </h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Count</TableHead>
+                <TableHead className="text-right">Failed</TableHead>
+                <TableHead className="text-right">Success %</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {volumeByType.map((v) => (
+                <TableRow key={v.type}>
+                  <TableCell><Badge variant="secondary" className="text-xs capitalize">{v.type.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
+                  <TableCell className="text-right">{v.count}</TableCell>
+                  <TableCell className="text-right">{v.failed > 0 ? <span className="text-destructive font-medium">{v.failed}</span> : <span className="text-muted-foreground">0</span>}</TableCell>
+                  <TableCell className="text-right">{v.count > 0 ? `${Math.round(((v.count - v.failed) / v.count) * 100)}%` : "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+          <Settings className="h-5 w-5" /> Admin Tools
+        </h3>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h4 className="text-sm font-semibold mb-2">Test Push Notification</h4>
+            <div className="flex gap-2">
+              <Select value={testUserId} onValueChange={setTestUserId}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select user" /></SelectTrigger>
+                <SelectContent>
+                  {allUsers.map((u) => (<SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>))}
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" disabled={!testUserId} onClick={() => {
+                toast({ title: "Test push sent", description: `Push notification sent to ${getUserById(testUserId)?.name}` });
+                logAdminAction("u1", "TEST_PUSH_SENT", "User", testUserId, `Test push to ${getUserById(testUserId)?.name}`);
+              }}>
+                <Send className="h-4 w-4 mr-1" /> Send test push
+              </Button>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <h4 className="text-sm font-semibold mb-2">Trigger Digest Manually</h4>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => toast({ title: "Daily digest triggered" })}><Mail className="h-4 w-4 mr-1" /> Run daily digest</Button>
+              <Button size="sm" variant="outline" onClick={() => toast({ title: "Weekly digest triggered" })}><Mail className="h-4 w-4 mr-1" /> Run weekly digest</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ─────────────────────────────────────────
 export default function AdminDashboard() {
   const currentUser = useCurrentUser();
@@ -1515,6 +1619,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="governance"><Star className="h-4 w-4 mr-1" /> Governance</TabsTrigger>
             <TabsTrigger value="marketplace"><ShoppingBag className="h-4 w-4 mr-1" /> Marketplace</TabsTrigger>
             <TabsTrigger value="moderation"><AlertTriangle className="h-4 w-4 mr-1" /> Moderation</TabsTrigger>
+            <TabsTrigger value="notifications"><Bell className="h-4 w-4 mr-1" /> Notifications</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="h-4 w-4 mr-1" /> Emails</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="h-4 w-4 mr-1" /> Audit Logs</TabsTrigger>
@@ -1528,6 +1633,7 @@ export default function AdminDashboard() {
           <TabsContent value="governance" className="mt-6"><GovernanceTab /></TabsContent>
           <TabsContent value="marketplace" className="mt-6"><MarketplaceTab /></TabsContent>
           <TabsContent value="moderation" className="mt-6"><ModerationTab /></TabsContent>
+          <TabsContent value="notifications" className="mt-6"><NotificationsMonitoringTab /></TabsContent>
           <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
           <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
           <TabsContent value="audit" className="mt-6"><AuditLogsTab /></TabsContent>
