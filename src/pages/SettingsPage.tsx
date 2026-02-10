@@ -512,15 +512,15 @@ export default function SettingsPage() {
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(dbTerritories.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
                       <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((prev) => prev.includes(id) ? prev : [...prev, id])} />
                     </div>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {territories.map((t) => (
+                      {dbTerritories.map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level.toLowerCase()})</span></span>
+                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({(t.level || "").toLowerCase()})</span></span>
                         </label>
                       ))}
                     </div>
