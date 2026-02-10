@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.fundraising-ai]
 verify_jwt = false
+
+[functions.ai-storyteller]
+verify_jwt = false
