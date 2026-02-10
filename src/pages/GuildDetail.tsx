@@ -34,6 +34,9 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
+import { GuildKanbanBoard } from "@/components/guild/GuildKanbanBoard";
+import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
+import { GuildEvents } from "@/components/guild/GuildEvents";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
