@@ -54,61 +54,82 @@ function useTopicStats(topicIds: string[]) {
   });
 }
 
-// ─── Generic filtered entity hook ───────────────────────────
-
-function useFilteredByTopics<T>(
-  key: string,
+// Helper: fetch entity IDs from a junction table, apply AND/OR
+async function getEntityIdsFromJunction(
   junctionTable: string,
-  entityTable: string,
-  entitySelect: string,
+  fkCol: string,
   topicIds: string[],
   matchAll: boolean,
-  extraFilter?: (q: any) => any,
-) {
+): Promise<string[]> {
+  const { data } = await supabase.from(junctionTable as any).select("*").in("topic_id", topicIds);
+  if (!data || data.length === 0) return [];
+
+  const entityTopics = new Map<string, Set<string>>();
+  data.forEach((j: any) => {
+    const eid = j[fkCol];
+    if (!entityTopics.has(eid)) entityTopics.set(eid, new Set());
+    entityTopics.get(eid)!.add(j.topic_id);
+  });
+
+  if (matchAll && topicIds.length > 1) {
+    return [...entityTopics.entries()]
+      .filter(([, topics]) => topicIds.every(t => topics.has(t)))
+      .map(([id]) => id);
+  }
+  return [...entityTopics.keys()];
+}
+
+function useFilteredQuests(topicIds: string[], matchAll: boolean) {
   return useQuery({
-    queryKey: [key, topicIds, matchAll],
+    queryKey: ["houses-quests", topicIds, matchAll],
     enabled: topicIds.length > 0,
     queryFn: async () => {
-      // Get entity IDs from junction
-      const { data: junctions } = await supabase
-        .from(junctionTable as any)
-        .select("*")
-        .in("topic_id", topicIds);
+      const ids = await getEntityIdsFromJunction("quest_topics", "quest_id", topicIds, matchAll);
+      if (ids.length === 0) return [];
+      const { data } = await supabase.from("quests").select("id, title, description, reward_xp, status, cover_image_url").in("id", ids).eq("is_deleted", false).eq("is_draft", false).limit(PAGE_SIZE);
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+}
 
-      if (!junctions || junctions.length === 0) return [] as T[];
+function useFilteredGuilds(topicIds: string[], matchAll: boolean) {
+  return useQuery({
+    queryKey: ["houses-guilds", topicIds, matchAll],
+    enabled: topicIds.length > 0,
+    queryFn: async () => {
+      const ids = await getEntityIdsFromJunction("guild_topics", "guild_id", topicIds, matchAll);
+      if (ids.length === 0) return [];
+      const { data } = await supabase.from("guilds").select("id, name, description, logo_url, type").in("id", ids).eq("is_deleted", false).eq("is_draft", false).limit(PAGE_SIZE);
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+}
 
-      // Determine the entity FK column (quest_id, guild_id, service_id, course_id, user_id)
-      const fkCol = Object.keys(junctions[0]).find(k => k !== "id" && k !== "topic_id") as string;
+function useFilteredServices(topicIds: string[], matchAll: boolean) {
+  return useQuery({
+    queryKey: ["houses-services", topicIds, matchAll],
+    enabled: topicIds.length > 0,
+    queryFn: async () => {
+      const ids = await getEntityIdsFromJunction("service_topics", "service_id", topicIds, matchAll);
+      if (ids.length === 0) return [];
+      const { data } = await supabase.from("services").select("id, title, description, image_url, price_amount, price_currency").in("id", ids).eq("is_deleted", false).eq("is_draft", false).limit(PAGE_SIZE);
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+}
 
-      // Group by entity to support AND
-      const entityTopics = new Map<string, Set<string>>();
-      junctions.forEach((j: any) => {
-        const eid = j[fkCol];
-        if (!entityTopics.has(eid)) entityTopics.set(eid, new Set());
-        entityTopics.get(eid)!.add(j.topic_id);
-      });
-
-      let entityIds: string[];
-      if (matchAll && topicIds.length > 1) {
-        entityIds = [...entityTopics.entries()]
-          .filter(([, topics]) => topicIds.every(t => topics.has(t)))
-          .map(([id]) => id);
-      } else {
-        entityIds = [...entityTopics.keys()];
-      }
-
-      if (entityIds.length === 0) return [] as T[];
-
-      let q = supabase
-        .from(entityTable as any)
-        .select(entitySelect)
-        .in("id" as any, entityIds)
-        .limit(PAGE_SIZE);
-
-      if (extraFilter) q = extraFilter(q);
-
-      const { data } = await q;
-      return (data ?? []) as T[];
+function useFilteredCourses(topicIds: string[], matchAll: boolean) {
+  return useQuery({
+    queryKey: ["houses-courses", topicIds, matchAll],
+    enabled: topicIds.length > 0,
+    queryFn: async () => {
+      const ids = await getEntityIdsFromJunction("course_topics", "course_id", topicIds, matchAll);
+      if (ids.length === 0) return [];
+      const { data } = await supabase.from("courses").select("id, title, description, cover_image_url, level").in("id", ids).eq("is_deleted", false).eq("is_published", true).limit(PAGE_SIZE);
+      return data ?? [];
     },
     staleTime: 30_000,
   });
