@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
+import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
 import {
   users, topics, territories, userTopics, userTerritories,
   services, getServicesForUser,
