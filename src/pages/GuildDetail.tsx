@@ -373,6 +373,7 @@ export default function GuildDetail() {
                     <label className="text-sm font-medium mb-1 block">Location type</label>
                     <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem><SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem><SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem></SelectContent></Select>
                   </div>
+                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
                   <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
                 </div>
               </DialogContent>
