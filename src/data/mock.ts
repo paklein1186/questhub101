@@ -414,3 +414,10 @@ export function hasBlockRelationship(userA: string, userB: string): boolean {
 
 // ─── Reports ─────────────────────────────────────────────────
 export const reports: Report[] = [];
+
+// ─── Attachments ─────────────────────────────────────────────
+export const attachments: Attachment[] = [];
+
+export function getAttachmentsFor(targetType: AttachmentTargetType, targetId: string): Attachment[] {
+  return attachments.filter(a => a.targetEntityType === targetType && a.targetEntityId === targetId);
+}
