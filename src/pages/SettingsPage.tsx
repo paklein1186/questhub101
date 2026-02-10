@@ -170,10 +170,7 @@ export default function SettingsPage() {
     (currentUser as any)[field] = value;
   };
 
-  // ── Services state ──
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
-  const allMyServices = services.filter((s) => s.providerUserId === currentUser.id);
+  // ── Services state (no longer using mock) ──
 
   // ── Billing state ──
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
