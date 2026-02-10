@@ -28,6 +28,7 @@ import {
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
+import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsAdmin } from "@/lib/admin";
 import {
@@ -140,7 +141,10 @@ export default function UserProfile() {
             <AvatarFallback className="text-2xl">{user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <h1 className="font-display text-3xl font-bold">{user.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-3xl font-bold">{user.name}</h1>
+              <AdminBadge email={user.email} />
+            </div>
             {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
