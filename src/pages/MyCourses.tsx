@@ -7,10 +7,11 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { GuildMemberRole } from "@/types/enums";
 import {
   courses, getCoursesForUser, getEnrollmentsForUser,
   getLessonsForCourse, getCourseById, getUserById,
-  guilds, guildMembers, companies, GuildMemberRole,
+  guilds, guildMembers, companies,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
 

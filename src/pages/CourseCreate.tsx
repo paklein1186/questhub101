@@ -20,10 +20,11 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { CourseLevel } from "@/types/enums";
 import type { Course, Lesson } from "@/types";
+import { GuildMemberRole } from "@/types/enums";
 import {
   getCourseById, courses, lessons, topics, territories,
   courseTopics, courseTerritories, getLessonsForCourse,
-  guilds, guildMembers, companies, GuildMemberRole,
+  guilds, guildMembers, companies,
 } from "@/data/mock";
 
 export default function CourseCreate() {

@@ -113,6 +113,9 @@ const App = () => (
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
+                <Route path="/courses/new" element={<RequireAuth><CourseCreate /></RequireAuth>} />
+                <Route path="/courses/:id/edit" element={<RequireAuth><CourseCreate /></RequireAuth>} />
+                <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
