@@ -23,6 +23,8 @@ import {
   ReportTargetType,
   ReportStatus,
   AttachmentTargetType,
+  CourseLevel,
+  CoursePurchaseStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
@@ -551,4 +553,84 @@ export interface AdminActionLog {
   targetEntityId: string;
   details: string;
   createdAt: string;
+}
+
+// ─── Courses & Lessons ──────────────────────────────────────
+
+export interface Course extends SoftDeletable {
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  coverImageUrl?: string;
+  creatorUserId: string;
+  providerGuildId?: string;
+  providerCompanyId?: string;
+  isPublished: boolean;
+  isFree: boolean;
+  priceAmount?: number;
+  priceCurrency: string;
+  estimatedDurationMinutes?: number;
+  level?: CourseLevel;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  creatorUser?: User;
+  providerGuild?: Guild;
+  providerCompany?: Company;
+}
+
+export interface Lesson {
+  id: string;
+  courseId: string;
+  title: string;
+  summary?: string;
+  content: string;
+  orderIndex: number;
+  videoUrl?: string;
+  isPreview: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  course?: Course;
+}
+
+export interface CourseEnrollment {
+  id: string;
+  courseId: string;
+  learnerUserId: string;
+  enrolledAt: string;
+  progressPercentage: number;
+  lastLessonId?: string;
+  completedLessonIds: string[];
+  completionDate?: string;
+  // Relations
+  course?: Course;
+  learnerUser?: User;
+}
+
+export interface CoursePurchase {
+  id: string;
+  courseId: string;
+  buyerUserId: string;
+  priceAmount: number;
+  priceCurrency: string;
+  stripeCheckoutSessionId?: string;
+  status: CoursePurchaseStatus;
+  purchasedAt: string;
+  // Relations
+  course?: Course;
+  buyerUser?: User;
+}
+
+export interface CourseTopic {
+  id: string;
+  courseId: string;
+  topicId: string;
+}
+
+export interface CourseTerritory {
+  id: string;
+  courseId: string;
+  territoryId: string;
 }

@@ -48,6 +48,11 @@ import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
 import ServicesMarketplace from "./pages/ServicesMarketplace";
+import CoursesExplore from "./pages/CoursesExplore";
+import CourseDetail from "./pages/CourseDetail";
+import CourseCreate from "./pages/CourseCreate";
+import LessonView from "./pages/LessonView";
+import MyCourses from "./pages/MyCourses";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +86,8 @@ const App = () => (
                 <Route path="/companies/:id" element={<CompanyDetail />} />
                 <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
+                <Route path="/courses/:id" element={<CourseDetail />} />
+                <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiesPage />} />
@@ -106,6 +113,9 @@ const App = () => (
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
+                <Route path="/courses/new" element={<RequireAuth><CourseCreate /></RequireAuth>} />
+                <Route path="/courses/:id/edit" element={<RequireAuth><CourseCreate /></RequireAuth>} />
+                <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

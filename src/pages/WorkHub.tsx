@@ -14,6 +14,7 @@ import {
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
+import MyCourses from "./MyCourses";
 
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
@@ -56,6 +57,7 @@ export default function WorkHub() {
           <TabsTrigger value="pods">My Pods ({myPods.length})</TabsTrigger>
           <TabsTrigger value="services">My Services ({myServices.length})</TabsTrigger>
           <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
@@ -198,6 +200,7 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        <TabsContent value="courses"><MyCourses bare /></TabsContent>
         <TabsContent value="availability"><MyAvailability bare /></TabsContent>
         <TabsContent value="bookings"><MyBookings bare /></TabsContent>
         <TabsContent value="requests"><MyRequests bare /></TabsContent>
