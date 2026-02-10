@@ -450,6 +450,11 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* ── Referrals ── */}
+              {activeTab === "referrals" && (
+                <ReferralsSection userId={currentUser.id} />
+              )}
+
               {/* ── Privacy & Visibility ── */}
               {activeTab === "privacy" && (
                 <div className="space-y-6">
