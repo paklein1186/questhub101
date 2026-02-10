@@ -125,6 +125,12 @@ export default function SettingsPage() {
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
+  // ── Data export & deletion ──
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(0);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
   // ── Handlers ──
   const handleChangePassword = async () => {
     if (newPw !== confirmPw) { toast({ title: "Passwords don't match", variant: "destructive" }); return; }
