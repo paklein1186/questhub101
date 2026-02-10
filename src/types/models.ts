@@ -116,7 +116,7 @@ export interface QuestParticipant {
   user?: User;
 }
 
-export interface QuestUpdate extends SoftDeletable {
+export interface QuestUpdate extends SoftDeletable, Draftable {
   id: string;
   questId: string;
   authorId: string;
