@@ -39,6 +39,7 @@ import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
 import { GuildEvents } from "@/components/guild/GuildEvents";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
