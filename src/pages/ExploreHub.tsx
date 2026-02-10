@@ -9,8 +9,9 @@ import PodsList from "./PodsList";
 import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
+import ExploreUsers from "./ExploreUsers";
 
-const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses"];
+const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users"];
 
 export default function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
