@@ -212,17 +212,27 @@ export default function QuestCreate() {
               <Label htmlFor="reward">Reward XP</Label>
               <Input id="reward" type="number" value={rewardXp} onChange={(e) => setRewardXp(e.target.value)} min={0} className="mt-1" />
             </div>
-            <div>
-              <Label>Monetization</Label>
-              <Select value={monetizationType} onValueChange={setMonetizationType}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FREE">Free</SelectItem>
-                  <SelectItem value="PAID">Paid</SelectItem>
-                  <SelectItem value="MIXED">Mixed</SelectItem>
-                </SelectContent>
-              </Select>
+          </div>
+
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <Switch id="monetized" checked={isMonetized} onCheckedChange={setIsMonetized} />
+              <Label htmlFor="monetized" className="font-semibold">Is this quest monetized?</Label>
             </div>
+            {isMonetized && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="creditReward">Credit Reward (to participants)</Label>
+                  <Input id="creditReward" type="number" value={creditReward} onChange={(e) => setCreditReward(e.target.value)} min={0} className="mt-1" placeholder="0" />
+                  <p className="text-xs text-muted-foreground mt-1">Credits granted on quest completion</p>
+                </div>
+                <div>
+                  <Label htmlFor="priceFiat">Fiat Price (€ cents)</Label>
+                  <Input id="priceFiat" type="number" value={priceFiat} onChange={(e) => setPriceFiat(e.target.value)} min={0} className="mt-1" placeholder="0" />
+                  <p className="text-xs text-muted-foreground mt-1">Stripe payment required to join (in cents)</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {(topics ?? []).length > 0 && (
