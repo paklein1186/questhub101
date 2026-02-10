@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Building2, MapPin, Hash, Zap, Plus, Heart, Pencil, Settings, Compass } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Hash, Zap, Plus, Heart, Pencil, Settings, Compass, Bot } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ import { useCompanyById, useQuestsForCompany, useBookingsForCompany, usePublicPr
 import { useGuilds } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { UnitChat } from "@/components/UnitChat";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -165,6 +166,7 @@ export default function CompanyDetail() {
           <TabsTrigger value="quests">Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="bookings">Booked Services ({bookings.length})</TabsTrigger>
           <TabsTrigger value="wall">Wall</TabsTrigger>
+          {isContact && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="quests" className="mt-6">
@@ -198,6 +200,12 @@ export default function CompanyDetail() {
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.COMPANY} targetId={company.id} />
         </TabsContent>
+
+        {isContact && (
+          <TabsContent value="ai-chat" className="mt-6">
+            <UnitChat entityType="COMPANY" entityId={company.id} entityName={company.name} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );

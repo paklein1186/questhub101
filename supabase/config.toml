@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.infer-persona]
 verify_jwt = false
+
+[functions.unit-agent]
+verify_jwt = false

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
-  UserMinus, Settings, LayoutGrid, FileText, CalendarDays,
+  UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +37,7 @@ import { EntityJoinButton } from "@/components/EntityJoinButton";
 import { GuildKanbanBoard } from "@/components/guild/GuildKanbanBoard";
 import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
 import { GuildEvents } from "@/components/guild/GuildEvents";
+import { UnitChat } from "@/components/UnitChat";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -188,6 +189,7 @@ export default function GuildDetail() {
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
+          {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 space-y-6">
@@ -309,6 +311,12 @@ export default function GuildDetail() {
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="ai-chat" className="mt-6">
+            <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );
