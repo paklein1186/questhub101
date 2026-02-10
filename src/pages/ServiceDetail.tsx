@@ -10,49 +10,50 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus, PaymentStatus, CommentTargetType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
-import {
-  getServiceById, getUserById, getGuildById,
-  getTopicsForService, getTerritoriesForService,
-  bookings as allBookings, guildMembers, companies,
-  getAvailabilityRulesForUser, getAvailabilityExceptionsForUser,
-  getBookingsForProvider,
-} from "@/data/mock";
+import { useServiceById, usePublicProfile, useGuildById, useAvailabilityRules, useAvailabilityExceptions, useBookingsForProvider } from "@/hooks/useEntityQueries";
 import { generateSlots, generateCallUrl, type TimeSlot } from "@/lib/slots";
-import type { Booking } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
-  const svc = getServiceById(id!);
+  const { data: svc, isLoading } = useServiceById(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const { notifyBooking } = useNotifications();
   const [bookOpen, setBookOpen] = useState(false);
   const [bookNotes, setBookNotes] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
 
-  const provider = svc?.providerUserId ? getUserById(svc.providerUserId) : null;
-  const guild = svc?.providerGuildId ? getGuildById(svc.providerGuildId) : null;
-  const svcTopics = svc ? getTopicsForService(svc.id) : [];
-  const svcTerrs = svc ? getTerritoriesForService(svc.id) : [];
-  const isOwnService = svc?.providerUserId === currentUser.id;
-  const providerUserId = svc?.providerUserId;
+  const { data: provider } = usePublicProfile(svc?.provider_user_id ?? undefined);
+  const { data: guild } = useGuildById(svc?.provider_guild_id ?? undefined);
+  const { data: rules } = useAvailabilityRules(svc?.provider_user_id ?? undefined, svc?.id);
+  const { data: exceptions } = useAvailabilityExceptions(svc?.provider_user_id ?? undefined);
+  const { data: providerBookings } = useBookingsForProvider(svc?.provider_user_id ?? undefined);
+
+  const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
+  const svcTerrs = (svc as any)?.service_territories?.map((st: any) => st.territories).filter(Boolean) || [];
+  const isOwnService = svc?.provider_user_id === currentUser.id;
+  const providerUserId = svc?.provider_user_id;
 
   const slots = useMemo(() => {
-    if (!providerUserId || !svc?.durationMinutes) return [];
-    const rules = getAvailabilityRulesForUser(providerUserId, svc.id);
-    const exceptions = getAvailabilityExceptionsForUser(providerUserId);
-    const providerBookings = getBookingsForProvider(providerUserId);
+    if (!providerUserId || !svc?.duration_minutes || !rules) return [];
     const start = new Date(); start.setDate(start.getDate() + weekOffset * 7);
     const end = new Date(start); end.setDate(end.getDate() + 6);
-    return generateSlots(rules, exceptions, providerBookings, svc.durationMinutes, start.toISOString().split("T")[0], end.toISOString().split("T")[0], svc.id);
-  }, [providerUserId, svc?.id, svc?.durationMinutes, weekOffset]);
+    return generateSlots(
+      rules.map((r: any) => ({ weekday: r.weekday, startTime: r.start_time, endTime: r.end_time, timezone: r.timezone, isActive: r.is_active, serviceId: r.service_id })),
+      (exceptions || []).map((e: any) => ({ date: e.date, isAvailable: e.is_available, startTime: e.start_time, endTime: e.end_time })),
+      (providerBookings || []).map((b: any) => ({ startDateTime: b.start_date_time, endDateTime: b.end_date_time, status: b.status })),
+      svc.duration_minutes,
+      start.toISOString().split("T")[0],
+      end.toISOString().split("T")[0],
+      svc.id
+    );
+  }, [providerUserId, svc?.id, svc?.duration_minutes, weekOffset, rules, exceptions, providerBookings]);
 
   const slotsByDate = useMemo(() => {
     const groups: Record<string, TimeSlot[]> = {};
@@ -60,33 +61,29 @@ export default function ServiceDetail() {
     return groups;
   }, [slots]);
 
+  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
-  if (svc.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This service has been removed.</p></PageShell>;
-  if (svc.isDraft && svc.providerUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
+  if (svc.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This service has been removed.</p></PageShell>;
+  if (svc.is_draft && svc.provider_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
 
-  const isFree = !svc.priceAmount || svc.priceAmount === 0;
+  const isFree = !svc.price_amount || svc.price_amount === 0;
 
-  const createBooking = () => {
+  const createBooking = async () => {
     if (!selectedSlot) { toast({ title: "Please select a time slot", variant: "destructive" }); return; }
-    const userCompany = companies.find(c => c.contactUserId === currentUser.id);
-    const booking: Booking = {
-      id: `bk-${Date.now()}`, serviceId: svc.id, requesterId: currentUser.id,
-      providerUserId: svc.providerUserId, providerGuildId: svc.providerGuildId,
-      companyId: userCompany?.id, startDateTime: selectedSlot.startDateTime,
-      endDateTime: selectedSlot.endDateTime,
-      status: isFree ? BookingStatus.CONFIRMED : BookingStatus.PENDING_PAYMENT,
-      paymentStatus: isFree ? PaymentStatus.NOT_REQUIRED : PaymentStatus.PENDING,
-      amount: svc.priceAmount || 0, currency: svc.priceCurrency,
-      notes: bookNotes.trim() || undefined,
-      callUrl: isFree ? generateCallUrl(`bk-${Date.now()}`, svc.onlineLocationType) : undefined,
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-    };
-    allBookings.push(booking);
-    if (svc.providerUserId) { notifyBooking({ bookingId: booking.id, serviceTitle: svc.title, requesterName: currentUser.name, recipientUserId: svc.providerUserId, action: isFree ? "confirmed" : "requested" }); }
-    else if (svc.providerGuildId) { const admins = guildMembers.filter(gm => gm.guildId === svc.providerGuildId && gm.role === "ADMIN"); for (const admin of admins) { notifyBooking({ bookingId: booking.id, serviceTitle: svc.title, requesterName: currentUser.name, recipientUserId: admin.userId, action: isFree ? "confirmed" : "requested" }); } }
+    const callUrl = isFree ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
+    const { error } = await supabase.from("bookings").insert({
+      service_id: svc.id, requester_id: currentUser.id,
+      provider_user_id: svc.provider_user_id, provider_guild_id: svc.provider_guild_id,
+      start_date_time: selectedSlot.startDateTime, end_date_time: selectedSlot.endDateTime,
+      status: isFree ? "CONFIRMED" : "PENDING",
+      payment_status: isFree ? "NOT_REQUIRED" : "PENDING",
+      amount: svc.price_amount || 0, currency: svc.price_currency,
+      notes: bookNotes.trim() || null, call_url: callUrl,
+    });
+    if (error) { toast({ title: "Failed to book", variant: "destructive" }); return; }
     setBookOpen(false); setBookNotes(""); setSelectedSlot(null); setWeekOffset(0);
-    if (isFree) toast({ title: "Session confirmed!", description: `Your call link: ${booking.callUrl}` });
-    else toast({ title: "Session requested!", description: "Payment will be required once Stripe is connected." });
+    if (isFree) toast({ title: "Session confirmed!", description: `Your call link: ${callUrl}` });
+    else toast({ title: "Session requested!" });
   };
 
   const weekStart = new Date(); weekStart.setDate(weekStart.getDate() + weekOffset * 7);
@@ -99,29 +96,29 @@ export default function ServiceDetail() {
         <Link to="/explore?tab=services"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Services</Link>
       </Button>
 
-      {svc.isDraft && <DraftBanner />}
+      {svc.is_draft && <DraftBanner />}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        {svc.imageUrl && (
+        {svc.image_url && (
           <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-            <img src={svc.imageUrl} alt="" className="w-full h-full object-cover" />
+            <img src={svc.image_url} alt="" className="w-full h-full object-cover" />
           </div>
         )}
 
         <h1 className="font-display text-3xl font-bold mb-2">{svc.title}</h1>
 
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
-          {provider && <Link to={`/users/${provider.id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Avatar className="h-6 w-6"><AvatarImage src={provider.avatarUrl} /><AvatarFallback>{provider.name[0]}</AvatarFallback></Avatar><span className="font-medium">{provider.name}</span></Link>}
-          {guild && <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><img src={guild.logoUrl} className="h-6 w-6 rounded" alt="" /><span className="font-medium">{guild.name}</span></Link>}
-          {svc.durationMinutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.durationMinutes} min</span>}
-          {svc.priceAmount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.priceAmount === 0 ? "Free" : `${svc.priceAmount} ${svc.priceCurrency}`}</Badge>}
-          {svc.onlineLocationType && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.onlineLocationType}</Badge>}
+          {provider && <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar><span className="font-medium">{provider.name}</span></Link>}
+          {guild && <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><img src={guild.logo_url ?? ""} className="h-6 w-6 rounded" alt="" /><span className="font-medium">{guild.name}</span></Link>}
+          {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
+          {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
+          {svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
         </div>
 
         <p className="text-muted-foreground max-w-2xl mb-4">{svc.description}</p>
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {svcTopics.map(t => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
-          {svcTerrs.map(t => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="mb-6">
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
@@ -151,7 +148,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Guild-provided service. Availability managed by guild admins.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={providerUserId ? !selectedSlot : false}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.priceAmount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={providerUserId ? !selectedSlot : false}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
                 {!isFree && <p className="text-[11px] text-muted-foreground text-center">Stripe Checkout will be enabled when Cloud is connected.</p>}
               </div>
             </DialogContent>

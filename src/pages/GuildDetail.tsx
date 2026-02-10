@@ -1,11 +1,11 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
-  CircleDot, MapPin, Hash, Pencil, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
-  UserPlus, UserMinus, Settings,
+  CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
+  UserMinus, Settings,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,19 +21,15 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_XP_COST, EXTRA_GUILD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, FollowTargetType, GuildMemberRole, GuildJoinPolicy, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildJoinPolicy, OnlineLocationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import type { Service, Quest } from "@/types";
-import {
-  getGuildById, getTopicsForGuild, getTerritoriesForGuild,
-  getMembersForGuild, getQuestsForGuild, getUserById, getServicesForGuild,
-  achievements as allAchievements, guildMembers, podMembers, pods, getQuestById,
-  services, quests as allQuests,
-} from "@/data/mock";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useGuildById, useGuildMembersWithProfiles, useServicesForGuild, useQuestsForGuild, useAchievementsForQuests, usePublicProfile } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
@@ -41,23 +37,19 @@ import { EntityJoinButton } from "@/components/EntityJoinButton";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
-  const guild = getGuildById(id!);
+  const { data: guild, isLoading } = useGuildById(id);
+  const { data: membersData } = useGuildMembersWithProfiles(id);
+  const { data: guildServices } = useServicesForGuild(id);
+  const { data: guildQuests } = useQuestsForGuild(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
+  const { data: creator } = usePublicProfile(guild?.created_by_user_id);
 
-  // Plan limits
   const limits = usePlanLimits();
   const [showQuestXpDialog, setShowQuestXpDialog] = useState(false);
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
-
-  // Update guild count for limits
-  useEffect(() => {
-    const count = guildMembers.filter((gm) => gm.userId === currentUser.id).length;
-    limits.setGuildCount(count);
-  }, [currentUser.id]);
 
   // Service creation
   const [createSvcOpen, setCreateSvcOpen] = useState(false);
@@ -67,6 +59,7 @@ export default function GuildDetail() {
   const [svcPrice, setSvcPrice] = useState("0");
   const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
   const [svcImageUrl, setSvcImageUrl] = useState<string | undefined>();
+  const [svcDraft, setSvcDraft] = useState(false);
 
   // Quest creation
   const [createQuestOpen, setCreateQuestOpen] = useState(false);
@@ -75,163 +68,103 @@ export default function GuildDetail() {
   const [qRewardXp, setQRewardXp] = useState("100");
   const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
   const [qDraft, setQDraft] = useState(false);
-  const [svcDraft, setSvcDraft] = useState(false);
 
+  // Achievement query based on quest IDs
+  const questIds = (guildQuests || []).map((q: any) => q.id);
+  const { data: guildAchievements } = useAchievementsForQuests(questIds);
+
+  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
-  if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
-  if (guild.isDraft && guild.createdByUserId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Guild not found.</p></PageShell>;
+  if (guild.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
+  if (guild.is_draft && guild.created_by_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Guild not found.</p></PageShell>;
 
-  const topics = getTopicsForGuild(guild.id);
-  const territories = getTerritoriesForGuild(guild.id);
-  const members = getMembersForGuild(guild.id);
-  const quests = getQuestsForGuild(guild.id);
-  const guildServices = getServicesForGuild(guild.id);
-  const creator = getUserById(guild.createdByUserId);
+  const topics = (guild.guild_topics || []).map((gt: any) => gt.topics).filter(Boolean);
+  const territories = (guild.guild_territories || []).map((gt: any) => gt.territories).filter(Boolean);
+  const members = membersData || [];
+  const quests = guildQuests || [];
+  const services = guildServices || [];
+  const achievements = guildAchievements || [];
 
-  const currentMembership = guildMembers.find(
-    (gm) => gm.guildId === guild.id && gm.userId === currentUser.id
-  );
-  const isAdmin = currentMembership?.role === GuildMemberRole.ADMIN;
+  const currentMembership = (guild.guild_members || []).find((gm: any) => gm.user_id === currentUser.id);
+  const isAdmin = currentMembership?.role === "ADMIN";
   const isMember = !!currentMembership;
 
-  const guildMemberUserIds = new Set(members.map((m) => m.userId));
-  const guildPods = pods.filter((pod) =>
-    podMembers.some((pm) => pm.podId === pod.id && guildMemberUserIds.has(pm.userId))
-  );
-
-  const guildQuestIds = new Set(quests.map((q) => q.id));
-  const guildAchievements = allAchievements
-    .filter((a) => guildQuestIds.has(a.questId))
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  // ── Guild join with limit guard ──
-  const attemptJoinGuild = () => {
-    if (limits.guildLimitReached) {
-      setShowGuildXpDialog(true);
-      return;
-    }
-    doJoinGuild();
-  };
-
-  const doJoinGuild = () => {
-    guildMembers.push({ id: `gm-${Date.now()}`, guildId: guild.id, userId: currentUser.id, role: GuildMemberRole.MEMBER, joinedAt: new Date().toISOString() });
-    limits.setGuildCount((c: number) => c + 1);
-    rerender();
+  const doJoinGuild = async () => {
+    const { error } = await supabase.from("guild_members").insert({ guild_id: guild.id, user_id: currentUser.id, role: "MEMBER" as any });
+    if (error) { toast({ title: "Failed to join", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["guild", id] });
+    qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] });
     toast({ title: "Joined guild!" });
   };
 
-  const handleGuildXpConfirm = async () => {
-    const ok = await limits.spendXp(EXTRA_GUILD_XP_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id);
-    if (ok) doJoinGuild();
-    else toast({ title: "Failed to spend XP", variant: "destructive" });
-  };
-
-  const leaveGuild = () => {
-    const idx = guildMembers.findIndex(gm => gm.guildId === guild.id && gm.userId === currentUser.id);
-    if (idx !== -1) guildMembers.splice(idx, 1);
-    limits.setGuildCount((c: number) => Math.max(0, c - 1));
-    rerender();
+  const leaveGuild = async () => {
+    await supabase.from("guild_members").delete().eq("guild_id", guild.id).eq("user_id", currentUser.id);
+    qc.invalidateQueries({ queryKey: ["guild", id] });
+    qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] });
     toast({ title: "Left guild" });
   };
 
-  // ── Quest creation with limit guard ──
-  const attemptCreateQuest = () => {
+  const doCreateQuest = async () => {
     if (!qTitle.trim()) return;
-    if (limits.questLimitReached) {
-      setShowQuestXpDialog(true);
-      return;
-    }
-    doCreateQuest();
-  };
-
-  const doCreateQuest = () => {
-    const quest: Quest = {
-      id: `q-${Date.now()}`, title: qTitle.trim(), description: qDesc.trim() || undefined,
-      coverImageUrl: qCoverImageUrl,
-      status: QuestStatus.OPEN, monetizationType: MonetizationType.FREE,
-      rewardXp: Number(qRewardXp) || 100, isFeatured: false,
-      createdByUserId: currentUser.id, guildId: guild.id,
-      isDraft: qDraft,
-    };
-    allQuests.push(quest);
-    limits.recordQuestCreation();
+    const { error } = await supabase.from("quests").insert({
+      title: qTitle.trim(), description: qDesc.trim() || null,
+      cover_image_url: qCoverImageUrl || null,
+      status: "OPEN" as any, monetization_type: "FREE" as any,
+      reward_xp: Number(qRewardXp) || 100, is_featured: false,
+      created_by_user_id: currentUser.id, guild_id: guild.id,
+      is_draft: qDraft,
+    });
+    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["quests-for-guild", id] });
     setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined); setQDraft(false);
-    rerender();
-    toast({ title: "Quest created!", description: quest.title });
+    toast({ title: "Quest created!" });
   };
 
-  const handleQuestXpConfirm = async () => {
-    const ok = await limits.spendXp(EXTRA_QUEST_XP_COST, `Extra quest creation: ${qTitle.trim()}`, "QUEST");
-    if (ok) doCreateQuest();
-    else toast({ title: "Failed to spend XP", variant: "destructive" });
-  };
-
-  const createGuildService = () => {
+  const createGuildService = async () => {
     if (!svcTitle.trim()) return;
-    const newSvc: Service = {
-      id: `svc-${Date.now()}`, title: svcTitle.trim(), description: svcDesc.trim(),
-      providerGuildId: guild.id, durationMinutes: Number(svcDuration) || 60,
-      priceAmount: Number(svcPrice) || 0, priceCurrency: "EUR",
-      onlineLocationType: svcLocationType, isActive: true, imageUrl: svcImageUrl,
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-      isDraft: svcDraft,
-    };
-    services.push(newSvc);
+    const { error } = await supabase.from("services").insert({
+      title: svcTitle.trim(), description: svcDesc.trim() || null,
+      provider_guild_id: guild.id, duration_minutes: Number(svcDuration) || 60,
+      price_amount: Number(svcPrice) || 0, price_currency: "EUR",
+      online_location_type: svcLocationType, is_active: true, image_url: svcImageUrl || null,
+      is_draft: svcDraft,
+    });
+    if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["services-for-guild", id] });
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
-    setCreateSvcOpen(false); rerender();
+    setCreateSvcOpen(false);
     toast({ title: "Guild service created" });
   };
 
   return (
     <PageShell>
-      {/* XP Spend Dialogs */}
-      <XpSpendDialog
-        open={showQuestXpDialog}
-        onOpenChange={setShowQuestXpDialog}
-        canAfford={limits.canAffordExtraQuest}
-        xpCost={EXTRA_QUEST_XP_COST}
-        userXp={limits.userXp}
-        actionLabel="create an extra quest"
-        limitLabel="free quests for this week"
-        onConfirm={handleQuestXpConfirm}
-      />
-      <XpSpendDialog
-        open={showGuildXpDialog}
-        onOpenChange={setShowGuildXpDialog}
-        canAfford={limits.canAffordExtraGuild}
-        xpCost={EXTRA_GUILD_XP_COST}
-        userXp={limits.userXp}
-        actionLabel="join one more guild"
-        limitLabel="guild memberships for your plan"
-        onConfirm={handleGuildXpConfirm}
-      />
+      <XpSpendDialog open={showQuestXpDialog} onOpenChange={setShowQuestXpDialog} canAfford={limits.canAffordExtraQuest} xpCost={EXTRA_QUEST_XP_COST} userXp={limits.userXp} actionLabel="create an extra quest" limitLabel="free quests for this week" onConfirm={async () => { const ok = await limits.spendXp(EXTRA_QUEST_XP_COST, `Extra quest creation`, "QUEST"); if (ok) doCreateQuest(); }} />
+      <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_XP_COST} userXp={limits.userXp} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendXp(EXTRA_GUILD_XP_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
       </Button>
 
-      {guild.isDraft && <DraftBanner />}
+      {guild.is_draft && <DraftBanner />}
 
-      {/* Banner */}
-      {guild.bannerUrl && (
+      {guild.banner_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
-          <img src={guild.bannerUrl} alt="" className="w-full h-full object-cover" />
+          <img src={guild.banner_url} alt="" className="w-full h-full object-cover" />
         </div>
       )}
 
-      {/* Header */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center gap-4 mb-3">
-          <img src={guild.logoUrl} className="h-16 w-16 rounded-xl" alt="" />
+          {guild.logo_url && <img src={guild.logo_url} className="h-16 w-16 rounded-xl" alt="" />}
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-3xl font-bold">{guild.name}</h1>
-              {guild.isApproved ? <CheckCircle className="h-5 w-5 text-primary" /> : isAdmin && <Badge variant="outline" className="text-xs"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>}
+              {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary" /> : isAdmin && <Badge variant="outline" className="text-xs"><AlertCircle className="h-3 w-3 mr-1" /> Pending approval</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <Badge variant="secondary" className="capitalize">{guild.type.toLowerCase()}</Badge>
-              <span>Created by <Link to={`/users/${creator?.id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
+              <span>Created by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
             <p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{guild.description}</p>
           </div>
@@ -241,37 +174,21 @@ export default function GuildDetail() {
             </Button>
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
-                <EntityJoinButton
-                  entityType="guild"
-                  entityId={guild.id}
-                  joinPolicy={(guild as any).joinPolicy || "OPEN"}
-                  applicationQuestions={(guild as any).applicationQuestions || []}
-                  currentUserId={currentUser.id}
-                  onJoined={rerender}
-                />
-                <PlanLimitBadge
-                  limitReached={limits.guildLimitReached}
-                  xpCost={EXTRA_GUILD_XP_COST}
-                  itemLabel="guild slot"
-                  compact
-                />
+                <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
+                <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_XP_COST} itemLabel="guild slot" compact />
               </div>
             )}
             {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
-            {isAdmin && (
-              <>
-                <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
-              </>
-            )}
+            {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
             <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
-          {topics.map((t) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
-          {territories.map((t) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {topics.map((t: any) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
+          {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="mt-3">
-          <SocialLinksDisplay data={{ websiteUrl: guild.websiteUrl, twitterUrl: guild.twitterUrl, linkedinUrl: guild.linkedinUrl, instagramUrl: guild.instagramUrl }} />
+          <SocialLinksDisplay data={{ websiteUrl: guild.website_url, twitterUrl: guild.twitter_url, linkedinUrl: guild.linkedin_url, instagramUrl: guild.instagram_url }} />
         </div>
       </motion.div>
 
@@ -280,9 +197,8 @@ export default function GuildDetail() {
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
-          {guildPods.length > 0 && <TabsTrigger value="pods"><CircleDot className="h-4 w-4 mr-1" /> Pods ({guildPods.length})</TabsTrigger>}
-          <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({guildServices.length})</TabsTrigger>
-          {guildAchievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
+          <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
+          {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
 
@@ -291,17 +207,17 @@ export default function GuildDetail() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
-            <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{guildServices.length}</p><p className="text-sm text-muted-foreground">Services</p></div>
+            <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></div>
           </div>
         </TabsContent>
 
         <TabsContent value="members" className="mt-6">
           <div className="grid gap-3 md:grid-cols-2">
-            {members.map((m) => (
-              <Link key={m.id} to={`/users/${m.userId}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatarUrl} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
+            {members.map((m: any) => (
+              <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
                 <div className="flex-1"><p className="text-sm font-medium">{m.user?.name}</p><p className="text-xs text-muted-foreground capitalize">{m.role.toLowerCase()}</p></div>
-                <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joinedAt), { addSuffix: true })}</span>
+                <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
               </Link>
             ))}
           </div>
@@ -309,61 +225,36 @@ export default function GuildDetail() {
 
         <TabsContent value="quests" className="mt-6 space-y-3">
           {isAdmin && (
-            <>
-              <div className="flex items-center gap-3 mb-3">
-                <Dialog open={createQuestOpen} onOpenChange={setCreateQuestOpen}>
-                  <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button></DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Create Quest for {guild.name}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 mt-2">
-                      <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} placeholder="Quest title" maxLength={120} /></div>
-                      <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
-                      <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
-                      <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
-                      <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
-                      <Button onClick={attemptCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                <PlanLimitBadge
-                  freeRemaining={limits.freeQuestsRemaining}
-                  limitReached={limits.questLimitReached}
-                  xpCost={EXTRA_QUEST_XP_COST}
-                  itemLabel="quest"
-                />
-              </div>
-            </>
+            <div className="flex items-center gap-3 mb-3">
+              <Dialog open={createQuestOpen} onOpenChange={setCreateQuestOpen}>
+                <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button></DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Create Quest for {guild.name}</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} placeholder="Quest title" maxLength={120} /></div>
+                    <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
+                    <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
+                    <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
+                    <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
+                    <Button onClick={doCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_XP_COST} itemLabel="quest" />
+            </div>
           )}
-          {quests.map((q) => (
+          {quests.map((q: any) => (
             <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              {q.coverImageUrl && <div className="h-32 w-full"><img src={q.coverImageUrl} alt="" className="w-full h-full object-cover" /></div>}
+              {q.cover_image_url && <div className="h-32 w-full"><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
               <div className="p-4">
-                <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0">{q.rewardXp} XP</Badge></div>
+                <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0">{q.reward_xp} XP</Badge></div>
                 <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>
-                <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{q.status.toLowerCase().replace("_", " ")}</Badge><Badge variant="secondary" className="capitalize text-xs">{q.monetizationType.toLowerCase()}</Badge></div>
+                <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{q.status.toLowerCase().replace("_", " ")}</Badge><Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge></div>
               </div>
             </Link>
           ))}
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
         </TabsContent>
-
-        {guildPods.length > 0 && (
-          <TabsContent value="pods" className="mt-6 space-y-3">
-            {guildPods.map((pod) => (
-              <Link key={pod.id} to={`/pods/${pod.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                {pod.imageUrl && <div className="h-28 w-full"><img src={pod.imageUrl} alt="" className="w-full h-full object-cover" /></div>}
-                <div className="p-4">
-                  <h4 className="font-display font-semibold">{pod.name}</h4>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs capitalize">{pod.type.toLowerCase().replace("_", " ")}</Badge>
-                    {pod.questId && <Badge variant="outline" className="text-xs">{getQuestById(pod.questId)?.title ?? "Quest"}</Badge>}
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{pod.description}</p>
-                </div>
-              </Link>
-            ))}
-          </TabsContent>
-        )}
 
         <TabsContent value="services" className="mt-6 space-y-3">
           {isAdmin && (
@@ -372,16 +263,16 @@ export default function GuildDetail() {
               <DialogContent>
                 <DialogHeader><DialogTitle>Create Guild Service</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
-                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={(e) => setSvcTitle(e.target.value)} placeholder="e.g. Mentoring Session" maxLength={120} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={(e) => setSvcDesc(e.target.value)} placeholder="What this service includes…" maxLength={500} className="resize-none" /></div>
-                  <ImageUpload label="Service Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" description="Illustrative image" />
+                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Mentoring Session" maxLength={120} /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
+                  <ImageUpload label="Service Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" />
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={(e) => setSvcDuration(e.target.value)} min={15} max={480} /></div>
-                    <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} min={0} step={5} /></div>
+                    <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={e => setSvcDuration(e.target.value)} min={15} max={480} /></div>
+                    <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={e => setSvcPrice(e.target.value)} min={0} step={5} /></div>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Location type</label>
-                    <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem><SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem><SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem></SelectContent></Select>
+                    <Select value={svcLocationType} onValueChange={v => setSvcLocationType(v as OnlineLocationType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem><SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem><SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem></SelectContent></Select>
                   </div>
                   <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
                   <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
@@ -389,41 +280,34 @@ export default function GuildDetail() {
               </DialogContent>
             </Dialog>
           )}
-          {guildServices.map((svc) => (
+          {services.map((svc: any) => (
             <Link key={svc.id} to={`/services/${svc.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              {svc.imageUrl && <div className="h-28 w-full"><img src={svc.imageUrl} alt="" className="w-full h-full object-cover" /></div>}
+              {svc.image_url && <div className="h-28 w-full"><img src={svc.image_url} alt="" className="w-full h-full object-cover" /></div>}
               <div className="p-4">
                 <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{svc.title}</h4>
-                  <div className="flex items-center gap-2">{svc.durationMinutes && <span className="text-xs text-muted-foreground">{svc.durationMinutes} min</span>}{svc.priceAmount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.priceAmount === 0 ? "Free" : `€${svc.priceAmount}`}</Badge>}</div>
+                  <div className="flex items-center gap-2">{svc.duration_minutes && <span className="text-xs text-muted-foreground">{svc.duration_minutes} min</span>}{svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}</Badge>}</div>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
               </div>
             </Link>
           ))}
-          {guildServices.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
+          {services.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
         </TabsContent>
 
-        {guildAchievements.length > 0 && (
+        {achievements.length > 0 && (
           <TabsContent value="achievements" className="mt-6 space-y-3">
-            {guildAchievements.map((a) => {
-              const user = getUserById(a.userId); const quest = getQuestById(a.questId);
-              return (
-                <Link key={a.id} to={`/achievements/${a.id}`} className="block rounded-lg border border-border bg-card p-4 hover:border-warning/30 transition-all">
-                  <div className="flex items-start gap-3">
-                    {a.imageUrl ? <img src={a.imageUrl} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" /> : <Star className="h-5 w-5 text-warning mt-0.5 shrink-0" />}
-                    <div className="flex-1">
-                      <h4 className="font-display font-semibold">{a.title}</h4>
-                      {a.description && <p className="text-sm text-muted-foreground mt-0.5">{a.description}</p>}
-                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                        {user && <span>by <span className="text-foreground">{user.name}</span></span>}
-                        {quest && <Badge variant="secondary" className="text-[10px]">{quest.title}</Badge>}
-                        <span>{formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}</span>
-                      </div>
-                    </div>
+            {achievements.map((a: any) => (
+              <Link key={a.id} to={`/achievements/${a.id}`} className="block rounded-lg border border-border bg-card p-4 hover:border-warning/30 transition-all">
+                <div className="flex items-start gap-3">
+                  {a.image_url ? <img src={a.image_url} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" /> : <Star className="h-5 w-5 text-warning mt-0.5 shrink-0" />}
+                  <div className="flex-1">
+                    <h4 className="font-display font-semibold">{a.title}</h4>
+                    {a.description && <p className="text-sm text-muted-foreground mt-0.5">{a.description}</p>}
+                    <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            ))}
           </TabsContent>
         )}
 
