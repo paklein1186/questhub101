@@ -46,6 +46,7 @@ import OnboardingChecklist from "./pages/OnboardingChecklist";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
+import ServicesMarketplace from "./pages/ServicesMarketplace";
 
 const queryClient = new QueryClient();
 
