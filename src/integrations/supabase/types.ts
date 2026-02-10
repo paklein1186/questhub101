@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_applications: {
+        Row: {
+          admin_note: string | null
+          answers: Json | null
+          applicant_user_id: string
+          company_id: string
+          created_at: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: Database["public"]["Enums"]["guild_application_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       guild_applications: {
         Row: {
           admin_note: string | null
@@ -225,6 +288,53 @@ export type Database = {
         }
         Relationships: []
       }
+      pod_applications: {
+        Row: {
+          admin_note: string | null
+          answers: Json | null
+          applicant_user_id: string
+          created_at: string
+          id: string
+          pod_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: Database["public"]["Enums"]["guild_application_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id: string
+          created_at?: string
+          id?: string
+          pod_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id?: string
+          created_at?: string
+          id?: string
+          pod_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pod_applications_pod_id_fkey"
+            columns: ["pod_id"]
+            isOneToOne: false
+            referencedRelation: "pods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pod_members: {
         Row: {
           id: string
@@ -259,6 +369,7 @@ export type Database = {
       }
       pods: {
         Row: {
+          application_questions: Json | null
           created_at: string
           creator_id: string
           deleted_at: string | null
@@ -268,6 +379,7 @@ export type Database = {
           image_url: string | null
           is_deleted: boolean
           is_draft: boolean
+          join_policy: Database["public"]["Enums"]["guild_join_policy"]
           name: string
           quest_id: string | null
           start_date: string | null
@@ -276,6 +388,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          application_questions?: Json | null
           created_at?: string
           creator_id: string
           deleted_at?: string | null
@@ -285,6 +398,7 @@ export type Database = {
           image_url?: string | null
           is_deleted?: boolean
           is_draft?: boolean
+          join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           name: string
           quest_id?: string | null
           start_date?: string | null
@@ -293,6 +407,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          application_questions?: Json | null
           created_at?: string
           creator_id?: string
           deleted_at?: string | null
@@ -302,6 +417,7 @@ export type Database = {
           image_url?: string | null
           is_deleted?: boolean
           is_draft?: boolean
+          join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           name?: string
           quest_id?: string | null
           start_date?: string | null

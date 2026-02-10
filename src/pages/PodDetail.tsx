@@ -11,7 +11,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, PodType, PodMemberRole, ReportTargetType, AttachmentTargetType } from "@/types/enums";
+import { CommentTargetType, PodType, PodMemberRole, ReportTargetType, AttachmentTargetType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
@@ -22,6 +22,7 @@ import {
 } from "@/data/mock";
 import { format } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { EntityJoinButton } from "@/components/EntityJoinButton";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -145,7 +146,14 @@ export default function PodDetail() {
         <div className="mt-4 flex items-center gap-3">
           {!isMember ? (
             <div className="flex flex-col gap-1">
-              <Button onClick={attemptJoinPod}><UserPlus className="h-4 w-4 mr-1" /> Join pod</Button>
+              <EntityJoinButton
+                entityType="pod"
+                entityId={pod.id}
+                joinPolicy={(pod as any).joinPolicy || "OPEN"}
+                applicationQuestions={(pod as any).applicationQuestions || []}
+                currentUserId={currentUser.id}
+                onJoined={rerender}
+              />
               <PlanLimitBadge
                 limitReached={limits.podLimitReached}
                 xpCost={EXTRA_POD_XP_COST}

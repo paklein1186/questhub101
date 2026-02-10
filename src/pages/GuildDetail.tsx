@@ -37,7 +37,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { GuildJoinButton } from "@/components/GuildJoinButton";
+import { EntityJoinButton } from "@/components/EntityJoinButton";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -241,9 +241,10 @@ export default function GuildDetail() {
             </Button>
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
-                <GuildJoinButton
-                  guildId={guild.id}
-                  joinPolicy={(guild as any).joinPolicy || GuildJoinPolicy.OPEN}
+                <EntityJoinButton
+                  entityType="guild"
+                  entityId={guild.id}
+                  joinPolicy={(guild as any).joinPolicy || "OPEN"}
                   applicationQuestions={(guild as any).applicationQuestions || []}
                   currentUserId={currentUser.id}
                   onJoined={rerender}

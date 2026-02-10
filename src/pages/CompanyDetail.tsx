@@ -20,6 +20,7 @@ import { QuestStatus, MonetizationType, CommentTargetType, FollowTargetType } fr
 import type { Quest } from "@/types";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
+import { EntityJoinButton } from "@/components/EntityJoinButton";
 import {
   getCompanyById, getUserById, getTopicsForCompany, getTerritoriesForCompany,
   getQuestsForCompany, getBookingsForCompany, getServiceById,
@@ -99,6 +100,16 @@ export default function CompanyDetail() {
           </div>
           <div className="flex flex-col gap-2 shrink-0">
             <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+            {!isContact && (
+              <EntityJoinButton
+                entityType="company"
+                entityId={company.id}
+                joinPolicy={(company as any).joinPolicy || "APPROVAL_REQUIRED"}
+                applicationQuestions={(company as any).applicationQuestions || []}
+                currentUserId={currentUser.id}
+                onJoined={() => rerender()}
+              />
+            )}
             {isContact && (
               <>
                 <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit Company</Button>

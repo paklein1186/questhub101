@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
-  Zap, Clock, Settings,
+  Zap, Clock, Settings, ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,9 +36,13 @@ import {
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
+import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
+import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
+  { key: "membership", label: "Membership Policy", icon: ClipboardList },
+  { key: "applications", label: "Applications", icon: Users },
   { key: "team", label: "Team & Permissions", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
@@ -271,6 +275,26 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                     <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
                   </Section>
                 </div>
+              )}
+
+              {/* ── Membership Policy ── */}
+              {activeTab === "membership" && (
+                <MembershipPolicyEditor
+                  joinPolicy={(company as any).joinPolicy || "APPROVAL_REQUIRED"}
+                  applicationQuestions={(company as any).applicationQuestions || []}
+                  onSave={(policy, questions) => {
+                    const c = companies.find((c) => c.id === companyId);
+                    if (c) {
+                      (c as any).joinPolicy = policy;
+                      (c as any).applicationQuestions = questions;
+                    }
+                  }}
+                />
+              )}
+
+              {/* ── Applications ── */}
+              {activeTab === "applications" && (
+                <EntityApplicationsTab entityType="company" entityId={companyId} currentUserId={currentUser.id} />
               )}
 
               {/* ── Team & Permissions ── */}
