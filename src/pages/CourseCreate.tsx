@@ -295,7 +295,11 @@ export default function CourseCreate() {
             <Separator />
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Topics</label>
+              <label className="text-sm font-medium mb-2 block">Topics (Houses)</label>
+              <div className="flex items-center gap-2 mb-2">
+                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTopics(topics.map((t) => t.id))}>Select all</Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
+              </div>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
                 {topics.map((t) => (
                   <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
