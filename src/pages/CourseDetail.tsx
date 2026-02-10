@@ -91,6 +91,7 @@ export default function CourseDetail() {
             <h1 className="font-display text-3xl font-bold mb-1">{course.title}</h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-3">
               <span>by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
+              {creator?.xp != null && <XpLevelBadge level={computeLevelFromXp(creator.xp)} compact />}
               <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{enrollCount ?? 0} learners</span>
               <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" />{lessonsList.length} lessons</span>
             </div>

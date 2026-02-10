@@ -110,7 +110,7 @@ export default function ServiceDetail() {
         <h1 className="font-display text-3xl font-bold mb-2">{svc.title}</h1>
 
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
-          {provider && <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar><span className="font-medium">{provider.name}</span></Link>}
+          {provider && <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar><span className="font-medium">{provider.name}</span>{provider.xp != null && <XpLevelBadge level={computeLevelFromXp(provider.xp)} compact />}</Link>}
           {guild && <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><img src={guild.logo_url ?? ""} className="h-6 w-6 rounded" alt="" /><span className="font-medium">{guild.name}</span></Link>}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
           {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
