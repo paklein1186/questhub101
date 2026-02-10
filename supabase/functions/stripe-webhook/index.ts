@@ -1,0 +1,178 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    apiVersion: "2025-08-27.basil",
+  });
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } }
+  );
+
+  try {
+    const body = await req.text();
+    const sig = req.headers.get("stripe-signature");
+
+    // If webhook secret is set, verify; otherwise parse directly
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    let event: Stripe.Event;
+
+    if (webhookSecret && sig) {
+      event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    } else {
+      event = JSON.parse(body) as Stripe.Event;
+    }
+
+    console.log(`[WEBHOOK] Event: ${event.type}`);
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const metadata = session.metadata || {};
+
+      if (metadata.type === "xp_bundle") {
+        // XP Bundle purchase
+        const userId = metadata.user_id;
+        const bundleCode = metadata.bundle_code;
+        const xpAmount = parseInt(metadata.xp_amount, 10);
+
+        console.log(`[WEBHOOK] XP bundle purchase: user=${userId}, bundle=${bundleCode}, xp=${xpAmount}`);
+
+        // Add XP to profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("xp")
+          .eq("user_id", userId)
+          .single();
+
+        if (profile) {
+          await supabase
+            .from("profiles")
+            .update({ xp: (profile.xp || 0) + xpAmount })
+            .eq("user_id", userId);
+        }
+
+        // Log XP transaction
+        await supabase.from("xp_transactions").insert({
+          user_id: userId,
+          type: "PURCHASE",
+          amount_xp: xpAmount,
+          description: `Bought XP bundle: ${bundleCode}`,
+        });
+
+        console.log(`[WEBHOOK] XP credited: ${xpAmount} XP to user ${userId}`);
+      } else if (metadata.type === "plan_subscription") {
+        const userId = metadata.user_id;
+        const subscriptionId = session.subscription as string;
+
+        console.log(`[WEBHOOK] Plan subscription: user=${userId}, sub=${subscriptionId}`);
+
+        // Get subscription details from Stripe
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const priceId = subscription.items.data[0]?.price?.id;
+
+        // Find matching plan
+        const { data: plan } = await supabase
+          .from("subscription_plans")
+          .select("id, code")
+          .eq("stripe_price_id", priceId)
+          .single();
+
+        if (plan) {
+          // Deactivate old subscriptions
+          await supabase
+            .from("user_subscriptions")
+            .update({ is_current: false, status: "CANCELED" })
+            .eq("user_id", userId)
+            .eq("is_current", true);
+
+          // Create new subscription
+          await supabase.from("user_subscriptions").insert({
+            user_id: userId,
+            plan_id: plan.id,
+            status: "ACTIVE",
+            is_current: true,
+            stripe_subscription_id: subscriptionId,
+            started_at: new Date().toISOString(),
+            valid_until: new Date(subscription.current_period_end * 1000).toISOString(),
+          });
+
+          // Update profile plan code
+          await supabase
+            .from("profiles")
+            .update({ current_plan_code: plan.code })
+            .eq("user_id", userId);
+
+          console.log(`[WEBHOOK] Plan updated to ${plan.code} for user ${userId}`);
+        }
+      }
+    } else if (event.type === "customer.subscription.deleted") {
+      // Subscription canceled/expired
+      const subscription = event.data.object as Stripe.Subscription;
+      const subId = subscription.id;
+
+      // Find the user subscription
+      const { data: userSub } = await supabase
+        .from("user_subscriptions")
+        .select("user_id")
+        .eq("stripe_subscription_id", subId)
+        .eq("is_current", true)
+        .single();
+
+      if (userSub) {
+        // Mark subscription as canceled
+        await supabase
+          .from("user_subscriptions")
+          .update({ is_current: false, status: "CANCELED", canceled_at: new Date().toISOString() })
+          .eq("stripe_subscription_id", subId);
+
+        // Get free plan
+        const { data: freePlan } = await supabase
+          .from("subscription_plans")
+          .select("id")
+          .eq("code", "FREE")
+          .single();
+
+        if (freePlan) {
+          // Create new free subscription
+          await supabase.from("user_subscriptions").insert({
+            user_id: userSub.user_id,
+            plan_id: freePlan.id,
+            status: "ACTIVE",
+            is_current: true,
+          });
+        }
+
+        // Update profile
+        await supabase
+          .from("profiles")
+          .update({ current_plan_code: "FREE" })
+          .eq("user_id", userSub.user_id);
+
+        console.log(`[WEBHOOK] Subscription canceled, reverted to FREE for user ${userSub.user_id}`);
+      }
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("[WEBHOOK] Error:", error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
+  }
+});
