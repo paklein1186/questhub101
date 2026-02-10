@@ -85,6 +85,7 @@ const App = () => (
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
+                <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

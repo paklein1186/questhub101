@@ -2,19 +2,17 @@ import { useState, useCallback, useMemo } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { OnboardingProgress } from "@/types/models";
 import {
-  userTopics, guildMembers, questParticipants, services, bookings,
+  users, userTopics, guildMembers, questParticipants, services, bookings,
 } from "@/data/mock";
 
 function computeProgress(userId: string): OnboardingProgress {
+  const user = users.find((u) => u.id === userId);
+  const completedProfile = !!(user?.bio && user?.headline);
   const hasTopics = userTopics.some((ut) => ut.userId === userId);
   const hasGuild = guildMembers.some((gm) => gm.userId === userId);
   const hasQuestFollow = questParticipants.some((qp) => qp.userId === userId);
   const hasService = services.some((s) => s.providerUserId === userId);
   const hasBooking = bookings.some((b) => b.requesterId === userId);
-
-  // Profile is "complete" if bio and headline exist on the mock user
-  const user = (await_users()).find((u) => u.id === userId);
-  const completedProfile = !!(user?.bio && user?.headline);
 
   return {
     userId,
@@ -25,12 +23,6 @@ function computeProgress(userId: string): OnboardingProgress {
     createdService: hasService,
     bookedSession: hasBooking,
   };
-}
-
-// Lazy import to avoid circular
-function await_users() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  return require("@/data/mock").users as import("@/types").User[];
 }
 
 export function useOnboardingProgress() {

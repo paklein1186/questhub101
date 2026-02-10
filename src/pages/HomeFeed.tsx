@@ -57,6 +57,29 @@ export default function HomeFeed() {
 
   return (
     <PageShell>
+      {/* Onboarding Banner */}
+      {!isComplete && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-5"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <Rocket className="h-6 w-6 text-primary" />
+              <div>
+                <h3 className="font-display font-semibold text-sm">Complete your setup</h3>
+                <p className="text-xs text-muted-foreground">{completedCount} of {totalSteps} steps done</p>
+              </div>
+            </div>
+            <Button size="sm" asChild>
+              <Link to="/me/onboarding">View checklist <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+            </Button>
+          </div>
+          <Progress value={percentage} className="h-2" />
+        </motion.div>
+      )}
+
       {/* Hero */}
       <section className="mb-12">
         <motion.h1
