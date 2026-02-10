@@ -251,6 +251,7 @@ export default function QuestDetail() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="proposals"><FileText className="h-3.5 w-3.5 mr-1" /> Proposals</TabsTrigger>
           <TabsTrigger value="subtasks"><ListChecks className="h-3.5 w-3.5 mr-1" /> Subtasks</TabsTrigger>
           <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({(questPods || []).length})</TabsTrigger>
