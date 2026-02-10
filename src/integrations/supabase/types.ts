@@ -14,6 +14,265 @@ export type Database = {
   }
   public: {
     Tables: {
+      guild_members: {
+        Row: {
+          guild_id: string
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["guild_member_role"]
+          user_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["guild_member_role"]
+          user_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["guild_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_members_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_territories: {
+        Row: {
+          guild_id: string
+          id: string
+          territory_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          territory_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_territories_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guild_topics: {
+        Row: {
+          guild_id: string
+          id: string
+          topic_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          topic_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_topics_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guilds: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          created_by_user_id: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          instagram_url: string | null
+          is_approved: boolean
+          is_deleted: boolean
+          is_draft: boolean
+          linkedin_url: string | null
+          logo_url: string | null
+          name: string
+          twitter_url: string | null
+          type: Database["public"]["Enums"]["guild_type"]
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          created_by_user_id: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_approved?: boolean
+          is_deleted?: boolean
+          is_draft?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name: string
+          twitter_url?: string | null
+          type?: Database["public"]["Enums"]["guild_type"]
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_approved?: boolean
+          is_deleted?: boolean
+          is_draft?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name?: string
+          twitter_url?: string | null
+          type?: Database["public"]["Enums"]["guild_type"]
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      pod_members: {
+        Row: {
+          id: string
+          joined_at: string
+          pod_id: string
+          role: Database["public"]["Enums"]["pod_member_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          pod_id: string
+          role?: Database["public"]["Enums"]["pod_member_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          pod_id?: string
+          role?: Database["public"]["Enums"]["pod_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pod_members_pod_id_fkey"
+            columns: ["pod_id"]
+            isOneToOne: false
+            referencedRelation: "pods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pods: {
+        Row: {
+          created_at: string
+          creator_id: string
+          deleted_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          is_draft: boolean
+          name: string
+          quest_id: string | null
+          start_date: string | null
+          topic_id: string | null
+          type: Database["public"]["Enums"]["pod_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_draft?: boolean
+          name: string
+          quest_id?: string | null
+          start_date?: string | null
+          topic_id?: string | null
+          type?: Database["public"]["Enums"]["pod_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          deleted_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_draft?: boolean
+          name?: string
+          quest_id?: string | null
+          start_date?: string | null
+          topic_id?: string | null
+          type?: Database["public"]["Enums"]["pod_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pods_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pods_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -76,6 +335,137 @@ export type Database = {
           xp?: number
         }
         Relationships: []
+      }
+      quest_territories: {
+        Row: {
+          id: string
+          quest_id: string
+          territory_id: string
+        }
+        Insert: {
+          id?: string
+          quest_id: string
+          territory_id: string
+        }
+        Update: {
+          id?: string
+          quest_id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_territories_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_topics: {
+        Row: {
+          id: string
+          quest_id: string
+          topic_id: string
+        }
+        Insert: {
+          id?: string
+          quest_id: string
+          topic_id: string
+        }
+        Update: {
+          id?: string
+          quest_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_topics_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quests: {
+        Row: {
+          company_id: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by_user_id: string
+          deleted_at: string | null
+          description: string | null
+          guild_id: string | null
+          id: string
+          is_deleted: boolean
+          is_draft: boolean
+          is_featured: boolean
+          monetization_type: Database["public"]["Enums"]["monetization_type"]
+          reward_xp: number
+          status: Database["public"]["Enums"]["quest_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by_user_id: string
+          deleted_at?: string | null
+          description?: string | null
+          guild_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_draft?: boolean
+          is_featured?: boolean
+          monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          reward_xp?: number
+          status?: Database["public"]["Enums"]["quest_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          deleted_at?: string | null
+          description?: string | null
+          guild_id?: string | null
+          id?: string
+          is_deleted?: boolean
+          is_draft?: boolean
+          is_featured?: boolean
+          monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          reward_xp?: number
+          status?: Database["public"]["Enums"]["quest_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quests_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limit_entries: {
         Row: {
@@ -149,6 +539,87 @@ export type Database = {
         }
         Relationships: []
       }
+      territories: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean
+          level: Database["public"]["Enums"]["territory_level"]
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          level?: Database["public"]["Enums"]["territory_level"]
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          level?: Database["public"]["Enums"]["territory_level"]
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_deleted: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_deleted?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           canceled_at: string | null
@@ -195,6 +666,58 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_territories: {
+        Row: {
+          id: string
+          territory_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          territory_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          territory_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_topics: {
+        Row: {
+          id: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
@@ -312,9 +835,24 @@ export type Database = {
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
+      guild_member_role: "ADMIN" | "MEMBER"
+      guild_type: "GUILD" | "NETWORK" | "COLLECTIVE"
+      monetization_type: "FREE" | "PAID" | "MIXED"
+      pod_member_role: "HOST" | "MEMBER"
+      pod_type: "QUEST_POD" | "STUDY_POD"
+      quest_status: "OPEN" | "IN_PROGRESS" | "COMPLETED"
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
+      territory_level: "TOWN" | "REGION" | "NATIONAL" | "OTHER"
       xp_transaction_type:
         | "PURCHASE"
         | "ACTION_SPEND"
@@ -448,7 +986,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
+      guild_member_role: ["ADMIN", "MEMBER"],
+      guild_type: ["GUILD", "NETWORK", "COLLECTIVE"],
+      monetization_type: ["FREE", "PAID", "MIXED"],
+      pod_member_role: ["HOST", "MEMBER"],
+      pod_type: ["QUEST_POD", "STUDY_POD"],
+      quest_status: ["OPEN", "IN_PROGRESS", "COMPLETED"],
       subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
+      territory_level: ["TOWN", "REGION", "NATIONAL", "OTHER"],
       xp_transaction_type: [
         "PURCHASE",
         "ACTION_SPEND",
