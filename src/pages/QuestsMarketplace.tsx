@@ -177,8 +177,18 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
             >
               <Link
                 to={`/quests/${quest.id}`}
-                className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all"
+                className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
               >
+                {quest.coverImageUrl ? (
+                  <div className="w-full h-36 bg-muted">
+                    <img src={quest.coverImageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-full h-24 bg-muted/50 flex items-center justify-center">
+                    <Compass className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                )}
+                <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-display font-semibold">{quest.title}</h3>
                   <span className="flex items-center gap-1 text-sm font-semibold text-primary">
@@ -193,6 +203,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                     <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
                     <Badge variant="secondary" className="capitalize">{quest.monetizationType.toLowerCase()}</Badge>
                   </div>
+                </div>
                 </div>
               </Link>
             </motion.div>
