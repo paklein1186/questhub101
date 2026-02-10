@@ -1,19 +1,110 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2 } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import {
-  quests, topics, territories, guilds,
-  questTopics, questTerritories,
+  quests, topics, territories, guilds, companies,
+  questTopics, questTerritories, guildMembers,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
 import { filterPublished } from "@/lib/drafts";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { QuestStatus, MonetizationType } from "@/types/enums";
+import { QuestStatus, MonetizationType, GuildMemberRole } from "@/types/enums";
+import { useAuth } from "@/hooks/useAuth";
+function CreateQuestButton() {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const currentUser = useCurrentUser();
+
+  const myAdminGuilds = guildMembers
+    .filter((gm) => gm.userId === currentUser.id && gm.role === GuildMemberRole.ADMIN)
+    .map((gm) => guilds.find((g) => g.id === gm.guildId))
+    .filter(Boolean);
+
+  const myCompanies = companies.filter((c) => c.contactUserId === currentUser.id);
+
+  const hasGuilds = myAdminGuilds.length > 0;
+  const hasCompanies = myCompanies.length > 0;
+
+  const go = (path: string) => {
+    setOpen(false);
+    navigate(path);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="h-4 w-4 mr-1" /> Create Quest
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Create a new Quest</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground mb-4">
+          {hasGuilds || hasCompanies
+            ? "You can create this quest as yourself, or attach it to a Guild or Company you manage."
+            : "You can create this quest as yourself."}
+        </p>
+
+        {/* As myself */}
+        <Button variant="outline" className="w-full justify-between" onClick={() => go("/quests/new")}>
+          <span className="flex items-center gap-2">
+            <Users className="h-4 w-4" /> Continue as myself
+          </span>
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+
+        {/* Guilds */}
+        {hasGuilds && (
+          <div className="mt-4">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Create under a Guild</h3>
+            <div className="space-y-1.5">
+              {myAdminGuilds.map((g) => (
+                <Button
+                  key={g!.id}
+                  variant="ghost"
+                  className="w-full justify-between"
+                  onClick={() => go(`/guilds/${g!.id}/quests/new`)}
+                >
+                  <span className="truncate">{g!.name}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0" />
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Companies */}
+        {hasCompanies && (
+          <div className="mt-4">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Create under a Company</h3>
+            <div className="space-y-1.5">
+              {myCompanies.map((c) => (
+                <Button
+                  key={c.id}
+                  variant="ghost"
+                  className="w-full justify-between"
+                  onClick={() => go(`/companies/${c.id}/quests/new`)}
+                >
+                  <span className="truncate">{c.name}</span>
+                  <ChevronRight className="h-4 w-4 shrink-0" />
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const [topicFilter, setTopicFilter] = useState("all");
@@ -22,6 +113,8 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const [monetizationFilter, setMonetizationFilter] = useState("all");
 
   const currentUser = useCurrentUser();
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
   const filtered = filterPublished(filterActive(quests), currentUser.id, (q) => q.createdByUserId, isAdm).filter((q) => {
@@ -38,6 +131,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Compass className="h-7 w-7 text-primary" /> Quests Marketplace
         </h1>
+        {isLoggedIn && <CreateQuestButton />}
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
