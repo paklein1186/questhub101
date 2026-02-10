@@ -137,7 +137,15 @@ export default function QuestDetail() {
           {creator?.xp != null && <XpLevelBadge level={computeLevelFromXp(creator.xp)} compact />}
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-          <Badge variant="secondary" className="capitalize">{quest.monetization_type.toLowerCase()}</Badge>
+          {quest.price_fiat > 0 && (
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid Quest — €{(quest.price_fiat / 100).toFixed(2)}</Badge>
+          )}
+          {quest.credit_reward > 0 && (
+            <Badge className="bg-emerald-500/10 text-emerald-600 border-0"><Coins className="h-3 w-3 mr-1" /> Reward: {quest.credit_reward} Credits</Badge>
+          )}
+          {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
+            <Badge variant="secondary" className="capitalize">Free</Badge>
+          )}
           {quest.is_featured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
         </div>
         <p className="text-muted-foreground max-w-2xl">{quest.description}</p>
