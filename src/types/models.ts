@@ -76,6 +76,11 @@ export interface Guild extends SoftDeletable, Draftable {
   type: GuildType;
   isApproved: boolean;
   createdByUserId: string;
+  // Social links
+  websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   // Relations
   createdByUser?: User;
   guildMembers?: GuildMember[];
