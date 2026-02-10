@@ -66,6 +66,10 @@ export default function QuestCreate() {
   const [priceFiat, setPriceFiat] = useState("0");
   const [submitting, setSubmitting] = useState(false);
   const [showXpDialog, setShowXpDialog] = useState(false);
+  const [creditBudget, setCreditBudget] = useState("0");
+  const [allowFundraising, setAllowFundraising] = useState(false);
+  const [fundingGoalCredits, setFundingGoalCredits] = useState("");
+  const [openForProposals, setOpenForProposals] = useState(false);
 
   const contextLabel = guild?.name ?? company?.name ?? "Personal";
 
