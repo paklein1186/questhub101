@@ -18,6 +18,8 @@ import { useServiceById, usePublicProfile, useGuildById, useAvailabilityRules, u
 import { generateSlots, generateCallUrl, type TimeSlot } from "@/lib/slots";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
