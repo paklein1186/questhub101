@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, AlertTriangle, ArrowRight } from "lucide-react";
+import { Coins, AlertTriangle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,17 +9,13 @@ import {
 interface XpSpendDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Can the user afford this? */
   canAfford: boolean;
-  /** XP cost for the action */
+  /** Credit cost for the action */
   xpCost: number;
-  /** Current user XP */
+  /** Current user Credits */
   userXp: number;
-  /** Human-readable action name, e.g. "create an extra quest" */
   actionLabel: string;
-  /** Limit description, e.g. "free quests for this week" */
   limitLabel: string;
-  /** Called when user confirms spending XP */
   onConfirm: () => void | Promise<void>;
 }
 
@@ -44,7 +40,7 @@ export function XpSpendDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {canAfford
-              ? <><Zap className="h-5 w-5 text-primary" /> Spend XP to continue</>
+              ? <><Coins className="h-5 w-5 text-primary" /> Spend Credits to continue</>
               : <><AlertTriangle className="h-5 w-5 text-warning" /> Limit reached</>}
           </DialogTitle>
           <DialogDescription>
@@ -56,33 +52,33 @@ export function XpSpendDialog({
           <div className="space-y-4">
             <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
               <p className="text-sm text-muted-foreground mb-1">
-                Spend <span className="font-bold text-primary">{xpCost} XP</span> to {actionLabel}?
+                Spend <span className="font-bold text-primary">{xpCost} Credits</span> to {actionLabel}?
               </p>
               <p className="text-xs text-muted-foreground">
-                Your balance: <span className="font-semibold">{userXp} XP</span> → <span className="font-semibold">{userXp - xpCost} XP</span>
+                Your balance: <span className="font-semibold">{userXp} Credits</span> → <span className="font-semibold">{userXp - xpCost} Credits</span>
               </p>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button onClick={handleConfirm} disabled={confirming}>
-                <Zap className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} XP`}
+                <Coins className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} Credits`}
               </Button>
             </DialogFooter>
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              You need <span className="font-semibold text-primary">{xpCost} XP</span> to {actionLabel}, but you only have <span className="font-semibold">{userXp} XP</span>.
+              You need <span className="font-semibold text-primary">{xpCost} Credits</span> to {actionLabel}, but you only have <span className="font-semibold">{userXp} Credits</span>.
             </p>
             <p className="text-sm text-muted-foreground">
-              Buy XP bundles or upgrade your plan to unlock more actions.
+              Buy Credit bundles or upgrade your plan to unlock more actions.
             </p>
             <DialogFooter className="flex-col sm:flex-row gap-2">
               <Button variant="outline" asChild>
                 <Link to="/plans">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
               <Button asChild>
-                <Link to="/me/xp"><Zap className="h-4 w-4 mr-1" /> Buy XP bundles</Link>
+                <Link to="/me/credits"><Coins className="h-4 w-4 mr-1" /> Buy Credits</Link>
               </Button>
             </DialogFooter>
           </div>
