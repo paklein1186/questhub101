@@ -57,7 +57,7 @@ export function GuildApplicationsTab({ guildId, currentUserId }: GuildApplicatio
       .order("created_at", { ascending: false });
 
     if (filter !== "ALL") {
-      query = query.eq("status", filter);
+      query = query.eq("status", filter as "PENDING" | "APPROVED" | "REJECTED");
     }
 
     const { data, error } = await query;
