@@ -20,6 +20,7 @@ export type Database = {
           bio: string | null
           contribution_index: number
           created_at: string
+          current_plan_code: string | null
           email: string
           has_completed_onboarding: boolean
           headline: string | null
@@ -35,6 +36,7 @@ export type Database = {
           bio?: string | null
           contribution_index?: number
           created_at?: string
+          current_plan_code?: string | null
           email?: string
           has_completed_onboarding?: boolean
           headline?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           bio?: string | null
           contribution_index?: number
           created_at?: string
+          current_plan_code?: string | null
           email?: string
           has_completed_onboarding?: boolean
           headline?: string | null
@@ -62,6 +65,164 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          free_quests_per_week: number
+          id: string
+          marketplace_fee_percent: number | null
+          max_guild_memberships: number | null
+          max_pods: number | null
+          monthly_price_amount: number | null
+          monthly_price_currency: string
+          name: string
+          updated_at: string
+          xp_multiplier: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          free_quests_per_week?: number
+          id?: string
+          marketplace_fee_percent?: number | null
+          max_guild_memberships?: number | null
+          max_pods?: number | null
+          monthly_price_amount?: number | null
+          monthly_price_currency?: string
+          name: string
+          updated_at?: string
+          xp_multiplier?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          free_quests_per_week?: number
+          id?: string
+          marketplace_fee_percent?: number | null
+          max_guild_memberships?: number | null
+          max_pods?: number | null
+          monthly_price_amount?: number | null
+          monthly_price_currency?: string
+          name?: string
+          updated_at?: string
+          xp_multiplier?: number
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          canceled_at: string | null
+          created_at: string
+          id: string
+          is_current: boolean
+          plan_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          canceled_at?: string | null
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          plan_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          canceled_at?: string | null
+          created_at?: string
+          id?: string
+          is_current?: boolean
+          plan_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_usage: {
+        Row: {
+          created_at: string
+          id: string
+          quests_created_count: number
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quests_created_count?: number
+          updated_at?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quests_created_count?: number
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
+      xp_transactions: {
+        Row: {
+          amount_xp: number
+          created_at: string
+          description: string | null
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          type: Database["public"]["Enums"]["xp_transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount_xp: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type: Database["public"]["Enums"]["xp_transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount_xp?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type?: Database["public"]["Enums"]["xp_transaction_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -70,7 +231,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
+      xp_transaction_type:
+        | "PURCHASE"
+        | "ACTION_SPEND"
+        | "REWARD"
+        | "ADJUSTMENT"
+        | "REFUND"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -197,6 +364,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
+      xp_transaction_type: [
+        "PURCHASE",
+        "ACTION_SPEND",
+        "REWARD",
+        "ADJUSTMENT",
+        "REFUND",
+      ],
+    },
   },
 } as const
