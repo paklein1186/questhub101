@@ -85,8 +85,18 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
             <motion.div key={svc.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
               <Link
                 to={`/services/${svc.id}`}
-                className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all"
+                className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
               >
+                {svc.imageUrl ? (
+                  <div className="w-full h-36 bg-muted">
+                    <img src={svc.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-full h-24 bg-muted/50 flex items-center justify-center">
+                    <Clock className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                )}
+                <div className="p-5">
                 <div className="flex items-start justify-between mb-2">
                   <h3 className="font-display font-semibold text-lg">{svc.title}</h3>
                   {svc.priceAmount != null && (
