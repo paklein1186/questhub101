@@ -224,22 +224,11 @@ export default function GuildDetail() {
         </TabsContent>
 
         <TabsContent value="quests" className="mt-6 space-y-3">
-          {isAdmin && (
+          {isMember && (
             <div className="flex items-center gap-3 mb-3">
-              <Dialog open={createQuestOpen} onOpenChange={setCreateQuestOpen}>
-                <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Quest</Button></DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Create Quest for {guild.name}</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-2">
-                    <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={e => setQTitle(e.target.value)} placeholder="Quest title" maxLength={120} /></div>
-                    <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={e => setQDesc(e.target.value)} placeholder="What needs to be done?" maxLength={500} className="resize-none" /></div>
-                    <ImageUpload label="Cover Image (optional)" currentImageUrl={qCoverImageUrl} onChange={setQCoverImageUrl} aspectRatio="16/9" description="Wide cover image" />
-                    <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={e => setQRewardXp(e.target.value)} min={0} /></div>
-                    <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={qDraft} onCheckedChange={setQDraft} /></div>
-                    <Button onClick={doCreateQuest} disabled={!qTitle.trim()} className="w-full">Create Quest</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Button size="sm" asChild>
+                <Link to={`/guilds/${guild.id}/quests/new`}><Plus className="h-4 w-4 mr-1" /> Create Quest for this Guild</Link>
+              </Button>
               <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_XP_COST} itemLabel="quest" />
             </div>
           )}
