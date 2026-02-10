@@ -109,10 +109,10 @@ export default function QuestDetail() {
 
   const postUpdate = () => {
     if (!uTitle.trim() || !uContent.trim()) return;
-    const update: QuestUpdate = { id: `qu-${Date.now()}`, questId: quest.id, authorId: currentUser.id, title: uTitle.trim(), content: uContent.trim(), imageUrl: uImageUrl, type: uType, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    const update: QuestUpdate = { id: `qu-${Date.now()}`, questId: quest.id, authorId: currentUser.id, title: uTitle.trim(), content: uContent.trim(), imageUrl: uImageUrl, type: uType, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), isDraft: uDraft };
     questUpdates.push(update);
-    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType(QuestUpdateType.GENERAL); setUImageUrl(undefined);
-    rerender(); toast({ title: "Update posted!" });
+    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType(QuestUpdateType.GENERAL); setUImageUrl(undefined); setUDraft(false);
+    rerender(); toast({ title: uDraft ? "Draft saved!" : "Update posted!" });
   };
 
   const joinQuest = () => {
