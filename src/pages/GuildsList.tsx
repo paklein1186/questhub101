@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Users, Plus } from "lucide-react";
+import { Shield, Users, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,16 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { GuildType, GuildMemberRole } from "@/types/enums";
-import type { Guild } from "@/types";
-import {
-  guilds, topics, territories,
-  getTopicsForGuild, getTerritoriesForGuild,
-  getMembersForGuild,
-  guildTopics, guildTerritories, guildMembers,
-} from "@/data/mock";
-import { filterActive } from "@/lib/softDelete";
-import { filterPublished } from "@/lib/drafts";
+import { GuildType } from "@/types/enums";
+import { useGuilds, useCreateGuild, useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
@@ -34,41 +26,33 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
   const [gDesc, setGDesc] = useState("");
   const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
   const [gDraft, setGDraft] = useState(false);
-  const [, forceUpdate] = useState(0);
 
   const isAdm = checkIsGlobalAdmin(currentUser.email);
+  const { data: guildsData, isLoading } = useGuilds();
+  const { data: topics } = useTopics();
+  const { data: territories } = useTerritories();
+  const createGuildMut = useCreateGuild();
 
-  const filtered = filterPublished(filterActive(guilds), currentUser.id, (g) => g.createdByUserId, isAdm).filter((g) => {
-    if (topicFilter !== "all" && !guildTopics.some((gt) => gt.guildId === g.id && gt.topicId === topicFilter)) return false;
-    if (territoryFilter !== "all" && !guildTerritories.some((gt) => gt.guildId === g.id && gt.territoryId === territoryFilter)) return false;
+  const allGuilds = guildsData ?? [];
+
+  // Filter: hide drafts unless owner/admin, and apply topic/territory filters
+  const filtered = allGuilds.filter((g) => {
+    if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
+    if (topicFilter !== "all" && !g.guild_topics?.some((gt: any) => gt.topic_id === topicFilter)) return false;
+    if (territoryFilter !== "all" && !g.guild_territories?.some((gt: any) => gt.territory_id === territoryFilter)) return false;
     return true;
   });
 
-  const createGuild = () => {
+  const handleCreate = async () => {
     if (!gName.trim()) return;
-    const newGuild: Guild = {
-      id: `g-${Date.now()}`,
-      name: gName.trim(),
-      description: gDesc.trim() || undefined,
-      logoUrl: `https://api.dicebear.com/7.x/shapes/svg?seed=${gName.trim().toLowerCase().replace(/\s/g, "")}`,
-      type: gType,
-      isApproved: false,
-      createdByUserId: currentUser.id,
-      isDraft: gDraft,
-    };
-    guilds.push(newGuild);
-    guildMembers.push({
-      id: `gm-${Date.now()}`,
-      guildId: newGuild.id,
-      userId: currentUser.id,
-      role: GuildMemberRole.ADMIN,
-      joinedAt: new Date().toISOString(),
-    });
-    setCreateOpen(false);
-    setGName(""); setGDesc(""); setGType(GuildType.GUILD); setGDraft(false);
-    forceUpdate(n => n + 1);
-    forceUpdate(n => n + 1);
-    toast({ title: "Guild created!", description: `${newGuild.name} (pending approval)` });
+    try {
+      await createGuildMut.mutateAsync({ name: gName, description: gDesc, type: gType, isDraft: gDraft });
+      setCreateOpen(false);
+      setGName(""); setGDesc(""); setGType(GuildType.GUILD); setGDraft(false);
+      toast({ title: "Guild created!", description: `${gName} (pending approval)` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
   };
 
   return (
@@ -108,7 +92,10 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
                   <label className="text-sm font-medium">Save as draft</label>
                   <Switch checked={gDraft} onCheckedChange={setGDraft} />
                 </div>
-                <Button onClick={createGuild} disabled={!gName.trim()} className="w-full">Create Guild</Button>
+                <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
+                  {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                  Create Guild
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -116,37 +103,33 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Topic" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Topics</SelectItem>
-              {topics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Territory" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Territories</SelectItem>
-              {territories.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((guild, i) => {
-          const gTopics = getTopicsForGuild(guild.id);
-          const gTerrs = getTerritoriesForGuild(guild.id);
-          const members = getMembersForGuild(guild.id);
+          const gTopics = guild.guild_topics?.map((gt: any) => gt.topics).filter(Boolean) ?? [];
+          const gTerrs = guild.guild_territories?.map((gt: any) => gt.territories).filter(Boolean) ?? [];
+          const memberCount = guild.guild_members?.length ?? 0;
           return (
-            <motion.div
-              key={guild.id}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Link
-                to={`/guilds/${guild.id}`}
-                className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all group"
-              >
+            <motion.div key={guild.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Link to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all group">
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={guild.logoUrl} className="h-12 w-12 rounded-lg" alt="" />
+                  <img src={guild.logo_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${guild.name}`} className="h-12 w-12 rounded-lg" alt="" />
                   <div>
                     <h3 className="font-display font-semibold group-hover:text-primary transition-colors">{guild.name}</h3>
                     <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
@@ -154,17 +137,17 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{guild.description}</p>
                 <div className="flex flex-wrap gap-1.5 mb-3">
-                  {gTopics.map((t) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
-                  {gTerrs.map((t) => <Badge key={t.id} variant="outline" className="text-xs">{t.name}</Badge>)}
+                  {gTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+                  {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs">{t.name}</Badge>)}
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" /> {members.length} members
+                  <Users className="h-3.5 w-3.5" /> {memberCount} members
                 </div>
               </Link>
             </motion.div>
           );
         })}
-        {filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No guilds match your filters.</p>}
+        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No guilds match your filters.</p>}
       </div>
     </PageShell>
   );
