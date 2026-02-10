@@ -65,7 +65,8 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
       joinedAt: new Date().toISOString(),
     });
     setCreateOpen(false);
-    setGName(""); setGDesc(""); setGType(GuildType.GUILD);
+    setGName(""); setGDesc(""); setGType(GuildType.GUILD); setGDraft(false);
+    forceUpdate(n => n + 1);
     forceUpdate(n => n + 1);
     toast({ title: "Guild created!", description: `${newGuild.name} (pending approval)` });
   };
