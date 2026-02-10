@@ -424,6 +424,36 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 </div>
               )}
 
+              {/* ── Features ── */}
+              {activeTab === "features" && (
+                <div className="space-y-5 max-w-lg">
+                  <Section title="Collaboration Features" icon={<Puzzle className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Enable or disable tools for this guild. Disabled tools will be hidden from the guild page.</p>
+                    <div className="space-y-4">
+                      {[
+                        { key: "kanbanBoard", label: "Kanban Board", desc: "Visual board to track quest status", icon: LayoutGrid },
+                        { key: "subtasks", label: "Subtasks", desc: "Break quests into smaller tasks with assignees", icon: ListChecks },
+                        { key: "docsSpace", label: "Docs Space", desc: "Notion-like documents for guild knowledge", icon: FileText },
+                        { key: "events", label: "Events", desc: "Create online/offline events with attendees", icon: CalendarDays },
+                        { key: "applicationProcess", label: "Application Process", desc: "Require applications for new members", icon: ClipboardList },
+                      ].map(({ key, label, desc, icon: Icon }) => (
+                        <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <Label className="text-sm font-medium">{label}</Label>
+                              <p className="text-xs text-muted-foreground">{desc}</p>
+                            </div>
+                          </div>
+                          <Switch checked={(featuresConfig as any)[key]} onCheckedChange={() => toggleFeature(key)} />
+                        </div>
+                      ))}
+                    </div>
+                    <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save features</Button>
+                  </Section>
+                </div>
+              )}
+
               {/* ── Membership Policy ── */}
               {activeTab === "membership" && (
                 <MembershipPolicyEditor
