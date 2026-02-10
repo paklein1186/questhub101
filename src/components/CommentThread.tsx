@@ -64,6 +64,13 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const addComment = (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
     if (!content) return;
+
+    // Block check: if commenting on a USER profile, check block relationship
+    if (targetType === CommentTargetType.USER && hasBlockRelationship(currentUser.id, targetId)) {
+      toast({ title: "Cannot comment", description: "There is a block between you and this user.", variant: "destructive" });
+      return;
+    }
+
     const commentId = `c-${Date.now()}`;
     const comment: Comment = { id: commentId, content, createdAt: new Date().toISOString(), authorId: currentUser.id, parentId, targetType, targetId, upvoteCount: 0 };
     setComments((prev) => [...prev, comment]);
