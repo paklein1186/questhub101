@@ -25,7 +25,7 @@ import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { GuildType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
+import { GuildType, GuildMemberRole, OnlineLocationType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentTargetType } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Service } from "@/types";
