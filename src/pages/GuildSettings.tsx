@@ -36,8 +36,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
+import { Label } from "@/components/ui/label";
+import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
+
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
+  { key: "features", label: "Features", icon: Puzzle },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
