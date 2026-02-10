@@ -35,6 +35,7 @@ import {
   services, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildDetail() {
@@ -262,6 +263,9 @@ export default function GuildDetail() {
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
           {territories.map((t) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+        </div>
+        <div className="mt-3">
+          <SocialLinksDisplay data={{ websiteUrl: guild.websiteUrl, twitterUrl: guild.twitterUrl, linkedinUrl: guild.linkedinUrl, instagramUrl: guild.instagramUrl }} />
         </div>
       </motion.div>
 

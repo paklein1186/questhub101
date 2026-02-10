@@ -34,6 +34,7 @@ import {
   guildMembers, users, getUserById, getMembersForGuild, getServicesForGuild, services,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -83,6 +84,12 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
 
+  // Social links state
+  const [guildWebsiteUrl, setGuildWebsiteUrl] = useState(guild.websiteUrl ?? "");
+  const [guildTwitterUrl, setGuildTwitterUrl] = useState(guild.twitterUrl ?? "");
+  const [guildLinkedinUrl, setGuildLinkedinUrl] = useState(guild.linkedinUrl ?? "");
+  const [guildInstagramUrl, setGuildInstagramUrl] = useState(guild.instagramUrl ?? "");
+
   // ── Members state ──
   const [members, setMembers] = useState(() => getMembersForGuild(guildId));
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -118,7 +125,18 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const handleSaveIdentity = () => {
     const idx = guilds.findIndex((g) => g.id === guildId);
     if (idx !== -1) {
-      guilds[idx] = { ...guilds[idx], name: name.trim() || guild.name, logoUrl: logoUrl.trim() || undefined, bannerUrl: bannerUrl.trim() || undefined, description: description.trim() || undefined, type };
+      guilds[idx] = {
+        ...guilds[idx],
+        name: name.trim() || guild.name,
+        logoUrl: logoUrl.trim() || undefined,
+        bannerUrl: bannerUrl.trim() || undefined,
+        description: description.trim() || undefined,
+        type,
+        websiteUrl: normalizeUrl(guildWebsiteUrl) ?? undefined,
+        twitterUrl: normalizeUrl(guildTwitterUrl) ?? undefined,
+        linkedinUrl: normalizeUrl(guildLinkedinUrl) ?? undefined,
+        instagramUrl: normalizeUrl(guildInstagramUrl) ?? undefined,
+      };
     }
     // Update topic relations
     const existing = guildTopics.filter((gt) => gt.guildId === guildId);
@@ -285,6 +303,21 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                   </Section>
 
                   <Button onClick={handleSaveIdentity} className="w-full"><Save className="h-4 w-4 mr-2" /> Save identity</Button>
+
+                  <Separator />
+
+                  <Section title="Links & Social" icon={<Shield className="h-5 w-5" />}>
+                    <SocialLinksEdit
+                      data={{ websiteUrl: guildWebsiteUrl, twitterUrl: guildTwitterUrl, linkedinUrl: guildLinkedinUrl, instagramUrl: guildInstagramUrl }}
+                      onChange={(key, value) => {
+                        if (key === "websiteUrl") setGuildWebsiteUrl(value);
+                        else if (key === "twitterUrl") setGuildTwitterUrl(value);
+                        else if (key === "linkedinUrl") setGuildLinkedinUrl(value);
+                        else if (key === "instagramUrl") setGuildInstagramUrl(value);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
+                  </Section>
                 </div>
               )}
 

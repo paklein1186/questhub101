@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
@@ -27,6 +27,8 @@ import {
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
+import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsAdmin } from "@/lib/admin";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -47,6 +49,27 @@ export default function UserProfile() {
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newQuestId, setNewQuestId] = useState("none");
+
+  // Social links from DB
+  const [socialLinks, setSocialLinks] = useState<SocialLinksData>({});
+  useEffect(() => {
+    if (!id) return;
+    supabase
+      .from("profiles")
+      .select("website_url, twitter_url, linkedin_url, instagram_url")
+      .eq("user_id", id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setSocialLinks({
+            websiteUrl: (data as any).website_url,
+            twitterUrl: (data as any).twitter_url,
+            linkedinUrl: (data as any).linkedin_url,
+            instagramUrl: (data as any).instagram_url,
+          });
+        }
+      });
+  }, [id]);
 
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
   if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
@@ -161,6 +184,7 @@ export default function UserProfile() {
             <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>
           ))}
         </div>
+        <SocialLinksDisplay data={socialLinks} />
       </motion.div>
 
       {/* About */}

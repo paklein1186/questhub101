@@ -35,6 +35,7 @@ import {
   guilds, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -77,6 +78,9 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
   const [sector, setSector] = useState(company.sector ?? "");
   const [size, setSize] = useState<CompanySize>(company.size ?? CompanySize.OTHER);
   const [websiteUrl, setWebsiteUrl] = useState(company.websiteUrl ?? "");
+  const [companyTwitterUrl, setCompanyTwitterUrl] = useState(company.twitterUrl ?? "");
+  const [companyLinkedinUrl, setCompanyLinkedinUrl] = useState(company.linkedinUrl ?? "");
+  const [companyInstagramUrl, setCompanyInstagramUrl] = useState(company.instagramUrl ?? "");
 
   const currentTopicIds = companyTopics.filter((ct) => ct.companyId === companyId).map((ct) => ct.topicId);
   const currentTerritoryIds = companyTerritories.filter((ct) => ct.companyId === companyId).map((ct) => ct.territoryId);
@@ -111,7 +115,10 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
       c.description = description.trim() || undefined;
       c.sector = sector.trim() || undefined;
       c.size = size;
-      c.websiteUrl = websiteUrl.trim() || undefined;
+      c.websiteUrl = normalizeUrl(websiteUrl) ?? undefined;
+      c.twitterUrl = normalizeUrl(companyTwitterUrl) ?? undefined;
+      c.linkedinUrl = normalizeUrl(companyLinkedinUrl) ?? undefined;
+      c.instagramUrl = normalizeUrl(companyInstagramUrl) ?? undefined;
       c.updatedAt = new Date().toISOString();
     }
     // Update topic relations
@@ -248,6 +255,21 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                   </Section>
 
                   <Button onClick={handleSaveIdentity} className="w-full"><Save className="h-4 w-4 mr-2" /> Save identity</Button>
+
+                  <Separator />
+
+                  <Section title="Links & Social" icon={<Globe className="h-5 w-5" />}>
+                    <SocialLinksEdit
+                      data={{ websiteUrl, twitterUrl: companyTwitterUrl, linkedinUrl: companyLinkedinUrl, instagramUrl: companyInstagramUrl }}
+                      onChange={(key, value) => {
+                        if (key === "websiteUrl") setWebsiteUrl(value);
+                        else if (key === "twitterUrl") setCompanyTwitterUrl(value);
+                        else if (key === "linkedinUrl") setCompanyLinkedinUrl(value);
+                        else if (key === "instagramUrl") setCompanyInstagramUrl(value);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
+                  </Section>
                 </div>
               )}
 

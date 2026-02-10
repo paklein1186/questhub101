@@ -55,6 +55,11 @@ export interface User extends SoftDeletable {
   showServicesPublicly?: boolean;
   allowFollows?: boolean;
   allowProfileComments?: boolean;
+  // Social links
+  websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   // Relations
   guildMembers?: GuildMember[];
   questParticipants?: QuestParticipant[];
@@ -71,6 +76,11 @@ export interface Guild extends SoftDeletable, Draftable {
   type: GuildType;
   isApproved: boolean;
   createdByUserId: string;
+  // Social links
+  websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   // Relations
   createdByUser?: User;
   guildMembers?: GuildMember[];
@@ -417,6 +427,9 @@ export interface Company extends SoftDeletable {
   sector?: string;
   size?: CompanySize;
   websiteUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
   contactUserId?: string;
   createdAt: string;
   updatedAt: string;

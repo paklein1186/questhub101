@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
+import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
 import {
   users, topics, territories, userTopics, userTerritories,
   services, getServicesForUser,
@@ -80,12 +81,18 @@ export default function SettingsPage() {
   const [role, setRole] = useState<UserRole>(currentUser.role);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // Load full profile from Supabase on mount so we get headline/bio
+  // Social links state
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [twitterUrl, setTwitterUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+
+  // Load full profile from Supabase on mount so we get headline/bio/social
   useEffect(() => {
     if (!authUser?.id) return;
     supabase
       .from("profiles")
-      .select("name, headline, bio, avatar_url, role")
+      .select("name, headline, bio, avatar_url, role, website_url, twitter_url, linkedin_url, instagram_url")
       .eq("user_id", authUser.id)
       .single()
       .then(({ data }) => {
@@ -95,6 +102,10 @@ export default function SettingsPage() {
           setBio(data.bio || "");
           setAvatarUrl(data.avatar_url || "");
           setRole((data.role as UserRole) || UserRole.GAMECHANGER);
+          setWebsiteUrl((data as any).website_url || "");
+          setTwitterUrl((data as any).twitter_url || "");
+          setLinkedinUrl((data as any).linkedin_url || "");
+          setInstagramUrl((data as any).instagram_url || "");
           setProfileLoaded(true);
         }
       });
@@ -160,12 +171,21 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!authUser) return;
     setProfileSaving(true);
+    const normalizeUrl = (url: string) => {
+      const t = url.trim();
+      if (!t) return null;
+      return /^https?:\/\//i.test(t) ? t : `https://${t}`;
+    };
     const updates: Record<string, unknown> = {
       name: name.trim() || currentUser.name,
       headline: headline.trim() || null,
       bio: bio.trim() || null,
       avatar_url: avatarUrl.trim() || null,
       role,
+      website_url: normalizeUrl(websiteUrl),
+      twitter_url: normalizeUrl(twitterUrl),
+      linkedin_url: normalizeUrl(linkedinUrl),
+      instagram_url: normalizeUrl(instagramUrl),
     };
     const { error } = await supabase
       .from("profiles")
@@ -415,6 +435,21 @@ export default function SettingsPage() {
                         {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
                       </Button>
                     </div>
+                  </Section>
+
+                  <Separator />
+
+                  <Section title="Social & Web Links" icon={<ExternalLink className="h-5 w-5" />}>
+                    <SocialLinksEdit
+                      data={{ websiteUrl, twitterUrl, linkedinUrl, instagramUrl }}
+                      onChange={(key, value) => {
+                        if (key === "websiteUrl") setWebsiteUrl(value);
+                        else if (key === "twitterUrl") setTwitterUrl(value);
+                        else if (key === "linkedinUrl") setLinkedinUrl(value);
+                        else if (key === "instagramUrl") setInstagramUrl(value);
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save profile" above.</p>
                   </Section>
 
                   <Separator />
