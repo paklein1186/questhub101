@@ -201,7 +201,7 @@ export default function CompanyDetail() {
           <CommentThread targetType={CommentTargetType.COMPANY} targetId={company.id} />
         </TabsContent>
 
-        {isMember && (
+        {isContact && (
           <TabsContent value="ai-chat" className="mt-6">
             <UnitChat entityType="COMPANY" entityId={company.id} entityName={company.name} />
           </TabsContent>
