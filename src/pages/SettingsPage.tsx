@@ -31,6 +31,7 @@ import {
   users, topics, territories, userTopics, userTerritories,
   services, getServicesForUser,
   availabilityRules, availabilityExceptions,
+  referrals, generateReferralCode, getReferralsForUser,
 } from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
