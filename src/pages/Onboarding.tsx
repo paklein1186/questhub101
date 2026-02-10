@@ -132,10 +132,10 @@ export default function Onboarding() {
   };
 
   const goNext = async () => {
-    if (step === 3) {
+    if (step === 4) {
       // Trigger AI generation
       setDirection(1);
-      setStep(4);
+      setStep(5);
       setLoading(true);
       const res = await generateOnboardingResults({
         role: role!,
@@ -145,10 +145,28 @@ export default function Onboarding() {
       });
       setResult(res);
       setLoading(false);
+
+      // Infer persona in the background
+      supabase.functions.invoke("infer-persona", {
+        body: {
+          selections: whySelections.map(k => WHY_OPTIONS.find(o => o.key === k)?.label || k),
+          freeText: whyFreeText,
+          topics: selectedTopics,
+        },
+      }).then(({ data }) => {
+        if (data?.persona && authUser?.id) {
+          supabase.from("profiles").update({
+            persona_type: data.persona,
+            persona_confidence: data.confidence || 0.5,
+            persona_source: data.source || "onboarding_ai",
+          } as any).eq("user_id", authUser.id);
+        }
+      });
+
       return;
     }
-    if (step === 4) {
-      // Persist wizard data to Supabase (same fields as Settings → Profile)
+    if (step === 5) {
+      // Persist wizard data to Supabase
       if (authUser?.id) {
         const updates: Record<string, unknown> = {
           role: role || undefined,
@@ -169,7 +187,6 @@ export default function Onboarding() {
         existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
         selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
 
-        // Update mock user object for immediate UI consistency
         const idx = users.findIndex((u) => u.id === currentUser.id);
         if (idx !== -1) {
           users[idx] = { ...users[idx], role: role || users[idx].role, bio: bio.trim() || undefined, headline: result?.headline || users[idx].headline };
@@ -178,7 +195,7 @@ export default function Onboarding() {
         await refreshProfile();
       }
       setDirection(1);
-      setStep(5);
+      setStep(6);
       return;
     }
     setDirection(1);
