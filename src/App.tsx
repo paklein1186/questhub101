@@ -28,6 +28,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
+import BookingDetail from "./pages/BookingDetail";
 import CompanyDetail from "./pages/CompanyDetail";
 import CompanySettings from "./pages/CompanySettings";
 import TopicHouse from "./pages/TopicHouse";
