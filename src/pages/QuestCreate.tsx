@@ -160,12 +160,12 @@ export default function QuestCreate() {
         open={showXpDialog}
         onOpenChange={setShowXpDialog}
         canAfford={limits.canAffordExtraQuest}
-        xpCost={EXTRA_QUEST_XP_COST}
-        userXp={limits.userXp}
+        xpCost={EXTRA_QUEST_CREDIT_COST}
+        userXp={limits.userCredits}
         actionLabel="create an extra quest"
         limitLabel="free quests for this week"
         onConfirm={async () => {
-          const ok = await limits.spendXp(EXTRA_QUEST_XP_COST, "Extra quest creation", "QUEST");
+          const ok = await limits.spendCredits(EXTRA_QUEST_CREDIT_COST, "Extra quest creation", "QUEST");
           if (ok) doCreate();
         }}
       />
