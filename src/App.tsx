@@ -38,6 +38,9 @@ import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
 import OnboardingChecklist from "./pages/OnboardingChecklist";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import CookiesPage from "./pages/CookiesPage";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +73,9 @@ const App = () => (
                 <Route path="/companies/:id" element={<CompanyDetail />} />
                 <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/cookies" element={<CookiesPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
