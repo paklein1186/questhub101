@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Filter, Clock, MapPin, Hash, Euro, Loader2 } from "lucide-react";
+import { Clock, MapPin, Hash, Euro, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { useServices, useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useServices } from "@/hooks/useSupabaseData";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -16,16 +16,12 @@ const fadeUp = {
 };
 
 export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
-  const [topicFilter, setTopicFilter] = useState("ALL");
-  const [territoryFilter, setTerritoryFilter] = useState("ALL");
-  const [priceFilter, setPriceFilter] = useState("ALL");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const currentUser = useCurrentUser();
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
   const { data: servicesData, isLoading } = useServices();
-  const { data: topics } = useTopics();
-  const { data: territories } = useTerritories();
 
   let filtered = (servicesData ?? []).filter((s) => {
     if (s.is_draft && !isAdm && s.provider_user_id !== currentUser.id) return false;
@@ -33,15 +29,15 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
     return true;
   });
 
-  if (topicFilter !== "ALL") {
-    filtered = filtered.filter((s) => (s as any).service_topics?.some((st: any) => st.topic_id === topicFilter));
+  if (filters.topicIds.length > 0) {
+    filtered = filtered.filter((s) => (s as any).service_topics?.some((st: any) => filters.topicIds.includes(st.topic_id)));
   }
-  if (territoryFilter !== "ALL") {
-    filtered = filtered.filter((s) => (s as any).service_territories?.some((st: any) => st.territory_id === territoryFilter));
+  if (filters.territoryIds.length > 0) {
+    filtered = filtered.filter((s) => (s as any).service_territories?.some((st: any) => filters.territoryIds.includes(st.territory_id)));
   }
-  if (priceFilter === "FREE") {
+  if (filters.price === "free") {
     filtered = filtered.filter((s) => !s.price_amount || s.price_amount === 0);
-  } else if (priceFilter === "PAID") {
+  } else if (filters.price === "paid") {
     filtered = filtered.filter((s) => s.price_amount && s.price_amount > 0);
   }
 
@@ -52,29 +48,12 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
         <p className="text-muted-foreground mt-1">Browse consultancy services offered by users and guilds.</p>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={topicFilter} onValueChange={setTopicFilter}>
-          <SelectTrigger className="w-[160px]"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All topics</SelectItem>
-            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Territory" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All territories</SelectItem>
-            {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={priceFilter} onValueChange={setPriceFilter}>
-          <SelectTrigger className="w-[130px]"><Euro className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All prices</SelectItem>
-            <SelectItem value="FREE">Free</SelectItem>
-            <SelectItem value="PAID">Paid</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showTerritories: true, showPrice: true }}
+        />
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
@@ -107,19 +86,13 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     {provider && (
                       <span className="flex items-center gap-1">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={provider.avatar_url} />
-                          <AvatarFallback className="text-[10px]">{provider.name?.[0]}</AvatarFallback>
-                        </Avatar>
+                        <Avatar className="h-5 w-5"><AvatarImage src={provider.avatar_url} /><AvatarFallback className="text-[10px]">{provider.name?.[0]}</AvatarFallback></Avatar>
                         <span className="font-medium text-foreground">{provider.name}</span>
                       </span>
                     )}
                     {guild && (
                       <span className="flex items-center gap-1">
-                        <Avatar className="h-5 w-5 rounded">
-                          <AvatarImage src={guild.logo_url} />
-                          <AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback>
-                        </Avatar>
+                        <Avatar className="h-5 w-5 rounded"><AvatarImage src={guild.logo_url} /><AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback></Avatar>
                         <span className="font-medium text-foreground">{guild.name}</span>
                       </span>
                     )}

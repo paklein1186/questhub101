@@ -4,14 +4,13 @@ import { motion } from "framer-motion";
 import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { QuestStatus, MonetizationType } from "@/types/enums";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuests, useTopics, useTerritories, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
+import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
@@ -72,10 +71,7 @@ function CreateQuestButton() {
 }
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
-  const [topicFilter, setTopicFilter] = useState("all");
-  const [territoryFilter, setTerritoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [monetizationFilter, setMonetizationFilter] = useState("all");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const currentUser = useCurrentUser();
   const { session } = useAuth();
@@ -83,17 +79,14 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
   const { data: questsData, isLoading } = useQuests();
-  const { data: topics } = useTopics();
-  const { data: territories } = useTerritories();
-
   const allQuests = questsData ?? [];
 
   const filtered = allQuests.filter((q) => {
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
-    if (topicFilter !== "all" && !q.quest_topics?.some((qt: any) => qt.topic_id === topicFilter)) return false;
-    if (territoryFilter !== "all" && !q.quest_territories?.some((qt: any) => qt.territory_id === territoryFilter)) return false;
-    if (statusFilter !== "all" && q.status !== statusFilter) return false;
-    if (monetizationFilter !== "all" && q.monetization_type !== monetizationFilter) return false;
+    if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
+    if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
+    if (filters.status !== "all" && q.status !== filters.status) return false;
+    if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     return true;
   });
 
@@ -106,35 +99,12 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         {isLoggedIn && <CreateQuestButton />}
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={topicFilter} onValueChange={setTopicFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Topic" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Topics</SelectItem>
-            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Territory" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Territories</SelectItem>
-            {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {Object.values(QuestStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={monetizationFilter} onValueChange={setMonetizationFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Type" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {Object.values(MonetizationType).map((m) => <SelectItem key={m} value={m}>{m.toLowerCase()}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true }}
+        />
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
