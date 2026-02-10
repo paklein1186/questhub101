@@ -494,8 +494,8 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 5: Start Exploring */}
-              {step === 5 && (
+              {/* Step 6: Start Exploring */}
+              {step === 6 && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
