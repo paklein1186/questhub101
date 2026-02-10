@@ -386,7 +386,7 @@ export interface AvailabilityException {
 
 // ─── Companies ───────────────────────────────────────────────
 
-export interface Company {
+export interface Company extends SoftDeletable {
   id: string;
   name: string;
   logoUrl?: string;
