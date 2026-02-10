@@ -1619,6 +1619,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="governance"><Star className="h-4 w-4 mr-1" /> Governance</TabsTrigger>
             <TabsTrigger value="marketplace"><ShoppingBag className="h-4 w-4 mr-1" /> Marketplace</TabsTrigger>
             <TabsTrigger value="moderation"><AlertTriangle className="h-4 w-4 mr-1" /> Moderation</TabsTrigger>
+            <TabsTrigger value="notifications"><Bell className="h-4 w-4 mr-1" /> Notifications</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="h-4 w-4 mr-1" /> Emails</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="h-4 w-4 mr-1" /> Audit Logs</TabsTrigger>
@@ -1632,6 +1633,7 @@ export default function AdminDashboard() {
           <TabsContent value="governance" className="mt-6"><GovernanceTab /></TabsContent>
           <TabsContent value="marketplace" className="mt-6"><MarketplaceTab /></TabsContent>
           <TabsContent value="moderation" className="mt-6"><ModerationTab /></TabsContent>
+          <TabsContent value="notifications" className="mt-6"><NotificationsMonitoringTab /></TabsContent>
           <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
           <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
           <TabsContent value="audit" className="mt-6"><AuditLogsTab /></TabsContent>
