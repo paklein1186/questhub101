@@ -14,10 +14,10 @@ export default function TermsPage() {
         <p className="text-muted-foreground text-sm mb-2">Last updated: February 10, 2026</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">1. Acceptance of Terms</h2>
-        <p className="text-muted-foreground leading-relaxed">By accessing and using QuestHub ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
+        <p className="text-muted-foreground leading-relaxed">By accessing and using ChangeTheGame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">2. Description of Service</h2>
-        <p className="text-muted-foreground leading-relaxed">QuestHub is a learning network connecting gamechangers, ecosystem builders, and organisations around regenerative projects (Quests), collaborative groups (Guilds), and expertise sharing (Services).</p>
+        <p className="text-muted-foreground leading-relaxed">ChangeTheGame is a learning network connecting gamechangers, ecosystem builders, and organisations around regenerative projects (Quests), collaborative groups (Guilds), and expertise sharing (Services).</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">3. User Accounts</h2>
         <p className="text-muted-foreground leading-relaxed">You must provide accurate information when creating an account. You are responsible for maintaining the confidentiality of your credentials and for all activities under your account.</p>
@@ -26,7 +26,7 @@ export default function TermsPage() {
         <p className="text-muted-foreground leading-relaxed">You agree not to: post harmful, misleading, or illegal content; harass other users; attempt to manipulate XP or contribution metrics; or circumvent rate limits or platform restrictions.</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">5. Intellectual Property</h2>
-        <p className="text-muted-foreground leading-relaxed">Content you create on the Platform remains yours. By posting, you grant QuestHub a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
+        <p className="text-muted-foreground leading-relaxed">Content you create on the Platform remains yours. By posting, you grant ChangeTheGame a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">6. Payments & Subscriptions</h2>
         <p className="text-muted-foreground leading-relaxed">Paid plans and service bookings are processed through our payment provider. Refund policies apply as described at the time of purchase.</p>

@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         <p className="text-muted-foreground leading-relaxed">We implement industry-standard security measures including encryption, rate limiting, and role-based access controls to protect your data.</p>
 
         <h2 className="font-display text-xl font-semibold mt-8 mb-3">7. Contact</h2>
-        <p className="text-muted-foreground leading-relaxed">For privacy inquiries, contact our Data Protection Officer at privacy@questhub.example.com.</p>
+        <p className="text-muted-foreground leading-relaxed">For privacy inquiries, contact our Data Protection Officer at privacy@changethegame.xyz.</p>
       </article>
     </PageShell>
   );

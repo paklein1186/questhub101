@@ -297,8 +297,8 @@ export default function Onboarding() {
               {step === 0 && (
                 <div className="space-y-5">
                   <div>
-                    <h2 className="font-display text-2xl font-bold">What are you up to? ✨</h2>
-                    <p className="text-sm text-muted-foreground mt-1">Select everything that resonates. You can always change this later.</p>
+                    <h2 className="font-display text-2xl font-bold">Welcome to ChangeTheGame ✨</h2>
+                    <p className="text-sm text-muted-foreground mt-1">What are you up to? Select everything that resonates — you can always change this later.</p>
                   </div>
                   <div className="space-y-2">
                     {INTENTION_OPTIONS.map((opt) => (
