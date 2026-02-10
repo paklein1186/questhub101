@@ -213,3 +213,15 @@ export enum CoursePurchaseStatus {
   FAILED = "FAILED",
   REFUNDED = "REFUNDED",
 }
+
+export enum GuildJoinPolicy {
+  OPEN = "OPEN",
+  APPROVAL_REQUIRED = "APPROVAL_REQUIRED",
+  INVITE_ONLY = "INVITE_ONLY",
+}
+
+export enum GuildApplicationStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}

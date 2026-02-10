@@ -5,7 +5,7 @@ import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin,
-  AlertCircle, Check, Loader2,
+  AlertCircle, Check, Loader2, ClipboardList, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { GuildType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
+import { GuildType, GuildMemberRole, OnlineLocationType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentTargetType } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Service } from "@/types";
@@ -35,10 +35,13 @@ import {
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
+import { GuildApplicationsTab } from "@/components/GuildApplicationsTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
-  { key: "members", label: "Membership & Roles", icon: Users },
+  { key: "membership", label: "Membership Policy", icon: ClipboardList },
+  { key: "applications", label: "Applications", icon: Users },
+  { key: "members", label: "Members & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "documents", label: "Documents", icon: Briefcase },
@@ -106,6 +109,15 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const [svcPrice, setSvcPrice] = useState("0");
   const [svcLocationType, setSvcLocationType] = useState<OnlineLocationType>(OnlineLocationType.JITSI);
   const [svcImageUrl, setSvcImageUrl] = useState<string | undefined>();
+
+  // ── Membership policy state ──
+  const [joinPolicy, setJoinPolicy] = useState<GuildJoinPolicy>(
+    (guild as any).joinPolicy || GuildJoinPolicy.OPEN
+  );
+  const [appQuestions, setAppQuestions] = useState<string[]>(
+    (guild as any).applicationQuestions || []
+  );
+  const [newQuestion, setNewQuestion] = useState("");
 
   // ── Defaults state ──
   const [podAccessPolicy, setPodAccessPolicy] = useState<"OPEN" | "GUILD_MEMBERS" | "INVITE_ONLY">("OPEN");
@@ -316,6 +328,97 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                     <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
                   </Section>
                 </div>
+              )}
+
+              {/* ── Membership Policy ── */}
+              {activeTab === "membership" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Join Policy" icon={<ClipboardList className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">Control how users can join this guild.</p>
+                    <Select value={joinPolicy} onValueChange={(v) => setJoinPolicy(v as GuildJoinPolicy)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={GuildJoinPolicy.OPEN}>Open — anyone can join instantly</SelectItem>
+                        <SelectItem value={GuildJoinPolicy.APPROVAL_REQUIRED}>Application required — users must apply</SelectItem>
+                        <SelectItem value={GuildJoinPolicy.INVITE_ONLY}>Invite-only — only admins can add members</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Section>
+
+                  {joinPolicy === GuildJoinPolicy.APPROVAL_REQUIRED && (
+                    <>
+                      <Separator />
+                      <Section title="Application Questions" icon={<ClipboardList className="h-5 w-5" />}>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Define questions applicants must answer. Leave empty for a simple apply button.
+                        </p>
+                        <div className="space-y-2 mb-3">
+                          {appQuestions.map((q, i) => (
+                            <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
+                              <span className="text-sm flex-1">{q}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-destructive shrink-0"
+                                onClick={() => setAppQuestions((prev) => prev.filter((_, idx) => idx !== i))}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          {appQuestions.length === 0 && (
+                            <p className="text-xs text-muted-foreground italic">No questions yet. Applicants will submit a simple request.</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newQuestion}
+                            onChange={(e) => setNewQuestion(e.target.value)}
+                            placeholder="Add a question…"
+                            maxLength={200}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && newQuestion.trim()) {
+                                setAppQuestions((prev) => [...prev, newQuestion.trim()]);
+                                setNewQuestion("");
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!newQuestion.trim()}
+                            onClick={() => {
+                              setAppQuestions((prev) => [...prev, newQuestion.trim()]);
+                              setNewQuestion("");
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Section>
+                    </>
+                  )}
+
+                  <Button
+                    onClick={() => {
+                      // Save to mock (in real app this would be a supabase update)
+                      const target = guilds.find((g) => g.id === guildId);
+                      if (target) {
+                        (target as any).joinPolicy = joinPolicy;
+                        (target as any).applicationQuestions = appQuestions;
+                      }
+                      toast({ title: "Membership policy saved!" });
+                    }}
+                    className="w-full"
+                  >
+                    <Save className="h-4 w-4 mr-2" /> Save membership policy
+                  </Button>
+                </div>
+              )}
+
+              {/* ── Applications ── */}
+              {activeTab === "applications" && (
+                <GuildApplicationsTab guildId={guildId} currentUserId={currentUser.id} />
               )}
 
               {/* ── Membership & Roles ── */}

@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      guild_applications: {
+        Row: {
+          admin_note: string | null
+          answers: Json | null
+          applicant_user_id: string
+          created_at: string
+          guild_id: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: Database["public"]["Enums"]["guild_application_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id: string
+          created_at?: string
+          guild_id: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          answers?: Json | null
+          applicant_user_id?: string
+          created_at?: string
+          guild_id?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: Database["public"]["Enums"]["guild_application_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_applications_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_members: {
         Row: {
           guild_id: string
@@ -114,6 +161,7 @@ export type Database = {
       }
       guilds: {
         Row: {
+          application_questions: Json | null
           banner_url: string | null
           created_at: string
           created_by_user_id: string
@@ -124,6 +172,7 @@ export type Database = {
           is_approved: boolean
           is_deleted: boolean
           is_draft: boolean
+          join_policy: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url: string | null
           logo_url: string | null
           name: string
@@ -133,6 +182,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          application_questions?: Json | null
           banner_url?: string | null
           created_at?: string
           created_by_user_id: string
@@ -143,6 +193,7 @@ export type Database = {
           is_approved?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url?: string | null
           logo_url?: string | null
           name: string
@@ -152,6 +203,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          application_questions?: Json | null
           banner_url?: string | null
           created_at?: string
           created_by_user_id?: string
@@ -162,6 +214,7 @@ export type Database = {
           is_approved?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url?: string | null
           logo_url?: string | null
           name?: string
@@ -845,6 +898,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      guild_application_status: "PENDING" | "APPROVED" | "REJECTED"
+      guild_join_policy: "OPEN" | "APPROVAL_REQUIRED" | "INVITE_ONLY"
       guild_member_role: "ADMIN" | "MEMBER"
       guild_type: "GUILD" | "NETWORK" | "COLLECTIVE"
       monetization_type: "FREE" | "PAID" | "MIXED"
@@ -987,6 +1042,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      guild_application_status: ["PENDING", "APPROVED", "REJECTED"],
+      guild_join_policy: ["OPEN", "APPROVAL_REQUIRED", "INVITE_ONLY"],
       guild_member_role: ["ADMIN", "MEMBER"],
       guild_type: ["GUILD", "NETWORK", "COLLECTIVE"],
       monetization_type: ["FREE", "PAID", "MIXED"],

@@ -21,7 +21,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_QUEST_XP_COST, EXTRA_GUILD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, FollowTargetType, GuildMemberRole, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, GuildMemberRole, GuildJoinPolicy, OnlineLocationType, QuestStatus, MonetizationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
@@ -37,6 +37,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { GuildJoinButton } from "@/components/GuildJoinButton";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -240,9 +241,13 @@ export default function GuildDetail() {
             </Button>
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
-                <Button size="sm" variant="outline" onClick={attemptJoinGuild}>
-                  <UserPlus className="h-4 w-4 mr-1" /> Join Guild
-                </Button>
+                <GuildJoinButton
+                  guildId={guild.id}
+                  joinPolicy={(guild as any).joinPolicy || GuildJoinPolicy.OPEN}
+                  applicationQuestions={(guild as any).applicationQuestions || []}
+                  currentUserId={currentUser.id}
+                  onJoined={rerender}
+                />
                 <PlanLimitBadge
                   limitReached={limits.guildLimitReached}
                   xpCost={EXTRA_GUILD_XP_COST}

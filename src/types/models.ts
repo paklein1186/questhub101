@@ -25,6 +25,8 @@ import {
   AttachmentTargetType,
   CourseLevel,
   CoursePurchaseStatus,
+  GuildJoinPolicy,
+  GuildApplicationStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
@@ -78,6 +80,8 @@ export interface Guild extends SoftDeletable, Draftable {
   type: GuildType;
   isApproved: boolean;
   createdByUserId: string;
+  joinPolicy?: GuildJoinPolicy;
+  applicationQuestions?: string[];
   // Social links
   websiteUrl?: string;
   twitterUrl?: string;
@@ -100,6 +104,23 @@ export interface GuildMember {
   // Relations
   guild?: Guild;
   user?: User;
+}
+
+export interface GuildApplication {
+  id: string;
+  guildId: string;
+  applicantUserId: string;
+  status: GuildApplicationStatus;
+  answers?: Array<{ question: string; answer: string }>;
+  adminNote?: string;
+  reviewedAt?: string;
+  reviewedByUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Relations
+  guild?: Guild;
+  applicantUser?: User;
+  reviewedByUser?: User;
 }
 
 // ─── Quests ──────────────────────────────────────────────────
