@@ -115,7 +115,10 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
       c.description = description.trim() || undefined;
       c.sector = sector.trim() || undefined;
       c.size = size;
-      c.websiteUrl = websiteUrl.trim() || undefined;
+      c.websiteUrl = normalizeUrl(websiteUrl) ?? undefined;
+      c.twitterUrl = normalizeUrl(companyTwitterUrl) ?? undefined;
+      c.linkedinUrl = normalizeUrl(companyLinkedinUrl) ?? undefined;
+      c.instagramUrl = normalizeUrl(companyInstagramUrl) ?? undefined;
       c.updatedAt = new Date().toISOString();
     }
     // Update topic relations
