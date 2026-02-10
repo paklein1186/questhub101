@@ -41,6 +41,7 @@ export default function PodDetail() {
 
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
   if (pod.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This pod has been removed.</p></PageShell>;
+  if (pod.isDraft && pod.creatorId !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Pod not found.</p></PageShell>;
 
   const members = getMembersForPod(pod.id);
   const quest = pod.questId ? getQuestById(pod.questId) : null;

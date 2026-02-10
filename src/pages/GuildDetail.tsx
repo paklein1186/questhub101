@@ -204,6 +204,8 @@ export default function GuildDetail() {
         <Link to="/explore?tab=guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
       </Button>
 
+      {guild.isDraft && <DraftBanner />}
+
       {/* Banner */}
       {guild.bannerUrl && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
