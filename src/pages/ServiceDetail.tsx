@@ -59,6 +59,7 @@ export default function ServiceDetail() {
   }, [slots]);
 
   if (!svc) return <PageShell><p>Service not found.</p></PageShell>;
+  if (svc.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This service has been removed.</p></PageShell>;
 
   const isFree = !svc.priceAmount || svc.priceAmount === 0;
 
