@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { quests, topics } from "@/data/mock";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
