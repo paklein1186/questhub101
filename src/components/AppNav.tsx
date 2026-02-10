@@ -124,28 +124,12 @@ export function AppNav() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/me" className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> Me hub
+                      <User className="h-4 w-4 mr-2" /> My Hub
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
                       <User className="h-4 w-4 mr-2" /> My public profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/me/bookings" className="cursor-pointer">
-                      <CalendarCheck className="h-4 w-4 mr-2" /> My bookings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/me/services" className="cursor-pointer">
-                      <ShoppingBag className="h-4 w-4 mr-2" /> My services
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/me/companies" className="cursor-pointer">
-                      <Building2 className="h-4 w-4 mr-2" /> My companies
                     </Link>
                   </DropdownMenuItem>
                   {showAdmin && (
@@ -158,12 +142,6 @@ export function AppNav() {
                       </DropdownMenuItem>
                     </>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/me/settings" className="cursor-pointer">
-                      <Settings className="h-4 w-4 mr-2" /> Settings
-                    </Link>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                     <LogOut className="h-4 w-4 mr-2" /> Log out

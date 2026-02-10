@@ -126,15 +126,16 @@ const App = () => (
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
                 <Route path="/work" element={<RequireAuth><WorkHub /></RequireAuth>} />
                 <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
-                <Route path="/me" element={<RequireAuth><MeHub /></RequireAuth>} />
+                <Route path="/me" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+                <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
                 <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
                 <Route path="/me/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
                 <Route path="/me/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
-                <Route path="/me/guilds" element={<RequireAuth><MyGuilds /></RequireAuth>} />
+                <Route path="/me/guilds" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/availability" element={<RequireAuth><MyAvailability /></RequireAuth>} />
-                <Route path="/me/services" element={<RequireAuth><ServicesMarketplace /></RequireAuth>} />
+                <Route path="/me/services" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/credits" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
