@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Check, X, CheckCircle, Video, ExternalLink } from "lucide-react";
+import { Briefcase, Check, X, CheckCircle, Video, ExternalLink, CalendarPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   bookings, getUserById, getServiceById, guildMembers,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { downloadIcs } from "@/lib/icsExport";
 
 const statusColors: Record<string, string> = {
   [BookingStatus.REQUESTED]: "bg-warning/10 text-warning",
@@ -141,6 +142,11 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
               {b.status === BookingStatus.ACCEPTED && (
                 <Button size="sm" variant="outline" onClick={() => updateStatus(b.id, BookingStatus.COMPLETED)}>
                   <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark Completed
+                </Button>
+              )}
+              {(b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.ACCEPTED) && svc && (
+                <Button size="sm" variant="ghost" className="mt-1" onClick={() => downloadIcs(b, svc)}>
+                  <CalendarPlus className="h-3.5 w-3.5 mr-1" /> Add to calendar (.ics)
                 </Button>
               )}
             </motion.div>
