@@ -25,7 +25,8 @@ import {
   getTopicById, getTerritoryById, getQuestById, quests, getServicesForUser,
   guildMembers, getGuildById, questParticipants, podMembers, getPodById,
 } from "@/data/mock";
-import type { Achievement } from "@/types";
+import type { Achievement, User } from "@/types";
+import { UserRole } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
 import { AdminBadge } from "@/components/AdminBadge";
