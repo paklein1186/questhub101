@@ -34,6 +34,7 @@ import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
+import { AIWriterButton } from "@/components/AIWriterButton";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -213,7 +214,18 @@ export default function QuestDetail() {
                 <div className="space-y-4 mt-2">
                   <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
                   <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">Content</label><Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" /></div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium">Content</label>
+                      <AIWriterButton
+                        type="quest_update"
+                        context={{ title: quest.title, updateType: uType, updateTitle: uTitle }}
+                        currentText={uContent}
+                        onAccept={(text, extra) => { setUContent(text); if (extra?.suggestedTitle && !uTitle.trim()) setUTitle(extra.suggestedTitle); }}
+                      />
+                    </div>
+                    <Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" />
+                  </div>
                   <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" />
                   <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
                   <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : "Post Update"}</Button>
@@ -244,7 +256,18 @@ export default function QuestDetail() {
             <DialogHeader><DialogTitle>Edit Quest</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
               <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
-              <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">Description</label>
+                  <AIWriterButton
+                    type="quest_story"
+                    context={{ title: editTitle, status: editStatus, creditReward: editCreditReward, creditBudget: editCreditBudget }}
+                    currentText={editDesc}
+                    onAccept={(text) => setEditDesc(text)}
+                  />
+                </div>
+                <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" />
+              </div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label>

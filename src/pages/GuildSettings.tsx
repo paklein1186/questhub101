@@ -38,6 +38,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
 import { Label } from "@/components/ui/label";
 import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
+import { AIWriterButton } from "@/components/AIWriterButton";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -357,7 +358,18 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       <div><label className="text-sm font-medium mb-1 block">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></div>
                       <ImageUpload label="Logo" currentImageUrl={logoUrl || undefined} onChange={(url) => setLogoUrl(url ?? "")} aspectRatio="1/1" description="Square logo, recommended 256×256" />
                       <ImageUpload label="Banner (optional)" currentImageUrl={bannerUrl || undefined} onChange={(url) => setBannerUrl(url ?? "")} aspectRatio="16/9" description="Wide banner, recommended 1200×400" />
-                      <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="resize-none min-h-[120px]" /></div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-sm font-medium">Description</label>
+                          <AIWriterButton
+                            type="guild_identity"
+                            context={{ title: name, guildType: type, memberCount: guild.guild_members?.length || 0 }}
+                            currentText={description}
+                            onAccept={(text) => setDescription(text)}
+                          />
+                        </div>
+                        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} className="resize-none min-h-[120px]" />
+                      </div>
                       <div><label className="text-sm font-medium mb-1 block">Type</label>
                         <Select value={type} onValueChange={(v) => setType(v as GuildType)}>
                           <SelectTrigger><SelectValue /></SelectTrigger>

@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { MyServicesPanel } from "@/components/MyServicesPanel";
 import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
+import { AIWriterButton } from "@/components/AIWriterButton";
 
 const TABS = [
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
@@ -489,7 +490,18 @@ export default function SettingsPage() {
                       <ImageUpload label="Avatar" currentImageUrl={avatarUrl || undefined} onChange={(url) => setAvatarUrl(url ?? "")} aspectRatio="1/1" description="Square image works best" />
                       <div><label className="text-sm font-medium mb-1 block">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></div>
                       <div><label className="text-sm font-medium mb-1 block">Headline</label><Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Community Builder" maxLength={120} /></div>
-                      <div><label className="text-sm font-medium mb-1 block">Bio</label><Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself…" maxLength={500} className="resize-none min-h-[100px]" /></div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-sm font-medium">Bio</label>
+                          <AIWriterButton
+                            type="bio"
+                            context={{ name, persona, role, headline, houses: dbTopics.filter(t => selectedTopics.includes(t.id)).map(t => t.name), territories: dbTerritories.filter(t => selectedTerritories.includes(t.id)).map(t => t.name) }}
+                            currentText={bio}
+                            onAccept={(text) => setBio(text)}
+                          />
+                        </div>
+                        <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself…" maxLength={500} className="resize-none min-h-[100px]" />
+                      </div>
                       <div><label className="text-sm font-medium mb-1 block">Role</label>
                         <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
