@@ -24,6 +24,7 @@ import { useCompanyById, useQuestsForCompany, useBookingsForCompany, usePublicPr
 import { useGuilds } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { UnitChat } from "@/components/UnitChat";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
