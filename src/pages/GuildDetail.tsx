@@ -229,6 +229,22 @@ export default function GuildDetail() {
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
         </TabsContent>
 
+        {isMember && (
+          <TabsContent value="board" className="mt-6">
+            <GuildKanbanBoard guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="docs" className="mt-6">
+            <GuildDocsSpace guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
+
+        <TabsContent value="events" className="mt-6">
+          <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+        </TabsContent>
+
         <TabsContent value="services" className="mt-6 space-y-3">
           {isAdmin && (
             <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
