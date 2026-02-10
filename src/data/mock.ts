@@ -6,6 +6,7 @@ import {
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
   TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
   UserBlock, Report, Attachment, Referral,
+  Course, Lesson, CourseEnrollment, CoursePurchase, CourseTopic, CourseTerritory,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
@@ -13,7 +14,7 @@ import {
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
   TopicStewardRole, TopicFeatureTargetType, OnlineLocationType, PaymentStatus,
-  AttachmentTargetType,
+  AttachmentTargetType, CourseLevel, CoursePurchaseStatus,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
