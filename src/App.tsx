@@ -86,6 +86,8 @@ const App = () => (
                 <Route path="/companies/:id" element={<CompanyDetail />} />
                 <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
+                <Route path="/courses/:id" element={<CourseDetail />} />
+                <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiesPage />} />
