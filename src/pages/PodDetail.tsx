@@ -163,6 +163,7 @@ export default function PodDetail() {
       <Tabs defaultValue="members">
         <TabsList>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
