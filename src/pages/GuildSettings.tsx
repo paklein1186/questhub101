@@ -84,6 +84,12 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
   const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
 
+  // Social links state
+  const [guildWebsiteUrl, setGuildWebsiteUrl] = useState(guild.websiteUrl ?? "");
+  const [guildTwitterUrl, setGuildTwitterUrl] = useState(guild.twitterUrl ?? "");
+  const [guildLinkedinUrl, setGuildLinkedinUrl] = useState(guild.linkedinUrl ?? "");
+  const [guildInstagramUrl, setGuildInstagramUrl] = useState(guild.instagramUrl ?? "");
+
   // ── Members state ──
   const [members, setMembers] = useState(() => getMembersForGuild(guildId));
   const [inviteOpen, setInviteOpen] = useState(false);
