@@ -61,13 +61,6 @@ export default function GuildDetail() {
   const [svcImageUrl, setSvcImageUrl] = useState<string | undefined>();
   const [svcDraft, setSvcDraft] = useState(false);
 
-  // Quest creation
-  const [createQuestOpen, setCreateQuestOpen] = useState(false);
-  const [qTitle, setQTitle] = useState("");
-  const [qDesc, setQDesc] = useState("");
-  const [qRewardXp, setQRewardXp] = useState("100");
-  const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
-  const [qDraft, setQDraft] = useState(false);
 
   // Achievement query based on quest IDs
   const questIds = (guildQuests || []).map((q: any) => q.id);
