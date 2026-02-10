@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -7,6 +7,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "@/types/enums";
 
 // ─── Filter shape ───────────────────────────────────────────
@@ -63,6 +66,21 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
+  const currentUser = useCurrentUser();
+
+  // Fetch user's territory IDs for "My territories" quick filter
+  const { data: myTerritoryIds = [] } = useQuery({
+    queryKey: ["my-territory-ids", currentUser.id],
+    queryFn: async () => {
+      if (!currentUser.id) return [];
+      const { data } = await supabase
+        .from("user_territories")
+        .select("territory_id")
+        .eq("user_id", currentUser.id);
+      return (data ?? []).map(d => d.territory_id);
+    },
+    enabled: !!currentUser.id && !!config.showTerritories,
+  });
 
   const set = (patch: Partial<ExploreFilterValues>) => onChange({ ...filters, ...patch });
 
@@ -264,6 +282,16 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
                   <MapPin className="h-3 w-3" /> Territories
                 </p>
                 <div className="flex gap-1">
+                  {myTerritoryIds.length > 0 && (
+                    <Button
+                      variant={filters.territoryIds.length > 0 && myTerritoryIds.every(id => filters.territoryIds.includes(id)) ? "default" : "outline"}
+                      size="sm"
+                      className="h-5 text-[10px] px-2"
+                      onClick={() => set({ territoryIds: myTerritoryIds })}
+                    >
+                      <Navigation className="h-3 w-3 mr-0.5" /> My territories
+                    </Button>
+                  )}
                   <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={selectAllTerritories}>
                     <CheckSquare className="h-3 w-3 mr-0.5" /> All
                   </Button>

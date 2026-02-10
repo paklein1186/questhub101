@@ -471,6 +471,45 @@ export type Database = {
           },
         ]
       }
+      company_territories: {
+        Row: {
+          company_id: string
+          id: string
+          is_primary: boolean
+          relation_type: string
+          territory_id: string
+        }
+        Insert: {
+          company_id: string
+          id?: string
+          is_primary?: boolean
+          relation_type?: string
+          territory_id: string
+        }
+        Update: {
+          company_id?: string
+          id?: string
+          is_primary?: boolean
+          relation_type?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_territories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
@@ -551,16 +590,22 @@ export type Database = {
         Row: {
           course_id: string
           id: string
+          is_primary: boolean
+          relation_type: string
           territory_id: string
         }
         Insert: {
           course_id: string
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           territory_id: string
         }
         Update: {
           course_id?: string
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           territory_id?: string
         }
         Relationships: [
@@ -978,16 +1023,22 @@ export type Database = {
         Row: {
           guild_id: string
           id: string
+          is_primary: boolean
+          relation_type: string
           territory_id: string
         }
         Insert: {
           guild_id: string
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           territory_id: string
         }
         Update: {
           guild_id?: string
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           territory_id?: string
         }
         Relationships: [
@@ -1274,6 +1325,45 @@ export type Database = {
           },
         ]
       }
+      pod_territories: {
+        Row: {
+          id: string
+          is_primary: boolean
+          pod_id: string
+          relation_type: string
+          territory_id: string
+        }
+        Insert: {
+          id?: string
+          is_primary?: boolean
+          pod_id: string
+          relation_type?: string
+          territory_id: string
+        }
+        Update: {
+          id?: string
+          is_primary?: boolean
+          pod_id?: string
+          relation_type?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pod_territories_pod_id_fkey"
+            columns: ["pod_id"]
+            isOneToOne: false
+            referencedRelation: "pods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pod_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pods: {
         Row: {
           application_questions: Json | null
@@ -1518,17 +1608,23 @@ export type Database = {
       quest_territories: {
         Row: {
           id: string
+          is_primary: boolean
           quest_id: string
+          relation_type: string
           territory_id: string
         }
         Insert: {
           id?: string
+          is_primary?: boolean
           quest_id: string
+          relation_type?: string
           territory_id: string
         }
         Update: {
           id?: string
+          is_primary?: boolean
           quest_id?: string
+          relation_type?: string
           territory_id?: string
         }
         Relationships: [
@@ -1801,16 +1897,22 @@ export type Database = {
       service_territories: {
         Row: {
           id: string
+          is_primary: boolean
+          relation_type: string
           service_id: string
           territory_id: string
         }
         Insert: {
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           service_id: string
           territory_id: string
         }
         Update: {
           id?: string
+          is_primary?: boolean
+          relation_type?: string
           service_id?: string
           territory_id?: string
         }
@@ -1994,6 +2096,8 @@ export type Database = {
           is_deleted: boolean
           level: Database["public"]["Enums"]["territory_level"]
           name: string
+          parent_id: string | null
+          slug: string | null
           updated_at: string
         }
         Insert: {
@@ -2003,6 +2107,8 @@ export type Database = {
           is_deleted?: boolean
           level?: Database["public"]["Enums"]["territory_level"]
           name: string
+          parent_id?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -2012,9 +2118,19 @@ export type Database = {
           is_deleted?: boolean
           level?: Database["public"]["Enums"]["territory_level"]
           name?: string
+          parent_id?: string | null
+          slug?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "territories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       topic_features: {
         Row: {
@@ -2207,17 +2323,23 @@ export type Database = {
       }
       user_territories: {
         Row: {
+          attachment_type: string
           id: string
+          is_primary: boolean
           territory_id: string
           user_id: string
         }
         Insert: {
+          attachment_type?: string
           id?: string
+          is_primary?: boolean
           territory_id: string
           user_id: string
         }
         Update: {
+          attachment_type?: string
           id?: string
+          is_primary?: boolean
           territory_id?: string
           user_id?: string
         }
