@@ -79,6 +79,7 @@ import ExploreUsers from "./pages/ExploreUsers";
 import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
+import MyStarredExcerpts from "./pages/MyStarredExcerpts";
 
 const queryClient = new QueryClient();
 
@@ -170,6 +171,7 @@ const App = () => (
                 <Route path="/courses/new" element={<RequireAuth><CourseCreate /></RequireAuth>} />
                 <Route path="/courses/:id/edit" element={<RequireAuth><CourseCreate /></RequireAuth>} />
                 <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
+                <Route path="/me/starred-excerpts" element={<RequireAuth><MyStarredExcerpts /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
