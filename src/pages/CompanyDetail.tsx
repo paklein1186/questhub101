@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Building2, Globe, MapPin, Hash, Zap, Plus, Users, Heart, Pencil } from "lucide-react";
+import { ArrowLeft, Building2, Globe, MapPin, Hash, Zap, Plus, Users, Heart, Pencil, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
