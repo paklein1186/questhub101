@@ -1523,6 +1523,50 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_funding: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          funder_user_id: string | null
+          id: string
+          quest_id: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          funder_user_id?: string | null
+          id?: string
+          quest_id: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          funder_user_id?: string | null
+          id?: string
+          quest_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_funding_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_participants: {
         Row: {
           created_at: string
@@ -1551,6 +1595,85 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "quest_participants_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_proposal_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          proposal_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          proposal_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          proposal_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_proposal_upvotes_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "quest_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_proposals: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          proposer_id: string
+          proposer_type: string
+          quest_id: string
+          requested_credits: number
+          status: string
+          title: string
+          updated_at: string
+          upvotes_count: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          proposer_id: string
+          proposer_type?: string
+          quest_id: string
+          requested_credits?: number
+          status?: string
+          title: string
+          updated_at?: string
+          upvotes_count?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          proposer_id?: string
+          proposer_type?: string
+          quest_id?: string
+          requested_credits?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          upvotes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_proposals_quest_id_fkey"
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
@@ -1732,13 +1855,17 @@ export type Database = {
       }
       quests: {
         Row: {
+          allow_fundraising: boolean
           company_id: string | null
           cover_image_url: string | null
           created_at: string
           created_by_user_id: string
+          credit_budget: number
           credit_reward: number
           deleted_at: string | null
           description: string | null
+          escrow_credits: number
+          funding_goal_credits: number | null
           guild_id: string | null
           id: string
           is_deleted: boolean
@@ -1754,13 +1881,17 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_fundraising?: boolean
           company_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id: string
+          credit_budget?: number
           credit_reward?: number
           deleted_at?: string | null
           description?: string | null
+          escrow_credits?: number
+          funding_goal_credits?: number | null
           guild_id?: string | null
           id?: string
           is_deleted?: boolean
@@ -1776,13 +1907,17 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_fundraising?: boolean
           company_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id?: string
+          credit_budget?: number
           credit_reward?: number
           deleted_at?: string | null
           description?: string | null
+          escrow_credits?: number
+          funding_goal_credits?: number | null
           guild_id?: string | null
           id?: string
           is_deleted?: boolean
@@ -2569,7 +2704,14 @@ export type Database = {
       monetization_type: "FREE" | "PAID" | "MIXED"
       pod_member_role: "HOST" | "MEMBER"
       pod_type: "QUEST_POD" | "STUDY_POD"
-      quest_status: "OPEN" | "IN_PROGRESS" | "COMPLETED"
+      quest_status:
+        | "OPEN"
+        | "IN_PROGRESS"
+        | "COMPLETED"
+        | "OPEN_FOR_PROPOSALS"
+        | "ACTIVE"
+        | "CANCELLED"
+        | "DRAFT"
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
       territory_level: "TOWN" | "REGION" | "NATIONAL" | "OTHER"
       xp_transaction_type:
@@ -2713,7 +2855,15 @@ export const Constants = {
       monetization_type: ["FREE", "PAID", "MIXED"],
       pod_member_role: ["HOST", "MEMBER"],
       pod_type: ["QUEST_POD", "STUDY_POD"],
-      quest_status: ["OPEN", "IN_PROGRESS", "COMPLETED"],
+      quest_status: [
+        "OPEN",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "OPEN_FOR_PROPOSALS",
+        "ACTIVE",
+        "CANCELLED",
+        "DRAFT",
+      ],
       subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
       territory_level: ["TOWN", "REGION", "NATIONAL", "OTHER"],
       xp_transaction_type: [
