@@ -220,6 +220,8 @@ function formatXpType(type: string): string {
     BOOKING_COMPLETED_FREE: "Free booking completed",
     BOOKING_ATTENDED: "Session attended",
     REFERRAL_REWARD: "Referral bonus",
+    PROPOSAL_SUBMITTED: "Proposal submitted",
+    PROPOSAL_ACCEPTED: "Proposal accepted",
   };
   return map[type] ?? type.replace(/_/g, " ").toLowerCase();
 }
