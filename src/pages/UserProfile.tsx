@@ -47,6 +47,7 @@ export default function UserProfile() {
 
   // DB user state (for real Supabase users not in mock data)
   const [dbUser, setDbUser] = useState<User | null>(null);
+  const [dbProfileExtra, setDbProfileExtra] = useState<{ xpLevel: number; xpRecent12m: number; creditsBalance: number } | null>(null);
   const [loading, setLoading] = useState(!mockUser);
 
   useEffect(() => {
@@ -54,10 +55,10 @@ export default function UserProfile() {
       setLoading(false);
       return;
     }
-    // Fetch from DB using profiles_public view
+    // Fetch full profile data
     supabase
-      .from("profiles_public")
-      .select("*")
+      .from("profiles")
+      .select("user_id, name, avatar_url, headline, bio, role, xp, contribution_index, xp_level, xp_recent_12m, credits_balance")
       .eq("user_id", id)
       .maybeSingle()
       .then(({ data }) => {
@@ -72,6 +73,11 @@ export default function UserProfile() {
             role: (data.role as any) || UserRole.GAMECHANGER,
             xp: data.xp || 0,
             contributionIndex: data.contribution_index || 0,
+          });
+          setDbProfileExtra({
+            xpLevel: (data as any).xp_level ?? 1,
+            xpRecent12m: (data as any).xp_recent_12m ?? 0,
+            creditsBalance: (data as any).credits_balance ?? 0,
           });
         }
         setLoading(false);
