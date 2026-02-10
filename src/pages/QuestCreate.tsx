@@ -77,6 +77,10 @@ export default function QuestCreate() {
       const allowed = await checkRateLimit("quest_creation");
       if (!allowed) { setSubmitting(false); return; }
 
+      const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
+      const credits = isMonetized ? (Number(creditReward) || 0) : 0;
+      const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
+
       const { data: quest, error } = await supabase
         .from("quests")
         .insert({
@@ -84,13 +88,17 @@ export default function QuestCreate() {
           description: description.trim() || null,
           cover_image_url: coverImageUrl || null,
           status: "OPEN" as any,
-          monetization_type: monetizationType as any,
+          monetization_type: monType as any,
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
           created_by_user_id: currentUser.id,
           guild_id: guildId || null,
           company_id: companyId || null,
           is_draft: isDraft,
+          credit_reward: credits,
+          price_fiat: fiatCents,
+          price_currency: "EUR",
+          payout_user_id: currentUser.id,
         })
         .select()
         .single();
