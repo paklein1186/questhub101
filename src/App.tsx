@@ -80,9 +80,9 @@ const App = () => (
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
-                <Route path="/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />
                 <Route path="/guilds/:guildId/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />
                 <Route path="/companies/:companyId/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />
+                <Route path="/quests/new" element={<RequireAuth><QuestCreate /></RequireAuth>} />
                 <Route path="/quests/:id" element={<QuestDetail />} />
                 <Route path="/users/:id" element={<UserProfile />} />
                 <Route path="/achievements/:id" element={<AchievementDetail />} />
