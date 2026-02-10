@@ -31,6 +31,8 @@ const slideVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const currentUser = useCurrentUser();
+  const { awardXp } = useXP();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
@@ -39,6 +41,32 @@ export default function Onboarding() {
   const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
+  const [referralRewarded, setReferralRewarded] = useState(false);
+
+  // Process referral reward when reaching the final step
+  useEffect(() => {
+    if (step === 5 && !referralRewarded) {
+      const refCode = sessionStorage.getItem("referralCode");
+      if (refCode) {
+        const referral = getReferralByCode(refCode);
+        if (referral && !referral.rewardGiven) {
+          // Link referee
+          referral.refereeUserId = currentUser.id;
+          referral.rewardGiven = true;
+          // Award referrer +50 XP
+          awardXp(referral.referrerUserId, "REFERRAL_REWARD");
+          // Award the XP on the user object directly
+          const referrer = users.find(u => u.id === referral.referrerUserId);
+          if (referrer) {
+            referrer.xp += 50;
+            referrer.contributionIndex = Math.floor(referrer.xp / 10);
+          }
+        }
+        sessionStorage.removeItem("referralCode");
+        setReferralRewarded(true);
+      }
+    }
+  }, [step]);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
