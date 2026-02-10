@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { LandingAIGuide } from "@/components/home/LandingAIGuide";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
