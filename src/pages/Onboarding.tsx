@@ -19,7 +19,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const STEPS = ["Role", "Topics", "Territories", "Bio", "AI Magic", "Explore"];
+const STEPS = ["Role", "Topics", "Territories", "Why", "Bio", "AI Magic", "Explore"];
+
+const WHY_OPTIONS = [
+  { key: "work", label: "Work & missions", desc: "Impact projects, paid consulting" },
+  { key: "creative", label: "Creative projects", desc: "Art, writing, performances, installations" },
+  { key: "learning", label: "Learning & experimentation", desc: "Explore and grow" },
+  { key: "community", label: "Community & belonging", desc: "Connect with like-minded people" },
+  { key: "unsure", label: "I'm not sure yet", desc: "Just exploring for now" },
+];
 
 const roleOptions = [
   { value: UserRole.GAMECHANGER, label: "Gamechanger", desc: "I create bold solutions and drive innovation.", icon: Zap },
@@ -46,6 +54,8 @@ export default function Onboarding() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [bio, setBio] = useState("");
+  const [whySelections, setWhySelections] = useState<string[]>([]);
+  const [whyFreeText, setWhyFreeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AIOnboardingResult | null>(null);
   const [referralRewarded, setReferralRewarded] = useState(false);
@@ -70,7 +80,7 @@ export default function Onboarding() {
 
   // Process referral reward when reaching the final step
   useEffect(() => {
-    if (step === 5 && !referralRewarded) {
+    if (step === 6 && !referralRewarded) {
       const refCode = sessionStorage.getItem("referralCode");
       if (refCode) {
         const referral = getReferralByCode(refCode);
@@ -91,11 +101,15 @@ export default function Onboarding() {
 
   const canNext = () => {
     if (step === 0) return !!role;
-    if (step === 1) return true; // allow zero interests
-    if (step === 2) return true; // allow zero territories
-    if (step === 3) return true; // bio is optional
+    if (step === 1) return true;
+    if (step === 2) return true;
+    if (step === 3) return true; // why step is optional
+    if (step === 4) return true; // bio is optional
     return true;
   };
+
+  const toggleWhy = (key: string) =>
+    setWhySelections((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
 
   const handleGenerateBio = async () => {
     setGeneratingBio(true);
@@ -118,10 +132,10 @@ export default function Onboarding() {
   };
 
   const goNext = async () => {
-    if (step === 3) {
+    if (step === 4) {
       // Trigger AI generation
       setDirection(1);
-      setStep(4);
+      setStep(5);
       setLoading(true);
       const res = await generateOnboardingResults({
         role: role!,
@@ -131,10 +145,28 @@ export default function Onboarding() {
       });
       setResult(res);
       setLoading(false);
+
+      // Infer persona in the background
+      supabase.functions.invoke("infer-persona", {
+        body: {
+          selections: whySelections.map(k => WHY_OPTIONS.find(o => o.key === k)?.label || k),
+          freeText: whyFreeText,
+          topics: selectedTopics,
+        },
+      }).then(({ data }) => {
+        if (data?.persona && authUser?.id) {
+          supabase.from("profiles").update({
+            persona_type: data.persona,
+            persona_confidence: data.confidence || 0.5,
+            persona_source: data.source || "onboarding_ai",
+          } as any).eq("user_id", authUser.id);
+        }
+      });
+
       return;
     }
-    if (step === 4) {
-      // Persist wizard data to Supabase (same fields as Settings → Profile)
+    if (step === 5) {
+      // Persist wizard data to Supabase
       if (authUser?.id) {
         const updates: Record<string, unknown> = {
           role: role || undefined,
@@ -155,7 +187,6 @@ export default function Onboarding() {
         existingUTrs.forEach((ut) => { const i = userTerritories.indexOf(ut); if (i !== -1) userTerritories.splice(i, 1); });
         selectedTerritories.forEach((territoryId, i) => { userTerritories.push({ id: `utr-${Date.now()}-${i}`, userId: currentUser.id, territoryId }); });
 
-        // Update mock user object for immediate UI consistency
         const idx = users.findIndex((u) => u.id === currentUser.id);
         if (idx !== -1) {
           users[idx] = { ...users[idx], role: role || users[idx].role, bio: bio.trim() || undefined, headline: result?.headline || users[idx].headline };
@@ -164,7 +195,7 @@ export default function Onboarding() {
         await refreshProfile();
       }
       setDirection(1);
-      setStep(5);
+      setStep(6);
       return;
     }
     setDirection(1);
@@ -323,8 +354,55 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 3: Bio */}
+              {/* Step 3: Why are you here? */}
               {step === 3 && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="font-display text-2xl font-bold flex items-center gap-2">
+                      <Compass className="h-6 w-6 text-primary" /> Why are you here?
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">What brings you to this space? Select all that apply.</p>
+                  </div>
+                  <div className="space-y-2">
+                    {WHY_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.key}
+                        onClick={() => toggleWhy(opt.key)}
+                        className={cn(
+                          "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                          whySelections.includes(opt.key)
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:border-primary/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "h-5 w-5 rounded flex items-center justify-center border-2 transition-colors shrink-0",
+                          whySelections.includes(opt.key) ? "border-primary bg-primary" : "border-muted-foreground/30"
+                        )}>
+                          {whySelections.includes(opt.key) && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{opt.label}</p>
+                          <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Describe what you're hoping to do here (optional)</label>
+                    <Textarea
+                      value={whyFreeText}
+                      onChange={(e) => setWhyFreeText(e.target.value)}
+                      placeholder="I want to collaborate on regenerative agriculture projects..."
+                      className="resize-none min-h-[80px] text-sm"
+                      maxLength={500}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Bio */}
+              {step === 4 && (
                 <div className="space-y-6">
                   <div>
                     <h2 className="font-display text-2xl font-bold">Tell us about yourself</h2>
@@ -355,8 +433,8 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 4: AI Magic */}
-              {step === 4 && (
+              {/* Step 5: AI Magic */}
+              {step === 5 && (
                 <div className="space-y-6 flex-1 flex flex-col items-center justify-center">
                   {loading ? (
                     <div className="text-center space-y-4">
@@ -416,8 +494,8 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 5: Start Exploring */}
-              {step === 5 && (
+              {/* Step 6: Start Exploring */}
+              {step === 6 && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -447,7 +525,7 @@ export default function Onboarding() {
           </AnimatePresence>
 
           {/* Navigation */}
-          {step < 5 && (
+          {step < 6 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
               <Button
                 variant="ghost"
@@ -458,12 +536,12 @@ export default function Onboarding() {
               >
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
-              {step < 4 && (
+              {step < 5 && (
                 <Button onClick={goNext} disabled={!canNext()} size="sm">
                   Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
-              {step === 4 && !loading && result && (
+              {step === 5 && !loading && result && (
                 <Button onClick={goNext} size="sm">
                   Continue <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>

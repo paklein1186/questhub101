@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { usePersona } from "@/hooks/usePersona";
+import { getHeroPrompts } from "@/lib/personaLabels";
 
 interface AIAction {
   type: string;
@@ -17,13 +19,6 @@ interface AIResponse {
   message: string;
   actions: AIAction[];
 }
-
-const PROMPTS = [
-  "What are you up to today?",
-  "How do you want to spread hope today?",
-  "How can I support you?",
-  "I'm ready to create a mesmerising world — guide me.",
-];
 
 const ACTION_ICONS: Record<string, any> = {
   create_quest: Compass,
@@ -65,6 +60,9 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { persona, label } = usePersona();
+
+  const PROMPTS = getHeroPrompts(persona);
 
   const handleSubmit = async (text?: string) => {
     const message = text || query;
@@ -75,7 +73,7 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
 
     try {
       const { data, error: fnError } = await supabase.functions.invoke("home-assistant", {
-        body: { message, userContext },
+        body: { message, userContext: { ...userContext, personaType: persona } },
       });
       if (fnError) throw fnError;
       if (data?.error) {
@@ -109,7 +107,7 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
           <h1 className="font-display text-2xl md:text-4xl font-bold mb-2">
             Welcome back, <span className="text-primary">{userName}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">Tell me what you want to accomplish — I'll guide you.</p>
+          <p className="text-sm text-muted-foreground">{label("hero.tagline")}</p>
         </motion.div>
 
         {/* Input */}

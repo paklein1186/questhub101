@@ -1362,6 +1362,9 @@ export type Database = {
           last_xp_recalculated_at: string | null
           linkedin_url: string | null
           name: string
+          persona_confidence: number | null
+          persona_source: string | null
+          persona_type: string
           role: string
           twitter_url: string | null
           updated_at: string
@@ -1386,6 +1389,9 @@ export type Database = {
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
+          persona_confidence?: number | null
+          persona_source?: string | null
+          persona_type?: string
           role?: string
           twitter_url?: string | null
           updated_at?: string
@@ -1410,6 +1416,9 @@ export type Database = {
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
+          persona_confidence?: number | null
+          persona_source?: string | null
+          persona_type?: string
           role?: string
           twitter_url?: string | null
           updated_at?: string

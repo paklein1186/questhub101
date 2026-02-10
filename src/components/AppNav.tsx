@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, Zap, LogIn, LogOut, User } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, Zap, LogIn, LogOut, User, Palette } from "lucide-react";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,19 +13,13 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const authedLinks = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/explore", label: "Explore", icon: Search },
-  { to: "/work", label: "Work", icon: Briefcase },
-  { to: "/network", label: "Network", icon: Users },
-];
-
 export function AppNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
+  const { label } = usePersona();
   const isLoggedIn = !!session;
   const { isAdmin: showAdmin } = useUserRoles(session?.user?.id);
 
@@ -32,6 +27,13 @@ export function AppNav() {
     await signOut();
     navigate("/");
   };
+
+  const authedLinks = [
+    { to: "/", label: "Home", icon: Home },
+    { to: "/explore", label: "Explore", icon: Search },
+    { to: "/work", label: label("nav.work"), icon: Briefcase },
+    { to: "/network", label: "Network", icon: Users },
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -100,7 +102,7 @@ export function AppNav() {
                 </Link>
               )}
 
-              {/* Unified user menu (avatar + "Me") */}
+              {/* Unified user menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className={cn(

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
+import { usePersona } from "@/hooks/usePersona";
+import type { PersonaType } from "@/lib/personaLabels";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
-  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
+  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
-  Sparkles, Compass, Swords, Users, GraduationCap, CalendarCheck,
+  Sparkles, Swords, Users, GraduationCap, CalendarCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,7 @@ import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/
 
 const TABS = [
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
+  { key: "persona", label: "My Persona", icon: Compass },
   { key: "quests", label: "My Quests", icon: Swords },
   { key: "guilds", label: "My Guilds", icon: Users },
   { key: "pods", label: "My Pods", icon: Users },
@@ -68,6 +71,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const currentUser = useCurrentUser();
+  const { persona, updatePersona } = usePersona();
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
@@ -300,6 +304,43 @@ export default function SettingsPage() {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+
+              {/* ── Persona ── */}
+              {activeTab === "persona" && (
+                <div className="space-y-6">
+                  <Section title="How do you primarily use this space?" icon={<Compass className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">This adapts labels and suggestions across the platform to match your style. It doesn't change permissions or features.</p>
+                    <div className="space-y-2 max-w-md">
+                      {([
+                        { value: "IMPACT" as PersonaType, label: "Mainly for impact work & missions", desc: "Labels like Services, Guilds, Quests & Missions" },
+                        { value: "CREATIVE" as PersonaType, label: "Mainly for creative projects & art", desc: "Labels like Skill Sessions, Collectives, Quests & Creations" },
+                        { value: "HYBRID" as PersonaType, label: "Both", desc: "A mix of impact and creative language" },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => updatePersona(opt.value, "manual")}
+                          className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                            persona === opt.value ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30"
+                          }`}
+                        >
+                          <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            persona === opt.value ? "border-primary bg-primary" : "border-muted-foreground/30"
+                          }`}>
+                            {persona === opt.value && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{opt.label}</p>
+                            <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {persona === "UNSET" && (
+                      <p className="text-xs text-muted-foreground mt-3">No persona set yet. Complete onboarding or select one above.</p>
+                    )}
+                  </Section>
+                </div>
+              )}
 
               {/* ── Account & Security ── */}
               {activeTab === "account" && (
