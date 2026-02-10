@@ -202,6 +202,12 @@ export default function PodDetail() {
         )}
 
         {isMember && (
+          <TabsContent value="memory" className="mt-6">
+            <MemoryEnginePanel entityType="POD" entityId={pod.id} entityName={pod.name} guildId={quest?.guild_id} />
+          </TabsContent>
+        )}
+
+        {isMember && (
           <TabsContent value="ai-chat" className="mt-6">
             <UnitChat entityType="POD" entityId={pod.id} entityName={pod.name} />
           </TabsContent>
