@@ -456,3 +456,16 @@ export interface UserBlock {
   blockedId: string;
   createdAt: string;
 }
+
+// ─── Reports ────────────────────────────────────────────────
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  targetEntityType: ReportTargetType;
+  targetEntityId: string;
+  reason: string;
+  status: ReportStatus;
+  reviewedByUserId?: string;
+  createdAt: string;
+}
