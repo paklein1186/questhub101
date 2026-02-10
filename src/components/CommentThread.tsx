@@ -97,8 +97,23 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   const renderComment = (comment: Comment, isReply = false) => {
-    const author = getUserById(comment.authorId);
     const replies = isReply ? [] : getReplies(comment.id);
+
+    // Soft-deleted placeholder
+    if (comment.isDeleted) {
+      return (
+        <div key={comment.id} className={isReply ? "ml-8 pl-4 border-l-2 border-border" : ""}>
+          <div className="rounded-lg border border-border bg-muted/30 p-4 italic text-sm text-muted-foreground">
+            This comment has been removed.
+          </div>
+          {replies.length > 0 && (
+            <div className="mt-2 space-y-2">{replies.map((reply) => renderComment(reply, true))}</div>
+          )}
+        </div>
+      );
+    }
+
+    const author = getUserById(comment.authorId);
     const voted = hasUpvoted(comment.id);
     const isOwn = comment.authorId === currentUser.id;
     const isEditing = editingId === comment.id;
