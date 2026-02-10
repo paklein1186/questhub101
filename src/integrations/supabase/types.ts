@@ -1954,6 +1954,8 @@ export type Database = {
           is_draft: boolean
           is_featured: boolean
           monetization_type: Database["public"]["Enums"]["monetization_type"]
+          owner_id: string | null
+          owner_type: string
           payout_user_id: string | null
           price_currency: string
           price_fiat: number
@@ -1980,6 +1982,8 @@ export type Database = {
           is_draft?: boolean
           is_featured?: boolean
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          owner_id?: string | null
+          owner_type?: string
           payout_user_id?: string | null
           price_currency?: string
           price_fiat?: number
@@ -2006,6 +2010,8 @@ export type Database = {
           is_draft?: boolean
           is_featured?: boolean
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          owner_id?: string | null
+          owner_type?: string
           payout_user_id?: string | null
           price_currency?: string
           price_fiat?: number

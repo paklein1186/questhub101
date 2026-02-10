@@ -1,29 +1,39 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, MapPin, Hash } from "lucide-react";
+import { Building2, MapPin, Users, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
-import {
-  companies, getTopicsForCompany, getTerritoriesForCompany,
-} from "@/data/mock";
-import { filterActive } from "@/lib/softDelete";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+
+function useCompaniesExplore() {
+  return useQuery({
+    queryKey: ["companies-explore"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*, company_territories(territory_id, territories(id, name)), company_members(id)")
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
 
 export default function CompaniesList({ bare }: { bare?: boolean }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const { data: companiesData, isLoading } = useCompaniesExplore();
 
-  const filtered = filterActive(companies).filter((c) => {
-    if (filters.topicIds.length > 0) {
-      const cTopicIds = getTopicsForCompany(c.id).map(t => t.id);
-      if (!filters.topicIds.some(id => cTopicIds.includes(id))) return false;
-    }
-    if (filters.territoryIds.length > 0) {
-      const cTerrIds = getTerritoriesForCompany(c.id).map(t => t.id);
-      if (!filters.territoryIds.some(id => cTerrIds.includes(id))) return false;
-    }
-    return true;
-  });
+  let filtered = companiesData ?? [];
+
+  if (filters.territoryIds.length > 0) {
+    filtered = filtered.filter((c: any) =>
+      c.company_territories?.some((ct: any) => filters.territoryIds.includes(ct.territory_id))
+    );
+  }
 
   return (
     <PageShell bare={bare}>
@@ -37,35 +47,41 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true }}
+          config={{ showTerritories: true }}
         />
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((company, i) => {
-          const cTopics = getTopicsForCompany(company.id);
-          const cTerrs = getTerritoriesForCompany(company.id);
+        {filtered.map((company: any, i: number) => {
+          const cTerrs = (company.company_territories ?? []).map((ct: any) => ct.territories).filter(Boolean);
+          const memberCount = company.company_members?.length ?? 0;
           return (
             <motion.div key={company.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-3 mb-3">
-                  {company.logoUrl && <img src={company.logoUrl} alt="" className="h-10 w-10 rounded-lg" />}
-                  <div>
-                    <h3 className="font-display font-semibold">{company.name}</h3>
+                  {company.logo_url && <img src={company.logo_url} alt="" className="h-10 w-10 rounded-lg" />}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-semibold truncate">{company.name}</h3>
                     {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
                   </div>
-                  {company.size && <Badge variant="outline" className="ml-auto text-xs">{company.size}</Badge>}
+                  {company.size && <Badge variant="outline" className="ml-auto text-xs shrink-0">{company.size}</Badge>}
                 </div>
                 {company.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{company.description}</p>}
-                <div className="flex flex-wrap gap-1.5">
-                  {cTopics.map(t => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                  {cTerrs.map(t => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {cTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3.5 w-3.5" /> {memberCount} members
                 </div>
               </Link>
             </motion.div>
           );
         })}
-        {filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No companies match your filters.</p>}
+        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No companies match your filters.</p>}
       </div>
     </PageShell>
   );
