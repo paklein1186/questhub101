@@ -282,6 +282,16 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
                   <MapPin className="h-3 w-3" /> Territories
                 </p>
                 <div className="flex gap-1">
+                  {myTerritoryIds.length > 0 && (
+                    <Button
+                      variant={filters.territoryIds.length > 0 && myTerritoryIds.every(id => filters.territoryIds.includes(id)) ? "default" : "outline"}
+                      size="sm"
+                      className="h-5 text-[10px] px-2"
+                      onClick={() => set({ territoryIds: myTerritoryIds })}
+                    >
+                      <Navigation className="h-3 w-3 mr-0.5" /> My territories
+                    </Button>
+                  )}
                   <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={selectAllTerritories}>
                     <CheckSquare className="h-3 w-3 mr-0.5" /> All
                   </Button>
