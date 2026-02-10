@@ -291,6 +291,7 @@ export default function QuestDetail() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           {isOwner && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
+          {isOwner && <TabsTrigger value="memory"><Brain className="h-3.5 w-3.5 mr-1" /> Memory</TabsTrigger>}
           <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
         </TabsList>
 
