@@ -27,6 +27,7 @@ import { useQuestById, useQuestParticipants, useQuestUpdates, usePodsForQuest, u
 import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
