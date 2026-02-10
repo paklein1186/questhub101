@@ -6,7 +6,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal,
+  MoreHorizontal, Pencil, Trash2,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,7 @@ export default function GuildDetail() {
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [editSvcId, setEditSvcId] = useState<string | null>(null);
 
   // Service creation
   const [createSvcOpen, setCreateSvcOpen] = useState(false);
@@ -128,6 +129,35 @@ export default function GuildDetail() {
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
     setCreateSvcOpen(false);
     toast({ title: "Guild service created" });
+  };
+
+  const openEditGuildService = (svc: any) => {
+    setEditSvcId(svc.id);
+    setSvcTitle(svc.title);
+    setSvcDesc(svc.description || "");
+    setSvcDuration(String(svc.duration_minutes ?? 60));
+    setSvcPrice(String(svc.price_amount ?? 0));
+    setSvcLocationType(svc.online_location_type || OnlineLocationType.JITSI);
+    setSvcImageUrl(svc.image_url || undefined);
+    setSvcDraft(!!svc.is_draft);
+    setCreateSvcOpen(true);
+  };
+
+  const updateGuildService = async () => {
+    if (!editSvcId || !svcTitle.trim()) return;
+    const { error } = await supabase.from("services").update({
+      title: svcTitle.trim(), description: svcDesc.trim() || null,
+      duration_minutes: Number(svcDuration) || 60,
+      price_amount: Number(svcPrice) || 0,
+      online_location_type: svcLocationType, image_url: svcImageUrl || null,
+      is_draft: svcDraft,
+    }).eq("id", editSvcId);
+    if (error) { toast({ title: "Failed to update service", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["services-for-guild", id] });
+    setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
+    setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
+    setEditSvcId(null); setCreateSvcOpen(false);
+    toast({ title: "Guild service updated" });
   };
 
   return (
@@ -305,10 +335,10 @@ export default function GuildDetail() {
 
         <TabsContent value="services" className="mt-6 space-y-3">
           {isAdmin && (
-            <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
+            <Dialog open={createSvcOpen} onOpenChange={(o) => { setCreateSvcOpen(o); if (!o) { setEditSvcId(null); setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0"); setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false); } }}>
               <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create guild service</Button></DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Create Guild Service</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{editSvcId ? "Edit Guild Service" : "Create Guild Service"}</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
                   <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Mentoring Session" maxLength={120} /></div>
                   <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
@@ -322,21 +352,37 @@ export default function GuildDetail() {
                     <Select value={svcLocationType} onValueChange={v => setSvcLocationType(v as OnlineLocationType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem><SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem><SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem></SelectContent></Select>
                   </div>
                   <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
-                  <Button onClick={createGuildService} disabled={!svcTitle.trim()} className="w-full">Create</Button>
+                  <Button onClick={editSvcId ? updateGuildService : createGuildService} disabled={!svcTitle.trim()} className="w-full">{editSvcId ? "Save changes" : "Create"}</Button>
                 </div>
               </DialogContent>
             </Dialog>
           )}
           {services.map((svc: any) => (
-            <Link key={svc.id} to={`/services/${svc.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              {svc.image_url && <div className="h-28 w-full"><img src={svc.image_url} alt="" className="w-full h-full object-cover" /></div>}
-              <div className="p-4">
-                <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{svc.title}</h4>
-                  <div className="flex items-center gap-2">{svc.duration_minutes && <span className="text-xs text-muted-foreground">{svc.duration_minutes} min</span>}{svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}</Badge>}</div>
+            <div key={svc.id} className="rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+              <Link to={`/services/${svc.id}`} className="block">
+                {svc.image_url && <div className="h-28 w-full"><img src={svc.image_url} alt="" className="w-full h-full object-cover" /></div>}
+                <div className="p-4 pb-2">
+                  <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{svc.title}</h4>
+                    <div className="flex items-center gap-2">{svc.duration_minutes && <span className="text-xs text-muted-foreground">{svc.duration_minutes} min</span>}{svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}</Badge>}</div>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
+                  {svc.is_draft && <Badge variant="outline" className="mt-1 text-[10px]">Draft</Badge>}
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
-              </div>
-            </Link>
+              </Link>
+              {isAdmin && (
+                <div className="px-4 pb-3 flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => { openEditGuildService(svc); }}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Button>
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
+                    if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
+                  }}>{svc.is_active ? "Pause" : "Resume"}</Button>
+                  <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
+                    const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
+                    if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: "Service deleted" }); }
+                  }}><Trash2 className="h-3.5 w-3.5" /></Button>
+                </div>
+              )}
+            </div>
           ))}
           {services.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
         </TabsContent>

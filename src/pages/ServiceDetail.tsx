@@ -1,7 +1,7 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight, Shield, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { canManageServiceSync } from "@/lib/serviceOwnership";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: svc, isLoading } = useServiceById(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -40,7 +42,9 @@ export default function ServiceDetail() {
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
   const svcTerrs = (svc as any)?.service_territories?.map((st: any) => st.territories).filter(Boolean) || [];
   const ownerType = (svc as any)?.owner_type || "USER";
-  const isOwnService = ownerType === "USER" ? svc?.provider_user_id === currentUser.id : false;
+  const guildMemberRole = guild ? ((guild as any).guild_members || []).find((gm: any) => gm.user_id === currentUser.id)?.role : null;
+  const canManage = svc ? canManageServiceSync(currentUser.id, currentUser.email, svc as any, guildMemberRole) : false;
+  const isOwnService = canManage;
   const providerUserId = svc?.provider_user_id;
 
   const slots = useMemo(() => {
@@ -111,8 +115,19 @@ export default function ServiceDetail() {
         <h1 className="font-display text-3xl font-bold mb-2">{svc.title}</h1>
 
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mb-4">
-          {provider && <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar><span className="font-medium">{provider.name}</span>{provider.xp != null && <XpLevelBadge level={computeLevelFromXp(provider.xp)} compact />}</Link>}
-          {guild && <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:text-primary transition-colors"><img src={guild.logo_url ?? ""} className="h-6 w-6 rounded" alt="" /><span className="font-medium">{guild.name}</span></Link>}
+          {ownerType === "GUILD" && guild ? (
+            <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Shield className="h-4 w-4 text-primary" />
+              {guild.logo_url && <img src={guild.logo_url} className="h-6 w-6 rounded" alt="" />}
+              <span className="font-medium">Offered by <span className="text-foreground">{guild.name}</span></span>
+            </Link>
+          ) : provider ? (
+            <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar>
+              <span className="font-medium">Offered by <span className="text-foreground">{provider.name}</span></span>
+              {provider.xp != null && <XpLevelBadge level={computeLevelFromXp(provider.xp)} compact />}
+            </Link>
+          ) : null}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
           {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
           {svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
@@ -123,8 +138,17 @@ export default function ServiceDetail() {
           {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
-        <div className="mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
+          {canManage && (
+            <>
+              <Button size="sm" variant="outline" asChild><Link to={`/services/${svc.id}/edit`}><Pencil className="h-3.5 w-3.5 mr-1" /> Edit</Link></Button>
+              <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
+                const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
+                if (!error) { toast({ title: "Service deleted" }); navigate(-1); }
+              }}><Trash2 className="h-3.5 w-3.5 mr-1" /> Delete</Button>
+            </>
+          )}
         </div>
 
         {!isOwnService && (
