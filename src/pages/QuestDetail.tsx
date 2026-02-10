@@ -131,6 +131,7 @@ export default function QuestDetail() {
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Quests</Link>
       </Button>
+      {quest.isDraft && <DraftBanner />}
 
       {quest.coverImageUrl && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
