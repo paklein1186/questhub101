@@ -18,6 +18,7 @@ import {
   getPodById, getMembersForPod, getQuestById, getTopicById, podMembers,
 } from "@/data/mock";
 import { format } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
