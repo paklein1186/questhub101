@@ -5,15 +5,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CommentTargetType, ReportTargetType } from "@/types/enums";
-import { comments as allMockComments, commentUpvotes as allMockUpvotes, getUserById, hasBlockRelationship } from "@/data/mock";
 import { ReportButton } from "@/components/ReportButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
-import type { Comment, CommentUpvote } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { useXP } from "@/hooks/useXP";
 import { AdminBadge } from "@/components/AdminBadge";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRateLimit } from "@/hooks/useRateLimit";
 
 interface CommentThreadProps {
   targetType: CommentTargetType;
@@ -23,93 +22,120 @@ interface CommentThreadProps {
 export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const { notifyComment, notifyUpvote } = useNotifications();
-  const { awardXp } = useXP();
+  const qc = useQueryClient();
+  const { checkRateLimit } = useRateLimit();
 
-  const [comments, setComments] = useState<Comment[]>(() =>
-    allMockComments
-      .filter((c) => c.targetType === targetType && c.targetId === targetId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-  );
-  const [upvotes, setUpvotes] = useState<CommentUpvote[]>(() =>
-    allMockUpvotes.filter((u) => comments.some((c) => c.id === u.commentId))
-  );
+  const queryKey = ["comments", targetType, targetId];
+
+  const { data: comments = [] } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch profiles for all comment authors
+  const authorIds = [...new Set(comments.map((c) => c.author_id))];
+  const { data: authorProfiles = [] } = useQuery({
+    queryKey: ["comment-authors", ...authorIds],
+    enabled: authorIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, email")
+        .in("user_id", authorIds);
+      return data ?? [];
+    },
+  });
+
+  const { data: upvotes = [] } = useQuery({
+    queryKey: ["comment-upvotes", targetType, targetId],
+    queryFn: async () => {
+      const commentIds = comments.map((c) => c.id);
+      if (commentIds.length === 0) return [];
+      const { data } = await supabase
+        .from("comment_upvotes")
+        .select("*")
+        .in("comment_id", commentIds);
+      return data ?? [];
+    },
+    enabled: comments.length > 0,
+  });
+
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
 
-  const topLevel = comments.filter((c) => !c.parentId);
-  const getReplies = (parentId: string) => comments.filter((c) => c.parentId === parentId);
+  const getAuthor = (userId: string) => authorProfiles.find((p) => p.user_id === userId);
+  const topLevel = comments.filter((c) => !c.parent_id && !c.is_deleted);
+  const deletedTopLevel = comments.filter((c) => !c.parent_id && c.is_deleted);
+  const getReplies = (parentId: string) => comments.filter((c) => c.parent_id === parentId);
 
   const hasUpvoted = useCallback(
-    (commentId: string) => upvotes.some((u) => u.commentId === commentId && u.userId === currentUser.id),
+    (commentId: string) => upvotes.some((u) => u.comment_id === commentId && u.user_id === currentUser.id),
     [upvotes, currentUser.id]
   );
 
-  const handleUpvote = (commentId: string) => {
+  const handleUpvote = async (commentId: string) => {
     if (hasUpvoted(commentId)) {
-      toast({ title: "Already upvoted", description: "You can only upvote once per comment." });
+      toast({ title: "Already upvoted" });
       return;
     }
-    const comment = comments.find((c) => c.id === commentId);
-    const newUpvoteRecord: CommentUpvote = { id: `cu-${Date.now()}`, commentId, userId: currentUser.id, createdAt: new Date().toISOString() };
-    setUpvotes((prev) => [...prev, newUpvoteRecord]);
-    setComments((prev) => prev.map((c) => (c.id === commentId ? { ...c, upvoteCount: c.upvoteCount + 1 } : c)));
-    if (comment) {
-      awardXp(comment.authorId, "COMMENT_UPVOTED", true);
-      notifyUpvote({ upvoterId: currentUser.id, commentAuthorId: comment.authorId, commentId, commentSnippet: comment.content });
-    }
+    await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
+    await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
+    qc.invalidateQueries({ queryKey });
+    qc.invalidateQueries({ queryKey: ["comment-upvotes", targetType, targetId] });
   };
 
-  const addComment = (parentId?: string) => {
+  const addComment = async (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
-    if (!content) return;
+    if (!content || !currentUser.id) return;
 
-    // Block check: if commenting on a USER profile, check block relationship
-    if (targetType === CommentTargetType.USER && hasBlockRelationship(currentUser.id, targetId)) {
-      toast({ title: "Cannot comment", description: "There is a block between you and this user.", variant: "destructive" });
-      return;
-    }
+    const allowed = await checkRateLimit("comment");
+    if (!allowed) return;
 
-    const commentId = `c-${Date.now()}`;
-    const comment: Comment = { id: commentId, content, createdAt: new Date().toISOString(), authorId: currentUser.id, parentId, targetType, targetId, upvoteCount: 0 };
-    setComments((prev) => [...prev, comment]);
+    const { error } = await supabase.from("comments").insert({
+      content,
+      author_id: currentUser.id,
+      parent_id: parentId || null,
+      target_type: targetType,
+      target_id: targetId,
+    });
+    if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
+
     if (parentId) { setReplyText(""); setReplyingTo(null); } else { setNewComment(""); }
     toast({ title: "Comment added" });
-    notifyComment({ commentAuthorId: currentUser.id, targetType, targetId, commentId, commentSnippet: content });
+    qc.invalidateQueries({ queryKey });
   };
 
-  const startEdit = (comment: Comment) => {
-    setEditingId(comment.id);
-    setEditText(comment.content);
-  };
-
-  const saveEdit = (commentId: string) => {
+  const saveEdit = async (commentId: string) => {
     if (!editText.trim()) return;
-    setComments(prev => prev.map(c => c.id === commentId ? { ...c, content: editText.trim() } : c));
-    // Also update in global mock
-    const mockComment = allMockComments.find(c => c.id === commentId);
-    if (mockComment) mockComment.content = editText.trim();
+    await supabase.from("comments").update({ content: editText.trim() }).eq("id", commentId);
     setEditingId(null);
     setEditText("");
     toast({ title: "Comment edited" });
+    qc.invalidateQueries({ queryKey });
   };
 
-  const deleteComment = (commentId: string) => {
-    setComments(prev => prev.map(c => c.id === commentId ? { ...c, isDeleted: true, deletedAt: new Date().toISOString(), deletedByUserId: currentUser.id } : c));
-    // Also update global mock
-    const mockComment = allMockComments.find(c => c.id === commentId);
-    if (mockComment) { mockComment.isDeleted = true; mockComment.deletedAt = new Date().toISOString(); mockComment.deletedByUserId = currentUser.id; }
+  const deleteComment = async (commentId: string) => {
+    await supabase.from("comments").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", commentId);
     toast({ title: "Comment deleted" });
+    qc.invalidateQueries({ queryKey });
   };
 
-  const renderComment = (comment: Comment, isReply = false) => {
+  const renderComment = (comment: typeof comments[0], isReply = false) => {
     const replies = isReply ? [] : getReplies(comment.id);
 
-    // Soft-deleted placeholder
-    if (comment.isDeleted) {
+    if (comment.is_deleted) {
       return (
         <div key={comment.id} className={isReply ? "ml-8 pl-4 border-l-2 border-border" : ""}>
           <div className="rounded-lg border border-border bg-muted/30 p-4 italic text-sm text-muted-foreground">
@@ -122,9 +148,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
       );
     }
 
-    const author = getUserById(comment.authorId);
+    const author = getAuthor(comment.author_id);
     const voted = hasUpvoted(comment.id);
-    const isOwn = comment.authorId === currentUser.id;
+    const isOwn = comment.author_id === currentUser.id;
     const isEditing = editingId === comment.id;
 
     return (
@@ -132,14 +158,14 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         <div className="rounded-lg border border-border bg-card p-4 space-y-2">
           <div className="flex items-start gap-3">
             <Avatar className={isReply ? "h-7 w-7" : "h-8 w-8"}>
-              <AvatarImage src={author?.avatarUrl} />
-              <AvatarFallback>{author?.name?.[0]}</AvatarFallback>
+              <AvatarImage src={author?.avatar_url ?? undefined} />
+              <AvatarFallback>{author?.name?.[0] ?? "?"}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium text-foreground">{author?.name}</span>
+                <span className="font-medium text-foreground">{author?.name ?? "Unknown"}</span>
                 <AdminBadge email={author?.email} />
-                <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
+                <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</span>
               </div>
               {isEditing ? (
                 <div className="mt-1 flex gap-2">
@@ -154,7 +180,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               )}
               <div className="flex items-center gap-2 mt-2">
                 <Button variant="ghost" size="sm" className={`h-7 px-2 ${voted ? "text-primary" : "text-muted-foreground hover:text-primary"}`} onClick={() => handleUpvote(comment.id)}>
-                  <ThumbsUp className="h-3.5 w-3.5 mr-1" fill={voted ? "currentColor" : "none"} />{comment.upvoteCount}
+                  <ThumbsUp className="h-3.5 w-3.5 mr-1" fill={voted ? "currentColor" : "none"} />{comment.upvote_count}
                 </Button>
                 {!isReply && (
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-primary" onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}>
@@ -163,7 +189,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                 )}
                 {isOwn && !isEditing && (
                   <>
-                    <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-primary" onClick={() => startEdit(comment)}>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-primary" onClick={() => { setEditingId(comment.id); setEditText(comment.content); }}>
                       <Pencil className="h-3 w-3 mr-1" />Edit
                     </Button>
                     <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-destructive" onClick={() => deleteComment(comment.id)}>
@@ -202,8 +228,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   return (
     <div className="space-y-4">
-      {topLevel.length === 0 && <p className="text-sm text-muted-foreground italic py-4">No comments yet. Start the conversation!</p>}
-      {topLevel.map((comment) => renderComment(comment))}
+      {topLevel.length === 0 && deletedTopLevel.length === 0 && <p className="text-sm text-muted-foreground italic py-4">No comments yet. Start the conversation!</p>}
+      {[...deletedTopLevel, ...topLevel].map((comment) => renderComment(comment))}
       <div className="pt-4 border-t border-border">
         <div className="flex gap-3">
           <Avatar className="h-8 w-8 mt-1"><AvatarImage src={currentUser.avatarUrl} /><AvatarFallback>{currentUser.name[0]}</AvatarFallback></Avatar>
