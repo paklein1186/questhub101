@@ -194,6 +194,12 @@ export default function PodDetail() {
         </TabsContent>
 
         {isMember && (
+          <TabsContent value="facilitator" className="mt-6">
+            <FacilitatorPanel entityType="POD" entityId={pod.id} entityName={pod.name} isAdmin={isHost} />
+          </TabsContent>
+        )}
+
+        {isMember && (
           <TabsContent value="ai-chat" className="mt-6">
             <UnitChat entityType="POD" entityId={pod.id} entityName={pod.name} />
           </TabsContent>

@@ -318,6 +318,12 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
+        {isMember && (
+          <TabsContent value="facilitator" className="mt-6">
+            <FacilitatorPanel entityType="GUILD" entityId={guild.id} entityName={guild.name} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
+
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
