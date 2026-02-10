@@ -148,6 +148,7 @@ export function AppNav() {
                       <Building2 className="h-4 w-4 mr-2" /> My companies
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/me/settings" className="cursor-pointer">
                       <Settings className="h-4 w-4 mr-2" /> Settings
