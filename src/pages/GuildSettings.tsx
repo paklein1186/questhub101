@@ -330,6 +330,97 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                 </div>
               )}
 
+              {/* ── Membership Policy ── */}
+              {activeTab === "membership" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Join Policy" icon={<ClipboardList className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">Control how users can join this guild.</p>
+                    <Select value={joinPolicy} onValueChange={(v) => setJoinPolicy(v as GuildJoinPolicy)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={GuildJoinPolicy.OPEN}>Open — anyone can join instantly</SelectItem>
+                        <SelectItem value={GuildJoinPolicy.APPROVAL_REQUIRED}>Application required — users must apply</SelectItem>
+                        <SelectItem value={GuildJoinPolicy.INVITE_ONLY}>Invite-only — only admins can add members</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Section>
+
+                  {joinPolicy === GuildJoinPolicy.APPROVAL_REQUIRED && (
+                    <>
+                      <Separator />
+                      <Section title="Application Questions" icon={<ClipboardList className="h-5 w-5" />}>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Define questions applicants must answer. Leave empty for a simple apply button.
+                        </p>
+                        <div className="space-y-2 mb-3">
+                          {appQuestions.map((q, i) => (
+                            <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
+                              <span className="text-sm flex-1">{q}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 text-xs text-destructive shrink-0"
+                                onClick={() => setAppQuestions((prev) => prev.filter((_, idx) => idx !== i))}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          {appQuestions.length === 0 && (
+                            <p className="text-xs text-muted-foreground italic">No questions yet. Applicants will submit a simple request.</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={newQuestion}
+                            onChange={(e) => setNewQuestion(e.target.value)}
+                            placeholder="Add a question…"
+                            maxLength={200}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && newQuestion.trim()) {
+                                setAppQuestions((prev) => [...prev, newQuestion.trim()]);
+                                setNewQuestion("");
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!newQuestion.trim()}
+                            onClick={() => {
+                              setAppQuestions((prev) => [...prev, newQuestion.trim()]);
+                              setNewQuestion("");
+                            }}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Section>
+                    </>
+                  )}
+
+                  <Button
+                    onClick={() => {
+                      // Save to mock (in real app this would be a supabase update)
+                      const target = guilds.find((g) => g.id === guildId);
+                      if (target) {
+                        (target as any).joinPolicy = joinPolicy;
+                        (target as any).applicationQuestions = appQuestions;
+                      }
+                      toast({ title: "Membership policy saved!" });
+                    }}
+                    className="w-full"
+                  >
+                    <Save className="h-4 w-4 mr-2" /> Save membership policy
+                  </Button>
+                </div>
+              )}
+
+              {/* ── Applications ── */}
+              {activeTab === "applications" && (
+                <GuildApplicationsTab guildId={guildId} currentUserId={currentUser.id} />
+              )}
+
               {/* ── Membership & Roles ── */}
               {activeTab === "members" && (
                 <div className="space-y-4">
