@@ -97,21 +97,6 @@ export default function GuildDetail() {
     toast({ title: "Left guild" });
   };
 
-  const doCreateQuest = async () => {
-    if (!qTitle.trim()) return;
-    const { error } = await supabase.from("quests").insert({
-      title: qTitle.trim(), description: qDesc.trim() || null,
-      cover_image_url: qCoverImageUrl || null,
-      status: "OPEN" as any, monetization_type: "FREE" as any,
-      reward_xp: Number(qRewardXp) || 100, is_featured: false,
-      created_by_user_id: currentUser.id, guild_id: guild.id,
-      is_draft: qDraft,
-    });
-    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
-    qc.invalidateQueries({ queryKey: ["quests-for-guild", id] });
-    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined); setQDraft(false);
-    toast({ title: "Quest created!" });
-  };
 
   const createGuildService = async () => {
     if (!svcTitle.trim()) return;
