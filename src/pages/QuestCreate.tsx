@@ -93,7 +93,7 @@ export default function QuestCreate() {
           title: title.trim(),
           description: description.trim() || null,
           cover_image_url: coverImageUrl || null,
-          status: "OPEN" as any,
+          status: questStatus as any,
           monetization_type: monType as any,
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
@@ -105,7 +105,11 @@ export default function QuestCreate() {
           price_fiat: fiatCents,
           price_currency: "EUR",
           payout_user_id: currentUser.id,
-        })
+          credit_budget: budget,
+          escrow_credits: budget,
+          allow_fundraising: allowFundraising,
+          funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
+        } as any)
         .select()
         .single();
 
