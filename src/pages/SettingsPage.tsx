@@ -42,6 +42,7 @@ const TABS = [
   { key: "notifications", label: "Notifications & Emails", icon: Bell },
   { key: "services", label: "Services & Availability", icon: Briefcase },
   { key: "billing", label: "XP, Plan & Billing", icon: Zap },
+  { key: "referrals", label: "Referrals", icon: UserCircle },
   { key: "privacy", label: "Privacy & Visibility", icon: Eye },
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
