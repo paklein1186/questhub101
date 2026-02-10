@@ -249,12 +249,7 @@ export default function SettingsPage() {
   const toggleTopic = (id: string) => setSelectedTopics((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const toggleTerritory = (id: string) => setSelectedTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const toggleServiceActive = (svc: Service) => {
-    svc.isActive = !svc.isActive;
-    svc.updatedAt = new Date().toISOString();
-    rerender();
-    toast({ title: svc.isActive ? "Service resumed" : "Service paused" });
-  };
+  // toggleServiceActive is now handled by MyServicesPanel
 
   const handleBuyXp = async (code: string) => {
     setBuyLoading(code);
