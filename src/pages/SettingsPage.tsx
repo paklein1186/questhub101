@@ -526,42 +526,27 @@ export default function SettingsPage() {
               )}
 
               {/* ── Services & Availability ── */}
+              {activeTab === "quests" && <MyQuestsTab userId={currentUser.id} />}
+              {activeTab === "guilds" && <MyGuildsTab userId={currentUser.id} />}
+              {activeTab === "pods" && <MyPodsTab userId={currentUser.id} />}
+              {activeTab === "courses" && <MyCoursesTab userId={currentUser.id} />}
+
               {activeTab === "services" && (
                 <div className="space-y-6">
-                  <Section title="My Services" icon={<Briefcase className="h-5 w-5" />}>
-                    {allMyServices.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No services yet. <Link to="/me" className="text-primary hover:underline">Create one from your Me page</Link>.</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {allMyServices.map((svc) => (
-                          <div key={svc.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-                            <div>
-                              <Link to={`/services/${svc.id}`} className="text-sm font-medium hover:text-primary transition-colors">{svc.title}</Link>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                <span>{svc.durationMinutes} min</span>
-                                <span>{(!svc.priceAmount || svc.priceAmount === 0) ? "Free" : `€${svc.priceAmount}`}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={svc.isActive ? "bg-success/10 text-success border-0" : "bg-muted text-muted-foreground border-0"}>
-                                {svc.isActive ? "Active" : "Paused"}
-                              </Badge>
-                              <Button size="sm" variant="ghost" onClick={() => toggleServiceActive(svc)}>
-                                {svc.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                              </Button>
-                              <Button size="sm" variant="ghost" asChild>
-                                <Link to="/me"><Pencil className="h-4 w-4" /></Link>
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Section>
-
+                  <MyServicesPanel userId={currentUser.id} />
                   <Section title="Availability" icon={<Clock className="h-5 w-5" />}>
                     <MyAvailability bare />
                   </Section>
+                </div>
+              )}
+
+              {activeTab === "bookings" && (
+                <div className="space-y-4">
+                  <h3 className="font-display text-lg font-semibold flex items-center gap-2"><CalendarCheck className="h-5 w-5" /> My Bookings</h3>
+                  <div className="flex gap-2">
+                    <Button asChild variant="outline"><Link to="/me/bookings">View bookings I made</Link></Button>
+                    <Button asChild variant="outline"><Link to="/me/requests">View booking requests</Link></Button>
+                  </div>
                 </div>
               )}
 
