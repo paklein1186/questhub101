@@ -33,7 +33,7 @@ export function useOnboardingProgress() {
 
   const steps = useMemo(
     () => [
-      { key: "completedProfile" as const, label: "Complete your profile", description: "Add a bio and headline", link: "/profile/edit" },
+      { key: "completedProfile" as const, label: "Complete your profile", description: "Add a bio and headline", link: "/me/settings?tab=profile" },
       { key: "selectedHouses" as const, label: "Select your Houses", description: "Pick topics you care about", link: "/explore?tab=topics" },
       { key: "joinedGuild" as const, label: "Join a Guild", description: "Find your community", link: "/explore?tab=guilds" },
       { key: "followedQuests" as const, label: "Follow a Quest", description: "Stay updated on projects", link: "/explore?tab=quests" },
