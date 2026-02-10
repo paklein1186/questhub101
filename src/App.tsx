@@ -48,6 +48,11 @@ import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
 import ServicesMarketplace from "./pages/ServicesMarketplace";
+import CoursesExplore from "./pages/CoursesExplore";
+import CourseDetail from "./pages/CourseDetail";
+import CourseCreate from "./pages/CourseCreate";
+import LessonView from "./pages/LessonView";
+import MyCourses from "./pages/MyCourses";
 
 const queryClient = new QueryClient();
 
