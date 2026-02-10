@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.territory-intelligence]
 verify_jwt = false
+
+[functions.fundraising-ai]
+verify_jwt = false
