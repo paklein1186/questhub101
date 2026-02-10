@@ -153,7 +153,7 @@ export default function GuildDetail() {
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
                 <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
-                <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_XP_COST} itemLabel="guild slot" compact />
+                <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_CREDIT_COST} itemLabel="guild slot" compact />
               </div>
             )}
             {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
