@@ -37,6 +37,7 @@ import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
+import OnboardingChecklist from "./pages/OnboardingChecklist";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,7 @@ const App = () => (
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
                 <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
+                <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
