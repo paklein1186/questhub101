@@ -303,7 +303,7 @@ export default function QuestDetail() {
 
         <TabsContent value="documents" className="mt-6">
           <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
-          {isCreator && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
+          {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6">
