@@ -71,6 +71,7 @@ const App = () => (
                 <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
                 <Route path="/me" element={<RequireAuth><MeHub /></RequireAuth>} />
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
+                <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
