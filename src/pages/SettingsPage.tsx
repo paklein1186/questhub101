@@ -6,7 +6,7 @@ import {
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
-  Sparkles, Compass,
+  Sparkles, Compass, Swords, Users, GraduationCap, CalendarCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,16 +43,23 @@ import MyAvailability from "./MyAvailability";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { MyServicesPanel } from "@/components/MyServicesPanel";
+import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
 
 const TABS = [
-  { key: "account", label: "Account & Security", icon: Shield },
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
-  { key: "houses", label: "Houses & Territories", icon: Hash },
-  { key: "notifications", label: "Notifications & Emails", icon: Bell },
+  { key: "quests", label: "My Quests", icon: Swords },
+  { key: "guilds", label: "My Guilds", icon: Users },
+  { key: "pods", label: "My Pods", icon: Users },
+  { key: "courses", label: "My Courses", icon: GraduationCap },
   { key: "services", label: "Services & Availability", icon: Briefcase },
-  { key: "billing", label: "XP, Plan & Billing", icon: Zap },
-  { key: "referrals", label: "Referrals", icon: UserCircle },
+  { key: "bookings", label: "My Bookings", icon: CalendarCheck },
+  { key: "billing", label: "XP & Credits", icon: Zap },
+  { key: "houses", label: "Houses & Territories", icon: Hash },
+  { key: "notifications", label: "Notifications", icon: Bell },
+  { key: "account", label: "Account & Security", icon: Shield },
   { key: "privacy", label: "Privacy & Visibility", icon: Eye },
+  { key: "referrals", label: "Referrals", icon: UserCircle },
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
 
@@ -71,8 +78,8 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("tab") || "account";
-  const setActiveTab = (tab: string) => setSearchParams({ tab });
+  const activeTab = searchParams.get("tab") || "profile";
+  const setActiveTab = (tab: string) => setSearchParams({ tab }, { replace: true });
 
   // ── Profile state (sourced from Supabase auth profile, NOT mock) ──
   const [name, setName] = useState(authUser?.name ?? currentUser.name);
@@ -249,7 +256,7 @@ export default function SettingsPage() {
   return (
     <PageShell>
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="font-display text-2xl font-bold mb-6">My Hub</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar nav */}
@@ -519,42 +526,27 @@ export default function SettingsPage() {
               )}
 
               {/* ── Services & Availability ── */}
+              {activeTab === "quests" && <MyQuestsTab userId={currentUser.id} />}
+              {activeTab === "guilds" && <MyGuildsTab userId={currentUser.id} />}
+              {activeTab === "pods" && <MyPodsTab userId={currentUser.id} />}
+              {activeTab === "courses" && <MyCoursesTab userId={currentUser.id} />}
+
               {activeTab === "services" && (
                 <div className="space-y-6">
-                  <Section title="My Services" icon={<Briefcase className="h-5 w-5" />}>
-                    {allMyServices.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No services yet. <Link to="/me" className="text-primary hover:underline">Create one from your Me page</Link>.</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {allMyServices.map((svc) => (
-                          <div key={svc.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-                            <div>
-                              <Link to={`/services/${svc.id}`} className="text-sm font-medium hover:text-primary transition-colors">{svc.title}</Link>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                <span>{svc.durationMinutes} min</span>
-                                <span>{(!svc.priceAmount || svc.priceAmount === 0) ? "Free" : `€${svc.priceAmount}`}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={svc.isActive ? "bg-success/10 text-success border-0" : "bg-muted text-muted-foreground border-0"}>
-                                {svc.isActive ? "Active" : "Paused"}
-                              </Badge>
-                              <Button size="sm" variant="ghost" onClick={() => toggleServiceActive(svc)}>
-                                {svc.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                              </Button>
-                              <Button size="sm" variant="ghost" asChild>
-                                <Link to="/me"><Pencil className="h-4 w-4" /></Link>
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Section>
-
+                  <MyServicesPanel userId={currentUser.id} />
                   <Section title="Availability" icon={<Clock className="h-5 w-5" />}>
                     <MyAvailability bare />
                   </Section>
+                </div>
+              )}
+
+              {activeTab === "bookings" && (
+                <div className="space-y-4">
+                  <h3 className="font-display text-lg font-semibold flex items-center gap-2"><CalendarCheck className="h-5 w-5" /> My Bookings</h3>
+                  <div className="flex gap-2">
+                    <Button asChild variant="outline"><Link to="/me/bookings">View bookings I made</Link></Button>
+                    <Button asChild variant="outline"><Link to="/me/requests">View booking requests</Link></Button>
+                  </div>
                 </div>
               )}
 
