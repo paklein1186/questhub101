@@ -198,4 +198,18 @@ export enum AttachmentTargetType {
   POD = "POD",
   GUILD = "GUILD",
   COMPANY = "COMPANY",
+  LESSON = "LESSON",
+}
+
+export enum CourseLevel {
+  BEGINNER = "BEGINNER",
+  INTERMEDIATE = "INTERMEDIATE",
+  ADVANCED = "ADVANCED",
+}
+
+export enum CoursePurchaseStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
 }

@@ -23,6 +23,8 @@ import {
   ReportTargetType,
   ReportStatus,
   AttachmentTargetType,
+  CourseLevel,
+  CoursePurchaseStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
