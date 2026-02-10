@@ -256,7 +256,7 @@ export default function SettingsPage() {
   return (
     <PageShell>
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-2xl font-bold mb-6">Settings</h1>
+        <h1 className="font-display text-2xl font-bold mb-6">My Hub</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar nav */}
