@@ -90,6 +90,7 @@ export default function TopicHouse() {
           <TabsTrigger value="featured"><Star className="h-3.5 w-3.5 mr-1" /> Featured ({featuredQuests.length + featuredGuilds.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 mr-1" /> Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> Guilds ({guilds.length})</TabsTrigger>
+          <TabsTrigger value="intelligence"><Brain className="h-3.5 w-3.5 mr-1" /> Intelligence</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
