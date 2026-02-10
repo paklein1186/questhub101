@@ -178,6 +178,9 @@ export default function GuildDetail() {
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
+          {isMember && <TabsTrigger value="board"><LayoutGrid className="h-4 w-4 mr-1" /> Board</TabsTrigger>}
+          {isMember && <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" /> Docs</TabsTrigger>}
+          <TabsTrigger value="events"><CalendarDays className="h-4 w-4 mr-1" /> Events</TabsTrigger>
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
