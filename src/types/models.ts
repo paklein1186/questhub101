@@ -197,7 +197,7 @@ export interface QuestTerritory {
 
 // ─── Social ─────────────────────────────────────────────────
 
-export interface Comment {
+export interface Comment extends SoftDeletable {
   id: string;
   content: string;
   createdAt: string;
