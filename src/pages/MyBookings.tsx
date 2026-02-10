@@ -144,6 +144,11 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                   <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark Completed
                 </Button>
               )}
+              {(b.status === BookingStatus.CONFIRMED || b.status === BookingStatus.ACCEPTED) && svc && (
+                <Button size="sm" variant="ghost" className="mt-1" onClick={() => downloadIcs(b, svc)}>
+                  <CalendarPlus className="h-3.5 w-3.5 mr-1" /> Add to calendar (.ics)
+                </Button>
+              )}
             </motion.div>
           );
         })}
