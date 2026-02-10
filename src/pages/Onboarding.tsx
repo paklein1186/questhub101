@@ -72,10 +72,30 @@ export default function Onboarding() {
 
   const canNext = () => {
     if (step === 0) return !!role;
-    if (step === 1) return selectedTopics.length > 0;
+    if (step === 1) return true; // allow zero interests
     if (step === 2) return selectedTerritories.length > 0;
-    if (step === 3) return bio.trim().length > 10;
+    if (step === 3) return true; // bio is optional
     return true;
+  };
+
+  const handleGenerateBio = async () => {
+    setGeneratingBio(true);
+    try {
+      const topicNames = selectedTopics
+        .map((id) => topics.find((t) => t.id === id)?.name)
+        .filter(Boolean);
+      const context = bio.trim().length > 10
+        ? bio
+        : `I am a ${role || "changemaker"} interested in ${topicNames.join(", ") || "making an impact"}.`;
+      // Mock AI bio generation
+      await new Promise((r) => setTimeout(r, 1200));
+      const generated = `${context} Passionate about creating meaningful change and connecting with like-minded people across communities.`;
+      setBio(generated);
+    } catch {
+      toast({ title: "AI generation failed", description: "You can write your bio manually.", variant: "destructive" });
+    } finally {
+      setGeneratingBio(false);
+    }
   };
 
   const goNext = async () => {
