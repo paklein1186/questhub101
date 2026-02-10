@@ -63,7 +63,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const currentUser = useCurrentUser();
-  const { user: authUser, updatePassword, signOut } = useAuth();
+  const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
