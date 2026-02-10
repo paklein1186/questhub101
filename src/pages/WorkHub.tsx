@@ -57,6 +57,7 @@ export default function WorkHub() {
           <TabsTrigger value="pods">My Pods ({myPods.length})</TabsTrigger>
           <TabsTrigger value="services">My Services ({myServices.length})</TabsTrigger>
           <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
