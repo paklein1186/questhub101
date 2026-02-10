@@ -36,8 +36,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
+import { Label } from "@/components/ui/label";
+import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
+
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
+  { key: "features", label: "Features", icon: Puzzle },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
@@ -168,6 +172,21 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const [podAccessPolicy, setPodAccessPolicy] = useState<"OPEN" | "GUILD_MEMBERS" | "INVITE_ONLY">("OPEN");
   const [defaultQuestTopics, setDefaultQuestTopics] = useState<string[]>([]);
   const [defaultQuestTerritories, setDefaultQuestTerritories] = useState<string[]>([]);
+
+  // ── Features config state ──
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const parsedFeatures = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
+  const [featuresConfig, setFeaturesConfig] = useState(parsedFeatures);
+
+  const toggleFeature = (key: string) => setFeaturesConfig((prev: any) => ({ ...prev, [key]: !prev[key] }));
+
+  const handleSaveFeatures = async () => {
+    const { error } = await supabase.from("guilds").update({ features_config: featuresConfig as any }).eq("id", guildId);
+    if (error) { toast({ title: "Failed to save features", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+    toast({ title: "Features saved!" });
+  };
 
   // ── Handlers ──
   const toggleTopic = (topicId: string) =>
@@ -401,6 +420,36 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       }}
                     />
                     <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Features ── */}
+              {activeTab === "features" && (
+                <div className="space-y-5 max-w-lg">
+                  <Section title="Collaboration Features" icon={<Puzzle className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Enable or disable tools for this guild. Disabled tools will be hidden from the guild page.</p>
+                    <div className="space-y-4">
+                      {[
+                        { key: "kanbanBoard", label: "Kanban Board", desc: "Visual board to track quest status", icon: LayoutGrid },
+                        { key: "subtasks", label: "Subtasks", desc: "Break quests into smaller tasks with assignees", icon: ListChecks },
+                        { key: "docsSpace", label: "Docs Space", desc: "Notion-like documents for guild knowledge", icon: FileText },
+                        { key: "events", label: "Events", desc: "Create online/offline events with attendees", icon: CalendarDays },
+                        { key: "applicationProcess", label: "Application Process", desc: "Require applications for new members", icon: ClipboardList },
+                      ].map(({ key, label, desc, icon: Icon }) => (
+                        <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <Label className="text-sm font-medium">{label}</Label>
+                              <p className="text-xs text-muted-foreground">{desc}</p>
+                            </div>
+                          </div>
+                          <Switch checked={(featuresConfig as any)[key]} onCheckedChange={() => toggleFeature(key)} />
+                        </div>
+                      ))}
+                    </div>
+                    <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save features</Button>
                   </Section>
                 </div>
               )}

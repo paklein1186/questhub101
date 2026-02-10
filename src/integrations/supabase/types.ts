@@ -1048,6 +1048,7 @@ export type Database = {
           created_by_user_id: string
           deleted_at: string | null
           description: string | null
+          features_config: Json
           id: string
           instagram_url: string | null
           is_approved: boolean
@@ -1069,6 +1070,7 @@ export type Database = {
           created_by_user_id: string
           deleted_at?: string | null
           description?: string | null
+          features_config?: Json
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -1090,6 +1092,7 @@ export type Database = {
           created_by_user_id?: string
           deleted_at?: string | null
           description?: string | null
+          features_config?: Json
           id?: string
           instagram_url?: string | null
           is_approved?: boolean

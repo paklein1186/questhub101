@@ -85,6 +85,10 @@ export default function GuildDetail() {
   const isAdmin = currentMembership?.role === "ADMIN";
   const isMember = !!currentMembership;
 
+  // Feature flags
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const fc = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
+
   const doJoinGuild = async () => {
     const { error } = await supabase.from("guild_members").insert({ guild_id: guild.id, user_id: currentUser.id, role: "MEMBER" as any });
     if (error) { toast({ title: "Failed to join", variant: "destructive" }); return; }
@@ -178,9 +182,9 @@ export default function GuildDetail() {
           <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
-          {isMember && <TabsTrigger value="board"><LayoutGrid className="h-4 w-4 mr-1" /> Board</TabsTrigger>}
-          {isMember && <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" /> Docs</TabsTrigger>}
-          <TabsTrigger value="events"><CalendarDays className="h-4 w-4 mr-1" /> Events</TabsTrigger>
+          {isMember && (fc as any).kanbanBoard && <TabsTrigger value="board"><LayoutGrid className="h-4 w-4 mr-1" /> Board</TabsTrigger>}
+          {isMember && (fc as any).docsSpace && <TabsTrigger value="docs"><FileText className="h-4 w-4 mr-1" /> Docs</TabsTrigger>}
+          {(fc as any).events && <TabsTrigger value="events"><CalendarDays className="h-4 w-4 mr-1" /> Events</TabsTrigger>}
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
@@ -229,21 +233,23 @@ export default function GuildDetail() {
           {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
         </TabsContent>
 
-        {isMember && (
+        {isMember && (fc as any).kanbanBoard && (
           <TabsContent value="board" className="mt-6">
             <GuildKanbanBoard guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
           </TabsContent>
         )}
 
-        {isMember && (
+        {isMember && (fc as any).docsSpace && (
           <TabsContent value="docs" className="mt-6">
             <GuildDocsSpace guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
           </TabsContent>
         )}
 
-        <TabsContent value="events" className="mt-6">
-          <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
-        </TabsContent>
+        {(fc as any).events && (
+          <TabsContent value="events" className="mt-6">
+            <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
 
         <TabsContent value="services" className="mt-6 space-y-3">
           {isAdmin && (
