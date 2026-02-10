@@ -292,7 +292,7 @@ export interface PodMember {
 
 // ─── Services & Bookings ─────────────────────────────────────
 
-export interface Service {
+export interface Service extends SoftDeletable {
   id: string;
   title: string;
   description: string;
