@@ -72,6 +72,8 @@ export default function GuildDetail() {
   const [qDesc, setQDesc] = useState("");
   const [qRewardXp, setQRewardXp] = useState("100");
   const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
+  const [qDraft, setQDraft] = useState(false);
+  const [svcDraft, setSvcDraft] = useState(false);
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
   if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
