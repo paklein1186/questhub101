@@ -66,6 +66,21 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
+  const currentUser = useCurrentUser();
+
+  // Fetch user's territory IDs for "My territories" quick filter
+  const { data: myTerritoryIds = [] } = useQuery({
+    queryKey: ["my-territory-ids", currentUser.id],
+    queryFn: async () => {
+      if (!currentUser.id) return [];
+      const { data } = await supabase
+        .from("user_territories")
+        .select("territory_id")
+        .eq("user_id", currentUser.id);
+      return (data ?? []).map(d => d.territory_id);
+    },
+    enabled: !!currentUser.id && !!config.showTerritories,
+  });
 
   const set = (patch: Partial<ExploreFilterValues>) => onChange({ ...filters, ...patch });
 
