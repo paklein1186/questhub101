@@ -10,6 +10,7 @@ import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
+import ExploreHouses from "./ExploreHouses";
 
 const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users", "houses"];
 
