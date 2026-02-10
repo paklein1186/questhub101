@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import {
@@ -29,6 +29,7 @@ const TYPE_COLORS: Record<SearchResultType, string> = {
 export function GlobalSearchDialog() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult[]>([]);
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
 
@@ -44,19 +45,24 @@ export function GlobalSearchDialog() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  const results = useMemo(() => {
-    if (query.trim().length < 2) return [];
-    return globalSearch(query, currentUser.id);
+  // Debounced async search
+  useEffect(() => {
+    if (query.trim().length < 2) { setResults([]); return; }
+    const timer = setTimeout(async () => {
+      const res = await globalSearch(query, currentUser.id);
+      setResults(res);
+    }, 300);
+    return () => clearTimeout(timer);
   }, [query, currentUser.id]);
 
-  const grouped = useMemo(() => {
+  const grouped = (() => {
     const map = new Map<SearchResultType, SearchResult[]>();
     for (const r of results) {
       if (!map.has(r.type)) map.set(r.type, []);
       map.get(r.type)!.push(r);
     }
     return map;
-  }, [results]);
+  })();
 
   const handleSelect = useCallback(
     (url: string) => {
