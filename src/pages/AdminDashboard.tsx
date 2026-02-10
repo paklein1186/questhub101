@@ -46,6 +46,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { softDelete, restoreItem, permanentDelete } from "@/lib/softDelete";
 import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/data/mock";
 import type { QuestUpdate, Company, Pod } from "@/types";
+import { adminActionLogs, logAdminAction } from "@/lib/adminLog";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
