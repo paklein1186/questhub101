@@ -34,6 +34,7 @@ import {
   guildMembers, users, getUserById, getMembersForGuild, getServicesForGuild, services,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
