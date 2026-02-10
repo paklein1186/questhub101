@@ -149,10 +149,11 @@ export default function GuildDetail() {
       status: QuestStatus.OPEN, monetizationType: MonetizationType.FREE,
       rewardXp: Number(qRewardXp) || 100, isFeatured: false,
       createdByUserId: currentUser.id, guildId: guild.id,
+      isDraft: qDraft,
     };
     allQuests.push(quest);
     limits.recordQuestCreation();
-    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined);
+    setCreateQuestOpen(false); setQTitle(""); setQDesc(""); setQRewardXp("100"); setQCoverImageUrl(undefined); setQDraft(false);
     rerender();
     toast({ title: "Quest created!", description: quest.title });
   };
