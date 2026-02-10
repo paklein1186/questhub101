@@ -7,6 +7,7 @@ import {
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
   ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
   EyeOff, Send, TrendingUp, Flag, ExternalLink,
+  ScrollText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
