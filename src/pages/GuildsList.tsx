@@ -20,6 +20,8 @@ import {
   guildTopics, guildTerritories, guildMembers,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
+import { filterPublished } from "@/lib/drafts";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
