@@ -122,7 +122,7 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
     if (action === "APPROVED") {
       const insertData: any = { [cfg.idCol]: entityId, user_id: app.applicant_user_id };
       if (entityType !== "company") insertData.role = cfg.memberRole;
-      const { error: memberError } = await supabase.from(cfg.members).insert(insertData);
+      const { error: memberError } = await (supabase.from(cfg.members as any).insert(insertData) as any);
       if (memberError && !memberError.message?.includes("duplicate")) {
         toast({ title: "Approved but failed to add member", description: memberError.message, variant: "destructive" });
       }

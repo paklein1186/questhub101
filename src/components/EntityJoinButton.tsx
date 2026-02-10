@@ -88,12 +88,12 @@ export function EntityJoinButton({
       question: q,
       answer: answers[i] || "",
     }));
-    const { error } = await supabase.from(cfg.applications).insert({
+    const { error } = await (supabase.from(cfg.applications as any).insert({
       [cfg.idCol]: entityId,
       applicant_user_id: currentUserId,
       answers: answerPayload,
       status: "PENDING",
-    } as any);
+    }) as any);
     setLoading(false);
     if (error) {
       if (error.message?.includes("unique") || error.code === "23505") {
