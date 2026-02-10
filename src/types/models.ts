@@ -47,6 +47,13 @@ export interface User extends SoftDeletable {
   role: UserRole;
   xp: number;
   contributionIndex: number;
+  // Privacy settings
+  showXpPublicly?: boolean;
+  showContributionIndexPublicly?: boolean;
+  showAchievementsPublicly?: boolean;
+  showServicesPublicly?: boolean;
+  allowFollows?: boolean;
+  allowProfileComments?: boolean;
   // Relations
   guildMembers?: GuildMember[];
   questParticipants?: QuestParticipant[];
