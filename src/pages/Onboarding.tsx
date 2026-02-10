@@ -101,11 +101,15 @@ export default function Onboarding() {
 
   const canNext = () => {
     if (step === 0) return !!role;
-    if (step === 1) return true; // allow zero interests
-    if (step === 2) return true; // allow zero territories
-    if (step === 3) return true; // bio is optional
+    if (step === 1) return true;
+    if (step === 2) return true;
+    if (step === 3) return true; // why step is optional
+    if (step === 4) return true; // bio is optional
     return true;
   };
+
+  const toggleWhy = (key: string) =>
+    setWhySelections((prev) => prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]);
 
   const handleGenerateBio = async () => {
     setGeneratingBio(true);
