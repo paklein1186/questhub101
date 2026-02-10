@@ -124,16 +124,29 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                   <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
+                {(() => {
+                  const terrs = (quest.quest_territories || []).map((qt: any) => qt.territories).filter(Boolean);
+                  return terrs.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {terrs.slice(0, 2).map((t: any) => (
+                        <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">
+                          <MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                        </Badge>
+                      ))}
+                      {terrs.length > 2 && <span className="text-[10px] text-muted-foreground">+{terrs.length - 2}</span>}
+                    </div>
+                  ) : null;
+                })()}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{(quest as any).guilds?.name}</span>
                   <div className="flex gap-1.5 flex-wrap">
                     {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
                     <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
                     {(quest as any).price_fiat > 0 && (
-                      <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
+                      <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
                     )}
                     {(quest as any).credit_reward > 0 && (
-                      <Badge className="bg-emerald-500/10 text-emerald-600 border-0"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
+                      <Badge variant="secondary"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
                     )}
                     {(quest as any).price_fiat === 0 && (quest as any).credit_reward === 0 && (
                       <Badge variant="secondary">Free</Badge>
