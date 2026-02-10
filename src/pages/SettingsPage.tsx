@@ -45,6 +45,7 @@ import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/
 
 const TABS = [
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
+  { key: "persona", label: "My Persona", icon: Compass },
   { key: "quests", label: "My Quests", icon: Swords },
   { key: "guilds", label: "My Guilds", icon: Users },
   { key: "pods", label: "My Pods", icon: Users },
