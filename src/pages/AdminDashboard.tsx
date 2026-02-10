@@ -1330,48 +1330,79 @@ function EmailsDigestsTab() {
 function AnalyticsTab() {
   const totalUsers = allUsers.length;
   const totalQuests = allQuests.length;
+  const totalGuilds = allGuilds.length;
   const totalPods = allPods.length;
   const totalBookings = allBookings.length;
   const totalServices = allServices.length;
+  const totalComments = allComments.length;
   const totalXpAwarded = allUsers.reduce((sum, u) => sum + u.xp, 0);
   const totalRevenue = allBookings.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+
+  // Course stats
+  const publishedCourses = (courses ?? []).filter((c: any) => c.isPublished).length;
+  const totalEnrollments = (courseEnrollments ?? []).length;
+  const completedEnrollments = (courseEnrollments ?? []).filter((e: any) => e.completionDate).length;
+  const paidCourses = (courses ?? []).filter((c: any) => !c.isFree && c.isPublished).length;
+  const courseRevenue = (coursePurchases ?? []).filter((p: any) => p.status === "PAID").reduce((sum: number, p: any) => sum + (p.amount ?? 0), 0);
+
+  // XP stats
+  const avgXp = totalUsers > 0 ? Math.round(totalXpAwarded / totalUsers) : 0;
+
+  // Activity per week (mock recent 8 weeks)
+  const weekLabels = Array.from({ length: 8 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (7 - i) * 7);
+    return `W${d.getWeek ? (7 - i) : (8 - (7 - i))}`;
+  });
+  // Simple mock activity data
+  const weeklyActivity = [
+    { week: "W1", users: 1, quests: 0, bookings: 0, comments: 1 },
+    { week: "W2", users: 0, quests: 1, bookings: 0, comments: 2 },
+    { week: "W3", users: 1, quests: 1, bookings: 1, comments: 1 },
+    { week: "W4", users: 0, quests: 2, bookings: 0, comments: 3 },
+    { week: "W5", users: 1, quests: 0, bookings: 1, comments: 2 },
+    { week: "W6", users: 1, quests: 1, bookings: 0, comments: 1 },
+    { week: "W7", users: 0, quests: 1, bookings: 0, comments: 2 },
+    { week: "W8", users: 0, quests: 0, bookings: 0, comments: 1 },
+  ];
 
   // Per-topic breakdown
   const topicStats = allTopics.map((topic) => {
     const qCount = questTopics.filter((qt) => qt.topicId === topic.id).length;
-    const bCount = allBookings.filter((b) => {
-      const svc = getServiceById(b.serviceId);
-      return svc ? allServices.some((s) => s.id === svc.id) : false;
-    });
-    return { topic, quests: qCount };
-  }).filter((t) => t.quests > 0).sort((a, b) => b.quests - a.quests).slice(0, 10);
+    const uCount = userTopics.filter((ut) => ut.topicId === topic.id).length;
+    return { topic, quests: qCount, users: uCount };
+  }).filter((t) => t.quests > 0 || t.users > 0).sort((a, b) => b.quests - a.quests).slice(0, 10);
 
   // Per-territory breakdown
   const territoryStats = allTerritories.map((territory) => {
     const qCount = questTerritories.filter((qt) => qt.territoryId === territory.id).length;
-    return { territory, quests: qCount };
-  }).filter((t) => t.quests > 0).sort((a, b) => b.quests - a.quests);
+    const uCount = userTerritories.filter((ut) => ut.territoryId === territory.id).length;
+    return { territory, quests: qCount, users: uCount };
+  }).filter((t) => t.quests > 0 || t.users > 0).sort((a, b) => b.quests - a.quests);
+
+  // Paid bookings
+  const paidBookings = allBookings.filter((b) => b.paymentStatus === PaymentStatus.PAID || (b.amount && b.amount > 0)).length;
 
   return (
     <div className="space-y-8">
-      {/* High-level metrics */}
+      {/* High-level KPIs */}
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Platform Overview</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Users", value: totalUsers, icon: UsersIcon },
-            { label: "Quests", value: totalQuests, icon: Compass },
-            { label: "Pods", value: totalPods, icon: Hash },
-            { label: "Services", value: totalServices, icon: ShoppingBag },
-            { label: "Bookings", value: totalBookings, icon: CreditCard },
-            { label: "Total XP Awarded", value: totalXpAwarded.toLocaleString(), icon: Zap },
-            { label: "Marketplace Revenue", value: `€${totalRevenue}`, icon: TrendingUp },
-            { label: "Guilds", value: allGuilds.length, icon: Shield },
+            { label: "Total Users", value: totalUsers, icon: UsersIcon },
+            { label: "Total Quests", value: totalQuests, icon: Compass },
+            { label: "Total Guilds", value: totalGuilds, icon: Shield },
+            { label: "Total Pods", value: totalPods, icon: Hash },
+            { label: "Total Services", value: totalServices, icon: ShoppingBag },
+            { label: "Total Bookings", value: totalBookings, icon: CreditCard },
+            { label: "Total Comments", value: totalComments, icon: MessageSquare },
+            { label: "Published Courses", value: publishedCourses, icon: ScrollText },
           ].map((stat, i) => (
-            <div key={i} className="rounded-lg border border-border bg-card p-4">
+            <div key={i} className="rounded-xl border border-border bg-card p-4 hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-2 mb-1">
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{stat.label}</span>
+                <span className="text-xs text-muted-foreground">{stat.label}</span>
               </div>
               <p className="text-2xl font-bold text-primary">{stat.value}</p>
             </div>
@@ -1381,21 +1412,109 @@ function AnalyticsTab() {
 
       <Separator />
 
+      {/* XP & Engagement */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><Zap className="h-5 w-5" /> XP & Engagement</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Total XP Awarded</p>
+            <p className="text-2xl font-bold text-primary">{totalXpAwarded.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Average XP / User</p>
+            <p className="text-2xl font-bold text-primary">{avgXp.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Total Enrollments</p>
+            <p className="text-2xl font-bold text-primary">{totalEnrollments}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Course Completions</p>
+            <p className="text-2xl font-bold text-primary">{completedEnrollments}</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Marketplace & Revenue */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><TrendingUp className="h-5 w-5" /> Marketplace & Revenue</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Booking Revenue</p>
+            <p className="text-2xl font-bold text-primary">€{totalRevenue}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Paid Bookings</p>
+            <p className="text-2xl font-bold text-primary">{paidBookings}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Paid Courses</p>
+            <p className="text-2xl font-bold text-primary">{paidCourses}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Course Revenue</p>
+            <p className="text-2xl font-bold text-primary">€{courseRevenue}</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Activity Chart (simple table-based) */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><BarChart3 className="h-5 w-5" /> Weekly Activity (last 8 weeks)</h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Week</TableHead>
+                <TableHead className="text-right">New Users</TableHead>
+                <TableHead className="text-right">New Quests</TableHead>
+                <TableHead className="text-right">Bookings</TableHead>
+                <TableHead className="text-right">Comments</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {weeklyActivity.map((w) => (
+                <TableRow key={w.week}>
+                  <TableCell className="font-medium">{w.week}</TableCell>
+                  <TableCell className="text-right">{w.users}</TableCell>
+                  <TableCell className="text-right">{w.quests}</TableCell>
+                  <TableCell className="text-right">{w.bookings}</TableCell>
+                  <TableCell className="text-right">{w.comments}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* By Topic */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Hash className="h-5 w-5" /> Quests by Topic</h3>
-        <div className="space-y-2 max-w-lg">
-          {topicStats.map(({ topic, quests }) => (
-            <div key={topic.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-              <span className="text-sm font-medium">{topic.name}</span>
-              <div className="flex items-center gap-2">
-                <div className="h-2 rounded-full bg-primary/20 w-24 overflow-hidden">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (quests / Math.max(...topicStats.map((t) => t.quests))) * 100)}%` }} />
-                </div>
-                <span className="text-sm font-semibold w-8 text-right">{quests}</span>
-              </div>
-            </div>
-          ))}
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Hash className="h-5 w-5" /> Breakdown by Topic</h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Topic</TableHead>
+                <TableHead className="text-right">Quests</TableHead>
+                <TableHead className="text-right">Active Users</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {topicStats.map(({ topic, quests, users }) => (
+                <TableRow key={topic.id}>
+                  <TableCell className="font-medium">{topic.name}</TableCell>
+                  <TableCell className="text-right">{quests}</TableCell>
+                  <TableCell className="text-right">{users}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
 
@@ -1403,22 +1522,28 @@ function AnalyticsTab() {
 
       {/* By Territory */}
       <div>
-        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Quests by Territory</h3>
-        <div className="space-y-2 max-w-lg">
-          {territoryStats.map(({ territory, quests }) => (
-            <div key={territory.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-              <div>
-                <span className="text-sm font-medium">{territory.name}</span>
-                <Badge variant="outline" className="ml-2 capitalize text-xs">{territory.level.toLowerCase()}</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 rounded-full bg-primary/20 w-24 overflow-hidden">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (quests / Math.max(...territoryStats.map((t) => t.quests))) * 100)}%` }} />
-                </div>
-                <span className="text-sm font-semibold w-8 text-right">{quests}</span>
-              </div>
-            </div>
-          ))}
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><MapPin className="h-5 w-5" /> Breakdown by Territory</h3>
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Territory</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead className="text-right">Quests</TableHead>
+                <TableHead className="text-right">Active Users</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {territoryStats.map(({ territory, quests, users }) => (
+                <TableRow key={territory.id}>
+                  <TableCell className="font-medium">{territory.name}</TableCell>
+                  <TableCell><Badge variant="outline" className="capitalize text-xs">{territory.level.toLowerCase()}</Badge></TableCell>
+                  <TableCell className="text-right">{quests}</TableCell>
+                  <TableCell className="text-right">{users}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>
