@@ -31,7 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
 import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { isAdmin as checkIsAdmin } from "@/lib/admin";
+import { useUserRoles } from "@/lib/admin";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
