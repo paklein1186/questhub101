@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { Comment, CommentUpvote } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
+import { AdminBadge } from "@/components/AdminBadge";
 
 interface CommentThreadProps {
   targetType: CommentTargetType;
