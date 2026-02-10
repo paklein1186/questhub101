@@ -31,7 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLinks";
 import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { isAdmin as checkIsAdmin } from "@/lib/admin";
+import { useUserRoles } from "@/lib/admin";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -109,14 +109,16 @@ export default function UserProfile() {
       });
   }, [id]);
 
+  const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
+
   if (loading) return <PageShell><p>Loading…</p></PageShell>;
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
-  if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
+  if (user.isDeleted && !viewerIsAdmin) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);
   const isOwnProfile = currentUser.id === user.id;
-  const isAdminViewer = checkIsAdmin(currentUser.email);
+  const isAdminViewer = viewerIsAdmin;
   const canSeePrivate = isOwnProfile || isAdminViewer;
 
   // Privacy defaults: true if undefined
@@ -181,7 +183,7 @@ export default function UserProfile() {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-3xl font-bold">{user.name}</h1>
-              <AdminBadge email={user.email} />
+              <AdminBadge userId={user.id} />
             </div>
             {user.headline && <p className="text-muted-foreground">{user.headline}</p>}
             <div className="flex items-center gap-3 mt-2 flex-wrap">

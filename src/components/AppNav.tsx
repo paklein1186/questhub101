@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { isAdmin } from "@/lib/admin";
+import { useUserRoles } from "@/lib/admin";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ export function AppNav() {
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
   const isLoggedIn = !!session;
-  const showAdmin = isLoggedIn && session?.user?.email && isAdmin(session.user.email);
+  const { isAdmin: showAdmin } = useUserRoles(session?.user?.id);
 
   const handleLogout = async () => {
     await signOut();
