@@ -35,6 +35,7 @@ import BuyXpPage from "./pages/BuyXpPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import SearchPage from "./pages/SearchPage";
 
 const queryClient = new QueryClient();
 
