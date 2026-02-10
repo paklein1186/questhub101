@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Users, Plus, Building2, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
@@ -65,17 +66,39 @@ export default function NetworkHub() {
         <TabsContent value="guilds"><MyGuilds bare /></TabsContent>
 
         <TabsContent value="companies">
-          {myCompanies.length === 0 && <p className="text-muted-foreground">No companies linked to your account.</p>}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">{myCompanies.length} {myCompanies.length === 1 ? "company" : "companies"} you manage</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/me/companies">View all</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link to="/me/companies"><Plus className="h-4 w-4 mr-1" /> Create Company</Link>
+              </Button>
+            </div>
+          </div>
+          {myCompanies.length === 0 && (
+            <div className="text-center py-12">
+              <Building2 className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-muted-foreground mb-3">No companies linked to your account.</p>
+              <Button size="sm" asChild>
+                <Link to="/me/companies"><Plus className="h-4 w-4 mr-1" /> Create Company</Link>
+              </Button>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {myCompanies.map((company, i) => (
               <motion.div key={company.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                   <div className="flex items-center gap-3">
                     {company.logoUrl && <img src={company.logoUrl} className="h-10 w-10 rounded-lg" alt="" />}
-                    <div>
-                      <h4 className="font-display font-semibold">{company.name}</h4>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-display font-semibold truncate">{company.name}</h4>
                       {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
                     </div>
+                    <Button size="sm" variant="ghost" asChild onClick={(e) => e.stopPropagation()}>
+                      <Link to={`/companies/${company.id}/settings`}><Settings className="h-4 w-4" /></Link>
+                    </Button>
                   </div>
                 </Link>
               </motion.div>

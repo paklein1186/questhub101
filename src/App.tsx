@@ -40,6 +40,7 @@ import MyRequests from "./pages/MyRequests";
 import MyGuilds from "./pages/MyGuilds";
 import MyAvailability from "./pages/MyAvailability";
 import NotFound from "./pages/NotFound";
+import MyCompanies from "./pages/MyCompanies";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
 import OnboardingChecklist from "./pages/OnboardingChecklist";
@@ -98,6 +99,7 @@ const App = () => (
                 <Route path="/me/availability" element={<RequireAuth><MyAvailability /></RequireAuth>} />
                 <Route path="/me/services" element={<RequireAuth><ServicesMarketplace /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
+                <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
