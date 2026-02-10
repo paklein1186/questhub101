@@ -127,14 +127,34 @@ export default function SettingsPage() {
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
 
-  // ── Houses state ──
-  const currentTopicIds = userTopics.filter((ut) => ut.userId === currentUser.id).map((ut) => ut.topicId);
-  const currentTerritoryIds = userTerritories.filter((ut) => ut.userId === currentUser.id).map((ut) => ut.territoryId);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
-  const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
+  // ── Houses state (loaded from DB) ──
+  const { data: myUserTopics } = useQuery({
+    queryKey: ["user-topics", authUser?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser!.id);
+      return (data ?? []).map((r: any) => r.topic_id);
+    },
+    enabled: !!authUser?.id,
+  });
+  const { data: myUserTerritories } = useQuery({
+    queryKey: ["user-territories", authUser?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser!.id);
+      return (data ?? []).map((r: any) => r.territory_id);
+    },
+    enabled: !!authUser?.id,
+  });
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [usePrefs, setUsePrefs] = useState(true);
 
-  // ── Notifications state (moved to NotificationsSettingsTab) ──
+  // Sync selected topics/territories when loaded from DB
+  useEffect(() => {
+    if (myUserTopics) setSelectedTopics(myUserTopics);
+  }, [myUserTopics]);
+  useEffect(() => {
+    if (myUserTerritories) setSelectedTerritories(myUserTerritories);
+  }, [myUserTerritories]);
 
   // ── Privacy state (synced with user model) ──
   const [showXp, setShowXp] = useState(currentUser.showXpPublicly !== false);
