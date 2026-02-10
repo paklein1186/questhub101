@@ -25,6 +25,8 @@ import {
   AttachmentTargetType,
   CourseLevel,
   CoursePurchaseStatus,
+  GuildJoinPolicy,
+  GuildApplicationStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
