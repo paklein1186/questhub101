@@ -421,3 +421,18 @@ export const attachments: Attachment[] = [];
 export function getAttachmentsFor(targetType: AttachmentTargetType, targetId: string): Attachment[] {
   return attachments.filter(a => a.targetEntityType === targetType && a.targetEntityId === targetId);
 }
+
+// ─── Referrals ───────────────────────────────────────────────
+export const referrals: Referral[] = [];
+
+export function generateReferralCode(): string {
+  return `ref-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function getReferralByCode(code: string): Referral | undefined {
+  return referrals.find(r => r.code === code);
+}
+
+export function getReferralsForUser(userId: string): Referral[] {
+  return referrals.filter(r => r.referrerUserId === userId);
+}
