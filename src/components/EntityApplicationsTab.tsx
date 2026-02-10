@@ -67,7 +67,7 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
       .order("created_at", { ascending: false })) as any;
 
     if (filter !== "ALL") {
-      query = query.eq("status", filter as any);
+      query = query.eq("status", filter);
     }
 
     const { data, error } = await query;
