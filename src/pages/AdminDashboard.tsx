@@ -38,7 +38,8 @@ import {
   UserRole, QuestStatus, MonetizationType, TopicStewardRole,
   TerritoryLevel, TopicFeatureTargetType, BookingStatus, PaymentStatus,
 } from "@/types/enums";
-import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature } from "@/types";
+import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature, Service, Booking, Comment } from "@/types";
+import { Textarea } from "@/components/ui/textarea";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
