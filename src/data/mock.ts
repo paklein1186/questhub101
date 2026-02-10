@@ -442,3 +442,74 @@ export function getReferralByCode(code: string): Referral | undefined {
 export function getReferralsForUser(userId: string): Referral[] {
   return referrals.filter(r => r.referrerUserId === userId);
 }
+
+// ─── Courses ─────────────────────────────────────────────────
+export const courses: Course[] = [
+  { id: "crs1", title: "Introduction to Carbon Markets", subtitle: "Understand emissions trading from scratch", description: "A comprehensive course covering the fundamentals of carbon markets, cap-and-trade systems, and voluntary offsets. You'll learn how to navigate carbon credit registries and evaluate offset quality.\n\n## What you'll learn\n- Carbon market fundamentals\n- Cap-and-trade vs. voluntary markets\n- Evaluating offset quality\n- Registry navigation", coverImageUrl: "https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=800", creatorUserId: "u1", providerGuildId: "g1", isPublished: true, isFree: true, priceCurrency: "EUR", estimatedDurationMinutes: 120, level: CourseLevel.BEGINNER, createdAt: "2025-06-01T10:00:00Z", updatedAt: "2025-06-15T10:00:00Z" },
+  { id: "crs2", title: "Building Civic Tech Products", subtitle: "From idea to deployed open-source tool", description: "Learn to design, build, and deploy civic technology products that serve communities. Covers user research with government stakeholders, open data APIs, and sustainable open-source models.\n\n## Prerequisites\n- Basic programming knowledge\n- Interest in civic engagement", coverImageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800", creatorUserId: "u3", providerGuildId: "g3", isPublished: true, isFree: false, priceAmount: 49, priceCurrency: "EUR", estimatedDurationMinutes: 300, level: CourseLevel.INTERMEDIATE, createdAt: "2025-07-10T09:00:00Z", updatedAt: "2025-08-01T09:00:00Z" },
+  { id: "crs3", title: "Urban Mobility Data Analysis", subtitle: "Leverage transport data for better cities", description: "Deep-dive into urban mobility datasets: bike-share usage, public transit patterns, and traffic flow modelling. Hands-on exercises with real city data.", coverImageUrl: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800", creatorUserId: "u2", providerCompanyId: "co3", isPublished: true, isFree: false, priceAmount: 79, priceCurrency: "EUR", estimatedDurationMinutes: 240, level: CourseLevel.ADVANCED, createdAt: "2025-08-20T11:00:00Z", updatedAt: "2025-09-01T11:00:00Z" },
+  { id: "crs4", title: "Regenerative Design Principles", description: "Explore regenerative design thinking for sustainable products and services.", creatorUserId: "u1", isPublished: false, isFree: true, priceCurrency: "EUR", level: CourseLevel.BEGINNER, createdAt: "2025-09-10T08:00:00Z", updatedAt: "2025-09-10T08:00:00Z" },
+];
+
+export const lessons: Lesson[] = [
+  // Course 1 lessons
+  { id: "les1", courseId: "crs1", title: "What are Carbon Markets?", summary: "An overview of how carbon markets work globally.", content: "# What are Carbon Markets?\n\nCarbon markets are trading systems where carbon credits are bought and sold. One carbon credit represents one tonne of CO₂ equivalent that has been reduced or removed from the atmosphere.\n\n## Key Concepts\n\n- **Cap-and-trade**: Governments set an emissions cap; companies trade allowances\n- **Voluntary markets**: Companies and individuals purchase offsets voluntarily\n- **Carbon credits**: Tradable certificates representing emission reductions\n\n> 💡 The global carbon market was valued at over $900 billion in 2024.", orderIndex: 0, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isPreview: true, createdAt: "2025-06-01T10:00:00Z", updatedAt: "2025-06-01T10:00:00Z" },
+  { id: "les2", courseId: "crs1", title: "Cap-and-Trade Systems Explained", summary: "Deep dive into compliance carbon markets.", content: "# Cap-and-Trade Systems\n\nIn a cap-and-trade system, the government sets a maximum level of pollution (the cap) and distributes emission permits among firms.\n\n## How it works\n1. Government sets total emissions cap\n2. Allowances distributed or auctioned\n3. Companies that reduce emissions can sell surplus allowances\n4. Cap decreases over time\n\n## Major Systems\n- EU Emissions Trading System (EU ETS)\n- California Cap-and-Trade\n- China National ETS", orderIndex: 1, isPreview: false, createdAt: "2025-06-02T10:00:00Z", updatedAt: "2025-06-02T10:00:00Z" },
+  { id: "les3", courseId: "crs1", title: "Evaluating Offset Quality", summary: "How to assess whether a carbon offset is credible.", content: "# Evaluating Offset Quality\n\nNot all carbon offsets are created equal. Here's how to separate high-quality offsets from greenwashing.\n\n## Key Criteria\n- **Additionality**: Would the project have happened without carbon finance?\n- **Permanence**: Will the carbon stay stored?\n- **Verification**: Is it third-party audited?\n- **Leakage**: Does it shift emissions elsewhere?\n\n## Trusted Registries\n- Gold Standard\n- Verra (VCS)\n- American Carbon Registry", orderIndex: 2, isPreview: false, createdAt: "2025-06-03T10:00:00Z", updatedAt: "2025-06-03T10:00:00Z" },
+  // Course 2 lessons
+  { id: "les4", courseId: "crs2", title: "What is Civic Tech?", summary: "Defining the space and its impact.", content: "# What is Civic Tech?\n\nCivic technology uses digital tools to improve government services, increase civic participation, and strengthen the relationship between citizens and their governments.\n\n## Examples\n- Open budget platforms\n- Citizen reporting apps\n- Participatory budgeting tools\n- Open data portals", orderIndex: 0, isPreview: true, createdAt: "2025-07-10T09:00:00Z", updatedAt: "2025-07-10T09:00:00Z" },
+  { id: "les5", courseId: "crs2", title: "User Research with Government", summary: "Navigating bureaucracy to understand real needs.", content: "# User Research with Government Stakeholders\n\nWorking with government users presents unique challenges. This lesson covers strategies for effective user research in the public sector.\n\n## Tips\n- Schedule longer timelines for approvals\n- Use plain language, avoid tech jargon\n- Understand procurement constraints\n- Build trust through transparency", orderIndex: 1, isPreview: false, createdAt: "2025-07-11T09:00:00Z", updatedAt: "2025-07-11T09:00:00Z" },
+  { id: "les6", courseId: "crs2", title: "Working with Open Data APIs", summary: "Consuming and transforming government data.", content: "# Working with Open Data APIs\n\nMost governments now publish open data. Learn how to consume these APIs and transform raw data into useful applications.\n\n## Common Formats\n- CSV / JSON\n- GeoJSON for spatial data\n- GTFS for transit\n\n```javascript\nconst response = await fetch('https://opendata.paris.fr/api/v2/...');\nconst data = await response.json();\n```", orderIndex: 2, isPreview: false, createdAt: "2025-07-12T09:00:00Z", updatedAt: "2025-07-12T09:00:00Z" },
+  // Course 3 lessons
+  { id: "les7", courseId: "crs3", title: "Introduction to Mobility Data", summary: "Types of transport data available.", content: "# Introduction to Mobility Data\n\nUrban mobility generates massive datasets. Understanding the landscape is the first step.\n\n## Data Types\n- **GTFS**: General Transit Feed Specification\n- **GBFS**: General Bikeshare Feed Specification\n- **MDS**: Mobility Data Specification (scooters, bikes)\n- **Traffic counts**: Loop detectors, cameras", orderIndex: 0, isPreview: true, createdAt: "2025-08-20T11:00:00Z", updatedAt: "2025-08-20T11:00:00Z" },
+  { id: "les8", courseId: "crs3", title: "Bike-Share Station Optimization", summary: "Using data to improve station placement.", content: "# Bike-Share Station Optimization\n\nOptimal station placement can dramatically improve bike-share system performance.\n\n## Approach\n1. Analyse trip origin/destination patterns\n2. Identify underserved areas using census data\n3. Model rebalancing costs\n4. Simulate new station scenarios\n\nThis lesson includes a hands-on exercise with real city data.", orderIndex: 1, videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", isPreview: false, createdAt: "2025-08-21T11:00:00Z", updatedAt: "2025-08-21T11:00:00Z" },
+];
+
+export const courseTopics: CourseTopic[] = [
+  { id: "crst1", courseId: "crs1", topicId: "t4" },   // Carbon Capture
+  { id: "crst2", courseId: "crs1", topicId: "t10" },  // New Economic Models
+  { id: "crst3", courseId: "crs2", topicId: "t21" },  // Open Data & Technology
+  { id: "crst4", courseId: "crs2", topicId: "t12" },  // Governance
+  { id: "crst5", courseId: "crs3", topicId: "t24" },  // Territorial Innovation
+];
+
+export const courseTerritories: CourseTerritory[] = [
+  { id: "crtr1", courseId: "crs1", territoryId: "tr6" },  // Remote / Global
+  { id: "crtr2", courseId: "crs2", territoryId: "tr3" },  // France
+  { id: "crtr3", courseId: "crs3", territoryId: "tr9" },  // Barcelona
+];
+
+export const courseEnrollments: CourseEnrollment[] = [
+  { id: "ce1", courseId: "crs1", learnerUserId: "u2", enrolledAt: "2025-06-05T10:00:00Z", progressPercentage: 66, lastLessonId: "les2", completedLessonIds: ["les1", "les2"], completionDate: undefined },
+  { id: "ce2", courseId: "crs1", learnerUserId: "u3", enrolledAt: "2025-06-10T14:00:00Z", progressPercentage: 100, lastLessonId: "les3", completedLessonIds: ["les1", "les2", "les3"], completionDate: "2025-06-20T16:00:00Z" },
+];
+
+export const coursePurchases: CoursePurchase[] = [];
+
+// Course helpers
+export function getCourseById(id: string) { return courses.find(c => c.id === id); }
+export function getLessonsForCourse(courseId: string) {
+  return lessons.filter(l => l.courseId === courseId).sort((a, b) => a.orderIndex - b.orderIndex);
+}
+export function getLessonById(id: string) { return lessons.find(l => l.id === id); }
+export function getTopicsForCourse(courseId: string) {
+  return courseTopics.filter(ct => ct.courseId === courseId).map(ct => getTopicById(ct.topicId)!).filter(Boolean);
+}
+export function getTerritoriesForCourse(courseId: string) {
+  return courseTerritories.filter(ct => ct.courseId === courseId).map(ct => getTerritoryById(ct.territoryId)!).filter(Boolean);
+}
+export function getEnrollmentsForCourse(courseId: string) {
+  return courseEnrollments.filter(ce => ce.courseId === courseId);
+}
+export function getUserEnrollment(courseId: string, userId: string) {
+  return courseEnrollments.find(ce => ce.courseId === courseId && ce.learnerUserId === userId);
+}
+export function getUserPurchase(courseId: string, userId: string) {
+  return coursePurchases.find(cp => cp.courseId === courseId && cp.buyerUserId === userId && cp.status === CoursePurchaseStatus.PAID);
+}
+export function getCoursesForUser(userId: string) {
+  return courses.filter(c => c.creatorUserId === userId);
+}
+export function getEnrollmentsForUser(userId: string) {
+  return courseEnrollments.filter(ce => ce.learnerUserId === userId);
+}
