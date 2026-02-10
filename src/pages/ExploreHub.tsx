@@ -29,7 +29,7 @@ export default function ExploreHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Search className="h-7 w-7 text-primary" /> Explore
         </h1>
-        <p className="text-muted-foreground mt-1">Discover quests, guilds, pods, services, and companies.</p>
+        <p className="text-muted-foreground mt-1">Discover quests, guilds, pods, services, companies, and people.</p>
       </div>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
