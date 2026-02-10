@@ -170,12 +170,21 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!authUser) return;
     setProfileSaving(true);
+    const normalizeUrl = (url: string) => {
+      const t = url.trim();
+      if (!t) return null;
+      return /^https?:\/\//i.test(t) ? t : `https://${t}`;
+    };
     const updates: Record<string, unknown> = {
       name: name.trim() || currentUser.name,
       headline: headline.trim() || null,
       bio: bio.trim() || null,
       avatar_url: avatarUrl.trim() || null,
       role,
+      website_url: normalizeUrl(websiteUrl),
+      twitter_url: normalizeUrl(twitterUrl),
+      linkedin_url: normalizeUrl(linkedinUrl),
+      instagram_url: normalizeUrl(instagramUrl),
     };
     const { error } = await supabase
       .from("profiles")
