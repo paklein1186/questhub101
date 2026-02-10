@@ -3,23 +3,25 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, MapPin, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import {
-  companies, territories, companyTerritories,
-  getTopicsForCompany, getTerritoriesForCompany,
+  companies, getTopicsForCompany, getTerritoriesForCompany,
 } from "@/data/mock";
 import { filterActive } from "@/lib/softDelete";
-
-const sectors = [...new Set(companies.map(c => c.sector).filter(Boolean))] as string[];
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 export default function CompaniesList({ bare }: { bare?: boolean }) {
-  const [sectorFilter, setSectorFilter] = useState("all");
-  const [territoryFilter, setTerritoryFilter] = useState("all");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const filtered = filterActive(companies).filter((c) => {
-    if (sectorFilter !== "all" && c.sector !== sectorFilter) return false;
-    if (territoryFilter !== "all" && !companyTerritories.some(ct => ct.companyId === c.id && ct.territoryId === territoryFilter)) return false;
+    if (filters.topicIds.length > 0) {
+      const cTopicIds = getTopicsForCompany(c.id).map(t => t.id);
+      if (!filters.topicIds.some(id => cTopicIds.includes(id))) return false;
+    }
+    if (filters.territoryIds.length > 0) {
+      const cTerrIds = getTerritoriesForCompany(c.id).map(t => t.id);
+      if (!filters.territoryIds.some(id => cTerrIds.includes(id))) return false;
+    }
     return true;
   });
 
@@ -31,21 +33,12 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
         </h1>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={sectorFilter} onValueChange={setSectorFilter}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sector" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Sectors</SelectItem>
-            {sectors.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Territory" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Territories</SelectItem>
-            {territories.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showTerritories: true }}
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

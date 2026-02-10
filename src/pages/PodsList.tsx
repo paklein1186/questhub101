@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, Filter, Plus, BookOpen, Compass, Loader2 } from "lucide-react";
+import { Users, Plus, BookOpen, Compass, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { PodType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { usePods, useCreatePod, useTopics, useQuests } from "@/hooks/useSupabaseData";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -25,9 +26,7 @@ const fadeUp = {
 export default function PodsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const [typeFilter, setTypeFilter] = useState("ALL");
-  const [topicFilter, setTopicFilter] = useState("ALL");
-  const [questFilter, setQuestFilter] = useState("ALL");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -51,9 +50,8 @@ export default function PodsList({ bare }: { bare?: boolean }) {
     if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
     return true;
   });
-  if (typeFilter !== "ALL") filtered = filtered.filter((p) => p.type === typeFilter);
-  if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topic_id === topicFilter);
-  if (questFilter !== "ALL") filtered = filtered.filter((p) => p.quest_id === questFilter);
+  if (filters.podType !== "all") filtered = filtered.filter((p) => p.type === filters.podType);
+  if (filters.topicIds.length > 0) filtered = filtered.filter((p) => p.topic_id && filters.topicIds.includes(p.topic_id));
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -151,29 +149,12 @@ export default function PodsList({ bare }: { bare?: boolean }) {
         </Dialog>
       </div>
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[160px]"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All types</SelectItem>
-            <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
-            <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={topicFilter} onValueChange={setTopicFilter}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Topic" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All topics</SelectItem>
-            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={questFilter} onValueChange={setQuestFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Quest" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All quests</SelectItem>
-            {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showPodType: true }}
+        />
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}

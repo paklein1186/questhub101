@@ -13,14 +13,14 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { GuildType } from "@/types/enums";
-import { useGuilds, useCreateGuild, useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useGuilds, useCreateGuild } from "@/hooks/useSupabaseData";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const [topicFilter, setTopicFilter] = useState<string>("all");
-  const [territoryFilter, setTerritoryFilter] = useState<string>("all");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [createOpen, setCreateOpen] = useState(false);
   const [gName, setGName] = useState("");
   const [gDesc, setGDesc] = useState("");
@@ -29,17 +29,15 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
 
   const isAdm = checkIsGlobalAdmin(currentUser.email);
   const { data: guildsData, isLoading } = useGuilds();
-  const { data: topics } = useTopics();
-  const { data: territories } = useTerritories();
   const createGuildMut = useCreateGuild();
 
   const allGuilds = guildsData ?? [];
 
-  // Filter: hide drafts unless owner/admin, and apply topic/territory filters
   const filtered = allGuilds.filter((g) => {
     if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
-    if (topicFilter !== "all" && !g.guild_topics?.some((gt: any) => gt.topic_id === topicFilter)) return false;
-    if (territoryFilter !== "all" && !g.guild_territories?.some((gt: any) => gt.territory_id === territoryFilter)) return false;
+    if (filters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => filters.topicIds.includes(gt.topic_id))) return false;
+    if (filters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => filters.territoryIds.includes(gt.territory_id))) return false;
+    if (filters.guildType !== "all" && g.type !== filters.guildType) return false;
     return true;
   });
 
@@ -61,59 +59,51 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Shield className="h-7 w-7 text-primary" /> Guilds
         </h1>
-        <div className="flex gap-3 flex-wrap">
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Name</label>
-                  <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Description</label>
-                  <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Type</label>
-                  <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
-                      <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
-                      <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Save as draft</label>
-                  <Switch checked={gDraft} onCheckedChange={setGDraft} />
-                </div>
-                <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
-                  {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  Create Guild
-                </Button>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Name</label>
+                <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
               </div>
-            </DialogContent>
-          </Dialog>
-          <Select value={topicFilter} onValueChange={setTopicFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Topic" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Topics</SelectItem>
-              {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Territory" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Territories</SelectItem>
-              {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Description</label>
+                <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Type</label>
+                <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
+                    <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
+                    <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Save as draft</label>
+                <Switch checked={gDraft} onCheckedChange={setGDraft} />
+              </div>
+              <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
+                {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                Create Guild
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showTerritories: true, showGuildType: true }}
+        />
       </div>
 
       {isLoading && (

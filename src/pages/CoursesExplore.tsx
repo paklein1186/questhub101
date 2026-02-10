@@ -1,24 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { GraduationCap, Clock, Users, Filter, Loader2 } from "lucide-react";
+import { GraduationCap, Users, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
-import { CourseLevel } from "@/types/enums";
 import { useCourses } from "@/hooks/useSupabaseData";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 export default function CoursesExplore({ bare }: { bare?: boolean }) {
-  const [levelFilter, setLevelFilter] = useState<string>("all");
-  const [priceFilter, setPriceFilter] = useState<string>("all");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { data: coursesData, isLoading } = useCourses();
   const allCourses = coursesData ?? [];
 
   const filtered = allCourses.filter((c) => {
-    if (levelFilter !== "all" && c.level !== levelFilter) return false;
-    if (priceFilter === "free" && !c.is_free) return false;
-    if (priceFilter === "paid" && c.is_free) return false;
+    if (filters.level !== "all" && c.level !== filters.level) return false;
+    if (filters.price === "free" && !c.is_free) return false;
+    if (filters.price === "paid" && c.is_free) return false;
+    if (filters.topicIds.length > 0 && !(c as any).course_topics?.some((ct: any) => filters.topicIds.includes(ct.topic_id))) return false;
     return true;
   });
 
@@ -33,24 +32,12 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={levelFilter} onValueChange={setLevelFilter}>
-          <SelectTrigger className="w-40"><Filter className="h-3.5 w-3.5 mr-1" /><SelectValue placeholder="Level" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All levels</SelectItem>
-            <SelectItem value={CourseLevel.BEGINNER}>Beginner</SelectItem>
-            <SelectItem value={CourseLevel.INTERMEDIATE}>Intermediate</SelectItem>
-            <SelectItem value={CourseLevel.ADVANCED}>Advanced</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={priceFilter} onValueChange={setPriceFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Price" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="free">Free</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="mb-6">
+        <ExploreFilters
+          filters={filters}
+          onChange={setFilters}
+          config={{ showTopics: true, showLevel: true, showPrice: true }}
+        />
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
