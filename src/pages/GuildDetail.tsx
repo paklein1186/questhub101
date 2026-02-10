@@ -241,9 +241,13 @@ export default function GuildDetail() {
             </Button>
             {!isMember && (
               <div className="flex flex-col gap-1 items-end">
-                <Button size="sm" variant="outline" onClick={attemptJoinGuild}>
-                  <UserPlus className="h-4 w-4 mr-1" /> Join Guild
-                </Button>
+                <GuildJoinButton
+                  guildId={guild.id}
+                  joinPolicy={(guild as any).joinPolicy || GuildJoinPolicy.OPEN}
+                  applicationQuestions={(guild as any).applicationQuestions || []}
+                  currentUserId={currentUser.id}
+                  onJoined={rerender}
+                />
                 <PlanLimitBadge
                   limitReached={limits.guildLimitReached}
                   xpCost={EXTRA_GUILD_XP_COST}
