@@ -43,7 +43,7 @@ export async function setUserRole(
   role: "admin" | "superadmin",
   grant: boolean,
 ): Promise<{ error: string | null }> {
-  const { error } = await supabase.rpc("set_user_role", {
+  const { error } = await supabase.rpc("set_user_role" as any, {
     _actor_id: actorId,
     _target_user_id: targetUserId,
     _role: role,
