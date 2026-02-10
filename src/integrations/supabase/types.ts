@@ -691,6 +691,39 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          source: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -1172,12 +1205,14 @@ export type Database = {
           bio: string | null
           contribution_index: number
           created_at: string
+          credits_balance: number
           current_plan_code: string | null
           email: string
           has_completed_onboarding: boolean
           headline: string | null
           id: string
           instagram_url: string | null
+          last_xp_recalculated_at: string | null
           linkedin_url: string | null
           name: string
           role: string
@@ -1186,18 +1221,22 @@ export type Database = {
           user_id: string
           website_url: string | null
           xp: number
+          xp_level: number
+          xp_recent_12m: number
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number
           created_at?: string
+          credits_balance?: number
           current_plan_code?: string | null
           email?: string
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
           role?: string
@@ -1206,18 +1245,22 @@ export type Database = {
           user_id: string
           website_url?: string | null
           xp?: number
+          xp_level?: number
+          xp_recent_12m?: number
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number
           created_at?: string
+          credits_balance?: number
           current_plan_code?: string | null
           email?: string
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
           role?: string
@@ -1226,6 +1269,8 @@ export type Database = {
           user_id?: string
           website_url?: string | null
           xp?: number
+          xp_level?: number
+          xp_recent_12m?: number
         }
         Relationships: []
       }
@@ -2020,6 +2065,57 @@ export type Database = {
           week_start_date?: string
         }
         Relationships: []
+      }
+      xp_events: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          territory_id: string | null
+          topic_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          territory_id?: string | null
+          topic_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          territory_id?: string | null
+          topic_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_events_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_events_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xp_transactions: {
         Row: {
