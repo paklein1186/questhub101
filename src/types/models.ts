@@ -445,3 +445,12 @@ export interface TopicFeature {
   topic?: Topic;
   addedByUser?: User;
 }
+
+// ─── User Blocking ──────────────────────────────────────────
+
+export interface UserBlock {
+  id: string;
+  blockerId: string;
+  blockedId: string;
+  createdAt: string;
+}

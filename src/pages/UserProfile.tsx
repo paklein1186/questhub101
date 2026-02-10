@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
-  Briefcase, Shield, Compass, CircleDot, Pencil, Users,
+  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
+import { useBlock } from "@/hooks/useBlock";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
@@ -37,6 +38,7 @@ export default function UserProfile() {
   const { toast } = useToast();
   const { awardXp } = useXP();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
+  const { isBlocked, toggle: toggleBlock } = useBlock(id!);
   const [achievementsState, setAchievementsState] = useState<Achievement[]>(
     () => allAchievements.filter((a) => a.userId === id).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   );
@@ -120,9 +122,14 @@ export default function UserProfile() {
                 <Link to="/me/settings?tab=profile"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
               </Button>
             ) : (
-              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
-                {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
-              </Button>
+              <>
+                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                  {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+                </Button>
+                <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
+                  <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
+                </Button>
+              </>
             )}
           </div>
         </div>

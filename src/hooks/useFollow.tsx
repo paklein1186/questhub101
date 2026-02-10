@@ -1,10 +1,12 @@
 import { useState, useCallback } from "react";
-import { follows } from "@/data/mock";
+import { follows, hasBlockRelationship } from "@/data/mock";
 import { FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
 
 export function useFollow(targetType: FollowTargetType, targetId: string) {
   const currentUser = useCurrentUser();
+  const { toast } = useToast();
 
   const [isFollowing, setIsFollowing] = useState(() =>
     follows.some(
@@ -16,6 +18,12 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
   );
 
   const toggle = useCallback(() => {
+    // Block check for user follows
+    if (targetType === FollowTargetType.USER && hasBlockRelationship(currentUser.id, targetId)) {
+      toast({ title: "Cannot follow", description: "There is a block between you and this user.", variant: "destructive" });
+      return;
+    }
+
     if (isFollowing) {
       const idx = follows.findIndex(
         (f) =>
@@ -35,7 +43,7 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
       });
       setIsFollowing(true);
     }
-  }, [isFollowing, currentUser.id, targetType, targetId]);
+  }, [isFollowing, currentUser.id, targetType, targetId, toast]);
 
   return { isFollowing, toggle };
 }

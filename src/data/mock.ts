@@ -5,6 +5,7 @@ import {
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
   TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
+  UserBlock,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
@@ -397,4 +398,15 @@ export function getAvailabilityExceptionsForUser(userId: string) {
 
 export function getBookingsForProvider(userId: string) {
   return bookings.filter(b => b.providerUserId === userId);
+}
+
+// ─── User Blocks ─────────────────────────────────────────────
+export const userBlocks: UserBlock[] = [];
+
+export function isBlockedBy(blockerId: string, blockedId: string): boolean {
+  return userBlocks.some(b => b.blockerId === blockerId && b.blockedId === blockedId);
+}
+
+export function hasBlockRelationship(userA: string, userB: string): boolean {
+  return isBlockedBy(userA, userB) || isBlockedBy(userB, userA);
 }
