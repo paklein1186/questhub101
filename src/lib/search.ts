@@ -76,6 +76,7 @@ export function globalSearch(
 
   // Guilds
   for (const g of filterActive(guilds)) {
+    if (g.isDraft) continue;
     if (!matchesQuery(query, g.name, g.description)) continue;
     if (filters?.topicId && !hasTopicId("GUILD", g.id, filters.topicId)) continue;
     if (filters?.territoryId && !hasTerritoryId("GUILD", g.id, filters.territoryId)) continue;
