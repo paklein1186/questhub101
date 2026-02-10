@@ -10,7 +10,7 @@ import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
-import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
+import { usePlanLimits, EXTRA_POD_CREDIT_COST } from "@/hooks/usePlanLimits";
 import { CommentTargetType, PodType, PodMemberRole, ReportTargetType, AttachmentTargetType, GuildJoinPolicy } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import { ReportButton } from "@/components/ReportButton";
@@ -76,11 +76,11 @@ export default function PodDetail() {
         open={showPodXpDialog}
         onOpenChange={setShowPodXpDialog}
         canAfford={limits.canAffordExtraPod}
-        xpCost={EXTRA_POD_XP_COST}
-        userXp={limits.userXp}
+        xpCost={EXTRA_POD_CREDIT_COST}
+        userXp={limits.userCredits}
         actionLabel="join one more pod"
         limitLabel="pod memberships for your plan"
-        onConfirm={async () => { const ok = await limits.spendXp(EXTRA_POD_XP_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Failed to spend XP", variant: "destructive" }); }}
+        onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_POD_CREDIT_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Not enough Credits", variant: "destructive" }); }}
       />
 
       <Button variant="ghost" size="sm" asChild className="mb-4">
@@ -131,7 +131,7 @@ export default function PodDetail() {
               />
               <PlanLimitBadge
                 limitReached={limits.podLimitReached}
-                xpCost={EXTRA_POD_XP_COST}
+                xpCost={EXTRA_POD_CREDIT_COST}
                 itemLabel="pod slot"
                 compact
               />

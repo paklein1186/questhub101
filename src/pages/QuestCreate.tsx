@@ -5,8 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
-import { usePlanLimits, EXTRA_QUEST_XP_COST } from "@/hooks/usePlanLimits";
+import { usePlanLimits, EXTRA_QUEST_CREDIT_COST } from "@/hooks/usePlanLimits";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
@@ -26,6 +28,7 @@ export default function QuestCreate() {
   const qc = useQueryClient();
   const limits = usePlanLimits();
   const { checkRateLimit, isChecking } = useRateLimit();
+  const { grantXp } = useXpCredits();
 
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -119,9 +122,16 @@ export default function QuestCreate() {
       // Record weekly usage
       await limits.recordQuestCreation();
 
+      // Grant XP for quest creation
+      await grantXp(currentUser.id, {
+        type: XP_EVENT_TYPES.QUEST_CREATED,
+        relatedEntityType: "Quest",
+        relatedEntityId: quest.id,
+      }, true);
+
       qc.invalidateQueries({ queryKey: ["quests"] });
       if (guildId) qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });
-      toast({ title: "Quest created!" });
+      toast({ title: "Quest created! +5 XP" });
       navigate(`/quests/${quest.id}`);
     } finally {
       setSubmitting(false);
@@ -150,12 +160,12 @@ export default function QuestCreate() {
         open={showXpDialog}
         onOpenChange={setShowXpDialog}
         canAfford={limits.canAffordExtraQuest}
-        xpCost={EXTRA_QUEST_XP_COST}
-        userXp={limits.userXp}
+        xpCost={EXTRA_QUEST_CREDIT_COST}
+        userXp={limits.userCredits}
         actionLabel="create an extra quest"
         limitLabel="free quests for this week"
         onConfirm={async () => {
-          const ok = await limits.spendXp(EXTRA_QUEST_XP_COST, "Extra quest creation", "QUEST");
+          const ok = await limits.spendCredits(EXTRA_QUEST_CREDIT_COST, "Extra quest creation", "QUEST");
           if (ok) doCreate();
         }}
       />

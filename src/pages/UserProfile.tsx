@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Zap, Star, MapPin, Hash, Plus, UserPlus, UserMinus,
-  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban,
+  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -32,6 +32,8 @@ import { SocialLinksDisplay, type SocialLinksData } from "@/components/SocialLin
 import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRoles } from "@/lib/admin";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -47,6 +49,7 @@ export default function UserProfile() {
 
   // DB user state (for real Supabase users not in mock data)
   const [dbUser, setDbUser] = useState<User | null>(null);
+  const [dbProfileExtra, setDbProfileExtra] = useState<{ xpLevel: number; xpRecent12m: number; creditsBalance: number } | null>(null);
   const [loading, setLoading] = useState(!mockUser);
 
   useEffect(() => {
@@ -54,10 +57,10 @@ export default function UserProfile() {
       setLoading(false);
       return;
     }
-    // Fetch from DB using profiles_public view
+    // Fetch full profile data
     supabase
-      .from("profiles_public")
-      .select("*")
+      .from("profiles")
+      .select("user_id, name, avatar_url, headline, bio, role, xp, contribution_index, xp_level, xp_recent_12m, credits_balance")
       .eq("user_id", id)
       .maybeSingle()
       .then(({ data }) => {
@@ -72,6 +75,11 @@ export default function UserProfile() {
             role: (data.role as any) || UserRole.GAMECHANGER,
             xp: data.xp || 0,
             contributionIndex: data.contribution_index || 0,
+          });
+          setDbProfileExtra({
+            xpLevel: (data as any).xp_level ?? 1,
+            xpRecent12m: (data as any).xp_recent_12m ?? 0,
+            creditsBalance: (data as any).credits_balance ?? 0,
           });
         }
         setLoading(false);
@@ -189,12 +197,18 @@ export default function UserProfile() {
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <Badge variant="secondary" className="capitalize">{user.role.toLowerCase().replace("_", " ")}</Badge>
               {showXp && (
-                <span className="flex items-center gap-1 text-sm font-semibold text-primary">
-                  <Zap className="h-4 w-4" /> {user.xp} XP
-                </span>
+                <>
+                  <XpLevelBadge level={dbProfileExtra?.xpLevel ?? computeLevelFromXp(user.xp)} xp={user.xp} />
+                  <span className="text-xs text-muted-foreground">12m: {dbProfileExtra?.xpRecent12m ?? 0} XP</span>
+                </>
               )}
               {showCi && (
                 <span className="text-sm text-muted-foreground">CI: {user.contributionIndex}</span>
+              )}
+              {canSeePrivate && (
+                <span className="flex items-center gap-1 text-sm font-medium">
+                  <Coins className="h-3.5 w-3.5 text-primary" /> {dbProfileExtra?.creditsBalance ?? 0} Credits
+                </span>
               )}
             </div>
           </div>
