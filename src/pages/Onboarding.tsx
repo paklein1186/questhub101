@@ -417,15 +417,7 @@ export default function Onboarding() {
               </Button>
               {step < 4 && (
                 <Button onClick={goNext} disabled={!canNext()} size="sm">
-                  {step === 3 ? (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-1" /> Generate with AI
-                    </>
-                  ) : (
-                    <>
-                      Next <ArrowRight className="h-4 w-4 ml-1" />
-                    </>
-                  )}
+                  Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
               {step === 4 && !loading && result && (
