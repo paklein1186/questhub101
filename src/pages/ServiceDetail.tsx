@@ -45,7 +45,7 @@ export default function ServiceDetail() {
     const start = new Date(); start.setDate(start.getDate() + weekOffset * 7);
     const end = new Date(start); end.setDate(end.getDate() + 6);
     return generateSlots(
-      rules.map((r: any) => ({ weekday: r.weekday, startTime: r.start_time, endTime: r.end_time, timezone: r.timezone, isActive: r.is_active, serviceId: r.service_id })),
+      rules.map((r: any) => ({ id: r.id, weekday: r.weekday, startTime: r.start_time, endTime: r.end_time, timezone: r.timezone, isActive: r.is_active, serviceId: r.service_id, providerUserId: r.provider_user_id, createdAt: r.created_at, updatedAt: r.updated_at })),
       (exceptions || []).map((e: any) => ({ date: e.date, isAvailable: e.is_available, startTime: e.start_time, endTime: e.end_time })),
       (providerBookings || []).map((b: any) => ({ startDateTime: b.start_date_time, endDateTime: b.end_date_time, status: b.status })),
       svc.duration_minutes,
