@@ -4,7 +4,7 @@ import {
   BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag,
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
-  Menu, X,
+  Menu, X, ShieldAlert, ToggleLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -71,6 +71,8 @@ const clusters: NavCluster[] = [
     icon: Settings,
     superadminOnly: true,
     items: [
+      { to: "/admin/system/super-mode", label: "Super Admin Mode", icon: ShieldAlert },
+      { to: "/admin/system/feature-toggles", label: "Feature Toggles", icon: ToggleLeft },
       { to: "/admin/system/roles", label: "Users & Roles", icon: UsersIcon },
       { to: "/admin/system/houses", label: "Houses & Territories", icon: Hash },
       { to: "/admin/system/governance", label: "Governance", icon: Star },
