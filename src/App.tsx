@@ -64,6 +64,7 @@ const App = () => (
                 <Route path="/pods/:id" element={<PodDetail />} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
                 <Route path="/companies/:id" element={<CompanyDetail />} />
+                <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
 
                 {/* Protected pages */}
