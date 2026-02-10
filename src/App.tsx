@@ -78,6 +78,7 @@ import MyCourses from "./pages/MyCourses";
 import ExploreUsers from "./pages/ExploreUsers";
 import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
+import ServiceCreate from "./pages/ServiceCreate";
 
 const queryClient = new QueryClient();
 
