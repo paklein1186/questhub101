@@ -433,8 +433,8 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {/* Step 4: AI Magic */}
-              {step === 4 && (
+              {/* Step 5: AI Magic */}
+              {step === 5 && (
                 <div className="space-y-6 flex-1 flex flex-col items-center justify-center">
                   {loading ? (
                     <div className="text-center space-y-4">
