@@ -309,6 +309,12 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
+        {isAdmin && (
+          <TabsContent value="matchmaker" className="mt-6">
+            <MatchmakerPanel matchType="guild" guildId={guild.id} />
+          </TabsContent>
+        )}
+
         <TabsContent value="wall" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
