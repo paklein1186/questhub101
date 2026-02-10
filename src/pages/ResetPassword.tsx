@@ -32,8 +32,9 @@ export default function ResetPassword() {
     if (error) {
       toast({ title: "Error", description: error, variant: "destructive" });
     } else {
-      toast({ title: "Password updated!", description: "You can now log in with your new password." });
-      navigate("/login");
+      toast({ title: "Password updated!" });
+      // Redirect based on onboarding status — profile is already loaded via auth state
+      navigate("/");
     }
   };
 

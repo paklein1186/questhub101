@@ -14,6 +14,9 @@ import { generateOnboardingResults, type AIOnboardingResult } from "@/services/m
 import { Link } from "react-router-dom";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useXP } from "@/hooks/useXP";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const STEPS = ["Role", "Topics", "Territories", "Bio", "AI Magic", "Explore"];
 
@@ -33,7 +36,10 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { awardXp } = useXP();
+  const { user: authUser, refreshProfile } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(0);
+  const [generatingBio, setGeneratingBio] = useState(false);
   const [direction, setDirection] = useState(1);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -66,10 +72,30 @@ export default function Onboarding() {
 
   const canNext = () => {
     if (step === 0) return !!role;
-    if (step === 1) return selectedTopics.length > 0;
+    if (step === 1) return true; // allow zero interests
     if (step === 2) return selectedTerritories.length > 0;
-    if (step === 3) return bio.trim().length > 10;
+    if (step === 3) return true; // bio is optional
     return true;
+  };
+
+  const handleGenerateBio = async () => {
+    setGeneratingBio(true);
+    try {
+      const topicNames = selectedTopics
+        .map((id) => topics.find((t) => t.id === id)?.name)
+        .filter(Boolean);
+      const context = bio.trim().length > 10
+        ? bio
+        : `I am a ${role || "changemaker"} interested in ${topicNames.join(", ") || "making an impact"}.`;
+      // Mock AI bio generation
+      await new Promise((r) => setTimeout(r, 1200));
+      const generated = `${context} Passionate about creating meaningful change and connecting with like-minded people across communities.`;
+      setBio(generated);
+    } catch {
+      toast({ title: "AI generation failed", description: "You can write your bio manually.", variant: "destructive" });
+    } finally {
+      setGeneratingBio(false);
+    }
   };
 
   const goNext = async () => {
@@ -89,6 +115,14 @@ export default function Onboarding() {
       return;
     }
     if (step === 4) {
+      // Mark onboarding as completed in the database
+      if (authUser?.id) {
+        await supabase
+          .from("profiles")
+          .update({ has_completed_onboarding: true })
+          .eq("user_id", authUser.id);
+        await refreshProfile();
+      }
       setDirection(1);
       setStep(5);
       return;
@@ -177,6 +211,23 @@ export default function Onboarding() {
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">Select the topics that matter to you.</p>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedTopics(topics.map((t) => t.id))}
+                    >
+                      Select all
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTopics([])}
+                      disabled={selectedTopics.length === 0}
+                    >
+                      Clear all
+                    </Button>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {topics.map((topic) => (
                       <button
@@ -193,9 +244,7 @@ export default function Onboarding() {
                       </button>
                     ))}
                   </div>
-                  {selectedTopics.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">{selectedTopics.length} selected</p>
                 </div>
               )}
 
@@ -236,7 +285,7 @@ export default function Onboarding() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="font-display text-2xl font-bold">Tell us about yourself</h2>
-                    <p className="text-sm text-muted-foreground mt-1">A short bio — AI will polish it for you.</p>
+                    <p className="text-sm text-muted-foreground mt-1">Write a short bio, or let AI help. You can skip this step.</p>
                   </div>
                   <Textarea
                     value={bio}
@@ -245,7 +294,21 @@ export default function Onboarding() {
                     className="min-h-[140px] resize-none text-sm"
                     maxLength={300}
                   />
-                  <p className="text-xs text-muted-foreground text-right">{bio.length}/300</p>
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGenerateBio}
+                      disabled={generatingBio}
+                    >
+                      {generatingBio ? (
+                        <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Generating…</>
+                      ) : (
+                        <><Sparkles className="h-4 w-4 mr-1" /> Generate with AI</>
+                      )}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+                  </div>
                 </div>
               )}
 
@@ -354,15 +417,7 @@ export default function Onboarding() {
               </Button>
               {step < 4 && (
                 <Button onClick={goNext} disabled={!canNext()} size="sm">
-                  {step === 3 ? (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-1" /> Generate with AI
-                    </>
-                  ) : (
-                    <>
-                      Next <ArrowRight className="h-4 w-4 ml-1" />
-                    </>
-                  )}
+                  Next <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
               {step === 4 && !loading && result && (
