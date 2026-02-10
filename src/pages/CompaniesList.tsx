@@ -9,6 +9,7 @@ import {
   companies, territories, companyTerritories,
   getTopicsForCompany, getTerritoriesForCompany,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 const sectors = [...new Set(companies.map(c => c.sector).filter(Boolean))] as string[];
 
