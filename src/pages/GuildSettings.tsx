@@ -26,6 +26,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { GuildType, GuildMemberRole, OnlineLocationType } from "@/types/enums";
+import { AttachmentTargetType } from "@/types/enums";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Service } from "@/types";
 import {
   getGuildById, guilds, topics, territories, guildTopics, guildTerritories,
@@ -38,6 +40,7 @@ const TABS = [
   { key: "members", label: "Membership & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
+  { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -467,6 +470,19 @@ function GuildSettingsInner({ guildId }: { guildId: string }) {
                   </Section>
 
                   <Button onClick={() => toast({ title: "Quest & pod defaults saved!" })}><Save className="h-4 w-4 mr-2" /> Save defaults</Button>
+                </div>
+              )}
+
+              {/* ── Documents ── */}
+              {activeTab === "documents" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Guild Documents" icon={<Briefcase className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Upload documents, resources, and files for guild members.</p>
+                    <AttachmentList targetType={AttachmentTargetType.GUILD} targetId={guild.id} />
+                    <div className="mt-4">
+                      <AttachmentUpload targetType={AttachmentTargetType.GUILD} targetId={guild.id} />
+                    </div>
+                  </Section>
                 </div>
               )}
 

@@ -24,6 +24,8 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { CompanySize, QuestStatus, MonetizationType } from "@/types/enums";
+import { AttachmentTargetType } from "@/types/enums";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import type { Quest } from "@/types";
 import {
   getCompanyById, companies, topics, territories,
@@ -39,6 +41,7 @@ const TABS = [
   { key: "team", label: "Team & Permissions", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
+  { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -384,6 +387,19 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                         </table>
                       </div>
                     )}
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Documents ── */}
+              {activeTab === "documents" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Company Documents" icon={<Briefcase className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Upload documents, contracts, and resources for your company.</p>
+                    <AttachmentList targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
+                    <div className="mt-4">
+                      <AttachmentUpload targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
+                    </div>
                   </Section>
                 </div>
               )}

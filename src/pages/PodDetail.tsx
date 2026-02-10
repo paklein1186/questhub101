@@ -11,7 +11,8 @@ import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { PlanLimitBadge } from "@/components/PlanLimitBadge";
 import { usePlanLimits, EXTRA_POD_XP_COST } from "@/hooks/usePlanLimits";
-import { CommentTargetType, PodType, PodMemberRole, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, PodType, PodMemberRole, ReportTargetType, AttachmentTargetType } from "@/types/enums";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -162,6 +163,7 @@ export default function PodDetail() {
       <Tabs defaultValue="members">
         <TabsList>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
@@ -192,6 +194,11 @@ export default function PodDetail() {
               </div>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <AttachmentList targetType={AttachmentTargetType.POD} targetId={pod.id} />
+          {isHost && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.POD} targetId={pod.id} /></div>}
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6">

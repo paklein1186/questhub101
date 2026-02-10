@@ -146,3 +146,11 @@ export enum ReportStatus {
   RESOLVED = "RESOLVED",
   DISMISSED = "DISMISSED",
 }
+
+export enum AttachmentTargetType {
+  QUEST = "QUEST",
+  QUEST_UPDATE = "QUEST_UPDATE",
+  POD = "POD",
+  GUILD = "GUILD",
+  COMPANY = "COMPANY",
+}

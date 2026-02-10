@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
+import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
 import { CommentThread } from "@/components/CommentThread";
-import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, PodType, PodMemberRole, QuestParticipantRole, QuestParticipantStatus, ReportTargetType, AttachmentTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
@@ -194,6 +195,7 @@ export default function QuestDetail() {
                   <div><label className="text-sm font-medium mb-1 block">Content</label><Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" /></div>
                   <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" description="Attach a screenshot or photo" />
                   <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
+                  <p className="text-xs text-muted-foreground">You can attach files after creating the update.</p>
                   <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : "Post Update"}</Button>
                 </div>
               </DialogContent>
@@ -224,6 +226,7 @@ export default function QuestDetail() {
               <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} maxLength={120} /></div>
               <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
+              <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label><Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value={QuestStatus.OPEN}>Open</SelectItem><SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem><SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem></SelectContent></Select></div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
             </div>
@@ -236,6 +239,7 @@ export default function QuestDetail() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="updates">Updates ({updates.length})</TabsTrigger>
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> Pods ({questPods.length})</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
@@ -269,6 +273,7 @@ export default function QuestDetail() {
                     <h4 className="font-display font-semibold mt-1">{update.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{update.content}</p>
                     {update.imageUrl && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.imageUrl} alt="" className="w-full h-auto" /></div>}
+                    <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
                   </div>
                 </div>
                 <div className="ml-12 pt-3 border-t border-border">
@@ -294,6 +299,11 @@ export default function QuestDetail() {
               </Link>
             );
           })}
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
+          {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6">

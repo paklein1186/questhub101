@@ -21,6 +21,7 @@ import {
   PaymentStatus,
   ReportTargetType,
   ReportStatus,
+  AttachmentTargetType,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
@@ -471,5 +472,19 @@ export interface Report {
   reason: string;
   status: ReportStatus;
   reviewedByUserId?: string;
+  createdAt: string;
+}
+
+// ─── Attachments ────────────────────────────────────────────
+
+export interface Attachment {
+  id: string;
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
+  size: number;
+  targetEntityType: AttachmentTargetType;
+  targetEntityId: string;
+  uploadedByUserId: string;
   createdAt: string;
 }

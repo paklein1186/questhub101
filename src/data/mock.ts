@@ -5,7 +5,7 @@ import {
   UserTopic, UserTerritory, GuildTopic, GuildTerritory, QuestTopic, QuestTerritory,
   CommentUpvote, Company, CompanyTopic, CompanyTerritory,
   TopicSteward, TopicFeature, AvailabilityRule, AvailabilityException,
-  UserBlock, Report,
+  UserBlock, Report, Attachment,
 } from "@/types";
 import {
   UserRole, GuildType, GuildMemberRole, QuestStatus, MonetizationType,
@@ -13,6 +13,7 @@ import {
   TerritoryLevel, CommentTargetType, NotificationType, FollowTargetType,
   PodType, PodMemberRole, BookingStatus, CompanySize,
   TopicStewardRole, TopicFeatureTargetType, OnlineLocationType, PaymentStatus,
+  AttachmentTargetType,
 } from "@/types/enums";
 
 // ─── Users ───────────────────────────────────────────────────
@@ -413,3 +414,10 @@ export function hasBlockRelationship(userA: string, userB: string): boolean {
 
 // ─── Reports ─────────────────────────────────────────────────
 export const reports: Report[] = [];
+
+// ─── Attachments ─────────────────────────────────────────────
+export const attachments: Attachment[] = [];
+
+export function getAttachmentsFor(targetType: AttachmentTargetType, targetId: string): Attachment[] {
+  return attachments.filter(a => a.targetEntityType === targetType && a.targetEntityId === targetId);
+}
