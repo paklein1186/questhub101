@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Users } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Users, Plus, Building2, Settings } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Link } from "react-router-dom";
