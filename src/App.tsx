@@ -47,6 +47,7 @@ const AdminSystemHouses = lazy(() => import("./pages/admin/AdminSystemHouses"));
 const AdminSystemGovernance = lazy(() => import("./pages/admin/AdminSystemGovernance"));
 const AdminSystemAudit = lazy(() => import("./pages/admin/AdminSystemAudit"));
 const AdminSystemIntegrations = lazy(() => import("./pages/admin/AdminSystemIntegrations"));
+const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -154,6 +155,7 @@ const App = () => (
                   <Route path="content/courses" element={<Suspense fallback={null}><AdminContentCourses /></Suspense>} />
                   <Route path="content/services" element={<Suspense fallback={null}><AdminContentServices /></Suspense>} />
                   <Route path="content/reports" element={<Suspense fallback={null}><AdminContentReports /></Suspense>} />
+                  <Route path="content/excerpt-reports" element={<Suspense fallback={null}><AdminExcerptReports /></Suspense>} />
                   <Route path="economy/bookings" element={<Suspense fallback={null}><AdminEconomyBookings /></Suspense>} />
                   <Route path="economy/payments" element={<Suspense fallback={null}><AdminEconomyPayments /></Suspense>} />
                   <Route path="economy/xp" element={<Suspense fallback={null}><AdminEconomyXp /></Suspense>} />

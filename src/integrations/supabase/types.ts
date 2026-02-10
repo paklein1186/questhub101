@@ -2254,39 +2254,121 @@ export type Database = {
           },
         ]
       }
+      starred_excerpt_reports: {
+        Row: {
+          created_at: string
+          custom_reason: string | null
+          excerpt_id: string
+          id: string
+          reason: string
+          reported_by_user_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          custom_reason?: string | null
+          excerpt_id: string
+          id?: string
+          reason: string
+          reported_by_user_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          custom_reason?: string | null
+          excerpt_id?: string
+          id?: string
+          reason?: string
+          reported_by_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starred_excerpt_reports_excerpt_id_fkey"
+            columns: ["excerpt_id"]
+            isOneToOne: false
+            referencedRelation: "starred_excerpts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      starred_excerpt_upvotes: {
+        Row: {
+          created_at: string
+          excerpt_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          excerpt_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          excerpt_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "starred_excerpt_upvotes_excerpt_id_fkey"
+            columns: ["excerpt_id"]
+            isOneToOne: false
+            referencedRelation: "starred_excerpts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       starred_excerpts: {
         Row: {
           created_at: string
           created_by_user_id: string
+          deleted_at: string | null
           excerpt_text: string
           id: string
+          is_deleted: boolean
           is_from_agent: boolean
           message_id: string
           tags: Json | null
           thread_id: string
           title: string | null
+          upvotes_count: number
         }
         Insert: {
           created_at?: string
           created_by_user_id: string
+          deleted_at?: string | null
           excerpt_text: string
           id?: string
+          is_deleted?: boolean
           is_from_agent?: boolean
           message_id: string
           tags?: Json | null
           thread_id: string
           title?: string | null
+          upvotes_count?: number
         }
         Update: {
           created_at?: string
           created_by_user_id?: string
+          deleted_at?: string | null
           excerpt_text?: string
           id?: string
+          is_deleted?: boolean
           is_from_agent?: boolean
           message_id?: string
           tags?: Json | null
           thread_id?: string
           title?: string | null
+          upvotes_count?: number
         }
         Relationships: [
           {
