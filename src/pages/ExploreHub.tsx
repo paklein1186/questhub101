@@ -9,8 +9,9 @@ import PodsList from "./PodsList";
 import ServicesMarketplace from "./ServicesMarketplace";
 import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
+import ExploreUsers from "./ExploreUsers";
 
-const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses"];
+const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users"];
 
 export default function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,7 +29,7 @@ export default function ExploreHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Search className="h-7 w-7 text-primary" /> Explore
         </h1>
-        <p className="text-muted-foreground mt-1">Discover quests, guilds, pods, services, and companies.</p>
+        <p className="text-muted-foreground mt-1">Discover quests, guilds, pods, services, companies, and people.</p>
       </div>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
@@ -39,6 +40,7 @@ export default function ExploreHub() {
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="companies">Companies</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
 
         <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
@@ -47,6 +49,7 @@ export default function ExploreHub() {
         <TabsContent value="services"><ServicesMarketplace bare /></TabsContent>
         <TabsContent value="companies"><CompaniesList bare /></TabsContent>
         <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
+        <TabsContent value="users"><ExploreUsers bare /></TabsContent>
       </Tabs>
     </PageShell>
   );

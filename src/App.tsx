@@ -53,6 +53,7 @@ import CourseDetail from "./pages/CourseDetail";
 import CourseCreate from "./pages/CourseCreate";
 import LessonView from "./pages/LessonView";
 import MyCourses from "./pages/MyCourses";
+import ExploreUsers from "./pages/ExploreUsers";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
+                <Route path="/explore/users" element={<ExploreUsers />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
                 <Route path="/quests/:id" element={<QuestDetail />} />
                 <Route path="/users/:id" element={<UserProfile />} />
