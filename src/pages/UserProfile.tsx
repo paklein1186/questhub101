@@ -25,6 +25,7 @@ import {
 } from "@/data/mock";
 import type { Achievement } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { isAdmin as checkIsAdmin } from "@/lib/admin";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -45,6 +46,7 @@ export default function UserProfile() {
   const [newQuestId, setNewQuestId] = useState("none");
 
   if (!user) return <PageShell><p>User not found.</p></PageShell>;
+  if (user.isDeleted && !checkIsAdmin(currentUser.email)) return <PageShell><p>This user account has been deleted.</p></PageShell>;
 
   const topics = userTopics.filter((ut) => ut.userId === user.id).map((ut) => getTopicById(ut.topicId)!).filter(Boolean);
   const territories = userTerritories.filter((ut) => ut.userId === user.id).map((ut) => getTerritoryById(ut.territoryId)!).filter(Boolean);

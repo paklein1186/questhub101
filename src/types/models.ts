@@ -21,9 +21,16 @@ import {
   PaymentStatus,
 } from "./enums";
 
+// ─── Soft Delete Mixin ──────────────────────────────────────
+export interface SoftDeletable {
+  isDeleted?: boolean;
+  deletedAt?: string;
+  deletedByUserId?: string;
+}
+
 // ─── Core Entities ───────────────────────────────────────────
 
-export interface User {
+export interface User extends SoftDeletable {
   id: string;
   name: string;
   email: string;
@@ -40,7 +47,7 @@ export interface User {
   userTerritories?: UserTerritory[];
 }
 
-export interface Guild {
+export interface Guild extends SoftDeletable {
   id: string;
   name: string;
   description?: string;
@@ -70,7 +77,7 @@ export interface GuildMember {
 
 // ─── Quests ──────────────────────────────────────────────────
 
-export interface Quest {
+export interface Quest extends SoftDeletable {
   id: string;
   title: string;
   description?: string;
@@ -103,7 +110,7 @@ export interface QuestParticipant {
   user?: User;
 }
 
-export interface QuestUpdate {
+export interface QuestUpdate extends SoftDeletable {
   id: string;
   questId: string;
   authorId: string;
@@ -120,7 +127,7 @@ export interface QuestUpdate {
 
 // ─── Taxonomy ────────────────────────────────────────────────
 
-export interface Topic {
+export interface Topic extends SoftDeletable {
   id: string;
   name: string;
   slug: string;
@@ -154,7 +161,7 @@ export interface QuestTopic {
   topic?: Topic;
 }
 
-export interface Territory {
+export interface Territory extends SoftDeletable {
   id: string;
   name: string;
   level: TerritoryLevel;
@@ -190,7 +197,7 @@ export interface QuestTerritory {
 
 // ─── Social ─────────────────────────────────────────────────
 
-export interface Comment {
+export interface Comment extends SoftDeletable {
   id: string;
   content: string;
   createdAt: string;
@@ -251,7 +258,7 @@ export interface Follow {
 
 // ─── Pods ────────────────────────────────────────────────────
 
-export interface Pod {
+export interface Pod extends SoftDeletable {
   id: string;
   name: string;
   description: string;
@@ -285,7 +292,7 @@ export interface PodMember {
 
 // ─── Services & Bookings ─────────────────────────────────────
 
-export interface Service {
+export interface Service extends SoftDeletable {
   id: string;
   title: string;
   description: string;
@@ -322,7 +329,7 @@ export interface ServiceTerritory {
   territory?: Territory;
 }
 
-export interface Booking {
+export interface Booking extends SoftDeletable {
   id: string;
   serviceId: string;
   requesterId: string;
@@ -379,7 +386,7 @@ export interface AvailabilityException {
 
 // ─── Companies ───────────────────────────────────────────────
 
-export interface Company {
+export interface Company extends SoftDeletable {
   id: string;
   name: string;
   logoUrl?: string;

@@ -89,16 +89,31 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   const deleteComment = (commentId: string) => {
-    setComments(prev => prev.filter(c => c.id !== commentId && c.parentId !== commentId));
-    // Remove from global mock
-    const idx = allMockComments.findIndex(c => c.id === commentId);
-    if (idx !== -1) allMockComments.splice(idx, 1);
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, isDeleted: true, deletedAt: new Date().toISOString(), deletedByUserId: currentUser.id } : c));
+    // Also update global mock
+    const mockComment = allMockComments.find(c => c.id === commentId);
+    if (mockComment) { mockComment.isDeleted = true; mockComment.deletedAt = new Date().toISOString(); mockComment.deletedByUserId = currentUser.id; }
     toast({ title: "Comment deleted" });
   };
 
   const renderComment = (comment: Comment, isReply = false) => {
-    const author = getUserById(comment.authorId);
     const replies = isReply ? [] : getReplies(comment.id);
+
+    // Soft-deleted placeholder
+    if (comment.isDeleted) {
+      return (
+        <div key={comment.id} className={isReply ? "ml-8 pl-4 border-l-2 border-border" : ""}>
+          <div className="rounded-lg border border-border bg-muted/30 p-4 italic text-sm text-muted-foreground">
+            This comment has been removed.
+          </div>
+          {replies.length > 0 && (
+            <div className="mt-2 space-y-2">{replies.map((reply) => renderComment(reply, true))}</div>
+          )}
+        </div>
+      );
+    }
+
+    const author = getUserById(comment.authorId);
     const voted = hasUpvoted(comment.id);
     const isOwn = comment.authorId === currentUser.id;
     const isEditing = editingId === comment.id;

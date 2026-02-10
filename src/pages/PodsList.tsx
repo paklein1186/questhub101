@@ -15,6 +15,7 @@ import {
   pods, podMembers, topics, quests,
   getUserById, getQuestById, getTopicById,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 import { PodType, PodMemberRole } from "@/types/enums";
 import type { Pod } from "@/types";
 import { formatDistanceToNow } from "date-fns";
@@ -40,7 +41,7 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const [newEnd, setNewEnd] = useState("");
   const [podsState, setPodsState] = useState<Pod[]>(pods);
 
-  let filtered = [...podsState];
+  let filtered = filterActive([...podsState]);
   if (typeFilter !== "ALL") filtered = filtered.filter((p) => p.type === typeFilter);
   if (topicFilter !== "ALL") filtered = filtered.filter((p) => p.topicId === topicFilter);
   if (questFilter !== "ALL") filtered = filtered.filter((p) => p.questId === questFilter);

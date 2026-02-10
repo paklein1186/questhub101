@@ -19,6 +19,7 @@ import {
   getMembersForGuild,
   guildTopics, guildTerritories, guildMembers,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
@@ -31,7 +32,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
   const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
   const [, forceUpdate] = useState(0);
 
-  const filtered = guilds.filter((g) => {
+  const filtered = filterActive(guilds).filter((g) => {
     if (topicFilter !== "all" && !guildTopics.some((gt) => gt.guildId === g.id && gt.topicId === topicFilter)) return false;
     if (territoryFilter !== "all" && !guildTerritories.some((gt) => gt.guildId === g.id && gt.territoryId === territoryFilter)) return false;
     return true;

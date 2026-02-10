@@ -9,6 +9,7 @@ import {
   companies, territories, companyTerritories,
   getTopicsForCompany, getTerritoriesForCompany,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 const sectors = [...new Set(companies.map(c => c.sector).filter(Boolean))] as string[];
 
@@ -16,7 +17,7 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [territoryFilter, setTerritoryFilter] = useState("all");
 
-  const filtered = companies.filter((c) => {
+  const filtered = filterActive(companies).filter((c) => {
     if (sectorFilter !== "all" && c.sector !== sectorFilter) return false;
     if (territoryFilter !== "all" && !companyTerritories.some(ct => ct.companyId === c.id && ct.territoryId === territoryFilter)) return false;
     return true;

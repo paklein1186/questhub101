@@ -32,6 +32,7 @@ import {
   services, quests as allQuests,
 } from "@/data/mock";
 import { formatDistanceToNow } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +71,7 @@ export default function GuildDetail() {
   const [qCoverImageUrl, setQCoverImageUrl] = useState<string | undefined>();
 
   if (!guild) return <PageShell><p>Guild not found.</p></PageShell>;
+  if (guild.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This guild has been removed.</p></PageShell>;
 
   const topics = getTopicsForGuild(guild.id);
   const territories = getTerritoriesForGuild(guild.id);

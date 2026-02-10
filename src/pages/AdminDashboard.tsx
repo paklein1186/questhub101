@@ -40,6 +40,9 @@ import {
 } from "@/types/enums";
 import type { User, Guild, Quest, TopicSteward, Topic, Territory, TopicFeature, Service, Booking, Comment } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
+import { softDelete, restoreItem, permanentDelete } from "@/lib/softDelete";
+import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/data/mock";
+import type { QuestUpdate, Company, Pod } from "@/types";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
@@ -868,23 +871,119 @@ function MarketplaceTab() {
 // ─── Moderation Tab ─────────────────────────────────────────
 function ModerationTab() {
   const { toast } = useToast();
-  const [commentsState, setCommentsState] = useState(allComments.map((c) => ({ ...c, isDeleted: false })));
+  const [commentsState, setCommentsState] = useState(allComments.map((c) => ({ ...c, isDeleted: c.isDeleted ?? false })));
+  const [, rerender] = useState(0);
+  const refresh = () => rerender((n) => n + 1);
 
   const hideComment = (id: string) => {
-    setCommentsState((p) => p.map((c) => c.id === id ? { ...c, isDeleted: !c.isDeleted } : c));
+    const c = commentsState.find((c) => c.id === id);
+    if (!c) return;
+    c.isDeleted = !c.isDeleted;
+    c.deletedAt = c.isDeleted ? new Date().toISOString() : undefined;
+    setCommentsState([...commentsState]);
+    // sync mock
+    const mc = allComments.find((x) => x.id === id);
+    if (mc) { mc.isDeleted = c.isDeleted; mc.deletedAt = c.deletedAt; }
     toast({ title: "Comment visibility toggled" });
   };
 
   const sorted = [...commentsState].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const topUpvoted = [...commentsState].sort((a, b) => b.upvoteCount - a.upvoteCount).slice(0, 5);
+  const topUpvoted = [...commentsState].filter((c) => !c.isDeleted).sort((a, b) => b.upvoteCount - a.upvoteCount).slice(0, 5);
 
-  // Most active commenters
   const authorCounts = new Map<string, number>();
   commentsState.forEach((c) => authorCounts.set(c.authorId, (authorCounts.get(c.authorId) || 0) + 1));
   const topCommenters = Array.from(authorCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
+  // Soft-deleted items across all entity types
+  type DeletedItem = { id: string; type: string; label: string; deletedAt?: string; deletedByUserId?: string };
+  const deletedItems: DeletedItem[] = [
+    ...allUsers.filter((u) => u.isDeleted).map((u) => ({ id: u.id, type: "User", label: u.name, deletedAt: u.deletedAt, deletedByUserId: u.deletedByUserId })),
+    ...allGuilds.filter((g) => g.isDeleted).map((g) => ({ id: g.id, type: "Guild", label: g.name, deletedAt: g.deletedAt, deletedByUserId: g.deletedByUserId })),
+    ...allQuests.filter((q) => q.isDeleted).map((q) => ({ id: q.id, type: "Quest", label: q.title, deletedAt: q.deletedAt, deletedByUserId: q.deletedByUserId })),
+    ...allPods.filter((p) => p.isDeleted).map((p) => ({ id: p.id, type: "Pod", label: p.name, deletedAt: p.deletedAt, deletedByUserId: p.deletedByUserId })),
+    ...allServices.filter((s) => s.isDeleted).map((s) => ({ id: s.id, type: "Service", label: s.title, deletedAt: s.deletedAt, deletedByUserId: s.deletedByUserId })),
+    ...allBookings.filter((b) => b.isDeleted).map((b) => ({ id: b.id, type: "Booking", label: `Booking ${b.id}`, deletedAt: b.deletedAt, deletedByUserId: b.deletedByUserId })),
+    ...allCompanies.filter((c) => c.isDeleted).map((c) => ({ id: c.id, type: "Company", label: c.name, deletedAt: c.deletedAt, deletedByUserId: c.deletedByUserId })),
+    ...allComments.filter((c) => c.isDeleted).map((c) => ({ id: c.id, type: "Comment", label: c.content.slice(0, 50), deletedAt: c.deletedAt, deletedByUserId: c.deletedByUserId })),
+    ...allQuestUpdates.filter((qu) => qu.isDeleted).map((qu) => ({ id: qu.id, type: "QuestUpdate", label: qu.title, deletedAt: qu.deletedAt, deletedByUserId: qu.deletedByUserId })),
+  ].sort((a, b) => new Date(b.deletedAt ?? 0).getTime() - new Date(a.deletedAt ?? 0).getTime());
+
+  const getArrayForType = (type: string): any[] => {
+    const map: Record<string, any[]> = {
+      User: allUsers, Guild: allGuilds, Quest: allQuests, Pod: allPods,
+      Service: allServices, Booking: allBookings, Company: allCompanies,
+      Comment: allComments, QuestUpdate: allQuestUpdates,
+    };
+    return map[type] ?? [];
+  };
+
+  const handleRestore = (item: DeletedItem) => {
+    restoreItem(getArrayForType(item.type), item.id);
+    if (item.type === "Comment") {
+      setCommentsState((p) => p.map((c) => c.id === item.id ? { ...c, isDeleted: false, deletedAt: undefined, deletedByUserId: undefined } : c));
+    }
+    refresh();
+    toast({ title: `${item.type} "${item.label}" restored` });
+  };
+
+  const handlePermanentDelete = (item: DeletedItem) => {
+    permanentDelete(getArrayForType(item.type), item.id);
+    if (item.type === "Comment") {
+      setCommentsState((p) => p.filter((c) => c.id !== item.id));
+    }
+    refresh();
+    toast({ title: `${item.type} "${item.label}" permanently deleted`, variant: "destructive" });
+  };
+
   return (
     <div className="space-y-8">
+      {/* Soft-deleted items */}
+      <div>
+        <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3"><Trash2 className="h-5 w-5" /> Soft-Deleted Items ({deletedItems.length})</h3>
+        {deletedItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No deleted items.</p>
+        ) : (
+          <div className="rounded-xl border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Deleted At</TableHead>
+                  <TableHead>Deleted By</TableHead>
+                  <TableHead className="w-[200px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deletedItems.map((item) => {
+                  const deletedBy = item.deletedByUserId ? getUserById(item.deletedByUserId) : null;
+                  return (
+                    <TableRow key={`${item.type}-${item.id}`}>
+                      <TableCell><Badge variant="outline" className="text-xs">{item.type}</Badge></TableCell>
+                      <TableCell className="font-medium text-sm">{item.label}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{item.deletedAt ? new Date(item.deletedAt).toLocaleDateString() : "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{deletedBy?.name ?? "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => handleRestore(item)}>
+                            <Check className="h-3 w-3 mr-1" /> Restore
+                          </Button>
+                          <Button size="sm" variant="destructive" className="h-7 px-2 text-xs" onClick={() => handlePermanentDelete(item)}>
+                            <Trash2 className="h-3 w-3 mr-1" /> Purge
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
+      <Separator />
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-lg border border-border bg-card p-4 text-center">

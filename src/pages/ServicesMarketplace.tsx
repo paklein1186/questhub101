@@ -10,6 +10,7 @@ import {
   services, serviceTopics, serviceTerritories, topics, territories,
   getUserById, getGuildById, getTopicById, getTerritoryById,
 } from "@/data/mock";
+import { filterActive } from "@/lib/softDelete";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -21,7 +22,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   const [territoryFilter, setTerritoryFilter] = useState("ALL");
   const [priceFilter, setPriceFilter] = useState("ALL");
 
-  let filtered = services.filter((s) => s.isActive);
+  let filtered = filterActive(services).filter((s) => s.isActive);
   if (topicFilter !== "ALL") {
     const svcIds = new Set(serviceTopics.filter((st) => st.topicId === topicFilter).map((st) => st.serviceId));
     filtered = filtered.filter((s) => svcIds.has(s.id));

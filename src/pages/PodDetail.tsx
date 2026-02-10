@@ -18,6 +18,7 @@ import {
   getPodById, getMembersForPod, getQuestById, getTopicById, podMembers,
 } from "@/data/mock";
 import { format } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +38,7 @@ export default function PodDetail() {
   }, [currentUser.id]);
 
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
+  if (pod.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This pod has been removed.</p></PageShell>;
 
   const members = getMembersForPod(pod.id);
   const quest = pod.questId ? getQuestById(pod.questId) : null;

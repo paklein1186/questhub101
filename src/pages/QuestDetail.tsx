@@ -27,6 +27,7 @@ import {
 } from "@/data/mock";
 import type { Achievement, Pod, QuestUpdate, QuestParticipant } from "@/types";
 import { formatDistanceToNow } from "date-fns";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   [QuestUpdateType.MILESTONE]: Sparkles,
@@ -71,6 +72,7 @@ export default function QuestDetail() {
 
   const quest = getQuestById(id!);
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
+  if (quest.isDeleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
 
   const guild = getGuildById(quest.guildId);
   const company = quest.companyId ? getCompanyById(quest.companyId) : null;
