@@ -127,7 +127,18 @@ export default function QuestDetail() {
   const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditOpen(true); };
 
   const saveEditQuest = async () => {
-    await supabase.from("quests").update({ title: editTitle.trim() || quest.title, description: editDesc.trim() || null, status: editStatus as any, cover_image_url: editCoverImageUrl || null }).eq("id", quest.id);
+    const fiat = Number(editPriceFiat) || 0;
+    const credits = Number(editCreditReward) || 0;
+    const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
+    await supabase.from("quests").update({
+      title: editTitle.trim() || quest.title,
+      description: editDesc.trim() || null,
+      status: editStatus as any,
+      cover_image_url: editCoverImageUrl || null,
+      credit_reward: credits,
+      price_fiat: fiat,
+      monetization_type: monType as any,
+    }).eq("id", quest.id);
     qc.invalidateQueries({ queryKey: ["quest", id] });
     setEditOpen(false); toast({ title: "Quest updated" });
   };
