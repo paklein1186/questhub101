@@ -104,7 +104,7 @@ export function useServices() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("services")
-        .select("*, service_topics(topic_id, topics(id, name)), service_territories(territory_id, territories(id, name)), profiles_public!services_provider_user_id_fkey1(user_id, name, avatar_url), guilds!services_provider_guild_id_fkey(id, name, logo_url)")
+        .select("*, service_topics(topic_id, topics(id, name)), service_territories(territory_id, territories(id, name))")
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;

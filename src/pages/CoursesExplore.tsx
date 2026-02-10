@@ -72,7 +72,7 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     {course.is_free ? (
-                      <Badge className="bg-green-500/10 text-green-600 border-0 text-xs">Free</Badge>
+                      <Badge className="bg-primary/10 text-primary border-0 text-xs">Free</Badge>
                     ) : (
                       <Badge className="bg-primary/10 text-primary border-0 text-xs">€{course.price_amount}</Badge>
                     )}
