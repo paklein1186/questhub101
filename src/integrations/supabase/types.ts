@@ -78,6 +78,7 @@ export type Database = {
           monthly_price_amount: number | null
           monthly_price_currency: string
           name: string
+          stripe_price_id: string | null
           updated_at: string
           xp_multiplier: number
         }
@@ -93,6 +94,7 @@ export type Database = {
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name: string
+          stripe_price_id?: string | null
           updated_at?: string
           xp_multiplier?: number
         }
@@ -108,6 +110,7 @@ export type Database = {
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name?: string
+          stripe_price_id?: string | null
           updated_at?: string
           xp_multiplier?: number
         }
