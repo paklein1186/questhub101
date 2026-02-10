@@ -193,6 +193,10 @@ export default function TopicHouse() {
           </div>
         </TabsContent>
 
+        <TabsContent value="intelligence" className="mt-6">
+          <TerritoryIntelligencePanel territoryId={topic.id} territoryName={topic.name} />
+        </TabsContent>
+
         <TabsContent value="discussion" className="mt-6">
           <CommentThread targetType={CommentTargetType.GUILD} targetId={topic.id} />
         </TabsContent>
