@@ -25,6 +25,7 @@ import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { XP_LEVEL_THRESHOLDS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
+import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
