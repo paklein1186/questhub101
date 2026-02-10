@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { TerritoryLevel } from "@/types/enums";
-import { territories } from "@/data/mock";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
-  /** Called with the id of the newly created (or existing duplicate) territory */
   onCreated: (territoryId: string) => void;
 }
 
@@ -22,15 +22,21 @@ export function AddTerritoryDialog({ onCreated }: Props) {
   const [name, setName] = useState("");
   const [level, setLevel] = useState<TerritoryLevel>(TerritoryLevel.TOWN);
   const { toast } = useToast();
+  const qc = useQueryClient();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
 
     // Check for duplicate
-    const existing = territories.find(
-      (t) => t.name.toLowerCase() === trimmed.toLowerCase() && t.level === level
-    );
+    const { data: existing } = await supabase
+      .from("territories")
+      .select("id")
+      .ilike("name", trimmed)
+      .eq("level", level as any)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
     if (existing) {
       onCreated(existing.id);
       toast({ title: "This territory already exists; it has been selected for you." });
@@ -39,13 +45,16 @@ export function AddTerritoryDialog({ onCreated }: Props) {
       return;
     }
 
-    const newTerritory = {
-      id: `tr-${Date.now()}`,
-      name: trimmed,
-      level,
-    };
-    territories.push(newTerritory);
+    const { data: newTerritory, error } = await supabase
+      .from("territories")
+      .insert({ name: trimmed, level: level as any })
+      .select()
+      .single();
+
+    if (error) { toast({ title: "Failed to create territory", variant: "destructive" }); return; }
+
     onCreated(newTerritory.id);
+    qc.invalidateQueries({ queryKey: ["territories"] });
     toast({ title: `Territory "${trimmed}" created and selected!` });
     setOpen(false);
     setName("");
@@ -67,12 +76,7 @@ export function AddTerritoryDialog({ onCreated }: Props) {
         <div className="space-y-4 mt-2">
           <div>
             <label className="text-sm font-medium mb-1 block">Name *</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Marseille"
-              maxLength={80}
-            />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Marseille" maxLength={80} />
           </div>
           <div>
             <label className="text-sm font-medium mb-1 block">Level</label>

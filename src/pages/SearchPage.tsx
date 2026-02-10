@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes } from "lucide-react";
+import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { topics, territories } from "@/data/mock";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
+import { useQuery } from "@tanstack/react-query";
 
 const TYPE_META: Record<SearchResultType, { label: string; icon: typeof Users; color: string }> = {
   USER: { label: "Users", icon: Users, color: "text-blue-600" },
@@ -30,15 +31,19 @@ export default function SearchPage() {
   const [priceMax, setPriceMax] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
 
-  const results = useMemo(() => {
-    if (query.trim().length < 2) return [];
-    return globalSearch(query, currentUser.id, {
+  const { data: topics } = useTopics();
+  const { data: territories } = useTerritories();
+
+  const { data: results = [], isLoading } = useQuery({
+    queryKey: ["global-search", query, currentUser.id, topicId, territoryId, priceMin, priceMax],
+    enabled: query.trim().length >= 2,
+    queryFn: () => globalSearch(query, currentUser.id, {
       topicId: topicId !== "ALL" ? topicId : undefined,
       territoryId: territoryId !== "ALL" ? territoryId : undefined,
       priceMin: priceMin ? Number(priceMin) : undefined,
       priceMax: priceMax ? Number(priceMax) : undefined,
-    });
-  }, [query, currentUser.id, topicId, territoryId, priceMin, priceMax]);
+    }),
+  });
 
   const filtered = useMemo(() => {
     if (typeFilter === "ALL") return results;
@@ -61,7 +66,6 @@ export default function SearchPage() {
           <Search className="h-6 w-6" /> Advanced Search
         </h1>
 
-        {/* Search input */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -72,7 +76,6 @@ export default function SearchPage() {
           />
         </div>
 
-        {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6 p-4 rounded-lg border border-border bg-muted/30">
           <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <Filter className="h-4 w-4" /> Filters:
@@ -90,38 +93,27 @@ export default function SearchPage() {
             <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Topic" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All topics</SelectItem>
-              {topics.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={territoryId} onValueChange={setTerritoryId}>
             <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Territory" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All territories</SelectItem>
-              {territories.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {(territories ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="flex items-center gap-1">
-            <Input
-              type="number"
-              value={priceMin}
-              onChange={(e) => setPriceMin(e.target.value)}
-              placeholder="€ Min"
-              className="w-[80px] h-9"
-            />
+            <Input type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} placeholder="€ Min" className="w-[80px] h-9" />
             <span className="text-muted-foreground text-sm">–</span>
-            <Input
-              type="number"
-              value={priceMax}
-              onChange={(e) => setPriceMax(e.target.value)}
-              placeholder="€ Max"
-              className="w-[80px] h-9"
-            />
+            <Input type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} placeholder="€ Max" className="w-[80px] h-9" />
           </div>
         </div>
 
-        {/* Results */}
         {query.trim().length < 2 ? (
           <p className="text-muted-foreground text-center py-12">Type at least 2 characters to search.</p>
+        ) : isLoading ? (
+          <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : filtered.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">No results found for "{query}".</p>
         ) : (

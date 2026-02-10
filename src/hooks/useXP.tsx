@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import { users as allUsers } from "@/data/mock";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 // XP reward values
 const XP_REWARDS = {
@@ -15,46 +16,6 @@ const XP_REWARDS = {
   REFERRAL_REWARD: 50,
 } as const;
 
-function recomputeContributionIndex(xp: number): number {
-  return Math.floor(xp / 10);
-}
-
-/** Mutates the global users array in-place so all components see updated values. */
-function awardXpToUser(userId: string, amount: number) {
-  const user = allUsers.find((u) => u.id === userId);
-  if (!user) return;
-  user.xp += amount;
-  user.contributionIndex = recomputeContributionIndex(user.xp);
-}
-
-export function useXP() {
-  const { toast } = useToast();
-
-  const awardXp = useCallback(
-    (userId: string, reason: keyof typeof XP_REWARDS, silent = false) => {
-      const amount = XP_REWARDS[reason];
-      awardXpToUser(userId, amount);
-      if (!silent) {
-        toast({
-          title: `+${amount} XP`,
-          description: formatReason(reason),
-        });
-      }
-    },
-    [toast]
-  );
-
-  /** Admin override: set exact values */
-  const setXpManual = useCallback((userId: string, xp: number, ci: number) => {
-    const user = allUsers.find((u) => u.id === userId);
-    if (!user) return;
-    user.xp = xp;
-    user.contributionIndex = ci;
-  }, []);
-
-  return { awardXp, setXpManual, XP_REWARDS };
-}
-
 function formatReason(reason: string): string {
   const map: Record<string, string> = {
     QUEST_CREATED: "Quest created",
@@ -65,6 +26,58 @@ function formatReason(reason: string): string {
     BOOKING_COMPLETED_PAID: "Paid booking completed",
     BOOKING_COMPLETED_FREE: "Free booking completed",
     BOOKING_ATTENDED: "Session attended",
+    REFERRAL_REWARD: "Referral bonus",
   };
   return map[reason] ?? reason;
+}
+
+export function useXP() {
+  const { toast } = useToast();
+  const { session } = useAuth();
+
+  const awardXp = useCallback(
+    async (userId: string, reason: keyof typeof XP_REWARDS, silent = false) => {
+      const amount = XP_REWARDS[reason];
+
+      // Update profile XP
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("xp")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({ xp: (profile.xp ?? 0) + amount })
+          .eq("user_id", userId);
+      }
+
+      // Log XP transaction
+      await supabase.from("xp_transactions").insert({
+        user_id: userId,
+        type: "REWARD" as any,
+        amount_xp: amount,
+        description: formatReason(reason),
+      });
+
+      if (!silent) {
+        toast({
+          title: `+${amount} XP`,
+          description: formatReason(reason),
+        });
+      }
+    },
+    [toast]
+  );
+
+  /** Admin override: set exact XP value */
+  const setXpManual = useCallback(async (userId: string, xp: number, _ci: number) => {
+    await supabase
+      .from("profiles")
+      .update({ xp, contribution_index: _ci })
+      .eq("user_id", userId);
+  }, []);
+
+  return { awardXp, setXpManual, XP_REWARDS };
 }

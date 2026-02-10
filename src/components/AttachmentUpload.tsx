@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Paperclip, X, FileText, Image, Film, Music, File, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Attachment } from "@/types";
 import { AttachmentTargetType } from "@/types/enums";
-import { attachments as allAttachments } from "@/data/mock";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface AttachmentUploadProps {
   targetType: AttachmentTargetType;
@@ -31,29 +31,38 @@ function formatSize(bytes: number) {
 export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, className }: AttachmentUploadProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const currentUser = useCurrentUser();
-  const [, rerender] = useState(0);
+  const qc = useQueryClient();
+  const queryKey = ["attachments", targetType, targetId];
 
-  const existing = allAttachments.filter(
-    (a) => a.targetEntityType === targetType && a.targetEntityId === targetId
-  );
+  const { data: existing = [] } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("attachments")
+        .select("*")
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+  });
 
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    Array.from(files).forEach((file) => {
-      const attachment: Attachment = {
-        id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        fileUrl: URL.createObjectURL(file),
-        fileName: file.name,
-        fileType: file.type || "application/octet-stream",
-        size: file.size,
-        targetEntityType: targetType,
-        targetEntityId: targetId,
-        uploadedByUserId: currentUser.id,
-        createdAt: new Date().toISOString(),
-      };
-      allAttachments.push(attachment);
-    });
-    rerender((n) => n + 1);
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || !currentUser.id) return;
+    for (const file of Array.from(files)) {
+      // For now, create object URL (real storage upload would go here)
+      const fileUrl = URL.createObjectURL(file);
+      await supabase.from("attachments").insert({
+        file_url: fileUrl,
+        file_name: file.name,
+        mime_type: file.type || "application/octet-stream",
+        file_size: file.size,
+        target_type: targetType,
+        target_id: targetId,
+        uploaded_by_user_id: currentUser.id,
+      });
+    }
+    qc.invalidateQueries({ queryKey });
     onAttachmentsChange?.();
     if (fileRef.current) fileRef.current.value = "";
   };
@@ -63,17 +72,15 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
     handleFiles(e.dataTransfer.files);
   };
 
-  const removeAttachment = (id: string) => {
-    const idx = allAttachments.findIndex((a) => a.id === id);
-    if (idx >= 0) allAttachments.splice(idx, 1);
-    rerender((n) => n + 1);
+  const removeAttachment = async (id: string) => {
+    await supabase.from("attachments").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey });
     onAttachmentsChange?.();
   };
 
   return (
     <div className={cn("space-y-3", className)}>
       <label className="text-sm font-medium block">Attachments</label>
-
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
@@ -83,42 +90,19 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
         <Upload className="h-5 w-5 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">Drop files or click to upload</span>
       </div>
-
-      <input
-        ref={fileRef}
-        type="file"
-        multiple
-        onChange={(e) => handleFiles(e.target.files)}
-        className="hidden"
-      />
-
+      <input ref={fileRef} type="file" multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" />
       {existing.length > 0 && (
         <div className="space-y-1.5">
           {existing.map((att) => {
-            const Icon = getFileIcon(att.fileType);
+            const Icon = getFileIcon(att.mime_type ?? "");
             return (
-              <div
-                key={att.id}
-                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm group"
-              >
+              <div key={att.id} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm group">
                 <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <a
-                  href={att.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate flex-1 hover:text-primary transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {att.fileName}
+                <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+                  {att.file_name}
                 </a>
-                <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.size)}</span>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                  onClick={() => removeAttachment(att.id)}
-                >
+                <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.file_size ?? 0)}</span>
+                <Button type="button" size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => removeAttachment(att.id)}>
                   <X className="h-3 w-3" />
                 </Button>
               </div>
@@ -132,9 +116,19 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
 
 /** Read-only list of attachments for detail pages */
 export function AttachmentList({ targetType, targetId }: { targetType: AttachmentTargetType; targetId: string }) {
-  const items = allAttachments.filter(
-    (a) => a.targetEntityType === targetType && a.targetEntityId === targetId
-  );
+  const { data: items = [] } = useQuery({
+    queryKey: ["attachments-list", targetType, targetId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("attachments")
+        .select("*")
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+  });
+
   if (items.length === 0) return null;
 
   return (
@@ -144,18 +138,12 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
       </h4>
       <div className="space-y-1.5">
         {items.map((att) => {
-          const Icon = getFileIcon(att.fileType);
+          const Icon = getFileIcon(att.mime_type ?? "");
           return (
-            <a
-              key={att.id}
-              href={att.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-primary/30 transition-all"
-            >
+            <a key={att.id} href={att.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-primary/30 transition-all">
               <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="truncate flex-1">{att.fileName}</span>
-              <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.size)}</span>
+              <span className="truncate flex-1">{att.file_name}</span>
+              <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.file_size ?? 0)}</span>
             </a>
           );
         })}
