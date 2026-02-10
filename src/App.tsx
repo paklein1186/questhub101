@@ -53,6 +53,7 @@ import CourseDetail from "./pages/CourseDetail";
 import CourseCreate from "./pages/CourseCreate";
 import LessonView from "./pages/LessonView";
 import MyCourses from "./pages/MyCourses";
+import ExploreUsers from "./pages/ExploreUsers";
 
 const queryClient = new QueryClient();
 
