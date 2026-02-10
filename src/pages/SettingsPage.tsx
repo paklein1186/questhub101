@@ -5,7 +5,7 @@ import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
-  CheckCircle, Crown, Check, ArrowRight,
+  CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
