@@ -454,7 +454,7 @@ export default function ExploreUsers({ bare }: Props) {
 function UserCard({ user }: { user: ExploreUser }) {
   return (
     <Link
-      to={`/users/${user.id}`}
+      to={`/users/${user.user_id}`}
       className="group block rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/30"
     >
       <div className="flex items-start gap-3">
