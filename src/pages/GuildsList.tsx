@@ -47,7 +47,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
       await createGuildMut.mutateAsync({ name: gName, description: gDesc, type: gType, isDraft: gDraft });
       setCreateOpen(false);
       setGName(""); setGDesc(""); setGType(GuildType.GUILD); setGDraft(false);
-      toast({ title: "Guild created!", description: `${gName} (pending approval)` });
+      toast({ title: "Guild created!", description: `${gName} is now live.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
