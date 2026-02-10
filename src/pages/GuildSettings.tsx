@@ -38,6 +38,7 @@ const TABS = [
   { key: "members", label: "Membership & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
+  { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
 
