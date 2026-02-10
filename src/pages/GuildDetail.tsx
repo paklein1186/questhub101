@@ -193,6 +193,7 @@ export default function GuildDetail() {
           {achievements.length > 0 && <TabsTrigger value="achievements"><Star className="h-4 w-4 mr-1" /> Achievements</TabsTrigger>}
           {isAdmin && <TabsTrigger value="matchmaker"><Sparkles className="h-4 w-4 mr-1" /> Matchmaker</TabsTrigger>}
           {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
+          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
