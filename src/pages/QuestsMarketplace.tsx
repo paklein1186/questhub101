@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2 } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
