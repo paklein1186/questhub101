@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ProposalEvaluator } from "./ProposalEvaluator";
 
 interface QuestProposalsProps {
   questId: string;
