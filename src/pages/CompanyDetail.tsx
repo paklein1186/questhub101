@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { QuestStatus, MonetizationType, CommentTargetType, FollowTargetType } from "@/types/enums";
 import type { Quest } from "@/types";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { SocialLinksDisplay } from "@/components/SocialLinks";
 import {
   getCompanyById, getUserById, getTopicsForCompany, getTerritoriesForCompany,
   getQuestsForCompany, getBookingsForCompany, getServiceById,
