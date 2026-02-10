@@ -30,7 +30,7 @@ export interface SoftDeletable {
 
 // ─── Core Entities ───────────────────────────────────────────
 
-export interface User {
+export interface User extends SoftDeletable {
   id: string;
   name: string;
   email: string;
