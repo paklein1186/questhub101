@@ -94,6 +94,7 @@ export function globalSearch(
 
   // Pods
   for (const p of filterActive(pods)) {
+    if (p.isDraft) continue;
     if (!matchesQuery(query, p.name, p.description)) continue;
     results.push({ type: "POD", id: p.id, title: p.name, subtitle: p.description, url: `/pods/${p.id}` });
   }
