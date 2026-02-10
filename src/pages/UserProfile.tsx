@@ -16,6 +16,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, FollowTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
+import { useBlock } from "@/hooks/useBlock";
 import { useToast } from "@/hooks/use-toast";
 import { useXP } from "@/hooks/useXP";
 import {
