@@ -5,7 +5,7 @@ import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
-  CheckCircle, Crown, Check, ArrowRight,
+  CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +32,13 @@ import {
   services, getServicesForUser,
   availabilityRules, availabilityExceptions,
   referrals, generateReferralCode, getReferralsForUser,
+  quests, comments, bookings,
 } from "@/data/mock";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 const TABS = [
   { key: "account", label: "Account & Security", icon: Shield },
@@ -120,6 +124,12 @@ export default function SettingsPage() {
   // ── Billing state ──
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+
+  // ── Data export & deletion ──
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(0);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   // ── Handlers ──
   const handleChangePassword = async () => {
@@ -239,11 +249,104 @@ export default function SettingsPage() {
 
                   <Separator />
 
+                  <Section title="Export My Data" icon={<Download className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">Download a copy of all your data in JSON format (profile, quests, comments, services, bookings, XP transactions).</p>
+                    <Button variant="outline" size="sm" disabled={exportLoading} onClick={() => {
+                      setExportLoading(true);
+                      const myQuests = quests.filter(q => q.createdByUserId === currentUser.id);
+                      const myComments = comments.filter(c => c.authorId === currentUser.id);
+                      const myServices = services.filter(s => s.providerUserId === currentUser.id);
+                      const myBookings = bookings.filter(b => b.requesterId === currentUser.id || b.providerUserId === currentUser.id);
+                      const exportData = {
+                        user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, headline: currentUser.headline, bio: currentUser.bio, role: currentUser.role, xp: currentUser.xp, contributionIndex: currentUser.contributionIndex },
+                        quests: myQuests.map(q => ({ id: q.id, title: q.title, description: q.description, status: q.status, rewardXp: q.rewardXp })),
+                        comments: myComments.map(c => ({ id: c.id, content: c.content, createdAt: c.createdAt, targetType: c.targetType, targetId: c.targetId })),
+                        services: myServices.map(s => ({ id: s.id, title: s.title, description: s.description, priceAmount: s.priceAmount, priceCurrency: s.priceCurrency })),
+                        bookings: myBookings.map(b => ({ id: b.id, serviceId: b.serviceId, status: b.status, startDateTime: b.startDateTime, endDateTime: b.endDateTime })),
+                        xpTransactions: [],
+                      };
+                      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `questhub-data-${currentUser.id}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      setExportLoading(false);
+                      toast({ title: "Data exported!", description: "Your data has been downloaded." });
+                    }}>
+                      {exportLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />} Export my data
+                    </Button>
+                  </Section>
+
+                  <Separator />
+
                   <Section title="Danger Zone" icon={<Trash2 className="h-5 w-5 text-destructive" />}>
                     <p className="text-sm text-muted-foreground mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" onClick={() => { setDeleteDialogOpen(true); setDeleteStep(0); setDeleteConfirmText(""); }}>
                       <Trash2 className="h-4 w-4 mr-1" /> Delete my account
                     </Button>
+
+                    <Dialog open={deleteDialogOpen} onOpenChange={(o) => { setDeleteDialogOpen(o); if (!o) { setDeleteStep(0); setDeleteConfirmText(""); } }}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-destructive">
+                            <AlertTriangle className="h-5 w-5" /> Delete Account
+                          </DialogTitle>
+                          <DialogDescription>This will permanently remove your account and data.</DialogDescription>
+                        </DialogHeader>
+
+                        {deleteStep === 0 && (
+                          <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">This will:</p>
+                            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-5">
+                              <li>Delete your profile, services, and bookings</li>
+                              <li>Remove your quests and XP history</li>
+                              <li>Replace your name with "Deleted User" on authored content</li>
+                              <li>Remove you from all guilds and pods</li>
+                            </ul>
+                            <Button variant="destructive" className="w-full" onClick={() => setDeleteStep(1)}>
+                              Delete my data
+                            </Button>
+                          </div>
+                        )}
+
+                        {deleteStep === 1 && (
+                          <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                              Type <span className="font-mono font-semibold text-destructive">DELETE</span> to confirm you understand this is irreversible.
+                            </p>
+                            <Input
+                              value={deleteConfirmText}
+                              onChange={(e) => setDeleteConfirmText(e.target.value)}
+                              placeholder="Type DELETE"
+                              className="font-mono"
+                            />
+                            <Button
+                              variant="destructive"
+                              className="w-full"
+                              disabled={deleteConfirmText !== "DELETE"}
+                              onClick={() => {
+                                // Anonymize user in mock data
+                                const idx = users.findIndex(u => u.id === currentUser.id);
+                                if (idx !== -1) {
+                                  users[idx] = { ...users[idx], name: "Deleted User", email: "", bio: undefined, headline: undefined, avatarUrl: undefined, isDeleted: true, deletedAt: new Date().toISOString() };
+                                }
+                                // Anonymize comments
+                                comments.filter(c => c.authorId === currentUser.id).forEach(c => { (c as any).authorId = "deleted"; });
+                                setDeleteDialogOpen(false);
+                                toast({ title: "Account deleted", description: "Your account and data have been permanently removed." });
+                                signOut();
+                              }}
+                            >
+                              I understand — delete permanently
+                            </Button>
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
                   </Section>
                 </div>
               )}
