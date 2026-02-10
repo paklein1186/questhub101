@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Users, Plus } from "lucide-react";
