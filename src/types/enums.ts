@@ -16,9 +16,31 @@ export enum GuildMemberRole {
 }
 
 export enum QuestStatus {
+  DRAFT = "DRAFT",
   OPEN = "OPEN",
+  OPEN_FOR_PROPOSALS = "OPEN_FOR_PROPOSALS",
+  ACTIVE = "ACTIVE",
   IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum ProposalStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
+  WITHDRAWN = "WITHDRAWN",
+}
+
+export enum FundingType {
+  CREDITS = "CREDITS",
+  FIAT = "FIAT",
+}
+
+export enum FundingStatus {
+  PLEDGED = "PLEDGED",
+  PAID = "PAID",
+  CANCELLED = "CANCELLED",
 }
 
 export enum MonetizationType {
