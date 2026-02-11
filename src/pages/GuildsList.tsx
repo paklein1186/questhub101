@@ -49,9 +49,9 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
 
   const filtered = preFiltered.filter((g) => {
     if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
-    if (filters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => filters.topicIds.includes(gt.topic_id))) return false;
-    if (filters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => filters.territoryIds.includes(gt.territory_id))) return false;
-    if (filters.guildType !== "all" && g.type !== filters.guildType) return false;
+    if (activeFilters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => activeFilters.topicIds.includes(gt.topic_id))) return false;
+    if (activeFilters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => activeFilters.territoryIds.includes(gt.territory_id))) return false;
+    if (activeFilters.guildType !== "all" && g.type !== activeFilters.guildType) return false;
     return true;
   });
 
