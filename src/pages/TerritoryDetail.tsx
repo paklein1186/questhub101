@@ -6,6 +6,7 @@ import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetai
 import { TerritoryOverviewTab } from "@/components/territory/TerritoryOverviewTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
+import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function TerritoryDetail() {
