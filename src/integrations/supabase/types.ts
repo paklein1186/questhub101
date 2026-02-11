@@ -579,6 +579,27 @@ export type Database = {
           },
         ]
       }
+      cooperative_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
@@ -1970,10 +1991,12 @@ export type Database = {
           current_plan_code: string | null
           email: string
           filter_by_houses: boolean
+          governance_weight: number
           has_completed_onboarding: boolean
           headline: string | null
           id: string
           instagram_url: string | null
+          is_cooperative_member: boolean
           last_xp_recalculated_at: string | null
           linkedin_url: string | null
           name: string
@@ -1981,6 +2004,8 @@ export type Database = {
           persona_source: string | null
           persona_type: string
           role: string
+          total_shares_a: number
+          total_shares_b: number
           twitter_url: string | null
           updated_at: string
           user_id: string
@@ -1998,10 +2023,12 @@ export type Database = {
           current_plan_code?: string | null
           email?: string
           filter_by_houses?: boolean
+          governance_weight?: number
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          is_cooperative_member?: boolean
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
@@ -2009,6 +2036,8 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           role?: string
+          total_shares_a?: number
+          total_shares_b?: number
           twitter_url?: string | null
           updated_at?: string
           user_id: string
@@ -2026,10 +2055,12 @@ export type Database = {
           current_plan_code?: string | null
           email?: string
           filter_by_houses?: boolean
+          governance_weight?: number
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
           instagram_url?: string | null
+          is_cooperative_member?: boolean
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
           name?: string
@@ -2037,6 +2068,8 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           role?: string
+          total_shares_a?: number
+          total_shares_b?: number
           twitter_url?: string | null
           updated_at?: string
           user_id?: string
@@ -2766,6 +2799,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shareholdings: {
+        Row: {
+          created_at: string
+          id: string
+          number_of_shares: number
+          purchase_price_per_share: number
+          share_class: string
+          stripe_payment_intent_id: string | null
+          total_paid: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number_of_shares?: number
+          purchase_price_per_share?: number
+          share_class: string
+          stripe_payment_intent_id?: string | null
+          total_paid: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number_of_shares?: number
+          purchase_price_per_share?: number
+          share_class?: string
+          stripe_payment_intent_id?: string | null
+          total_paid?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       starred_excerpt_reports: {
         Row: {
