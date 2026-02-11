@@ -95,6 +95,7 @@ export default function ServiceCreate() {
           price_currency: currency,
           online_location_type: locationType,
           is_active: true,
+          image_url: imageUrl || null,
         } as any).select("id").single();
         if (error) throw error;
 
