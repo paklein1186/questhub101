@@ -145,7 +145,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             className="text-xs gap-1.5"
           >
             <Home className="h-3.5 w-3.5" />
-            My Houses only
+            My Topics only
           </Button>
         )}
         {houseFilter && houseFilter.active && !houseFilter.hasHouses && (
