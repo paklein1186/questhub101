@@ -121,6 +121,7 @@ import ImpactLanding from "./pages/ImpactLanding";
 import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
+import GuidesPage from "./pages/GuidesPage";
 
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
