@@ -281,7 +281,9 @@ export default function HomeFeed() {
 
   const [mode, setMode] = useState<"free" | "guided">(() => {
     const stored = localStorage.getItem("home-mode");
-    return stored === "guided" ? "guided" : "free";
+    if (stored === "free" || stored === "guided") return stored;
+    // First-time users default to guided
+    return "guided";
   });
 
   const [input, setInput] = useState("");
