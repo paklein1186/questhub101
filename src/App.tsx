@@ -109,6 +109,7 @@ import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
 import GovernancePage from "./pages/GovernancePage";
 import RoadmapPage from "./pages/RoadmapPage";
 import BugReportingPage from "./pages/BugReportingPage";
+import CreativeLanding from "./pages/CreativeLanding";
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,7 @@ const App = () => (
 
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
+                <Route path="/landing/creative" element={<CreativeLanding />} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />
