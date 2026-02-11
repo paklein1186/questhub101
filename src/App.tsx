@@ -117,6 +117,8 @@ import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
 
 import EventDetail from "./pages/EventDetail";
+import EventEdit from "./pages/EventEdit";
+import EventSettings from "./pages/EventSettings";
 import CalendarPage from "./pages/CalendarPage";
 
 const queryClient = new QueryClient();
@@ -166,6 +168,8 @@ const App = () => (
                 <Route path="/topics/:slug" element={<TopicHouse />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/events/:id/edit" element={<RequireAuth><EventEdit /></RequireAuth>} />
+                <Route path="/events/:id/settings" element={<RequireAuth><EventSettings /></RequireAuth>} />
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
