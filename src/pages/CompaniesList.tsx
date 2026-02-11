@@ -36,9 +36,9 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
 
   let filtered = companiesData ?? [];
 
-  if (filters.territoryIds.length > 0) {
+  if (activeFilters.territoryIds.length > 0) {
     filtered = filtered.filter((c: any) =>
-      c.company_territories?.some((ct: any) => filters.territoryIds.includes(ct.territory_id))
+      c.company_territories?.some((ct: any) => activeFilters.territoryIds.includes(ct.territory_id))
     );
   }
 
