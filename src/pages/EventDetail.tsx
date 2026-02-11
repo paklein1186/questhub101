@@ -252,7 +252,7 @@ export default function EventDetail() {
           {(myReg || canManage) ? (
             <div className="space-y-6">
               <FeedSection contextType="GUILD_EVENT" contextId={id!} canPost={!!myReg || canManage} />
-              <CommentThread targetType={"SERVICE" as any} targetId={id!} />
+              <CommentThread targetType={"GUILD_EVENT" as any} targetId={id!} />
             </div>
           ) : (
             <div className="text-center py-8">
