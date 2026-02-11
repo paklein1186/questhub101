@@ -97,27 +97,42 @@ export function usePeopleInOrbit(userId: string) {
     queryFn: async () => {
       if (!userId) return [];
 
-      // Get all entity IDs user belongs to
-      const [guildMems, compMems, podMems, questParts] = await Promise.all([
+      // Get all entity IDs user belongs to + followed users
+      const [guildMems, compMems, podMems, questParts, followedUsers] = await Promise.all([
         supabase.from("guild_members").select("guild_id").eq("user_id", userId),
         supabase.from("company_members").select("company_id").eq("user_id", userId),
         supabase.from("pod_members").select("pod_id").eq("user_id", userId),
         supabase.from("quest_participants").select("quest_id").eq("user_id", userId),
+        supabase.from("follows").select("target_id").eq("follower_id", userId).eq("target_type", "USER"),
       ]);
 
       const guildIds = (guildMems.data ?? []).map(g => g.guild_id);
       const companyIds = (compMems.data ?? []).map(c => c.company_id);
       const podIds = (podMems.data ?? []).map(p => p.pod_id);
       const questIds = (questParts.data ?? []).map(q => q.quest_id);
+      const followedUserIds = new Set((followedUsers.data ?? []).map(f => f.target_id));
 
       // Find co-members
-      const connections = new Map<string, { sharedGuilds: number; sharedCompanies: number; sharedPods: number; sharedQuests: number }>();
+      const connections = new Map<string, { sharedGuilds: number; sharedCompanies: number; sharedPods: number; sharedQuests: number; isFollowed: boolean }>();
+
+      const ensureConnection = (uid: string) => {
+        if (uid === userId) return;
+        if (!connections.has(uid)) connections.set(uid, { sharedGuilds: 0, sharedCompanies: 0, sharedPods: 0, sharedQuests: 0, isFollowed: followedUserIds.has(uid) });
+      };
 
       const addConnection = (uid: string, type: "sharedGuilds" | "sharedCompanies" | "sharedPods" | "sharedQuests") => {
         if (uid === userId) return;
-        if (!connections.has(uid)) connections.set(uid, { sharedGuilds: 0, sharedCompanies: 0, sharedPods: 0, sharedQuests: 0 });
+        ensureConnection(uid);
         connections.get(uid)![type]++;
       };
+
+      // Add all followed users into the connections map first
+      for (const fId of followedUserIds) {
+        if (fId !== userId) {
+          ensureConnection(fId);
+          connections.get(fId)!.isFollowed = true;
+        }
+      }
 
       const fetches = [];
       if (guildIds.length > 0) fetches.push(supabase.from("guild_members").select("user_id").in("guild_id", guildIds).then(r => (r.data ?? []).forEach(m => addConnection(m.user_id, "sharedGuilds"))));
@@ -129,18 +144,22 @@ export function usePeopleInOrbit(userId: string) {
 
       if (connections.size === 0) return [];
 
-      // Fetch profiles for all connections
-      const connUserIds = Array.from(connections.keys()).slice(0, 50); // cap at 50
+      // Fetch profiles for all connections (cap at 200)
+      const connUserIds = Array.from(connections.keys()).slice(0, 200);
       const { data: profiles } = await supabase
         .from("profiles_public")
         .select("user_id, name, avatar_url, headline")
         .in("user_id", connUserIds);
 
-      return (profiles ?? []).map(p => ({
-        ...p,
-        shared: connections.get(p.user_id)!,
-        totalShared: (connections.get(p.user_id)!.sharedGuilds + connections.get(p.user_id)!.sharedCompanies + connections.get(p.user_id)!.sharedPods + connections.get(p.user_id)!.sharedQuests),
-      })).sort((a, b) => b.totalShared - a.totalShared);
+      return (profiles ?? []).map(p => {
+        const c = connections.get(p.user_id)!;
+        return {
+          ...p,
+          shared: c,
+          isFollowed: c.isFollowed,
+          totalShared: c.sharedGuilds + c.sharedCompanies + c.sharedPods + c.sharedQuests + (c.isFollowed ? 1 : 0),
+        };
+      }).sort((a, b) => b.totalShared - a.totalShared);
     },
     enabled: !!userId,
     staleTime: 120_000,
