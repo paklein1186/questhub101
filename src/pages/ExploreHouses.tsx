@@ -533,7 +533,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Guilds */}
           <TabsContent value="guilds" className="mt-6">
-            <EntityGrid items={guilds} loading={guildsLoading} empty="No guilds found for these Houses." renderItem={(g: any) => (
+            <EntityGrid items={guilds} loading={guildsLoading} empty="No guilds found for these Topics." renderItem={(g: any) => (
               <Link key={g.id} to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="GUILD" logoUrl={g.logo_url} name={g.name} height="h-24" />
                 <div className="p-4">
