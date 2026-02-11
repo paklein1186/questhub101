@@ -553,7 +553,7 @@ export default function HomeFeed() {
                 {result.suggestions.map((s: any, i: number) => (
                   <button
                     key={i}
-                    onClick={() => handleSuggestionClick(s.route || "/explore")}
+                    onClick={() => handleSuggestionClick(s.route || "/explore", s.queryParams)}
                     className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
                   >
                     <Sparkles className="h-4 w-4 text-primary shrink-0" />
