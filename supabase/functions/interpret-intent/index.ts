@@ -176,6 +176,12 @@ serve(async (req) => {
     if (!parsed.confidence) parsed.confidence = 0.5;
     if (!parsed.actionType) parsed.actionType = "OTHER";
 
+    // Sanitize all suggestion routes to prevent broken links
+    parsed.suggestions = parsed.suggestions.map((s: any) => ({
+      ...s,
+      route: sanitizeRoute(s.route || "/explore"),
+    }));
+
     // Log odd proposals to feature_suggestions
     const isOdd = parsed.actionType === "OTHER" || parsed.confidence < 0.5;
     if (isOdd) {
