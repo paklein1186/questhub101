@@ -18,54 +18,104 @@ const LABELS: Record<string, LabelVariants> = {
   "service.label": {
     IMPACT: "Services",
     CREATIVE: "Skill Sessions",
-    HYBRID: "Services",
+    HYBRID: "Offerings",
     DEFAULT: "Services",
   },
   "service.label_plural": {
     IMPACT: "Services",
     CREATIVE: "Skill Sessions",
-    HYBRID: "Services",
+    HYBRID: "Offerings",
     DEFAULT: "Services",
+  },
+  "service.label_singular": {
+    IMPACT: "Service",
+    CREATIVE: "Skill Session",
+    HYBRID: "Offering",
+    DEFAULT: "Service",
   },
   "service.create_button": {
     IMPACT: "Create a service",
     CREATIVE: "Offer a skill session",
-    HYBRID: "Create a service",
+    HYBRID: "Create an offering",
     DEFAULT: "Create a service",
   },
   "service.my_label": {
     IMPACT: "My Services",
     CREATIVE: "My Skill Sessions",
-    HYBRID: "My Services",
+    HYBRID: "My Offerings",
     DEFAULT: "My Services",
   },
 
   // ── Guilds ──
   "guild.label": {
     IMPACT: "Guilds",
-    CREATIVE: "Collectives",
-    HYBRID: "Guilds & Collectives",
-    DEFAULT: "Guilds",
+    CREATIVE: "Circles / Studios",
+    HYBRID: "Groups",
+    DEFAULT: "Communities",
   },
   "guild.label_singular": {
     IMPACT: "Guild",
-    CREATIVE: "Collective",
-    HYBRID: "Guild",
-    DEFAULT: "Guild",
+    CREATIVE: "Circle",
+    HYBRID: "Group",
+    DEFAULT: "Community",
   },
 
   // ── Quests ──
   "quest.label": {
-    IMPACT: "Quests & Missions",
-    CREATIVE: "Creative Quests",
+    IMPACT: "Missions",
+    CREATIVE: "Creations",
     HYBRID: "Quests",
     DEFAULT: "Quests",
   },
   "quest.label_singular": {
-    IMPACT: "Quest",
-    CREATIVE: "Creative Quest",
+    IMPACT: "Mission",
+    CREATIVE: "Creation",
     HYBRID: "Quest",
     DEFAULT: "Quest",
+  },
+
+  // ── Pods ──
+  "pod.label": {
+    IMPACT: "Pods",
+    CREATIVE: "Ensembles",
+    HYBRID: "Groups",
+    DEFAULT: "Micro-teams",
+  },
+  "pod.label_singular": {
+    IMPACT: "Pod",
+    CREATIVE: "Ensemble",
+    HYBRID: "Group",
+    DEFAULT: "Micro-team",
+  },
+
+  // ── XP ──
+  "xp.label": {
+    IMPACT: "XP",
+    CREATIVE: "Resonance",
+    HYBRID: "Impact Points",
+    DEFAULT: "XP",
+  },
+  "xp.label_long": {
+    IMPACT: "Experience Points",
+    CREATIVE: "Resonance",
+    HYBRID: "Impact Points",
+    DEFAULT: "Experience Points",
+  },
+
+  // ── Credits ──
+  "credits.label": {
+    IMPACT: "Credits",
+    CREATIVE: "Sparks",
+    HYBRID: "Tokens",
+    DEFAULT: "Credits",
+  },
+
+  // ── Feed ──
+  "feed.label": {
+    IMPACT: "Feed",
+    CREATIVE: "The Flow",
+    HYBRID: "Stream",
+    DEFAULT: "Feed",
   },
 
   // ── Events ──
@@ -86,7 +136,7 @@ const LABELS: Record<string, LabelVariants> = {
   "nav.services_tab": {
     IMPACT: "Services & Availability",
     CREATIVE: "Skill Sessions & Availability",
-    HYBRID: "Services & Availability",
+    HYBRID: "Offerings & Availability",
     DEFAULT: "Services & Availability",
   },
 
@@ -112,20 +162,6 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Houses",
   },
 
-  // ── Pods ──
-  "pod.label": {
-    IMPACT: "Pods",
-    CREATIVE: "Ensembles",
-    HYBRID: "Pods",
-    DEFAULT: "Pods",
-  },
-  "pod.label_singular": {
-    IMPACT: "Pod",
-    CREATIVE: "Ensemble",
-    HYBRID: "Pod",
-    DEFAULT: "Pod",
-  },
-
   // ── Explore ──
   "nav.explore": {
     IMPACT: "Explore",
@@ -140,36 +176,6 @@ const LABELS: Record<string, LabelVariants> = {
     CREATIVE: "Studio Desk",
     HYBRID: "Dashboard",
     DEFAULT: "Dashboard",
-  },
-
-  // ── Feed ──
-  "feed.label": {
-    IMPACT: "Community Feed",
-    CREATIVE: "The Flow",
-    HYBRID: "Community Feed",
-    DEFAULT: "Community Feed",
-  },
-
-  // ── XP ──
-  "xp.label": {
-    IMPACT: "XP",
-    CREATIVE: "Resonance",
-    HYBRID: "XP",
-    DEFAULT: "XP",
-  },
-  "xp.label_long": {
-    IMPACT: "Experience Points",
-    CREATIVE: "Resonance",
-    HYBRID: "Experience Points",
-    DEFAULT: "Experience Points",
-  },
-
-  // ── Credits ──
-  "credits.label": {
-    IMPACT: "Credits",
-    CREATIVE: "Sparks",
-    HYBRID: "Credits",
-    DEFAULT: "Credits",
   },
 
   // ── Companies ──
@@ -204,10 +210,10 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Human-powered. AI-augmented. Game-changing.",
   },
   "landing.subline": {
-    IMPACT: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
-    CREATIVE: "Start a creative quest, join a collective, and let AI muses help your imagination bloom.",
-    HYBRID: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
-    DEFAULT: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+    IMPACT: "Discover missions, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+    CREATIVE: "Start a creative quest, join a circle, and let AI muses help your imagination bloom.",
+    HYBRID: "Discover quests, join groups, and share your expertise in a regenerative ecosystem built for changemakers.",
+    DEFAULT: "Discover quests, join communities, and share your expertise in a regenerative ecosystem built for changemakers.",
   },
   "landing.cta_primary": {
     IMPACT: "Join as a Gamechanger",
@@ -224,21 +230,21 @@ const LABELS: Record<string, LabelVariants> = {
 
   // ── Home sections ──
   "home.quests_section": {
-    IMPACT: "Featured Quests",
+    IMPACT: "Featured Missions",
     CREATIVE: "Creative quests for you",
     HYBRID: "Featured Quests",
     DEFAULT: "Featured Quests",
   },
   "home.guilds_section": {
     IMPACT: "Guilds to join",
-    CREATIVE: "Collectives you might join",
-    HYBRID: "Guilds to join",
-    DEFAULT: "Guilds to join",
+    CREATIVE: "Circles you might join",
+    HYBRID: "Groups to join",
+    DEFAULT: "Communities to join",
   },
   "home.services_section": {
     IMPACT: "Services",
     CREATIVE: "Skill sessions & workshops",
-    HYBRID: "Services",
+    HYBRID: "Offerings",
     DEFAULT: "Services",
   },
   "home.territories_section": {
