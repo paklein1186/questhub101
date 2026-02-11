@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import type { Notification } from "@/types";
 import { NotificationType, NotificationEntityType, CommentTargetType } from "@/types/enums";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,7 +161,16 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
   }
 }
 
-// ─── Helper: Insert notification to DB ──────────────────────
+// ─── Helper: Strip mention tokens for readable snippet ──────
+
+function stripMentionTokens(content: string): string {
+  return content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+    const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+    return `@${name}`;
+  });
+}
+
+// ─── Helper: Insert notification to DB with dedup + error handling ──
 
 async function insertNotification(params: {
   userId: string;
@@ -172,17 +181,67 @@ async function insertNotification(params: {
   relatedEntityId?: string;
   deepLinkUrl?: string;
   data?: Record<string, unknown>;
-}) {
-  await supabase.from("notifications").insert({
-    user_id: params.userId,
-    type: params.type,
-    title: params.title,
-    body: params.body || null,
-    related_entity_type: params.relatedEntityType || null,
-    related_entity_id: params.relatedEntityId || null,
-    deep_link_url: params.deepLinkUrl || null,
-    data: params.data as any || null,
-  });
+}): Promise<boolean> {
+  try {
+    // Dedup: check if an identical notification was sent in the last 60 seconds
+    if (params.relatedEntityId) {
+      const cutoff = new Date(Date.now() - 60_000).toISOString();
+      const { data: existing } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", params.userId)
+        .eq("type", params.type)
+        .eq("related_entity_id", params.relatedEntityId)
+        .gte("created_at", cutoff)
+        .limit(1);
+      if (existing && existing.length > 0) return false; // already sent recently
+    }
+
+    const { error } = await supabase.from("notifications").insert({
+      user_id: params.userId,
+      type: params.type,
+      title: params.title,
+      body: params.body || null,
+      related_entity_type: params.relatedEntityType || null,
+      related_entity_id: params.relatedEntityId || null,
+      deep_link_url: params.deepLinkUrl || null,
+      data: params.data as any || null,
+    });
+    if (error) {
+      console.error("[Notifications] Insert failed:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Notifications] Insert exception:", err);
+    return false;
+  }
+}
+
+// ─── Helper: Map localStorage prefs to/from DB prefs ────────
+
+function mapLocalToDb(local: NotificationPreferences): Record<string, unknown> {
+  return {
+    notify_quest_updates_and_comments: local.notifyOnQuestUpdates,
+    notify_comments_and_upvotes: local.notifyOnComments,
+    notify_booking_status_changes: local.notifyOnBookings,
+    notify_follower_activity: local.notifyOnFollowerActivity,
+    notify_xp_and_achievements: local.notifyOnXpAndAchievements,
+    notification_frequency: local.notificationFrequency,
+    push_enabled: local.pushEnabled,
+  };
+}
+
+function mapDbToLocal(row: Record<string, unknown>): Partial<NotificationPreferences> {
+  return {
+    notifyOnQuestUpdates: row.notify_quest_updates_and_comments as boolean ?? true,
+    notifyOnComments: row.notify_comments_and_upvotes as boolean ?? true,
+    notifyOnBookings: row.notify_booking_status_changes as boolean ?? true,
+    notifyOnFollowerActivity: row.notify_follower_activity as boolean ?? true,
+    notifyOnXpAndAchievements: row.notify_xp_and_achievements as boolean ?? true,
+    notificationFrequency: (row.notification_frequency as any) ?? "INSTANT",
+    pushEnabled: row.push_enabled as boolean ?? false,
+  };
 }
 
 // ─── Provider ───────────────────────────────────────────────
@@ -219,12 +278,34 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     refetchInterval: 30000,
   });
 
+  // ── Load preferences from DB, fall back to localStorage ──
+  const { data: dbPrefsRow } = useQuery({
+    queryKey: ["notification-preferences-sync", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("notification_preferences")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 60_000,
+  });
+
   const [preferences, setPreferences] = useState<NotificationPreferences>(() => {
     try {
       const saved = localStorage.getItem(`notif_prefs_${userId}`);
       return saved ? { ...DEFAULT_PREFS, ...JSON.parse(saved) } : DEFAULT_PREFS;
     } catch { return DEFAULT_PREFS; }
   });
+
+  // Sync DB prefs into local state when loaded
+  useEffect(() => {
+    if (dbPrefsRow) {
+      setPreferences((prev) => ({ ...prev, ...mapDbToLocal(dbPrefsRow as any) }));
+    }
+  }, [dbPrefsRow]);
 
   const prefsRef = useRef(preferences);
   prefsRef.current = preferences;
@@ -234,6 +315,16 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       const next = { ...prev, ...partial };
       localStorage.setItem(`notif_prefs_${userId}`, JSON.stringify(next));
       prefsRef.current = next;
+
+      // Sync to DB (fire-and-forget)
+      if (userId) {
+        supabase
+          .from("notification_preferences")
+          .update(mapLocalToDb(next) as any)
+          .eq("user_id", userId)
+          .then(() => {});
+      }
+
       return next;
     });
   }, [userId]);
@@ -262,7 +353,9 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       if (prefsRef.current.notificationFrequency === "NEVER") return;
     }
 
-    await insertNotification(params);
+    const inserted = await insertNotification(params);
+    if (!inserted) return;
+
     qc.invalidateQueries({ queryKey: ["notifications", params.userId] });
 
     // Only send browser push for current user's own notifications
@@ -271,10 +364,10 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [userId, qc]);
 
-  // ── Trigger stubs — these insert into the DB notifications table ──
+  // ── Trigger: Comment on entity ──
 
   const notifyComment = useCallback(async ({ commentAuthorId, targetType, targetId, commentId, commentSnippet }: any) => {
-    if (commentAuthorId === userId) return; // Don't self-notify
+    if (commentAuthorId === userId) return;
 
     // Resolve the owner of the target entity
     let ownerUserId: string | null = null;
@@ -298,7 +391,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         const { data } = await supabase.from("feed_posts").select("author_user_id").eq("id", targetId).maybeSingle();
         ownerUserId = data?.author_user_id ?? null;
       } else if (targetType === "USER") {
-        ownerUserId = targetId; // Comment on a user's profile wall
+        ownerUserId = targetId;
       }
     } catch { /* silent */ }
 
@@ -306,21 +399,22 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
     const truncated = (commentSnippet || "").slice(0, 60);
     const entityLabel = targetType.toLowerCase().replace(/_/g, " ");
-    
+
     await addNotification({
       userId: ownerUserId,
       type: NotificationType.COMMENT,
       title: "New comment",
       body: `Someone commented on your ${entityLabel}: "${truncated}"`,
       relatedEntityType: targetType,
-      relatedEntityId: targetId,
+      relatedEntityId: commentId,
       deepLinkUrl: buildNotifDeepLink(targetType, targetId),
       data: { targetType, targetId, commentId },
     });
   }, [userId, addNotification]);
 
+  // ── Trigger: Comment upvote ──
+
   const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
-    // Don't notify if upvoter is the comment author
     if (commentAuthorId === upvoterId) return;
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
@@ -330,21 +424,35 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [addNotification]);
 
+  // ── Trigger: Quest update — notify ALL participants ──
+
   const notifyQuestUpdate = useCallback(async ({ questId, questUpdateId, updateTitle }: any) => {
-    // Check if current user is a participant
-    const { data: participation } = await supabase.from("quest_participants").select("id").eq("quest_id", questId).eq("user_id", userId).maybeSingle();
-    if (!participation) return;
-    await addNotification({
-      userId, type: NotificationType.QUEST_UPDATE,
-      title: "Quest update", body: `New update: "${updateTitle}"`,
-      relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
-      deepLinkUrl: `/quests/${questId}#updates`,
-    });
+    try {
+      const { data: participants } = await supabase
+        .from("quest_participants")
+        .select("user_id")
+        .eq("quest_id", questId);
+      if (!participants?.length) return;
+
+      for (const p of participants) {
+        if (p.user_id === userId) continue; // skip the updater
+        await addNotification({
+          userId: p.user_id, type: NotificationType.QUEST_UPDATE,
+          title: "Quest update", body: `New update: "${updateTitle}"`,
+          relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
+          deepLinkUrl: `/quests/${questId}#updates`,
+        });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyQuestUpdate error:", err);
+    }
   }, [userId, addNotification]);
 
-  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action, serviceId, requesterId }: any) => {
-    // Don't notify yourself
-    if (recipientUserId === userId && requesterId === userId) return;
+  // ── Trigger: Booking action ──
+
+  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action, requesterId }: any) => {
+    // Don't self-notify
+    if (recipientUserId === requesterId) return;
     const typeMap: Record<string, NotificationType> = {
       requested: NotificationType.BOOKING_REQUESTED, confirmed: NotificationType.BOOKING_CONFIRMED,
       accepted: NotificationType.BOOKING_CONFIRMED, cancelled: NotificationType.BOOKING_CANCELLED,
@@ -358,10 +466,12 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       relatedEntityType: NotificationEntityType.BOOKING, relatedEntityId: bookingId,
       deepLinkUrl: `/bookings/${bookingId}`,
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
+
+  // ── Trigger: Guild member added ──
 
   const notifyGuildMemberAdded = useCallback(async ({ guildId, userId: targetUserId }: any) => {
-    if (targetUserId === userId) return; // don't self-notify the adder
+    if (targetUserId === userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_MEMBER_ADDED,
       title: "Added to guild", body: "You were added to a guild",
@@ -369,6 +479,8 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       deepLinkUrl: `/guilds/${guildId}`,
     });
   }, [userId, addNotification]);
+
+  // ── Trigger: Guild role changed ──
 
   const notifyGuildRoleChanged = useCallback(async ({ guildId, userId: targetUserId, newRole }: any) => {
     if (targetUserId === userId) return;
@@ -380,17 +492,32 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
+  // ── Trigger: Guild quest created — notify ALL guild admins ──
+
   const notifyGuildQuestCreated = useCallback(async ({ guildId, questId, questTitle }: any) => {
-    // Notify guild admins (only current user if they're an admin)
-    const { data: membership } = await supabase.from("guild_members").select("role").eq("guild_id", guildId).eq("user_id", userId).maybeSingle();
-    if (membership?.role !== "ADMIN") return;
-    await addNotification({
-      userId, type: NotificationType.GUILD_QUEST_CREATED,
-      title: "New guild quest", body: `Quest "${questTitle}" was created in your guild`,
-      relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
-      deepLinkUrl: `/quests/${questId}`,
-    });
+    try {
+      const { data: admins } = await supabase
+        .from("guild_members")
+        .select("user_id")
+        .eq("guild_id", guildId)
+        .eq("role", "ADMIN");
+      if (!admins?.length) return;
+
+      for (const admin of admins) {
+        if (admin.user_id === userId) continue; // skip the quest creator
+        await addNotification({
+          userId: admin.user_id, type: NotificationType.GUILD_QUEST_CREATED,
+          title: "New guild quest", body: `Quest "${questTitle}" was created in your guild`,
+          relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
+          deepLinkUrl: `/quests/${questId}`,
+        });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyGuildQuestCreated error:", err);
+    }
   }, [userId, addNotification]);
+
+  // ── Trigger: Pod invite ──
 
   const notifyPodInvite = useCallback(async ({ podId, userId: targetUserId }: any) => {
     if (targetUserId === userId) return;
@@ -402,20 +529,33 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
+  // ── Trigger: Pod message — notify ALL pod members except author ──
+
   const notifyPodMessage = useCallback(async ({ podId, authorId, snippet }: any) => {
-    if (authorId === userId) return;
-    const { data: membership } = await supabase.from("pod_members").select("id").eq("pod_id", podId).eq("user_id", userId).maybeSingle();
-    if (!membership) return;
-    await addNotification({
-      userId, type: NotificationType.POD_MESSAGE,
-      title: "New pod message", body: `"${(snippet || "").slice(0, 60)}"`,
-      relatedEntityType: NotificationEntityType.POD, relatedEntityId: podId,
-      deepLinkUrl: `/pods/${podId}#chat`,
-    });
-  }, [userId, addNotification]);
+    try {
+      const { data: members } = await supabase
+        .from("pod_members")
+        .select("user_id")
+        .eq("pod_id", podId);
+      if (!members?.length) return;
+
+      for (const member of members) {
+        if (member.user_id === authorId) continue; // skip the message author
+        await addNotification({
+          userId: member.user_id, type: NotificationType.POD_MESSAGE,
+          title: "New pod message", body: `"${(snippet || "").slice(0, 60)}"`,
+          relatedEntityType: NotificationEntityType.POD, relatedEntityId: podId,
+          deepLinkUrl: `/pods/${podId}#chat`,
+        });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyPodMessage error:", err);
+    }
+  }, [addNotification]);
+
+  // ── Trigger: New follower ──
 
   const notifyNewFollower = useCallback(async ({ followerId, targetUserId }: any) => {
-    // Notify the person being followed, not the follower
     if (targetUserId === followerId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.FOLLOWER_NEW,
@@ -425,25 +565,27 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [addNotification]);
 
+  // ── Trigger: XP gained ──
+
   const notifyXpGained = useCallback(async ({ userId: targetUserId, amount, reason }: any) => {
-    if (targetUserId !== userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.XP_GAINED,
       title: `+${amount} XP earned`, body: reason,
       relatedEntityType: NotificationEntityType.USER, relatedEntityId: targetUserId,
       deepLinkUrl: "/me",
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
+
+  // ── Trigger: Achievement unlocked ──
 
   const notifyAchievement = useCallback(async ({ userId: targetUserId, achievementTitle }: any) => {
-    if (targetUserId !== userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.ACHIEVEMENT_UNLOCKED,
       title: "Achievement unlocked!", body: achievementTitle,
       relatedEntityType: NotificationEntityType.ACHIEVEMENT, relatedEntityId: "",
       deepLinkUrl: "/me",
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
 
   return (
     <NotificationContext.Provider value={{
@@ -462,3 +604,6 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 export function useNotifications() {
   return useContext(NotificationContext);
 }
+
+// Re-export the snippet helper for use in CommentThread
+export { stripMentionTokens };
