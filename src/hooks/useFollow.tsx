@@ -55,6 +55,10 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
     },
     onSuccess: () => {
       toast.success("Following!");
+      // Notify the target if it's a user
+      if (targetType === FollowTargetType.USER && userId) {
+        notifyNewFollower({ followerId: userId, targetUserId: targetId });
+      }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey });
