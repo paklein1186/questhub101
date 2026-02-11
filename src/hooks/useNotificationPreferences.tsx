@@ -28,6 +28,7 @@ export interface NotificationPreferencesRow {
   notify_comments_and_upvotes: boolean;
   notify_follower_activity: boolean;
   notify_xp_and_achievements: boolean;
+  notify_mentions: boolean;
   // Delivery
   notification_frequency: string;
   push_enabled: boolean;
@@ -55,6 +56,7 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_comments_and_upvotes: true,
   notify_follower_activity: true,
   notify_xp_and_achievements: true,
+  notify_mentions: true,
   notification_frequency: "INSTANT",
   push_enabled: false,
 };

@@ -259,6 +259,35 @@ export type Database = {
           },
         ]
       }
+      comment_mentions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          mentioned_user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          mentioned_user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          mentioned_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_mentions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_upvotes: {
         Row: {
           comment_id: string
@@ -1647,6 +1676,7 @@ export type Database = {
           notify_events_and_courses: boolean
           notify_follower_activity: boolean
           notify_invitations_to_units: boolean
+          notify_mentions: boolean
           notify_new_bug_reports: boolean
           notify_new_join_requests_guilds: boolean
           notify_new_join_requests_pods: boolean
@@ -1676,6 +1706,7 @@ export type Database = {
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
+          notify_mentions?: boolean
           notify_new_bug_reports?: boolean
           notify_new_join_requests_guilds?: boolean
           notify_new_join_requests_pods?: boolean
@@ -1705,6 +1736,7 @@ export type Database = {
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
+          notify_mentions?: boolean
           notify_new_bug_reports?: boolean
           notify_new_join_requests_guilds?: boolean
           notify_new_join_requests_pods?: boolean

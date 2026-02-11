@@ -13,6 +13,18 @@ import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { MentionTextarea, extractMentionIds, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
+import { processMentions } from "@/lib/mentionNotifications";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CommentThreadProps {
   targetType: CommentTargetType;
@@ -74,6 +86,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const [replyText, setReplyText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [pendingMentions, setPendingMentions] = useState<MentionedUser[]>([]);
+  const [replyMentions, setReplyMentions] = useState<MentionedUser[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const getAuthor = (userId: string) => authorProfiles.find((p) => p.user_id === userId);
   const topLevel = comments.filter((c) => !c.parent_id && !c.is_deleted);
@@ -87,11 +102,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   const handleUpvote = async (commentId: string) => {
     if (hasUpvoted(commentId)) {
-      // Remove upvote
       await supabase.from("comment_upvotes").delete().eq("comment_id", commentId).eq("user_id", currentUser.id);
       await supabase.from("comments").update({ upvote_count: Math.max((comments.find((c) => c.id === commentId)?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
     } else {
-      // Add upvote
       await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
       await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
     }
@@ -106,16 +119,34 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     const allowed = await checkRateLimit("comment");
     if (!allowed) return;
 
-    const { error } = await supabase.from("comments").insert({
+    const { data: inserted, error } = await supabase.from("comments").insert({
       content,
       author_id: currentUser.id,
       parent_id: parentId || null,
       target_type: targetType,
       target_id: targetId,
-    });
+    }).select("id").single();
+
     if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
 
-    if (parentId) { setReplyText(""); setReplyingTo(null); } else { setNewComment(""); }
+    // Process @mentions
+    const mentionIds = extractMentionIds(content);
+    if (mentionIds.length > 0 && inserted) {
+      await processMentions({
+        commentId: inserted.id,
+        authorUserId: currentUser.id,
+        authorName: currentUser.name,
+        mentionedUserIds: mentionIds,
+        targetType,
+        targetId,
+        snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+          return `@${name}`;
+        }),
+      });
+    }
+
+    if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
     toast({ title: "Comment added" });
     qc.invalidateQueries({ queryKey });
   };
@@ -129,10 +160,19 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     qc.invalidateQueries({ queryKey });
   };
 
-  const deleteComment = async (commentId: string) => {
-    await supabase.from("comments").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", commentId);
-    toast({ title: "Comment deleted" });
-    qc.invalidateQueries({ queryKey });
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase
+      .from("comments")
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+      .eq("id", deleteTarget);
+    if (error) {
+      toast({ title: "Failed to delete comment", variant: "destructive" });
+    } else {
+      toast({ title: "Comment deleted" });
+      qc.invalidateQueries({ queryKey });
+    }
+    setDeleteTarget(null);
   };
 
   const renderComment = (comment: typeof comments[0], isReply = false) => {
@@ -179,7 +219,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm mt-1 text-foreground/90">{comment.content}</p>
+                <p className="text-sm mt-1 text-foreground/90">{renderMentions(comment.content)}</p>
               )}
               <div className="flex items-center gap-2 mt-2">
                 <Button variant="ghost" size="sm" className={`h-7 px-2 ${voted ? "text-primary" : "text-muted-foreground hover:text-primary"}`} onClick={() => handleUpvote(comment.id)}>
@@ -195,7 +235,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                     <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-primary" onClick={() => { setEditingId(comment.id); setEditText(comment.content); }}>
                       <Pencil className="h-3 w-3 mr-1" />Edit
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-destructive" onClick={() => deleteComment(comment.id)}>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-destructive" onClick={() => setDeleteTarget(comment.id)}>
                       <Trash2 className="h-3 w-3 mr-1" />Delete
                     </Button>
                   </>
@@ -214,7 +254,15 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               <div className="flex gap-2">
                 <Avatar className="h-7 w-7 mt-1"><AvatarImage src={currentUser.avatarUrl} /><AvatarFallback>{currentUser.name[0]}</AvatarFallback></Avatar>
                 <div className="flex-1 flex gap-2">
-                  <Textarea value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Write a reply…" className="min-h-[60px] resize-none text-sm flex-1" maxLength={500} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(comment.id); } }} />
+                  <MentionTextarea
+                    value={replyText}
+                    onChange={setReplyText}
+                    onMentionsChange={setReplyMentions}
+                    placeholder="Write a reply… (type @ to mention)"
+                    className="min-h-[60px] flex-1"
+                    maxLength={500}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(comment.id); } }}
+                  />
                   <Button size="sm" className="self-end" disabled={!replyText.trim()} onClick={() => addComment(comment.id)}><Send className="h-4 w-4" /></Button>
                 </div>
               </div>
@@ -237,13 +285,39 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         <div className="flex gap-3">
           <Avatar className="h-8 w-8 mt-1"><AvatarImage src={currentUser.avatarUrl} /><AvatarFallback>{currentUser.name[0]}</AvatarFallback></Avatar>
           <div className="flex-1">
-            <Textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Add a comment…" className="min-h-[80px] resize-none text-sm" maxLength={1000} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }} />
+            <MentionTextarea
+              value={newComment}
+              onChange={setNewComment}
+              onMentionsChange={setPendingMentions}
+              placeholder="Add a comment… (type @ to mention someone)"
+              className="min-h-[80px]"
+              maxLength={1000}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
+            />
             <div className="flex justify-end mt-2">
               <Button size="sm" disabled={!newComment.trim()} onClick={() => addComment()}><Send className="h-4 w-4 mr-1" /> Comment</Button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete comment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
