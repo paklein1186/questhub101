@@ -64,8 +64,8 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
     if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
     return true;
   });
-  if (filters.podType !== "all") filtered = filtered.filter((p) => p.type === filters.podType);
-  if (filters.topicIds.length > 0) filtered = filtered.filter((p) => p.topic_id && filters.topicIds.includes(p.topic_id));
+  if (activeFilters.podType !== "all") filtered = filtered.filter((p) => p.type === activeFilters.podType);
+  if (activeFilters.topicIds.length > 0) filtered = filtered.filter((p) => p.topic_id && activeFilters.topicIds.includes(p.topic_id));
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
