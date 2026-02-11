@@ -137,7 +137,7 @@ export default function NetworkHub() {
               ["all", "All", totalEntities],
               ["guilds", label("guild.label"), guildMemberships.length],
               ["pods", label("pod.label"), podMemberships.length],
-              ["companies", "Trad. Orgs", companyMemberships.length],
+              ["companies", "Traditional Organizations", companyMemberships.length],
             ] as [typeof entitySub, string, number][]).map(([key, lbl, count]) => (
               <Button
                 key={key}
