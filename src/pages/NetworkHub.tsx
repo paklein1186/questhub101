@@ -171,9 +171,9 @@ export default function NetworkHub() {
           )}
         </TabsContent>
 
-        {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
+        {/* ═══════════════ TERRITORIES & TOPICS LEADERBOARD ═══════════════ */}
         <TabsContent value="territories" className="mt-0">
-          <TerritoriesTab territories={myTerritories} topics={myTopics} activity={territoryActivity} loadingT={loadingTerritories} loadingH={loadingTopics} />
+          <TerritoryTopicLeaderboard />
         </TabsContent>
 
         {/* ═══════════════ LEADERBOARD ═══════════════ */}
