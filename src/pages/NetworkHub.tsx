@@ -247,10 +247,10 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
               {territories.map((t: any) => {
                 const a = activity[t.territoryId];
                 return (
-                  <div key={t.territoryId} className="rounded-lg border border-border bg-card px-3 py-2">
+                  <Link key={t.territoryId} to={`/territories/${t.territoryId}`} className="rounded-lg border border-border bg-card px-3 py-2 block hover:border-primary/40 transition-all">
                     <span className="text-sm font-medium flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" />{t.territory?.name}</span>
                     {a && <span className="text-[10px] text-muted-foreground block mt-0.5">{a.guilds}g · {a.companies}c · {a.quests}q</span>}
-                  </div>
+                   </Link>
                 );
               })}
             </div>

@@ -17,7 +17,7 @@ const TYPE_META: Record<string, { label: string; icon: React.ElementType; linkPr
   POD: { label: "Pods", icon: CircleDot, linkPrefix: "/pods" },
   SERVICE: { label: "Services", icon: Wrench, linkPrefix: "/services" },
   COURSE: { label: "Courses", icon: BookOpen, linkPrefix: "/courses" },
-  TERRITORY: { label: "Territories", icon: MapPin, linkPrefix: "/topics" },
+  TERRITORY: { label: "Territories", icon: MapPin, linkPrefix: "/territories" },
 };
 
 const TYPE_ORDER = ["USER", "GUILD", "COMPANY", "QUEST", "POD", "SERVICE", "COURSE", "TERRITORY"];
