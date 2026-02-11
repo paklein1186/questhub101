@@ -234,21 +234,25 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, qc]);
 
   const addNotification = useCallback(async (params: {
-    userId: string; type: NotificationType; title: string; body: string;
+    userId: string; type: NotificationType | string; title: string; body: string;
     relatedEntityType?: string; relatedEntityId?: string;
     deepLinkUrl: string; data?: Record<string, unknown>;
   }) => {
-    const prefKey = prefKeyForType(params.type);
-    if (prefKey && !prefsRef.current[prefKey]) return;
-    if (prefsRef.current.notificationFrequency === "NEVER") return;
+    // Only check preferences if notification is for the current user
+    if (params.userId === userId) {
+      const prefKey = prefKeyForType(params.type as NotificationType);
+      if (prefKey && !prefsRef.current[prefKey]) return;
+      if (prefsRef.current.notificationFrequency === "NEVER") return;
+    }
 
     await insertNotification(params);
     qc.invalidateQueries({ queryKey: ["notifications", params.userId] });
 
-    if (prefsRef.current.pushEnabled && prefsRef.current.notificationFrequency === "INSTANT") {
+    // Only send browser push for current user's own notifications
+    if (params.userId === userId && prefsRef.current.pushEnabled && prefsRef.current.notificationFrequency === "INSTANT") {
       sendBrowserNotification(params.title, params.body, params.deepLinkUrl);
     }
-  }, [qc]);
+  }, [userId, qc]);
 
   // ── Trigger stubs — these insert into the DB notifications table ──
 
