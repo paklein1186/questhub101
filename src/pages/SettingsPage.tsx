@@ -280,7 +280,7 @@ export default function SettingsPage() {
                 }`}
               >
                 <tab.icon className="h-4 w-4 shrink-0" />
-                {tab.label}
+                {t(tab.label)}
               </button>
             ))}
           </nav>
