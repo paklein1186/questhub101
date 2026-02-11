@@ -398,14 +398,15 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyNewFollower = useCallback(async ({ followerId, targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    // Notify the person being followed, not the follower
+    if (targetUserId === followerId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.FOLLOWER_NEW,
       title: "New follower", body: "Someone started following you",
       relatedEntityType: NotificationEntityType.USER, relatedEntityId: followerId,
       deepLinkUrl: `/users/${followerId}`,
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
 
   const notifyXpGained = useCallback(async ({ userId: targetUserId, amount, reason }: any) => {
     if (targetUserId !== userId) return;
