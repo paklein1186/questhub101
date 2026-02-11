@@ -9,6 +9,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 export function useFollow(targetType: FollowTargetType, targetId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { notifyNewFollower } = useNotifications();
   const userId = user?.id;
 
   const queryKey = ["follow", userId, targetType, targetId];
