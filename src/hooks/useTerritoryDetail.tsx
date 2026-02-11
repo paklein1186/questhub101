@@ -28,11 +28,17 @@ export interface TerritoryExcerpt {
   id: string;
   territory_id: string;
   text: string;
+  synthesis: string | null;
+  source_prompt: string | null;
   created_by_user_id: string | null;
   upvote_count: number;
   source_memory_entry_id: string | null;
   source_quest_id: string | null;
+  is_deleted: boolean;
   created_at: string;
+  // joined
+  contributor_name?: string | null;
+  contributor_avatar?: string | null;
 }
 
 export function useTerritoryExcerpts(territoryId: string | undefined, sort: "top" | "recent" = "top") {
