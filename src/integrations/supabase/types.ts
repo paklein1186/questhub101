@@ -2149,6 +2149,7 @@ export type Database = {
       quests: {
         Row: {
           allow_fundraising: boolean
+          boost_expires_at: string | null
           company_id: string | null
           cover_image_url: string | null
           created_at: string
@@ -2161,12 +2162,16 @@ export type Database = {
           funding_goal_credits: number | null
           guild_id: string | null
           id: string
+          is_boosted: boolean
           is_deleted: boolean
           is_draft: boolean
           is_featured: boolean
+          mission_budget_max: number | null
+          mission_budget_min: number | null
           monetization_type: Database["public"]["Enums"]["monetization_type"]
           owner_id: string | null
           owner_type: string
+          payment_type: string
           payout_user_id: string | null
           price_currency: string
           price_fiat: number
@@ -2177,6 +2182,7 @@ export type Database = {
         }
         Insert: {
           allow_fundraising?: boolean
+          boost_expires_at?: string | null
           company_id?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -2189,12 +2195,16 @@ export type Database = {
           funding_goal_credits?: number | null
           guild_id?: string | null
           id?: string
+          is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
           is_featured?: boolean
+          mission_budget_max?: number | null
+          mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           owner_id?: string | null
           owner_type?: string
+          payment_type?: string
           payout_user_id?: string | null
           price_currency?: string
           price_fiat?: number
@@ -2205,6 +2215,7 @@ export type Database = {
         }
         Update: {
           allow_fundraising?: boolean
+          boost_expires_at?: string | null
           company_id?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -2217,12 +2228,16 @@ export type Database = {
           funding_goal_credits?: number | null
           guild_id?: string | null
           id?: string
+          is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
           is_featured?: boolean
+          mission_budget_max?: number | null
+          mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           owner_id?: string | null
           owner_type?: string
+          payment_type?: string
           payout_user_id?: string | null
           price_currency?: string
           price_fiat?: number
@@ -2402,6 +2417,7 @@ export type Database = {
       }
       services: {
         Row: {
+          boost_expires_at: string | null
           created_at: string
           deleted_at: string | null
           description: string | null
@@ -2409,6 +2425,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_boosted: boolean
           is_deleted: boolean
           is_draft: boolean
           online_location_type: string | null
@@ -2424,6 +2441,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          boost_expires_at?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
@@ -2431,6 +2449,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
           online_location_type?: string | null
@@ -2446,6 +2465,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          boost_expires_at?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
@@ -2453,6 +2473,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
           online_location_type?: string | null
@@ -2612,51 +2633,72 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          ai_muse_mode: string
+          can_create_company: boolean
           code: string
           created_at: string
+          custom_guild_tools: boolean
           description: string | null
           free_quests_per_week: number
           id: string
           marketplace_fee_percent: number | null
+          max_courses: number | null
           max_guild_memberships: number | null
           max_pods: number | null
+          max_services_active: number | null
+          monthly_included_credits: number
           monthly_price_amount: number | null
           monthly_price_currency: string
           name: string
           stripe_price_id: string | null
           updated_at: string
+          visibility_ranking: string
           xp_multiplier: number
         }
         Insert: {
+          ai_muse_mode?: string
+          can_create_company?: boolean
           code: string
           created_at?: string
+          custom_guild_tools?: boolean
           description?: string | null
           free_quests_per_week?: number
           id?: string
           marketplace_fee_percent?: number | null
+          max_courses?: number | null
           max_guild_memberships?: number | null
           max_pods?: number | null
+          max_services_active?: number | null
+          monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name: string
           stripe_price_id?: string | null
           updated_at?: string
+          visibility_ranking?: string
           xp_multiplier?: number
         }
         Update: {
+          ai_muse_mode?: string
+          can_create_company?: boolean
           code?: string
           created_at?: string
+          custom_guild_tools?: boolean
           description?: string | null
           free_quests_per_week?: number
           id?: string
           marketplace_fee_percent?: number | null
+          max_courses?: number | null
           max_guild_memberships?: number | null
           max_pods?: number | null
+          max_services_active?: number | null
+          monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name?: string
           stripe_price_id?: string | null
           updated_at?: string
+          visibility_ranking?: string
           xp_multiplier?: number
         }
         Relationships: []

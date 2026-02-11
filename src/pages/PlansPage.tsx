@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink } from "lucide-react";
+import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Coins, Building2, Sparkles, Eye, ArrowRight } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PLAN_ORDER, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
 
 interface PlanRow {
   id: string;
@@ -20,11 +21,28 @@ interface PlanRow {
   free_quests_per_week: number;
   max_guild_memberships: number | null;
   max_pods: number | null;
+  max_services_active: number | null;
+  max_courses: number | null;
   xp_multiplier: number;
   stripe_price_id: string | null;
+  monthly_included_credits: number;
+  visibility_ranking: string;
+  ai_muse_mode: string;
+  can_create_company: boolean;
+  custom_guild_tools: boolean;
 }
 
-const PLAN_ORDER = ["FREE", "IMPACT_PLUS", "ECOSYSTEM_PRO"];
+const PLAN_ICONS: Record<string, typeof Crown> = {
+  FREE: Crown,
+  CREATOR: Sparkles,
+  CATALYST: Zap,
+};
+
+const PLAN_COLORS: Record<string, string> = {
+  FREE: "text-muted-foreground",
+  CREATOR: "text-primary",
+  CATALYST: "text-amber-500",
+};
 
 export default function PlansPage() {
   const { session } = useAuth();
@@ -51,7 +69,7 @@ export default function PlansPage() {
       .from("subscription_plans")
       .select("*") as { data: PlanRow[] | null };
     if (data) {
-      setPlans(data.sort((a, b) => PLAN_ORDER.indexOf(a.code) - PLAN_ORDER.indexOf(b.code)));
+      setPlans(data.sort((a, b) => PLAN_ORDER.indexOf(a.code as any) - PLAN_ORDER.indexOf(b.code as any)));
     }
     setLoading(false);
   };
@@ -86,11 +104,11 @@ export default function PlansPage() {
   };
 
   const isCurrent = (code: string) => currentPlan.planCode === code;
-  const currentIdx = PLAN_ORDER.indexOf(currentPlan.planCode);
+  const currentIdx = PLAN_ORDER.indexOf(currentPlan.planCode as any);
 
   return (
     <PageShell>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Button variant="ghost" size="sm" asChild className="mb-4">
           <Link to="/me"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Me</Link>
         </Button>
@@ -102,10 +120,10 @@ export default function PlansPage() {
           </motion.div>
         )}
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-10">
           <h1 className="font-display text-3xl font-bold mb-2">Plans & Pricing</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Choose a plan that fits your level of activity. Upgrade anytime to unlock more quests, guilds, and pods.
+            Choose a plan that fits your level of activity. Credits power platform features — mission budgets stay in euros.
           </p>
         </div>
 
@@ -114,10 +132,12 @@ export default function PlansPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
             {plans.map((plan, i) => {
-              const planIdx = PLAN_ORDER.indexOf(plan.code);
+              const planIdx = PLAN_ORDER.indexOf(plan.code as any);
               const isCurrentPlan = isCurrent(plan.code);
               const isUpgrade = planIdx > currentIdx;
-              const isHighlighted = plan.code === "IMPACT_PLUS";
+              const isHighlighted = plan.code === "CREATOR";
+              const PlanIcon = PLAN_ICONS[plan.code] || Crown;
+              const iconColor = PLAN_COLORS[plan.code] || "text-primary";
 
               return (
                 <motion.div
@@ -145,7 +165,7 @@ export default function PlansPage() {
                   )}
 
                   <div className="text-center mb-4 pt-2">
-                    <Crown className={`h-8 w-8 mx-auto mb-2 ${plan.code === "FREE" ? "text-muted-foreground" : "text-primary"}`} />
+                    <PlanIcon className={`h-8 w-8 mx-auto mb-2 ${iconColor}`} />
                     <h3 className="font-display text-xl font-bold">{plan.name}</h3>
                     {plan.description && <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>}
                   </div>
@@ -161,10 +181,17 @@ export default function PlansPage() {
                     )}
                   </div>
 
-                  <ul className="space-y-2.5 mb-6">
-                    <PlanFeature label={`${plan.free_quests_per_week === 999 ? "Unlimited" : plan.free_quests_per_week} quests/week`} />
+                  <ul className="space-y-2 mb-6">
+                    <PlanFeature icon={<Coins className="h-3.5 w-3.5" />} label={`${plan.monthly_included_credits} credits/month`} />
+                    <PlanFeature label={`${plan.free_quests_per_week >= 30 ? "30+" : plan.free_quests_per_week} quests/week`} />
                     <PlanFeature label={plan.max_guild_memberships === null ? "Unlimited guilds" : `${plan.max_guild_memberships} guilds`} />
                     <PlanFeature label={plan.max_pods === null ? "Unlimited pods" : `${plan.max_pods} pods`} />
+                    <PlanFeature label={plan.max_services_active === null ? "Unlimited services" : `${plan.max_services_active} services`} />
+                    <PlanFeature label={plan.max_courses === null ? "Unlimited courses" : `${plan.max_courses} courses`} />
+                    <PlanFeature icon={<Eye className="h-3.5 w-3.5" />} label={`${plan.visibility_ranking} visibility`} highlight={plan.visibility_ranking !== "standard"} />
+                    <PlanFeature icon={<Sparkles className="h-3.5 w-3.5" />} label={`AI Muse: ${plan.ai_muse_mode}`} highlight={plan.ai_muse_mode !== "basic"} />
+                    {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3.5 w-3.5" />} label="Create companies" highlight />}
+                    {plan.custom_guild_tools && <PlanFeature label="Custom guild tools" highlight />}
                     <PlanFeature label={`${plan.xp_multiplier}x XP multiplier`} />
                   </ul>
 
@@ -196,20 +223,42 @@ export default function PlansPage() {
           </div>
         )}
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        {/* Dual economy info */}
+        <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center max-w-2xl mx-auto">
+          <h3 className="font-display text-lg font-bold mb-3 flex items-center justify-center gap-2">
+            <Coins className="h-5 w-5 text-primary" /> Understanding the Dual Economy
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4 text-sm">
+            <div className="p-3 rounded-lg bg-card border border-border">
+              <p className="font-semibold text-primary mb-1">💶 Money (€)</p>
+              <p className="text-muted-foreground">Mission budgets & freelance payments. Handled via Stripe or invoicing.</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border border-border">
+              <p className="font-semibold text-primary mb-1">⚡ Credits</p>
+              <p className="text-muted-foreground">Platform utility: boosts, extra capacity, AI features. Not exchangeable for money.</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border border-border">
+              <p className="font-semibold text-primary mb-1">🏆 XP</p>
+              <p className="text-muted-foreground">Your reputation score. Earned through activity, never purchased.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground space-y-1">
           <p>
-            Need more XP for extra actions? <Link to="/me/xp" className="text-primary hover:underline">Buy XP bundles →</Link>
+            Need more credits? <Link to="/me/credits" className="text-primary hover:underline">Buy credit bundles →</Link>
           </p>
+          <p className="text-xs">{ECONOMY_LABELS.creditsDisclaimer}</p>
         </div>
       </div>
     </PageShell>
   );
 }
 
-function PlanFeature({ label }: { label: string }) {
+function PlanFeature({ label, icon, highlight }: { label: string; icon?: React.ReactNode; highlight?: boolean }) {
   return (
-    <li className="flex items-center gap-2 text-sm">
-      <Check className="h-4 w-4 text-primary shrink-0" />
+    <li className={`flex items-center gap-2 text-sm ${highlight ? "text-primary font-medium" : ""}`}>
+      {icon || <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
       <span>{label}</span>
     </li>
   );

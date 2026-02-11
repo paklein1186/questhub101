@@ -9,6 +9,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
+  Coins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ const TABS = [
   { key: "courses", label: "My Courses", icon: GraduationCap },
   { key: "services", label: "Services & Availability", icon: Briefcase },
   { key: "bookings", label: "My Bookings", icon: CalendarCheck },
-  { key: "billing", label: "XP & Credits", icon: Zap },
+  { key: "billing", label: "Plan & Credits", icon: Zap },
   { key: "houses", label: "Houses & Territories", icon: Hash },
   { key: "starred", label: "Starred Excerpts", icon: Star },
   { key: "notifications", label: "Notifications", icon: Bell },
@@ -63,10 +64,10 @@ const TABS = [
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
 
-const XP_BUNDLES = [
-  { code: "STARTER", name: "Starter", xpAmount: 50, price: 5 },
-  { code: "GROWTH", name: "Growth", xpAmount: 150, price: 12 },
-  { code: "PRO", name: "Pro", xpAmount: 400, price: 29 },
+const CREDIT_BUNDLES_SETTINGS = [
+  { code: "STARTER_100", name: "Starter", credits: 100, price: 4 },
+  { code: "CREATOR_300", name: "Creator", credits: 300, price: 10 },
+  { code: "CATALYST_1000", name: "Catalyst", credits: 1000, price: 25 },
 ];
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -257,10 +258,10 @@ export default function SettingsPage() {
 
   // toggleServiceActive is now handled by MyServicesPanel
 
-  const handleBuyXp = async (code: string) => {
+  const handleBuyCredits = async (code: string) => {
     setBuyLoading(code);
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", { body: { mode: "xp_bundle", bundleCode: code } });
+      const { data, error } = await supabase.functions.invoke("create-checkout", { body: { mode: "credit_bundle", bundleCode: code } });
       if (error) throw error;
       if (data?.url) window.open(data.url, "_blank");
     } catch (err: any) {
@@ -658,10 +659,14 @@ export default function SettingsPage() {
                         <Badge className="bg-primary text-primary-foreground">Active</Badge>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 text-sm">
+                        <div><span className="text-muted-foreground">Credits/mo</span><p className="font-semibold">{limits.plan.monthlyIncludedCredits}</p></div>
                         <div><span className="text-muted-foreground">Quests/week</span><p className="font-semibold">{limits.plan.freeQuestsPerWeek}</p></div>
                         <div><span className="text-muted-foreground">Max guilds</span><p className="font-semibold">{limits.plan.maxGuildMemberships ?? "∞"}</p></div>
                         <div><span className="text-muted-foreground">Max pods</span><p className="font-semibold">{limits.plan.maxPods ?? "∞"}</p></div>
+                        <div><span className="text-muted-foreground">Visibility</span><p className="font-semibold capitalize">{limits.plan.visibilityRanking}</p></div>
+                        <div><span className="text-muted-foreground">AI Muse</span><p className="font-semibold capitalize">{limits.plan.aiMuseMode}</p></div>
                         <div><span className="text-muted-foreground">XP multiplier</span><p className="font-semibold">{limits.plan.xpMultiplier}x</p></div>
+                        <div><span className="text-muted-foreground">Company</span><p className="font-semibold">{limits.plan.canCreateCompany ? "Yes" : "No"}</p></div>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -674,24 +679,32 @@ export default function SettingsPage() {
                     </div>
                   </Section>
 
-                  <Section title="XP Balance" icon={<Zap className="h-5 w-5" />}>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2 mb-4">
-                      <Zap className="h-5 w-5 text-primary" />
-                      <span className="text-lg font-bold">{limits.userXp} XP</span>
+                  <Section title="Credits & XP" icon={<Zap className="h-5 w-5" />}>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2">
+                        <Coins className="h-5 w-5 text-primary" />
+                        <span className="text-lg font-bold">{limits.userCredits} Credits</span>
+                      </div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-2">
+                        <Zap className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{limits.userXp} XP</span>
+                        <span className="text-xs text-muted-foreground">(reputation)</span>
+                      </div>
                     </div>
-                    <h4 className="text-sm font-medium mb-3">Buy XP Bundles</h4>
+                    <h4 className="text-sm font-medium mb-3">Buy Credit Bundles</h4>
                     <div className="grid gap-3 md:grid-cols-3">
-                      {XP_BUNDLES.map((b) => (
+                      {CREDIT_BUNDLES_SETTINGS.map((b) => (
                         <div key={b.code} className="rounded-lg border border-border bg-card p-4 text-center">
                           <Package className="h-6 w-6 mx-auto mb-2 text-primary" />
-                          <p className="font-bold">{b.xpAmount} XP</p>
+                          <p className="font-bold">{b.credits} Credits</p>
                           <p className="text-lg font-bold">€{b.price}</p>
-                          <Button size="sm" className="w-full mt-2" onClick={() => handleBuyXp(b.code)} disabled={!!buyLoading}>
+                          <Button size="sm" className="w-full mt-2" onClick={() => handleBuyCredits(b.code)} disabled={!!buyLoading}>
                             {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buy"}
                           </Button>
                         </div>
                       ))}
                     </div>
+                    <p className="text-xs text-muted-foreground mt-3">Credits are platform utility tokens — used for boosts, extra capacity, and AI features. Not exchangeable for money.</p>
                   </Section>
                 </div>
               )}

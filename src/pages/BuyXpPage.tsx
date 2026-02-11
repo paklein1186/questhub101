@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Coins, Package, ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { Coins, Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CREDIT_BUNDLES } from "@/lib/xpCreditsConfig";
+import { CREDIT_BUNDLES, CREDIT_COSTS, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
 
 export default function BuyXpPage() {
   const { session } = useAuth();
-  const { userCredits, userXp, refresh } = usePlanLimits();
+  const { userCredits, userXp, plan, refresh } = usePlanLimits();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export default function BuyXpPage() {
   useEffect(() => {
     if (success) {
       refresh();
-      toast({ title: "Credits purchased!", description: "Your Credit bundle has been credited to your account." });
+      toast({ title: "Credits purchased!", description: "Your credit bundle has been added to your account." });
     }
   }, [success]);
 
@@ -44,7 +44,7 @@ export default function BuyXpPage() {
 
   return (
     <PageShell>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <Button variant="ghost" size="sm" asChild className="mb-4">
           <Link to="/me"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Me</Link>
         </Button>
@@ -54,14 +54,14 @@ export default function BuyXpPage() {
             <CheckCircle className="h-5 w-5 text-success" />
             <div>
               <p className="font-medium text-sm">Payment successful!</p>
-              <p className="text-xs text-muted-foreground">Your Credits have been added to your account.</p>
+              <p className="text-xs text-muted-foreground">Your credits have been added to your account.</p>
             </div>
           </motion.div>
         )}
 
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold mb-2">Buy Credits</h1>
-          <p className="text-muted-foreground">Use Credits to create extra quests, pods, boost visibility, and unlock premium features.</p>
+          <p className="text-muted-foreground">Credits are platform utility — use them for boosts, extra capacity, and AI features.</p>
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2">
               <Coins className="h-5 w-5 text-primary" />
@@ -73,9 +73,12 @@ export default function BuyXpPage() {
               <span className="text-xs text-muted-foreground">(reputation)</span>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Your plan ({plan.planName}) includes {plan.monthlyIncludedCredits} credits/month
+          </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           {CREDIT_BUNDLES.map((bundle, i) => (
             <motion.div
               key={bundle.code}
@@ -84,7 +87,7 @@ export default function BuyXpPage() {
               transition={{ delay: i * 0.1 }}
               className="rounded-xl border border-border bg-card p-6 text-center relative overflow-hidden"
             >
-              {bundle.code === "BUNDLE_120" && (
+              {bundle.code === "CREATOR_300" && (
                 <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground text-[10px]">Popular</Badge>
               )}
               <Package className="h-8 w-8 mx-auto mb-3 text-primary" />
@@ -95,7 +98,7 @@ export default function BuyXpPage() {
               </div>
               <p className="text-2xl font-bold mb-1">€{bundle.priceEur}</p>
               <p className="text-xs text-muted-foreground mb-4">
-                €{(bundle.priceEur / bundle.credits).toFixed(3)} per Credit
+                €{(bundle.priceEur / bundle.credits).toFixed(3)} per credit
               </p>
               <Button
                 onClick={() => handleBuy(bundle.code)}
@@ -112,12 +115,43 @@ export default function BuyXpPage() {
           ))}
         </div>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        {/* What can you do with credits */}
+        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-5">
+          <h3 className="font-semibold text-sm flex items-center gap-2 mb-3">
+            <Info className="h-4 w-4 text-primary" /> What can you do with credits?
+          </h3>
+          <div className="grid md:grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.EXTRA_QUEST_CREATION}</Badge>
+              <span className="text-muted-foreground">Create an extra quest</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.EXTRA_POD_CREATION}</Badge>
+              <span className="text-muted-foreground">Open an extra pod</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_QUEST_VISIBILITY}</Badge>
+              <span className="text-muted-foreground">Boost quest visibility</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_SERVICE_VISIBILITY}</Badge>
+              <span className="text-muted-foreground">Boost service visibility</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.FEATURE_QUEST_7D}</Badge>
+              <span className="text-muted-foreground">Feature quest for 7 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.ENABLE_AI_PRO_SESSION}</Badge>
+              <span className="text-muted-foreground">AI Pro session</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-muted-foreground space-y-1">
           <p>Credits are non-refundable. Payments are processed securely via Stripe.</p>
-          <p className="mt-1">
-            <strong>Note:</strong> Credits are an internal currency used for features. XP is your non-purchasable reputation score.
-          </p>
-          <p className="mt-1">
+          <p className="text-xs">{ECONOMY_LABELS.creditsDisclaimer}</p>
+          <p className="mt-2">
             Want more features? <Link to="/plans" className="text-primary hover:underline">See subscription plans →</Link>
           </p>
         </div>
