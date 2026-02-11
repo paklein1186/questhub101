@@ -116,43 +116,50 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   const addComment = async (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
-    if (!content || !currentUser.id) return;
+    if (!content || !currentUser.id || isSubmitting) return;
 
-    const allowed = await checkRateLimit("comment");
-    if (!allowed) return;
+    setIsSubmitting(true);
+    try {
+      const allowed = await checkRateLimit("comment");
+      if (!allowed) return;
 
-    const { data: inserted, error } = await supabase.from("comments").insert({
-      content,
-      author_id: currentUser.id,
-      parent_id: parentId || null,
-      target_type: targetType,
-      target_id: targetId,
-    }).select("id").single();
+      const { data: inserted, error } = await supabase.from("comments").insert({
+        content,
+        author_id: currentUser.id,
+        parent_id: parentId || null,
+        target_type: targetType,
+        target_id: targetId,
+      }).select("id").single();
 
-    if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
+      if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
 
-    // Process @mentions (users + entities)
-    const mentionIds = extractMentionIds(content);
-    const allEntityMentions = extractAllMentions(content);
-    if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
-      await processMentions({
-        commentId: inserted.id,
-        authorUserId: currentUser.id,
-        authorName: currentUser.name,
-        mentionedUserIds: mentionIds,
-        mentionedEntities: allEntityMentions,
-        targetType,
-        targetId,
-        snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
-          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
-          return `@${name}`;
-        }),
-      });
+      // Process @mentions (users + entities)
+      const mentionIds = extractMentionIds(content);
+      const allEntityMentions = extractAllMentions(content);
+      if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
+        await processMentions({
+          commentId: inserted.id,
+          authorUserId: currentUser.id,
+          authorName: currentUser.name,
+          mentionedUserIds: mentionIds,
+          mentionedEntities: allEntityMentions,
+          targetType,
+          targetId,
+          snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+            const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+            return `@${name}`;
+          }),
+        });
+      }
+
+      if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
+      toast({ title: "Comment added" });
+      qc.invalidateQueries({ queryKey });
+    } catch (err: any) {
+      toast({ title: err.message || "Failed to post comment", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
-    toast({ title: "Comment added" });
-    qc.invalidateQueries({ queryKey });
   };
 
   const saveEdit = async (commentId: string) => {
