@@ -615,10 +615,10 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* ── Houses & Territories ── */}
+              {/* ── Topics & Territories ── */}
               {activeTab === "houses" && (
                 <div className="space-y-6">
-                  <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
+                  <Section title="Topics" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
                       <Button variant="outline" size="sm" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
