@@ -1894,6 +1894,7 @@ export type Database = {
           credits_balance: number
           current_plan_code: string | null
           email: string
+          filter_by_houses: boolean
           has_completed_onboarding: boolean
           headline: string | null
           id: string
@@ -1921,6 +1922,7 @@ export type Database = {
           credits_balance?: number
           current_plan_code?: string | null
           email?: string
+          filter_by_houses?: boolean
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string
@@ -1948,6 +1950,7 @@ export type Database = {
           credits_balance?: number
           current_plan_code?: string | null
           email?: string
+          filter_by_houses?: boolean
           has_completed_onboarding?: boolean
           headline?: string | null
           id?: string

@@ -1,6 +1,7 @@
 import { Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePersona } from "@/hooks/usePersona";
 
 interface XpLevelBadgeProps {
   level: number;
@@ -17,7 +18,9 @@ const LEVEL_LABELS: Record<number, string> = {
 };
 
 export function XpLevelBadge({ level, xp, compact }: XpLevelBadgeProps) {
-  const label = LEVEL_LABELS[level] || `Level ${level}`;
+  const levelLabel = LEVEL_LABELS[level] || `Level ${level}`;
+  const { label: pLabel } = usePersona();
+  const xpWord = pLabel("xp.label");
 
   if (compact) {
     return (
@@ -28,7 +31,7 @@ export function XpLevelBadge({ level, xp, compact }: XpLevelBadgeProps) {
           </Badge>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs">{label}{xp != null ? ` · ${xp} XP` : ""}</p>
+          <p className="text-xs">{levelLabel}{xp != null ? ` · ${xp} ${xpWord}` : ""}</p>
         </TooltipContent>
       </Tooltip>
     );
@@ -36,8 +39,8 @@ export function XpLevelBadge({ level, xp, compact }: XpLevelBadgeProps) {
 
   return (
     <Badge variant="outline" className="text-xs gap-1">
-      <Zap className="h-3 w-3 text-primary" /> Lv{level} {label}
-      {xp != null && <span className="text-muted-foreground ml-1">({xp} XP)</span>}
+      <Zap className="h-3 w-3 text-primary" /> Lv{level} {levelLabel}
+      {xp != null && <span className="text-muted-foreground ml-1">({xp} {xpWord})</span>}
     </Badge>
   );
 }

@@ -3,6 +3,7 @@ import { Briefcase, FileEdit, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePersona } from "@/hooks/usePersona";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import MyCourses from "./MyCourses";
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
   const currentUser = useCurrentUser();
+  const { label } = usePersona();
 
   const { data: myQuests } = useUserQuestParticipations(currentUser.id || undefined);
   const { data: myPods } = useUserPodMemberships(currentUser.id || undefined);
@@ -32,16 +34,16 @@ export default function WorkHub() {
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Briefcase className="h-7 w-7 text-primary" /> Work
+          <Briefcase className="h-7 w-7 text-primary" /> {label("nav.work")}
         </h1>
-        <p className="text-muted-foreground mt-1">Your quests, pods, services, and bookings.</p>
+        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, {label("pod.label").toLowerCase()}, {label("service.label_plural").toLowerCase()}, and bookings.</p>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="quests">My Quests ({questsList.length})</TabsTrigger>
-          <TabsTrigger value="pods">My Pods ({podsList.length})</TabsTrigger>
-          <TabsTrigger value="services">My Services ({servicesList.length})</TabsTrigger>
+          <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
+          <TabsTrigger value="pods">My {label("pod.label")} ({podsList.length})</TabsTrigger>
+          <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
           <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>

@@ -109,7 +109,7 @@ export default function SettingsPage() {
     if (!authUser?.id) return;
     supabase
       .from("profiles")
-      .select("name, headline, bio, avatar_url, role, website_url, twitter_url, linkedin_url, instagram_url")
+      .select("name, headline, bio, avatar_url, role, website_url, twitter_url, linkedin_url, instagram_url, filter_by_houses")
       .eq("user_id", authUser.id)
       .single()
       .then(({ data }) => {
@@ -123,6 +123,7 @@ export default function SettingsPage() {
           setTwitterUrl((data as any).twitter_url || "");
           setLinkedinUrl((data as any).linkedin_url || "");
           setInstagramUrl((data as any).instagram_url || "");
+          setUsePrefs((data as any).filter_by_houses ?? false);
           setProfileLoaded(true);
         }
       });
@@ -341,6 +342,26 @@ export default function SettingsPage() {
                     {persona === "UNSET" && (
                       <p className="text-xs text-muted-foreground mt-3">No persona set yet. Complete onboarding or select one above.</p>
                     )}
+                  </Section>
+
+                  <Separator />
+
+                  <Section title="Auto-filter by your Houses" icon={<Hash className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">When enabled, Explore, Feed, and Search will prioritize content from your selected Houses and topics.</p>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={usePrefs}
+                        onCheckedChange={async (checked) => {
+                          setUsePrefs(checked);
+                          if (authUser?.id) {
+                            await supabase.from("profiles").update({ filter_by_houses: checked } as any).eq("user_id", authUser.id);
+                            toast({ title: checked ? "House filter enabled" : "House filter disabled" });
+                          }
+                        }}
+                      />
+                      <span className="text-sm font-medium">Use my Houses as default filters across the platform</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">You can always override this with "Show all" in any section.</p>
                   </Section>
                 </div>
               )}

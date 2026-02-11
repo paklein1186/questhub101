@@ -112,6 +112,82 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Houses",
   },
 
+  // ── Pods ──
+  "pod.label": {
+    IMPACT: "Pods",
+    CREATIVE: "Ensembles",
+    HYBRID: "Pods",
+    DEFAULT: "Pods",
+  },
+  "pod.label_singular": {
+    IMPACT: "Pod",
+    CREATIVE: "Ensemble",
+    HYBRID: "Pod",
+    DEFAULT: "Pod",
+  },
+
+  // ── Explore ──
+  "nav.explore": {
+    IMPACT: "Explore",
+    CREATIVE: "Wander",
+    HYBRID: "Explore",
+    DEFAULT: "Explore",
+  },
+
+  // ── Dashboard / Work ──
+  "nav.dashboard": {
+    IMPACT: "Dashboard",
+    CREATIVE: "Studio Desk",
+    HYBRID: "Dashboard",
+    DEFAULT: "Dashboard",
+  },
+
+  // ── Feed ──
+  "feed.label": {
+    IMPACT: "Community Feed",
+    CREATIVE: "The Flow",
+    HYBRID: "Community Feed",
+    DEFAULT: "Community Feed",
+  },
+
+  // ── XP ──
+  "xp.label": {
+    IMPACT: "XP",
+    CREATIVE: "Resonance",
+    HYBRID: "XP",
+    DEFAULT: "XP",
+  },
+  "xp.label_long": {
+    IMPACT: "Experience Points",
+    CREATIVE: "Resonance",
+    HYBRID: "Experience Points",
+    DEFAULT: "Experience Points",
+  },
+
+  // ── Credits ──
+  "credits.label": {
+    IMPACT: "Credits",
+    CREATIVE: "Sparks",
+    HYBRID: "Credits",
+    DEFAULT: "Credits",
+  },
+
+  // ── Companies ──
+  "company.label": {
+    IMPACT: "Companies",
+    CREATIVE: "Companies",
+    HYBRID: "Companies",
+    DEFAULT: "Companies",
+  },
+
+  // ── Courses ──
+  "course.label": {
+    IMPACT: "Courses",
+    CREATIVE: "Courses",
+    HYBRID: "Courses",
+    DEFAULT: "Courses",
+  },
+
   // ── Hero prompts ──
   "hero.tagline": {
     IMPACT: "Tell me what impact you want to make — I'll guide you.",

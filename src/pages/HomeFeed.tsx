@@ -143,7 +143,7 @@ export default function HomeFeed() {
         {/* 6. Community feed */}
         <section className="space-y-4">
           <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" /> Community Feed
+            <MessageSquare className="h-5 w-5 text-primary" /> {label("feed.label")}
           </h2>
           <FeedSection contextType="GLOBAL" />
         </section>
