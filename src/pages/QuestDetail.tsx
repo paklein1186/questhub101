@@ -40,6 +40,7 @@ import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
