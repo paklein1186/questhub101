@@ -60,6 +60,7 @@ const clusters: NavCluster[] = [
     items: [
       { to: "/admin/economy/bookings", label: "Bookings & Sessions", icon: CreditCard },
       { to: "/admin/economy/payments", label: "Payments & Revenue", icon: Zap },
+      { to: "/admin/economy/commissions", label: "Commission Rules", icon: CreditCard },
       { to: "/admin/economy/xp", label: "XP & Achievements", icon: Star },
       { to: "/admin/economy/plans", label: "Plans", icon: CreditCard },
       { to: "/admin/economy/notifications", label: "Notifications", icon: Bell },

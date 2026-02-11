@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown } from "lucide-react";
+import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -203,6 +204,17 @@ export default function QuestDetail() {
           </div>
         )}
 
+        {/* Commission Preview for quest with budget */}
+        {((quest as any).mission_budget_min || (quest as any).mission_budget_max) && (
+          <div className="mb-4">
+            <CommissionEstimator
+              budgetMin={String((quest as any).mission_budget_min ?? 0)}
+              budgetMax={String((quest as any).mission_budget_max ?? (quest as any).mission_budget_min ?? 0)}
+              compact
+            />
+          </div>
+        )}
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
           {guild && <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>}
           <span>·</span><span>by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
@@ -393,6 +405,9 @@ export default function QuestDetail() {
             fundingGoalCredits={(quest as any).funding_goal_credits}
             allowFundraising={(quest as any).allow_fundraising ?? false}
             questStatus={quest.status}
+            missionBudgetMin={(quest as any).mission_budget_min}
+            missionBudgetMax={(quest as any).mission_budget_max}
+            paymentType={(quest as any).payment_type}
           />
         </TabsContent>
 

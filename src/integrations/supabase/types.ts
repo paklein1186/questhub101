@@ -335,6 +335,42 @@ export type Database = {
           },
         ]
       }
+      commission_rules: {
+        Row: {
+          commission_percentage: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          max_amount: number | null
+          min_amount: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          commission_percentage: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_percentage?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          max_amount?: number | null
+          min_amount?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           banner_url: string | null
@@ -1411,6 +1447,81 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_agreements: {
+        Row: {
+          amount_accepted: number
+          base_commission_percentage: number
+          collaborator_user_id: string
+          commission_amount: number
+          created_at: string
+          credit_reduction_percentage: number
+          credits_spent_for_reduction: number
+          final_commission_percentage: number
+          id: string
+          owner_user_id: string
+          payment_status: string
+          payment_type: string
+          payout_amount: number
+          plan_discount_percentage: number
+          proposal_id: string | null
+          quest_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_accepted: number
+          base_commission_percentage: number
+          collaborator_user_id: string
+          commission_amount: number
+          created_at?: string
+          credit_reduction_percentage?: number
+          credits_spent_for_reduction?: number
+          final_commission_percentage: number
+          id?: string
+          owner_user_id: string
+          payment_status?: string
+          payment_type?: string
+          payout_amount: number
+          plan_discount_percentage?: number
+          proposal_id?: string | null
+          quest_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_accepted?: number
+          base_commission_percentage?: number
+          collaborator_user_id?: string
+          commission_amount?: number
+          created_at?: string
+          credit_reduction_percentage?: number
+          credits_spent_for_reduction?: number
+          final_commission_percentage?: number
+          id?: string
+          owner_user_id?: string
+          payment_status?: string
+          payment_type?: string
+          payout_amount?: number
+          plan_discount_percentage?: number
+          proposal_id?: string | null
+          quest_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_agreements_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "quest_proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_agreements_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]
@@ -2636,6 +2747,7 @@ export type Database = {
           ai_muse_mode: string
           can_create_company: boolean
           code: string
+          commission_discount_percentage: number
           created_at: string
           custom_guild_tools: boolean
           description: string | null
@@ -2659,6 +2771,7 @@ export type Database = {
           ai_muse_mode?: string
           can_create_company?: boolean
           code: string
+          commission_discount_percentage?: number
           created_at?: string
           custom_guild_tools?: boolean
           description?: string | null
@@ -2682,6 +2795,7 @@ export type Database = {
           ai_muse_mode?: string
           can_create_company?: boolean
           code?: string
+          commission_discount_percentage?: number
           created_at?: string
           custom_guild_tools?: boolean
           description?: string | null

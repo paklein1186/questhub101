@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Coins, Building2, Sparkles, Eye, ArrowRight } from "lucide-react";
+import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Coins, Building2, Sparkles, Eye, ArrowRight, TrendingDown } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ interface PlanRow {
   ai_muse_mode: string;
   can_create_company: boolean;
   custom_guild_tools: boolean;
+  commission_discount_percentage: number;
 }
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
@@ -192,6 +193,7 @@ export default function PlansPage() {
                     <PlanFeature icon={<Sparkles className="h-3.5 w-3.5" />} label={`AI Muse: ${plan.ai_muse_mode}`} highlight={plan.ai_muse_mode !== "basic"} />
                     {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3.5 w-3.5" />} label="Create companies" highlight />}
                     {plan.custom_guild_tools && <PlanFeature label="Custom guild tools" highlight />}
+                    {plan.commission_discount_percentage > 0 && <PlanFeature icon={<TrendingDown className="h-3.5 w-3.5" />} label={`${plan.commission_discount_percentage}% commission discount`} highlight />}
                     <PlanFeature label={`${plan.xp_multiplier}x XP multiplier`} />
                   </ul>
 

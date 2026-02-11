@@ -29,6 +29,7 @@ interface PlanLimits {
   aiMuseMode: "basic" | "advanced" | "pro";
   canCreateCompany: boolean;
   customGuildTools: boolean;
+  commissionDiscountPercent: number;
 }
 
 const DEFAULT_PLAN: PlanLimits = {
@@ -45,6 +46,7 @@ const DEFAULT_PLAN: PlanLimits = {
   aiMuseMode: "basic",
   canCreateCompany: false,
   customGuildTools: false,
+  commissionDiscountPercent: 0,
 };
 
 function getMonday(date: Date): string {
@@ -112,6 +114,7 @@ export function usePlanLimits() {
           aiMuseMode: p.ai_muse_mode ?? "basic",
           canCreateCompany: p.can_create_company ?? false,
           customGuildTools: p.custom_guild_tools ?? false,
+          commissionDiscountPercent: Number(p.commission_discount_percentage) || 0,
         });
       }
 

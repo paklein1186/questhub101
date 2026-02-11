@@ -10,6 +10,7 @@ import { useRateLimit } from "@/hooks/useRateLimit";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
+import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -507,9 +508,13 @@ export default function QuestCreate() {
               >
                 <option value="INVOICE">Invoice</option>
                 <option value="STRIPE">Stripe</option>
-                <option value="OTHER">Other</option>
               </select>
             </div>
+
+            {/* Commission Estimator */}
+            {(missionBudgetMin || missionBudgetMax) && (
+              <CommissionEstimator budgetMin={missionBudgetMin} budgetMax={missionBudgetMax} />
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
