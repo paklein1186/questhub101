@@ -445,69 +445,8 @@ export default function HomeFeed() {
         )}
 
         {/* ─── Guided mode ─── */}
-        {mode === "guided" && !guidedTile && !result && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3"
-          >
-            {GUIDED_TILES.map((tile) => (
-              <button
-                key={tile.id}
-                onClick={() => handleGuidedTile(tile)}
-                className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:bg-accent/50 transition-all text-left group"
-              >
-                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center bg-muted shrink-0 group-hover:scale-105 transition-transform", tile.color)}>
-                  <tile.icon className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-foreground">{tile.title}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-
-        {/* ─── Guided tile follow-up ─── */}
-        {mode === "guided" && guidedTile && activeGuidedTile && !result && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full space-y-4"
-          >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setGuidedTile(null); setInput(""); }}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                ← Back
-              </button>
-            </div>
-            <p className="text-base font-medium text-foreground/80 text-center">
-              {activeGuidedTile.prompt}
-            </p>
-            <Textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Describe what you have in mind…"
-              className="min-h-[56px] max-h-[120px] resize-none text-base bg-card border-border focus-visible:ring-primary/30"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submitIntent(input, "HOME_GUIDED");
-                }
-              }}
-            />
-            <div className="flex justify-end">
-              <Button
-                onClick={() => submitIntent(input, "HOME_GUIDED")}
-                disabled={loading || !input.trim()}
-                className="gap-2"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Let's go
-              </Button>
-            </div>
-          </motion.div>
+        {mode === "guided" && !result && (
+          <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} />
         )}
 
         {/* ─── Territory Intent Flow ─── */}
