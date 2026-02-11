@@ -4,12 +4,15 @@ import { motion } from "framer-motion";
 import {
   Bell, Check, CheckCheck, MessageSquare, ThumbsUp, Users, Megaphone,
   CalendarCheck, UserPlus, Zap, Trophy, Shield, Radio, ChevronDown,
-  Filter,
+  Filter, AlertTriangle, CreditCard, Bug, Flag, Building2, Handshake,
+  GraduationCap, Calendar, Brain,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { useNotifications, linkForNotification } from "@/hooks/useNotifications";
+import { useUserRoles } from "@/lib/admin";
+import { useAuth } from "@/hooks/useAuth";
 import { NotificationType } from "@/types/enums";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -43,6 +46,33 @@ const typeIcons: Record<string, typeof MessageSquare> = {
   [NotificationType.XP_GAINED]: Zap,
   [NotificationType.ACHIEVEMENT_UNLOCKED]: Trophy,
   [NotificationType.SYSTEM_ANNOUNCEMENT]: Bell,
+  // System / superadmin
+  [NotificationType.SYSTEM_NEW_USER]: UserPlus,
+  [NotificationType.SYSTEM_BUG_REPORT]: Bug,
+  [NotificationType.SYSTEM_SHARE_PURCHASE]: CreditCard,
+  [NotificationType.SYSTEM_PAYMENT_FAILED]: AlertTriangle,
+  [NotificationType.SYSTEM_NEW_PUBLIC_QUEST]: Megaphone,
+  [NotificationType.SYSTEM_ABUSE_REPORT]: Flag,
+  // Unit admin
+  [NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST]: UserPlus,
+  [NotificationType.UNIT_NEW_POD_JOIN_REQUEST]: UserPlus,
+  [NotificationType.UNIT_PARTNERSHIP_REQUEST]: Handshake,
+  [NotificationType.UNIT_PARTNERSHIP_ACCEPTED]: Handshake,
+  [NotificationType.UNIT_NEW_QUEST_CREATED_UNDER_UNIT]: Megaphone,
+  [NotificationType.UNIT_NEW_QUEST_UPDATE]: Megaphone,
+  [NotificationType.UNIT_NEW_COMMENT_ON_QUEST]: MessageSquare,
+  [NotificationType.UNIT_BOOKING_REQUEST]: CalendarCheck,
+  [NotificationType.UNIT_BOOKING_CONFIRMED]: CalendarCheck,
+  [NotificationType.UNIT_BOOKING_CANCELLED]: CalendarCheck,
+  [NotificationType.UNIT_EVENT_CREATED]: Calendar,
+  [NotificationType.UNIT_COURSE_CREATED]: GraduationCap,
+  [NotificationType.UNIT_CO_HOST_CHANGED]: Users,
+  [NotificationType.UNIT_AI_FLAGGED_CONTENT]: Brain,
+  // User
+  [NotificationType.USER_BOOKING_STATUS_CHANGED]: CalendarCheck,
+  [NotificationType.USER_QUEST_UPDATE_FROM_FOLLOWED]: Megaphone,
+  [NotificationType.USER_INVITED_TO_UNIT]: Users,
+  [NotificationType.USER_SHARE_PURCHASE_CONFIRMED]: CreditCard,
 };
 
 const typeColors: Record<string, string> = {
@@ -65,7 +95,42 @@ const typeColors: Record<string, string> = {
   [NotificationType.XP_GAINED]: "text-accent",
   [NotificationType.ACHIEVEMENT_UNLOCKED]: "text-warning",
   [NotificationType.SYSTEM_ANNOUNCEMENT]: "text-muted-foreground",
+  // System
+  [NotificationType.SYSTEM_NEW_USER]: "text-primary",
+  [NotificationType.SYSTEM_BUG_REPORT]: "text-warning",
+  [NotificationType.SYSTEM_SHARE_PURCHASE]: "text-success",
+  [NotificationType.SYSTEM_PAYMENT_FAILED]: "text-destructive",
+  [NotificationType.SYSTEM_ABUSE_REPORT]: "text-destructive",
+  // Unit admin
+  [NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST]: "text-warning",
+  [NotificationType.UNIT_NEW_POD_JOIN_REQUEST]: "text-warning",
+  [NotificationType.UNIT_PARTNERSHIP_REQUEST]: "text-primary",
+  [NotificationType.UNIT_PARTNERSHIP_ACCEPTED]: "text-success",
+  [NotificationType.UNIT_BOOKING_REQUEST]: "text-warning",
+  [NotificationType.UNIT_BOOKING_CONFIRMED]: "text-success",
+  [NotificationType.UNIT_BOOKING_CANCELLED]: "text-destructive",
+  [NotificationType.UNIT_EVENT_CREATED]: "text-primary",
+  [NotificationType.UNIT_COURSE_CREATED]: "text-primary",
+  [NotificationType.UNIT_AI_FLAGGED_CONTENT]: "text-destructive",
 };
+
+const SYSTEM_TYPES = [
+  NotificationType.SYSTEM_NEW_USER, NotificationType.SYSTEM_BUG_REPORT,
+  NotificationType.SYSTEM_SHARE_PURCHASE, NotificationType.SYSTEM_PAYMENT_FAILED,
+  NotificationType.SYSTEM_NEW_PUBLIC_QUEST, NotificationType.SYSTEM_ABUSE_REPORT,
+  NotificationType.SYSTEM_ANNOUNCEMENT,
+];
+
+const ADMIN_TYPES = [
+  ...SYSTEM_TYPES,
+  NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST, NotificationType.UNIT_NEW_POD_JOIN_REQUEST,
+  NotificationType.UNIT_PARTNERSHIP_REQUEST, NotificationType.UNIT_PARTNERSHIP_ACCEPTED,
+  NotificationType.UNIT_NEW_QUEST_CREATED_UNDER_UNIT, NotificationType.UNIT_NEW_QUEST_UPDATE,
+  NotificationType.UNIT_NEW_COMMENT_ON_QUEST, NotificationType.UNIT_BOOKING_REQUEST,
+  NotificationType.UNIT_BOOKING_CONFIRMED, NotificationType.UNIT_BOOKING_CANCELLED,
+  NotificationType.UNIT_EVENT_CREATED, NotificationType.UNIT_COURSE_CREATED,
+  NotificationType.UNIT_CO_HOST_CHANGED, NotificationType.UNIT_AI_FLAGGED_CONTENT,
+];
 
 // Category grouping for type filter
 const typeCategories: { label: string; types: NotificationType[] }[] = [
@@ -76,7 +141,8 @@ const typeCategories: { label: string; types: NotificationType[] }[] = [
   { label: "Bookings", types: [NotificationType.BOOKING, NotificationType.BOOKING_REQUESTED, NotificationType.BOOKING_CONFIRMED, NotificationType.BOOKING_CANCELLED, NotificationType.BOOKING_UPDATED, NotificationType.BOOKING_REQUIRES_PAYMENT] },
   { label: "Social", types: [NotificationType.FOLLOWER_NEW, NotificationType.FOLLOWER_ACTIVITY] },
   { label: "XP & Achievements", types: [NotificationType.XP_GAINED, NotificationType.ACHIEVEMENT_UNLOCKED] },
-  { label: "System", types: [NotificationType.SYSTEM_ANNOUNCEMENT] },
+  { label: "System", types: SYSTEM_TYPES },
+  { label: "Admin (Unit)", types: ADMIN_TYPES.filter(t => !SYSTEM_TYPES.includes(t)) },
 ];
 
 const PAGE_SIZE = 20;
@@ -94,7 +160,9 @@ function dayLabel(dateStr: string): string {
 
 export default function NotificationsCenter() {
   const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotifications();
-  const [readFilter, setReadFilter] = useState<"all" | "unread">("all");
+  const { session } = useAuth();
+  const { isAdmin: showAdminTabs } = useUserRoles(session?.user?.id);
+  const [readFilter, setReadFilter] = useState<"all" | "unread" | "admin" | "system">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -102,6 +170,8 @@ export default function NotificationsCenter() {
   const filtered = useMemo(() => {
     let list = notifications;
     if (readFilter === "unread") list = list.filter((n) => !n.isRead);
+    else if (readFilter === "admin") list = list.filter((n) => ADMIN_TYPES.includes(n.type));
+    else if (readFilter === "system") list = list.filter((n) => SYSTEM_TYPES.includes(n.type));
     if (typeFilter !== "all") {
       const category = typeCategories.find((c) => c.label === typeFilter);
       if (category) {
@@ -147,24 +217,18 @@ export default function NotificationsCenter() {
         <div className="flex items-center gap-2 flex-wrap">
           {/* Read/unread toggle */}
           <div className="flex rounded-lg border border-border overflow-hidden">
-            <button
-              onClick={() => setReadFilter("all")}
-              className={cn(
-                "px-3 py-1.5 text-sm font-medium transition-colors",
-                readFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-              )}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setReadFilter("unread")}
-              className={cn(
-                "px-3 py-1.5 text-sm font-medium transition-colors",
-                readFilter === "unread" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-              )}
-            >
-              Unread
-            </button>
+            {(["all", "unread", ...(showAdminTabs ? ["admin", "system"] : [])] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setReadFilter(f as any)}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-medium transition-colors capitalize",
+                  readFilter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {f === "admin" ? "Admin" : f === "system" ? "System" : f === "unread" ? "Unread" : "All"}
+              </button>
+            ))}
           </div>
 
           {/* Type filter */}

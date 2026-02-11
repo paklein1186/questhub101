@@ -1622,6 +1622,96 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          channel_email_enabled: boolean
+          channel_in_app_enabled: boolean
+          created_at: string
+          id: string
+          notification_frequency: string
+          notify_abuse_reports: boolean
+          notify_ai_flagged_content: boolean
+          notify_booking_status_changes: boolean
+          notify_bookings_and_cancellations: boolean
+          notify_co_host_changes: boolean
+          notify_comments_and_upvotes: boolean
+          notify_events_and_courses: boolean
+          notify_follower_activity: boolean
+          notify_invitations_to_units: boolean
+          notify_new_bug_reports: boolean
+          notify_new_join_requests_guilds: boolean
+          notify_new_join_requests_pods: boolean
+          notify_new_partnership_requests: boolean
+          notify_new_user_registrations: boolean
+          notify_payments_and_shares: boolean
+          notify_quest_updates_and_comments: boolean
+          notify_quest_updates_from_followed: boolean
+          notify_system_errors: boolean
+          notify_xp_and_achievements: boolean
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_email_enabled?: boolean
+          channel_in_app_enabled?: boolean
+          created_at?: string
+          id?: string
+          notification_frequency?: string
+          notify_abuse_reports?: boolean
+          notify_ai_flagged_content?: boolean
+          notify_booking_status_changes?: boolean
+          notify_bookings_and_cancellations?: boolean
+          notify_co_host_changes?: boolean
+          notify_comments_and_upvotes?: boolean
+          notify_events_and_courses?: boolean
+          notify_follower_activity?: boolean
+          notify_invitations_to_units?: boolean
+          notify_new_bug_reports?: boolean
+          notify_new_join_requests_guilds?: boolean
+          notify_new_join_requests_pods?: boolean
+          notify_new_partnership_requests?: boolean
+          notify_new_user_registrations?: boolean
+          notify_payments_and_shares?: boolean
+          notify_quest_updates_and_comments?: boolean
+          notify_quest_updates_from_followed?: boolean
+          notify_system_errors?: boolean
+          notify_xp_and_achievements?: boolean
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_email_enabled?: boolean
+          channel_in_app_enabled?: boolean
+          created_at?: string
+          id?: string
+          notification_frequency?: string
+          notify_abuse_reports?: boolean
+          notify_ai_flagged_content?: boolean
+          notify_booking_status_changes?: boolean
+          notify_bookings_and_cancellations?: boolean
+          notify_co_host_changes?: boolean
+          notify_comments_and_upvotes?: boolean
+          notify_events_and_courses?: boolean
+          notify_follower_activity?: boolean
+          notify_invitations_to_units?: boolean
+          notify_new_bug_reports?: boolean
+          notify_new_join_requests_guilds?: boolean
+          notify_new_join_requests_pods?: boolean
+          notify_new_partnership_requests?: boolean
+          notify_new_user_registrations?: boolean
+          notify_payments_and_shares?: boolean
+          notify_quest_updates_and_comments?: boolean
+          notify_quest_updates_from_followed?: boolean
+          notify_system_errors?: boolean
+          notify_xp_and_achievements?: boolean
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
