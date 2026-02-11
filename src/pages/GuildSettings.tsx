@@ -41,6 +41,7 @@ import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-r
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
+import { UnitWalletTab } from "@/components/UnitWalletTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -54,7 +55,7 @@ const TABS = [
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
-  { key: "billing", label: "Billing", icon: CreditCard },
+  { key: "billing", label: "Unit Wallet", icon: CreditCard },
 ];
 
 export default function GuildSettings() {
@@ -748,19 +749,14 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 </div>
               )}
 
-              {/* ── Billing ── */}
+              {/* ── Billing / Unit Wallet ── */}
               {activeTab === "billing" && (
-                <div className="space-y-6 max-w-lg">
-                  <Section title="Guild Plan & Billing" icon={<CreditCard className="h-5 w-5" />}>
-                    <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 p-8 text-center">
-                      <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-                      <h4 className="font-display text-lg font-semibold mb-1">Coming soon</h4>
-                      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                        Guild-level subscription plans, billing management, and payment processing will be available here.
-                      </p>
-                    </div>
-                  </Section>
-                </div>
+                <UnitWalletTab
+                  unitType="GUILD"
+                  unitId={guildId}
+                  unitName={guild.name}
+                  creditsBalance={(guild as any).credits_balance ?? 0}
+                />
               )}
 
               {/* ── Partnerships ── */}
