@@ -1673,6 +1673,8 @@ export type Database = {
           notify_bookings_and_cancellations: boolean
           notify_co_host_changes: boolean
           notify_comments_and_upvotes: boolean
+          notify_daily_digest_email: boolean
+          notify_daily_digest_in_app: boolean
           notify_events_and_courses: boolean
           notify_follower_activity: boolean
           notify_invitations_to_units: boolean
@@ -1703,6 +1705,8 @@ export type Database = {
           notify_bookings_and_cancellations?: boolean
           notify_co_host_changes?: boolean
           notify_comments_and_upvotes?: boolean
+          notify_daily_digest_email?: boolean
+          notify_daily_digest_in_app?: boolean
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
@@ -1733,6 +1737,8 @@ export type Database = {
           notify_bookings_and_cancellations?: boolean
           notify_co_host_changes?: boolean
           notify_comments_and_upvotes?: boolean
+          notify_daily_digest_email?: boolean
+          notify_daily_digest_in_app?: boolean
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
