@@ -39,6 +39,7 @@ export default function PodDetail() {
 
   const limits = usePlanLimits();
   const [showPodXpDialog, setShowPodXpDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("members");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
