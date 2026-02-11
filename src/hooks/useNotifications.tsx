@@ -263,8 +263,8 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     let ownerUserId: string | null = null;
     try {
       if (targetType === "QUEST") {
-        const { data } = await supabase.from("quests").select("owner_user_id").eq("id", targetId).maybeSingle();
-        ownerUserId = data?.owner_user_id ?? null;
+        const { data } = await supabase.from("quests").select("created_by_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.created_by_user_id ?? null;
       } else if (targetType === "GUILD") {
         const { data } = await supabase.from("guild_members").select("user_id").eq("guild_id", targetId).eq("role", "ADMIN").limit(1);
         ownerUserId = data?.[0]?.user_id ?? null;
