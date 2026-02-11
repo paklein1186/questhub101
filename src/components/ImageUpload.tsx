@@ -35,8 +35,10 @@ export function ImageUpload({
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop() ?? "jpg";
-      const filePath = `${crypto.randomUUID()}.${ext}`;
+      const filePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
 
       const { error } = await supabase.storage
         .from("entity-images")
