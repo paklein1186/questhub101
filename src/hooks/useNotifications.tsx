@@ -215,6 +215,7 @@ const NotificationContext = createContext<NotificationStore>(null!);
 function buildNotifDeepLink(targetType: string, targetId: string): string {
   switch (targetType) {
     case "QUEST": return `/quests/${targetId}`;
+    case "QUEST_UPDATE": return `/quests/${targetId}`;
     case "SERVICE": return `/services/${targetId}`;
     case "GUILD": return `/guilds/${targetId}`;
     case "POD": return `/pods/${targetId}`;
@@ -222,8 +223,13 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "COURSE": return `/courses/${targetId}`;
     case "USER": return `/users/${targetId}`;
     case "GUILD_EVENT": return `/events/${targetId}`;
-    case "FEED_POST": return `/`;
-    default: return `/`;
+    case "BOOKING": return `/bookings/${targetId}`;
+    case "ACHIEVEMENT": return `/achievements/${targetId}`;
+    case "TERRITORY": return `/territories/${targetId}`;
+    case "FEED_POST": return `/`; // feed posts don't have individual pages
+    case "COMMENT": return `/notifications`; // comments don't have standalone pages
+    case "milestone": return `/milestones`;
+    default: return `/notifications`;
   }
 }
 
