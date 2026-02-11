@@ -347,15 +347,8 @@ export default function HomeFeed() {
     navigate(target);
   };
 
-  const handleGuidedTile = (tile: typeof GUIDED_TILES[0]) => {
-    if (tile.route) {
-      navigate(tile.route);
-      return;
-    }
-    setGuidedTile(tile.id);
-    setInput("");
-    setResult(null);
-    setTimeout(() => inputRef.current?.focus(), 100);
+  const handleGuidedTile = (_tile: any) => {
+    // Legacy — no longer used, guided mode uses GuidedPathways
   };
 
   const resetAll = () => {
@@ -365,7 +358,7 @@ export default function HomeFeed() {
     setLastInput("");
   };
 
-  const activeGuidedTile = GUIDED_TILES.find((t) => t.id === guidedTile);
+  const isTerritory = result?.actionType === "TERRITORY_INTENT";
 
   const isTerritory = result?.actionType === "TERRITORY_INTENT";
 
