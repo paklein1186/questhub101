@@ -121,6 +121,7 @@ import ImpactLanding from "./pages/ImpactLanding";
 import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
+import GuidesPage from "./pages/GuidesPage";
 
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
@@ -206,6 +207,7 @@ const App = () => (
                 <Route path="/manifesto" element={<ManifestoPage />} />
                 <Route path="/cooperative" element={<CooperativeVenturePage />} />
                 <Route path="/what-comes-next" element={<WhatComesNextPage />} />
+                <Route path="/guides" element={<GuidesPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
