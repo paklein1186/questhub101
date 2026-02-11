@@ -376,7 +376,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyPodInvite = useCallback(async ({ podId, userId: targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.POD_CREATED,
       title: "Pod invitation", body: "You were invited to a pod",
