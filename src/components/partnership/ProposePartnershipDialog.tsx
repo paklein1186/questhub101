@@ -30,7 +30,7 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
   const { data: guilds } = useQuery({
     queryKey: ["search-guilds-partnership", search],
     queryFn: async () => {
-      let q = supabase.from("guilds").select("id, name, logo_url").eq("is_deleted", false).eq("is_approved", true).limit(20);
+      let q = supabase.from("guilds").select("id, name, logo_url").eq("is_deleted", false).limit(20);
       if (search.trim()) q = q.ilike("name", `%${search.trim()}%`);
       const { data } = await q;
       return (data ?? []).filter(g => !(fromEntityType === "GUILD" && g.id === fromEntityId));
