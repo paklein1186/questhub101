@@ -7,6 +7,7 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
+import { Button } from "@/components/ui/button";
 import GuildsList from "./GuildsList";
 import QuestsMarketplace from "./QuestsMarketplace";
 import PodsList from "./PodsList";
@@ -16,16 +17,22 @@ import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
 
-const VALID_TABS = ["quests", "guilds", "pods", "services", "companies", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS = ["quests", "entities", "services", "courses", "users", "houses", "territories", "matchmaker"];
+const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
+type EntitySub = typeof ENTITY_SUB[number];
 
 export default function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = VALID_TABS.includes(searchParams.get("tab") || "") ? searchParams.get("tab")! : "quests";
+  const rawTab = searchParams.get("tab") || "";
+  // Support legacy direct tabs (guilds/pods/companies) by mapping to entities
+  const isLegacyEntity = ["guilds", "pods", "companies"].includes(rawTab);
+  const initialTab = VALID_TABS.includes(rawTab) ? rawTab : isLegacyEntity ? "entities" : "quests";
+  const initialSub: EntitySub = isLegacyEntity ? (rawTab as EntitySub) : "all";
+
   const [tab, setTab] = useState(initialTab);
+  const [entitySub, setEntitySub] = useState<EntitySub>(initialSub);
   const currentUser = useCurrentUser();
   const { label } = usePersona();
-
-
 
   const handleTabChange = (value: string) => {
     setTab(value);
@@ -38,16 +45,14 @@ export default function ExploreHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Search className="h-7 w-7 text-primary" /> {label("nav.explore")}
         </h1>
-        <p className="text-muted-foreground mt-1">Discover {label("quest.label").toLowerCase()}, {label("guild.label").toLowerCase()}, {label("pod.label").toLowerCase()}, {label("service.label_plural").toLowerCase()}, and people.</p>
+        <p className="text-muted-foreground mt-1">Discover {label("quest.label").toLowerCase()}, entities, {label("service.label_plural").toLowerCase()}, and people.</p>
       </div>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
-          <TabsTrigger value="guilds" className="text-xs sm:text-sm">{label("guild.label")}</TabsTrigger>
-          <TabsTrigger value="pods" className="text-xs sm:text-sm">{label("pod.label")}</TabsTrigger>
+          <TabsTrigger value="entities" className="text-xs sm:text-sm">Entities</TabsTrigger>
           <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>
-          <TabsTrigger value="companies" className="text-xs sm:text-sm">{label("company.label")}</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
           <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
           <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
@@ -56,10 +61,47 @@ export default function ExploreHub() {
         </TabsList>
 
         <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
-        <TabsContent value="guilds"><GuildsList bare /></TabsContent>
-        <TabsContent value="pods"><PodsList bare /></TabsContent>
+
+        <TabsContent value="entities">
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {([
+              ["all", "All"],
+              ["guilds", label("guild.label")],
+              ["pods", label("pod.label")],
+              ["companies", label("company.label")],
+            ] as [EntitySub, string][]).map(([key, lbl]) => (
+              <Button
+                key={key}
+                variant={entitySub === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setEntitySub(key)}
+                className="text-xs"
+              >
+                {lbl}
+              </Button>
+            ))}
+          </div>
+          {(entitySub === "all" || entitySub === "guilds") && (
+            <div className={entitySub === "all" ? "mb-8" : ""}>
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("guild.label")}</h3>}
+              <GuildsList bare />
+            </div>
+          )}
+          {(entitySub === "all" || entitySub === "pods") && (
+            <div className={entitySub === "all" ? "mb-8" : ""}>
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("pod.label")}</h3>}
+              <PodsList bare />
+            </div>
+          )}
+          {(entitySub === "all" || entitySub === "companies") && (
+            <div>
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("company.label")}</h3>}
+              <CompaniesList bare />
+            </div>
+          )}
+        </TabsContent>
+
         <TabsContent value="services"><ServicesMarketplace bare /></TabsContent>
-        <TabsContent value="companies"><CompaniesList bare /></TabsContent>
         <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
         <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
