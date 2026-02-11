@@ -31,7 +31,7 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { mode, bundleCode, planStripePriceId } = await req.json();
+    const { mode, bundleCode, planStripePriceId, shareClass, quantity, pricePerShare } = await req.json();
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -117,8 +117,43 @@ serve(async (req) => {
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    } else if (mode === "shares") {
+      // Share purchase — only Class B allowed from frontend
+      if (shareClass !== "B") {
+        throw new Error("Class A shares require manual application. Please contact pa@changethegame.xyz");
+      }
+      const qty = Math.max(1, Math.min(100, Number(quantity) || 1));
+      const unitPrice = Number(pricePerShare) || 10;
+      const totalAmount = qty * unitPrice * 100; // cents
+
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{
+          price_data: {
+            currency: "eur",
+            product_data: { name: `Class B Community Shares (×${qty})` },
+            unit_amount: unitPrice * 100,
+          },
+          quantity: qty,
+        }],
+        mode: "payment",
+        success_url: `${origin}/shares?success=true&class=B&qty=${qty}`,
+        cancel_url: `${origin}/shares?canceled=true`,
+        metadata: {
+          type: "share_purchase",
+          share_class: "B",
+          quantity: String(qty),
+          price_per_share: String(unitPrice),
+          user_id: user.id,
+        },
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } else {
-      throw new Error("Invalid mode. Use 'credit_bundle', 'xp_bundle', or 'subscription'.");
+      throw new Error("Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', or 'shares'.");
     }
   } catch (error) {
     console.error("Error in create-checkout:", error);
