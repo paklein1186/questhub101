@@ -439,13 +439,7 @@ export default function HomeFeed() {
               }}
             />
 
-            <div className="flex items-center justify-between">
-              <button
-                onClick={logFeatureIdea}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-2 hover:underline"
-              >
-                Something else / Feature idea?
-              </button>
+            <div className="flex items-center justify-end">
               <Button
                 onClick={() => submitIntent(input, "HOME_FREE")}
                 disabled={loading || !input.trim()}
