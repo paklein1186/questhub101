@@ -281,69 +281,75 @@ export default function QuestDetail() {
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 
-        <div className="flex items-center gap-3 mt-4 flex-wrap">
-          <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
-          {!isParticipant && (
-            <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={joinQuest}>
-              {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
-            </Button>
-          )}
-          <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
-          {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
-          {canPostUpdate && (
-            <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
-              <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>{editingUpdateId ? "Edit Quest Update" : "Post Quest Update"}</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
-                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-sm font-medium">Content</label>
-                      <AIWriterButton
-                        type="quest_update"
-                        context={{ title: quest.title, updateType: uType, updateTitle: uTitle }}
-                        currentText={uContent}
-                        onAccept={(text, extra) => { setUContent(text); if (extra?.suggestedTitle && !uTitle.trim()) setUTitle(extra.suggestedTitle); }}
-                      />
+        {isLoggedIn ? (
+          <div className="flex items-center gap-3 mt-4 flex-wrap">
+            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+            {!isParticipant && (
+              <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={joinQuest}>
+                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
+              </Button>
+            )}
+            <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
+            {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
+            {canPostUpdate && (
+              <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
+                <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>{editingUpdateId ? "Edit Quest Update" : "Post Quest Update"}</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
+                    <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm font-medium">Content</label>
+                        <AIWriterButton
+                          type="quest_update"
+                          context={{ title: quest.title, updateType: uType, updateTitle: uTitle }}
+                          currentText={uContent}
+                          onAccept={(text, extra) => { setUContent(text); if (extra?.suggestedTitle && !uTitle.trim()) setUTitle(extra.suggestedTitle); }}
+                        />
+                      </div>
+                      <Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" />
                     </div>
-                    <Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" />
+                    <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" />
+                    <div><label className="text-sm font-medium mb-1 block">Visibility</label>
+                      <Select value={uVisibility} onValueChange={setUVisibility}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PUBLIC">Public — anyone can see</SelectItem>
+                          <SelectItem value="FOLLOWERS">Followers only</SelectItem>
+                          <SelectItem value="INTERNAL">Internal — hosts & members only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
+                    <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : editingUpdateId ? "Save Changes" : "Post Update"}</Button>
                   </div>
-                  <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" />
-                  <div><label className="text-sm font-medium mb-1 block">Visibility</label>
-                    <Select value={uVisibility} onValueChange={setUVisibility}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PUBLIC">Public — anyone can see</SelectItem>
-                        <SelectItem value="FOLLOWERS">Followers only</SelectItem>
-                        <SelectItem value="INTERNAL">Internal — hosts & members only</SelectItem>
-                      </SelectContent>
-                    </Select>
+                </DialogContent>
+              </Dialog>
+            )}
+            <Dialog open={podOpen} onOpenChange={setPodOpen}>
+              <DialogTrigger asChild><Button size="sm" variant="outline"><CircleDot className="h-4 w-4 mr-1" /> Create Pod</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Create Pod</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div><label className="text-sm font-medium mb-1 block">Pod name</label><Input value={podName} onChange={e => setPodName(e.target.value)} maxLength={100} /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={podDesc} onChange={e => setPodDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
+                  <ImageUpload label="Pod Image (optional)" currentImageUrl={podImageUrl} onChange={setPodImageUrl} aspectRatio="16/9" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-sm font-medium mb-1 block">Start date</label><Input type="date" value={podStart} onChange={e => setPodStart(e.target.value)} /></div>
+                    <div><label className="text-sm font-medium mb-1 block">End date</label><Input type="date" value={podEnd} onChange={e => setPodEnd(e.target.value)} /></div>
                   </div>
-                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
-                  <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : editingUpdateId ? "Save Changes" : "Post Update"}</Button>
+                  <Button onClick={createPod} disabled={!podName.trim()} className="w-full">Create Pod</Button>
                 </div>
               </DialogContent>
             </Dialog>
-          )}
-          <Dialog open={podOpen} onOpenChange={setPodOpen}>
-            <DialogTrigger asChild><Button size="sm" variant="outline"><CircleDot className="h-4 w-4 mr-1" /> Create Pod</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create Pod</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div><label className="text-sm font-medium mb-1 block">Pod name</label><Input value={podName} onChange={e => setPodName(e.target.value)} maxLength={100} /></div>
-                <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={podDesc} onChange={e => setPodDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <ImageUpload label="Pod Image (optional)" currentImageUrl={podImageUrl} onChange={setPodImageUrl} aspectRatio="16/9" />
-                <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm font-medium mb-1 block">Start date</label><Input type="date" value={podStart} onChange={e => setPodStart(e.target.value)} /></div>
-                  <div><label className="text-sm font-medium mb-1 block">End date</label><Input type="date" value={podEnd} onChange={e => setPodEnd(e.target.value)} /></div>
-                </div>
-                <Button onClick={createPod} disabled={!podName.trim()} className="w-full">Create Pod</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <PublicExploreCTA compact message="Sign in to join this quest, follow updates, and participate." />
+          </div>
+        )}
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-h-[85vh] overflow-y-auto">

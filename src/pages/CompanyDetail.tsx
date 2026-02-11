@@ -171,18 +171,24 @@ export default function CompanyDetail() {
               <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {members.length} members</span>
             </div>
           </div>
-          <div className="flex flex-col gap-2 shrink-0">
-            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
-            {!isMember && (
-              <EntityJoinButton entityType="company" entityId={company.id} joinPolicy="APPROVAL_REQUIRED" applicationQuestions={[]} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["company", id] }); qc.invalidateQueries({ queryKey: ["company-members-profiles", id] }); }} />
-            )}
-            {isAdmin && (
-              <>
-                <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
-                <Button size="sm" variant="outline" asChild><Link to={`/companies/${company.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
-              </>
-            )}
-          </div>
+          {isLoggedIn ? (
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+              {!isMember && (
+                <EntityJoinButton entityType="company" entityId={company.id} joinPolicy="APPROVAL_REQUIRED" applicationQuestions={[]} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["company", id] }); qc.invalidateQueries({ queryKey: ["company-members-profiles", id] }); }} />
+              )}
+              {isAdmin && (
+                <>
+                  <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
+                  <Button size="sm" variant="outline" asChild><Link to={`/companies/${company.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="shrink-0">
+              <PublicExploreCTA compact message="Sign in to join and participate." />
+            </div>
+          )}
         </div>
 
         {company.description && <p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p>}

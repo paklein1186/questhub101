@@ -197,20 +197,26 @@ export default function GuildDetail() {
             </div>
             <p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{guild.description}</p>
           </div>
-          <div className="flex flex-col gap-2 shrink-0">
-            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
-              <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? "Unfollow" : "Follow"}
-            </Button>
-            {!isMember && (
-              <div className="flex flex-col gap-1 items-end">
-                <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
-                <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_CREDIT_COST} itemLabel="guild slot" compact />
-              </div>
-            )}
-            {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
-            {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
-            <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
-          </div>
+          {isLoggedIn ? (
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? "Unfollow" : "Follow"}
+              </Button>
+              {!isMember && (
+                <div className="flex flex-col gap-1 items-end">
+                  <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
+                  <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_CREDIT_COST} itemLabel="guild slot" compact />
+                </div>
+              )}
+              {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
+              {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
+              <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
+            </div>
+          ) : (
+            <div className="shrink-0">
+              <PublicExploreCTA compact message="Sign in to join and participate." />
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t: any) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
