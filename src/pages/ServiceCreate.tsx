@@ -59,6 +59,7 @@ export default function ServiceCreate() {
       setLocationType(existingService.online_location_type || "JITSI");
       setIsDraft(existingService.is_draft || false);
       setIsActive(existingService.is_active ?? true);
+      setImageUrl(existingService.image_url || undefined);
       setLoaded(true);
     }
   }, [existingService, loaded]);
