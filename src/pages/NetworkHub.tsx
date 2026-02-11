@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
-  ArrowRight, Hash, Rss,
+  ArrowRight, Hash, Rss, Trophy,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { PostCard } from "@/components/feed/PostCard";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
+import LeaderboardTab from "@/components/LeaderboardTab";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
@@ -95,6 +96,7 @@ export default function NetworkHub() {
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
           <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Companies ({companyMemberships.length})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Houses</TabsTrigger>
+          <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
         </TabsList>
 
         {/* ═══════════════ OVERVIEW ═══════════════ */}
@@ -139,6 +141,11 @@ export default function NetworkHub() {
         {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
         <TabsContent value="territories" className="mt-0">
           <TerritoriesTab territories={myTerritories} topics={myTopics} activity={territoryActivity} loadingT={loadingTerritories} loadingH={loadingTopics} />
+        </TabsContent>
+
+        {/* ═══════════════ LEADERBOARD ═══════════════ */}
+        <TabsContent value="leaderboard" className="mt-0">
+          <LeaderboardTab />
         </TabsContent>
       </Tabs>
     </PageShell>
