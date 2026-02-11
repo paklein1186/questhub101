@@ -10,7 +10,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown,
+  Coins, TrendingDown, Rss,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1005,6 +1005,15 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
               disabled={pushPermission === "unsupported" || pushPermission === "denied"}
             />
           </div>
+        </div>
+      </Section>
+
+      {/* Daily Digest */}
+      <Section title="Daily Digest" icon={<Rss className="h-5 w-5" />}>
+        <p className="text-xs text-muted-foreground mb-3">A compact summary of public updates from people and units you follow, delivered once per day.</p>
+        <div className="space-y-3">
+          {toggle("notify_daily_digest_in_app" as any, "Receive a daily summary in the app")}
+          {toggle("notify_daily_digest_email" as any, "Receive a daily summary by email")}
         </div>
       </Section>
 
