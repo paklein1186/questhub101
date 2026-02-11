@@ -40,6 +40,7 @@ interface Props {
   currentUserId: string;
   memberCount: number;
   currentUserRole?: string;
+  featuresConfig?: any;
 }
 
 const TYPE_LABELS: Record<DecisionType, string> = {
@@ -54,7 +55,7 @@ const STATUS_COLORS: Record<DecisionStatus, string> = {
 };
 
 /* ───────── Component ───────── */
-export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole }: Props) {
+export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig }: Props) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -91,11 +92,15 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 
   const viewing = decisions.find((d: any) => d.id === viewId);
 
+  // Determine who can propose decisions based on guild governance settings
+  const decisionProposerRole = featuresConfig?.decisionProposerRole || "ADMIN";
+  const canPropose = decisionProposerRole === "MEMBER" ? isMember : isAdmin;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold flex items-center gap-2"><Vote className="h-5 w-5" /> Decisions</h3>
-        {isAdmin && (
+        {canPropose && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" /> New Decision</Button>

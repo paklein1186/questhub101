@@ -444,6 +444,7 @@ export default function GuildDetail() {
               currentUserId={currentUser.id}
               memberCount={members.length}
               currentUserRole={currentMembership?.role}
+              featuresConfig={fc}
             />
           </TabsContent>
         )}

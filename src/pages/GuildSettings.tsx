@@ -5,7 +5,7 @@ import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin,
-  AlertCircle, Check, Loader2, ClipboardList, X, Handshake,
+  AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
   { key: "features", label: "Features", icon: Puzzle },
+  { key: "governance", label: "Governance", icon: Vote },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
@@ -482,6 +483,38 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       ))}
                     </div>
                     <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save features</Button>
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Governance ── */}
+              {activeTab === "governance" && (
+                <div className="space-y-5 max-w-lg">
+                  <Section title="Governance & Decisions" icon={<Vote className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Control how decisions and proposals work within this guild.
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium mb-1 block">Who can propose decisions?</Label>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Choose which members are allowed to create new decision proposals.
+                        </p>
+                        <Select
+                          value={(featuresConfig as any).decisionProposerRole || "ADMIN"}
+                          onValueChange={(v) => setFeaturesConfig((prev: any) => ({ ...prev, decisionProposerRole: v }))}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ADMIN">Admins only</SelectItem>
+                            <SelectItem value="MEMBER">All members</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Button onClick={handleSaveFeatures} className="w-full mt-4">
+                      <Save className="h-4 w-4 mr-2" /> Save governance settings
+                    </Button>
                   </Section>
                 </div>
               )}

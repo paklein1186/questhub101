@@ -71,8 +71,27 @@ export default function EventDetail() {
 
   const myReg = registrations.find((r: any) => r.user_id === currentUser.id && r.status !== "CANCELLED" && r.status !== "REFUSED" && r.status !== "REFUNDED");
   const isHost = event?.created_by_user_id === currentUser.id;
-  const isGuildAdmin = false; // simplified: could check guild_members
-  const canManage = isHost || isGuildAdmin;
+
+  // Check if user is a guild admin for this event's guild
+  const { data: guildMembership } = useQuery({
+    queryKey: ["guild-membership-event", event?.guild_id, currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("guild_members").select("role").eq("guild_id", event.guild_id).eq("user_id", currentUser.id).maybeSingle();
+      return data;
+    },
+    enabled: !!event?.guild_id && !!currentUser.id,
+  });
+  const { data: userRolesData = [] } = useQuery({
+    queryKey: ["user-roles", currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", currentUser.id);
+      return data ?? [];
+    },
+    enabled: !!currentUser.id,
+  });
+  const isSuperAdmin = userRolesData.some((r: any) => r.role === "superadmin");
+  const isGuildAdmin = guildMembership?.role === "ADMIN";
+  const canManage = isHost || isGuildAdmin || isSuperAdmin;
   const acceptedCount = registrations.filter((r: any) => r.status === "ACCEPTED" || r.status === "REGISTERED").length;
   const eventPast = event ? isPast(new Date(event.start_at)) : false;
   const isCancelled = event?.is_cancelled || event?.status === "CANCELLED";
