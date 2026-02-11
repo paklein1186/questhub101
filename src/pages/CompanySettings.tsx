@@ -116,6 +116,60 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   const bookings = companyBookings || [];
   const services = companyServices || [];
 
+  // ── Members management ──
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const inviteMember = async () => {
+    if (!inviteEmail.trim()) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("email", inviteEmail.trim())
+      .single();
+    if (!profile) { toast({ title: "User not found", variant: "destructive" }); return; }
+    const already = members.some((m: any) => m.user_id === profile.user_id);
+    if (already) { toast({ title: "Already a member", variant: "destructive" }); return; }
+    const { error } = await supabase.from("company_members").insert({
+      company_id: companyId, user_id: profile.user_id, role: "member",
+    });
+    if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
+    setInviteEmail(""); setInviteOpen(false);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member added!" });
+  };
+
+  const promoteMember = async (memberId: string) => {
+    await supabase.from("company_members").update({ role: "admin" as any }).eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member promoted to Admin" });
+  };
+
+  const demoteMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
+    if (!gm) return;
+    const admins = members.filter((m: any) => m.role === "admin" || m.role === "ADMIN" || m.role === "owner");
+    if (admins.length <= 1) {
+      toast({ title: "Cannot demote", description: "At least one admin must exist.", variant: "destructive" });
+      return;
+    }
+    await supabase.from("company_members").update({ role: "member" as any }).eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member demoted to Member" });
+  };
+
+  const removeMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
+    if (!gm || gm.user_id === currentUser.id) return;
+    if (gm.role === "admin" || gm.role === "ADMIN" || gm.role === "owner") {
+      const admins = members.filter((m: any) => m.role === "admin" || m.role === "ADMIN" || m.role === "owner");
+      if (admins.length <= 1) { toast({ title: "Cannot remove the last admin", variant: "destructive" }); return; }
+    }
+    await supabase.from("company_members").delete().eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member excluded" });
+  };
+
   // ── Handlers ──
   const toggleTopic = (tid: string) => setSelectedTopics((p) => p.includes(tid) ? p.filter((x) => x !== tid) : [...p, tid]);
   const toggleTerritory = (tid: string) => setSelectedTerritories((p) => p.includes(tid) ? p.filter((x) => x !== tid) : [...p, tid]);
