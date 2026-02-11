@@ -48,7 +48,7 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
       transition={{ delay: index * 0.03 }}
     >
       <Link
-        to={`/territories/${item.id}`}
+        to={`/explore?territory=${item.id}`}
         className="group block rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer"
       >
         <div className="flex items-start gap-3 mb-3">
