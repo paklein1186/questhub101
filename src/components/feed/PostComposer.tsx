@@ -137,7 +137,16 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   };
 
   const uploadFile = async (file: File): Promise<string> => {
-    const path = `${currentUser.id}/${Date.now()}-${file.name}`;
+    // Sanitize filename: remove non-ASCII chars, spaces → dashes
+    const ext = file.name.split(".").pop() ?? "bin";
+    const safeName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 80);
+    const path = `${currentUser.id}/${Date.now()}-${safeName}.${ext}`;
     const { error } = await supabase.storage
       .from("post-uploads")
       .upload(path, file, { contentType: file.type });
