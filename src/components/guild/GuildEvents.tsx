@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -7,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, CalendarDays, MapPin, Video, Users, ExternalLink, X, Clock } from "lucide-react";
+import { Plus, CalendarDays, MapPin, Video, Users, ExternalLink, X, Euro } from "lucide-react";
 import { format, isPast } from "date-fns";
 
 interface GuildEventsProps {
@@ -33,8 +35,10 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
   const [callUrl, setCallUrl] = useState("");
   const [visibility, setVisibility] = useState("GUILD_MEMBERS");
   const [maxAttendees, setMaxAttendees] = useState("");
-
-  const [viewingEvent, setViewingEvent] = useState<any>(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [pricePerTicket, setPricePerTicket] = useState("");
+  const [currency, setCurrency] = useState("EUR");
+  const [acceptanceMode, setAcceptanceMode] = useState("AUTO");
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["guild-events", guildId],
@@ -45,7 +49,6 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
         .eq("guild_id", guildId)
         .order("start_at", { ascending: true });
       if (error) throw error;
-      // Fetch attendee counts
       const eventIds = (data || []).map((e: any) => e.id);
       let attendeeCounts: Record<string, number> = {};
       if (eventIds.length > 0) {
@@ -53,7 +56,7 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
           .from("guild_event_attendees" as any)
           .select("event_id, status")
           .in("event_id", eventIds)
-          .eq("status", "REGISTERED");
+          .in("status", ["REGISTERED", "ACCEPTED"]);
         for (const a of (attendees || []) as any[]) {
           attendeeCounts[a.event_id] = (attendeeCounts[a.event_id] || 0) + 1;
         }
@@ -62,7 +65,6 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
     },
   });
 
-  // Fetch user's registrations
   const { data: myRegistrations = [] } = useQuery({
     queryKey: ["my-event-registrations", guildId, currentUser.id],
     queryFn: async () => {
@@ -95,41 +97,59 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
       created_by_user_id: currentUser.id,
       visibility,
       max_attendees: maxAttendees ? Number(maxAttendees) : null,
+      is_paid: isPaid,
+      price_per_ticket: isPaid ? Number(pricePerTicket) || 0 : null,
+      currency: isPaid ? currency : "EUR",
+      acceptance_mode: acceptanceMode,
+      status: "PUBLISHED",
     } as any);
     if (error) { toast({ title: "Failed to create event", variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
     setTitle(""); setDescription(""); setStartAt(""); setEndAt("");
     setLocationType("ONLINE"); setLocationText(""); setCallUrl("");
     setVisibility("GUILD_MEMBERS"); setMaxAttendees("");
+    setIsPaid(false); setPricePerTicket(""); setCurrency("EUR"); setAcceptanceMode("AUTO");
     setCreateOpen(false);
     toast({ title: "Event created!" });
   };
 
   const registerForEvent = async (eventId: string) => {
     const event = events.find((e: any) => e.id === eventId);
+    if (event?.is_paid) {
+      // Redirect to paid checkout
+      const { data, error } = await supabase.functions.invoke("event-checkout", {
+        body: { eventId },
+      });
+      if (error || !data?.url) { toast({ title: "Payment error", variant: "destructive" }); return; }
+      window.open(data.url, "_blank");
+      return;
+    }
+    const autoAccept = event?.acceptance_mode === "AUTO";
     const isFull = event?.max_attendees && event.attendeeCount >= event.max_attendees;
     const { error } = await supabase.from("guild_event_attendees" as any).insert({
       event_id: eventId,
       user_id: currentUser.id,
-      status: isFull ? "WAITLIST" : "REGISTERED",
+      status: isFull ? "WAITLIST" : autoAccept ? "ACCEPTED" : "PENDING",
+      payment_status: "NONE",
+      accepted_at: autoAccept && !isFull ? new Date().toISOString() : null,
     } as any);
     if (error) { toast({ title: "Failed to register", variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
     qc.invalidateQueries({ queryKey: ["my-event-registrations", guildId, currentUser.id] });
-    toast({ title: isFull ? "Added to waitlist" : "Registered!" });
+    toast({ title: isFull ? "Added to waitlist" : autoAccept ? "Registered!" : "Registration submitted" });
   };
 
   const cancelRegistration = async (eventId: string) => {
     const reg = myRegMap.get(eventId);
     if (!reg) return;
-    await supabase.from("guild_event_attendees" as any).delete().eq("id", (reg as any).id);
+    await supabase.from("guild_event_attendees" as any).update({ status: "CANCELLED", cancelled_at: new Date().toISOString() } as any).eq("id", (reg as any).id);
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
     qc.invalidateQueries({ queryKey: ["my-event-registrations", guildId, currentUser.id] });
     toast({ title: "Registration cancelled" });
   };
 
   const cancelEvent = async (eventId: string) => {
-    await supabase.from("guild_events" as any).update({ is_cancelled: true } as any).eq("id", eventId);
+    await supabase.from("guild_events" as any).update({ is_cancelled: true, status: "CANCELLED" } as any).eq("id", eventId);
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
     toast({ title: "Event cancelled" });
   };
@@ -147,7 +167,7 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
 
   const renderEventCard = (event: any) => {
     const myReg = myRegMap.get(event.id);
-    const isRegistered = myReg && (myReg as any).status !== "CANCELLED";
+    const isRegistered = myReg && !["CANCELLED", "REFUSED", "REFUNDED"].includes((myReg as any).status);
     const eventPast = isPast(new Date(event.start_at));
 
     return (
@@ -155,8 +175,9 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-display font-semibold text-sm truncate">{event.title}</h4>
+              <Link to={`/events/${event.id}`} className="font-display font-semibold text-sm truncate hover:text-primary transition-colors">{event.title}</Link>
               {event.is_cancelled && <Badge variant="destructive" className="text-[10px]">Cancelled</Badge>}
+              {event.is_paid && <Badge className="bg-primary/10 text-primary border-0 text-[10px]"><Euro className="h-2.5 w-2.5 mr-0.5" />{event.price_per_ticket} {event.currency}</Badge>}
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
               <span className="flex items-center gap-1">
@@ -173,13 +194,13 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
               </span>
             </div>
             {event.description && <p className="text-xs text-muted-foreground line-clamp-2">{event.description}</p>}
-            {event.location_text && <p className="text-xs text-muted-foreground mt-1">📍 {event.location_text}</p>}
           </div>
           <div className="flex flex-col gap-1.5 shrink-0">
             {!event.is_cancelled && !eventPast && (
               <>
                 {isRegistered ? (
                   <>
+                    <Badge variant="secondary" className="text-[10px] capitalize">{(myReg as any).status.toLowerCase()}</Badge>
                     {event.call_url && (
                       <Button size="sm" variant="default" asChild>
                         <a href={event.call_url} target="_blank" rel="noopener noreferrer">
@@ -192,7 +213,9 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
                     </Button>
                   </>
                 ) : (
-                  <Button size="sm" onClick={() => registerForEvent(event.id)}>Register</Button>
+                  <Button size="sm" onClick={() => registerForEvent(event.id)}>
+                    {event.is_paid ? <><Euro className="h-3.5 w-3.5 mr-1" />Buy Ticket</> : "Register"}
+                  </Button>
                 )}
               </>
             )}
@@ -287,6 +310,39 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Acceptance Mode</label>
+              <Select value={acceptanceMode} onValueChange={setAcceptanceMode}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AUTO">Automatic (first-come, first-served)</SelectItem>
+                  <SelectItem value="MANUAL">Manual (review & accept)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Paid Event</label>
+              <Switch checked={isPaid} onCheckedChange={setIsPaid} />
+            </div>
+            {isPaid && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Price per ticket</label>
+                  <Input type="number" value={pricePerTicket} onChange={(e) => setPricePerTicket(e.target.value)} placeholder="0" min={0} step={0.01} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Currency</label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">Max Attendees (optional)</label>
               <Input type="number" value={maxAttendees} onChange={(e) => setMaxAttendees(e.target.value)} placeholder="Unlimited" min={1} />

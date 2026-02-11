@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, FileEdit, Plus } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -54,6 +54,9 @@ export default function WorkHub() {
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="calendar" asChild>
+            <Link to="/calendar" className="flex items-center gap-1"><CalendarDays className="h-4 w-4" />Calendar</Link>
+          </TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
         </TabsList>
 

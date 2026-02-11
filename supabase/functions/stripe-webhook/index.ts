@@ -117,6 +117,46 @@ serve(async (req) => {
 
           console.log(`[WEBHOOK] Plan updated to ${plan.code} for user ${userId}`);
         }
+      } else if (metadata.type === "event_ticket") {
+        // Event ticket purchase
+        const eventId = metadata.event_id;
+        const userId = metadata.user_id;
+        const paymentIntentId = session.payment_intent as string;
+
+        console.log(`[WEBHOOK] Event ticket: event=${eventId}, user=${userId}`);
+
+        // Update the registration
+        const { data: reg } = await supabase
+          .from("guild_event_attendees")
+          .select("id, status")
+          .eq("event_id", eventId)
+          .eq("user_id", userId)
+          .order("registered_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (reg) {
+          // Check event acceptance mode
+          const { data: event } = await supabase
+            .from("guild_events")
+            .select("acceptance_mode, max_attendees")
+            .eq("id", eventId)
+            .single();
+
+          const autoAccept = event?.acceptance_mode === "AUTO";
+
+          await supabase
+            .from("guild_event_attendees")
+            .update({
+              payment_status: "PAID",
+              stripe_payment_intent_id: paymentIntentId,
+              status: autoAccept ? "ACCEPTED" : "PENDING",
+              accepted_at: autoAccept ? new Date().toISOString() : null,
+            })
+            .eq("id", reg.id);
+
+          console.log(`[WEBHOOK] Event ticket paid for event ${eventId}, user ${userId}, auto=${autoAccept}`);
+        }
       }
     } else if (event.type === "customer.subscription.deleted") {
       // Subscription canceled/expired
