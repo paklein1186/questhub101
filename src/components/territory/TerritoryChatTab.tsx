@@ -340,7 +340,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
 
                 {msg.message_role === "AI" && userId && (
                   <button
-                    onClick={() => saveAsExcerpt(msg.content.slice(0, 500))}
+                    onClick={() => saveAsExcerpt(msg)}
                     className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground mt-2 transition-colors"
                   >
                     <BookOpen className="h-3 w-3" /> Save as Library excerpt
