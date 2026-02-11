@@ -145,6 +145,7 @@ export async function processMentions({
 function buildDeepLink(targetType: string, targetId: string): string {
   switch (targetType) {
     case "QUEST": return `/quests/${targetId}`;
+    case "QUEST_UPDATE": return `/quests/${targetId}`;
     case "SERVICE": return `/services/${targetId}`;
     case "GUILD": return `/guilds/${targetId}`;
     case "POD": return `/pods/${targetId}`;
@@ -153,6 +154,7 @@ function buildDeepLink(targetType: string, targetId: string): string {
     case "USER": return `/users/${targetId}`;
     case "GUILD_EVENT": return `/events/${targetId}`;
     case "FEED_POST": return `/`;
+    case "TERRITORY": return `/territories/${targetId}`;
     default: return `/`;
   }
 }
