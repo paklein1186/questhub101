@@ -24,7 +24,7 @@ function sb() {
 async function territoryContext(territoryId: string) {
   const s = sb();
 
-  const [territory, quests, guilds, pods, users, companies, services, courses, children] = await Promise.all([
+  const [territory, quests, guilds, pods, users, companies, services, courses, children, memory] = await Promise.all([
     s.from("territories").select("id,name,level,slug,parent_id").eq("id", territoryId).single(),
     s.from("quest_territories").select("quest_id, quests(id,title,status,description,reward_xp,credit_budget,escrow_credits,quest_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
     s.from("guild_territories").select("guild_id, guilds(id,name,description,type,guild_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
@@ -34,6 +34,8 @@ async function territoryContext(territoryId: string) {
     s.from("service_territories").select("service_id, services(id,title,description,price_amount,price_currency)").eq("territory_id", territoryId).limit(20),
     s.from("course_territories").select("course_id, courses(id,title,description,level)").eq("territory_id", territoryId).limit(20),
     s.from("territories").select("id,name,level").eq("parent_id", territoryId).eq("is_deleted", false).limit(20),
+    // Fetch ALL memory (including AI_ONLY) since this runs server-side for AI context
+    s.from("territory_memory").select("id,title,content,category,visibility,tags").eq("territory_id", territoryId).order("updated_at", { ascending: false }).limit(100),
   ]);
 
   let parentTerritory = null;
@@ -53,14 +55,22 @@ async function territoryContext(territoryId: string) {
     companies: (companies.data ?? []).map((c: any) => c.companies).filter(Boolean),
     services: (services.data ?? []).map((s: any) => s.services).filter(Boolean),
     courses: (courses.data ?? []).map((c: any) => c.courses).filter(Boolean),
+    memory: (memory.data ?? []).map((m: any) => ({
+      title: m.title,
+      content: m.content,
+      category: m.category,
+      tags: m.tags,
+    })),
   };
 }
 
-const SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst — an AI that provides deep strategic analysis of territories on a community platform.
+const STRUCTURED_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst — an AI that provides deep strategic analysis of territories on a community platform.
 
 A territory is a geographic or thematic region. You analyze all activity within it to surface insights.
 
-Given context about a territory (its quests, guilds, users, companies, services, courses, pods), produce a JSON object with this exact structure:
+You have access to the territory's AI Memory — structured knowledge entries contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and more. Use this memory as primary context for your analysis.
+
+Given context about a territory (its quests, guilds, users, companies, services, courses, pods, and memory entries), produce a JSON object with this exact structure:
 
 {
   "summary": "2-3 sentence executive summary of the territory's current state and dynamics",
@@ -81,7 +91,16 @@ Guidelines:
 - "risks" are 2-3 potential threats or challenges
 - Keep each field concise. Arrays should have 2-5 items.
 - Reference actual entities and people from the context when possible.
+- Draw heavily from the territory memory entries for economic, historical, and sociological insights.
 - ONLY output valid JSON, nothing else.`;
+
+const FREEFORM_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst — an AI that provides deep strategic analysis of territories on a community platform.
+
+You have access to the territory's complete context: quests, guilds, users, companies, services, courses, and most importantly — the AI Memory, a structured knowledge base contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and raw notes.
+
+Analyze the territory based on the user's specific request. Use all available memory and data context. Provide clear, actionable, well-structured analysis in markdown format. Reference specific entities, people, and memory entries when relevant.
+
+Be insightful, concrete, and strategic. Avoid generic advice — ground everything in the territory's actual data.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -99,7 +118,7 @@ serve(async (req) => {
   // --- End auth check ---
 
   try {
-    const { territoryId } = await req.json();
+    const { territoryId, analysisPrompt } = await req.json();
     if (!territoryId) {
       return new Response(JSON.stringify({ error: "Missing territoryId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -117,6 +136,13 @@ serve(async (req) => {
       });
     }
 
+    // Determine mode: freeform analysis prompt vs structured intelligence
+    const isFreeform = !!analysisPrompt;
+    const systemPrompt = isFreeform ? FREEFORM_SYSTEM_PROMPT : STRUCTURED_SYSTEM_PROMPT;
+    const userContent = isFreeform
+      ? `Territory: ${ctx.territory.name} (level: ${ctx.territory.level})\n\nUser request: ${analysisPrompt}\n\nTerritory Context:\n${JSON.stringify(ctx, null, 0)}`
+      : `Territory: ${ctx.territory.name} (level: ${ctx.territory.level})\n\nContext:\n${JSON.stringify(ctx, null, 0)}`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -126,8 +152,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Territory: ${ctx.territory.name} (level: ${ctx.territory.level})\n\nContext:\n${JSON.stringify(ctx, null, 0)}` },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContent },
         ],
       }),
     });
@@ -153,6 +179,14 @@ serve(async (req) => {
     const data = await response.json();
     const raw = data.choices?.[0]?.message?.content ?? "";
 
+    if (isFreeform) {
+      // Return the raw markdown response for freeform queries
+      return new Response(JSON.stringify({ analysisResponse: raw }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Structured mode: parse JSON
     let parsed;
     try {
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
