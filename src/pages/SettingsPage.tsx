@@ -386,7 +386,7 @@ export default function SettingsPage() {
                           }
                         }}
                       />
-                      <span className="text-sm font-medium">Use my Houses as default filters across the platform</span>
+                      <span className="text-sm font-medium">Use my Topics as default filters across the platform</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">You can always override this with "Show all" in any section.</p>
                   </Section>
