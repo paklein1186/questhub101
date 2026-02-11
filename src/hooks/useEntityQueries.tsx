@@ -279,13 +279,22 @@ export function useQuestsForCompany(companyId: string | undefined) {
   return useQuery({
     queryKey: ["quests-for-company", companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quests")
-        .select("*")
-        .eq("company_id", companyId!)
-        .eq("is_deleted", false);
+      // Get quests directly owned + quests where this company is a host/co-host
+      const [directRes, hostRes] = await Promise.all([
+        supabase.from("quests").select("*").eq("company_id", companyId!).eq("is_deleted", false),
+        supabase.from("quest_hosts").select("quest_id").eq("entity_type", "COMPANY").eq("entity_id", companyId!),
+      ]);
+      if (directRes.error) throw directRes.error;
+      if (hostRes.error) throw hostRes.error;
+
+      const directIds = new Set((directRes.data ?? []).map(q => q.id));
+      const coHostedIds = (hostRes.data ?? []).map(h => h.quest_id).filter(id => !directIds.has(id));
+
+      if (coHostedIds.length === 0) return directRes.data ?? [];
+
+      const { data: coHosted, error } = await supabase.from("quests").select("*").in("id", coHostedIds).eq("is_deleted", false);
       if (error) throw error;
-      return data;
+      return [...(directRes.data ?? []), ...(coHosted ?? [])];
     },
     enabled: !!companyId,
   });
@@ -330,13 +339,22 @@ export function useQuestsForGuild(guildId: string | undefined) {
   return useQuery({
     queryKey: ["quests-for-guild", guildId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quests")
-        .select("*")
-        .eq("guild_id", guildId!)
-        .eq("is_deleted", false);
+      // Get quests directly owned + quests where this guild is a host/co-host
+      const [directRes, hostRes] = await Promise.all([
+        supabase.from("quests").select("*").eq("guild_id", guildId!).eq("is_deleted", false),
+        supabase.from("quest_hosts").select("quest_id").eq("entity_type", "GUILD").eq("entity_id", guildId!),
+      ]);
+      if (directRes.error) throw directRes.error;
+      if (hostRes.error) throw hostRes.error;
+
+      const directIds = new Set((directRes.data ?? []).map(q => q.id));
+      const coHostedIds = (hostRes.data ?? []).map(h => h.quest_id).filter(id => !directIds.has(id));
+
+      if (coHostedIds.length === 0) return directRes.data ?? [];
+
+      const { data: coHosted, error } = await supabase.from("quests").select("*").in("id", coHostedIds).eq("is_deleted", false);
       if (error) throw error;
-      return data;
+      return [...(directRes.data ?? []), ...(coHosted ?? [])];
     },
     enabled: !!guildId,
   });
