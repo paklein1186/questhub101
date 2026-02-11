@@ -28,7 +28,7 @@ const fadeUp = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06 } }),
 };
 
-export default function PodsList({ bare }: { bare?: boolean }) {
+export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter> }) {
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;

@@ -27,7 +27,7 @@ function useCompaniesExplore() {
   });
 }
 
-export default function CompaniesList({ bare }: { bare?: boolean }) {
+export default function CompaniesList({ bare, hideFilters, externalFilters }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const { data: companiesData, isLoading } = useCompaniesExplore();
   const { session } = useAuth();

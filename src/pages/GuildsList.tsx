@@ -22,7 +22,7 @@ import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 
-export default function GuildsList({ bare }: { bare?: boolean }) {
+export default function GuildsList({ bare, hideFilters, externalFilters, externalHouseFilter }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter> }) {
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;
