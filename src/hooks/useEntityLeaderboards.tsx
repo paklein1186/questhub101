@@ -38,7 +38,7 @@ export function useGuildLeaderboard() {
 
       const [members, quests, events] = await Promise.all([
         supabase.from("guild_members").select("guild_id").in("guild_id", guildIds),
-        supabase.from("quest_cohosts").select("guild_id").in("guild_id", guildIds),
+        supabase.from("quests").select("guild_id").in("guild_id", guildIds),
         supabase.from("guild_events").select("guild_id").in("guild_id", guildIds).eq("is_cancelled", false),
       ]);
 
