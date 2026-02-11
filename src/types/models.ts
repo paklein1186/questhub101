@@ -562,6 +562,11 @@ export interface OnboardingProgress {
   followedQuests: boolean;
   createdService: boolean;
   bookedSession: boolean;
+  joinedPod: boolean;
+  contributedTerritory: boolean;
+  attendedEvent: boolean;
+  addedLanguages: boolean;
+  [key: string]: string | boolean;
 }
 
 // ─── Admin Action Log ───────────────────────────────────────
