@@ -47,6 +47,7 @@ import { FeedSection } from "@/components/feed/FeedSection";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
