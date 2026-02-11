@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, Plus, Search, Filter, Eye, EyeOff, Bot,
-  Pencil, Trash2, Tag, Loader2, ChevronDown, Send,
+  Pencil, Trash2, Tag, Loader2, ChevronDown, Send, CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import {
   useTerritoryMemory,
+  useTerritorySummary,
   useDeleteTerritoryMemory,
   MEMORY_CATEGORIES,
   type TerritoryMemoryEntry,
@@ -20,6 +21,7 @@ import {
 } from "@/hooks/useTerritoryMemory";
 import { TerritoryMemoryDialog } from "./TerritoryMemoryDialog";
 import { TerritoryAIAnalyst } from "./TerritoryAIAnalyst";
+import { TerritorySynthesis } from "./TerritorySynthesis";
 
 interface Props {
   territoryId: string;
@@ -38,6 +40,7 @@ export function TerritoryMemoryTab({ territoryId, territoryName, isMember }: Pro
   const currentUser = useCurrentUser();
   const isLoggedIn = !!currentUser.id;
   const { data: entries = [], isLoading } = useTerritoryMemory(territoryId);
+  const { data: summary } = useTerritorySummary(territoryId);
   const deleteMutation = useDeleteTerritoryMemory();
 
   const [search, setSearch] = useState("");
@@ -49,6 +52,11 @@ export function TerritoryMemoryTab({ territoryId, territoryName, isMember }: Pro
   // Persona-adaptive labels
   const tabTitle = persona === "CREATIVE" ? "Lore & World Knowledge" : persona === "IMPACT" ? "Territory Intelligence" : "Resilience Engine";
   const addLabel = persona === "CREATIVE" ? "Add lore entry" : "Add data to this territory";
+
+  // Memory IDs used in current summary
+  const summaryMemoryIds = useMemo(() => {
+    return new Set<string>((summary as any)?.based_on_memory_ids ?? []);
+  }, [summary]);
 
   const filtered = useMemo(() => {
     let result = entries;
@@ -85,6 +93,9 @@ export function TerritoryMemoryTab({ territoryId, territoryName, isMember }: Pro
 
   return (
     <div className="space-y-6">
+      {/* Synthesis section at top */}
+      <TerritorySynthesis territoryId={territoryId} territoryName={territoryName} isMember={isMember} />
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -172,6 +183,7 @@ export function TerritoryMemoryTab({ territoryId, territoryName, isMember }: Pro
                             key={entry.id}
                             entry={entry}
                             canEdit={isLoggedIn && (entry.created_by_user_id === currentUser.id || isMember)}
+                            usedInSummary={summaryMemoryIds.has(entry.id)}
                             onEdit={() => { setEditingEntry(entry); setDialogOpen(true); }}
                             onDelete={() => deleteMutation.mutate({ id: entry.id, territory_id: territoryId })}
                           />
@@ -203,11 +215,13 @@ export function TerritoryMemoryTab({ territoryId, territoryName, isMember }: Pro
 function MemoryEntryCard({
   entry,
   canEdit,
+  usedInSummary,
   onEdit,
   onDelete,
 }: {
   entry: TerritoryMemoryEntry;
   canEdit: boolean;
+  usedInSummary: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -224,19 +238,29 @@ function MemoryEntryCard({
           <h4 className="text-sm font-semibold truncate">{entry.title}</h4>
           <p className="text-xs text-muted-foreground mt-1 line-clamp-3 whitespace-pre-line">{entry.content}</p>
         </div>
-        <Badge variant="outline" className="text-[10px] shrink-0 gap-1">
-          <VisIcon className="h-3 w-3" /> {vis.label}
-        </Badge>
-      </div>
-      {entry.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {entry.tags.map(tag => (
-            <Badge key={tag} variant="secondary" className="text-[10px]">
-              <Tag className="h-2.5 w-2.5 mr-0.5" /> {tag}
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <Badge variant="outline" className="text-[10px] gap-1">
+            <VisIcon className="h-3 w-3" /> {vis.label}
+          </Badge>
+          {entry.ai_score > 0 && (
+            <Badge variant="secondary" className="text-[10px]">
+              Score: {Math.round(entry.ai_score)}
             </Badge>
-          ))}
+          )}
         </div>
-      )}
+      </div>
+      <div className="flex flex-wrap gap-1 mt-2">
+        {usedInSummary && (
+          <Badge className="text-[10px] bg-primary/10 text-primary border-0 gap-0.5">
+            <CheckCircle2 className="h-2.5 w-2.5" /> Used in AI summary
+          </Badge>
+        )}
+        {entry.tags?.length > 0 && entry.tags.map(tag => (
+          <Badge key={tag} variant="secondary" className="text-[10px]">
+            <Tag className="h-2.5 w-2.5 mr-0.5" /> {tag}
+          </Badge>
+        ))}
+      </div>
       {canEdit && (
         <div className="flex gap-1 mt-2 justify-end">
           <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onEdit}>
