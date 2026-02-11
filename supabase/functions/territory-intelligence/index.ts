@@ -7,6 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function unauthorizedResponse() {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 function sb() {
   return createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -19,25 +26,16 @@ async function territoryContext(territoryId: string) {
 
   const [territory, quests, guilds, pods, users, companies, services, courses, children] = await Promise.all([
     s.from("territories").select("id,name,level,slug,parent_id").eq("id", territoryId).single(),
-    // Quests in this territory
     s.from("quest_territories").select("quest_id, quests(id,title,status,description,reward_xp,credit_budget,escrow_credits,quest_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
-    // Guilds
     s.from("guild_territories").select("guild_id, guilds(id,name,description,type,guild_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
-    // Pods
     s.from("pod_territories").select("pod_id, pods(id,name,description,type,topic_id,topics(name))").eq("territory_id", territoryId).limit(20),
-    // Users
     s.from("user_territories").select("user_id, profiles:user_id(name,persona_type,xp,xp_level,headline,bio)").eq("territory_id", territoryId).limit(50),
-    // Companies
     s.from("company_territories").select("company_id, companies(id,name,sector,description)").eq("territory_id", territoryId).limit(20),
-    // Services
     s.from("service_territories").select("service_id, services(id,title,description,price_amount,price_currency)").eq("territory_id", territoryId).limit(20),
-    // Courses
     s.from("course_territories").select("course_id, courses(id,title,description,level)").eq("territory_id", territoryId).limit(20),
-    // Child territories
     s.from("territories").select("id,name,level").eq("parent_id", territoryId).eq("is_deleted", false).limit(20),
   ]);
 
-  // Also get the parent territory name if exists
   let parentTerritory = null;
   if (territory.data?.parent_id) {
     const { data } = await s.from("territories").select("id,name,level").eq("id", territory.data.parent_id).single();
@@ -87,6 +85,18 @@ Guidelines:
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // --- Auth check ---
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return unauthorizedResponse();
+  const supabaseAuth = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { data: userData, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (authError || !userData.user) return unauthorizedResponse();
+  // --- End auth check ---
 
   try {
     const { territoryId } = await req.json();
