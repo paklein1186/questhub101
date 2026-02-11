@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { usePersona } from "@/hooks/usePersona";
 import type { PersonaType } from "@/lib/personaLabels";
+import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
-  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass,
+  Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass, Globe,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
@@ -74,7 +75,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const currentUser = useCurrentUser();
-  const { persona, updatePersona } = usePersona();
+  const { persona, updatePersona, lexiconOverride, setLexiconOverride } = usePersona();
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
   const limits = usePlanLimits();
   const { toast } = useToast();
@@ -341,6 +342,52 @@ export default function SettingsPage() {
                     </div>
                     {persona === "UNSET" && (
                       <p className="text-xs text-muted-foreground mt-3">No persona set yet. Complete onboarding or select one above.</p>
+                    )}
+                   </Section>
+
+                  <Separator />
+
+                  <Section title="World / Lexicon Toggle" icon={<Globe className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Override the UI language without changing your persona. This only affects labels and display.</p>
+                    <div className="space-y-2 max-w-md">
+                      {LEXICON_MODES.map((mode) => {
+                        const isActive = lexiconOverride === mode.value || (!lexiconOverride && (
+                          (persona === mode.value) || (persona === "UNSET" && mode.value === "NEUTRAL")
+                        ));
+                        return (
+                          <button
+                            key={mode.value}
+                            onClick={() => {
+                              // If selecting the mode that matches persona, clear override
+                              if (mode.value === persona || (mode.value === "NEUTRAL" && persona === "UNSET")) {
+                                setLexiconOverride(null);
+                              } else {
+                                setLexiconOverride(mode.value);
+                              }
+                              toast({ title: `Switched to ${mode.label}` });
+                            }}
+                            className={`w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                              isActive ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30"
+                            }`}
+                          >
+                            <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                              isActive ? "border-primary bg-primary" : "border-muted-foreground/30"
+                            }`}>
+                              {isActive && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{mode.label}</p>
+                              <p className="text-xs text-muted-foreground">{mode.description}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {lexiconOverride && (
+                      <button onClick={() => { setLexiconOverride(null); toast({ title: "Reset to persona default" }); }}
+                        className="text-xs text-primary hover:underline mt-3">
+                        Reset to persona default
+                      </button>
                     )}
                   </Section>
 
