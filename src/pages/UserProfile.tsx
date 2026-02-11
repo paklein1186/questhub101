@@ -101,6 +101,59 @@ function TerritoryLine({ territories }: { territories: any[] }) {
   );
 }
 
+// ─── Activity Summary ──────────────────────────────────────
+function ActivitySummary({
+  name, questsCreated, questsJoined, guilds, pods, services, topics, territories, persona,
+}: {
+  name: string; questsCreated: any[]; questsJoined: any[]; guilds: any[]; pods: any[];
+  services: any[]; topics: any[]; territories: any[]; persona: PersonaType;
+}) {
+  const sentences: string[] = [];
+
+  // Sentence 1: involvement overview
+  const totalQuests = questsCreated.length + questsJoined.length;
+  if (totalQuests > 0 || guilds.length > 0) {
+    const parts: string[] = [];
+    if (questsCreated.length > 0) parts.push(`${questsCreated.length} quest${questsCreated.length > 1 ? "s" : ""}`);
+    if (guilds.length > 0) parts.push(`${guilds.length} guild${guilds.length > 1 ? "s" : ""}`);
+    if (pods.length > 0) parts.push(`${pods.length} pod${pods.length > 1 ? "s" : ""}`);
+    sentences.push(`${name} is actively involved in ${parts.join(", ")}.`);
+  }
+
+  // Sentence 2: services
+  if (services.length > 0) {
+    const sLabel = getLabel("service.label_plural", persona).toLowerCase();
+    sentences.push(`They offer ${services.length} ${sLabel} to the community.`);
+  }
+
+  // Sentence 3: topics
+  if (topics.length > 0) {
+    const topicNames = topics.slice(0, 3).map((t: any) => t.name);
+    const suffix = topics.length > 3 ? ` and ${topics.length - 3} more` : "";
+    sentences.push(`Their interests span ${topicNames.join(", ")}${suffix}.`);
+  }
+
+  // Sentence 4: territories
+  const liveIn = territories.filter((t: any) => t.attachmentType === "LIVE_IN");
+  const workIn = territories.filter((t: any) => t.attachmentType === "WORK_IN");
+  if (liveIn.length > 0 || workIn.length > 0) {
+    const where = liveIn.length > 0
+      ? liveIn[0].territory?.name
+      : workIn[0].territory?.name;
+    sentences.push(`They are rooted in the ${where} territory.`);
+  }
+
+  if (sentences.length === 0) return null;
+
+  return (
+    <section className="rounded-xl border border-border bg-muted/30 p-4">
+      <p className="text-sm text-foreground/80 leading-relaxed">
+        {sentences.join(" ")}
+      </p>
+    </section>
+  );
+}
+
 // ─── Main component ────────────────────────────────────────
 export default function UserProfile() {
   const { id } = useParams<{ id: string }>();
@@ -241,6 +294,19 @@ export default function UserProfile() {
                 </p>
               </section>
             )}
+
+            {/* Activity summary */}
+            <ActivitySummary
+              name={profile.name.split(" ")[0]}
+              questsCreated={questsCreated}
+              questsJoined={questsJoined}
+              guilds={guilds}
+              pods={pods}
+              services={services}
+              topics={topics}
+              territories={territories}
+              persona={persona}
+            />
 
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
