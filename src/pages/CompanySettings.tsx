@@ -5,6 +5,7 @@ import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
   Zap, Clock, Settings, ClipboardList, Handshake, CalendarDays,
+  ShieldCheck, ChevronUp, ChevronDown, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +46,7 @@ const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
-  { key: "team", label: "Team & Permissions", icon: Users },
+  { key: "members", label: "Members & Roles", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
   { key: "availability", label: "Availability", icon: CalendarDays },
@@ -114,6 +115,60 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   const quests = companyQuests || [];
   const bookings = companyBookings || [];
   const services = companyServices || [];
+
+  // ── Members management ──
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const inviteMember = async () => {
+    if (!inviteEmail.trim()) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("email", inviteEmail.trim())
+      .single();
+    if (!profile) { toast({ title: "User not found", variant: "destructive" }); return; }
+    const already = members.some((m: any) => m.user_id === profile.user_id);
+    if (already) { toast({ title: "Already a member", variant: "destructive" }); return; }
+    const { error } = await supabase.from("company_members").insert({
+      company_id: companyId, user_id: profile.user_id, role: "member",
+    });
+    if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
+    setInviteEmail(""); setInviteOpen(false);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member added!" });
+  };
+
+  const promoteMember = async (memberId: string) => {
+    await supabase.from("company_members").update({ role: "admin" as any }).eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member promoted to Admin" });
+  };
+
+  const demoteMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
+    if (!gm) return;
+    const admins = members.filter((m: any) => m.role === "admin" || m.role === "ADMIN" || m.role === "owner");
+    if (admins.length <= 1) {
+      toast({ title: "Cannot demote", description: "At least one admin must exist.", variant: "destructive" });
+      return;
+    }
+    await supabase.from("company_members").update({ role: "member" as any }).eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member demoted to Member" });
+  };
+
+  const removeMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
+    if (!gm || gm.user_id === currentUser.id) return;
+    if (gm.role === "admin" || gm.role === "ADMIN" || gm.role === "owner") {
+      const admins = members.filter((m: any) => m.role === "admin" || m.role === "ADMIN" || m.role === "owner");
+      if (admins.length <= 1) { toast({ title: "Cannot remove the last admin", variant: "destructive" }); return; }
+    }
+    await supabase.from("company_members").delete().eq("id", memberId);
+    qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    toast({ title: "Member excluded" });
+  };
 
   // ── Handlers ──
   const toggleTopic = (tid: string) => setSelectedTopics((p) => p.includes(tid) ? p.filter((x) => x !== tid) : [...p, tid]);
@@ -295,24 +350,66 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                 <EntityApplicationsTab entityType="company" entityId={companyId} currentUserId={currentUser.id} />
               )}
 
-              {/* ── Team & Permissions ── */}
-              {activeTab === "team" && (
+              {/* ── Members & Roles ── */}
+              {activeTab === "members" && (
                 <div className="space-y-6 max-w-lg">
-                  <Section title="Team Members" icon={<Users className="h-5 w-5" />}>
+                  <Section title="Members & Roles" icon={<Users className="h-5 w-5" />}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm text-muted-foreground">{members.length} member{members.length !== 1 ? "s" : ""}</p>
+                      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
+                          <div className="space-y-3 mt-2">
+                            <Input placeholder="User email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                            <Button onClick={inviteMember} className="w-full"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                     {members.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No members yet.</p>
                     ) : (
                       <div className="space-y-2">
-                        {members.map((m: any) => (
-                          <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
-                            <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{m.user?.name}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
+                        {members.map((m: any) => {
+                          const isAdminRole = m.role === "admin" || m.role === "ADMIN" || m.role === "owner";
+                          const isSelf = m.user_id === currentUser.id;
+                          return (
+                            <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={m.user?.avatar_url} />
+                                <AvatarFallback>{m.user?.name?.[0]}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm truncate">{m.user?.name || "Unknown"}</p>
+                                  {isAdminRole && (
+                                    <Badge variant="secondary" className="text-xs gap-1"><Crown className="h-3 w-3" /> Admin</Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</p>
+                              </div>
+                              {!isSelf && (
+                                <div className="flex items-center gap-1">
+                                  {!isAdminRole ? (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Promote to Admin" onClick={() => promoteMember(m.id)}>
+                                      <ChevronUp className="h-4 w-4 text-primary" />
+                                    </Button>
+                                  ) : (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Demote to Member" onClick={() => demoteMember(m.id)}>
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  )}
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Exclude member" onClick={() => removeMember(m.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
-                            <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </Section>
