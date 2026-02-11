@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,7 @@ export default function ServiceCreate() {
   const [locationType, setLocationType] = useState("JITSI");
   const [isDraft, setIsDraft] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
 
   // Load existing service for editing
@@ -57,6 +59,7 @@ export default function ServiceCreate() {
       setLocationType(existingService.online_location_type || "JITSI");
       setIsDraft(existingService.is_draft || false);
       setIsActive(existingService.is_active ?? true);
+      setImageUrl(existingService.image_url || undefined);
       setLoaded(true);
     }
   }, [existingService, loaded]);
@@ -76,6 +79,7 @@ export default function ServiceCreate() {
           online_location_type: locationType,
           is_draft: isDraft,
           is_active: !isDraft && isActive,
+          image_url: imageUrl || null,
         } as any).eq("id", editId);
         if (error) throw error;
       } else {
@@ -91,6 +95,7 @@ export default function ServiceCreate() {
           price_currency: currency,
           online_location_type: locationType,
           is_active: true,
+          image_url: imageUrl || null,
         } as any).select("id").single();
         if (error) throw error;
 
@@ -133,6 +138,13 @@ export default function ServiceCreate() {
     <PageShell>
       <div className="max-w-xl mx-auto py-10 px-4 space-y-6">
         <h1 className="text-2xl font-display font-bold">{isEditMode ? "Edit Service" : "Create Service"}</h1>
+        <ImageUpload
+          label="Cover image"
+          description="Add a visual to make your service stand out"
+          currentImageUrl={imageUrl}
+          onChange={setImageUrl}
+          aspectRatio="16/9"
+        />
         <div>
           <label className="text-sm font-medium mb-1 block">Title</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Strategy Workshop" maxLength={120} />
