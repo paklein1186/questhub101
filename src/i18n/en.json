@@ -37,6 +37,9 @@
   },
   "home": {
     "welcome": "Welcome back",
+    "welcomeCreative": "Welcome back, {{name}}. What do you want to create or move today?",
+    "welcomeImpact": "Welcome back, {{name}}. What mission or collaboration needs your attention?",
+    "welcomeHybrid": "Welcome back, {{name}}. Ready to weave your worlds again?",
     "feed": "Feed",
     "forYou": "For you",
     "following": "Following"
