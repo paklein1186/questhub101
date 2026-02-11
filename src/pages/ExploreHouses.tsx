@@ -317,65 +317,59 @@ export default function ExploreHouses({ bare }: Props) {
         <UniverseToggle value={effectiveUniverse} onChange={setUniverseMode} />
       </div>
 
-      {/* House cards grid */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Topics" : effectiveUniverse === "impact" ? "Impact Topics" : "All Topics"}
-          </h2>
-          {selectedSlugs.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
-              Clear all
-            </Button>
-          )}
-        </div>
+      {/* Topics cards grid */}
+       <div>
+         <div className="flex items-center justify-between mb-4">
+           <div>
+             <h2 className="font-display text-xl font-semibold">
+               {effectiveUniverse === "creative" ? "Explore by Creative Topics" : effectiveUniverse === "impact" ? "Explore by Topics" : "Explore by Topics"}
+             </h2>
+             <p className="text-sm text-muted-foreground mt-1">
+               {effectiveUniverse === "creative"
+                 ? "Choose a creative realm to discover studios, ensembles, and projects"
+                 : "Choose a theme to discover quests, guilds, services, and events"}
+             </p>
+           </div>
+           {selectedSlugs.length > 0 && (
+             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
+               Clear all
+             </Button>
+           )}
+         </div>
 
-        {topicsLoading ? (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(allTopics ?? []).map(t => {
-              const isSelected = selectedSlugs.includes(t.slug);
-              const houseDef = HOUSE_DEFINITIONS[t.slug];
-              const icon = houseDef ? getHouseIcon(t.slug) : "🏠";
-              const label = getTopicLabel(t);
-              const desc = houseDef ? getHouseDescription(t.slug, effectiveUniverse) : "";
+         {topicsLoading ? (
+           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+             {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
+           </div>
+         ) : (
+           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+             {(allTopics ?? []).map(t => {
+               const isSelected = selectedSlugs.includes(t.slug);
+               const houseDef = HOUSE_DEFINITIONS[t.slug];
+               const icon = houseDef ? getHouseIcon(t.slug) : "🏠";
+               const label = getTopicLabel(t);
 
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => toggleHouse(t.slug)}
-                  onDoubleClick={() => navigateToExploreWithHouse(t.slug)}
-                  className={`group relative text-left rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/30"
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">{icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-display font-semibold text-sm truncate">{label}</h3>
-                        {isSelected && <X className="h-3.5 w-3.5 text-primary shrink-0" />}
-                      </div>
-                      {desc && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{desc}</p>
-                      )}
-                    </div>
-                  </div>
-                  {/* Click to explore hint */}
-                  <div className="absolute bottom-1.5 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-[10px] text-muted-foreground">click to select · double-click to explore</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+               return (
+                 <button
+                   key={t.id}
+                   onClick={() => toggleHouse(t.slug)}
+                   onDoubleClick={() => navigateToExploreWithHouse(t.slug)}
+                   className={`group relative px-3 py-2 rounded-lg border transition-all duration-150 cursor-pointer text-sm font-medium flex items-center gap-2 justify-center hover:shadow-sm ${
+                     isSelected
+                       ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                       : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-accent/50"
+                   }`}
+                   title={`Click to select · Double-click to explore ${label}`}
+                 >
+                   <span className="text-base shrink-0">{icon}</span>
+                   <span className="truncate">{label}</span>
+                   {isSelected && <X className="h-3 w-3 shrink-0" />}
+                 </button>
+               );
+             })}
+           </div>
+         )}
+       </div>
 
       {/* Selected chips + mode toggle */}
       {selectedSlugs.length > 0 && (
