@@ -100,7 +100,10 @@ export function TerritoryAIAnalyst({ territoryId, territoryName }: Props) {
                 <ReactMarkdown>{response}</ReactMarkdown>
               </div>
             </ScrollArea>
-            <div className="flex justify-end mt-2">
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Based on territory memory entries and contextual data.
+            </p>
+            <div className="flex justify-end mt-1">
               <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => activeAction && runAction(activeAction, AI_ACTIONS.find(a => a.key === activeAction)!.prompt)}>
                 <RefreshCw className="h-3 w-3 mr-1" /> Regenerate
               </Button>

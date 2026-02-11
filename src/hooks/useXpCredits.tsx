@@ -222,6 +222,7 @@ function formatXpType(type: string): string {
     REFERRAL_REWARD: "Referral bonus",
     PROPOSAL_SUBMITTED: "Proposal submitted",
     PROPOSAL_ACCEPTED: "Proposal accepted",
+    TERRITORY_MEMORY_CONTRIBUTED: "Territory knowledge contributed",
   };
   return map[type] ?? type.replace(/_/g, " ").toLowerCase();
 }

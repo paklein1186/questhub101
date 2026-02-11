@@ -21,6 +21,18 @@ function sb() {
   );
 }
 
+const SPARSE_THRESHOLD = 3; // entries below this count triggers fractal inference
+
+async function fetchMemory(s: any, territoryId: string) {
+  const { data } = await s
+    .from("territory_memory")
+    .select("id,title,content,category,visibility,tags,ai_score,is_included_in_summary")
+    .eq("territory_id", territoryId)
+    .order("updated_at", { ascending: false })
+    .limit(100);
+  return data ?? [];
+}
+
 async function territoryContext(territoryId: string) {
   const s = sb();
 
@@ -34,9 +46,42 @@ async function territoryContext(territoryId: string) {
     s.from("service_territories").select("service_id, services(id,title,description,price_amount,price_currency)").eq("territory_id", territoryId).limit(20),
     s.from("course_territories").select("course_id, courses(id,title,description,level)").eq("territory_id", territoryId).limit(20),
     s.from("territories").select("id,name,level").eq("parent_id", territoryId).eq("is_deleted", false).limit(20),
-    // Fetch ALL memory (including AI_ONLY) since this runs server-side for AI context
-    s.from("territory_memory").select("id,title,content,category,visibility,tags").eq("territory_id", territoryId).order("updated_at", { ascending: false }).limit(100),
+    fetchMemory(s, territoryId),
   ]);
+
+  // Fractal inference: if memory is sparse, pull from parent + siblings
+  let fractalContext: any = null;
+  if (memory.length < SPARSE_THRESHOLD && territory.data?.parent_id) {
+    const parentMemory = await fetchMemory(s, territory.data.parent_id);
+    // Also fetch sibling territories
+    const { data: siblings } = await s
+      .from("territories")
+      .select("id,name")
+      .eq("parent_id", territory.data.parent_id)
+      .neq("id", territoryId)
+      .eq("is_deleted", false)
+      .limit(5);
+
+    let siblingMemory: any[] = [];
+    if (siblings?.length) {
+      const sibIds = siblings.map((sib: any) => sib.id);
+      const { data: sibMem } = await s
+        .from("territory_memory")
+        .select("id,title,content,category,tags,ai_score")
+        .in("territory_id", sibIds)
+        .eq("visibility", "PUBLIC")
+        .order("ai_score", { ascending: false })
+        .limit(30);
+      siblingMemory = sibMem ?? [];
+    }
+
+    fractalContext = {
+      note: "This territory has sparse data. The following is contextual data from parent and neighboring territories to aid inference.",
+      parentMemory: parentMemory.map((m: any) => ({ title: m.title, content: m.content, category: m.category })),
+      siblingTerritories: siblings?.map((s: any) => s.name) ?? [],
+      siblingMemory: siblingMemory.map((m: any) => ({ title: m.title, content: m.content, category: m.category })),
+    };
+  }
 
   let parentTerritory = null;
   if (territory.data?.parent_id) {
@@ -53,14 +98,17 @@ async function territoryContext(territoryId: string) {
     pods: (pods.data ?? []).map((p: any) => p.pods).filter(Boolean),
     users: (users.data ?? []).map((u: any) => u.profiles).filter(Boolean),
     companies: (companies.data ?? []).map((c: any) => c.companies).filter(Boolean),
-    services: (services.data ?? []).map((s: any) => s.services).filter(Boolean),
+    services: (services.data ?? []).map((sv: any) => sv.services).filter(Boolean),
     courses: (courses.data ?? []).map((c: any) => c.courses).filter(Boolean),
-    memory: (memory.data ?? []).map((m: any) => ({
+    memory: memory.map((m: any) => ({
+      id: m.id,
       title: m.title,
       content: m.content,
       category: m.category,
       tags: m.tags,
+      ai_score: m.ai_score,
     })),
+    fractalContext,
   };
 }
 
@@ -69,6 +117,8 @@ const STRUCTURED_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence
 A territory is a geographic or thematic region. You analyze all activity within it to surface insights.
 
 You have access to the territory's AI Memory — structured knowledge entries contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and more. Use this memory as primary context for your analysis.
+
+If fractalContext is provided, it means this territory has sparse data and you should use data from parent/neighboring territories as contextual hints. When you extrapolate from neighboring data, indicate uncertainty qualitatively, but still provide a coherent synthesis.
 
 Given context about a territory (its quests, guilds, users, companies, services, courses, pods, and memory entries), produce a JSON object with this exact structure:
 
@@ -98,9 +148,30 @@ const FREEFORM_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence A
 
 You have access to the territory's complete context: quests, guilds, users, companies, services, courses, and most importantly — the AI Memory, a structured knowledge base contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and raw notes.
 
+If fractalContext is provided, it means this territory has sparse data and you should use data from parent/neighboring territories as contextual hints. When extrapolating, indicate uncertainty qualitatively but still provide a coherent synthesis.
+
 Analyze the territory based on the user's specific request. Use all available memory and data context. Provide clear, actionable, well-structured analysis in markdown format. Reference specific entities, people, and memory entries when relevant.
 
 Be insightful, concrete, and strategic. Avoid generic advice — ground everything in the territory's actual data.`;
+
+const SUMMARY_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst. Generate a comprehensive territory description/synthesis.
+
+You will be given a territory's complete context including AI Memory entries, units, and optionally fractal context from neighboring territories.
+
+Generate a rich, well-structured markdown synthesis covering:
+1. **Overview** — What this territory is about, its identity and dynamics
+2. **Key Actors** — Notable guilds, companies, and active community members
+3. **Economic Landscape** — Based on available economic data, services, and quests
+4. **Strengths** — What this territory does well
+5. **Challenges & Risks** — Current issues and threats
+6. **Opportunities** — Actionable opportunities for growth and collaboration
+
+At the end, list which memory entry IDs you used most heavily (as a JSON array of IDs) in this format:
+MEMORY_IDS_USED: ["id1", "id2", ...]
+
+If fractalContext is present, you may draw from it but note when insights are inferred from neighboring territories rather than direct data.
+
+Write in a professional but engaging style. Be concrete and reference actual entities.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -118,7 +189,7 @@ serve(async (req) => {
   // --- End auth check ---
 
   try {
-    const { territoryId, analysisPrompt } = await req.json();
+    const { territoryId, analysisPrompt, action } = await req.json();
     if (!territoryId) {
       return new Response(JSON.stringify({ error: "Missing territoryId" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -136,7 +207,101 @@ serve(async (req) => {
       });
     }
 
-    // Determine mode: freeform analysis prompt vs structured intelligence
+    // ── Action: generate-summary ──
+    if (action === "generate-summary") {
+      const userContent = `Territory: ${ctx.territory.name} (level: ${ctx.territory.level})\n\nTerritory Context:\n${JSON.stringify(ctx, null, 0)}`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: SUMMARY_SYSTEM_PROMPT },
+            { role: "user", content: userContent },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const t = await response.text();
+        console.error("AI gateway error:", response.status, t);
+        return new Response(JSON.stringify({ error: "AI gateway error" }), {
+          status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content ?? "";
+
+      // Extract memory IDs used
+      let memoryIdsUsed: string[] = [];
+      const idsMatch = raw.match(/MEMORY_IDS_USED:\s*\[([^\]]*)\]/);
+      if (idsMatch) {
+        try {
+          memoryIdsUsed = JSON.parse(`[${idsMatch[1]}]`);
+        } catch { /* ignore parse errors */ }
+      }
+
+      // Clean the content (remove the MEMORY_IDS_USED line)
+      const cleanContent = raw.replace(/MEMORY_IDS_USED:\s*\[.*\]/, "").trim();
+
+      // Store the summary using service role
+      const s = sb();
+      const { data: existing } = await s
+        .from("territory_summaries")
+        .select("id")
+        .eq("territory_id", territoryId)
+        .eq("summary_type", "OVERVIEW")
+        .maybeSingle();
+
+      if (existing) {
+        await s.from("territory_summaries").update({
+          content: cleanContent,
+          generated_at: new Date().toISOString(),
+          generated_by: "AI",
+          based_on_memory_ids: memoryIdsUsed,
+        }).eq("id", existing.id);
+      } else {
+        await s.from("territory_summaries").insert({
+          territory_id: territoryId,
+          summary_type: "OVERVIEW",
+          content: cleanContent,
+          generated_by: "AI",
+          based_on_memory_ids: memoryIdsUsed,
+        });
+      }
+
+      // Mark memory entries as used in summary
+      if (memoryIdsUsed.length > 0) {
+        await s.from("territory_memory")
+          .update({ used_in_last_summary_at: new Date().toISOString() })
+          .in("id", memoryIdsUsed);
+      }
+
+      return new Response(JSON.stringify({
+        summary: cleanContent,
+        memoryIdsUsed,
+        hasFractalContext: !!ctx.fractalContext,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Action: score-memory ──
+    if (action === "score-memory") {
+      // AI scores a memory entry
+      const { memoryId } = await req.json().catch(() => ({}));
+      // Not implemented in this iteration — placeholder
+      return new Response(JSON.stringify({ message: "Scoring not yet implemented" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Default: analysis (freeform or structured) ──
     const isFreeform = !!analysisPrompt;
     const systemPrompt = isFreeform ? FREEFORM_SYSTEM_PROMPT : STRUCTURED_SYSTEM_PROMPT;
     const userContent = isFreeform
@@ -180,7 +345,6 @@ serve(async (req) => {
     const raw = data.choices?.[0]?.message?.content ?? "";
 
     if (isFreeform) {
-      // Return the raw markdown response for freeform queries
       return new Response(JSON.stringify({ analysisResponse: raw }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
