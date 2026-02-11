@@ -121,6 +121,10 @@ export default function Onboarding() {
   const [serviceTopics, setServiceTopics] = useState<string[]>([]);
   const [serviceImage, setServiceImage] = useState<string | undefined>();
 
+  // Languages step
+  const [spokenLangCodes, setSpokenLangCodes] = useState<string[]>(["en"]);
+  const { saveSpokenLanguages } = useSpokenLanguages();
+
   // Fetch existing guilds & companies for affiliations step
   const { data: existingGuilds = [] } = useQuery({
     queryKey: ["onboarding-guilds"],
