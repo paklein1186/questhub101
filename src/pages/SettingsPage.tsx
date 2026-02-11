@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { usePersona } from "@/hooks/usePersona";
 import type { PersonaType } from "@/lib/personaLabels";
 import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
