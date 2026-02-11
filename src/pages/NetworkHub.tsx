@@ -255,15 +255,15 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
               })}
             </div>
           )}
-          {topics.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {topics.map((t: any) => (
-                <Link key={t.id} to={`/topics/${t.slug}`}>
-                  <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
-                </Link>
-              ))}
-            </div>
-          )}
+           {topics.length > 0 && (
+             <div className="flex flex-wrap gap-1.5">
+               {topics.map((t: any) => (
+                 <Link key={t.id} to={`/explore?houses=${t.id}`}>
+                   <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
+                 </Link>
+               ))}
+             </div>
+           )}
         </div>
       )}
     </div>
