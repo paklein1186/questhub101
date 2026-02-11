@@ -6,7 +6,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2,
+  MoreHorizontal, Pencil, Trash2, Vote,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,7 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FeedSection } from "@/components/feed/FeedSection";
+import { GuildDecisions } from "@/components/guild/GuildDecisions";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -223,6 +224,7 @@ export default function GuildDetail() {
             <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
             <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
             <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
+            {isMember && <TabsTrigger value="decisions"><Vote className="h-4 w-4 mr-1" /> Decisions</TabsTrigger>}
             <TabsTrigger value="wall">Wall</TabsTrigger>
             {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
           </TabsList>
@@ -420,6 +422,19 @@ export default function GuildDetail() {
         {isMember && (
           <TabsContent value="memory" className="mt-6">
             <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="decisions" className="mt-6">
+            <GuildDecisions
+              guildId={guild.id}
+              isAdmin={isAdmin}
+              isMember={isMember}
+              currentUserId={currentUser.id}
+              memberCount={members.length}
+              currentUserRole={currentMembership?.role}
+            />
           </TabsContent>
         )}
 

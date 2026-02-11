@@ -809,23 +809,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          objection_reason: string | null
           option_index: number
           poll_id: string
           user_id: string
+          value: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          objection_reason?: string | null
           option_index: number
           poll_id: string
           user_id: string
+          value?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          objection_reason?: string | null
           option_index?: number
           poll_id?: string
           user_id?: string
+          value?: string | null
         }
         Relationships: [
           {
@@ -839,43 +845,79 @@ export type Database = {
       }
       decision_polls: {
         Row: {
+          allow_comments: boolean
+          allow_vote_change: boolean
           closes_at: string | null
           created_at: string
           created_by: string
+          decision_type: string
+          description: string | null
+          eligible_roles: Json | null
           entity_id: string
           entity_type: string
           id: string
+          multi_select: boolean
+          opens_at: string | null
           options: Json
+          outcome_summary: string | null
+          pass_threshold: number | null
           question: string
+          quorum_type: string
+          quorum_value: number | null
           status: string
           thread_id: string | null
           updated_at: string
+          visibility: string
         }
         Insert: {
+          allow_comments?: boolean
+          allow_vote_change?: boolean
           closes_at?: string | null
           created_at?: string
           created_by: string
+          decision_type?: string
+          description?: string | null
+          eligible_roles?: Json | null
           entity_id: string
           entity_type: string
           id?: string
+          multi_select?: boolean
+          opens_at?: string | null
           options?: Json
+          outcome_summary?: string | null
+          pass_threshold?: number | null
           question: string
+          quorum_type?: string
+          quorum_value?: number | null
           status?: string
           thread_id?: string | null
           updated_at?: string
+          visibility?: string
         }
         Update: {
+          allow_comments?: boolean
+          allow_vote_change?: boolean
           closes_at?: string | null
           created_at?: string
           created_by?: string
+          decision_type?: string
+          description?: string | null
+          eligible_roles?: Json | null
           entity_id?: string
           entity_type?: string
           id?: string
+          multi_select?: boolean
+          opens_at?: string | null
           options?: Json
+          outcome_summary?: string | null
+          pass_threshold?: number | null
           question?: string
+          quorum_type?: string
+          quorum_value?: number | null
           status?: string
           thread_id?: string | null
           updated_at?: string
+          visibility?: string
         }
         Relationships: [
           {
