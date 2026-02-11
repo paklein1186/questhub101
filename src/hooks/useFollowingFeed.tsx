@@ -24,34 +24,57 @@ export function useFollowingFeed(filterType?: string) {
       if (fErr) throw fErr;
       if (!follows || follows.length === 0) return [];
 
-      // 2. Build the set of (contextType, contextId) pairs to query
-      let targets = follows.filter((f) =>
+      // Separate user follows from entity follows
+      const userFollows = follows.filter(f => f.target_type === "USER");
+      const entityFollows = follows.filter(f => f.target_type !== "USER");
+
+      let targets = entityFollows.filter((f) =>
         CONTEXT_TYPES.includes(f.target_type)
       );
 
       // Apply filter if set
       if (filterType && filterType !== "ALL") {
-        targets = targets.filter((f) => f.target_type === filterType);
+        if (filterType === "USER") {
+          targets = [];
+        } else {
+          targets = targets.filter((f) => f.target_type === filterType);
+        }
       }
 
-      if (targets.length === 0) return [];
+      // Build OR clauses for entity context matches
+      const orParts: string[] = [];
 
-      // 3. Query feed_posts using an OR filter
-      // Supabase doesn't support multi-column IN, so we use .or()
-      const orClauses = targets
-        .map(
-          (t) =>
-            `and(context_type.eq.${t.target_type},context_id.eq.${t.target_id})`
-        )
-        .join(",");
+      if (targets.length > 0) {
+        const entityClauses = targets
+          .map(
+            (t) =>
+              `and(context_type.eq.${t.target_type},context_id.eq.${t.target_id})`
+          )
+          .join(",");
+        orParts.push(entityClauses);
+      }
+
+      // Also include posts authored by followed users (regardless of context)
+      const followedUserIds = (!filterType || filterType === "ALL" || filterType === "USER")
+        ? userFollows.map(f => f.target_id)
+        : [];
+
+      if (followedUserIds.length > 0) {
+        const userClauses = followedUserIds
+          .map(id => `author_user_id.eq.${id}`)
+          .join(",");
+        orParts.push(userClauses);
+      }
+
+      if (orParts.length === 0) return [];
 
       const { data: posts, error: pErr } = await supabase
         .from("feed_posts" as any)
         .select("*, post_attachments(*)")
         .eq("is_deleted", false)
-        .or(orClauses)
+        .or(orParts.join(","))
         .order("created_at", { ascending: false })
-        .limit(40);
+        .limit(60);
 
       if (pErr) throw pErr;
 
