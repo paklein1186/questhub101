@@ -150,7 +150,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
         )}
         {houseFilter && houseFilter.active && !houseFilter.hasHouses && (
           <Badge variant="secondary" className="text-xs py-1 px-2">
-            No Houses selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
+            No Topics selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
           </Badge>
         )}
 
