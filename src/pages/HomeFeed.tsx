@@ -87,6 +87,7 @@ export default function HomeFeed() {
 
   return (
     <PageShell>
+      <MilestonePopup />
       <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         {/* 1. Persona-specific greeting */}
         <PersonaGreeting userName={userName} persona={persona} />
