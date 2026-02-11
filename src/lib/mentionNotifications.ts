@@ -79,6 +79,8 @@ function buildDeepLink(targetType: string, targetId: string): string {
     case "COMPANY": return `/companies/${targetId}`;
     case "COURSE": return `/courses/${targetId}`;
     case "USER": return `/users/${targetId}`;
+    case "GUILD_EVENT": return `/events/${targetId}`;
+    case "FEED_POST": return `/`;
     default: return `/`;
   }
 }
