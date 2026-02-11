@@ -67,7 +67,7 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
       })
       .select()
       .single();
-    if (error) { toast({ title: "Failed to create company", variant: "destructive" }); return; }
+    if (error) { toast({ title: "Failed to create organization", variant: "destructive" }); return; }
     // Add creator as admin member
     await supabase.from("company_members").insert({ company_id: newCompany.id, user_id: currentUser.id, role: "ADMIN" });
     setCreateOpen(false);
@@ -75,7 +75,7 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
     setLogoUrl(undefined); setBannerUrl(undefined);
     setWebsiteUrl(""); setTwitterUrl(""); setLinkedinUrl(""); setInstagramUrl("");
     qc.invalidateQueries({ queryKey: ["my-companies"] });
-    toast({ title: "Company created!" });
+    toast({ title: "Traditional Organization created!" });
     navigate(`/companies/${newCompany.id}`);
   };
 
@@ -89,26 +89,26 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold flex items-center gap-2">
-          <Building2 className="h-6 w-6 text-primary" /> My Companies
+          <Building2 className="h-6 w-6 text-primary" /> My Traditional Organizations
         </h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-1" /> Create Company</Button>
+            <Button><Plus className="h-4 w-4 mr-1" /> Create Traditional Organization</Button>
           </DialogTrigger>
           <DialogContent className="max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Company</DialogTitle>
+              <DialogTitle>Create Traditional Organization</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-2">
               <div>
                 <label className="text-sm font-medium mb-1 block">Name *</label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Company name" maxLength={80} />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Organization name" maxLength={80} />
               </div>
               <ImageUpload label="Logo" currentImageUrl={logoUrl} onChange={setLogoUrl} aspectRatio="1/1" description="Square logo, 256×256 recommended" />
               <ImageUpload label="Banner (optional)" currentImageUrl={bannerUrl} onChange={setBannerUrl} aspectRatio="16/9" description="Wide banner, 1200×400 recommended" />
               <div>
                 <label className="text-sm font-medium mb-1 block">Description</label>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this company do?" maxLength={500} className="resize-none" />
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this organization do?" maxLength={500} className="resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -137,7 +137,7 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
                   else if (key === "instagramUrl") setInstagramUrl(value);
                 }}
               />
-              <Button onClick={handleCreate} disabled={!name.trim()} className="w-full">Create Company</Button>
+              <Button onClick={handleCreate} disabled={!name.trim()} className="w-full">Create Traditional Organization</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -146,9 +146,9 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
       {myCompanies.length === 0 ? (
         <div className="text-center py-16">
           <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">You don't manage any companies yet.</p>
+          <p className="text-muted-foreground mb-4">You don't manage any traditional organizations yet.</p>
           <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> Create your first company
+            <Plus className="h-4 w-4 mr-1" /> Create your first traditional organization
           </Button>
         </div>
       ) : (

@@ -70,7 +70,7 @@ export function PartnershipsTab({ entityType, entityId, isAdmin }: Props) {
               {entity?.name ?? "Unknown"}
             </Link>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <Badge variant="outline" className="text-[10px] capitalize">{(entity?.type ?? "").toLowerCase()}</Badge>
+              <Badge variant="outline" className="text-[10px]">{(entity?.type ?? "") === "COMPANY" ? "Trad. Org." : (entity?.type ?? "").toLowerCase()}</Badge>
               {p.partnership_type && p.partnership_type !== "ALLY" && (
                 <Badge variant="secondary" className="text-[10px] capitalize">{p.partnership_type.toLowerCase()}</Badge>
               )}

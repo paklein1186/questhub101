@@ -80,8 +80,8 @@ export default function CompanyDetail() {
   const [editBannerUrl, setEditBannerUrl] = useState<string | undefined>();
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!company) return <PageShell><p>Company not found.</p></PageShell>;
-  if (company.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This company has been removed.</p></PageShell>;
+  if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
+  if (company.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This traditional organization has been removed.</p></PageShell>;
 
   const members = membersData || [];
   const quests = companyQuests || [];
@@ -125,7 +125,7 @@ export default function CompanyDetail() {
     qc.invalidateQueries({ queryKey: ["services-for-company", id] });
     setSvcOpen(false); setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
-    toast({ title: "Company service created" });
+    toast({ title: "Organization service created" });
   };
 
   const openEdit = () => {
@@ -142,13 +142,13 @@ export default function CompanyDetail() {
       logo_url: editLogoUrl || null, banner_url: editBannerUrl || null,
     }).eq("id", company.id);
     qc.invalidateQueries({ queryKey: ["company", id] });
-    setEditOpen(false); toast({ title: "Company updated" });
+    setEditOpen(false); toast({ title: "Organization updated" });
   };
 
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Companies</Link>
+        <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Traditional Organizations</Link>
       </Button>
 
       {company.banner_url && (
@@ -192,7 +192,7 @@ export default function CompanyDetail() {
         {/* Edit dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent>
-            <DialogHeader><DialogTitle>Edit Company</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Edit Traditional Organization</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-2">
               <div><label className="text-sm font-medium mb-1 block">Name</label><Input value={editName} onChange={e => setEditName(e.target.value)} maxLength={80} /></div>
               <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
@@ -263,7 +263,7 @@ export default function CompanyDetail() {
         <TabsContent value="quests" className="mt-6 space-y-3">
           {isAdmin && (
             <Dialog open={questOpen} onOpenChange={setQuestOpen}>
-              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create quest for this company</Button></DialogTrigger>
+              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Button></DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>Create Quest for {company.name}</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
@@ -300,9 +300,9 @@ export default function CompanyDetail() {
         <TabsContent value="services" className="mt-6 space-y-3">
           {isAdmin && (
             <Dialog open={svcOpen} onOpenChange={setSvcOpen}>
-              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create company service</Button></DialogTrigger>
+              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create organization service</Button></DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Create Company Service</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Create Organization Service</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
                   <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Consulting Session" maxLength={120} /></div>
                   <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>

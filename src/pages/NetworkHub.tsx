@@ -94,7 +94,7 @@ export default function NetworkHub() {
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
-          <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Companies ({companyMemberships.length})</TabsTrigger>
+          <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Trad. Orgs ({companyMemberships.length})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Houses</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
         </TabsList>
@@ -159,7 +159,7 @@ function OverviewPeople({ people }: { people: any[] }) {
     <div>
       <SectionHeader icon={Users} title="People in your orbit" count={people.length} seeMoreTo="/network?tab=people" />
       {top.length === 0 ? (
-        <EmptyState icon={Users} message="Join guilds, companies or quests to build your network." cta="Explore guilds" to="/explore?tab=guilds" />
+        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=guilds" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {top.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
@@ -189,9 +189,9 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
   const top = memberships.slice(0, 4);
   return (
     <div>
-      <SectionHeader icon={Building2} title="Companies in your orbit" count={memberships.length} seeMoreTo="/network?tab=companies" />
+      <SectionHeader icon={Building2} title="Traditional Organizations in your orbit" count={memberships.length} seeMoreTo="/network?tab=companies" />
       {top.length === 0 ? (
-        <EmptyState icon={Building2} message="No companies linked to your account." cta="Create a company" to="/me/companies" />
+        <EmptyState icon={Building2} message="No traditional organizations linked to your account." cta="Create one" to="/me/companies" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {top.map((m, i) => <CompanyCard key={m.companyId} membership={m} index={i} />)}
@@ -259,7 +259,7 @@ function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
         </div>
       </div>
       {sorted.length === 0 ? (
-        <EmptyState icon={Users} message="Join guilds, companies or quests to build your network." cta="Explore" to="/explore" />
+        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore" to="/explore" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
@@ -318,7 +318,7 @@ function CompaniesTab({ memberships, loading }: { memberships: any[]; loading: b
     <div className="space-y-6">
       {adminComps.length > 0 && (
         <div>
-          <SectionHeader icon={Building2} title="Companies you manage" count={adminComps.length} />
+          <SectionHeader icon={Building2} title="Traditional Organizations you manage" count={adminComps.length} />
           <div className="grid gap-3 md:grid-cols-2">
             {adminComps.map((m, i) => <CompanyCard key={m.companyId} membership={m} index={i} />)}
           </div>
@@ -327,7 +327,7 @@ function CompaniesTab({ memberships, loading }: { memberships: any[]; loading: b
 
       {memberComps.length > 0 && (
         <div>
-          <SectionHeader icon={Users} title="Companies you belong to" count={memberComps.length} />
+          <SectionHeader icon={Users} title="Traditional Organizations you belong to" count={memberComps.length} />
           <div className="grid gap-3 md:grid-cols-2">
             {memberComps.map((m, i) => <CompanyCard key={m.companyId} membership={m} index={i} />)}
           </div>
@@ -335,12 +335,12 @@ function CompaniesTab({ memberships, loading }: { memberships: any[]; loading: b
       )}
 
       {memberships.length === 0 && (
-        <EmptyState icon={Building2} message="No companies linked to your account." cta="Create a company" to="/me/companies" />
+        <EmptyState icon={Building2} message="No traditional organizations linked to your account." cta="Create one" to="/me/companies" />
       )}
 
       <div className="flex gap-2 pt-2">
-        <Button size="sm" asChild><Link to="/me/companies"><Plus className="h-4 w-4 mr-1" /> Create company</Link></Button>
-        <Button size="sm" variant="outline" asChild><Link to="/explore?tab=companies">Explore companies <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
+        <Button size="sm" asChild><Link to="/me/companies"><Plus className="h-4 w-4 mr-1" /> Create organization</Link></Button>
+        <Button size="sm" variant="outline" asChild><Link to="/explore?tab=companies">Explore organizations <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
       </div>
     </div>
   );

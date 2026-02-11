@@ -17,7 +17,7 @@ type EntityType = "profiles" | "guilds" | "companies" | "quests" | "services" | 
 const ENTITY_CONFIG: Record<EntityType, { label: string; searchField: string; nameField: string }> = {
   profiles: { label: "Users", searchField: "name", nameField: "name" },
   guilds: { label: "Guilds", searchField: "name", nameField: "name" },
-  companies: { label: "Companies", searchField: "name", nameField: "name" },
+  companies: { label: "Traditional Organizations", searchField: "name", nameField: "name" },
   quests: { label: "Quests", searchField: "title", nameField: "title" },
   services: { label: "Services", searchField: "title", nameField: "title" },
   courses: { label: "Courses", searchField: "title", nameField: "title" },

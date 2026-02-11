@@ -125,7 +125,7 @@ export function AffiliationsStep({
       <div className="space-y-3 pt-2 border-t border-border">
         <div>
           <p className="text-sm font-medium">
-            Are you already part of any {persona === "CREATIVE" ? "company, collective, or studio" : "company, guild, or organization"}?
+            Are you already part of any {persona === "CREATIVE" ? "traditional organization, collective, or studio" : "traditional organization, guild, or collective"}?
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export function AffiliationsStep({
               <Input
                 value={aff.name}
                 onChange={(e) => updateAffiliation(i, "name", e.target.value)}
-                placeholder={persona === "CREATIVE" ? "Studio / Collective name" : "Company / Organization name"}
+                placeholder={persona === "CREATIVE" ? "Studio / Collective name" : "Organization name"}
                 maxLength={200}
               />
               <Input

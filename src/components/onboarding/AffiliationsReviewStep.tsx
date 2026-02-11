@@ -170,7 +170,7 @@ export function AffiliationsReviewStep({
                     {aff.matchedEntityType === "GUILD"
                       ? getLabel("guild.label_singular", persona)
                       : aff.matchedEntityType === "COMPANY"
-                        ? "Company"
+                        ? getLabel("company.label_singular", persona)
                         : "New"}
                   </Badge>
                   {aff.role && (

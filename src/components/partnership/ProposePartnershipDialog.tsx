@@ -89,7 +89,7 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
         <Tabs value={tab} onValueChange={v => { setTab(v as any); setSelectedId(null); setSearch(""); }}>
           <TabsList className="w-full">
             <TabsTrigger value="GUILD" className="flex-1 gap-1"><Shield className="h-3.5 w-3.5" /> Guild</TabsTrigger>
-            <TabsTrigger value="COMPANY" className="flex-1 gap-1"><Building2 className="h-3.5 w-3.5" /> Company</TabsTrigger>
+            <TabsTrigger value="COMPANY" className="flex-1 gap-1"><Building2 className="h-3.5 w-3.5" /> Trad. Organization</TabsTrigger>
           </TabsList>
 
           <div className="mt-4 space-y-4">
@@ -98,7 +98,7 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
               <Input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={`Search ${tab.toLowerCase()}s…`}
+                placeholder={tab === "GUILD" ? "Search guilds…" : "Search organizations…"}
                 className="pl-9"
               />
             </div>

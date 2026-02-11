@@ -178,12 +178,30 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Dashboard",
   },
 
-  // ── Companies ──
+  // ── Traditional Organizations ──
   "company.label": {
-    IMPACT: "Companies",
-    CREATIVE: "Companies",
-    HYBRID: "Companies",
-    DEFAULT: "Companies",
+    IMPACT: "Traditional Organizations",
+    CREATIVE: "Traditional Organizations",
+    HYBRID: "Traditional Organizations",
+    DEFAULT: "Traditional Organizations",
+  },
+  "company.label_singular": {
+    IMPACT: "Traditional Organization",
+    CREATIVE: "Traditional Organization",
+    HYBRID: "Traditional Organization",
+    DEFAULT: "Traditional Organization",
+  },
+  "company.my_label": {
+    IMPACT: "My Traditional Organizations",
+    CREATIVE: "My Traditional Organizations",
+    HYBRID: "My Traditional Organizations",
+    DEFAULT: "My Traditional Organizations",
+  },
+  "company.create_button": {
+    IMPACT: "Create a Traditional Organization",
+    CREATIVE: "Create a Traditional Organization",
+    HYBRID: "Create a Traditional Organization",
+    DEFAULT: "Create a Traditional Organization",
   },
 
   // ── Courses ──

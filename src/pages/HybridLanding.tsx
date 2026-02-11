@@ -173,7 +173,7 @@ export default function HybridLanding() {
             {[
               { icon: Feather, title: "Start a Quest", text: "Mix creativity and strategy. Launch a project, creation, or mission." },
               { icon: Briefcase, title: "Share What You Know", text: "From artistic skills to consulting services — support others with both worlds." },
-              { icon: Users, title: "Join a Space", text: "Guilds, circles, companies, collectives — hybrid collaboration thrives here." },
+              { icon: Users, title: "Join a Space", text: "Guilds, circles, traditional organizations, collectives — hybrid collaboration thrives here." },
             ].map((card, i) => (
               <motion.div
                 key={card.title}

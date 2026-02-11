@@ -57,9 +57,9 @@ export default function CompanySettings() {
   const company = getCompanyById(id!);
   const currentUser = useCurrentUser();
 
-  if (!company) return <PageShell><p>Company not found.</p></PageShell>;
+  if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
   if (currentUser.id !== company.contactUserId) {
-    return <PageShell><p>You must be the company contact to access settings.</p></PageShell>;
+    return <PageShell><p>You must be the organization contact to access settings.</p></PageShell>;
   }
 
   return <CompanySettingsInner companyId={company.id} />;
@@ -135,7 +135,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
     const existingT = companyTerritories.filter((ct) => ct.companyId === companyId);
     existingT.forEach((ct) => { const i = companyTerritories.indexOf(ct); if (i !== -1) companyTerritories.splice(i, 1); });
     selectedTerritories.forEach((territoryId, i) => { companyTerritories.push({ id: `ctr-${Date.now()}-${i}`, companyId, territoryId }); });
-    toast({ title: "Company profile updated!" });
+    toast({ title: "Organization profile updated!" });
   };
 
   const handleChangeContact = () => {
@@ -172,14 +172,14 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to={`/companies/${companyId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to company</Link>
+        <Link to={`/companies/${companyId}`}><ArrowLeft className="h-4 w-4 mr-1" /> Back to organization</Link>
       </Button>
 
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           {company.logoUrl && <img src={company.logoUrl} alt="" className="h-10 w-10 rounded-lg" />}
           <div>
-            <h1 className="font-display text-2xl font-bold">Company Settings</h1>
+            <h1 className="font-display text-2xl font-bold">Organization Settings</h1>
             <p className="text-sm text-muted-foreground">{company.name}</p>
           </div>
         </div>
@@ -210,7 +210,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Identity & Profile ── */}
               {activeTab === "identity" && (
                 <div className="space-y-5 max-w-lg">
-                  <Section title="Company Identity" icon={<Building2 className="h-5 w-5" />}>
+                  <Section title="Organization Identity" icon={<Building2 className="h-5 w-5" />}>
                     <div className="space-y-4">
                       <div><label className="text-sm font-medium mb-1 block">Name</label><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} /></div>
                       <ImageUpload label="Logo" currentImageUrl={logoUrl || undefined} onChange={(url) => setLogoUrl(url ?? "")} aspectRatio="1/1" description="Square logo, 256×256 recommended" />
@@ -313,7 +313,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                         <Badge className="bg-primary/10 text-primary border-0"><Crown className="h-3 w-3 mr-1" /> Contact</Badge>
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground mb-3">Transfer the company contact role to another user:</p>
+                    <p className="text-sm text-muted-foreground mb-3">Transfer the organization contact role to another user:</p>
                     <div className="flex gap-2">
                       <Select value={newContactId} onValueChange={setNewContactId}>
                         <SelectTrigger className="flex-1"><SelectValue placeholder="Select a user" /></SelectTrigger>
@@ -334,7 +334,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {activeTab === "quests" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Section title={`Company Quests (${companyQuests.length})`} icon={<Zap className="h-5 w-5" />}><span /></Section>
+                    <Section title={`Organization Quests (${companyQuests.length})`} icon={<Zap className="h-5 w-5" />}><span /></Section>
                     <Dialog open={questOpen} onOpenChange={setQuestOpen}>
                       <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> New Quest</Button></DialogTrigger>
                       <DialogContent>
@@ -356,7 +356,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                   </div>
 
                   {companyQuests.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No quests posted by this company yet.</p>
+                    <p className="text-sm text-muted-foreground">No quests posted by this organization yet.</p>
                   ) : (
                     <div className="space-y-3">
                       {companyQuests.map((quest) => (
@@ -442,8 +442,8 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Documents ── */}
               {activeTab === "documents" && (
                 <div className="space-y-6 max-w-lg">
-                  <Section title="Company Documents" icon={<Briefcase className="h-5 w-5" />}>
-                    <p className="text-sm text-muted-foreground mb-4">Upload documents, contracts, and resources for your company.</p>
+                   <Section title="Organization Documents" icon={<Briefcase className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">Upload documents, contracts, and resources for your organization.</p>
                     <AttachmentList targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
                     <div className="mt-4">
                       <AttachmentUpload targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
@@ -455,12 +455,12 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Billing ── */}
               {activeTab === "billing" && (
                 <div className="space-y-6 max-w-lg">
-                  <Section title="Company Plan & Billing" icon={<CreditCard className="h-5 w-5" />}>
+                   <Section title="Organization Plan & Billing" icon={<CreditCard className="h-5 w-5" />}>
                     <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 p-8 text-center">
                       <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
                       <h4 className="font-display text-lg font-semibold mb-1">Coming soon</h4>
                       <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                        Company-specific subscription plans, billing management, and team seats will be available here.
+                        Organization-specific subscription plans, billing management, and team seats will be available here.
                       </p>
                     </div>
                   </Section>
