@@ -33,6 +33,12 @@ export interface SuggestedService {
   accepted: boolean;
 }
 
+interface GuildInfo {
+  id: string;
+  name: string;
+  join_policy: string;
+}
+
 interface Props {
   persona: PersonaType;
   affiliations: SuggestedAffiliation[];
@@ -42,6 +48,7 @@ interface Props {
   services: SuggestedService[];
   onServicesChange: (services: SuggestedService[]) => void;
   loading: boolean;
+  guilds?: GuildInfo[];
 }
 
 export function AffiliationsReviewStep({
