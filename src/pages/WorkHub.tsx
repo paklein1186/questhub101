@@ -8,8 +8,9 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Compass, CircleDot, Zap, Building2 } from "lucide-react";
-import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts } from "@/hooks/useEntityQueries";
+import { Compass, CircleDot, Zap, Building2, Shield, Users } from "lucide-react";
+import { useUserQuestParticipations, useUserPodMemberships, useUserServices, useMyDrafts, useUserGuildMemberships } from "@/hooks/useEntityQueries";
+import { useMyCompanyMemberships } from "@/hooks/useNetworkData";
 import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
@@ -24,10 +25,15 @@ export default function WorkHub() {
   const { data: myPods } = useUserPodMemberships(currentUser.id || undefined);
   const { data: myServices } = useUserServices(currentUser.id || undefined);
   const { data: drafts } = useMyDrafts(currentUser.id || undefined);
+  const { data: myGuilds } = useUserGuildMemberships(currentUser.id || undefined);
+  const { data: myCompanies } = useMyCompanyMemberships(currentUser.id || "");
 
   const questsList = myQuests || [];
   const podsList = myPods || [];
   const servicesList = myServices || [];
+  const guildsList = myGuilds || [];
+  const companiesList = myCompanies || [];
+  const teamsList = [...guildsList.map((g: any) => ({ ...g, _type: "guild" })), ...companiesList.map((c: any) => ({ ...c, _type: "company" })), ...podsList.map((p: any) => ({ ...p, _type: "pod" }))];
   const totalDrafts = (drafts?.quests?.length || 0) + (drafts?.guilds?.length || 0) + (drafts?.pods?.length || 0) + (drafts?.services?.length || 0);
 
   return (
@@ -36,13 +42,13 @@ export default function WorkHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Briefcase className="h-7 w-7 text-primary" /> {label("nav.work")}
         </h1>
-        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, {label("pod.label").toLowerCase()}, {label("service.label_plural").toLowerCase()}, and bookings.</p>
+        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, teams, {label("service.label_plural").toLowerCase()}, and bookings.</p>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
-          <TabsTrigger value="pods">My {label("pod.label")} ({podsList.length})</TabsTrigger>
+          <TabsTrigger value="teams">My Teams ({teamsList.length})</TabsTrigger>
           <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
           <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
@@ -78,20 +84,34 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
-        <TabsContent value="pods">
-          {podsList.length === 0 && <p className="text-muted-foreground">No pods yet.</p>}
+        <TabsContent value="teams">
+          {teamsList.length === 0 && <p className="text-muted-foreground">No teams yet. Join a guild, organization, or pod to see them here.</p>}
           <div className="grid gap-3 md:grid-cols-2">
-            {podsList.map((pm: any, i: number) => (
-              <motion.div key={pm.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Link to={`/pods/${pm.pod_id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                  <h4 className="font-display font-semibold">{pm.pods?.name}</h4>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] capitalize">{pm.role.toLowerCase()}</Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{pm.pods?.type?.toLowerCase().replace("_", " ")}</Badge>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+            {teamsList.map((item: any, i: number) => {
+              const isGuild = item._type === "guild";
+              const isCompany = item._type === "company";
+              const name = isGuild ? item.guilds?.name : isCompany ? item.company?.name : item.pods?.name;
+              const id = isGuild ? item.guild_id : isCompany ? item.companyId : item.pod_id;
+              const route = isGuild ? `/guilds/${id}` : isCompany ? `/companies/${id}` : `/pods/${id}`;
+              const TypeIcon = isGuild ? Shield : isCompany ? Building2 : Users;
+              const typeLabel = isGuild ? label("guild.label") : isCompany ? "Trad. Org" : label("pod.label");
+              const role = isGuild ? item.role : isCompany ? item.role : item.role;
+              if (!name) return null;
+              return (
+                <motion.div key={`${item._type}-${id}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <Link to={route} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TypeIcon className="h-4 w-4 text-primary" />
+                      <h4 className="font-display font-semibold">{name}</h4>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="secondary" className="text-[10px]">{typeLabel}</Badge>
+                      <Badge variant="outline" className="text-[10px] capitalize">{role?.toLowerCase()}</Badge>
+                    </div>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </TabsContent>
 
