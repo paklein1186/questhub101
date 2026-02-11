@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   Trophy, Heart, Paintbrush, Users, MapPin, GraduationCap,
   Shield, TrendingUp, Sparkles, Loader2, RefreshCw, Clock,
-  Calendar, CalendarDays,
+  Calendar, CalendarDays, Building2, Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -18,6 +18,7 @@ import {
   type LeaderboardEntry,
 } from "@/hooks/useLeaderboard";
 import { usePersona } from "@/hooks/usePersona";
+import { useGuildLeaderboard, useTerritoryLeaderboard } from "@/hooks/useEntityLeaderboards";
 import { toast } from "sonner";
 
 const TIME_SCOPES: { key: TimeScope; label: string; icon: React.ReactNode }[] = [
