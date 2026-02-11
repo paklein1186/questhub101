@@ -130,19 +130,44 @@ export default function NetworkHub() {
           <PeopleTab people={people} loading={loadingPeople} />
         </TabsContent>
 
-        {/* ═══════════════ GUILDS ═══════════════ */}
-        <TabsContent value="guilds" className="mt-0">
-          <GuildsTab memberships={guildMemberships} loading={loadingGuilds} label={label} />
-        </TabsContent>
+        {/* ═══════════════ ENTITIES (clustered) ═══════════════ */}
+        <TabsContent value="entities" className="mt-0">
+          <div className="flex items-center gap-2 mb-5 flex-wrap">
+            {([
+              ["all", "All", totalEntities],
+              ["guilds", label("guild.label"), guildMemberships.length],
+              ["pods", label("pod.label"), podMemberships.length],
+              ["companies", "Trad. Orgs", companyMemberships.length],
+            ] as [typeof entitySub, string, number][]).map(([key, lbl, count]) => (
+              <Button
+                key={key}
+                variant={entitySub === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setEntitySub(key)}
+                className="text-xs"
+              >
+                {lbl} ({count})
+              </Button>
+            ))}
+          </div>
 
-        {/* ═══════════════ COMPANIES ═══════════════ */}
-        <TabsContent value="companies" className="mt-0">
-          <CompaniesTab memberships={companyMemberships} loading={loadingCompanies} />
-        </TabsContent>
+          {(loadingGuilds || loadingPods || loadingCompanies) && (
+            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          )}
 
-        {/* ═══════════════ PODS ═══════════════ */}
-        <TabsContent value="pods" className="mt-0">
-          <PodsTab memberships={podMemberships} loading={loadingPods} label={label} />
+          {!(loadingGuilds || loadingPods || loadingCompanies) && (
+            <div className="space-y-8">
+              {(entitySub === "all" || entitySub === "guilds") && (
+                <GuildsTab memberships={guildMemberships} loading={false} label={label} />
+              )}
+              {(entitySub === "all" || entitySub === "pods") && (
+                <PodsTab memberships={podMemberships} loading={false} label={label} />
+              )}
+              {(entitySub === "all" || entitySub === "companies") && (
+                <CompaniesTab memberships={companyMemberships} loading={false} />
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
