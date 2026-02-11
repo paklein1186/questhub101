@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import { useSpokenLanguages, AVAILABLE_LANGUAGES } from "@/hooks/useSpokenLanguages";
 import { AffiliationsStep, type AffiliationLink, type ManualAffiliation } from "@/components/onboarding/AffiliationsStep";
 import { AffiliationsReviewStep, type SuggestedAffiliation, type SuggestedHouse, type SuggestedService } from "@/components/onboarding/AffiliationsReviewStep";
 import { useQuery } from "@tanstack/react-query";
