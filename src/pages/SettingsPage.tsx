@@ -668,6 +668,33 @@ export default function SettingsPage() {
                 <NotificationsSettingsTab toast={toast} />
               )}
 
+              {/* ── Language ── */}
+              {activeTab === "language" && (
+                <div className="space-y-6">
+                  <Section title={t("settings.preferredLanguage")} icon={<Languages className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">{t("settings.languageDescription")}</p>
+                    <Select
+                      value={i18n.language}
+                      onValueChange={async (code) => {
+                        i18n.changeLanguage(code);
+                        if (authUser?.id) {
+                          await supabase.from("profiles").update({ preferred_language: code } as any).eq("user_id", authUser.id);
+                          toast({ title: t("language." + code) });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-64">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                        <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Section>
+                </div>
+              )}
+
               {/* ── Services & Availability ── */}
               {activeTab === "quests" && <MyQuestsTab userId={currentUser.id} />}
               {activeTab === "guilds" && <MyGuildsTab userId={currentUser.id} />}
