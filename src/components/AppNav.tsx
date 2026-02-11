@@ -278,11 +278,11 @@ export function AppNav() {
 
                         <Link to="/me" onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <User className="h-4 w-4" /> My Hub
+                          <User className="h-4 w-4" /> {t("nav.myHub")}
                         </Link>
                         <Link to={`/users/${currentUser.id}`} onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <User className="h-4 w-4" /> My public profile
+                          <User className="h-4 w-4" /> {t("nav.myPublicProfile")}
                         </Link>
 
                         {showAdmin && (
