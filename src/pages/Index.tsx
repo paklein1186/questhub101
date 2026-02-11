@@ -1,6 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import LandingPage from "./LandingPage";
 import HomeFeed from "./HomeFeed";
 
 export default function Index() {
@@ -8,7 +7,8 @@ export default function Index() {
 
   if (loading) return null;
 
-  if (!session) return <LandingPage />;
+  // Unlogged visitors go to the persona selector
+  if (!session) return <Navigate to="/welcome" replace />;
 
   // Redirect to onboarding if not completed
   if (user && !user.hasCompletedOnboarding) {

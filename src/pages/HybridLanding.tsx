@@ -86,7 +86,7 @@ export default function HybridLanding() {
       {/* ─── Nav ─── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="container flex h-14 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+          <Link to="/welcome" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
             <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
           </Link>
           <nav className="flex items-center gap-2">
