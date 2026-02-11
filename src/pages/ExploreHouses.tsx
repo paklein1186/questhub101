@@ -588,7 +588,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Companies */}
           <TabsContent value="companies" className="mt-6">
-            <EntityGrid items={companies} loading={companiesLoading} empty="No companies found for these Houses." renderItem={(c: any) => (
+            <EntityGrid items={companies} loading={companiesLoading} empty="No companies found for these Topics." renderItem={(c: any) => (
               <Link key={c.id} to={`/companies/${c.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="COMPANY" logoUrl={c.logo_url} name={c.name} height="h-24" />
                 <div className="p-4">

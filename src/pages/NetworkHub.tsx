@@ -429,9 +429,9 @@ function TerritoriesTab({ territories, topics, activity, loadingT, loadingH }: {
 
       {/* Houses */}
       <div>
-        <SectionHeader icon={Hash} title="Your houses (topics)" count={topics.length} />
+        <SectionHeader icon={Hash} title="Your topics" count={topics.length} />
         {topics.length === 0 ? (
-          <EmptyState icon={Hash} message="Add houses (topics) in your profile settings." cta="Edit profile" to="/profile/edit" />
+          <EmptyState icon={Hash} message="Add topics in your profile settings." cta="Edit profile" to="/profile/edit" />
         ) : (
           <div className="flex flex-wrap gap-2">
             {topics.map((t: any) => (
