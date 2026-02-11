@@ -135,8 +135,11 @@ export default function ExploreHub() {
         <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
         <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
-        <TabsContent value="territories">
-          <TerritoryExplorer />
+        <TabsContent value="territories" className="space-y-8">
+          <TerritoryBrowseSection />
+          <div className="border-t border-border pt-8">
+            <TerritoryExplorer />
+          </div>
         </TabsContent>
         {currentUser.id && (
           <TabsContent value="matchmaker">
