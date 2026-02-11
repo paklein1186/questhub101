@@ -118,6 +118,8 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
             topicNames: hf.topicNames,
             myTopicIds: hf.myTopicIds,
           }}
+          universeMode={hf.universeMode}
+          onUniverseModeChange={hf.setUniverseMode}
         />
       </div>
 
