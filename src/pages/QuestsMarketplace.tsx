@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -113,11 +114,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         {filtered.map((quest, i) => (
           <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-              {quest.cover_image_url ? (
-                <div className="w-full h-36 bg-muted"><img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" /></div>
-              ) : (
-                <div className="w-full h-24 bg-muted/50 flex items-center justify-center"><Compass className="h-8 w-8 text-muted-foreground/30" /></div>
-              )}
+              <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} name={quest.title} height="h-32" />
               <div className="p-5">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-display font-semibold">{quest.title}</h3>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2 } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageShell } from "@/components/PageShell";
@@ -68,11 +69,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
           return (
             <motion.div key={svc.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
               <Link to={`/services/${svc.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-                {svc.image_url ? (
-                  <div className="w-full h-36 bg-muted"><img src={svc.image_url} alt="" className="w-full h-full object-cover" /></div>
-                ) : (
-                  <div className="w-full h-24 bg-muted/50 flex items-center justify-center"><Clock className="h-8 w-8 text-muted-foreground/30" /></div>
-                )}
+                <UnitCoverImage type="SERVICE" imageUrl={svc.image_url} name={svc.title} height="h-32" />
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-display font-semibold text-lg">{svc.title}</h3>

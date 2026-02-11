@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link } from "react-router-dom";
 import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/PageShell";
 import { Badge } from "@/components/ui/badge";
@@ -346,10 +347,13 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Overview */}
           <TabsContent value="overview" className="mt-6 space-y-8">
             <SectionPreview title="Quests" icon={Compass} items={quests} loading={questsLoading} tab="quests" setTab={setTab} renderItem={(q: any) => (
-              <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <h4 className="font-display font-semibold text-sm">{q.title}</h4>
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
-                <Badge variant="secondary" className="text-[10px] mt-2">{q.reward_xp} XP</Badge>
+              <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} name={q.title} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold text-sm">{q.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
+                  <Badge variant="secondary" className="text-[10px] mt-2">{q.reward_xp} XP</Badge>
+                </div>
               </Link>
             )} />
 
@@ -364,9 +368,9 @@ export default function ExploreHouses({ bare }: Props) {
             )} />
 
             <SectionPreview title="Guilds" icon={Shield} items={guilds} loading={guildsLoading} tab="guilds" setTab={setTab} renderItem={(g: any) => (
-              <Link key={g.id} to={`/guilds/${g.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                {g.logo_url && <img src={g.logo_url} className="h-9 w-9 rounded-lg object-cover" alt="" />}
-                <div className="min-w-0">
+              <Link key={g.id} to={`/guilds/${g.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="GUILD" logoUrl={g.logo_url} name={g.name} height="h-full" className="w-16 shrink-0" />
+                <div className="min-w-0 py-3 pr-3">
                   <p className="text-sm font-semibold truncate">{g.name}</p>
                   <p className="text-xs text-muted-foreground truncate">{g.description}</p>
                 </div>
@@ -374,9 +378,12 @@ export default function ExploreHouses({ bare }: Props) {
             )} />
 
             <SectionPreview title="Services" icon={ShoppingBag} items={services} loading={servicesLoading} tab="services" setTab={setTab} renderItem={(s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <h4 className="font-display font-semibold text-sm">{s.title}</h4>
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.description}</p>
+              <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="SERVICE" imageUrl={s.image_url} name={s.title} height="h-20" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold text-sm">{s.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.description}</p>
+                </div>
               </Link>
             )} />
           </TabsContent>
@@ -384,12 +391,15 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Quests */}
           <TabsContent value="quests" className="mt-6">
             <EntityGrid items={quests} loading={questsLoading} empty="No quests found for these Houses." renderItem={(q: any) => (
-              <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <h4 className="font-display font-semibold">{q.title}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant="secondary" className="text-[10px]">{q.reward_xp} XP</Badge>
-                  <Badge variant="outline" className="text-[10px] capitalize">{q.status?.toLowerCase().replace("_", " ")}</Badge>
+              <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} name={q.title} height="h-28" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{q.title}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="secondary" className="text-[10px]">{q.reward_xp} XP</Badge>
+                    <Badge variant="outline" className="text-[10px] capitalize">{q.status?.toLowerCase().replace("_", " ")}</Badge>
+                  </div>
                 </div>
               </Link>
             )} />
@@ -414,10 +424,11 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Guilds */}
           <TabsContent value="guilds" className="mt-6">
             <EntityGrid items={guilds} loading={guildsLoading} empty="No guilds found for these Houses." renderItem={(g: any) => (
-              <Link key={g.id} to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-3">
-                  {g.logo_url && <img src={g.logo_url} className="h-10 w-10 rounded-lg object-cover" alt="" />}
-                  <div className="min-w-0"><h4 className="font-display font-semibold">{g.name}</h4><p className="text-sm text-muted-foreground line-clamp-1">{g.description}</p></div>
+              <Link key={g.id} to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="GUILD" logoUrl={g.logo_url} name={g.name} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{g.name}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-1">{g.description}</p>
                 </div>
               </Link>
             )} />
@@ -426,12 +437,13 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Pods */}
           <TabsContent value="pods" className="mt-6">
             <EntityGrid items={pods} loading={podsLoading} empty="No pods found for these Houses." renderItem={(p: any) => (
-              <Link key={p.id} to={`/pods/${p.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-3">
-                  {p.image_url && <img src={p.image_url} className="h-10 w-10 rounded-lg object-cover" alt="" />}
-                  <div className="min-w-0"><h4 className="font-display font-semibold">{p.name}</h4><p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p></div>
+              <Link key={p.id} to={`/pods/${p.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="POD" imageUrl={p.image_url} name={p.name} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{p.name}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
+                  <Badge variant="outline" className="text-[10px] mt-2 capitalize">{p.type?.toLowerCase().replace("_", " ")}</Badge>
                 </div>
-                <Badge variant="outline" className="text-[10px] mt-2 capitalize">{p.type?.toLowerCase().replace("_", " ")}</Badge>
               </Link>
             )} />
           </TabsContent>
@@ -439,10 +451,13 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Services */}
           <TabsContent value="services" className="mt-6">
             <EntityGrid items={services} loading={servicesLoading} empty="No services found for these Houses." renderItem={(s: any) => (
-              <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <h4 className="font-display font-semibold">{s.title}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{s.description}</p>
-                {s.price_amount != null && <Badge variant="secondary" className="text-[10px] mt-2">{s.price_amount} {s.price_currency}</Badge>}
+              <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="SERVICE" imageUrl={s.image_url} name={s.title} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{s.title}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{s.description}</p>
+                  {s.price_amount != null && <Badge variant="secondary" className="text-[10px] mt-2">{s.price_amount} {s.price_currency}</Badge>}
+                </div>
               </Link>
             )} />
           </TabsContent>
@@ -450,10 +465,13 @@ export default function ExploreHouses({ bare }: Props) {
           {/* Courses */}
           <TabsContent value="courses" className="mt-6">
             <EntityGrid items={courses} loading={coursesLoading} empty="No courses found for these Houses." renderItem={(c: any) => (
-              <Link key={c.id} to={`/courses/${c.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <h4 className="font-display font-semibold">{c.title}</h4>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{c.description}</p>
-                <Badge variant="outline" className="text-[10px] mt-2 capitalize">{c.level}</Badge>
+              <Link key={c.id} to={`/courses/${c.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="COURSE" imageUrl={c.cover_image_url} name={c.title} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{c.title}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{c.description}</p>
+                  <Badge variant="outline" className="text-[10px] mt-2 capitalize">{c.level}</Badge>
+                </div>
               </Link>
             )} />
           </TabsContent>

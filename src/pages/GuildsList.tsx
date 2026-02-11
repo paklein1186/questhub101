@@ -3,6 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Users, Plus, Loader2, MapPin } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,21 +118,24 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
           const memberCount = guild.guild_members?.length ?? 0;
           return (
             <motion.div key={guild.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all group">
-                <div className="flex items-center gap-3 mb-3">
-                  <img src={guild.logo_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${guild.name}`} className="h-12 w-12 rounded-lg" alt="" />
-                  <div>
-                    <h3 className="font-display font-semibold group-hover:text-primary transition-colors">{guild.name}</h3>
-                    <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
+              <Link to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
+                <UnitCoverImage type="GUILD" imageUrl={guild.banner_url} logoUrl={guild.logo_url} name={guild.name} height="h-32" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src={guild.logo_url || `https://api.dicebear.com/7.x/shapes/svg?seed=${guild.name}`} className="h-10 w-10 rounded-lg" alt="" />
+                    <div>
+                      <h3 className="font-display font-semibold group-hover:text-primary transition-colors">{guild.name}</h3>
+                      <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
+                    </div>
                   </div>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{guild.description}</p>
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {gTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
-                  {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" /> {memberCount} members
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{guild.description}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {gTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+                    {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" /> {memberCount} members
+                  </div>
                 </div>
               </Link>
             </motion.div>

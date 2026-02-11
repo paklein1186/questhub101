@@ -3,6 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, Plus, BookOpen, Compass, Loader2 } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -166,20 +167,23 @@ export default function PodsList({ bare }: { bare?: boolean }) {
           const memberCount = (pod as any).pod_members?.length ?? 0;
           return (
             <motion.div key={pod.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
-              <Link to={`/pods/${pod.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-2 mb-2">
-                  {pod.type === PodType.QUEST_POD
-                    ? <Compass className="h-4 w-4 text-primary" />
-                    : <BookOpen className="h-4 w-4 text-primary" />}
-                  <Badge variant="secondary" className="text-[10px] capitalize">{pod.type.replace("_", " ").toLowerCase()}</Badge>
-                  <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount}</span>
-                </div>
-                <h3 className="font-display font-semibold text-lg">{pod.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{pod.description}</p>
-                <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground">
-                  {quest && <Badge variant="outline" className="text-[10px]">{quest.title}</Badge>}
-                  {topic && <Badge variant="secondary" className="text-[10px]">{topic.name}</Badge>}
-                  <span>· {formatDistanceToNow(new Date(pod.created_at), { addSuffix: true })}</span>
+              <Link to={`/pods/${pod.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+                <UnitCoverImage type="POD" imageUrl={pod.image_url} name={pod.name} height="h-28" />
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    {pod.type === PodType.QUEST_POD
+                      ? <Compass className="h-4 w-4 text-primary" />
+                      : <BookOpen className="h-4 w-4 text-primary" />}
+                    <Badge variant="secondary" className="text-[10px] capitalize">{pod.type.replace("_", " ").toLowerCase()}</Badge>
+                    <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount}</span>
+                  </div>
+                  <h3 className="font-display font-semibold text-lg">{pod.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{pod.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground">
+                    {quest && <Badge variant="outline" className="text-[10px]">{quest.title}</Badge>}
+                    {topic && <Badge variant="secondary" className="text-[10px]">{topic.name}</Badge>}
+                    <span>· {formatDistanceToNow(new Date(pod.created_at), { addSuffix: true })}</span>
+                  </div>
                 </div>
               </Link>
             </motion.div>

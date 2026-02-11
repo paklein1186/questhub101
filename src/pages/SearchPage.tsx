@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes, Loader2 } from "lucide-react";
+import { UnitCoverImage, type UnitType } from "@/components/UnitCoverImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,10 +133,13 @@ export default function SearchPage() {
                   <div className="space-y-2">
                     {items.map((item) => (
                       <Link key={`${item.type}-${item.id}`} to={item.url}>
-                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                          <CardContent className="p-4 flex items-center gap-3">
-                            <Badge variant="outline" className="text-[10px] shrink-0">{item.type}</Badge>
-                            <div className="min-w-0">
+                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
+                          <CardContent className="p-0 flex items-stretch gap-0">
+                            <UnitCoverImage type={item.type as UnitType} imageUrl={(item as any).imageUrl} logoUrl={(item as any).logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
+                            <div className="p-4 min-w-0 flex flex-col justify-center">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <Badge variant="outline" className="text-[10px] shrink-0">{item.type}</Badge>
+                              </div>
                               <p className="font-medium truncate">{item.title}</p>
                               {item.subtitle && <p className="text-sm text-muted-foreground truncate">{item.subtitle}</p>}
                             </div>
