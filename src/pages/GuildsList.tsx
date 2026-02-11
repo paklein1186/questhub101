@@ -69,74 +69,78 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
 
   return (
     <PageShell bare={bare}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Shield className="h-7 w-7 text-primary" /> Guilds
-        </h1>
-        {isLoggedIn && (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Name</label>
-                  <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Description</label>
-                  <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Type</label>
-                  <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
-                      <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
-                      <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Save as draft</label>
-                  <Switch checked={gDraft} onCheckedChange={setGDraft} />
-                </div>
-                <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
-                  {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  Create Guild
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+      {!hideFilters && (
+        <>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+              <Shield className="h-7 w-7 text-primary" /> Guilds
+            </h1>
+            {isLoggedIn && (
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Name</label>
+                      <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Description</label>
+                      <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Type</label>
+                      <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
+                          <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
+                          <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Save as draft</label>
+                      <Switch checked={gDraft} onCheckedChange={setGDraft} />
+                    </div>
+                    <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
+                      {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                      Create Guild
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
 
-      {!isLoggedIn && (
-        <PublicExploreCTA
-          message="This is a preview of the guilds in our ecosystem. Log in or create an account to see full details and join."
-          className="mb-6"
-        />
+          {!isLoggedIn && (
+            <PublicExploreCTA
+              message="This is a preview of the guilds in our ecosystem. Log in or create an account to see full details and join."
+              className="mb-6"
+            />
+          )}
+
+          <div className="mb-6">
+            <ExploreFilters
+              filters={activeFilters}
+              onChange={setFilters}
+              config={{ showTopics: true, showTerritories: true, showGuildType: true }}
+              houseFilter={{
+                active: hf.houseFilterActive,
+                onToggle: hf.setHouseFilterActive,
+                hasHouses: hf.hasHouses,
+                topicNames: hf.topicNames,
+                myTopicIds: hf.myTopicIds,
+              }}
+              universeMode={hf.universeMode}
+              onUniverseModeChange={hf.setUniverseMode}
+            />
+          </div>
+        </>
       )}
-
-      <div className="mb-6">
-        <ExploreFilters
-          filters={filters}
-          onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true, showGuildType: true }}
-          houseFilter={{
-            active: hf.houseFilterActive,
-            onToggle: hf.setHouseFilterActive,
-            hasHouses: hf.hasHouses,
-            topicNames: hf.topicNames,
-            myTopicIds: hf.myTopicIds,
-          }}
-          universeMode={hf.universeMode}
-          onUniverseModeChange={hf.setUniverseMode}
-        />
-      </div>
 
       {isLoading && (
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
