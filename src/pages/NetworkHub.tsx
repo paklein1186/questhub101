@@ -205,9 +205,9 @@ function OverviewGuilds({ memberships, label }: { memberships: any[]; label: (k:
   const top = memberships.slice(0, 4);
   return (
     <div>
-      <SectionHeader icon={Shield} title={`${label("guild.label")} in your orbit`} count={memberships.length} seeMoreTo="/network?tab=guilds" />
+      <SectionHeader icon={Shield} title={`${label("guild.label")} in your orbit`} count={memberships.length} seeMoreTo="/network?tab=entities" />
       {top.length === 0 ? (
-        <EmptyState icon={Shield} message={`You haven't joined any ${label("guild.label").toLowerCase()} yet.`} cta={`Explore ${label("guild.label").toLowerCase()}`} to="/explore?tab=guilds" />
+        <EmptyState icon={Shield} message={`You haven't joined any ${label("guild.label").toLowerCase()} yet.`} cta={`Explore ${label("guild.label").toLowerCase()}`} to="/explore?tab=entities" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {top.map((m, i) => <GuildCard key={m.guildId} membership={m} index={i} />)}
