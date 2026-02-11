@@ -322,10 +322,11 @@ export function useServicesForGuild(guildId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-guild", guildId],
     queryFn: async () => {
+      // Fetch by owner_type/owner_id OR legacy provider_guild_id
       const { data, error } = await supabase
         .from("services")
         .select("*")
-        .eq("provider_guild_id", guildId!)
+        .or(`and(owner_type.eq.GUILD,owner_id.eq.${guildId}),provider_guild_id.eq.${guildId}`)
         .eq("is_deleted", false);
       if (error) throw error;
       return data;
