@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GuidedPathways } from "@/components/home/GuidedPathways";
 
 /* ───────── Persona-specific config ───────── */
 
