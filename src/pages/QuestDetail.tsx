@@ -97,12 +97,13 @@ export default function QuestDetail() {
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
   if (quest.is_draft && quest.created_by_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Quest not found.</p></PageShell>;
 
+  const isLoggedIn = !!currentUser.id;
   const guild = quest.guilds;
   const topics = (quest.quest_topics || []).map((qt: any) => qt.topics).filter(Boolean);
   const territories = (quest.quest_territories || []).map((qt: any) => qt.territories).filter(Boolean);
-  const isOwner = currentUser.id === quest.created_by_user_id;
-  const isParticipant = (participants || []).some((qp: any) => qp.user_id === currentUser.id);
-  const isCollaborator = (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
+  const isOwner = isLoggedIn && currentUser.id === quest.created_by_user_id;
+  const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
+  const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
