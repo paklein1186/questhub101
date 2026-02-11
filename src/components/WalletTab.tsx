@@ -255,7 +255,7 @@ export function WalletTab() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-sm font-bold ${tx.amount > 0 ? "text-green-600" : "text-red-500"}`}>
+                  <p className={`text-sm font-bold ${tx.amount > 0 ? "text-primary" : "text-destructive"}`}>
                     {tx.amount > 0 ? "+" : ""}{tx.amount}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
