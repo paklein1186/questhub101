@@ -245,10 +245,11 @@ export default function Onboarding() {
         has_completed_onboarding: true,
         persona_type: personaType,
         persona_source: "onboarding_intent",
+        preferred_language: preferredLang,
         website_url: affLinks.website.trim() || null,
         linkedin_url: affLinks.linkedin.trim() || null,
         instagram_url: affLinks.other.trim() || null,
-      }).eq("user_id", authUser.id);
+      } as any).eq("user_id", authUser.id);
 
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
       // Merge selected topics + accepted AI house suggestions
