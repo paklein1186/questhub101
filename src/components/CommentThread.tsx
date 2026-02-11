@@ -105,12 +105,22 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   );
 
   const handleUpvote = async (commentId: string) => {
+    const comment = comments.find((c) => c.id === commentId);
     if (hasUpvoted(commentId)) {
       await supabase.from("comment_upvotes").delete().eq("comment_id", commentId).eq("user_id", currentUser.id);
-      await supabase.from("comments").update({ upvote_count: Math.max((comments.find((c) => c.id === commentId)?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
+      await supabase.from("comments").update({ upvote_count: Math.max((comment?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
     } else {
       await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
-      await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
+      await supabase.from("comments").update({ upvote_count: (comment?.upvote_count ?? 0) + 1 }).eq("id", commentId);
+      // Notify the comment author about the upvote
+      if (comment && comment.author_id !== currentUser.id) {
+        notifyUpvote({
+          upvoterId: currentUser.id,
+          commentAuthorId: comment.author_id,
+          commentId,
+          commentSnippet: comment.content,
+        });
+      }
     }
     qc.invalidateQueries({ queryKey });
     qc.invalidateQueries({ queryKey: ["comment-upvotes", targetType, targetId] });
