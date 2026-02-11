@@ -156,7 +156,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   };
 
   const handleSubmit = async () => {
-    if (!canSubmit || !currentUser.id) return;
+    if (!canSubmit || !currentUser.id || uploading || createPost.isPending) return;
     setUploading(true);
 
     try {
