@@ -11,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "@/types/enums";
+import { UniverseToggle } from "@/components/UniverseToggle";
+import type { UniverseMode } from "@/lib/universeMapping";
 
 // ─── Filter shape ───────────────────────────────────────────
 export interface ExploreFilterValues {
@@ -62,6 +64,9 @@ interface Props {
     topicNames: Record<string, string>;
     myTopicIds: string[];
   };
+  /** Universe toggle */
+  universeMode?: UniverseMode;
+  onUniverseModeChange?: (mode: UniverseMode) => void;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -70,7 +75,7 @@ const ROLE_LABELS: Record<string, string> = {
   BOTH: "Both",
 };
 
-export function ExploreFilters({ filters, onChange, config, houseFilter }: Props) {
+export function ExploreFilters({ filters, onChange, config, houseFilter, universeMode, onUniverseModeChange }: Props) {
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -124,8 +129,13 @@ export function ExploreFilters({ filters, onChange, config, houseFilter }: Props
 
   return (
     <div className="space-y-3">
-      {/* Toggle bar */}
+      {/* Universe toggle + toggle bar */}
       <div className="flex items-center gap-2 flex-wrap">
+        {/* Universe toggle */}
+        {onUniverseModeChange && universeMode && (
+          <UniverseToggle value={universeMode} onChange={onUniverseModeChange} />
+        )}
+
         {/* House filter toggle */}
         {houseFilter && houseFilter.hasHouses && (
           <Button

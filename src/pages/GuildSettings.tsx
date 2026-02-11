@@ -109,6 +109,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const currentTerritoryIds = (guild.guild_territories || []).map((gt: any) => gt.territory_id);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
+  const [universeVisibility, setUniverseVisibility] = useState<string>(guild.universe_visibility ?? "both");
 
   // Social links state
   const [guildWebsiteUrl, setGuildWebsiteUrl] = useState(guild.website_url ?? "");
@@ -210,11 +211,12 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
         banner_url: bannerUrl.trim() || null,
         description: description.trim() || null,
         type: type as any,
+        universe_visibility: universeVisibility,
         website_url: normalizeUrl(guildWebsiteUrl) ?? null,
         twitter_url: normalizeUrl(guildTwitterUrl) ?? null,
         linkedin_url: normalizeUrl(guildLinkedinUrl) ?? null,
         instagram_url: normalizeUrl(guildInstagramUrl) ?? null,
-      })
+      } as any)
       .eq("id", guildId);
     if (error) { toast({ title: "Failed to save", variant: "destructive" }); return; }
 
@@ -419,6 +421,20 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{selectedTerritories.length} selected</p>
+                  </Section>
+
+                  <Section title="Universe Visibility" icon={<Settings className="h-5 w-5" />}>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Control in which universe this guild appears when users filter by Creative or Impact.
+                    </p>
+                    <Select value={universeVisibility} onValueChange={setUniverseVisibility}>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="both">Both universes</SelectItem>
+                        <SelectItem value="creative">Creative Universe only</SelectItem>
+                        <SelectItem value="impact">Impact Universe only</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </Section>
 
                   <Button onClick={handleSaveIdentity} className="w-full"><Save className="h-4 w-4 mr-2" /> Save identity</Button>

@@ -217,6 +217,8 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
           topicNames: hf.topicNames,
           myTopicIds: hf.myTopicIds,
         }}
+        universeMode={hf.universeMode}
+        onUniverseModeChange={hf.setUniverseMode}
       />
 
       <p className="text-sm text-muted-foreground">

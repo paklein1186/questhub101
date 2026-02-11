@@ -3,23 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
+import { expandTopicIds, defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
 
 /**
- * Central hook for global House-based filtering.
- *
- * Returns:
- *  - myTopicIds: the user's selected topic/house IDs
- *  - houseFilterEnabled: whether the DB preference is on
- *  - houseFilterActive: current runtime toggle (can be overridden per session)
- *  - setHouseFilterActive: toggle override
- *  - topicNames: map of id→name for display
- *  - isLoading
- *  - applyHouseFilter: helper to filter an array of items by topic match
+ * Central hook for global House-based filtering with Universe awareness.
  */
 export function useHouseFilter() {
   const currentUser = useCurrentUser();
   const userId = currentUser.id;
   const { persona } = usePersona();
+
+  // Universe mode — defaults based on persona
+  const [universeMode, setUniverseMode] = useState<UniverseMode | null>(null);
+  const effectiveUniverse: UniverseMode = universeMode ?? defaultUniverseForPersona(persona);
 
   // Fetch user's topics and filter preference
   const { data, isLoading } = useQuery({
@@ -48,6 +44,16 @@ export function useHouseFilter() {
     staleTime: 60_000,
   });
 
+  // Fetch all topics for cross-mapping expansion
+  const { data: allTopics = [] } = useQuery({
+    queryKey: ["all-topics-for-mapping"],
+    queryFn: async () => {
+      const { data } = await supabase.from("topics").select("id, name, slug");
+      return (data ?? []) as { id: string; name: string; slug?: string }[];
+    },
+    staleTime: 300_000,
+  });
+
   const myTopicIds = data?.topicIds ?? [];
   const topicNames = data?.topicNames ?? {};
   const houseFilterEnabled = data?.enabled ?? false;
@@ -55,15 +61,14 @@ export function useHouseFilter() {
   // Persona-driven default: auto-enable for creative/impact/hybrid, disable for neutral/unset
   const personaDefault = useMemo(() => {
     if (persona === "CREATIVE" || persona === "IMPACT" || persona === "HYBRID") return true;
-    return false; // UNSET / neutral
+    return false;
   }, [persona]);
 
-  // Runtime toggle — defaults to persona-driven preference, but user can override in-session
+  // Runtime toggle
   const [overrideActive, setOverrideActive] = useState<boolean | null>(null);
 
   const houseFilterActive = useMemo(() => {
     if (overrideActive !== null) return overrideActive;
-    // Auto-enable if persona says so OR DB pref is on, AND user has topics
     return (personaDefault || houseFilterEnabled) && myTopicIds.length > 0;
   }, [overrideActive, personaDefault, houseFilterEnabled, myTopicIds.length]);
 
@@ -72,25 +77,50 @@ export function useHouseFilter() {
   }, []);
 
   /**
+   * Expanded topic IDs — includes cross-mapped topics from the other universe.
+   * This prevents empty results when a Creative user has only creative houses.
+   */
+  const expandedTopicIds = useMemo(() => {
+    if (!houseFilterActive || myTopicIds.length === 0) return myTopicIds;
+    return expandTopicIds(myTopicIds, allTopics, effectiveUniverse);
+  }, [houseFilterActive, myTopicIds, allTopics, effectiveUniverse]);
+
+  /**
    * Generic helper: given an array of items and a function that extracts
-   * an item's topic IDs, returns only items matching user's topics.
-   * Items with no topics are excluded in strict mode (houseFilterActive=true).
+   * an item's topic IDs, returns only items matching user's topics (expanded).
+   * Also filters by universe_visibility when the getter is provided.
    */
   const applyHouseFilter = useCallback(
-    <T,>(items: T[], getTopicIds: (item: T) => string[]): T[] => {
-      if (!houseFilterActive || myTopicIds.length === 0) return items;
-      const mySet = new Set(myTopicIds);
-      return items.filter((item) => {
+    <T,>(
+      items: T[],
+      getTopicIds: (item: T) => string[],
+      getUniverseVisibility?: (item: T) => string,
+    ): T[] => {
+      let filtered = items;
+
+      // Filter by universe visibility if getter provided and not "both" mode
+      if (getUniverseVisibility && effectiveUniverse !== "both") {
+        filtered = filtered.filter((item) => {
+          const vis = getUniverseVisibility(item);
+          return vis === "both" || vis === effectiveUniverse;
+        });
+      }
+
+      // Filter by expanded topics
+      if (!houseFilterActive || expandedTopicIds.length === 0) return filtered;
+      const mySet = new Set(expandedTopicIds);
+      return filtered.filter((item) => {
         const itemTopics = getTopicIds(item);
-        if (itemTopics.length === 0) return false; // strict mode: exclude untagged
+        if (itemTopics.length === 0) return false;
         return itemTopics.some((id) => mySet.has(id));
       });
     },
-    [houseFilterActive, myTopicIds],
+    [houseFilterActive, expandedTopicIds, effectiveUniverse],
   );
 
   return {
     myTopicIds,
+    expandedTopicIds,
     topicNames,
     houseFilterEnabled,
     houseFilterActive,
@@ -98,5 +128,7 @@ export function useHouseFilter() {
     isLoading,
     applyHouseFilter,
     hasHouses: myTopicIds.length > 0,
+    universeMode: effectiveUniverse,
+    setUniverseMode,
   };
 }

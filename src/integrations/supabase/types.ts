@@ -387,6 +387,7 @@ export type Database = {
           sector: string | null
           size: string | null
           twitter_url: string | null
+          universe_visibility: string
           updated_at: string
           website_url: string | null
         }
@@ -405,6 +406,7 @@ export type Database = {
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
+          universe_visibility?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -423,6 +425,7 @@ export type Database = {
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
+          universe_visibility?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -767,6 +770,7 @@ export type Database = {
           price_currency: string | null
           stripe_price_id: string | null
           title: string
+          universe_visibility: string
           updated_at: string
         }
         Insert: {
@@ -787,6 +791,7 @@ export type Database = {
           price_currency?: string | null
           stripe_price_id?: string | null
           title: string
+          universe_visibility?: string
           updated_at?: string
         }
         Update: {
@@ -807,6 +812,7 @@ export type Database = {
           price_currency?: string | null
           stripe_price_id?: string | null
           title?: string
+          universe_visibility?: string
           updated_at?: string
         }
         Relationships: [
@@ -1397,6 +1403,7 @@ export type Database = {
           name: string
           twitter_url: string | null
           type: Database["public"]["Enums"]["guild_type"]
+          universe_visibility: string
           updated_at: string
           website_url: string | null
         }
@@ -1419,6 +1426,7 @@ export type Database = {
           name: string
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
+          universe_visibility?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -1441,6 +1449,7 @@ export type Database = {
           name?: string
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
+          universe_visibility?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -1932,6 +1941,7 @@ export type Database = {
           start_date: string | null
           topic_id: string | null
           type: Database["public"]["Enums"]["pod_type"]
+          universe_visibility: string
           updated_at: string
         }
         Insert: {
@@ -1951,6 +1961,7 @@ export type Database = {
           start_date?: string | null
           topic_id?: string | null
           type?: Database["public"]["Enums"]["pod_type"]
+          universe_visibility?: string
           updated_at?: string
         }
         Update: {
@@ -1970,6 +1981,7 @@ export type Database = {
           start_date?: string | null
           topic_id?: string | null
           type?: Database["public"]["Enums"]["pod_type"]
+          universe_visibility?: string
           updated_at?: string
         }
         Relationships: [
@@ -2579,6 +2591,7 @@ export type Database = {
           reward_xp: number
           status: Database["public"]["Enums"]["quest_status"]
           title: string
+          universe_visibility: string
           updated_at: string
         }
         Insert: {
@@ -2612,6 +2625,7 @@ export type Database = {
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
           title: string
+          universe_visibility?: string
           updated_at?: string
         }
         Update: {
@@ -2645,6 +2659,7 @@ export type Database = {
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
           title?: string
+          universe_visibility?: string
           updated_at?: string
         }
         Relationships: [
@@ -2839,6 +2854,7 @@ export type Database = {
           provider_user_id: string | null
           stripe_price_id: string | null
           title: string
+          universe_visibility: string
           updated_at: string
         }
         Insert: {
@@ -2863,6 +2879,7 @@ export type Database = {
           provider_user_id?: string | null
           stripe_price_id?: string | null
           title: string
+          universe_visibility?: string
           updated_at?: string
         }
         Update: {
@@ -2887,6 +2904,7 @@ export type Database = {
           provider_user_id?: string | null
           stripe_price_id?: string | null
           title?: string
+          universe_visibility?: string
           updated_at?: string
         }
         Relationships: [
