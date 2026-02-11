@@ -8,7 +8,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { usePersona } from "@/hooks/usePersona";
-import { usePersona } from "@/hooks/usePersona";
 
 import { PersonaGreeting } from "@/components/home/PersonaGreeting";
 import { ContextualActions } from "@/components/home/ContextualActions";
