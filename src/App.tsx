@@ -160,6 +160,7 @@ const App = () => (
                 <Route path="/achievements/:id" element={<AchievementDetail />} />
                 <Route path="/pods/:id" element={<PodDetail />} />
                 <Route path="/services/new" element={<RequireAuth><ServiceCreate /></RequireAuth>} />
+                <Route path="/services/:id/edit" element={<RequireAuth><ServiceCreate /></RequireAuth>} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
                 <Route path="/bookings/:id" element={<RequireAuth><BookingDetail /></RequireAuth>} />
                 <Route path="/call/:bookingId" element={<RequireAuth><CallRoom /></RequireAuth>} />
