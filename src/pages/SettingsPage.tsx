@@ -58,7 +58,7 @@ const TABS = [
   { key: "courses", label: "My Courses", icon: GraduationCap },
   { key: "services", label: "Services & Availability", icon: Briefcase },
   { key: "bookings", label: "My Bookings", icon: CalendarCheck },
-  { key: "billing", label: "Plan & Credits", icon: Zap },
+  { key: "wallet", label: "Wallet", icon: Coins },
   { key: "houses", label: "Houses & Territories", icon: Hash },
   { key: "starred", label: "Starred Excerpts", icon: Star },
   { key: "notifications", label: "Notifications", icon: Bell },
