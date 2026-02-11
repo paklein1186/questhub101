@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus } from "lucide-react";
+import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+
+const CLASS_A_MAILTO = "mailto:pa@changethegame.xyz?subject=Class%20A%20Membership%20Application";
 
 function useShareholdings(userId?: string) {
   return useQuery({
@@ -63,22 +65,20 @@ export default function SharesPage() {
   const { data: holdings = [], isLoading } = useShareholdings(user?.id);
   const { data: settings = {} } = useCoopSettings();
   const { data: profile } = useProfileShares(user?.id);
-  const [buyingClass, setBuyingClass] = useState<"A" | "B" | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
+  const [showBuyB, setShowBuyB] = useState(false);
 
   const sharePrice = settings?.share_price?.amount ?? 10;
-  const classAEnabled = settings?.class_a_enabled?.enabled !== false;
-  const classBEnabled = settings?.class_b_enabled?.enabled !== false;
 
-  const handlePurchase = async (shareClass: "A" | "B") => {
+  const handlePurchaseB = async () => {
     if (!user) return;
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           mode: "shares",
-          shareClass,
+          shareClass: "B",
           quantity,
           pricePerShare: sharePrice,
         },
@@ -91,13 +91,13 @@ export default function SharesPage() {
         const totalPaid = quantity * sharePrice;
         await supabase.from("shareholdings").insert({
           user_id: user.id,
-          share_class: shareClass,
+          share_class: "B",
           number_of_shares: quantity,
           purchase_price_per_share: sharePrice,
           total_paid: totalPaid,
         });
-        toast({ title: "Shares purchased!", description: `${quantity} Class ${shareClass} share(s) added.` });
-        setBuyingClass(null);
+        toast({ title: "Shares purchased!", description: `${quantity} Class B share(s) added.` });
+        setShowBuyB(false);
         setQuantity(1);
       }
     } catch (e: any) {
@@ -121,7 +121,7 @@ export default function SharesPage() {
             Co-own <span className="text-primary">changethegame</span>
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
-            changethegame is co-owned by its members. You can become a shareholder starting at {sharePrice} €.
+            changethegame is co-owned by its members. Two share classes exist — strategic (A) and community (B).
             Your voice and vote count through a fair logarithmic system.
           </p>
         </motion.div>
@@ -136,20 +136,19 @@ export default function SharesPage() {
                   <Shield className="h-5 w-5 text-primary" /> You are a cooperative member
                 </h3>
                 <div className="flex gap-4 mt-2 text-sm">
-                  {profile.total_shares_a > 0 && (
-                    <span>Class A: <strong>{profile.total_shares_a}</strong> shares</span>
-                  )}
-                  {profile.total_shares_b > 0 && (
-                    <span>Class B: <strong>{profile.total_shares_b}</strong> shares</span>
-                  )}
+                  <span>Class A: <strong>{profile.total_shares_a ?? 0}</strong> shares</span>
+                  <span>Class B: <strong>{profile.total_shares_b ?? 0}</strong> shares</span>
                   <span>Governance weight: <strong>{Number(profile.governance_weight).toFixed(2)}</strong></span>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/governance">Go to governance decisions</Link>
+                  <Link to="/governance">Governance decisions</Link>
                 </Button>
-                <Button size="sm" onClick={() => setBuyingClass("A")}>Buy more shares</Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href={CLASS_A_MAILTO}>Apply for Class A</a>
+                </Button>
+                <Button size="sm" onClick={() => setShowBuyB(true)}>Buy more Class B</Button>
               </div>
             </div>
           </motion.div>
@@ -159,84 +158,78 @@ export default function SharesPage() {
 
         {/* Share classes */}
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Class A */}
-          <Card className={`relative overflow-hidden ${!classAEnabled ? "opacity-50" : ""}`}>
+          {/* ═══════ Class A — Application Only ═══════ */}
+          <Card className="relative overflow-hidden border-primary/20">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[100%]" />
             <CardHeader>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-primary/10 text-primary border-0">Class A</Badge>
                 <Badge variant="outline">{sharePrice} € / share</Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  <Lock className="h-3 w-3 mr-0.5" /> Application-Only
+                </Badge>
               </div>
-              <CardTitle className="font-display text-xl">Strategic Member</CardTitle>
+              <CardTitle className="font-display text-xl">Strategic Shares</CardTitle>
               <CardDescription>
-                Class A members participate in strategic and operational decisions.
+                For governance participation and operational decision-making.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2"><Vote className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Voting rights on all strategic decisions</li>
-                <li className="flex items-start gap-2"><Users className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Priority for governance calls</li>
-                <li className="flex items-start gap-2"><Shield className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Logarithmic voting weight: log(1 + shares)</li>
+                <li className="flex items-start gap-2"><Vote className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Strategic governance voting</li>
+                <li className="flex items-start gap-2"><Shield className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Operational decision power</li>
+                <li className="flex items-start gap-2"><Users className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Participation in inner governance group</li>
               </ul>
+              <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground text-sm">Voting weight: log(1 + shares)</p>
+                <p>Full logarithmic governance weight.</p>
+              </div>
 
-              {buyingClass === "A" ? (
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-3 justify-center">
-                    <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="font-display text-2xl font-bold w-12 text-center">{quantity}</span>
-                    <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-center text-sm text-muted-foreground">
-                    Total: <strong>{quantity * sharePrice} €</strong>
-                  </p>
-                  <div className="flex gap-2">
-                    <Button className="flex-1" onClick={() => handlePurchase("A")} disabled={purchasing}>
-                      {purchasing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Confirm purchase
-                    </Button>
-                    <Button variant="ghost" onClick={() => { setBuyingClass(null); setQuantity(1); }}>Cancel</Button>
-                  </div>
-                </div>
-              ) : (
-                <Button className="w-full" onClick={() => setBuyingClass("A")} disabled={!classAEnabled}>
-                  Buy Class A Shares <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
+              <Button className="w-full" variant="outline" asChild>
+                <a href={CLASS_A_MAILTO}>
+                  <Mail className="h-4 w-4 mr-2" /> Apply to Become a Class A Member
+                </a>
+              </Button>
+              <p className="text-xs text-muted-foreground text-center italic">
+                Class A membership is selective and handled manually.
+              </p>
             </CardContent>
           </Card>
 
-          {/* Class B */}
-          <Card className={`relative overflow-hidden ${!classBEnabled ? "opacity-50" : ""}`}>
+          {/* ═══════ Class B — Purchasable ═══════ */}
+          <Card className="relative overflow-hidden border-accent/20">
             <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-[100%]" />
             <CardHeader>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-accent/10 text-accent border-0">Class B</Badge>
                 <Badge variant="outline">{sharePrice} € / share</Badge>
+                <Badge variant="secondary" className="text-[10px] bg-accent/10 text-accent border-0">
+                  Open for Purchase
+                </Badge>
               </div>
-              <CardTitle className="font-display text-xl">Community Supporter</CardTitle>
+              <CardTitle className="font-display text-xl">Community Shares</CardTitle>
               <CardDescription>
-                Class B members support the ecosystem and join assemblies & events.
+                Support the ecosystem & join assemblies.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2"><Users className="h-4 w-4 text-accent mt-0.5 shrink-0" /> Invitations to assemblies & events</li>
-                <li className="flex items-start gap-2"><Vote className="h-4 w-4 text-accent mt-0.5 shrink-0" /> Light voting on symbolic questions</li>
-                <li className="flex items-start gap-2"><Shield className="h-4 w-4 text-accent mt-0.5 shrink-0" /> Weight: log(1 + shares) × 0.2</li>
+                <li className="flex items-start gap-2"><Users className="h-4 w-4 text-accent mt-0.5 shrink-0" /> Access to assemblies & community events</li>
+                <li className="flex items-start gap-2"><Vote className="h-4 w-4 text-accent mt-0.5 shrink-0" /> Symbolic governance input (light vote)</li>
               </ul>
+              <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground text-sm">Voting weight: log(1 + shares) × 0.2</p>
+                <p>Reduced weight for community input.</p>
+              </div>
 
-              {buyingClass === "B" ? (
+              {showBuyB ? (
                 <div className="space-y-3 pt-2">
                   <div className="flex items-center gap-3 justify-center">
                     <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
                       <Minus className="h-4 w-4" />
                     </Button>
                     <span className="font-display text-2xl font-bold w-12 text-center">{quantity}</span>
-                    <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
+                    <Button variant="outline" size="sm" onClick={() => setQuantity(Math.min(100, quantity + 1))}>
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -244,15 +237,15 @@ export default function SharesPage() {
                     Total: <strong>{quantity * sharePrice} €</strong>
                   </p>
                   <div className="flex gap-2">
-                    <Button className="flex-1" variant="secondary" onClick={() => handlePurchase("B")} disabled={purchasing}>
+                    <Button className="flex-1" variant="secondary" onClick={handlePurchaseB} disabled={purchasing}>
                       {purchasing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                       Confirm purchase
                     </Button>
-                    <Button variant="ghost" onClick={() => { setBuyingClass(null); setQuantity(1); }}>Cancel</Button>
+                    <Button variant="ghost" onClick={() => { setShowBuyB(false); setQuantity(1); }}>Cancel</Button>
                   </div>
                 </div>
               ) : (
-                <Button className="w-full" variant="secondary" onClick={() => setBuyingClass("B")} disabled={!classBEnabled}>
+                <Button className="w-full" variant="secondary" onClick={() => setShowBuyB(true)}>
                   Buy Class B Shares <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
@@ -282,7 +275,7 @@ export default function SharesPage() {
                       <td className="p-2 sm:p-3 text-muted-foreground text-xs sm:text-sm">{new Date(h.created_at).toLocaleDateString()}</td>
                       <td className="p-2 sm:p-3">
                         <Badge variant={h.share_class === "A" ? "default" : "secondary"} className="text-xs">
-                          {h.share_class}
+                          Class {h.share_class}
                         </Badge>
                       </td>
                       <td className="p-2 sm:p-3 text-right font-medium">{h.number_of_shares}</td>
