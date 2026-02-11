@@ -981,6 +981,7 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
           {toggle("notify_quest_updates_from_followed", `Updates from ${label("quest.label")}s I follow`)}
           {toggle("notify_invitations_to_units", "Invitations to join units")}
           {toggle("notify_comments_and_upvotes", "Comments & upvotes")}
+          {toggle("notify_mentions" as any, "Mentions in comments and updates")}
           {toggle("notify_follower_activity", "Follower activity")}
           {toggle("notify_xp_and_achievements", "XP & achievements")}
         </div>
