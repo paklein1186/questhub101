@@ -545,12 +545,12 @@ export default function QuestCreate() {
                 </div>
               </Card>
 
-              {/* Houses & Territories */}
+              {/* Topics & Territories */}
               <div className="grid grid-cols-2 gap-3">
                 {aiSuggestion.suggestedHouses.length > 0 && (
                   <Card className="p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-semibold">Houses</h4>
+                      <h4 className="text-xs font-semibold">Topics</h4>
                       <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={acceptHouses}>
                         <Check className="h-3 w-3 mr-1" /> Add
                       </Button>
