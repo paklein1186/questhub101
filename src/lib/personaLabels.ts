@@ -300,30 +300,30 @@ export function getLabel(key: string, persona: PersonaType | LexiconMode = "UNSE
   return entry[resolved] || entry.DEFAULT;
 }
 
-/** Persona-specific prompt suggestions for the HeroAI */
+/** Persona-specific prompt affirmations for the HeroAI */
 export function getHeroPrompts(persona: PersonaType): string[] {
   if (persona === "IMPACT") {
     return [
-      "Find impact missions or quests to join",
-      "Offer my expertise as a service",
-      "Connect with a guild working on regeneration",
-      "How can I earn more XP this week?",
+      "I want to join a mission that matters",
+      "I'm ready to share my expertise as a service",
+      "Show me guilds driving regeneration",
+      "Help me grow my impact this week",
     ];
   }
   if (persona === "CREATIVE") {
     return [
-      "Start a new creative quest",
-      "Offer a skill session (workshop, class)",
-      "Find a collective to co-create with",
-      "What creative events are coming up?",
+      "I'm ready to start a new creation",
+      "I want to offer a skill session",
+      "Connect me with a circle to co-create",
+      "Show me upcoming creative gatherings",
     ];
   }
   // HYBRID / UNSET
   return [
-    "What are you up to today?",
-    "How do you want to spread hope today?",
-    "How can I support you?",
-    "I'm ready to create a mesmerising world — guide me.",
+    "I want to discover quests I can join",
+    "I'm ready to offer my skills as a service",
+    "Show me groups and communities to join",
+    "Help me find collaborators in my territory",
   ];
 }
 
