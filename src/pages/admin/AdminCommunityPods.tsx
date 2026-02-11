@@ -1,9 +1,11 @@
 import { Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { pods as allPods } from "@/data/mock";
+import { usePods } from "@/hooks/useSupabaseData";
 
 export default function AdminCommunityPods() {
+  const { data: allPods = [], isLoading } = usePods();
+
   return (
     <div className="space-y-4">
       <h2 className="font-display text-2xl font-bold flex items-center gap-2">
@@ -26,13 +28,13 @@ export default function AdminCommunityPods() {
                   <Badge variant="secondary" className="text-xs capitalize">{pod.type.toLowerCase().replace("_", " ")}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={pod.isDraft ? "outline" : "default"} className="text-xs">
-                    {pod.isDraft ? "Draft" : "Active"}
+                  <Badge variant={pod.is_draft ? "outline" : "default"} className="text-xs">
+                    {pod.is_draft ? "Draft" : "Active"}
                   </Badge>
                 </TableCell>
               </TableRow>
             ))}
-            {allPods.length === 0 && (
+            {!isLoading && allPods.length === 0 && (
               <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No pods.</TableCell></TableRow>
             )}
           </TableBody>

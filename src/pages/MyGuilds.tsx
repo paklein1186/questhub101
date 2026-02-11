@@ -6,22 +6,18 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { GuildMemberRole } from "@/types/enums";
-import {
-  guildMembers, getGuildById, getMembersForGuild, getTopicsForGuild,
-} from "@/data/mock";
+import { useUserGuildMemberships } from "@/hooks/useEntityQueries";
 
 export default function MyGuilds({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
-  const myMemberships = guildMembers.filter((gm) => gm.userId === currentUser.id);
-  const adminGuilds = myMemberships.filter((gm) => gm.role === GuildMemberRole.ADMIN);
-  const memberGuilds = myMemberships.filter((gm) => gm.role === GuildMemberRole.MEMBER);
+  const { data: memberships = [], isLoading } = useUserGuildMemberships(currentUser.id);
 
-  const renderGuild = (gm: typeof myMemberships[0], i: number) => {
-    const guild = getGuildById(gm.guildId);
+  const adminGuilds = memberships.filter((gm) => gm.role === "ADMIN");
+  const memberGuilds = memberships.filter((gm) => gm.role === "MEMBER");
+
+  const renderGuild = (gm: typeof memberships[0], i: number) => {
+    const guild = gm.guilds as any;
     if (!guild) return null;
-    const members = getMembersForGuild(guild.id);
-    const gTopics = getTopicsForGuild(guild.id);
     return (
       <motion.div key={gm.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
         <Link
@@ -30,20 +26,15 @@ export default function MyGuilds({ bare }: { bare?: boolean }) {
         >
           <div className="flex items-center gap-3 mb-2">
             <Avatar className="h-12 w-12 rounded-lg">
-              <AvatarImage src={guild.logoUrl} />
-              <AvatarFallback>{guild.name[0]}</AvatarFallback>
+              <AvatarImage src={guild.logo_url} />
+              <AvatarFallback>{guild.name?.[0]}</AvatarFallback>
             </Avatar>
             <div>
               <h3 className="font-display font-semibold">{guild.name}</h3>
-              <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{guild.description}</p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {gTopics.slice(0, 3).map((t) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
-          </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="h-3.5 w-3.5" /> {members.length} members
+            <Users className="h-3.5 w-3.5" /> Member
           </div>
         </Link>
       </motion.div>
@@ -63,7 +54,9 @@ export default function MyGuilds({ bare }: { bare?: boolean }) {
         </>
       )}
 
-      {myMemberships.length === 0 && (
+      {isLoading && <p className="text-muted-foreground">Loading…</p>}
+
+      {!isLoading && memberships.length === 0 && (
         <p className="text-muted-foreground">You haven't joined any guilds yet. <Link to="/explore?tab=guilds" className="text-primary hover:underline">Browse guilds</Link></p>
       )}
 
