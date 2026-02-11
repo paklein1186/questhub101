@@ -72,6 +72,9 @@ export default function NetworkHub() {
   const isLoading = loadingGuilds || loadingCompanies || loadingPeople || loadingTerritories;
 
   // Persona-aware section ordering
+  const [entitySub, setEntitySub] = useState<"all" | "guilds" | "pods" | "companies">("all");
+  const totalEntities = guildMemberships.length + podMemberships.length + companyMemberships.length;
+
   const overviewSections = useMemo(() => {
     const sections = ["people", "guilds", "companies", "territories", "ai"];
     if (persona === "IMPACT") return ["guilds", "companies", "territories", "people", "ai"];
@@ -93,9 +96,7 @@ export default function NetworkHub() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
-          <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
-          <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> {label("pod.label")} ({podMemberships.length})</TabsTrigger>
-          <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Trad. Orgs ({companyMemberships.length})</TabsTrigger>
+          <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 mr-1" /> Entities ({totalEntities})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Topics</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
         </TabsList>
@@ -129,19 +130,44 @@ export default function NetworkHub() {
           <PeopleTab people={people} loading={loadingPeople} />
         </TabsContent>
 
-        {/* ═══════════════ GUILDS ═══════════════ */}
-        <TabsContent value="guilds" className="mt-0">
-          <GuildsTab memberships={guildMemberships} loading={loadingGuilds} label={label} />
-        </TabsContent>
+        {/* ═══════════════ ENTITIES (clustered) ═══════════════ */}
+        <TabsContent value="entities" className="mt-0">
+          <div className="flex items-center gap-2 mb-5 flex-wrap">
+            {([
+              ["all", "All", totalEntities],
+              ["guilds", label("guild.label"), guildMemberships.length],
+              ["pods", label("pod.label"), podMemberships.length],
+              ["companies", "Trad. Orgs", companyMemberships.length],
+            ] as [typeof entitySub, string, number][]).map(([key, lbl, count]) => (
+              <Button
+                key={key}
+                variant={entitySub === key ? "default" : "outline"}
+                size="sm"
+                onClick={() => setEntitySub(key)}
+                className="text-xs"
+              >
+                {lbl} ({count})
+              </Button>
+            ))}
+          </div>
 
-        {/* ═══════════════ COMPANIES ═══════════════ */}
-        <TabsContent value="companies" className="mt-0">
-          <CompaniesTab memberships={companyMemberships} loading={loadingCompanies} />
-        </TabsContent>
+          {(loadingGuilds || loadingPods || loadingCompanies) && (
+            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          )}
 
-        {/* ═══════════════ PODS ═══════════════ */}
-        <TabsContent value="pods" className="mt-0">
-          <PodsTab memberships={podMemberships} loading={loadingPods} label={label} />
+          {!(loadingGuilds || loadingPods || loadingCompanies) && (
+            <div className="space-y-8">
+              {(entitySub === "all" || entitySub === "guilds") && (
+                <GuildsTab memberships={guildMemberships} loading={false} label={label} />
+              )}
+              {(entitySub === "all" || entitySub === "pods") && (
+                <PodsTab memberships={podMemberships} loading={false} label={label} />
+              )}
+              {(entitySub === "all" || entitySub === "companies") && (
+                <CompaniesTab memberships={companyMemberships} loading={false} />
+              )}
+            </div>
+          )}
         </TabsContent>
 
         {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
@@ -165,7 +191,7 @@ function OverviewPeople({ people }: { people: any[] }) {
     <div>
       <SectionHeader icon={Users} title="People in your orbit" count={people.length} seeMoreTo="/network?tab=people" />
       {top.length === 0 ? (
-        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=guilds" />
+        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=entities" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {top.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
@@ -179,9 +205,9 @@ function OverviewGuilds({ memberships, label }: { memberships: any[]; label: (k:
   const top = memberships.slice(0, 4);
   return (
     <div>
-      <SectionHeader icon={Shield} title={`${label("guild.label")} in your orbit`} count={memberships.length} seeMoreTo="/network?tab=guilds" />
+      <SectionHeader icon={Shield} title={`${label("guild.label")} in your orbit`} count={memberships.length} seeMoreTo="/network?tab=entities" />
       {top.length === 0 ? (
-        <EmptyState icon={Shield} message={`You haven't joined any ${label("guild.label").toLowerCase()} yet.`} cta={`Explore ${label("guild.label").toLowerCase()}`} to="/explore?tab=guilds" />
+        <EmptyState icon={Shield} message={`You haven't joined any ${label("guild.label").toLowerCase()} yet.`} cta={`Explore ${label("guild.label").toLowerCase()}`} to="/explore?tab=entities" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {top.map((m, i) => <GuildCard key={m.guildId} membership={m} index={i} />)}
@@ -195,7 +221,7 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
   const top = memberships.slice(0, 4);
   return (
     <div>
-      <SectionHeader icon={Building2} title="Traditional Organizations in your orbit" count={memberships.length} seeMoreTo="/network?tab=companies" />
+      <SectionHeader icon={Building2} title="Traditional Organizations in your orbit" count={memberships.length} seeMoreTo="/network?tab=entities" />
       {top.length === 0 ? (
         <EmptyState icon={Building2} message="No traditional organizations linked to your account." cta="Create one" to="/me/companies" />
       ) : (
