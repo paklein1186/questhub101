@@ -203,6 +203,9 @@ const App = () => (
                 <Route path="/governance" element={<GovernancePage />} />
                 <Route path="/roadmap" element={<RoadmapPage />} />
                 <Route path="/bugs" element={<BugReportingPage />} />
+                <Route path="/manifesto" element={<ManifestoPage />} />
+                <Route path="/cooperative" element={<CooperativeVenturePage />} />
+                <Route path="/what-comes-next" element={<WhatComesNextPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
