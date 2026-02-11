@@ -166,7 +166,7 @@ export default function QuestCreate() {
     const matching = topics.filter(t => aiSuggestion.suggestedHouses.some(h => t.name.toLowerCase().includes(h.toLowerCase())));
     const newIds = [...new Set([...selectedTopics, ...matching.map(t => t.id)])];
     setSelectedTopics(newIds);
-    toast({ title: `${matching.length} Houses added` });
+    toast({ title: `${matching.length} Topics added` });
   };
 
   const acceptTerritories = () => {
