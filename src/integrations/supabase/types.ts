@@ -3732,6 +3732,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_spoken_languages: {
+        Row: {
+          created_at: string
+          id: string
+          language_code: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language_code: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language_code?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           canceled_at: string | null
