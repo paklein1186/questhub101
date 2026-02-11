@@ -59,8 +59,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     queryKey: ["comment-authors", ...authorIds],
     enabled: authorIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles_public" as any)
+      const { data } = await (supabase as any)
+        .from("profiles_public")
         .select("user_id, name, avatar_url")
         .in("user_id", authorIds);
       return (data ?? []) as { user_id: string; name: string; avatar_url: string | null }[];
