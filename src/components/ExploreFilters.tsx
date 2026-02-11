@@ -305,7 +305,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Hash className="h-3 w-3" /> Houses / Topics
+                  <Hash className="h-3 w-3" /> Topics
                 </p>
                 {filters.topicIds.length > 0 && (
                   <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => set({ topicIds: [] })}>
