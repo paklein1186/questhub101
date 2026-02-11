@@ -7,8 +7,8 @@ export default function TerritoriesHousesPage() {
         <p>Territories are real-world places where quests, guilds and communities act.</p>
       </ContentSection>
 
-      <ContentSection title="What are Houses?">
-        <p>Houses are thematic domains (creativity, impact, craft, regeneration, learning…).</p>
+      <ContentSection title="What are Topics?">
+        <p>Topics are thematic domains (creativity, impact, craft, regeneration, learning…).</p>
       </ContentSection>
 
       <ContentSection title="Together They Shape">
