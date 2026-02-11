@@ -1610,6 +1610,48 @@ export type Database = {
         }
         Relationships: []
       }
+      partnerships: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          from_entity_id: string
+          from_entity_type: string
+          id: string
+          notes: string | null
+          partnership_type: string | null
+          status: string
+          to_entity_id: string
+          to_entity_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          from_entity_id: string
+          from_entity_type: string
+          id?: string
+          notes?: string | null
+          partnership_type?: string | null
+          status?: string
+          to_entity_id: string
+          to_entity_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          from_entity_id?: string
+          from_entity_type?: string
+          id?: string
+          notes?: string | null
+          partnership_type?: string | null
+          status?: string
+          to_entity_id?: string
+          to_entity_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pod_applications: {
         Row: {
           admin_note: string | null

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {
-  Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star,
+  Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
   MoreHorizontal, Pencil, Trash2, Vote,
@@ -45,6 +45,8 @@ import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FeedSection } from "@/components/feed/FeedSection";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
+import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
+import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -271,6 +273,9 @@ export default function GuildDetail() {
                   <Brain className="h-4 w-4 mr-2" /> Memory
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => setActiveTab("partnerships")}>
+                <Handshake className="h-4 w-4 mr-2" /> Partnerships
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -282,6 +287,11 @@ export default function GuildDetail() {
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></div>
           </div>
+          <PartnersBlock entityType="GUILD" entityId={guild.id} />
+        </TabsContent>
+
+        <TabsContent value="partnerships" className="mt-6">
+          <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
         </TabsContent>
 
         <TabsContent value="members" className="mt-6">
