@@ -65,6 +65,7 @@ export const XP_REWARDS: Record<string, number> = {
   [XP_EVENT_TYPES.REFERRAL_REWARD]: 50,
   [XP_EVENT_TYPES.PROPOSAL_SUBMITTED]: 3,
   [XP_EVENT_TYPES.PROPOSAL_ACCEPTED]: 20,
+  [XP_EVENT_TYPES.TERRITORY_MEMORY_CONTRIBUTED]: 3,
 };
 
 /** Daily cap for COMMENT_UPVOTED XP (max XP from this type per user per day) */
