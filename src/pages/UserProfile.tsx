@@ -166,7 +166,7 @@ export default function UserProfile() {
               </div>
               <XpProgressBar xp={profile.xp} level={profile.xpLevel} />
 
-              {/* Houses chips */}
+              {/* Topics chips */}
               {topics.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3">
                   {topics.slice(0, 6).map((t: any) => (
