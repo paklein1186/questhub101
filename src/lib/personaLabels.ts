@@ -437,6 +437,6 @@ export const CREATIVE_BIO_SUGGESTIONS = [
 export const LEXICON_MODES: { value: LexiconMode; label: string; description: string }[] = [
   { value: "IMPACT", label: "Impact World", description: "Guilds, Missions, Services, XP" },
   { value: "CREATIVE", label: "Creative World", description: "Circles, Creations, Skill Sessions, Resonance" },
-  { value: "HYBRID", label: "Hybrid World", description: "Groups, Quests, Services, Impact Points" },
-  { value: "NEUTRAL", label: "Neutral Mode", description: "Groups, Quests, Services, XP" },
+  { value: "HYBRID", label: "Hybrid World", description: "Guilds, Quests, Services, Impact Points" },
+  { value: "NEUTRAL", label: "Neutral Mode", description: "Guilds, Quests, Services, XP" },
 ];
