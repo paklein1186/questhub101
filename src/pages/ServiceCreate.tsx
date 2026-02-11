@@ -79,6 +79,7 @@ export default function ServiceCreate() {
           online_location_type: locationType,
           is_draft: isDraft,
           is_active: !isDraft && isActive,
+          image_url: imageUrl || null,
         } as any).eq("id", editId);
         if (error) throw error;
       } else {
