@@ -232,32 +232,21 @@ export function useMilestoneChecker() {
 
   const checkMilestones = useCallback(async () => {
     if (!user?.id) return;
+    const uid = user.id;
 
-    const [
-      profileRes,
-      spokenLangsRes,
-      guildMembersRes,
-      questsRes,
-      servicesRes,
-      podMembersRes,
-      territoryMemoryRes,
-      eventAttendeesRes,
-      shareholdingsRes,
-      coursesRes,
-      eventsHostedRes,
-    ] = await Promise.all([
-      supabase.from("profiles").select("name, bio, avatar_url, headline").eq("user_id", user.id).single(),
-      supabase.from("user_spoken_languages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("guild_members").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("quests").select("id", { count: "exact", head: true }).eq("created_by_user_id", user.id).eq("is_deleted", false),
-      supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", user.id).eq("is_deleted", false),
-      supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("territory_memory").select("id", { count: "exact", head: true }).eq("author_user_id", user.id),
-      supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", user.id).eq("is_published", true).eq("is_deleted", false),
-      supabase.from("guild_events").select("id", { count: "exact", head: true }).eq("created_by_user_id", user.id),
-    ]);
+    const profileRes = await supabase.from("profiles").select("name, bio, avatar_url, headline").eq("user_id", uid).single();
+    const spokenLangsRes = await supabase.from("user_spoken_languages").select("id", { count: "exact", head: true }).eq("user_id", uid);
+    const guildMembersRes = await supabase.from("guild_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
+    const podMembersRes = await supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
+    const territoryMemoryRes = await supabase.from("territory_memory").select("id", { count: "exact", head: true }).eq("author_user_id", uid);
+    const eventAttendeesRes = await supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", uid);
+    const shareholdingsRes = await supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", uid);
+    const eventsHostedRes = await supabase.from("guild_events").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid);
+
+    // These need extra chained filters - use `as any` to avoid deep TS instantiation
+    const questsRes = await (supabase.from("quests").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid) as any).eq("is_deleted", false);
+    const servicesRes = await (supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", uid) as any).eq("is_deleted", false);
+    const coursesRes = await (supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", uid) as any).eq("is_published", true);
 
     // Profile completeness
     const profile = profileRes.data;
