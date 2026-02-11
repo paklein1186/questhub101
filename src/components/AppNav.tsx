@@ -157,7 +157,7 @@ export function AppNav() {
                         <AvatarImage src={user?.avatarUrl} />
                         <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium text-foreground">Me</span>
+                      <span className="text-sm font-medium text-foreground">{t("nav.me")}</span>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
