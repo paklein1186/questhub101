@@ -344,7 +344,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyGuildMemberAdded = useCallback(async ({ guildId, userId: targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return; // don't self-notify the adder
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_MEMBER_ADDED,
       title: "Added to guild", body: "You were added to a guild",
