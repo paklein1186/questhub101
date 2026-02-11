@@ -191,7 +191,7 @@ function OverviewPeople({ people }: { people: any[] }) {
     <div>
       <SectionHeader icon={Users} title="People in your orbit" count={people.length} seeMoreTo="/network?tab=people" />
       {top.length === 0 ? (
-        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=guilds" />
+        <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=entities" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {top.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
