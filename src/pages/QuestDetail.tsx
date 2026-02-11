@@ -177,6 +177,32 @@ export default function QuestDetail() {
           <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
           <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
         </div>
+
+        {/* Mission Budget & Economy Bar */}
+        {((quest as any).mission_budget_min || (quest as any).mission_budget_max || quest.credit_reward > 0) && (
+          <div className="rounded-lg border border-border bg-muted/30 p-4 mb-4 grid gap-3 md:grid-cols-3">
+            {((quest as any).mission_budget_min || (quest as any).mission_budget_max) && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
+                <p className="text-lg font-bold">
+                  €{(quest as any).mission_budget_min ?? "—"} – €{(quest as any).mission_budget_max ?? "—"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">Payment in euros • {(quest as any).payment_type || "INVOICE"}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">🏆 XP Reward</p>
+              <p className="text-lg font-bold text-primary">+{quest.reward_xp} XP</p>
+            </div>
+            {quest.credit_reward > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">⚡ Credit Reward</p>
+                <p className="text-lg font-bold text-primary">{quest.credit_reward} Credits</p>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
           {guild && <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>}
           <span>·</span><span>by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
@@ -184,15 +210,13 @@ export default function QuestDetail() {
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
           {quest.price_fiat > 0 && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid Quest — €{(quest.price_fiat / 100).toFixed(2)}</Badge>
-          )}
-          {quest.credit_reward > 0 && (
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-0"><Coins className="h-3 w-3 mr-1" /> Reward: {quest.credit_reward} Credits</Badge>
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — €{(quest.price_fiat / 100).toFixed(2)}</Badge>
           )}
           {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
             <Badge variant="secondary" className="capitalize">Free</Badge>
           )}
           {quest.is_featured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
+          {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
         <p className="text-muted-foreground max-w-2xl">{quest.description}</p>
         <div className="flex flex-wrap gap-1.5 mt-3">

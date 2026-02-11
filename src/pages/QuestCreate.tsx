@@ -83,6 +83,9 @@ export default function QuestCreate() {
   const [allowFundraising, setAllowFundraising] = useState(false);
   const [fundingGoalCredits, setFundingGoalCredits] = useState("");
   const [openForProposals, setOpenForProposals] = useState(false);
+  const [missionBudgetMin, setMissionBudgetMin] = useState("");
+  const [missionBudgetMax, setMissionBudgetMax] = useState("");
+  const [paymentType, setPaymentType] = useState("INVOICE");
 
   // AI state
   const [aiKeywords, setAiKeywords] = useState("");
@@ -199,6 +202,9 @@ export default function QuestCreate() {
           escrow_credits: budget,
           allow_fundraising: allowFundraising,
           funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
+          mission_budget_min: missionBudgetMin ? Number(missionBudgetMin) : null,
+          mission_budget_max: missionBudgetMax ? Number(missionBudgetMax) : null,
+          payment_type: paymentType,
         } as any)
         .select()
         .single();
@@ -474,6 +480,35 @@ export default function QuestCreate() {
             <Label>Cover Image</Label>
             <div className="mt-1">
               <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
+            </div>
+          </div>
+
+          {/* Mission Budget (Euros) */}
+          <div className="rounded-lg border border-border p-4 space-y-4">
+            <h3 className="text-sm font-semibold flex items-center gap-2">💰 Mission Budget (€)</h3>
+            <p className="text-xs text-muted-foreground">Mission budgets are in euros. Credits are not used for compensation.</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="budgetMin">Budget Min (€)</Label>
+                <Input id="budgetMin" type="number" value={missionBudgetMin} onChange={(e) => setMissionBudgetMin(e.target.value)} min={0} className="mt-1" placeholder="e.g. 500" />
+              </div>
+              <div>
+                <Label htmlFor="budgetMax">Budget Max (€)</Label>
+                <Input id="budgetMax" type="number" value={missionBudgetMax} onChange={(e) => setMissionBudgetMax(e.target.value)} min={0} className="mt-1" placeholder="e.g. 5000" />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="paymentType">Payment Method</Label>
+              <select
+                id="paymentType"
+                value={paymentType}
+                onChange={(e) => setPaymentType(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="INVOICE">Invoice</option>
+                <option value="STRIPE">Stripe</option>
+                <option value="OTHER">Other</option>
+              </select>
             </div>
           </div>
 

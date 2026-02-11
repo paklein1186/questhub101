@@ -7,11 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// XP Bundle config
-const XP_BUNDLES: Record<string, { xpAmount: number; priceId: string; name: string }> = {
-  STARTER: { xpAmount: 50, priceId: "price_1Sz4V0BttrYxqJqzjqX00x7D", name: "Starter (50 XP)" },
-  GROWTH: { xpAmount: 150, priceId: "price_1Sz4WrBttrYxqJqzY3q9MAEz", name: "Growth (150 XP)" },
-  PRO: { xpAmount: 400, priceId: "price_1Sz4X5BttrYxqJqzZGENFU94", name: "Pro (400 XP)" },
+// Credit Bundle config (maps bundle codes to Stripe price IDs)
+const CREDIT_BUNDLES: Record<string, { credits: number; priceId: string; name: string }> = {
+  STARTER_100: { credits: 100, priceId: "price_1SzRJsBttrYxqJqzDOZdcEfR", name: "Starter (100 Credits)" },
+  CREATOR_300: { credits: 300, priceId: "price_1SzRJtBttrYxqJqz6Uwn7fN8", name: "Creator (300 Credits)" },
+  CATALYST_1000: { credits: 1000, priceId: "price_1SzRJuBttrYxqJqzUnFTnprq", name: "Catalyst (1000 Credits)" },
 };
 
 serve(async (req) => {
@@ -45,9 +45,9 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    if (mode === "xp_bundle") {
-      // One-off XP bundle purchase
-      const bundle = XP_BUNDLES[bundleCode];
+    if (mode === "credit_bundle") {
+      // One-off credit bundle purchase
+      const bundle = CREDIT_BUNDLES[bundleCode];
       if (!bundle) throw new Error(`Invalid bundle code: ${bundleCode}`);
 
       const session = await stripe.checkout.sessions.create({
@@ -55,12 +55,12 @@ serve(async (req) => {
         customer_email: customerId ? undefined : user.email,
         line_items: [{ price: bundle.priceId, quantity: 1 }],
         mode: "payment",
-        success_url: `${origin}/me/xp?success=true&bundle=${bundleCode}`,
-        cancel_url: `${origin}/me/xp?canceled=true`,
+        success_url: `${origin}/me/credits?success=true&bundle=${bundleCode}`,
+        cancel_url: `${origin}/me/credits?canceled=true`,
         metadata: {
-          type: "xp_bundle",
+          type: "credit_bundle",
           bundle_code: bundleCode,
-          xp_amount: String(bundle.xpAmount),
+          credits_amount: String(bundle.credits),
           user_id: user.id,
         },
       });
@@ -88,8 +88,37 @@ serve(async (req) => {
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    } else if (mode === "xp_bundle") {
+      // Legacy XP bundle support — redirect to credit bundles
+      const legacyMap: Record<string, string> = {
+        STARTER: "STARTER_100",
+        GROWTH: "CREATOR_300",
+        PRO: "CATALYST_1000",
+      };
+      const mappedCode = legacyMap[bundleCode] || bundleCode;
+      const bundle = CREDIT_BUNDLES[mappedCode];
+      if (!bundle) throw new Error(`Invalid bundle code: ${bundleCode}`);
+
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{ price: bundle.priceId, quantity: 1 }],
+        mode: "payment",
+        success_url: `${origin}/me/credits?success=true&bundle=${mappedCode}`,
+        cancel_url: `${origin}/me/credits?canceled=true`,
+        metadata: {
+          type: "credit_bundle",
+          bundle_code: mappedCode,
+          credits_amount: String(bundle.credits),
+          user_id: user.id,
+        },
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } else {
-      throw new Error("Invalid mode. Use 'xp_bundle' or 'subscription'.");
+      throw new Error("Invalid mode. Use 'credit_bundle', 'xp_bundle', or 'subscription'.");
     }
   } catch (error) {
     console.error("Error in create-checkout:", error);

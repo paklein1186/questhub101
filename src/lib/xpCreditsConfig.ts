@@ -40,35 +40,27 @@ export const XP_EVENT_TYPES = {
 export type XpEventType = (typeof XP_EVENT_TYPES)[keyof typeof XP_EVENT_TYPES];
 
 export const XP_REWARDS: Record<string, number> = {
-  // Quests
   [XP_EVENT_TYPES.QUEST_CREATED]: 5,
   [XP_EVENT_TYPES.QUEST_PUBLISHED]: 10,
   [XP_EVENT_TYPES.QUEST_COMPLETED_USER]: 30,
   [XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR]: 40,
-  // Pods
   [XP_EVENT_TYPES.POD_HOSTED]: 20,
   [XP_EVENT_TYPES.POD_PARTICIPATED]: 10,
-  // Services
   [XP_EVENT_TYPES.SERVICE_DELIVERED]: 15,
   [XP_EVENT_TYPES.SERVICE_RATED_5]: 5,
-  // Courses
   [XP_EVENT_TYPES.COURSE_COMPLETED_LEARNER]: 10,
   [XP_EVENT_TYPES.COURSE_TEACHER_COMPLETED]: 25,
-  // Social
   [XP_EVENT_TYPES.ENDORSEMENT_RECEIVED]: 3,
   [XP_EVENT_TYPES.COMMENT_UPVOTED]: 1,
-  // Stewardship
   [XP_EVENT_TYPES.STEWARDSHIP_HOUSE_MONTH]: 25,
   [XP_EVENT_TYPES.STEWARDSHIP_TERRITORY_MONTH]: 15,
   [XP_EVENT_TYPES.MODERATION_RESOLVED]: 10,
-  // Legacy
   [XP_EVENT_TYPES.QUEST_UPDATE_CREATED]: 5,
   [XP_EVENT_TYPES.ACHIEVEMENT_RECEIVED]: 20,
   [XP_EVENT_TYPES.BOOKING_COMPLETED_PAID]: 15,
   [XP_EVENT_TYPES.BOOKING_COMPLETED_FREE]: 10,
   [XP_EVENT_TYPES.BOOKING_ATTENDED]: 2,
   [XP_EVENT_TYPES.REFERRAL_REWARD]: 50,
-  // Proposals
   [XP_EVENT_TYPES.PROPOSAL_SUBMITTED]: 3,
   [XP_EVENT_TYPES.PROPOSAL_ACCEPTED]: 20,
 };
@@ -101,6 +93,7 @@ export const CREDIT_TX_TYPES = {
   ADJUSTMENT: "ADJUSTMENT",
   GIFT_RECEIVED: "GIFT_RECEIVED",
   GIFT_SENT: "GIFT_SENT",
+  MONTHLY_INCLUDED: "MONTHLY_INCLUDED",
 } as const;
 
 export type CreditTxType = (typeof CREDIT_TX_TYPES)[keyof typeof CREDIT_TX_TYPES];
@@ -116,20 +109,39 @@ export const CREDIT_EARN_RULES: Record<string, number> = {
 
 // ─── Credit Spending Costs ──────────────────────────────────
 export const CREDIT_COSTS = {
-  EXTRA_QUEST_CREATION: 5,
-  EXTRA_POD_CREATION: 8,
-  BOOST_QUEST_7D: 10,
+  EXTRA_QUEST_CREATION: 10,
+  EXTRA_POD_CREATION: 5,
+  BOOST_QUEST_VISIBILITY: 15,
+  BOOST_SERVICE_VISIBILITY: 15,
+  FEATURE_QUEST_7D: 40,
   BOOST_GUILD_EXPLORE: 12,
   BOOST_COURSE: 8,
-  BOOST_SERVICE: 5,
+  ENABLE_AI_PRO_SESSION: 5,
 } as const;
 
 // ─── Credit Bundles (purchasable via Stripe) ────────────────
 export const CREDIT_BUNDLES = [
-  { code: "BUNDLE_50", credits: 50, priceEur: 9, label: "Starter" },
-  { code: "BUNDLE_120", credits: 120, priceEur: 19, label: "Growth" },
-  { code: "BUNDLE_350", credits: 350, priceEur: 49, label: "Pro" },
-  { code: "BUNDLE_800", credits: 800, priceEur: 99, label: "Enterprise" },
+  { code: "STARTER_100", credits: 100, priceEur: 4, label: "Starter", stripePriceId: "price_1SzRJsBttrYxqJqzDOZdcEfR" },
+  { code: "CREATOR_300", credits: 300, priceEur: 10, label: "Creator", stripePriceId: "price_1SzRJtBttrYxqJqz6Uwn7fN8" },
+  { code: "CATALYST_1000", credits: 1000, priceEur: 25, label: "Catalyst", stripePriceId: "price_1SzRJuBttrYxqJqzUnFTnprq" },
 ] as const;
 
 export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
+
+// ─── Plan Codes ─────────────────────────────────────────────
+export const PLAN_CODES = {
+  FREE: "FREE",
+  CREATOR: "CREATOR",
+  CATALYST: "CATALYST",
+} as const;
+
+export type PlanCode = (typeof PLAN_CODES)[keyof typeof PLAN_CODES];
+
+export const PLAN_ORDER: PlanCode[] = ["FREE", "CREATOR", "CATALYST"];
+
+// ─── Dual Economy Constants ─────────────────────────────────
+export const ECONOMY_LABELS = {
+  moneyDisclaimer: "Mission budgets are in euros. Credits are not used for compensation.",
+  creditsDisclaimer: "Credits are platform utility tokens and cannot be exchanged for money or used for mission payments.",
+  upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use credits.",
+} as const;
