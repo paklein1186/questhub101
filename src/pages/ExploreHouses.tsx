@@ -546,7 +546,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Pods */}
           <TabsContent value="pods" className="mt-6">
-            <EntityGrid items={pods} loading={podsLoading} empty="No pods found for these Houses." renderItem={(p: any) => (
+            <EntityGrid items={pods} loading={podsLoading} empty="No pods found for these Topics." renderItem={(p: any) => (
               <Link key={p.id} to={`/pods/${p.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="POD" imageUrl={p.image_url} name={p.name} height="h-24" />
                 <div className="p-4">
