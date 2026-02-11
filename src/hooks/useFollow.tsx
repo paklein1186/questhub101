@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FollowTargetType } from "@/types/enums";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function useFollow(targetType: FollowTargetType, targetId: string) {
   const { user } = useAuth();
