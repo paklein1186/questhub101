@@ -360,8 +360,6 @@ export default function HomeFeed() {
 
   const isTerritory = result?.actionType === "TERRITORY_INTENT";
 
-  const isTerritory = result?.actionType === "TERRITORY_INTENT";
-
   return (
     <PageShell>
       <MilestonePopup />
