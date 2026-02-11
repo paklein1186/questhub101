@@ -35,10 +35,10 @@ import {
 } from "@/lib/personaLabels";
 
 // ─── Step config ──────────────────────────────────────────────
-// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
-const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
-// Impact: 0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
-const STEP_LABELS_IMPACT = ["Intention", "Identity", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
+// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
+// Impact: 0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Languages", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
