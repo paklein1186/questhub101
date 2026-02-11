@@ -409,8 +409,8 @@ export default function QuestDetail() {
         <div className="flex items-center gap-1 flex-wrap">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals</TabsTrigger>
-            <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+            {isLoggedIn && <TabsTrigger value="proposals">Proposals</TabsTrigger>}
+            {isLoggedIn && <TabsTrigger value="subtasks">Subtasks</TabsTrigger>}
             <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
             <TabsTrigger value="discussion">Discussion</TabsTrigger>
             <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>
