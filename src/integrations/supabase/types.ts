@@ -405,6 +405,7 @@ export type Database = {
           banner_url: string | null
           contact_user_id: string | null
           created_at: string
+          credits_balance: number
           deleted_at: string | null
           description: string | null
           id: string
@@ -424,6 +425,7 @@ export type Database = {
           banner_url?: string | null
           contact_user_id?: string | null
           created_at?: string
+          credits_balance?: number
           deleted_at?: string | null
           description?: string | null
           id?: string
@@ -443,6 +445,7 @@ export type Database = {
           banner_url?: string | null
           contact_user_id?: string | null
           created_at?: string
+          credits_balance?: number
           deleted_at?: string | null
           description?: string | null
           id?: string
@@ -1451,6 +1454,7 @@ export type Database = {
           banner_url: string | null
           created_at: string
           created_by_user_id: string
+          credits_balance: number
           deleted_at: string | null
           description: string | null
           features_config: Json
@@ -1474,6 +1478,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           created_by_user_id: string
+          credits_balance?: number
           deleted_at?: string | null
           description?: string | null
           features_config?: Json
@@ -1497,6 +1502,7 @@ export type Database = {
           banner_url?: string | null
           created_at?: string
           created_by_user_id?: string
+          credits_balance?: number
           deleted_at?: string | null
           description?: string | null
           features_config?: Json
@@ -3573,6 +3579,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      unit_credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by_user_id: string
+          id: string
+          note: string | null
+          quest_id: string | null
+          type: string
+          unit_id: string
+          unit_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          note?: string | null
+          quest_id?: string | null
+          type: string
+          unit_id: string
+          unit_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          note?: string | null
+          quest_id?: string | null
+          type?: string
+          unit_id?: string
+          unit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_credit_transactions_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_blocks: {
         Row: {
