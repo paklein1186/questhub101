@@ -25,6 +25,7 @@ import {
 export function AppNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { unreadCount } = useNotifications();
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
