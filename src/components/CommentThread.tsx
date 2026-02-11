@@ -129,14 +129,16 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
     if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
 
-    // Process @mentions
+    // Process @mentions (users + entities)
     const mentionIds = extractMentionIds(content);
-    if (mentionIds.length > 0 && inserted) {
+    const allEntityMentions = extractAllMentions(content);
+    if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
       await processMentions({
         commentId: inserted.id,
         authorUserId: currentUser.id,
         authorName: currentUser.name,
         mentionedUserIds: mentionIds,
+        mentionedEntities: allEntityMentions,
         targetType,
         targetId,
         snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
