@@ -55,7 +55,7 @@ const TABS = [
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
-  { key: "billing", label: "Billing", icon: CreditCard },
+  { key: "billing", label: "Unit Wallet", icon: CreditCard },
 ];
 
 export default function GuildSettings() {

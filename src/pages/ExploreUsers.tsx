@@ -17,6 +17,8 @@ import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { redactName } from "@/lib/publicMode";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ExploreUser {

@@ -45,6 +45,8 @@ import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FeedSection } from "@/components/feed/FeedSection";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
+import { XpLevelBadge } from "@/components/XpLevelBadge";
+import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
