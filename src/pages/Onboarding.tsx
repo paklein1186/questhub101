@@ -233,6 +233,11 @@ export default function Onboarding() {
     if (!authUser?.id) return;
     setSaving(true);
     try {
+      // Save spoken languages
+      await saveSpokenLanguages(spokenLangCodes);
+
+      // Set preferred language to first spoken language if not already set
+      const preferredLang = spokenLangCodes[0] || "en";
       // Save social links to profile
       await supabase.from("profiles").update({
         name: name.trim() || undefined,
