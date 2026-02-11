@@ -144,6 +144,23 @@ interface NotificationStore {
 
 const NotificationContext = createContext<NotificationStore>(null!);
 
+// ─── Helper: Build deep link for entity ─────────────────────
+
+function buildNotifDeepLink(targetType: string, targetId: string): string {
+  switch (targetType) {
+    case "QUEST": return `/quests/${targetId}`;
+    case "SERVICE": return `/services/${targetId}`;
+    case "GUILD": return `/guilds/${targetId}`;
+    case "POD": return `/pods/${targetId}`;
+    case "COMPANY": return `/companies/${targetId}`;
+    case "COURSE": return `/courses/${targetId}`;
+    case "USER": return `/users/${targetId}`;
+    case "GUILD_EVENT": return `/events/${targetId}`;
+    case "FEED_POST": return `/`;
+    default: return `/`;
+  }
+}
+
 // ─── Helper: Insert notification to DB ──────────────────────
 
 async function insertNotification(params: {
@@ -234,39 +251,84 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, qc]);
 
   const addNotification = useCallback(async (params: {
-    userId: string; type: NotificationType; title: string; body: string;
+    userId: string; type: NotificationType | string; title: string; body: string;
     relatedEntityType?: string; relatedEntityId?: string;
     deepLinkUrl: string; data?: Record<string, unknown>;
   }) => {
-    const prefKey = prefKeyForType(params.type);
-    if (prefKey && !prefsRef.current[prefKey]) return;
-    if (prefsRef.current.notificationFrequency === "NEVER") return;
+    // Only check preferences if notification is for the current user
+    if (params.userId === userId) {
+      const prefKey = prefKeyForType(params.type as NotificationType);
+      if (prefKey && !prefsRef.current[prefKey]) return;
+      if (prefsRef.current.notificationFrequency === "NEVER") return;
+    }
 
     await insertNotification(params);
     qc.invalidateQueries({ queryKey: ["notifications", params.userId] });
 
-    if (prefsRef.current.pushEnabled && prefsRef.current.notificationFrequency === "INSTANT") {
+    // Only send browser push for current user's own notifications
+    if (params.userId === userId && prefsRef.current.pushEnabled && prefsRef.current.notificationFrequency === "INSTANT") {
       sendBrowserNotification(params.title, params.body, params.deepLinkUrl);
     }
-  }, [qc]);
+  }, [userId, qc]);
 
   // ── Trigger stubs — these insert into the DB notifications table ──
 
   const notifyComment = useCallback(async ({ commentAuthorId, targetType, targetId, commentId, commentSnippet }: any) => {
-    // We'd need to resolve the target owner — for now, just skip self-notifications
-    if (commentAuthorId === userId) return;
-    // In a full implementation, resolve the owner and notify them
-  }, [userId]);
+    if (commentAuthorId === userId) return; // Don't self-notify
+
+    // Resolve the owner of the target entity
+    let ownerUserId: string | null = null;
+    try {
+      if (targetType === "QUEST") {
+        const { data } = await supabase.from("quests").select("created_by_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.created_by_user_id ?? null;
+      } else if (targetType === "GUILD") {
+        const { data } = await supabase.from("guild_members").select("user_id").eq("guild_id", targetId).eq("role", "ADMIN").limit(1);
+        ownerUserId = data?.[0]?.user_id ?? null;
+      } else if (targetType === "SERVICE") {
+        const { data } = await supabase.from("services").select("provider_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.provider_user_id ?? null;
+      } else if (targetType === "COMPANY") {
+        const { data } = await supabase.from("company_members").select("user_id").eq("company_id", targetId).in("role", ["admin", "owner"]).limit(1);
+        ownerUserId = data?.[0]?.user_id ?? null;
+      } else if (targetType === "COURSE") {
+        const { data } = await supabase.from("courses").select("owner_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.owner_user_id ?? null;
+      } else if (targetType === "FEED_POST") {
+        const { data } = await supabase.from("feed_posts").select("author_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.author_user_id ?? null;
+      } else if (targetType === "USER") {
+        ownerUserId = targetId; // Comment on a user's profile wall
+      }
+    } catch { /* silent */ }
+
+    if (!ownerUserId || ownerUserId === commentAuthorId) return;
+
+    const truncated = (commentSnippet || "").slice(0, 60);
+    const entityLabel = targetType.toLowerCase().replace(/_/g, " ");
+    
+    await addNotification({
+      userId: ownerUserId,
+      type: NotificationType.COMMENT,
+      title: "New comment",
+      body: `Someone commented on your ${entityLabel}: "${truncated}"`,
+      relatedEntityType: targetType,
+      relatedEntityId: targetId,
+      deepLinkUrl: buildNotifDeepLink(targetType, targetId),
+      data: { targetType, targetId, commentId },
+    });
+  }, [userId, addNotification]);
 
   const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
-    if (commentAuthorId !== userId || commentAuthorId === upvoterId) return;
+    // Don't notify if upvoter is the comment author
+    if (commentAuthorId === upvoterId) return;
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
       title: "Comment upvoted", body: `Someone upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
       deepLinkUrl: "/notifications",
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
 
   const notifyQuestUpdate = useCallback(async ({ questId, questUpdateId, updateTitle }: any) => {
     // Check if current user is a participant
@@ -280,8 +342,9 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action }: any) => {
-    if (recipientUserId !== userId) return;
+  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action, serviceId, requesterId }: any) => {
+    // Don't notify yourself
+    if (recipientUserId === userId && requesterId === userId) return;
     const typeMap: Record<string, NotificationType> = {
       requested: NotificationType.BOOKING_REQUESTED, confirmed: NotificationType.BOOKING_CONFIRMED,
       accepted: NotificationType.BOOKING_CONFIRMED, cancelled: NotificationType.BOOKING_CANCELLED,
@@ -298,7 +361,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyGuildMemberAdded = useCallback(async ({ guildId, userId: targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return; // don't self-notify the adder
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_MEMBER_ADDED,
       title: "Added to guild", body: "You were added to a guild",
@@ -308,7 +371,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyGuildRoleChanged = useCallback(async ({ guildId, userId: targetUserId, newRole }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_ROLE_CHANGED,
       title: "Role changed", body: `Your guild role was changed to ${newRole}`,
@@ -330,7 +393,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyPodInvite = useCallback(async ({ podId, userId: targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.POD_CREATED,
       title: "Pod invitation", body: "You were invited to a pod",
@@ -352,14 +415,15 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyNewFollower = useCallback(async ({ followerId, targetUserId }: any) => {
-    if (targetUserId !== userId) return;
+    // Notify the person being followed, not the follower
+    if (targetUserId === followerId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.FOLLOWER_NEW,
       title: "New follower", body: "Someone started following you",
       relatedEntityType: NotificationEntityType.USER, relatedEntityId: followerId,
       deepLinkUrl: `/users/${followerId}`,
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
 
   const notifyXpGained = useCallback(async ({ userId: targetUserId, amount, reason }: any) => {
     if (targetUserId !== userId) return;

@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { checkRateLimit } = useRateLimit();
+  const { notifyComment, notifyUpvote } = useNotifications();
 
   const queryKey = ["comments", targetType, targetId];
 
@@ -103,12 +105,22 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   );
 
   const handleUpvote = async (commentId: string) => {
+    const comment = comments.find((c) => c.id === commentId);
     if (hasUpvoted(commentId)) {
       await supabase.from("comment_upvotes").delete().eq("comment_id", commentId).eq("user_id", currentUser.id);
-      await supabase.from("comments").update({ upvote_count: Math.max((comments.find((c) => c.id === commentId)?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
+      await supabase.from("comments").update({ upvote_count: Math.max((comment?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
     } else {
       await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
-      await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
+      await supabase.from("comments").update({ upvote_count: (comment?.upvote_count ?? 0) + 1 }).eq("id", commentId);
+      // Notify the comment author about the upvote
+      if (comment && comment.author_id !== currentUser.id) {
+        notifyUpvote({
+          upvoterId: currentUser.id,
+          commentAuthorId: comment.author_id,
+          commentId,
+          commentSnippet: comment.content,
+        });
+      }
     }
     qc.invalidateQueries({ queryKey });
     qc.invalidateQueries({ queryKey: ["comment-upvotes", targetType, targetId] });
@@ -149,6 +161,21 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
             return `@${name}`;
           }),
+        });
+      }
+
+      // Notify the target entity owner about the comment
+      if (inserted) {
+        const snippet = content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+          return `@${name}`;
+        });
+        notifyComment({
+          commentAuthorId: currentUser.id,
+          targetType,
+          targetId,
+          commentId: inserted.id,
+          commentSnippet: snippet,
         });
       }
 

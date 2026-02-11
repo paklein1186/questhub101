@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { FollowTargetType } from "@/types/enums";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useNotifications } from "@/hooks/useNotifications";
 
 export function useFollow(targetType: FollowTargetType, targetId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { notifyNewFollower } = useNotifications();
   const userId = user?.id;
 
   const queryKey = ["follow", userId, targetType, targetId];
@@ -53,6 +55,10 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
     },
     onSuccess: () => {
       toast.success("Following!");
+      // Notify the target if it's a user
+      if (targetType === FollowTargetType.USER && userId) {
+        notifyNewFollower({ followerId: userId, targetUserId: targetId });
+      }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey });
