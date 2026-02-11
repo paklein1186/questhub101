@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UniverseToggle } from "@/components/UniverseToggle";
+import { usePersona } from "@/hooks/usePersona";
+import {
+  type UniverseMode,
+  defaultUniverseForPersona,
+  HOUSE_DEFINITIONS,
+  getHouseLabel,
+  getHouseDescription,
+  getHouseIcon,
+  getHousesPageCopy,
+} from "@/lib/universeMapping";
 
 // ─── Types ──────────────────────────────────────────────────
 interface TopicRow {
@@ -137,7 +148,6 @@ function useFilteredCourses(topicIds: string[], matchAll: boolean) {
   });
 }
 
-// Users are special — junction uses user_id, profiles use user_id not id
 function useFilteredUsers(topicIds: string[], matchAll: boolean) {
   return useQuery({
     queryKey: ["houses-users", topicIds, matchAll],
@@ -194,15 +204,12 @@ function useFilteredCompanies(topicIds: string[], matchAll: boolean) {
   });
 }
 
-// Pods use topic_id FK directly
 function useFilteredPods(topicIds: string[], matchAll: boolean) {
   return useQuery({
     queryKey: ["houses-pods", topicIds, matchAll],
     enabled: topicIds.length > 0,
     queryFn: async () => {
-      // Pods have a single topic_id, so AND with >1 topic always returns empty
       if (matchAll && topicIds.length > 1) return [];
-
       const { data } = await supabase
         .from("pods")
         .select("id, name, description, type, image_url")
@@ -210,7 +217,6 @@ function useFilteredPods(topicIds: string[], matchAll: boolean) {
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .limit(PAGE_SIZE);
-
       return data ?? [];
     },
     staleTime: 30_000,
@@ -225,7 +231,14 @@ interface Props {
 
 export default function ExploreHouses({ bare }: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { data: allTopics, isLoading: topicsLoading } = useAllTopics();
+  const { persona } = usePersona();
+
+  // Universe mode
+  const [universeMode, setUniverseMode] = useState<UniverseMode | null>(null);
+  const effectiveUniverse: UniverseMode = universeMode ?? defaultUniverseForPersona(persona);
+  const pageCopy = getHousesPageCopy(effectiveUniverse);
 
   // Read initial state from URL
   const initialHouses = useMemo(() => {
@@ -270,6 +283,14 @@ export default function ExploreHouses({ bare }: Props) {
     updateUrl(selectedSlugs, next);
   };
 
+  /** Navigate to Explore hub with this house pre-selected as a topic filter */
+  const navigateToExploreWithHouse = (slug: string) => {
+    const topic = allTopics?.find(t => t.slug === slug);
+    if (!topic) return;
+    // Navigate to explore quests tab with topic pre-selected via URL
+    navigate(`/explore?tab=quests&houses=${slug}`);
+  };
+
   // Data hooks
   const { data: stats } = useTopicStats(selectedIds);
   const { data: quests, isLoading: questsLoading } = useFilteredQuests(selectedIds, matchAll);
@@ -282,13 +303,25 @@ export default function ExploreHouses({ bare }: Props) {
 
   const hasSelection = selectedIds.length > 0;
 
+  /** Get the display label for a topic based on universe */
+  const getTopicLabel = useCallback((topic: TopicRow) => {
+    const houseDef = HOUSE_DEFINITIONS[topic.slug];
+    if (houseDef) return getHouseLabel(topic.slug, effectiveUniverse);
+    return topic.name;
+  }, [effectiveUniverse]);
+
   const content = (
     <div className="space-y-6">
-      {/* House selection grid */}
+      {/* Universe toggle */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <UniverseToggle value={effectiveUniverse} onChange={setUniverseMode} />
+      </div>
+
+      {/* House cards grid */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Hash className="h-5 w-5 text-primary" /> Select Houses
+            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Houses" : effectiveUniverse === "impact" ? "Impact Houses" : "All Houses"}
           </h2>
           {selectedSlugs.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
@@ -298,44 +331,90 @@ export default function ExploreHouses({ bare }: Props) {
         </div>
 
         {topicsLoading ? (
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {(allTopics ?? []).map(t => (
-              <Badge
-                key={t.id}
-                variant={selectedSlugs.includes(t.slug) ? "default" : "outline"}
-                className="cursor-pointer text-sm px-3 py-1.5 transition-all hover:scale-105"
-                onClick={() => toggleHouse(t.slug)}
-              >
-                <Hash className="h-3 w-3 mr-1" />
-                {t.name}
-                {selectedSlugs.includes(t.slug) && <X className="h-3 w-3 ml-1.5" />}
-              </Badge>
-            ))}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(allTopics ?? []).map(t => {
+              const isSelected = selectedSlugs.includes(t.slug);
+              const houseDef = HOUSE_DEFINITIONS[t.slug];
+              const icon = houseDef ? getHouseIcon(t.slug) : "🏠";
+              const label = getTopicLabel(t);
+              const desc = houseDef ? getHouseDescription(t.slug, effectiveUniverse) : "";
+
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => toggleHouse(t.slug)}
+                  onDoubleClick={() => navigateToExploreWithHouse(t.slug)}
+                  className={`group relative text-left rounded-xl border p-4 transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] ${
+                    isSelected
+                      ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/30"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-display font-semibold text-sm truncate">{label}</h3>
+                        {isSelected && <X className="h-3.5 w-3.5 text-primary shrink-0" />}
+                      </div>
+                      {desc && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{desc}</p>
+                      )}
+                    </div>
+                  </div>
+                  {/* Click to explore hint */}
+                  <div className="absolute bottom-1.5 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[10px] text-muted-foreground">click to select · double-click to explore</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Selected chips + mode toggle */}
-      {selectedSlugs.length > 1 && (
+      {selectedSlugs.length > 0 && (
         <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleMode}
-            className="text-xs gap-1.5"
-          >
-            {matchAll ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5" />}
-            {matchAll ? "Match ALL" : "Match ANY"}
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            {matchAll
-              ? "Showing items that belong to all selected Houses"
-              : "Showing items that belong to any selected House"}
-          </span>
+          {selectedSlugs.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleMode}
+              className="text-xs gap-1.5"
+            >
+              {matchAll ? <ToggleRight className="h-3.5 w-3.5 text-primary" /> : <ToggleLeft className="h-3.5 w-3.5" />}
+              {matchAll ? "Match ALL" : "Match ANY"}
+            </Button>
+          )}
+          <div className="flex flex-wrap gap-1.5">
+            {selectedSlugs.map(slug => {
+              const topic = allTopics?.find(t => t.slug === slug);
+              if (!topic) return null;
+              return (
+                <Badge
+                  key={slug}
+                  variant="default"
+                  className="text-xs gap-1.5 cursor-pointer"
+                  onClick={() => toggleHouse(slug)}
+                >
+                  {getHouseIcon(slug)} {getTopicLabel(topic)}
+                  <X className="h-3 w-3" />
+                </Badge>
+              );
+            })}
+          </div>
+          {selectedSlugs.length > 1 && (
+            <span className="text-xs text-muted-foreground">
+              {matchAll
+                ? "Showing items that belong to all selected Houses"
+                : "Showing items that belong to any selected House"}
+            </span>
+          )}
         </div>
       )}
 
@@ -345,7 +424,11 @@ export default function ExploreHouses({ bare }: Props) {
           <Boxes className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
           <p className="font-display font-semibold text-lg">Pick one or more Houses to explore</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Houses are thematic lenses that group quests, guilds, users, and more.
+            {effectiveUniverse === "creative"
+              ? "Houses are creative realms that group circles, creations, and collaborators."
+              : effectiveUniverse === "impact"
+              ? "Houses are thematic lenses that group missions, guilds, and services."
+              : "Houses are thematic lenses that group quests, guilds, users, and more."}
           </p>
         </div>
       ) : (
@@ -527,10 +610,10 @@ export default function ExploreHouses({ bare }: Props) {
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Hash className="h-7 w-7 text-primary" /> Explore by Houses
+          <Hash className="h-7 w-7 text-primary" /> {pageCopy.title}
         </h1>
         <p className="text-muted-foreground mt-1">
-          Filter the entire ecosystem through thematic Houses.
+          {pageCopy.subtitle}
         </p>
       </div>
       {content}
