@@ -3960,11 +3960,15 @@ export type Database = {
           contribution_index: number | null
           created_at: string | null
           current_plan_code: string | null
+          filter_by_houses: boolean | null
+          governance_weight: number | null
           has_completed_onboarding: boolean | null
           headline: string | null
-          id: string | null
+          is_cooperative_member: boolean | null
           name: string | null
           role: string | null
+          total_shares_a: number | null
+          total_shares_b: number | null
           updated_at: string | null
           user_id: string | null
           xp: number | null
@@ -3975,11 +3979,15 @@ export type Database = {
           contribution_index?: number | null
           created_at?: string | null
           current_plan_code?: string | null
+          filter_by_houses?: boolean | null
+          governance_weight?: number | null
           has_completed_onboarding?: boolean | null
           headline?: string | null
-          id?: string | null
+          is_cooperative_member?: boolean | null
           name?: string | null
           role?: string | null
+          total_shares_a?: number | null
+          total_shares_b?: number | null
           updated_at?: string | null
           user_id?: string | null
           xp?: number | null
@@ -3990,11 +3998,15 @@ export type Database = {
           contribution_index?: number | null
           created_at?: string | null
           current_plan_code?: string | null
+          filter_by_houses?: boolean | null
+          governance_weight?: number | null
           has_completed_onboarding?: boolean | null
           headline?: string | null
-          id?: string | null
+          is_cooperative_member?: boolean | null
           name?: string | null
           role?: string | null
+          total_shares_a?: number | null
+          total_shares_b?: number | null
           updated_at?: string | null
           user_id?: string | null
           xp?: number | null

@@ -147,7 +147,7 @@ function useExploreUsers(filters: {
       });
 
       const users: ExploreUser[] = profiles.map((p) => ({
-        id: p.id ?? "",
+        id: p.user_id ?? "",
         user_id: p.user_id ?? "",
         name: p.name ?? "Unknown",
         avatar_url: p.avatar_url,

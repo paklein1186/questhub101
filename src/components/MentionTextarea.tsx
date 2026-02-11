@@ -89,7 +89,7 @@ export function MentionTextarea({
         const likeQ = `%${query}%`;
 
         const [usersRes, guildsRes, companiesRes, questsRes] = await Promise.all([
-          supabase.from("profiles").select("user_id, name, avatar_url").ilike("name", likeQ).limit(4),
+          (supabase as any).from("profiles_public").select("user_id, name, avatar_url").ilike("name", likeQ).limit(4),
           supabase.from("guilds").select("id, name, logo_url").ilike("name", likeQ).eq("is_deleted", false).limit(3),
           supabase.from("companies").select("id, name, logo_url").ilike("name", likeQ).eq("is_deleted", false).limit(3),
           supabase.from("quests").select("id, title").ilike("title", likeQ).eq("is_deleted", false).limit(3),

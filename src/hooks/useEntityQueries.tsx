@@ -1053,7 +1053,7 @@ export function useAllProfiles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles_public")
-        .select("user_id, name, avatar_url, email")
+        .select("user_id, name, avatar_url")
         .order("name");
       if (error) throw error;
       return data;
