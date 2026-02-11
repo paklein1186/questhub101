@@ -207,6 +207,7 @@ const App = () => (
                 <Route path="/manifesto" element={<ManifestoPage />} />
                 <Route path="/cooperative" element={<CooperativeVenturePage />} />
                 <Route path="/what-comes-next" element={<WhatComesNextPage />} />
+                <Route path="/guides" element={<GuidesPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
