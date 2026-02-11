@@ -16,6 +16,9 @@ import { usePersona } from "@/hooks/usePersona";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { PostCard } from "@/components/feed/PostCard";
+import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
+import { usePostUpvotes } from "@/hooks/usePostUpvote";
+import { sortPosts } from "@/lib/feedSort";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
@@ -510,7 +513,13 @@ const contextRoute: Record<string, string> = {
 
 function FollowingFeedTab() {
   const [filter, setFilter] = useState("ALL");
+  const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
   const { data: posts = [], isLoading } = useFollowingFeed(filter);
+
+  const postIds = useMemo(() => posts.map((p) => p.id), [posts]);
+  const { data: myUpvotes = [] } = usePostUpvotes(postIds);
+  const upvotedSet = useMemo(() => new Set(myUpvotes.map((u) => u.post_id)), [myUpvotes]);
+  const sortedPosts = useMemo(() => sortPosts(posts, sortMode), [posts, sortMode]);
 
   return (
     <div className="space-y-5">
@@ -538,12 +547,19 @@ function FollowingFeedTab() {
         ))}
       </div>
 
+      {/* Sort control */}
+      {posts.length > 0 && (
+        <div className="flex justify-end">
+          <FeedSortControl value={sortMode} onChange={setSortMode} />
+        </div>
+      )}
+
       {/* Posts */}
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : posts.length === 0 ? (
+      ) : sortedPosts.length === 0 ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
           <Rss className="h-10 w-10 text-muted-foreground/40 mx-auto" />
           <p className="text-muted-foreground font-medium">
@@ -568,12 +584,11 @@ function FollowingFeedTab() {
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => {
+          {sortedPosts.map((post) => {
             const ctxName = (post as any).contextName;
             const route = contextRoute[post.context_type];
             return (
               <div key={post.id}>
-                {/* Context line */}
                 {ctxName && route && (
                   <div className="text-xs text-muted-foreground mb-1 pl-12">
                     {post.context_type === "USER" ? "on profile of " : "in "}
@@ -585,7 +600,7 @@ function FollowingFeedTab() {
                     </Link>
                   </div>
                 )}
-                <PostCard post={post} />
+                <PostCard post={post} hasUpvoted={upvotedSet.has(post.id)} />
               </div>
             );
           })}

@@ -1,26 +1,22 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeletePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
+import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { motion } from "framer-motion";
 
 function ImageGrid({ images }: { images: PostAttachment[] }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
-
   const gridClass =
-    images.length === 1
-      ? "grid-cols-1"
-      : images.length === 2
-        ? "grid-cols-2"
-        : images.length === 3
-          ? "grid-cols-2"
-          : "grid-cols-2";
+    images.length === 1 ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
@@ -49,9 +45,7 @@ function ImageGrid({ images }: { images: PostAttachment[] }) {
       </div>
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
         <DialogContent className="max-w-4xl p-0 bg-black/90 border-0">
-          {lightbox && (
-            <img src={lightbox} alt="" className="w-full max-h-[85vh] object-contain" />
-          )}
+          {lightbox && <img src={lightbox} alt="" className="w-full max-h-[85vh] object-contain" />}
         </DialogContent>
       </Dialog>
     </>
@@ -61,36 +55,19 @@ function ImageGrid({ images }: { images: PostAttachment[] }) {
 function VideoEmbed({ attachment }: { attachment: PostAttachment }) {
   const meta = attachment.embed_meta as Record<string, any> | null;
   const embedUrl = meta?.embedUrl;
-
   if (!embedUrl) {
     return (
-      <a
-        href={attachment.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-sm text-primary hover:underline"
-      >
+      <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
         <Film className="h-4 w-4" /> {attachment.url}
       </a>
     );
   }
-
   return (
     <div className="rounded-lg overflow-hidden">
       <div className="aspect-video">
-        <iframe
-          src={embedUrl}
-          className="w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          sandbox="allow-scripts allow-same-origin allow-popups"
-          loading="lazy"
-          title={meta?.provider ? `${meta.provider} video` : "Embedded video"}
-        />
+        <iframe src={embedUrl} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen sandbox="allow-scripts allow-same-origin allow-popups" loading="lazy" title={meta?.provider ? `${meta.provider} video` : "Embedded video"} />
       </div>
-      {meta?.provider && (
-        <p className="text-xs text-muted-foreground px-1 py-1">{meta.provider} video</p>
-      )}
+      {meta?.provider && <p className="text-xs text-muted-foreground px-1 py-1">{meta.provider} video</p>}
     </div>
   );
 }
@@ -98,34 +75,18 @@ function VideoEmbed({ attachment }: { attachment: PostAttachment }) {
 function LinkPreview({ attachment }: { attachment: PostAttachment }) {
   const meta = attachment.embed_meta as Record<string, any> | null;
   let hostname = "";
-  try {
-    hostname = new URL(attachment.url).hostname;
-  } catch {}
-
+  try { hostname = new URL(attachment.url).hostname; } catch {}
   return (
-    <a
-      href={attachment.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block rounded-lg border border-border bg-muted/30 overflow-hidden hover:border-primary/30 transition-all"
-    >
+    <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg border border-border bg-muted/30 overflow-hidden hover:border-primary/30 transition-all">
       <div className="flex gap-3">
         {(attachment.thumbnail_url || meta?.image) && (
-          <img
-            src={attachment.thumbnail_url || meta?.image}
-            alt=""
-            className="w-28 h-24 object-cover shrink-0"
-            loading="lazy"
-          />
+          <img src={attachment.thumbnail_url || meta?.image} alt="" className="w-28 h-24 object-cover shrink-0" loading="lazy" />
         )}
         <div className="flex-1 min-w-0 p-3">
           {meta?.title && <p className="text-sm font-medium line-clamp-1">{meta.title}</p>}
-          {meta?.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{meta.description}</p>
-          )}
+          {meta?.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{meta.description}</p>}
           <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
-            <ExternalLink className="h-3 w-3" />
-            <span>{hostname}</span>
+            <ExternalLink className="h-3 w-3" /><span>{hostname}</span>
           </div>
         </div>
       </div>
@@ -135,28 +96,26 @@ function LinkPreview({ attachment }: { attachment: PostAttachment }) {
 
 function DocumentChip({ attachment }: { attachment: PostAttachment }) {
   return (
-    <a
-      href={attachment.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-primary/30 transition-all"
-    >
+    <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-primary/30 transition-all">
       <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
       <span className="truncate flex-1">{attachment.file_name || "Document"}</span>
-      {attachment.file_size_bytes && (
-        <span className="text-xs text-muted-foreground shrink-0">
-          {formatFileSize(attachment.file_size_bytes)}
-        </span>
-      )}
+      {attachment.file_size_bytes && <span className="text-xs text-muted-foreground shrink-0">{formatFileSize(attachment.file_size_bytes)}</span>}
       <Download className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
     </a>
   );
 }
 
-export function PostCard({ post }: { post: FeedPostWithAttachments }) {
+interface PostCardProps {
+  post: FeedPostWithAttachments;
+  hasUpvoted?: boolean;
+}
+
+export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
   const currentUser = useCurrentUser();
   const deletePost = useDeletePost();
+  const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
+  const upvoteCount = (post as any).upvote_count ?? 0;
 
   const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
   const videos = (post.post_attachments || []).filter((a) => a.type === "VIDEO_LINK");
@@ -168,6 +127,13 @@ export function PostCard({ post }: { post: FeedPostWithAttachments }) {
       onSuccess: () => toast.success("Post deleted"),
       onError: () => toast.error("Failed to delete post"),
     });
+  };
+
+  const handleUpvote = () => {
+    toggleUpvote.mutate(
+      { postId: post.id, hasUpvoted },
+      { onError: () => toast.error("Failed to update vote") }
+    );
   };
 
   return (
@@ -189,39 +155,57 @@ export function PostCard({ post }: { post: FeedPostWithAttachments }) {
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
           </div>
+          {(post as any).contextName && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              in <span className="font-medium text-foreground/70">{(post as any).contextName}</span>
+            </p>
+          )}
         </div>
         {isOwn && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-            onClick={handleDelete}
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>
 
       {/* Content */}
-      {post.content && (
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
-      )}
+      {post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>}
 
-      {/* Attachments in order: images → video → links → docs */}
+      {/* Attachments */}
       {images.length > 0 && <ImageGrid images={images} />}
-      {videos.map((v) => (
-        <VideoEmbed key={v.id} attachment={v} />
-      ))}
-      {links.map((l) => (
-        <LinkPreview key={l.id} attachment={l} />
-      ))}
-      {docs.length > 0 && (
-        <div className="space-y-1">
-          {docs.map((d) => (
-            <DocumentChip key={d.id} attachment={d} />
-          ))}
-        </div>
-      )}
+      {videos.map((v) => <VideoEmbed key={v.id} attachment={v} />)}
+      {links.map((l) => <LinkPreview key={l.id} attachment={l} />)}
+      {docs.length > 0 && <div className="space-y-1">{docs.map((d) => <DocumentChip key={d.id} attachment={d} />)}</div>}
+
+      {/* Actions bar */}
+      <div className="flex items-center gap-1 pt-1">
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`h-8 px-2.5 gap-1.5 ${hasUpvoted ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                onClick={handleUpvote}
+                disabled={toggleUpvote.isPending}
+              >
+                <motion.div
+                  key={hasUpvoted ? "up" : "neutral"}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <ArrowBigUp className="h-4 w-4" fill={hasUpvoted ? "currentColor" : "none"} />
+                </motion.div>
+                <span className="text-xs font-medium">{upvoteCount}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {hasUpvoted ? "Remove upvote" : "Upvote"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   );
 }

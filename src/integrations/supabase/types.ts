@@ -895,6 +895,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           updated_at: string
+          upvote_count: number
         }
         Insert: {
           author_user_id: string
@@ -906,6 +907,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           updated_at?: string
+          upvote_count?: number
         }
         Update: {
           author_user_id?: string
@@ -917,6 +919,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           updated_at?: string
+          upvote_count?: number
         }
         Relationships: []
       }
@@ -1636,6 +1639,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "post_attachments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_upvotes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_upvotes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "feed_posts"
