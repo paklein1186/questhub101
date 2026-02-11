@@ -172,18 +172,29 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("comments")
-      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
-      .eq("id", deleteTarget);
-    if (error) {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .eq("id", deleteTarget)
+        .eq("author_id", currentUser.id)
+        .select("id");
+      if (error) {
+        toast({ title: "Failed to delete comment", variant: "destructive" });
+      } else if (!data || data.length === 0) {
+        toast({ title: "You don't have permission to delete this comment", variant: "destructive" });
+      } else {
+        toast({ title: "Comment deleted" });
+        qc.invalidateQueries({ queryKey });
+      }
+    } catch {
       toast({ title: "Failed to delete comment", variant: "destructive" });
-    } else {
-      toast({ title: "Comment deleted" });
-      qc.invalidateQueries({ queryKey });
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
-    setDeleteTarget(null);
   };
 
   const renderComment = (comment: typeof comments[0], isReply = false) => {
