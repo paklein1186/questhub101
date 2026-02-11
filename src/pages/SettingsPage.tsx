@@ -256,27 +256,7 @@ export default function SettingsPage() {
 
   // toggleServiceActive is now handled by MyServicesPanel
 
-  const handleBuyCredits = async (code: string) => {
-    setBuyLoading(code);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", { body: { mode: "credit_bundle", bundleCode: code } });
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setBuyLoading(null); }
-  };
-
-  const handleManageSubscription = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally { setPortalLoading(false); }
-  };
+  // Billing handlers moved to WalletTab component
 
   return (
     <PageShell>
