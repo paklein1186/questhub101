@@ -319,7 +319,10 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
             />
             <div className="flex justify-end mt-2">
-              <Button size="sm" disabled={!newComment.trim()} onClick={() => addComment()}><Send className="h-4 w-4 mr-1" /> Comment</Button>
+              <Button size="sm" disabled={!newComment.trim() || isSubmitting} onClick={() => addComment()}>
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+                Comment
+              </Button>
             </div>
           </div>
         </div>
