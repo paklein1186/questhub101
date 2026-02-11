@@ -128,7 +128,12 @@ export default function HomeFeed() {
   }, [input, currentUser.id, persona, mode]);
 
   const handleSuggestionClick = (route: string) => {
-    navigate(route);
+    // Only navigate to routes that start with / and don't contain protocol
+    if (route && route.startsWith("/") && !route.includes("://")) {
+      navigate(route);
+    } else {
+      navigate("/explore");
+    }
   };
 
   const handleGuidedTile = (tile: typeof GUIDED_TILES[0]) => {
