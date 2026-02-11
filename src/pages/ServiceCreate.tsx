@@ -29,6 +29,7 @@ export default function ServiceCreate() {
   const [locationType, setLocationType] = useState("JITSI");
   const [isDraft, setIsDraft] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [loaded, setLoaded] = useState(false);
 
   // Load existing service for editing
