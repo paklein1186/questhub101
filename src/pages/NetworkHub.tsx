@@ -72,6 +72,9 @@ export default function NetworkHub() {
   const isLoading = loadingGuilds || loadingCompanies || loadingPeople || loadingTerritories;
 
   // Persona-aware section ordering
+  const [entitySub, setEntitySub] = useState<"all" | "guilds" | "pods" | "companies">("all");
+  const totalEntities = guildMemberships.length + podMemberships.length + companyMemberships.length;
+
   const overviewSections = useMemo(() => {
     const sections = ["people", "guilds", "companies", "territories", "ai"];
     if (persona === "IMPACT") return ["guilds", "companies", "territories", "people", "ai"];
