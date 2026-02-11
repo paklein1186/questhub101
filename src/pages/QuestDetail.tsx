@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -38,6 +38,8 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
+import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -58,6 +60,7 @@ export default function QuestDetail() {
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
+  const { data: resolvedHosts } = useResolvedQuestHosts(id);
 
   const [updateOpen, setUpdateOpen] = useState(false);
   const [uTitle, setUTitle] = useState("");
@@ -216,7 +219,12 @@ export default function QuestDetail() {
         )}
 
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
-          {guild && <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>}
+          {/* Hosts display */}
+          {resolvedHosts && resolvedHosts.length > 0 ? (
+            <QuestHostsDisplay hosts={resolvedHosts} />
+          ) : (
+            guild && <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>
+          )}
           <span>·</span><span>by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
           {creator?.xp != null && <XpLevelBadge level={computeLevelFromXp(creator.xp)} compact />}
           <span>·</span>
@@ -385,7 +393,18 @@ export default function QuestDetail() {
           </DropdownMenu>
         </div>
 
-        <TabsContent value="overview" className="mt-6">
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          {/* Co-hosts management */}
+          {(quest.guild_id || quest.company_id) && resolvedHosts && (
+            <QuestCoHostsManager
+              questId={quest.id}
+              primaryEntityType={quest.guild_id ? "GUILD" : quest.company_id ? "COMPANY" : undefined}
+              primaryEntityId={quest.guild_id || quest.company_id || undefined}
+              hosts={resolvedHosts}
+              canManage={isOwner}
+            />
+          )}
+
           <h3 className="font-display font-semibold mb-3 flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
           <div className="grid gap-3 md:grid-cols-2">
             {(participants || []).map((p: any) => (

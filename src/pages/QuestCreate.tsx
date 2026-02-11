@@ -15,6 +15,7 @@ import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { ImageUpload } from "@/components/ImageUpload";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
+import { useAcceptedPartners } from "@/hooks/useQuestHosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Shield, Building2, Handshake, X as XIcon } from "lucide-react";
 
 interface AiSuggestion {
   description: string;
@@ -87,6 +90,12 @@ export default function QuestCreate() {
   const [missionBudgetMin, setMissionBudgetMin] = useState("");
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
   const [paymentType, setPaymentType] = useState("INVOICE");
+
+  // Co-hosts state
+  const primaryEntityType = guildId ? "GUILD" as const : companyId ? "COMPANY" as const : undefined;
+  const primaryEntityId = guildId || companyId || undefined;
+  const { data: availablePartners } = useAcceptedPartners(primaryEntityType, primaryEntityId);
+  const [selectedCoHosts, setSelectedCoHosts] = useState<{ entityType: "GUILD" | "COMPANY"; entityId: string; name: string; logo_url: string | null }[]>([]);
 
   // AI state
   const [aiKeywords, setAiKeywords] = useState("");
@@ -241,6 +250,29 @@ export default function QuestCreate() {
         );
       }
 
+      // Insert quest hosts (PRIMARY + co-hosts)
+      if (primaryEntityType && primaryEntityId) {
+        await supabase.from("quest_hosts").insert({
+          quest_id: quest.id,
+          entity_type: primaryEntityType,
+          entity_id: primaryEntityId,
+          role: "PRIMARY",
+          created_by_user_id: currentUser.id,
+        } as any);
+
+        if (selectedCoHosts.length > 0) {
+          await supabase.from("quest_hosts").insert(
+            selectedCoHosts.map(ch => ({
+              quest_id: quest.id,
+              entity_type: ch.entityType,
+              entity_id: ch.entityId,
+              role: "CO_HOST",
+              created_by_user_id: currentUser.id,
+            })) as any
+          );
+        }
+      }
+
       await supabase.from("quest_participants").insert({
         quest_id: quest.id,
         user_id: currentUser.id,
@@ -307,6 +339,59 @@ export default function QuestCreate() {
         <p className="text-muted-foreground mb-6">
           Creating under: <span className="font-medium text-foreground">{contextLabel}</span>
         </p>
+
+        {/* Co-hosts selection (only when creating under a guild/company) */}
+        {primaryEntityType && primaryEntityId && (availablePartners ?? []).length > 0 && (
+          <Card className="p-4 space-y-3 mb-6">
+            <div className="flex items-center gap-2">
+              <Handshake className="h-5 w-5 text-primary" />
+              <h3 className="text-sm font-semibold">Co-hosts (partner guilds/companies)</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Invite partner guilds or companies to co-host this quest. Only accepted partners of the primary host can be selected.
+            </p>
+            {selectedCoHosts.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedCoHosts.map(ch => (
+                  <div key={`${ch.entityType}:${ch.entityId}`} className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={ch.logo_url ?? undefined} />
+                      <AvatarFallback className="text-[8px]">{ch.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium">{ch.name}</span>
+                    <Badge variant="outline" className="text-[8px] px-1 py-0">
+                      {ch.entityType === "GUILD" ? "Guild" : "Company"}
+                    </Badge>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCoHosts(prev => prev.filter(p => !(p.entityType === ch.entityType && p.entityId === ch.entityId)))}
+                      className="ml-0.5 text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <XIcon className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {(availablePartners ?? [])
+                .filter(p => !selectedCoHosts.some(ch => ch.entityType === p.entityType && ch.entityId === p.entityId))
+                .map(p => (
+                  <Button
+                    key={`${p.entityType}:${p.entityId}`}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setSelectedCoHosts(prev => [...prev, p])}
+                  >
+                    {p.entityType === "GUILD" ? <Shield className="h-3 w-3 mr-1" /> : <Building2 className="h-3 w-3 mr-1" />}
+                    {p.name}
+                  </Button>
+                ))}
+            </div>
+          </Card>
+        )}
 
         <div className="space-y-5">
           <div>
