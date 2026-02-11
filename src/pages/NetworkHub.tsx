@@ -20,6 +20,7 @@ import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortCo
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
 import LeaderboardTab from "@/components/LeaderboardTab";
+import TerritoryTopicLeaderboard from "@/components/network/TerritoryTopicLeaderboard";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
