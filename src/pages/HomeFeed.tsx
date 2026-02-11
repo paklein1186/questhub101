@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GuidedPathways } from "@/components/home/GuidedPathways";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -40,15 +41,9 @@ const PERSONA_DESCRIPTION: Record<string, string> = {
   UNSET: "Use changethegame to discover quests, connect with people, and build something meaningful.",
 };
 
-/* ───────── Guided mode tiles ───────── */
+/* ───────── Guided mode uses GuidedPathways component ───────── */
 
-const GUIDED_TILES = [
-  { id: "share", icon: MessageCircle, title: "Share what's on my mind", prompt: "What would you like to share or express?", color: "text-amber-500" },
-  { id: "help", icon: Users, title: "Find people that can help me", prompt: "What do you need help with?", color: "text-emerald-500" },
-  { id: "work", icon: Briefcase, title: "See my current work & quests", route: "/work", color: "text-blue-500" },
-  { id: "likeminded", icon: Heart, title: "Find like-minded people", prompt: "What makes someone 'like-minded' for you right now?", color: "text-rose-500" },
-];
-
+/* ───────── Guided mode now uses GuidedPathways component ───────── */
 /* ───────── Verb rotator hook ───────── */
 
 function useRotatingVerb(persona: PersonaType) {
@@ -286,7 +281,9 @@ export default function HomeFeed() {
 
   const [mode, setMode] = useState<"free" | "guided">(() => {
     const stored = localStorage.getItem("home-mode");
-    return stored === "guided" ? "guided" : "free";
+    if (stored === "free" || stored === "guided") return stored;
+    // First-time users default to guided
+    return "guided";
   });
 
   const [input, setInput] = useState("");
@@ -350,16 +347,7 @@ export default function HomeFeed() {
     navigate(target);
   };
 
-  const handleGuidedTile = (tile: typeof GUIDED_TILES[0]) => {
-    if (tile.route) {
-      navigate(tile.route);
-      return;
-    }
-    setGuidedTile(tile.id);
-    setInput("");
-    setResult(null);
-    setTimeout(() => inputRef.current?.focus(), 100);
-  };
+  // handleGuidedTile removed — guided mode now uses GuidedPathways component
 
   const resetAll = () => {
     setResult(null);
@@ -367,8 +355,6 @@ export default function HomeFeed() {
     setGuidedTile(null);
     setLastInput("");
   };
-
-  const activeGuidedTile = GUIDED_TILES.find((t) => t.id === guidedTile);
 
   const isTerritory = result?.actionType === "TERRITORY_INTENT";
 
@@ -455,69 +441,8 @@ export default function HomeFeed() {
         )}
 
         {/* ─── Guided mode ─── */}
-        {mode === "guided" && !guidedTile && !result && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3"
-          >
-            {GUIDED_TILES.map((tile) => (
-              <button
-                key={tile.id}
-                onClick={() => handleGuidedTile(tile)}
-                className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:bg-accent/50 transition-all text-left group"
-              >
-                <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center bg-muted shrink-0 group-hover:scale-105 transition-transform", tile.color)}>
-                  <tile.icon className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-medium text-foreground">{tile.title}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-
-        {/* ─── Guided tile follow-up ─── */}
-        {mode === "guided" && guidedTile && activeGuidedTile && !result && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full space-y-4"
-          >
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setGuidedTile(null); setInput(""); }}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                ← Back
-              </button>
-            </div>
-            <p className="text-base font-medium text-foreground/80 text-center">
-              {activeGuidedTile.prompt}
-            </p>
-            <Textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Describe what you have in mind…"
-              className="min-h-[56px] max-h-[120px] resize-none text-base bg-card border-border focus-visible:ring-primary/30"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submitIntent(input, "HOME_GUIDED");
-                }
-              }}
-            />
-            <div className="flex justify-end">
-              <Button
-                onClick={() => submitIntent(input, "HOME_GUIDED")}
-                disabled={loading || !input.trim()}
-                className="gap-2"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Let's go
-              </Button>
-            </div>
-          </motion.div>
+        {mode === "guided" && !result && (
+          <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} />
         )}
 
         {/* ─── Territory Intent Flow ─── */}
