@@ -86,108 +86,112 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
 
   return (
     <PageShell bare={bare}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-display text-3xl font-bold">Pods</h1>
-          <p className="text-muted-foreground mt-1">Small collaboration groups around quests and topics.</p>
-        </div>
-        {isLoggedIn && (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-1" /> Create Pod</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader><DialogTitle>Create a Pod</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-2">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Name</label>
-                  <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Pod name" maxLength={100} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Description</label>
-                  <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this pod about?" maxLength={500} className="resize-none" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Type</label>
-                  <Select value={newType} onValueChange={setNewType}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
-                      <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {newType === PodType.QUEST_POD && (
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Quest</label>
-                    <Select value={newQuestId} onValueChange={setNewQuestId}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No quest</SelectItem>
-                        {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+      {!hideFilters && (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="font-display text-3xl font-bold">Pods</h1>
+              <p className="text-muted-foreground mt-1">Small collaboration groups around quests and topics.</p>
+            </div>
+            {isLoggedIn && (
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button><Plus className="h-4 w-4 mr-1" /> Create Pod</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader><DialogTitle>Create a Pod</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Name</label>
+                      <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Pod name" maxLength={100} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Description</label>
+                      <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this pod about?" maxLength={500} className="resize-none" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Type</label>
+                      <Select value={newType} onValueChange={setNewType}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
+                          <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {newType === PodType.QUEST_POD && (
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Quest</label>
+                        <Select value={newQuestId} onValueChange={setNewQuestId}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No quest</SelectItem>
+                            {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {newType === PodType.STUDY_POD && (
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Topic</label>
+                        <Select value={newTopicId} onValueChange={setNewTopicId}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No topic</SelectItem>
+                            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Start date</label>
+                        <Input type="date" value={newStart} onChange={(e) => setNewStart(e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">End date</label>
+                        <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Save as draft</label>
+                      <Switch checked={newDraft} onCheckedChange={setNewDraft} />
+                    </div>
+                    <Button onClick={handleCreate} disabled={!newName.trim() || createPodMut.isPending} className="w-full">
+                      {createPodMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                      Create
+                    </Button>
                   </div>
-                )}
-                {newType === PodType.STUDY_POD && (
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Topic</label>
-                    <Select value={newTopicId} onValueChange={setNewTopicId}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No topic</SelectItem>
-                        {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">Start date</label>
-                    <Input type="date" value={newStart} onChange={(e) => setNewStart(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1 block">End date</label>
-                    <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Save as draft</label>
-                  <Switch checked={newDraft} onCheckedChange={setNewDraft} />
-                </div>
-                <Button onClick={handleCreate} disabled={!newName.trim() || createPodMut.isPending} className="w-full">
-                  {createPodMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  Create
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
 
-      {!isLoggedIn && (
-        <PublicExploreCTA
-          message="Pods are collaboration groups. Log in to see details and join."
-          className="mb-6"
-        />
+          {!isLoggedIn && (
+            <PublicExploreCTA
+              message="Pods are collaboration groups. Log in to see details and join."
+              className="mb-6"
+            />
+          )}
+
+          <div className="mb-6">
+            <ExploreFilters
+              filters={activeFilters}
+              onChange={setFilters}
+              config={{ showTopics: true, showPodType: true }}
+              houseFilter={{
+                active: hf.houseFilterActive,
+                onToggle: hf.setHouseFilterActive,
+                hasHouses: hf.hasHouses,
+                topicNames: hf.topicNames,
+                myTopicIds: hf.myTopicIds,
+              }}
+              universeMode={hf.universeMode}
+              onUniverseModeChange={hf.setUniverseMode}
+            />
+          </div>
+        </>
       )}
-
-      <div className="mb-6">
-        <ExploreFilters
-          filters={filters}
-          onChange={setFilters}
-          config={{ showTopics: true, showPodType: true }}
-          houseFilter={{
-            active: hf.houseFilterActive,
-            onToggle: hf.setHouseFilterActive,
-            hasHouses: hf.hasHouses,
-            topicNames: hf.topicNames,
-            myTopicIds: hf.myTopicIds,
-          }}
-          universeMode={hf.universeMode}
-          onUniverseModeChange={hf.setUniverseMode}
-        />
-      </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
 
