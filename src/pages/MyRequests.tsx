@@ -79,10 +79,10 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
                 <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace("_", " ") || "N/A"}</p>
               )}
 
-              {b.call_url && (b.status === "CONFIRMED" || b.status === "ACCEPTED") && (
-                <a href={b.call_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
-                  <Video className="h-3 w-3" /> Join call <ExternalLink className="h-3 w-3" />
-                </a>
+              {(b.status === "CONFIRMED" || b.status === "ACCEPTED") && (
+                <Link to={`/call/${b.id}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
+                  <Video className="h-3 w-3" /> Join call room <ExternalLink className="h-3 w-3" />
+                </Link>
               )}
 
               <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.created_at), { addSuffix: true })}</p>

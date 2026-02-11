@@ -131,12 +131,21 @@ export default function BookingDetail() {
         <section className="rounded-xl border border-border bg-card p-5 mb-4">
           <h2 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Session</h2>
           <div className="flex flex-wrap gap-3">
-            {isConfirmed && effectiveCallUrl ? (
-              <Button asChild>
-                <a href={effectiveCallUrl} target="_blank" rel="noopener noreferrer">
-                  <Video className="h-4 w-4 mr-2" /> Join call <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                </a>
-              </Button>
+            {isConfirmed ? (
+              <>
+                <Button asChild>
+                  <Link to={`/call/${booking.id}`}>
+                    <Video className="h-4 w-4 mr-2" /> Join call room
+                  </Link>
+                </Button>
+                {effectiveCallUrl && (
+                  <Button variant="outline" asChild>
+                    <a href={effectiveCallUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" /> Open in Jitsi
+                    </a>
+                  </Button>
+                )}
+              </>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
