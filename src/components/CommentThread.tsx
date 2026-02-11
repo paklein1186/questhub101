@@ -89,6 +89,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const [pendingMentions, setPendingMentions] = useState<MentionedUser[]>([]);
   const [replyMentions, setReplyMentions] = useState<MentionedUser[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getAuthor = (userId: string) => authorProfiles.find((p) => p.user_id === userId);
   const topLevel = comments.filter((c) => !c.parent_id && !c.is_deleted);
