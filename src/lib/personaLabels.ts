@@ -306,7 +306,7 @@ export function getHeroPrompts(persona: PersonaType): string[] {
     return [
       "I want to join a mission that matters",
       "I'm ready to share my expertise as a service",
-      "Show me guilds driving regeneration",
+    "Show me guilds driving regeneration",
       "Help me grow my impact this week",
     ];
   }
