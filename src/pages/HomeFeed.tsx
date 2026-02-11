@@ -7,8 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
-import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
-import { Brain } from "lucide-react";
 import { usePersona } from "@/hooks/usePersona";
 
 import { PersonaGreeting } from "@/components/home/PersonaGreeting";
@@ -145,22 +143,8 @@ export default function HomeFeed() {
 
         <Separator />
 
-        {/* 9. In your territories */}
-        {(data?.myTerritories ?? []).length > 0 && (
-          <>
-            <section className="space-y-4">
-              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-                <Brain className="h-5 w-5 text-primary" /> {label("home.territories_section")}
-              </h2>
-              <div className="space-y-4">
-                {(data?.myTerritories ?? []).slice(0, 2).map((t: any) => (
-                  <TerritoryIntelligencePanel key={t.id} territoryId={t.id} territoryName={t.name} compact />
-                ))}
-              </div>
-            </section>
-            <Separator />
-          </>
-        )}
+
+
 
         {/* 10. Community feed with toggle */}
         <FeedToggle />
