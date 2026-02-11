@@ -1,175 +1,35 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
-import logoImg from "@/assets/logo.png";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-const FOOTER_COLUMNS = [
-  {
-    title: "Core",
-    links: [
-      { label: "About", href: "/about", external: false },
-      { label: "How it works", href: "/how-it-works", external: false },
-      { label: "Guides & Support", href: "/support", external: false },
-      { label: "Contact", href: "/contact", external: false },
-      { label: "Privacy Policy", href: "/privacy", external: false },
-      { label: "Terms of Service", href: "/terms", external: false },
-      { label: "Security", href: "/security", external: false },
-      { label: "Cookies", href: "/cookies", external: false },
-    ],
-  },
-  {
-    title: "Explore",
-    links: [
-      { label: "Discover Quests", href: "/explore/quests-info", external: false },
-      { label: "Find Guilds & Collectives", href: "/explore/guilds-info", external: false },
-      { label: "Browse Companies", href: "/explore/companies-info", external: false },
-      { label: "Explore People", href: "/explore/people-info", external: false },
-      { label: "Territories & Houses", href: "/territories-houses", external: false },
-    ],
-  },
-  {
-    title: "Start Something",
-    links: [
-      { label: "Create a Quest", href: "/create/quest-info", external: false },
-      { label: "Offer a Service", href: "/create/service-info", external: false },
-      { label: "Create a Guild", href: "/create/guild-info", external: false },
-      { label: "Create a Company", href: "/create/company-info", external: false },
-      { label: "Browse Courses", href: "/courses-info", external: false },
-    ],
-  },
-  {
-    title: "AI Agents",
-    links: [
-      { label: "What AI can do here", href: "/ai-info", external: false },
-      { label: "Territory Agents", href: "/ai/territory-agents-info", external: false },
-      { label: "AI Ethics & Transparency", href: "/ai-ethics", external: false },
-    ],
-  },
-  {
-    title: "Community",
-    links: [
-      { label: "Community Guidelines", href: "/community-guidelines", external: false },
-      { label: "Governance Model", href: "/governance", external: false },
-      { label: "Roadmap & Changelog", href: "/roadmap", external: false },
-      { label: "Bug Reporting", href: "/bugs", external: false },
-    ],
-  },
+const FOOTER_LINKS = [
+  { label: "Manifesto", href: "/manifesto" },
+  { label: "The Cooperative Venture", href: "/cooperative" },
+  { label: "What Comes Next", href: "/what-comes-next" },
 ];
-
-const SOCIAL_LINKS = [
-  { label: "X / Twitter", icon: "𝕏", href: "#" },
-  { label: "LinkedIn", icon: "in", href: "#" },
-  { label: "Instagram", icon: "📷", href: "#" },
-  { label: "Discord", icon: "💬", href: "#" },
-];
-
-function FooterColumn({ title, links }: { title: string; links: { label: string; href: string; external: boolean }[] }) {
-  return (
-    <div>
-      <h4 className="font-display text-sm font-semibold text-foreground mb-3">{title}</h4>
-      <ul className="space-y-2">
-        {links.map((link) => (
-          <li key={link.label}>
-            {link.external ? (
-              <a href={link.href} target="_blank" rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
-                {link.label} <ExternalLink className="h-3 w-3" />
-              </a>
-            ) : (
-              <Link to={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                {link.label}
-              </Link>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function MobileFooterColumn({ title, links }: { title: string; links: { label: string; href: string; external: boolean }[] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <Collapsible open={open} onOpenChange={setOpen} className="border-b border-border last:border-0">
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-sm font-semibold text-foreground">
-        {title}
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <ul className="space-y-2 pb-3">
-          {links.map((link) => (
-            <li key={link.label}>
-              {link.external ? (
-                <a href={link.href} target="_blank" rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1">
-                  {link.label} <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : (
-                <Link to={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  {link.label}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
-  );
-}
 
 export function SiteFooter() {
   const isMobile = useIsMobile();
 
   return (
-    <footer className="border-t border-border bg-card mt-auto">
-      <div className="container py-10">
-        {/* Brand + Columns */}
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* Brand & Mission */}
-          <div className="lg:max-w-xs shrink-0">
-            <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
-              <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
+    <footer className="mt-auto py-10 sm:py-16">
+      <div className="container flex flex-col items-center gap-6">
+        <p className="text-xs tracking-wide" style={{ color: "#6B6B6B" }}>
+          changethegame — Human-powered. AI-augmented. Community-owned.
+        </p>
+        <nav
+          className={`flex ${isMobile ? "flex-col items-center gap-3" : "flex-row items-center gap-6"}`}
+        >
+          {FOOTER_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className="text-xs sm:text-sm hover:underline transition-colors"
+              style={{ color: "#6B6B6B" }}
+            >
+              {link.label}
             </Link>
-            <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-              Human-powered. AI-augmented. Game-changing.
-            </p>
-          </div>
-
-          {/* Link columns */}
-          {isMobile ? (
-            <div className="flex-1">
-              {FOOTER_COLUMNS.map((col) => (
-                <MobileFooterColumn key={col.title} title={col.title} links={col.links} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-              {FOOTER_COLUMNS.map((col) => (
-                <FooterColumn key={col.title} title={col.title} links={col.links} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Bottom bar */}
-        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Social */}
-          <div className="flex items-center gap-3">
-            {SOCIAL_LINKS.map((s) => (
-              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" title={s.label}
-                className="w-8 h-8 rounded-lg border border-border bg-background flex items-center justify-center text-xs font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all">
-                {s.icon}
-              </a>
-            ))}
-          </div>
-
-          {/* Copyright */}
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} changethegame – All rights reserved.
-          </p>
-        </div>
+          ))}
+        </nav>
       </div>
     </footer>
   );

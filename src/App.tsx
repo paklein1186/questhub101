@@ -112,6 +112,9 @@ import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
 import GovernancePage from "./pages/GovernancePage";
 import RoadmapPage from "./pages/RoadmapPage";
 import BugReportingPage from "./pages/BugReportingPage";
+import ManifestoPage from "./pages/ManifestoPage";
+import CooperativeVenturePage from "./pages/CooperativeVenturePage";
+import WhatComesNextPage from "./pages/WhatComesNextPage";
 import CreativeLanding from "./pages/CreativeLanding";
 import HybridLanding from "./pages/HybridLanding";
 import ImpactLanding from "./pages/ImpactLanding";
@@ -200,6 +203,9 @@ const App = () => (
                 <Route path="/governance" element={<GovernancePage />} />
                 <Route path="/roadmap" element={<RoadmapPage />} />
                 <Route path="/bugs" element={<BugReportingPage />} />
+                <Route path="/manifesto" element={<ManifestoPage />} />
+                <Route path="/cooperative" element={<CooperativeVenturePage />} />
+                <Route path="/what-comes-next" element={<WhatComesNextPage />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
