@@ -254,10 +254,31 @@ serve(async (req) => {
     if (!parsed.confidence) parsed.confidence = 0.5;
     if (!parsed.actionType) parsed.actionType = "OTHER";
 
-    // Sanitize all suggestion routes
+    // Inject primaryRoute from ACTION_ROUTE_MAP if AI didn't provide one
+    if (!parsed.primaryRoute) {
+      const mapping = ACTION_ROUTE_MAP[parsed.actionType] || ACTION_ROUTE_MAP.OTHER;
+      parsed.primaryRoute = mapping.route;
+      if (!parsed.primaryQueryParams && mapping.queryParams) {
+        parsed.primaryQueryParams = mapping.queryParams;
+      }
+    }
+
+    // For HELP intent, append anchor to route based on helpTopic
+    if (parsed.actionType === "HELP" && parsed.helpTopic) {
+      const topicAnchors: Record<string, string> = {
+        quests: "#quests", guilds: "#guilds", services: "#services",
+        courses: "#courses", territories: "#territories",
+        "getting-started": "#getting-started", pods: "#pods",
+      };
+      const anchor = topicAnchors[parsed.helpTopic] || "";
+      parsed.primaryRoute = `/support${anchor}`;
+    }
+
+    // Sanitize all suggestion routes and ensure queryParams
     parsed.suggestions = parsed.suggestions.map((s: any) => ({
       ...s,
       route: sanitizeRoute(s.route || "/explore"),
+      queryParams: s.queryParams || {},
     }));
 
     // For TERRITORY_INTENT, attach user's territory info
