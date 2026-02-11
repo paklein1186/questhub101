@@ -255,6 +255,7 @@ const App = () => (
                 <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
                 <Route path="/me/starred-excerpts" element={<RequireAuth><MyStarredExcerpts /></RequireAuth>} />
                 <Route path="/me/following" element={<RequireAuth><MyFollowing /></RequireAuth>} />
+                <Route path="/me/milestones" element={<RequireAuth><MilestonesHub /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
