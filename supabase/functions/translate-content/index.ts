@@ -131,8 +131,7 @@ serve(async (req) => {
       });
     }
 
-    // Store in DB using service role
-    const adminClient = createClient(supabaseUrl, supabaseKey);
+    // Store in DB using service role (adminClient already created above)
     const { error: upsertError } = await adminClient
       .from("content_translations")
       .upsert(
