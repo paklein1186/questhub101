@@ -168,7 +168,12 @@ export function AppNav() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/me" className="cursor-pointer">
-                        <User className="h-4 w-4 mr-2" /> My Hub
+                        <User className="h-4 w-4 mr-2" /> {t("nav.myHub")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
+                        <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
