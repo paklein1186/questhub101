@@ -373,8 +373,8 @@ export default function SettingsPage() {
 
                   <Separator />
 
-                  <Section title="Auto-filter by your Houses" icon={<Hash className="h-5 w-5" />}>
-                    <p className="text-sm text-muted-foreground mb-3">When enabled, Explore, Feed, and Search will prioritize content from your selected Houses and topics.</p>
+                  <Section title="Auto-filter by your Topics" icon={<Hash className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">When enabled, Explore, Feed, and Search will prioritize content from your selected Topics.</p>
                     <div className="flex items-center gap-3">
                       <Switch
                         checked={usePrefs}
