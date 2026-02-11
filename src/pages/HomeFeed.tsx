@@ -43,13 +43,7 @@ const PERSONA_DESCRIPTION: Record<string, string> = {
 
 /* ───────── Guided mode tiles ───────── */
 
-const GUIDED_TILES = [
-  { id: "share", icon: MessageCircle, title: "Share what's on my mind", prompt: "What would you like to share or express?", color: "text-amber-500" },
-  { id: "help", icon: Users, title: "Find people that can help me", prompt: "What do you need help with?", color: "text-emerald-500" },
-  { id: "work", icon: Briefcase, title: "See my current work & quests", route: "/work", color: "text-blue-500" },
-  { id: "likeminded", icon: Heart, title: "Find like-minded people", prompt: "What makes someone 'like-minded' for you right now?", color: "text-rose-500" },
-];
-
+/* ───────── Guided mode now uses GuidedPathways component ───────── */
 /* ───────── Verb rotator hook ───────── */
 
 function useRotatingVerb(persona: PersonaType) {
