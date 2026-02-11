@@ -270,3 +270,99 @@ export default function LeaderboardTab() {
     </div>
   );
 }
+
+/* ── Guild & Territory Leaderboards ── */
+
+function EntityLeaderboards() {
+  const { data: guilds = [], isLoading: gLoading } = useGuildLeaderboard();
+  const { data: territories = [], isLoading: tLoading } = useTerritoryLeaderboard();
+
+  if (gLoading || tLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-2">
+      {/* Guild Leaderboard */}
+      {guilds.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30">
+            <div className="flex items-center gap-2.5">
+              <Shield className="h-5 w-5 text-primary" />
+              <div>
+                <h3 className="font-display font-semibold text-sm">Top Guilds</h3>
+                <p className="text-xs text-muted-foreground">Most active communities by members, quests & events.</p>
+              </div>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {guilds.map((g, i) => (
+              <Link
+                key={g.id}
+                to={`/guilds/${g.id}`}
+                className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
+              >
+                <span className={`w-6 text-center font-bold text-sm shrink-0 ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-muted-foreground"}`}>
+                  {i + 1}
+                </span>
+                <Avatar className={i < 3 ? "h-9 w-9" : "h-7 w-7"}>
+                  <AvatarImage src={g.logo_url ?? undefined} />
+                  <AvatarFallback>{g.name[0]}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{g.name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {g.member_count} members · {g.quest_count} quests · {g.event_count} events
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-[10px] shrink-0">{g.total_score} pts</Badge>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Territory Leaderboard */}
+      {territories.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30">
+            <div className="flex items-center gap-2.5">
+              <MapPin className="h-5 w-5 text-primary" />
+              <div>
+                <h3 className="font-display font-semibold text-sm">Top Territories</h3>
+                <p className="text-xs text-muted-foreground">Most connected territories by quests, guilds & entities.</p>
+              </div>
+            </div>
+          </div>
+          <div className="divide-y divide-border">
+            {territories.map((t, i) => (
+              <Link
+                key={t.id}
+                to={`/territories/${t.id}`}
+                className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
+              >
+                <span className={`w-6 text-center font-bold text-sm shrink-0 ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-muted-foreground"}`}>
+                  {i + 1}
+                </span>
+                <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
+                  <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{t.name}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t.quest_count} quests · {t.guild_count} guilds · {t.pod_count} pods · {t.company_count} companies
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-[10px] shrink-0">{t.total_score} pts</Badge>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
