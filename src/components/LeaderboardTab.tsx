@@ -264,6 +264,9 @@ export default function LeaderboardTab() {
           })}
         </div>
       )}
+
+      {/* Entity Leaderboards */}
+      <EntityLeaderboards />
     </div>
   );
 }
