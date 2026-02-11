@@ -468,11 +468,12 @@ export default function Onboarding() {
       case 1: return renderHousesOfArt();
       case 2: return renderCreativeGround();
       case 3: return renderCreativeEssence();
-      case 4: return renderAffiliationsInput();
-      case 5: return renderAffiliationsReview();
-      case 6: return renderProject(true);
-      case 7: return renderService(true);
-      case 8: return renderDone(true);
+      case 4: return renderLanguagesStep();
+      case 5: return renderAffiliationsInput();
+      case 6: return renderAffiliationsReview();
+      case 7: return renderProject(true);
+      case 8: return renderService(true);
+      case 9: return renderDone(true);
       default: return null;
     }
   };
@@ -481,11 +482,12 @@ export default function Onboarding() {
     switch (step) {
       case 0: return renderEntryChoice();
       case 1: return renderIdentity();
-      case 2: return renderAffiliationsInput();
-      case 3: return renderAffiliationsReview();
-      case 4: return renderProject(false);
-      case 5: return renderService(false);
-      case 6: return renderDone(false);
+      case 2: return renderLanguagesStep();
+      case 3: return renderAffiliationsInput();
+      case 4: return renderAffiliationsReview();
+      case 5: return renderProject(false);
+      case 6: return renderService(false);
+      case 7: return renderDone(false);
       default: return null;
     }
   };
