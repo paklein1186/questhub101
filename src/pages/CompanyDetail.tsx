@@ -37,6 +37,7 @@ import { formatDistanceToNow } from "date-fns";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
