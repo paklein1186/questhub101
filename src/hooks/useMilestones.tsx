@@ -252,7 +252,7 @@ export function useMilestoneChecker() {
       supabase.from("quests").select("id", { count: "exact", head: true }).eq("created_by_user_id", user.id).eq("is_deleted", false),
       supabase.from("services").select("id", { count: "exact", head: true }).eq("provider_user_id", user.id).eq("is_deleted", false),
       supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("territory_memories").select("id", { count: "exact", head: true }).eq("author_user_id", user.id),
+      supabase.from("territory_memory").select("id", { count: "exact", head: true }).eq("author_user_id", user.id),
       supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("courses").select("id", { count: "exact", head: true }).eq("owner_user_id", user.id).eq("is_published", true).eq("is_deleted", false),
