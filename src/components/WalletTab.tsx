@@ -245,9 +245,9 @@ export function WalletTab() {
               <div key={tx.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
                   {tx.amount > 0 ? (
-                    <ArrowDownRight className="h-4 w-4 text-green-500 shrink-0" />
+                    <ArrowDownRight className="h-4 w-4 text-primary shrink-0" />
                   ) : (
-                    <ArrowUpRight className="h-4 w-4 text-red-500 shrink-0" />
+                    <ArrowUpRight className="h-4 w-4 text-destructive shrink-0" />
                   )}
                   <div>
                     <p className="text-sm font-medium">{TX_TYPE_LABELS[tx.type] || tx.type}</p>
