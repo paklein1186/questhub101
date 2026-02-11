@@ -144,6 +144,23 @@ interface NotificationStore {
 
 const NotificationContext = createContext<NotificationStore>(null!);
 
+// ─── Helper: Build deep link for entity ─────────────────────
+
+function buildNotifDeepLink(targetType: string, targetId: string): string {
+  switch (targetType) {
+    case "QUEST": return `/quests/${targetId}`;
+    case "SERVICE": return `/services/${targetId}`;
+    case "GUILD": return `/guilds/${targetId}`;
+    case "POD": return `/pods/${targetId}`;
+    case "COMPANY": return `/companies/${targetId}`;
+    case "COURSE": return `/courses/${targetId}`;
+    case "USER": return `/users/${targetId}`;
+    case "GUILD_EVENT": return `/events/${targetId}`;
+    case "FEED_POST": return `/`;
+    default: return `/`;
+  }
+}
+
 // ─── Helper: Insert notification to DB ──────────────────────
 
 async function insertNotification(params: {
