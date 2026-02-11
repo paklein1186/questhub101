@@ -268,38 +268,58 @@ export default function Onboarding() {
         );
       }
 
-      // Save accepted affiliations as guild/company memberships
-      for (const aff of suggestedAffiliations.filter(a => a.accepted && a.matchedEntityId)) {
-        if (aff.matchedEntityType === "GUILD") {
+      // Save accepted affiliations — apply or join based on unit's join_policy
+      const joinOrApplyGuild = async (guildId: string) => {
+        const guild = existingGuilds.find(g => g.id === guildId);
+        const policy = guild?.join_policy ?? "APPROVAL_REQUIRED";
+        if (policy === "OPEN") {
           await supabase.from("guild_members").upsert([{
-            guild_id: aff.matchedEntityId!,
-            user_id: authUser.id,
-            role: "MEMBER" as const,
-          }], { onConflict: "guild_id,user_id" }).select();
-        } else if (aff.matchedEntityType === "COMPANY") {
-          await supabase.from("company_members").upsert([{
-            company_id: aff.matchedEntityId!,
-            user_id: authUser.id,
-            role: aff.role || "member",
-          }], { onConflict: "company_id,user_id" }).select();
-        }
-      }
-
-      // Also join directly selected entities
-      for (const entityId of selectedEntityIds) {
-        const isGuild = existingGuilds.some(g => g.id === entityId);
-        if (isGuild) {
-          await supabase.from("guild_members").upsert([{
-            guild_id: entityId,
+            guild_id: guildId,
             user_id: authUser.id,
             role: "MEMBER" as const,
           }], { onConflict: "guild_id,user_id" }).select();
         } else {
-          await supabase.from("company_members").upsert([{
-            company_id: entityId,
-            user_id: authUser.id,
-            role: "member",
-          }], { onConflict: "company_id,user_id" }).select();
+          // Create application (APPROVAL_REQUIRED or INVITE_ONLY → needs admin validation)
+          const { data: existing } = await supabase.from("guild_applications")
+            .select("id").eq("guild_id", guildId).eq("applicant_user_id", authUser.id).maybeSingle();
+          if (!existing) {
+            await supabase.from("guild_applications").insert({
+              guild_id: guildId,
+              applicant_user_id: authUser.id,
+              status: "PENDING" as const,
+            });
+          }
+        }
+      };
+
+      const joinOrApplyCompany = async (companyId: string) => {
+        // Companies always require application (no join_policy column)
+        const { data: existing } = await supabase.from("company_applications")
+          .select("id").eq("company_id", companyId).eq("applicant_user_id", authUser.id).maybeSingle();
+        if (!existing) {
+          await supabase.from("company_applications").insert({
+            company_id: companyId,
+            applicant_user_id: authUser.id,
+            status: "PENDING" as const,
+          });
+        }
+      };
+
+      for (const aff of suggestedAffiliations.filter(a => a.accepted && a.matchedEntityId)) {
+        if (aff.matchedEntityType === "GUILD") {
+          await joinOrApplyGuild(aff.matchedEntityId!);
+        } else if (aff.matchedEntityType === "COMPANY") {
+          await joinOrApplyCompany(aff.matchedEntityId!);
+        }
+      }
+
+      // Also handle directly selected entities
+      for (const entityId of selectedEntityIds) {
+        const isGuild = existingGuilds.some(g => g.id === entityId);
+        if (isGuild) {
+          await joinOrApplyGuild(entityId);
+        } else {
+          await joinOrApplyCompany(entityId);
         }
       }
 
