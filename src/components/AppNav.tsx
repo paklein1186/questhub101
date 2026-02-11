@@ -311,16 +311,16 @@ export function AppNav() {
                   <div className="border-t border-border px-3 py-4 space-y-2">
                     {isLoggedIn ? (
                       <Button variant="destructive" size="sm" className="w-full" onClick={() => { handleLogout(); setMobileOpen(false); }}>
-                        <LogOut className="h-4 w-4 mr-2" /> Log out
+                        <LogOut className="h-4 w-4 mr-2" /> {t("nav.logout")}
                       </Button>
                     ) : (
                       <>
                         <Button size="sm" className="w-full" asChild>
-                          <Link to="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+                          <Link to="/signup" onClick={() => setMobileOpen(false)}>{t("nav.signup")}</Link>
                         </Button>
                         <Button variant="outline" size="sm" className="w-full" asChild>
                           <Link to="/login" onClick={() => setMobileOpen(false)}>
-                            <LogIn className="h-4 w-4 mr-1" /> Log in
+                            <LogIn className="h-4 w-4 mr-1" /> {t("nav.login")}
                           </Link>
                         </Button>
                       </>
