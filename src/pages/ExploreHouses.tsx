@@ -560,7 +560,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Services */}
           <TabsContent value="services" className="mt-6">
-            <EntityGrid items={services} loading={servicesLoading} empty="No services found for these Houses." renderItem={(s: any) => (
+            <EntityGrid items={services} loading={servicesLoading} empty="No services found for these Topics." renderItem={(s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="SERVICE" imageUrl={s.image_url} name={s.title} height="h-24" />
                 <div className="p-4">
