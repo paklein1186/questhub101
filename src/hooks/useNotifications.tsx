@@ -297,7 +297,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       body: `Someone commented on your ${entityLabel}: "${truncated}"`,
       relatedEntityType: targetType,
       relatedEntityId: targetId,
-      deepLinkUrl: buildCommentDeepLink(targetType, targetId),
+      deepLinkUrl: buildNotifDeepLink(targetType, targetId),
       data: { targetType, targetId, commentId },
     });
   }, [userId, addNotification]);
