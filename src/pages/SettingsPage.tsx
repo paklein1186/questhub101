@@ -382,7 +382,7 @@ export default function SettingsPage() {
                           setUsePrefs(checked);
                           if (authUser?.id) {
                             await supabase.from("profiles").update({ filter_by_houses: checked } as any).eq("user_id", authUser.id);
-                            toast({ title: checked ? "House filter enabled" : "House filter disabled" });
+                            toast({ title: checked ? "Topic filter enabled" : "Topic filter disabled" });
                           }
                         }}
                       />
