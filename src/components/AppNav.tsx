@@ -176,24 +176,19 @@ export function AppNav() {
                         <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
-                        <User className="h-4 w-4 mr-2" /> My public profile
-                      </Link>
-                    </DropdownMenuItem>
                     {showAdmin && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="cursor-pointer">
-                            <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
+                            <LayoutDashboard className="h-4 w-4 mr-2" /> {t("nav.admin")}
                           </Link>
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                      <LogOut className="h-4 w-4 mr-2" /> Log out
+                      <LogOut className="h-4 w-4 mr-2" /> {t("nav.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
