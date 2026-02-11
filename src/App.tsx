@@ -52,6 +52,7 @@ const AdminSystemIntegrations = lazy(() => import("./pages/admin/AdminSystemInte
 const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles"));
 const AdminSuperMode = lazy(() => import("./pages/admin/AdminSuperMode"));
 const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports"));
+const AdminMilestones = lazy(() => import("./pages/admin/AdminMilestones"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -86,6 +87,7 @@ import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
 import MyStarredExcerpts from "./pages/MyStarredExcerpts";
+import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -245,6 +247,7 @@ const App = () => (
                   <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
                   <Route path="system/feature-toggles" element={<Suspense fallback={null}><AdminFeatureToggles /></Suspense>} />
                   <Route path="system/super-mode" element={<Suspense fallback={null}><AdminSuperMode /></Suspense>} />
+                  <Route path="economy/milestones" element={<Suspense fallback={null}><AdminMilestones /></Suspense>} />
                 </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
@@ -253,6 +256,7 @@ const App = () => (
                 <Route path="/work/courses" element={<RequireAuth><MyCourses /></RequireAuth>} />
                 <Route path="/me/starred-excerpts" element={<RequireAuth><MyStarredExcerpts /></RequireAuth>} />
                 <Route path="/me/following" element={<RequireAuth><MyFollowing /></RequireAuth>} />
+                <Route path="/me/milestones" element={<RequireAuth><MilestonesHub /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>

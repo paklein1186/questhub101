@@ -1687,6 +1687,57 @@ export type Database = {
           },
         ]
       }
+      milestones: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_enabled: boolean
+          persona_visibility: string
+          reward_amount: number | null
+          reward_type: string
+          sort_order: number
+          title: string
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          persona_visibility?: string
+          reward_amount?: number | null
+          reward_type?: string
+          sort_order?: number
+          title: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_enabled?: boolean
+          persona_visibility?: string
+          reward_amount?: number | null
+          reward_type?: string
+          sort_order?: number
+          title?: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mission_agreements: {
         Row: {
           amount_accepted: number
@@ -2239,8 +2290,10 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_cooperative_member: boolean
+          last_milestone_popup_at: string | null
           last_xp_recalculated_at: string | null
           linkedin_url: string | null
+          milestone_popups_enabled: boolean
           name: string
           persona_confidence: number | null
           persona_source: string | null
@@ -2272,8 +2325,10 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
+          milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null
           persona_source?: string | null
@@ -2305,8 +2360,10 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
+          milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null
           persona_source?: string | null
@@ -3710,6 +3767,44 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_milestones: {
+        Row: {
+          acknowledged_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          milestone_id: string
+          reward_delivered: boolean
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          milestone_id: string
+          reward_delivered?: boolean
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          milestone_id?: string
+          reward_delivered?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_milestones_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

@@ -1,4 +1,6 @@
 import { Loader2 } from "lucide-react";
+import { MilestonePopup } from "@/components/MilestonePopup";
+import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,6 +69,7 @@ export default function HomeFeed() {
   const { user: authUser } = useAuth();
   const { data, isLoading } = useHomeShellData(currentUser.id);
   const { persona, label } = usePersona();
+  useMilestoneChecker();
 
   if (isLoading) {
     return (
@@ -84,6 +87,7 @@ export default function HomeFeed() {
 
   return (
     <PageShell>
+      <MilestonePopup />
       <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
         {/* 1. Persona-specific greeting */}
         <PersonaGreeting userName={userName} persona={persona} />
