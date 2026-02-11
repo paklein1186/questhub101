@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Users, Search, ArrowUpDown } from "lucide-react";
+import { Users, Search, ArrowUpDown, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/PageShell";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/select";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
+import { useAuth } from "@/hooks/useAuth";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { redactName } from "@/lib/publicMode";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ExploreUser {
@@ -25,6 +28,7 @@ interface ExploreUser {
   bio: string | null;
   role: string;
   xp: number;
+  persona_type: string;
   created_at: string;
   topics: { id: string; name: string }[];
   territories: { id: string; name: string }[];
@@ -36,6 +40,12 @@ const ROLE_LABELS: Record<string, string> = {
   GAMECHANGER: "Gamechanger",
   ECOSYSTEM_BUILDER: "Ecosystem Builder",
   BOTH: "Both",
+};
+
+const PERSONA_LABELS: Record<string, string> = {
+  IMPACT: "Impact",
+  CREATIVE: "Creative",
+  HYBRID: "Hybrid",
 };
 
 // ─── Data Fetching ───────────────────────────────────────────
@@ -88,7 +98,7 @@ function useExploreUsers(filters: {
 
       if (filters.search.trim()) {
         const s = `%${filters.search.trim()}%`;
-        query = query.or(`name.ilike.${s},headline.ilike.${s},bio.ilike.${s}`);
+        query = query.or(`name.ilike.${s},headline.ilike.${s}`);
       }
 
       if (filters.role && filters.role !== "all") {
@@ -143,6 +153,7 @@ function useExploreUsers(filters: {
         bio: p.bio,
         role: p.role ?? "GAMECHANGER",
         xp: p.xp ?? 0,
+        persona_type: (p as any).persona_type ?? "UNSET",
         created_at: p.created_at ?? "",
         topics: topicMap.get(p.user_id ?? "") ?? [],
         territories: terrMap.get(p.user_id ?? "") ?? [],
@@ -162,6 +173,8 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const hf = useHouseFilter();
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
 
   // When house filter is active and no manual topic filter set, inject user's topics
   const effectiveTopicIds = hf.houseFilterActive && filters.topicIds.length === 0
@@ -189,7 +202,7 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
           <Input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-            placeholder="Search by name, headline, or bio…"
+            placeholder={isLoggedIn ? "Search by name, headline, or bio…" : "Search by first name…"}
             className="pl-9"
           />
         </div>
@@ -221,6 +234,13 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
         onUniverseModeChange={hf.setUniverseMode}
       />
 
+      {!isLoggedIn && (
+        <PublicExploreCTA
+          message="You're seeing a preview. Log in to view full profiles and connect with people."
+          compact
+        />
+      )}
+
       <p className="text-sm text-muted-foreground">
         {isLoading ? "Loading…" : `${total} user${total !== 1 ? "s" : ""} found`}
       </p>
@@ -240,7 +260,7 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {users.map((u) => (
-            <UserCard key={u.id} user={u} />
+            <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} />
           ))}
         </div>
       )}
@@ -272,23 +292,35 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
 
 // ─── User Card ───────────────────────────────────────────────
 
-function UserCard({ user }: { user: ExploreUser }) {
+function UserCard({ user, isLoggedIn }: { user: ExploreUser; isLoggedIn: boolean }) {
+  const displayName = isLoggedIn ? user.name : redactName(user.name);
+  const personaLabel = PERSONA_LABELS[user.persona_type];
+
   return (
     <Link
-      to={`/users/${user.user_id}`}
+      to={isLoggedIn ? `/users/${user.user_id}` : "/login"}
       className="group block rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/30"
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12 shrink-0">
-          <AvatarImage src={user.avatar_url ?? undefined} />
+          {isLoggedIn ? (
+            <AvatarImage src={user.avatar_url ?? undefined} />
+          ) : null}
           <AvatarFallback className="text-sm font-semibold">{user.name?.[0] ?? "?"}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{user.name}</p>
-          {user.headline && <p className="text-xs text-muted-foreground truncate mt-0.5">{user.headline}</p>}
-          <Badge variant="outline" className="text-[10px] mt-1">{ROLE_LABELS[user.role] ?? user.role}</Badge>
+          <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{displayName}</p>
+          {isLoggedIn && user.headline && <p className="text-xs text-muted-foreground truncate mt-0.5">{user.headline}</p>}
+          {!isLoggedIn && personaLabel && (
+            <Badge variant="outline" className="text-[10px] mt-0.5">
+              <Sparkles className="h-2.5 w-2.5 mr-0.5" />{personaLabel}
+            </Badge>
+          )}
+          {isLoggedIn && (
+            <Badge variant="outline" className="text-[10px] mt-1">{ROLE_LABELS[user.role] ?? user.role}</Badge>
+          )}
         </div>
-        {user.xp > 0 && (
+        {isLoggedIn && user.xp > 0 && (
           <Badge variant="secondary" className="text-[10px] shrink-0">{user.xp} XP</Badge>
         )}
       </div>
@@ -300,13 +332,16 @@ function UserCard({ user }: { user: ExploreUser }) {
           {user.topics.length > 3 && <span className="text-[10px] text-muted-foreground">+{user.topics.length - 3}</span>}
         </div>
       )}
-      {user.territories.length > 0 && (
+      {isLoggedIn && user.territories.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1.5">
           {user.territories.slice(0, 2).map((t) => (
             <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">{t.name}</Badge>
           ))}
           {user.territories.length > 2 && <span className="text-[10px] text-muted-foreground">+{user.territories.length - 2}</span>}
         </div>
+      )}
+      {!isLoggedIn && (
+        <p className="text-[10px] text-muted-foreground mt-3 italic">Log in to see full profile & connect</p>
       )}
     </Link>
   );

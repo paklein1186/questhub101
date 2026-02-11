@@ -12,15 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { GuildType } from "@/types/enums";
 import { useGuilds, useCreateGuild } from "@/hooks/useSupabaseData";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { approxCount } from "@/lib/publicMode";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [createOpen, setCreateOpen] = useState(false);
@@ -66,44 +71,53 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Shield className="h-7 w-7 text-primary" /> Guilds
         </h1>
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
-            <div className="space-y-4 mt-2">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Name</label>
-                <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
+        {isLoggedIn && (
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-2">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Name</label>
+                  <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Description</label>
+                  <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Type</label>
+                  <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
+                      <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
+                      <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Save as draft</label>
+                  <Switch checked={gDraft} onCheckedChange={setGDraft} />
+                </div>
+                <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
+                  {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+                  Create Guild
+                </Button>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Description</label>
-                <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Type</label>
-                <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
-                    <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
-                    <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Save as draft</label>
-                <Switch checked={gDraft} onCheckedChange={setGDraft} />
-              </div>
-              <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
-                {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                Create Guild
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
+
+      {!isLoggedIn && (
+        <PublicExploreCTA
+          message="This is a preview of the guilds in our ecosystem. Log in or create an account to see full details and join."
+          className="mb-6"
+        />
+      )}
 
       <div className="mb-6">
         <ExploreFilters
@@ -133,7 +147,7 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
           const memberCount = guild.guild_members?.length ?? 0;
           return (
             <motion.div key={guild.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
+              <Link to={isLoggedIn ? `/guilds/${guild.id}` : "/login"} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all group">
                 <UnitCoverImage type="GUILD" imageUrl={guild.banner_url} logoUrl={guild.logo_url} name={guild.name} height="h-32" />
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">
@@ -143,13 +157,18 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
                       <span className="text-xs text-muted-foreground capitalize">{guild.type.toLowerCase()}</span>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{guild.description}</p>
+                  {/* Hide description for public mode */}
+                  {isLoggedIn ? (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{guild.description}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground mb-3 italic">Log in to see details</p>
+                  )}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {gTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
                     {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Users className="h-3.5 w-3.5" /> {memberCount} members
+                    <Users className="h-3.5 w-3.5" /> {isLoggedIn ? memberCount : `~${approxCount(memberCount)}`} members
                   </div>
                 </div>
               </Link>

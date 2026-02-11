@@ -8,12 +8,16 @@ import { PageShell } from "@/components/PageShell";
 import { useCourses } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
+import { useAuth } from "@/hooks/useAuth";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
 export default function CoursesExplore({ bare }: { bare?: boolean }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { data: coursesData, isLoading } = useCourses();
   const hf = useHouseFilter();
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
   const allCourses = coursesData ?? [];
 
   const preFiltered = hf.applyHouseFilter(allCourses, (c) =>
@@ -37,6 +41,13 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
           </h1>
           <p className="text-muted-foreground mt-1">Learn from the community's best educators.</p>
         </div>
+      )}
+
+      {!isLoggedIn && (
+        <PublicExploreCTA
+          message="Course content and enrollment require an account. Here's what's available."
+          className="mb-6"
+        />
       )}
 
       <div className="mb-6">
@@ -66,7 +77,7 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
           const enrollCount = (course as any).course_enrollments?.length ?? 0;
           return (
             <motion.div key={course.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={`/courses/${course.id}`} className="group block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+              <Link to={isLoggedIn ? `/courses/${course.id}` : "/login"} className="group block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
                 <UnitCoverImage type="COURSE" imageUrl={course.cover_image_url} name={course.title} height="h-40" />
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -78,12 +89,17 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
                     {course.level && <Badge variant="outline" className="text-[10px] capitalize">{course.level.toLowerCase()}</Badge>}
                   </div>
                   <h3 className="font-display font-semibold line-clamp-2 mb-1">{course.title}</h3>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span></span>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{enrollCount}</span>
+                  {!isLoggedIn && (
+                    <p className="text-[10px] text-muted-foreground italic">Log in to enroll</p>
+                  )}
+                  {isLoggedIn && (
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span></span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{enrollCount}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   {cTopics.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {cTopics.slice(0, 3).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]">{t.name}</Badge>)}

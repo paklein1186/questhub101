@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
+import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
@@ -97,6 +98,9 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
     return true;
   });
 
+  // In public mode, show only aggregated stats instead of full quest cards
+  const publicQuestCount = filtered.length;
+
   return (
     <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -105,6 +109,13 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         </h1>
         {isLoggedIn && <CreateQuestButton />}
       </div>
+
+      {!isLoggedIn && (
+        <PublicExploreCTA
+          message="To see quest details, descriptions, and participate, please log in or create an account."
+          className="mb-6"
+        />
+      )}
 
       <div className="mb-6">
         <ExploreFilters
@@ -125,61 +136,74 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((quest, i) => (
-          <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-              <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} name={quest.title} height="h-32" />
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-display font-semibold">{quest.title}</h3>
-                  <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
-                {(() => {
-                  const terrs = (quest.quest_territories || []).map((qt: any) => qt.territories).filter(Boolean);
-                  return terrs.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {terrs.slice(0, 2).map((t: any) => (
-                        <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">
-                          <MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}
-                        </Badge>
-                      ))}
-                      {terrs.length > 2 && <span className="text-[10px] text-muted-foreground">+{terrs.length - 2}</span>}
+      {/* Public mode: show aggregated count instead of individual quest cards */}
+      {!isLoggedIn && !isLoading && (
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <Compass className="h-10 w-10 text-primary mx-auto mb-3 opacity-60" />
+          <p className="text-2xl font-bold text-primary mb-1">{publicQuestCount}</p>
+          <p className="text-sm text-muted-foreground">quests currently active in the ecosystem</p>
+          <p className="text-xs text-muted-foreground mt-2">Log in to browse individual quests, see details, and participate.</p>
+        </div>
+      )}
+
+      {/* Logged-in mode: full quest cards */}
+      {isLoggedIn && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((quest, i) => (
+            <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+                <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} name={quest.title} height="h-32" />
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-display font-semibold">{quest.title}</h3>
+                    <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
+                  {(() => {
+                    const terrs = (quest.quest_territories || []).map((qt: any) => qt.territories).filter(Boolean);
+                    return terrs.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {terrs.slice(0, 2).map((t: any) => (
+                          <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">
+                            <MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                          </Badge>
+                        ))}
+                        {terrs.length > 2 && <span className="text-[10px] text-muted-foreground">+{terrs.length - 2}</span>}
+                      </div>
+                    ) : null;
+                  })()}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{(quest as any).guilds?.name}</span>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
+                      <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
+                      {(quest as any).price_fiat > 0 && (
+                        <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
+                      )}
+                      {(quest as any).credit_reward > 0 && (
+                        <Badge variant="secondary"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
+                      )}
+                      {(quest as any).price_fiat === 0 && (quest as any).credit_reward === 0 && (
+                        <Badge variant="secondary">Free</Badge>
+                      )}
                     </div>
-                  ) : null;
-                })()}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{(quest as any).guilds?.name}</span>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
-                    <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-                    {(quest as any).price_fiat > 0 && (
-                      <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
-                    )}
-                    {(quest as any).credit_reward > 0 && (
-                      <Badge variant="secondary"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
-                    )}
-                    {(quest as any).price_fiat === 0 && (quest as any).credit_reward === 0 && (
-                      <Badge variant="secondary">Free</Badge>
-                    )}
                   </div>
                 </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-        {!isLoading && filtered.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No quests match your filters.</p>
-            {hf.houseFilterActive && (
-              <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
-                Try showing all Houses
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
+              </Link>
+            </motion.div>
+          ))}
+          {!isLoading && filtered.length === 0 && (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No quests match your filters.</p>
+              {hf.houseFilterActive && (
+                <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
+                  Try showing all Houses
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </PageShell>
   );
 }
