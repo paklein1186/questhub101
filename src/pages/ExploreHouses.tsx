@@ -517,7 +517,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Users */}
           <TabsContent value="users" className="mt-6">
-            <EntityGrid items={users} loading={usersLoading} empty="No users found for these Houses." renderItem={(u: any) => (
+            <EntityGrid items={users} loading={usersLoading} empty="No users found for these Topics." renderItem={(u: any) => (
               <Link key={u.user_id} to={`/users/${u.user_id}`} className="group block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-12 w-12"><AvatarImage src={u.avatar_url} /><AvatarFallback className="text-sm">{u.name?.[0]}</AvatarFallback></Avatar>
