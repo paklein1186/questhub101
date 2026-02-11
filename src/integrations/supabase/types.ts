@@ -3370,6 +3370,42 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_availability: {
+        Row: {
+          availability_mode: string
+          created_at: string
+          exceptions: Json
+          id: string
+          max_bookings_per_day: number | null
+          unit_id: string
+          unit_type: string
+          updated_at: string
+          weekly_schedule: Json
+        }
+        Insert: {
+          availability_mode?: string
+          created_at?: string
+          exceptions?: Json
+          id?: string
+          max_bookings_per_day?: number | null
+          unit_id: string
+          unit_type: string
+          updated_at?: string
+          weekly_schedule?: Json
+        }
+        Update: {
+          availability_mode?: string
+          created_at?: string
+          exceptions?: Json
+          id?: string
+          max_bookings_per_day?: number | null
+          unit_id?: string
+          unit_type?: string
+          updated_at?: string
+          weekly_schedule?: Json
+        }
+        Relationships: []
+      }
       unit_chat_messages: {
         Row: {
           created_at: string

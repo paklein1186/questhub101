@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight, Shield, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { CommentTargetType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
-import { useServiceById, usePublicProfile, useGuildById, useAvailabilityRules, useAvailabilityExceptions, useBookingsForProvider } from "@/hooks/useEntityQueries";
+import { useServiceById, usePublicProfile, useGuildById, useCompanyById, useAvailabilityRules, useAvailabilityExceptions, useBookingsForProvider } from "@/hooks/useEntityQueries";
 import { generateSlots, generateCallUrl, type TimeSlot } from "@/lib/slots";
+import { useUnitAvailability, generateUnitSlots } from "@/hooks/useUnitAvailability";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,22 +71,61 @@ export default function ServiceDetail() {
 
   const { data: provider } = usePublicProfile(svc?.provider_user_id ?? undefined);
   const { data: guild } = useGuildById(svc?.provider_guild_id ?? undefined);
+  const ownerType = (svc as any)?.owner_type || "USER";
+  const companyId = ownerType === "COMPANY" ? (svc as any)?.owner_id : undefined;
+  const guildIdForAvail = ownerType === "GUILD" ? ((svc as any)?.owner_id || svc?.provider_guild_id) : undefined;
+  const { data: company } = useCompanyById(companyId);
   const { data: rules } = useAvailabilityRules(svc?.provider_user_id ?? undefined, svc?.id);
   const { data: exceptions } = useAvailabilityExceptions(svc?.provider_user_id ?? undefined);
   const { data: providerBookings } = useBookingsForProvider(svc?.provider_user_id ?? undefined);
+  const { data: unitAvailability } = useUnitAvailability(
+    ownerType === "GUILD" ? "GUILD" : ownerType === "COMPANY" ? "COMPANY" : "",
+    guildIdForAvail || companyId || undefined
+  );
+
+  // Fetch unit bookings for slot conflict checking
+  const unitId = guildIdForAvail || companyId;
+  const { data: unitBookingsData } = useQuery({
+    queryKey: ["bookings-for-unit", unitId],
+    queryFn: async () => {
+      if (!unitId) return [];
+      // Fetch bookings for services owned by this unit
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("start_date_time, end_date_time, status, service_id")
+        .eq("is_deleted", false);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!unitId && (ownerType === "GUILD" || ownerType === "COMPANY"),
+  });
 
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
   const svcTerrs = (svc as any)?.service_territories?.map((st: any) => st.territories).filter(Boolean) || [];
-  const ownerType = (svc as any)?.owner_type || "USER";
   const guildMemberRole = guild ? ((guild as any).guild_members || []).find((gm: any) => gm.user_id === currentUser.id)?.role : null;
   const canManage = svc ? canManageServiceSync(currentUser.id, currentUser.email, svc as any, guildMemberRole) : false;
   const isOwnService = canManage;
   const providerUserId = svc?.provider_user_id;
 
+  const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
+
   const slots = useMemo(() => {
-    if (!providerUserId || !svc?.duration_minutes || !rules) return [];
+    if (!svc?.duration_minutes) return [];
     const start = new Date(); start.setDate(start.getDate() + weekOffset * 7);
     const end = new Date(start); end.setDate(end.getDate() + 6);
+
+    if (isUnitService) {
+      // Use unit availability
+      return generateUnitSlots(
+        unitAvailability ?? null,
+        svc.duration_minutes,
+        start.toISOString().split("T")[0],
+        end.toISOString().split("T")[0],
+        (unitBookingsData || []).map((b: any) => ({ start_date_time: b.start_date_time, end_date_time: b.end_date_time, status: b.status })),
+      );
+    }
+
+    if (!providerUserId || !rules) return [];
     return generateSlots(
       rules.map((r: any) => ({ id: r.id, weekday: r.weekday, startTime: r.start_time, endTime: r.end_time, timezone: r.timezone, isActive: r.is_active, serviceId: r.service_id, providerUserId: r.provider_user_id, createdAt: r.created_at, updatedAt: r.updated_at })),
       (exceptions || []).map((e: any) => ({ id: e.id, date: e.date, isAvailable: e.is_available, startTime: e.start_time, endTime: e.end_time, providerUserId: e.provider_user_id, createdAt: e.created_at })),
@@ -94,7 +135,7 @@ export default function ServiceDetail() {
       end.toISOString().split("T")[0],
       svc.id
     );
-  }, [providerUserId, svc?.id, svc?.duration_minutes, weekOffset, rules, exceptions, providerBookings]);
+  }, [providerUserId, svc?.id, svc?.duration_minutes, weekOffset, rules, exceptions, providerBookings, isUnitService, unitAvailability, unitBookingsData]);
 
   const slotsByDate = useMemo(() => {
     const groups: Record<string, TimeSlot[]> = {};
@@ -113,21 +154,25 @@ export default function ServiceDetail() {
     if (!selectedSlot) { toast({ title: "Please select a time slot", variant: "destructive" }); return; }
     if (!currentUser.id) { toast({ title: "Please log in to book", variant: "destructive" }); return; }
     const callUrl = isFree ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
-    const { data: newBooking, error } = await supabase.from("bookings").insert({
+    const bookingPayload: any = {
       service_id: svc.id, requester_id: currentUser.id,
-      provider_user_id: svc.provider_user_id, provider_guild_id: svc.provider_guild_id,
+      provider_user_id: svc.provider_user_id || null,
+      provider_guild_id: svc.provider_guild_id || (ownerType === "GUILD" ? (svc as any).owner_id : null),
+      company_id: ownerType === "COMPANY" ? (svc as any).owner_id : null,
       start_date_time: selectedSlot.startDateTime, end_date_time: selectedSlot.endDateTime,
       status: isFree ? "CONFIRMED" : "PENDING",
       payment_status: isFree ? "NOT_REQUIRED" : "PENDING",
       amount: svc.price_amount || 0, currency: svc.price_currency,
       notes: bookNotes.trim() || null, call_url: callUrl,
-    }).select("id").single();
+    };
+    const { data: newBooking, error } = await supabase.from("bookings").insert(bookingPayload).select("id").single();
     if (error || !newBooking) { toast({ title: "Failed to book", description: error?.message || "This slot may no longer be available.", variant: "destructive" }); return; }
     setBookOpen(false); setBookNotes(""); setSelectedSlot(null); setWeekOffset(0);
     queryClient.invalidateQueries({ queryKey: ["bookings-for-provider"] });
+    queryClient.invalidateQueries({ queryKey: ["bookings-for-unit"] });
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
 
-    // Notify provider
+    // Notify provider (user-owned service)
     if (svc.provider_user_id) {
       await insertBookingNotification({
         recipientUserId: svc.provider_user_id,
@@ -136,6 +181,31 @@ export default function ServiceDetail() {
         requesterName: currentUser.name,
         action: "requested",
       });
+    }
+
+    // Notify unit admins for GUILD/COMPANY services
+    if (isUnitService && unitId) {
+      const memberTable = ownerType === "GUILD" ? "guild_members" : "company_members";
+      const memberIdCol = ownerType === "GUILD" ? "guild_id" : "company_id";
+      const { data: admins } = await (supabase as any)
+        .from(memberTable)
+        .select("user_id, role")
+        .eq(memberIdCol, unitId);
+      const adminUsers = (admins || []).filter((a: any) => {
+        const r = a.role?.toUpperCase();
+        return r === "ADMIN" || r === "OWNER";
+      });
+      for (const admin of adminUsers) {
+        if (admin.user_id !== currentUser.id) {
+          await insertBookingNotification({
+            recipientUserId: admin.user_id,
+            bookingId: newBooking.id,
+            serviceTitle: svc.title,
+            requesterName: currentUser.name,
+            action: "requested",
+          });
+        }
+      }
     }
     // Notify requester (self-confirmation)
     await insertBookingNotification({
@@ -182,6 +252,12 @@ export default function ServiceDetail() {
               {guild.logo_url && <img src={guild.logo_url} className="h-6 w-6 rounded" alt="" />}
               <span className="font-medium">Offered by <span className="text-foreground">{guild.name}</span></span>
             </Link>
+          ) : ownerType === "COMPANY" && company ? (
+            <Link to={`/companies/${(company as any).id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Shield className="h-4 w-4 text-primary" />
+              {(company as any).logo_url && <img src={(company as any).logo_url} className="h-6 w-6 rounded" alt="" />}
+              <span className="font-medium">Offered by <span className="text-foreground">{(company as any).name}</span></span>
+            </Link>
           ) : provider ? (
             <Link to={`/users/${provider.user_id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
               <Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar>
@@ -223,7 +299,7 @@ export default function ServiceDetail() {
                   <span className="text-sm font-medium">{fmtDate(weekStart)} – {fmtDate(weekEnd)}</span>
                   <Button variant="ghost" size="icon" disabled={weekOffset >= 3} onClick={() => setWeekOffset(w => w + 1)}><ChevronRight className="h-4 w-4" /></Button>
                 </div>
-                {providerUserId ? (
+                {(providerUserId || isUnitService) ? (
                   Object.keys(slotsByDate).length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">No available slots this week.</p> : (
                     <div className="max-h-[280px] overflow-y-auto space-y-3">
                       {Object.entries(slotsByDate).map(([date, daySlots]) => (
@@ -234,9 +310,9 @@ export default function ServiceDetail() {
                       ))}
                     </div>
                   )
-                ) : <p className="text-sm text-muted-foreground">Guild-provided service. Availability managed by guild admins.</p>}
+                ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={providerUserId ? !selectedSlot : false}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
                 {!isFree && <p className="text-[11px] text-muted-foreground text-center">Stripe Checkout will be enabled when Cloud is connected.</p>}
               </div>
             </DialogContent>

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
-  Zap, Clock, Settings, ClipboardList, Handshake,
+  Zap, Clock, Settings, ClipboardList, Handshake, CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
+import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import {
   useCompanyById, useCompanyMembersWithProfiles,
@@ -47,6 +48,7 @@ const TABS = [
   { key: "team", label: "Team & Permissions", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
+  { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
@@ -375,6 +377,18 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                         ))}
                       </div>
                     )}
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Availability ── */}
+              {activeTab === "availability" && (
+                <div className="space-y-5 max-w-lg">
+                  <Section title="Unit Availability" icon={<CalendarDays className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Configure when this organization is available for bookings. This schedule applies to all organization-hosted services.
+                    </p>
+                    <UnitAvailabilityEditor unitType="COMPANY" unitId={companyId} />
                   </Section>
                 </div>
               )}

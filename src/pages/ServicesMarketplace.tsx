@@ -23,6 +23,7 @@ const fadeUp = {
 
 export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const [hostFilter, setHostFilter] = useState<string>("all"); // "all" | "user" | "unit"
 
   const currentUser = useCurrentUser();
   const { session } = useAuth();
@@ -41,6 +42,13 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
     if (!s.is_active) return false;
     return true;
   });
+
+  // Host type filter
+  if (hostFilter === "user") {
+    filtered = filtered.filter(s => !(s as any).owner_type || (s as any).owner_type === "USER");
+  } else if (hostFilter === "unit") {
+    filtered = filtered.filter(s => (s as any).owner_type === "GUILD" || (s as any).owner_type === "COMPANY");
+  }
 
   if (filters.topicIds.length > 0) {
     filtered = filtered.filter((s) => (s as any).service_topics?.some((st: any) => filters.topicIds.includes(st.topic_id)));
@@ -68,7 +76,12 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
         />
       )}
 
-      <div className="mb-6">
+      <div className="mb-6 space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant={hostFilter === "all" ? "default" : "outline"} size="sm" onClick={() => setHostFilter("all")}>All</Button>
+          <Button variant={hostFilter === "user" ? "default" : "outline"} size="sm" onClick={() => setHostFilter("user")}>User services</Button>
+          <Button variant={hostFilter === "unit" ? "default" : "outline"} size="sm" onClick={() => setHostFilter("unit")}>Unit services</Button>
+        </div>
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
