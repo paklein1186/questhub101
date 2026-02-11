@@ -303,14 +303,15 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
-    if (commentAuthorId !== userId || commentAuthorId === upvoterId) return;
+    // Don't notify if upvoter is the comment author
+    if (commentAuthorId === upvoterId) return;
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
       title: "Comment upvoted", body: `Someone upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
       deepLinkUrl: "/notifications",
     });
-  }, [userId, addNotification]);
+  }, [addNotification]);
 
   const notifyQuestUpdate = useCallback(async ({ questId, questUpdateId, updateTitle }: any) => {
     // Check if current user is a participant
