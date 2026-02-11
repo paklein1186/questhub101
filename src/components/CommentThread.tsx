@@ -285,7 +285,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                     maxLength={500}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(comment.id); } }}
                   />
-                  <Button size="sm" className="self-end" disabled={!replyText.trim()} onClick={() => addComment(comment.id)}><Send className="h-4 w-4" /></Button>
+                  <Button size="sm" className="self-end" disabled={!replyText.trim() || isSubmitting} onClick={() => addComment(comment.id)}>
+                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
                 </div>
               </div>
             </motion.div>
