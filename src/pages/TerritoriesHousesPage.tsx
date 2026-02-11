@@ -16,7 +16,7 @@ export default function TerritoriesHousesPage() {
       </ContentSection>
 
       <ContentCTA links={[
-        { label: "Explore houses", href: "/explore/houses" },
+        { label: "Explore topics", href: "/explore/houses" },
         { label: "Explore people", href: "/explore/users" },
       ]} />
     </ContentPageShell>

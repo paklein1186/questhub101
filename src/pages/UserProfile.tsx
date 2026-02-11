@@ -310,9 +310,9 @@ export default function UserProfile() {
             {/* Persona empty states */}
             {topics.length === 0 && isOwnProfile && (
               <div className="rounded-xl border border-dashed border-border p-4 text-center">
-                <p className="text-sm text-muted-foreground mb-2">Add Houses to help others understand your fields of action.</p>
+                <p className="text-sm text-muted-foreground mb-2">Add Topics to help others understand your fields of action.</p>
                 <Button size="sm" variant="outline" asChild>
-                  <Link to="/me"><Hash className="h-4 w-4 mr-1" /> Add Houses</Link>
+                  <Link to="/me"><Hash className="h-4 w-4 mr-1" /> Add Topics</Link>
                 </Button>
               </div>
             )}
