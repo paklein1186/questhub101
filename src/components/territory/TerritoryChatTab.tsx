@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Send, Loader2, Brain, Sparkles, BookOpen, MessageSquare } from "lucide-react";
+import { Send, Loader2, Brain, Sparkles, BookOpen, MessageSquare, Paperclip, X, FileText, Image as ImageIcon, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,18 +14,48 @@ import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const URL_REGEX = /https?:\/\/[^\s<]+/gi;
+
+function sanitizeFileName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+function extractUrls(text: string): string[] {
+  return text.match(URL_REGEX) || [];
+}
+
+interface ChatAttachment {
+  file: File;
+  preview?: string;
+}
+
 interface Props {
   territoryId: string;
   territoryName: string;
   userId?: string;
 }
 
+type EnrichedMessage = TerritoryChatMessage & {
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
+  attachment_size?: number | null;
+  urls?: string[];
+};
+
 export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) {
-  const [messages, setMessages] = useState<TerritoryChatMessage[]>([]);
+  const [messages, setMessages] = useState<EnrichedMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [isKnowledge, setIsKnowledge] = useState(false);
+  const [attachment, setAttachment] = useState<ChatAttachment | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const insertChat = useInsertChatMessage();
   const addMemory = useAddTerritoryMemory();
   const createExcerpt = useCreateExcerpt();
@@ -38,47 +67,97 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
     }
   }, [messages]);
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large. Maximum size is 25 MB.");
+      return;
+    }
+    const preview = IMAGE_TYPES.includes(file.type) ? URL.createObjectURL(file) : undefined;
+    setAttachment({ file, preview });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeAttachment = () => {
+    if (attachment?.preview) URL.revokeObjectURL(attachment.preview);
+    setAttachment(null);
+  };
+
+  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string; size: number }> => {
+    const safeName = sanitizeFileName(file.name);
+    const path = `${userId}/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage.from("territory-chat").upload(path, file);
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("territory-chat").getPublicUrl(path);
+    return { url: urlData.publicUrl, name: file.name, type: file.type, size: file.size };
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || !userId) return;
-    const userMsg: TerritoryChatMessage = {
+    if ((!input.trim() && !attachment) || !userId) return;
+    const text = input.trim();
+    const currentAttachment = attachment;
+    const urls = extractUrls(text);
+
+    const userMsg: EnrichedMessage = {
       id: crypto.randomUUID(),
       territory_id: territoryId,
       user_id: userId,
       message_role: "USER",
-      content: input.trim(),
+      content: text,
       is_knowledge_contribution: isKnowledge,
       linked_memory_entry_id: null,
       created_at: new Date().toISOString(),
+      attachment_url: currentAttachment?.preview || null,
+      attachment_name: currentAttachment?.file.name || null,
+      attachment_type: currentAttachment?.file.type || null,
+      attachment_size: currentAttachment?.file.size || null,
+      urls,
     };
     setMessages((prev) => [...prev, userMsg]);
-    const userInput = input.trim();
     setInput("");
+    setAttachment(null);
     setLoading(true);
 
     try {
+      // Upload file if present
+      let fileData: { url: string; name: string; type: string; size: number } | null = null;
+      if (currentAttachment) {
+        fileData = await uploadFile(currentAttachment.file);
+        // Update the preview URL with the real URL
+        setMessages((prev) =>
+          prev.map((m) => (m.id === userMsg.id ? { ...m, attachment_url: fileData!.url } : m))
+        );
+      }
+
       // Save user message
       await insertChat.mutateAsync({
         territory_id: territoryId,
         user_id: userId,
         message_role: "USER",
-        content: userInput,
+        content: text || (fileData ? `[File: ${fileData.name}]` : ""),
         is_knowledge_contribution: isKnowledge,
-      });
+        ...(fileData && {
+          attachment_url: fileData.url,
+          attachment_name: fileData.name,
+          attachment_type: fileData.type,
+          attachment_size: fileData.size,
+        }),
+      } as any);
 
       // If knowledge contribution, also save to territory memory
       let memoryEntryId: string | undefined;
-      if (isKnowledge) {
+      if (isKnowledge && text) {
         const memResult = await addMemory.mutateAsync({
           territory_id: territoryId,
-          title: userInput.slice(0, 80),
-          content: userInput,
+          title: text.slice(0, 80),
+          content: text + (fileData ? `\n\n[Attached: ${fileData.name}](${fileData.url})` : ""),
           category: "RAW_NOTES",
           visibility: "PUBLIC",
           tags: [],
           created_by_user_id: userId,
         });
         memoryEntryId = (memResult as any)?.id;
-        // Grant knowledge XP
         try {
           await grantXp(userId, {
             type: XP_EVENT_TYPES.TERRITORY_CHAT_KNOWLEDGE as any,
@@ -89,18 +168,19 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
       }
 
       // Call AI for response
+      const promptContent = text || (fileData ? `User shared a file: ${fileData.name}` : "");
       const { data, error } = await supabase.functions.invoke("territory-intelligence", {
         body: {
           territoryId,
           analysisPrompt: isKnowledge
-            ? `The user has contributed the following knowledge to the territory "${territoryName}": "${userInput}". Acknowledge the contribution, summarize what it adds to the territory's knowledge, and suggest whether it should be saved as a Library excerpt.`
-            : `The user is asking about the territory "${territoryName}": "${userInput}". Answer using all available territory memory and context. Be helpful and specific.`,
+            ? `The user has contributed the following knowledge to the territory "${territoryName}": "${promptContent}"${fileData ? ` (with attached file: ${fileData.name})` : ""}. Acknowledge the contribution, summarize what it adds to the territory's knowledge, and suggest whether it should be saved as a Library excerpt.`
+            : `The user is asking about the territory "${territoryName}": "${promptContent}". Answer using all available territory memory and context. Be helpful and specific.`,
         },
       });
 
       const aiContent = data?.analysisResponse || data?.summary || data?.error || "I couldn't generate a response. Please try again.";
 
-      const aiMsg: TerritoryChatMessage = {
+      const aiMsg: EnrichedMessage = {
         id: crypto.randomUUID(),
         territory_id: territoryId,
         user_id: null,
@@ -109,10 +189,10 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
         is_knowledge_contribution: false,
         linked_memory_entry_id: memoryEntryId || null,
         created_at: new Date().toISOString(),
+        urls: extractUrls(aiContent),
       };
       setMessages((prev) => [...prev, aiMsg]);
 
-      // Save AI message
       await insertChat.mutateAsync({
         territory_id: territoryId,
         user_id: null,
@@ -133,6 +213,12 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
       text,
       created_by_user_id: userId,
     });
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -185,7 +271,72 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
                     <Sparkles className="h-2.5 w-2.5" /> Knowledge contribution
                   </Badge>
                 )}
-                <p className="whitespace-pre-line">{msg.content}</p>
+
+                {/* Attachment display */}
+                {msg.attachment_url && (
+                  <div className="mb-2">
+                    {msg.attachment_type && IMAGE_TYPES.includes(msg.attachment_type) ? (
+                      <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={msg.attachment_url}
+                          alt={msg.attachment_name || "Attachment"}
+                          className="rounded-lg max-h-48 max-w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      </a>
+                    ) : (
+                      <a
+                        href={msg.attachment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+                          msg.message_role === "USER"
+                            ? "border-primary-foreground/20 hover:bg-primary-foreground/10"
+                            : "border-border hover:bg-background"
+                        )}
+                      >
+                        <FileText className="h-4 w-4 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium truncate">{msg.attachment_name}</p>
+                          {msg.attachment_size && (
+                            <p className="text-[10px] opacity-70">{formatFileSize(msg.attachment_size)}</p>
+                          )}
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Message text with URL highlighting */}
+                {msg.content && (
+                  <p className="whitespace-pre-line">
+                    {renderContentWithUrls(msg.content, msg.message_role === "USER")}
+                  </p>
+                )}
+
+                {/* URL previews */}
+                {msg.urls && msg.urls.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {msg.urls.slice(0, 3).map((url, i) => (
+                      <a
+                        key={i}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg text-xs truncate transition-colors",
+                          msg.message_role === "USER"
+                            ? "bg-primary-foreground/10 hover:bg-primary-foreground/20"
+                            : "bg-background hover:bg-muted/80 border border-border"
+                        )}
+                      >
+                        <Link2 className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{url}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 {msg.message_role === "AI" && userId && (
                   <button
                     onClick={() => saveAsExcerpt(msg.content.slice(0, 500))}
@@ -208,6 +359,24 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
           )}
         </div>
 
+        {/* Attachment preview */}
+        {attachment && (
+          <div className="px-3 pt-2 flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-xs max-w-xs">
+              {attachment.preview ? (
+                <img src={attachment.preview} alt="" className="h-8 w-8 rounded object-cover" />
+              ) : (
+                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              <span className="truncate">{attachment.file.name}</span>
+              <span className="text-muted-foreground shrink-0">({formatFileSize(attachment.file.size)})</span>
+              <button onClick={removeAttachment} className="shrink-0 hover:text-destructive transition-colors">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Input area */}
         <div className="border-t border-border p-3 space-y-2 bg-background">
           <div className="flex items-center gap-3 px-1">
@@ -224,6 +393,23 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
             </div>
           </div>
           <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-11 w-11 shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading || !userId || !!attachment}
+              title="Attach file (max 25 MB)"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -238,7 +424,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
             />
             <Button
               onClick={sendMessage}
-              disabled={loading || !input.trim() || !userId}
+              disabled={loading || (!input.trim() && !attachment) || !userId}
               size="icon"
               className="h-11 w-11 shrink-0"
             >
@@ -255,4 +441,34 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
       )}
     </div>
   );
+}
+
+/** Renders text with clickable URL links */
+function renderContentWithUrls(text: string, isUser: boolean) {
+  const parts = text.split(URL_REGEX);
+  const urls = text.match(URL_REGEX) || [];
+
+  if (urls.length === 0) return text;
+
+  const result: React.ReactNode[] = [];
+  parts.forEach((part, i) => {
+    result.push(part);
+    if (i < urls.length) {
+      result.push(
+        <a
+          key={i}
+          href={urls[i]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "underline break-all",
+            isUser ? "text-primary-foreground/90 hover:text-primary-foreground" : "text-primary hover:text-primary/80"
+          )}
+        >
+          {urls[i]}
+        </a>
+      );
+    }
+  });
+  return <>{result}</>;
 }
