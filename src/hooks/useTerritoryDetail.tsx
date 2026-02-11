@@ -48,12 +48,31 @@ export function useTerritoryExcerpts(territoryId: string | undefined, sort: "top
       let q = supabase
         .from("territory_excerpts" as any)
         .select("*")
-        .eq("territory_id", territoryId!);
+        .eq("territory_id", territoryId!)
+        .eq("is_deleted", false);
       if (sort === "top") q = q.order("upvote_count", { ascending: false });
       else q = q.order("created_at", { ascending: false });
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as unknown as TerritoryExcerpt[];
+      const excerpts = (data ?? []) as unknown as TerritoryExcerpt[];
+
+      // Fetch contributor profiles
+      const userIds = [...new Set(excerpts.filter(e => e.created_by_user_id).map(e => e.created_by_user_id!))];
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", userIds);
+        const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+        excerpts.forEach(e => {
+          const p = e.created_by_user_id ? profileMap.get(e.created_by_user_id) : null;
+          if (p) {
+            e.contributor_name = p.display_name;
+            e.contributor_avatar = p.avatar_url;
+          }
+        });
+      }
+      return excerpts;
     },
     enabled: !!territoryId,
   });
