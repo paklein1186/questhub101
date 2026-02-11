@@ -148,6 +148,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
       // Process @mentions (users + entities)
       const mentionIds = extractMentionIds(content);
       const allEntityMentions = extractAllMentions(content);
+      const cleanSnippet = stripMentionTokens(content);
+
       if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
         await processMentions({
           commentId: inserted.id,
@@ -157,25 +159,18 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
           mentionedEntities: allEntityMentions,
           targetType,
           targetId,
-          snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
-            const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
-            return `@${name}`;
-          }),
+          snippet: cleanSnippet,
         });
       }
 
       // Notify the target entity owner about the comment
       if (inserted) {
-        const snippet = content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
-          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
-          return `@${name}`;
-        });
         notifyComment({
           commentAuthorId: currentUser.id,
           targetType,
           targetId,
           commentId: inserted.id,
-          commentSnippet: snippet,
+          commentSnippet: cleanSnippet,
         });
       }
 
