@@ -3415,7 +3415,9 @@ export type Database = {
           deleted_at: string | null
           id: string
           is_deleted: boolean
+          latitude: number | null
           level: Database["public"]["Enums"]["territory_level"]
+          longitude: number | null
           name: string
           parent_id: string | null
           slug: string | null
@@ -3428,7 +3430,9 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          latitude?: number | null
           level?: Database["public"]["Enums"]["territory_level"]
+          longitude?: number | null
           name: string
           parent_id?: string | null
           slug?: string | null
@@ -3441,7 +3445,9 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          latitude?: number | null
           level?: Database["public"]["Enums"]["territory_level"]
+          longitude?: number | null
           name?: string
           parent_id?: string | null
           slug?: string | null
