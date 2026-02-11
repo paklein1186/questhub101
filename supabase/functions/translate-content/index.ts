@@ -35,13 +35,30 @@ serve(async (req) => {
       });
     }
 
-    const { entityType, entityId, fieldName, text, targetLanguage } = await req.json();
+    const { entityType, entityId, fieldName, text, targetLanguage, audienceUserIds } = await req.json();
 
     if (!text || !targetLanguage || !entityType || !entityId || !fieldName) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(supabaseUrl, supabaseKey);
+
+    // If audienceUserIds provided, determine priority languages from their spoken languages
+    let priorityLanguages: string[] = [];
+    if (audienceUserIds && Array.isArray(audienceUserIds) && audienceUserIds.length > 0) {
+      const { data: spokenRows } = await adminClient
+        .from("user_spoken_languages")
+        .select("language_code")
+        .in("user_id", audienceUserIds);
+      const codes = new Set((spokenRows ?? []).map((r: any) => r.language_code));
+      codes.add("en");
+      codes.add("fr");
+      priorityLanguages = Array.from(codes);
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
