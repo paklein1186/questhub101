@@ -142,6 +142,8 @@ export function AppNav() {
                   </Link>
                 )}
 
+                <LanguageSwitcher />
+
                 {/* Unified user menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
