@@ -56,7 +56,7 @@ interface Props {
   filters: ExploreFilterValues;
   onChange: (filters: ExploreFilterValues) => void;
   config: ExploreFilterConfig;
-  /** House filter state — when provided, shows "My Houses only" toggle */
+  /** Topic filter state — when provided, shows "My Topics only" toggle */
   houseFilter?: {
     active: boolean;
     onToggle: (val: boolean) => void;
