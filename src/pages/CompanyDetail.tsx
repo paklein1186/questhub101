@@ -91,9 +91,10 @@ export default function CompanyDetail() {
   const territories = ((company as any).company_territories || []).map((ct: any) => ct.territories).filter(Boolean);
 
   // Role-based permissions
-  const currentMembership = ((company as any).company_members || []).find((cm: any) => cm.user_id === currentUser.id);
+  const isLoggedIn = !!currentUser.id;
+  const currentMembership = isLoggedIn ? ((company as any).company_members || []).find((cm: any) => cm.user_id === currentUser.id) : undefined;
   const memberRole = currentMembership?.role;
-  const isAdmin = memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email);
+  const isAdmin = isLoggedIn && (memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email));
   const isMember = !!currentMembership;
 
   const createQuest = async () => {
