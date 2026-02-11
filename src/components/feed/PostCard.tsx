@@ -157,7 +157,14 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
           </div>
           {(post as any).contextName && (
             <p className="text-xs text-muted-foreground mt-0.5">
-              in <span className="font-medium text-foreground/70">{(post as any).contextName}</span>
+              in{" "}
+              {(post as any).contextLink ? (
+                <Link to={(post as any).contextLink} className="font-medium text-foreground/70 hover:underline">
+                  {(post as any).contextName}
+                </Link>
+              ) : (
+                <span className="font-medium text-foreground/70">{(post as any).contextName}</span>
+              )}
             </p>
           )}
         </div>
