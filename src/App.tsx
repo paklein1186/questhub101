@@ -112,6 +112,8 @@ import BugReportingPage from "./pages/BugReportingPage";
 import CreativeLanding from "./pages/CreativeLanding";
 import HybridLanding from "./pages/HybridLanding";
 import ImpactLanding from "./pages/ImpactLanding";
+import WelcomePage from "./pages/WelcomePage";
+import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
 
 const queryClient = new QueryClient();
@@ -135,9 +137,11 @@ const App = () => (
 
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
+                <Route path="/welcome" element={<WelcomePage />} />
                 <Route path="/landing/creative" element={<CreativeLanding />} />
                 <Route path="/landing/hybrid" element={<HybridLanding />} />
                 <Route path="/landing/impact" element={<ImpactLanding />} />
+                <Route path="/landing/browse" element={<BrowseLanding />} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />

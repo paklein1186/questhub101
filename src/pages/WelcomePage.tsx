@@ -1,0 +1,163 @@
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Sparkles, Target, Blend, Compass,
+  Palette, Shield, Feather, ArrowRight,
+} from "lucide-react";
+import logoImg from "@/assets/logo.png";
+import { SiteFooter } from "@/components/SiteFooter";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  show: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { delay: 0.15 + i * 0.1, duration: 0.55, ease: "easeOut" as const },
+  }),
+};
+
+const personas = [
+  {
+    key: "creative",
+    icon: Palette,
+    emoji: "✨",
+    title: "I'm a Creator",
+    subtitle: "Artist, writer, musician, filmmaker, designer, performer",
+    tagline: "Start creations, join circles, share skill sessions",
+    path: "/landing/creative",
+    gradient: "from-purple-500/15 to-pink-500/10",
+    accentClass: "text-purple-500",
+    borderHover: "hover:border-purple-400/50",
+  },
+  {
+    key: "impact",
+    icon: Shield,
+    emoji: "🌍",
+    title: "I'm an Impact Builder",
+    subtitle: "Consultant, facilitator, practitioner, ecosystem builder",
+    tagline: "Launch missions, join guilds, offer services",
+    path: "/landing/impact",
+    gradient: "from-emerald-500/15 to-teal-500/10",
+    accentClass: "text-emerald-500",
+    borderHover: "hover:border-emerald-400/50",
+  },
+  {
+    key: "hybrid",
+    icon: Blend,
+    emoji: "⚡",
+    title: "I'm Both",
+    subtitle: "Creative meets strategic — I bridge imagination and structure",
+    tagline: "Quests, groups, services & sessions — your way",
+    path: "/landing/hybrid",
+    gradient: "from-amber-500/15 to-orange-500/10",
+    accentClass: "text-amber-500",
+    borderHover: "hover:border-amber-400/50",
+  },
+  {
+    key: "browse",
+    icon: Compass,
+    emoji: "🔭",
+    title: "Just Exploring",
+    subtitle: "I want to see what's here before choosing",
+    tagline: "Browse quests, communities, and services",
+    path: "/landing/browse",
+    gradient: "from-sky-500/15 to-blue-500/10",
+    accentClass: "text-sky-500",
+    borderHover: "hover:border-sky-400/50",
+  },
+];
+
+export default function WelcomePage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* ─── Minimal nav ─── */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
+        <div className="container flex h-14 items-center justify-between">
+          <div className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+            <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
+          </div>
+          <nav className="flex items-center gap-2">
+            <button
+              onClick={() => navigate("/login")}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+            >
+              Log in
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* ─── Hero ─── */}
+      <section className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-3xl py-16 md:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-5">
+              <Sparkles className="h-3 w-3" /> Human-powered · AI-augmented · Game-changing
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-4">
+              What brings you here?
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
+              Choose your path — we'll shape your experience around it.
+            </p>
+          </motion.div>
+
+          {/* ─── Persona cards ─── */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {personas.map((p, i) => (
+              <motion.button
+                key={p.key}
+                custom={i}
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                onClick={() => navigate(p.path)}
+                className={`group relative text-left rounded-2xl border border-border bg-card p-6 transition-all duration-300 ${p.borderHover} hover:shadow-lg hover:-translate-y-0.5 cursor-pointer`}
+              >
+                {/* Gradient shimmer */}
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${p.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`h-11 w-11 rounded-xl bg-muted flex items-center justify-center text-xl`}>
+                      {p.emoji}
+                    </div>
+                    <div>
+                      <h3 className="font-display font-semibold text-base">{p.title}</h3>
+                      <p className="text-xs text-muted-foreground">{p.subtitle}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                    {p.tagline}
+                  </p>
+                  <div className={`flex items-center gap-1 text-xs font-medium ${p.accentClass} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                    Discover <ArrowRight className="h-3 w-3" />
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-center text-xs text-muted-foreground mt-8"
+          >
+            You can always change your path later in your settings.
+          </motion.p>
+        </div>
+      </section>
+
+      <SiteFooter />
+      <CookieConsentBanner />
+    </div>
+  );
+}
