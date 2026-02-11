@@ -231,7 +231,7 @@ const LABELS: Record<string, LabelVariants> = {
   "landing.subline": {
     IMPACT: "Discover missions, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
     CREATIVE: "Start a creative quest, join a circle, and let AI muses help your imagination bloom.",
-    HYBRID: "Discover quests, join groups, and share your expertise in a regenerative ecosystem built for changemakers.",
+    HYBRID: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
     DEFAULT: "Discover quests, join communities, and share your expertise in a regenerative ecosystem built for changemakers.",
   },
   "landing.cta_primary": {
