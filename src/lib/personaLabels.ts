@@ -322,7 +322,7 @@ export function getHeroPrompts(persona: PersonaType): string[] {
   return [
     "I want to discover quests I can join",
     "I'm ready to offer my skills as a service",
-    "Show me groups and communities to join",
+    "Show me guilds and communities to join",
     "Help me find collaborators in my territory",
   ];
 }
