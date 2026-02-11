@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock } from "lucide-react";
+import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock, Compass, Handshake } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { usePersona } from "@/hooks/usePersona";
+import { getLabel } from "@/lib/personaLabels";
 
 const CLASS_A_MAILTO = "mailto:pa@changethegame.xyz?subject=Class%20A%20Membership%20Application";
 
@@ -62,6 +64,7 @@ function useProfileShares(userId?: string) {
 export default function SharesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { effectiveMode } = usePersona();
   const { data: holdings = [], isLoading } = useShareholdings(user?.id);
   const { data: settings = {} } = useCoopSettings();
   const { data: profile } = useProfileShares(user?.id);
@@ -70,6 +73,12 @@ export default function SharesPage() {
   const [showBuyB, setShowBuyB] = useState(false);
 
   const sharePrice = settings?.share_price?.amount ?? 10;
+
+  const guildLabel = getLabel("guild.label", effectiveMode);
+  const guildSingular = getLabel("guild.label_singular", effectiveMode);
+  const questLabel = getLabel("quest.label", effectiveMode);
+  const podLabel = getLabel("pod.label", effectiveMode);
+  const serviceLabel = getLabel("service.label", effectiveMode);
 
   const handlePurchaseB = async () => {
     if (!user) return;
@@ -124,6 +133,43 @@ export default function SharesPage() {
             changethegame is co-owned by its members. Two share classes exist — strategic (A) and community (B).
             Your voice and vote count through a fair logarithmic system.
           </p>
+        </motion.div>
+
+        {/* ═══ Start by joining the guild ═══ */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="rounded-xl border border-border bg-card p-6 sm:p-8 space-y-4">
+          <div className="flex items-center gap-2">
+            <Handshake className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-lg sm:text-xl font-semibold">
+              Before becoming a shareholder, join the {guildSingular.toLowerCase()}.
+            </h2>
+          </div>
+          <div className="text-sm sm:text-base text-muted-foreground space-y-2 max-w-2xl">
+            <p>
+              <span className="text-foreground font-medium">changethegame</span> is first and foremost a collaborative ecosystem.
+            </p>
+            <p>
+              You can join {guildLabel.toLowerCase()}, take part in {questLabel.toLowerCase()}, co-create missions, start {podLabel.toLowerCase()}, share {serviceLabel.toLowerCase()}, and interact with other builders and creators.
+            </p>
+            <p>
+              Becoming a shareholder is <strong>optional</strong>.
+            </p>
+            <p className="font-medium text-foreground">
+              The real value begins with participation.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Button asChild>
+              <Link to="/guilds">
+                <Users className="h-4 w-4 mr-2" /> Join a {guildSingular}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/quests">
+                <Compass className="h-4 w-4 mr-2" /> Explore {questLabel}
+              </Link>
+            </Button>
+          </div>
         </motion.div>
 
         {/* Current status */}
