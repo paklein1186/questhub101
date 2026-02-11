@@ -74,7 +74,7 @@ const TABS = [
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function SettingsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const currentUser = useCurrentUser();
   const { persona, updatePersona, lexiconOverride, setLexiconOverride } = usePersona();
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
