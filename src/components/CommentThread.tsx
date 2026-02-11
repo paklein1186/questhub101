@@ -164,6 +164,21 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         });
       }
 
+      // Notify the target entity owner about the comment
+      if (inserted) {
+        const snippet = content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+          return `@${name}`;
+        });
+        notifyComment({
+          commentAuthorId: currentUser.id,
+          targetType,
+          targetId,
+          commentId: inserted.id,
+          commentSnippet: snippet,
+        });
+      }
+
       if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
       toast({ title: "Comment added" });
       qc.invalidateQueries({ queryKey });
