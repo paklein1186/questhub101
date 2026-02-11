@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Send, Loader2, CheckCircle } from "lucide-react";
+import { Send, Loader2, CheckCircle } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +34,7 @@ export default function ForgotPassword() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold">
-            <Zap className="h-6 w-6 text-primary" /> changethegame
+            <img src={logoImg} alt="changethegame" className="h-7 w-7" /> changethegame
           </Link>
           <p className="text-muted-foreground mt-2">Reset your password</p>
         </div>

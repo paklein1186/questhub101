@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, UserPlus, Loader2, Gift } from "lucide-react";
+import { UserPlus, Loader2, Gift } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +61,7 @@ export default function Signup() {
       >
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold">
-            <Zap className="h-6 w-6 text-primary" /> changethegame
+            <img src={logoImg} alt="changethegame" className="h-7 w-7" /> changethegame
           </Link>
           <p className="text-muted-foreground mt-2">Create your account and start your journey.</p>
           {referral && (
