@@ -60,6 +60,7 @@ export function AffiliationsReviewStep({
   services,
   onServicesChange,
   loading,
+  guilds = [],
 }: Props) {
   const [editingService, setEditingService] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
