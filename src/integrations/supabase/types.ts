@@ -1314,6 +1314,63 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_scores: {
+        Row: {
+          ai_score: number
+          collaborator_score: number
+          created_at: string
+          creator_score: number
+          followers_gained: number
+          guild_score: number
+          helpful_score: number
+          id: string
+          mentor_score: number
+          period_start: string | null
+          rising_score: number
+          territory_score: number
+          time_scope: string
+          updated_at: string
+          user_id: string
+          xp_gained: number
+        }
+        Insert: {
+          ai_score?: number
+          collaborator_score?: number
+          created_at?: string
+          creator_score?: number
+          followers_gained?: number
+          guild_score?: number
+          helpful_score?: number
+          id?: string
+          mentor_score?: number
+          period_start?: string | null
+          rising_score?: number
+          territory_score?: number
+          time_scope: string
+          updated_at?: string
+          user_id: string
+          xp_gained?: number
+        }
+        Update: {
+          ai_score?: number
+          collaborator_score?: number
+          created_at?: string
+          creator_score?: number
+          followers_gained?: number
+          guild_score?: number
+          helpful_score?: number
+          id?: string
+          mentor_score?: number
+          period_start?: string | null
+          rising_score?: number
+          territory_score?: number
+          time_scope?: string
+          updated_at?: string
+          user_id?: string
+          xp_gained?: number
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           content_markdown: string | null
