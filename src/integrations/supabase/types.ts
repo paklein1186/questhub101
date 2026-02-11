@@ -1207,32 +1207,50 @@ export type Database = {
       }
       guild_event_attendees: {
         Row: {
+          accepted_at: string | null
+          cancelled_at: string | null
           email: string | null
           event_id: string
           id: string
           name: string | null
+          notes: string | null
+          payment_status: string
+          refunded_at: string | null
           registered_at: string
           status: string
+          stripe_payment_intent_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
           email?: string | null
           event_id: string
           id?: string
           name?: string | null
+          notes?: string | null
+          payment_status?: string
+          refunded_at?: string | null
           registered_at?: string
           status?: string
+          stripe_payment_intent_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
           email?: string | null
           event_id?: string
           id?: string
           name?: string | null
+          notes?: string | null
+          payment_status?: string
+          refunded_at?: string | null
           registered_at?: string
           status?: string
+          stripe_payment_intent_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -1248,52 +1266,67 @@ export type Database = {
       }
       guild_events: {
         Row: {
+          acceptance_mode: string
           call_url: string | null
           created_at: string
           created_by_user_id: string
+          currency: string | null
           description: string | null
           end_at: string | null
           guild_id: string
           id: string
           is_cancelled: boolean
+          is_paid: boolean
           location_text: string | null
           location_type: string
           max_attendees: number | null
+          price_per_ticket: number | null
           start_at: string
+          status: string
           title: string
           updated_at: string
           visibility: string
         }
         Insert: {
+          acceptance_mode?: string
           call_url?: string | null
           created_at?: string
           created_by_user_id: string
+          currency?: string | null
           description?: string | null
           end_at?: string | null
           guild_id: string
           id?: string
           is_cancelled?: boolean
+          is_paid?: boolean
           location_text?: string | null
           location_type?: string
           max_attendees?: number | null
+          price_per_ticket?: number | null
           start_at: string
+          status?: string
           title: string
           updated_at?: string
           visibility?: string
         }
         Update: {
+          acceptance_mode?: string
           call_url?: string | null
           created_at?: string
           created_by_user_id?: string
+          currency?: string | null
           description?: string | null
           end_at?: string | null
           guild_id?: string
           id?: string
           is_cancelled?: boolean
+          is_paid?: boolean
           location_text?: string | null
           location_type?: string
           max_attendees?: number | null
+          price_per_ticket?: number | null
           start_at?: string
+          status?: string
           title?: string
           updated_at?: string
           visibility?: string

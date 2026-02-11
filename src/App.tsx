@@ -116,6 +116,9 @@ import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
 
+import EventDetail from "./pages/EventDetail";
+import CalendarPage from "./pages/CalendarPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -162,6 +165,7 @@ const App = () => (
                 <Route path="/companies/:id/settings" element={<RequireAuth><CompanySettings /></RequireAuth>} />
                 <Route path="/topics/:slug" element={<TopicHouse />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
+                <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
@@ -192,6 +196,7 @@ const App = () => (
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
                 <Route path="/work" element={<RequireAuth><WorkHub /></RequireAuth>} />
+                <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
                 <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
                 <Route path="/me" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
