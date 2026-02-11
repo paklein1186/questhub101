@@ -15,7 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications, stripMentionTokens } from "@/hooks/useNotifications";
 import {
   AlertDialog,
   AlertDialogAction,
