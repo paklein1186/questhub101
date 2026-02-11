@@ -350,24 +350,66 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                 <EntityApplicationsTab entityType="company" entityId={companyId} currentUserId={currentUser.id} />
               )}
 
-              {/* ── Team & Permissions ── */}
-              {activeTab === "team" && (
+              {/* ── Members & Roles ── */}
+              {activeTab === "members" && (
                 <div className="space-y-6 max-w-lg">
-                  <Section title="Team Members" icon={<Users className="h-5 w-5" />}>
+                  <Section title="Members & Roles" icon={<Users className="h-5 w-5" />}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm text-muted-foreground">{members.length} member{members.length !== 1 ? "s" : ""}</p>
+                      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
+                          <div className="space-y-3 mt-2">
+                            <Input placeholder="User email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                            <Button onClick={inviteMember} className="w-full"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                     {members.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No members yet.</p>
                     ) : (
                       <div className="space-y-2">
-                        {members.map((m: any) => (
-                          <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
-                            <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{m.user?.name}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
+                        {members.map((m: any) => {
+                          const isAdminRole = m.role === "admin" || m.role === "ADMIN" || m.role === "owner";
+                          const isSelf = m.user_id === currentUser.id;
+                          return (
+                            <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={m.user?.avatar_url} />
+                                <AvatarFallback>{m.user?.name?.[0]}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm truncate">{m.user?.name || "Unknown"}</p>
+                                  {isAdminRole && (
+                                    <Badge variant="secondary" className="text-xs gap-1"><Crown className="h-3 w-3" /> Admin</Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</p>
+                              </div>
+                              {!isSelf && (
+                                <div className="flex items-center gap-1">
+                                  {!isAdminRole ? (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Promote to Admin" onClick={() => promoteMember(m.id)}>
+                                      <ChevronUp className="h-4 w-4 text-primary" />
+                                    </Button>
+                                  ) : (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" title="Demote to Member" onClick={() => demoteMember(m.id)}>
+                                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  )}
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Exclude member" onClick={() => removeMember(m.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
-                            <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </Section>
