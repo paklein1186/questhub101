@@ -122,6 +122,7 @@ import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
 import GuidesPage from "./pages/GuidesPage";
+import TerritoryDetail from "./pages/TerritoryDetail";
 
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
@@ -192,6 +193,7 @@ const App = () => (
                 <Route path="/explore/companies-info" element={<CompaniesInfoPage />} />
                 <Route path="/explore/people-info" element={<PeopleInfoPage />} />
                 <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
+                <Route path="/territories/:id" element={<TerritoryDetail />} />
                 <Route path="/create/quest-info" element={<CreateQuestInfoPage />} />
                 <Route path="/create/service-info" element={<ServiceInfoPage />} />
                 <Route path="/create/guild-info" element={<CreateGuildInfoPage />} />
