@@ -53,6 +53,7 @@ const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles
 const AdminSuperMode = lazy(() => import("./pages/admin/AdminSuperMode"));
 const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports"));
 const AdminMilestones = lazy(() => import("./pages/admin/AdminMilestones"));
+const AdminFeatureSuggestions = lazy(() => import("./pages/admin/AdminFeatureSuggestions"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
