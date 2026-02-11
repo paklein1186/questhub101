@@ -51,14 +51,14 @@ const LABELS: Record<string, LabelVariants> = {
   "guild.label": {
     IMPACT: "Guilds",
     CREATIVE: "Circles / Studios",
-    HYBRID: "Groups",
-    DEFAULT: "Groups",
+    HYBRID: "Guilds",
+    DEFAULT: "Guilds",
   },
   "guild.label_singular": {
     IMPACT: "Guild",
     CREATIVE: "Circle",
-    HYBRID: "Group",
-    DEFAULT: "Group",
+    HYBRID: "Guild",
+    DEFAULT: "Guild",
   },
 
   // ── Quests ──
