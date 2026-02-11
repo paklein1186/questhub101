@@ -411,8 +411,8 @@ export default function ExploreHouses({ bare }: Props) {
           {selectedSlugs.length > 1 && (
             <span className="text-xs text-muted-foreground">
               {matchAll
-                ? "Showing items that belong to all selected Houses"
-                : "Showing items that belong to any selected House"}
+                ? "Showing items that belong to all selected Topics"
+                : "Showing items that belong to any selected Topic"}
             </span>
           )}
         </div>
