@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePersona } from "@/hooks/usePersona";
 
 /**
  * Central hook for global House-based filtering.
@@ -18,6 +19,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 export function useHouseFilter() {
   const currentUser = useCurrentUser();
   const userId = currentUser.id;
+  const { persona } = usePersona();
 
   // Fetch user's topics and filter preference
   const { data, isLoading } = useQuery({
@@ -50,14 +52,20 @@ export function useHouseFilter() {
   const topicNames = data?.topicNames ?? {};
   const houseFilterEnabled = data?.enabled ?? false;
 
-  // Runtime toggle — defaults to DB preference, but user can override in-session
+  // Persona-driven default: auto-enable for creative/impact/hybrid, disable for neutral/unset
+  const personaDefault = useMemo(() => {
+    if (persona === "CREATIVE" || persona === "IMPACT" || persona === "HYBRID") return true;
+    return false; // UNSET / neutral
+  }, [persona]);
+
+  // Runtime toggle — defaults to persona-driven preference, but user can override in-session
   const [overrideActive, setOverrideActive] = useState<boolean | null>(null);
 
   const houseFilterActive = useMemo(() => {
     if (overrideActive !== null) return overrideActive;
-    // Only auto-enable if user has topics AND the DB pref is on
-    return houseFilterEnabled && myTopicIds.length > 0;
-  }, [overrideActive, houseFilterEnabled, myTopicIds.length]);
+    // Auto-enable if persona says so OR DB pref is on, AND user has topics
+    return (personaDefault || houseFilterEnabled) && myTopicIds.length > 0;
+  }, [overrideActive, personaDefault, houseFilterEnabled, myTopicIds.length]);
 
   const setHouseFilterActive = useCallback((val: boolean) => {
     setOverrideActive(val);
