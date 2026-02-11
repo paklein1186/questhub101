@@ -2091,6 +2091,44 @@ export type Database = {
           },
         ]
       }
+      quest_hosts: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          entity_id: string
+          entity_type: string
+          id: string
+          quest_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          quest_id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          quest_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_hosts_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_participants: {
         Row: {
           created_at: string
