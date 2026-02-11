@@ -69,6 +69,7 @@ export default function HomeFeed() {
   const { user: authUser } = useAuth();
   const { data, isLoading } = useHomeShellData(currentUser.id);
   const { persona, label } = usePersona();
+  useMilestoneChecker();
 
   if (isLoading) {
     return (
