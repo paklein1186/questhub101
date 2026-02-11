@@ -696,7 +696,7 @@ export default function QuestCreate() {
 
           {(topics ?? []).length > 0 && (
             <div>
-              <Label>Topics (Houses)</Label>
+              <Label>Topics</Label>
               <div className="flex items-center gap-2 mt-1 mb-2">
                 <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTopics((topics ?? []).map((t) => t.id))}>Select all</Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>

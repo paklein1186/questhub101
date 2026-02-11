@@ -654,7 +654,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
                     <div>
                       <p className="text-sm font-medium">Personalize feed & suggestions</p>
-                      <p className="text-xs text-muted-foreground">Use your Houses & Territories to personalize your Home feed and Explore recommendations.</p>
+                      <p className="text-xs text-muted-foreground">Use your Topics & Territories to personalize your Home feed and Explore recommendations.</p>
                     </div>
                     <Switch checked={usePrefs} onCheckedChange={setUsePrefs} />
                   </div>

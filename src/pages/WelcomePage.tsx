@@ -47,7 +47,7 @@ const personas = [
     emoji: "⚡",
     title: "I'm Both",
     subtitle: "Creative meets strategic — I bridge imagination and structure",
-    tagline: "Quests, groups, services & sessions — your way",
+    tagline: "Quests, guilds, services & sessions — your way",
     path: "/landing/hybrid",
     gradient: "from-amber-500/15 to-orange-500/10",
     accentClass: "text-amber-500",
