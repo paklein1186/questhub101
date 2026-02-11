@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
-  ArrowRight, Hash, Zap,
+  ArrowRight, Hash, Rss,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { useFollowingFeed } from "@/hooks/useFollowingFeed";
+import { PostCard } from "@/components/feed/PostCard";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
@@ -85,6 +87,7 @@ export default function NetworkHub() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6 flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
           <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Companies ({companyMemberships.length})</TabsTrigger>
@@ -108,6 +111,11 @@ export default function NetworkHub() {
             );
             return null;
           })}
+        </TabsContent>
+
+        {/* ═══════════════ FOLLOWING FEED ═══════════════ */}
+        <TabsContent value="following" className="mt-0">
+          <FollowingFeedTab />
         </TabsContent>
 
         {/* ═══════════════ PEOPLE ═══════════════ */}
@@ -474,5 +482,115 @@ function CompanyCard({ membership, index }: { membership: any; index: number }) 
         </div>
       </Link>
     </motion.div>
+  );
+}
+
+// ─── Following Feed Tab ──────────────────────────────────────
+const FEED_FILTERS = [
+  { key: "ALL", label: "All" },
+  { key: "USER", label: "People" },
+  { key: "GUILD", label: "Guilds" },
+  { key: "COMPANY", label: "Companies" },
+  { key: "QUEST", label: "Quests" },
+  { key: "POD", label: "Pods" },
+  { key: "COURSE", label: "Courses" },
+  { key: "EVENT", label: "Events" },
+  { key: "TERRITORY", label: "Territories" },
+] as const;
+
+const contextRoute: Record<string, string> = {
+  GUILD: "/guilds",
+  COMPANY: "/companies",
+  POD: "/pods",
+  QUEST: "/quests",
+  COURSE: "/courses",
+  SERVICE: "/services",
+  USER: "/users",
+};
+
+function FollowingFeedTab() {
+  const [filter, setFilter] = useState("ALL");
+  const { data: posts = [], isLoading } = useFollowingFeed(filter);
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+          <Rss className="h-5 w-5 text-primary" /> Your network feed
+        </h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Posts and updates from people and units you follow.
+        </p>
+      </div>
+
+      {/* Filter chips */}
+      <div className="flex flex-wrap gap-1.5">
+        {FEED_FILTERS.map((f) => (
+          <Button
+            key={f.key}
+            size="sm"
+            variant={filter === f.key ? "default" : "outline"}
+            className="text-xs h-7"
+            onClick={() => setFilter(f.key)}
+          >
+            {f.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Posts */}
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
+          <Rss className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+          <p className="text-muted-foreground font-medium">
+            {filter !== "ALL"
+              ? "No posts matching this filter."
+              : "Your network feed is quiet for now."}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Start following people, guilds, companies or quests to see their updates here.
+          </p>
+          <div className="flex justify-center gap-2 pt-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/explore/users">Explore people</Link>
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/explore?tab=guilds">Find guilds</Link>
+            </Button>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/explore?tab=quests">Discover quests</Link>
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {posts.map((post) => {
+            const ctxName = (post as any).contextName;
+            const route = contextRoute[post.context_type];
+            return (
+              <div key={post.id}>
+                {/* Context line */}
+                {ctxName && route && (
+                  <div className="text-xs text-muted-foreground mb-1 pl-12">
+                    {post.context_type === "USER" ? "on profile of " : "in "}
+                    <Link
+                      to={`${route}/${post.context_id}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      {ctxName}
+                    </Link>
+                  </div>
+                )}
+                <PostCard post={post} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
