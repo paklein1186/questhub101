@@ -195,6 +195,7 @@ export function AppNav() {
               </>
             ) : (
               <>
+                <LanguageSwitcher />
                 <Link
                   to="/explore"
                   className={cn(
