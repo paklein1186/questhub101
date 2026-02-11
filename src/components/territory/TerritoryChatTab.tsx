@@ -206,12 +206,13 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
     }
   };
 
-  const saveAsExcerpt = (text: string) => {
+  const saveAsExcerpt = (msg: EnrichedMessage) => {
     if (!userId) return;
     createExcerpt.mutate({
       territory_id: territoryId,
-      text,
+      text: msg.content.slice(0, 500) + (msg.attachment_url ? `\n\n[Attachment](${msg.attachment_url})` : ""),
       created_by_user_id: userId,
+      source_memory_entry_id: msg.linked_memory_entry_id || undefined,
     });
   };
 
@@ -339,7 +340,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
 
                 {msg.message_role === "AI" && userId && (
                   <button
-                    onClick={() => saveAsExcerpt(msg.content.slice(0, 500))}
+                    onClick={() => saveAsExcerpt(msg)}
                     className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground mt-2 transition-colors"
                   >
                     <BookOpen className="h-3 w-3" /> Save as Library excerpt
