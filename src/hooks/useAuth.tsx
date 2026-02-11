@@ -46,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: data.role,
         hasCompletedOnboarding: data.has_completed_onboarding,
       });
+      // Sync language preference
+      const lang = (data as any).preferred_language;
+      if (lang && lang !== i18n.language) {
+        i18n.changeLanguage(lang);
+      }
     }
   };
 
