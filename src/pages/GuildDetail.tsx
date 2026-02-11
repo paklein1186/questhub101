@@ -314,7 +314,13 @@ export default function GuildDetail() {
             {members.map((m: any) => (
               <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
                 <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
-                <div className="flex-1"><p className="text-sm font-medium">{m.user?.name}</p><p className="text-xs text-muted-foreground capitalize">{m.role.toLowerCase()}</p></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{m.user?.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{m.role.toLowerCase()}</p>
+                </div>
+                {(m.user?.xp ?? 0) > 0 && (
+                  <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
+                )}
                 <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
               </Link>
             ))}
