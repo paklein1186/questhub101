@@ -32,6 +32,38 @@ const VALID_ROUTES: Record<string, string> = {
   "/quests": "Browse quests",
   "/courses": "Browse courses",
   "/territories": "Explore territories",
+  "/support": "Help & tutorials",
+  "/support#getting-started": "Getting started guide",
+  "/support#quests": "Quest tutorial",
+  "/support#guilds": "Guild tutorial",
+  "/support#services": "Services tutorial",
+  "/support#courses": "Courses tutorial",
+  "/support#territories": "Territories tutorial",
+  "/how-it-works": "How changethegame works",
+  "/cooperative-venture": "Cooperative venture info",
+};
+
+// Map action types to their default routes and query params
+const ACTION_ROUTE_MAP: Record<string, { route: string; queryParams?: Record<string, string> }> = {
+  CREATE_QUEST: { route: "/quests/new" },
+  CREATE_SERVICE: { route: "/services/new" },
+  CREATE_EVENT: { route: "/explore", queryParams: { tab: "events" } },
+  CREATE_COURSE: { route: "/courses/new" },
+  START_POD: { route: "/pods" },
+  START_GUILD: { route: "/guilds" },
+  POST_WALL: { route: "/wall" },
+  FIND_PEOPLE: { route: "/explore", queryParams: { tab: "people" } },
+  FIND_ENTITIES: { route: "/explore", queryParams: { tab: "entities" } },
+  FIND_QUESTS: { route: "/explore", queryParams: { tab: "quests" } },
+  FIND_SERVICES: { route: "/explore", queryParams: { tab: "services" } },
+  FIND_COURSES: { route: "/explore", queryParams: { tab: "courses" } },
+  FIND_EVENTS: { route: "/explore", queryParams: { tab: "events" } },
+  EXPLORE_TERRITORIES: { route: "/territories" },
+  VIEW_MY_WORK: { route: "/work" },
+  VIEW_MY_ENTITIES: { route: "/network", queryParams: { tab: "entities" } },
+  LEARN: { route: "/explore", queryParams: { tab: "courses" } },
+  HELP: { route: "/support" },
+  OTHER: { route: "/explore" },
 };
 
 const VALID_ROUTES_LIST = Object.entries(VALID_ROUTES).map(([route, desc]) => `  ${route} — ${desc}`).join("\n");
@@ -44,6 +76,8 @@ function sanitizeRoute(route: string): string {
       return route;
     }
   }
+  if (route.includes("help") || route.includes("tutorial") || route.includes("support") || route.includes("guide")) return "/support";
+  if (route.includes("how")) return "/how-it-works";
   if (route.includes("quest")) return "/explore?tab=quests";
   if (route.includes("service")) return "/explore?tab=services";
   if (route.includes("people") || route.includes("user")) return "/explore?tab=people";
@@ -78,6 +112,7 @@ VALID action types:
 - VIEW_MY_WORK: User wants to see their active quests/work
 - VIEW_MY_ENTITIES: User wants to see guilds/pods they belong to
 - LEARN: User wants to learn/grow/find mentors
+- HELP: User is asking "how do I…", "what is…", "how does … work", "help me understand…", "tutorial", "guide" — any question about how to use the platform or understand a concept. Route them to the support/help/tutorial page.
 - OTHER: Doesn't fit any known flow — this is an odd/novel proposal
 
 VALID ROUTES (you MUST only use these exact routes):
@@ -88,18 +123,26 @@ When actionType is TERRITORY_INTENT, also include:
 - "memorySummary": "a one-sentence AI summary of the user's territorial contribution for the territory memory"
 - "memoryThemes": ["theme1", "theme2"] (array of 2-4 themes extracted from the text)
 
+When actionType is HELP, include:
+- "helpTopic": the specific platform concept or feature they're asking about (e.g. "quests", "guilds", "territories", "services", "courses", "getting-started")
+
+For EVERY suggestion, you MUST include a "route" field with one of the VALID ROUTES above, and optionally a "queryParams" object with key-value pairs for query parameters (e.g. {"tab": "quests", "q": "search term"}).
+
 Respond ONLY with this JSON:
 {
   "actionType": "ONE_OF_THE_ABOVE",
   "confidence": 0.0-1.0,
   "summary": "one-sentence summary of the user's intent",
+  "primaryRoute": "/the/main/route/for/this/intent",
+  "primaryQueryParams": { "key": "value" },
   "suggestions": [
-    { "label": "Short CTA label", "route": "/exact/valid/route", "description": "Why this fits" }
+    { "label": "Short CTA label", "route": "/exact/valid/route", "queryParams": { "key": "value" }, "description": "Why this fits" }
   ],
   "followUpQuestion": "optional clarifying question if intent is ambiguous",
   "questDraft": null,
   "memorySummary": null,
-  "memoryThemes": null
+  "memoryThemes": null,
+  "helpTopic": null
 }
 
 Give 2-3 suggestions max. ONLY use routes from the VALID ROUTES list above.
