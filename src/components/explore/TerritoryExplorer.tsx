@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import {
   MapPin, Search, X, Brain, Loader2, BarChart3, Layers,
   Compass, Shield, CircleDot, Building2, Briefcase, GraduationCap,
-  Calendar, Clock, Hash, Play, AlertCircle,
+  Calendar, Clock, Hash, Play, AlertCircle, Sparkles, RefreshCw,
+  TrendingUp, AlertTriangle, Users, Coins, Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +75,11 @@ export function TerritoryExplorer() {
   const [analysisResults, setAnalysisResults] = useState<{ stats: TerritoryStats[]; units: UnitItem[] } | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [filtersDirty, setFiltersDirty] = useState(false);
+
+  // AI Synthesis state
+  const [synthesisData, setSynthesisData] = useState<any>(null);
+  const [synthesisLoading, setSynthesisLoading] = useState(false);
+  const [synthesisError, setSynthesisError] = useState<string | null>(null);
 
   // Derived
   const filteredTerritories = useMemo(() => {
@@ -208,12 +214,41 @@ export function TerritoryExplorer() {
       });
 
       setAnalysisResults({ stats: Array.from(statsMap.values()), units: dedupedUnits });
+
+      // Auto-trigger AI synthesis
+      runSynthesis(tIds);
     } catch (e) {
       console.error("Territory analysis failed", e);
     } finally {
       setAnalysisLoading(false);
     }
   }, [selectedTerritoryIds, allTerritories, timeFilter]);
+
+  // ─── AI Synthesis ──────────────────────────────────────────
+  const runSynthesis = useCallback(async (territoryIds?: string[]) => {
+    const ids = territoryIds || selectedTerritoryIds;
+    if (ids.length === 0) return;
+    setSynthesisLoading(true);
+    setSynthesisError(null);
+    setSynthesisData(null);
+    try {
+      // Use the first selected territory for intelligence (or could merge multiple)
+      const primaryId = ids[0];
+      const { data: res, error: fnErr } = await supabase.functions.invoke("territory-intelligence", {
+        body: { territoryId: primaryId },
+      });
+      if (fnErr) throw fnErr;
+      if (res?.error) {
+        setSynthesisError(res.error);
+      } else {
+        setSynthesisData(res);
+      }
+    } catch (e: any) {
+      setSynthesisError(e.message || "AI synthesis unavailable");
+    } finally {
+      setSynthesisLoading(false);
+    }
+  }, [selectedTerritoryIds]);
 
   // Filtered units
   const displayedUnits = useMemo(() => {
@@ -499,6 +534,135 @@ export function TerritoryExplorer() {
             )}
           </div>
 
+          {/* ─── AI Synthesis Panel ─── */}
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" /> AI Territorial Synthesis
+              </h3>
+              {synthesisData && !synthesisLoading && (
+                <Button size="sm" variant="ghost" onClick={() => runSynthesis()} className="text-xs gap-1">
+                  <RefreshCw className="h-3.5 w-3.5" /> Regenerate
+                </Button>
+              )}
+            </div>
+
+            {synthesisLoading && (
+              <div className="flex items-center gap-3 py-6 justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Generating AI synthesis of this territory…</p>
+              </div>
+            )}
+
+            {synthesisError && !synthesisLoading && (
+              <div className="text-center py-4">
+                <AlertCircle className="h-5 w-5 text-destructive mx-auto mb-2" />
+                <p className="text-sm text-destructive mb-2">{synthesisError}</p>
+                <Button size="sm" variant="outline" onClick={() => runSynthesis()}>
+                  <RefreshCw className="h-3.5 w-3.5 mr-1" /> Retry
+                </Button>
+              </div>
+            )}
+
+            {synthesisData && !synthesisLoading && (
+              <div className="space-y-4">
+                {/* Summary */}
+                {synthesisData.summary && (
+                  <div className="flex items-start gap-2 bg-background/60 rounded-lg p-3">
+                    <Brain className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <p className="text-sm leading-relaxed">{synthesisData.summary}</p>
+                  </div>
+                )}
+
+                {/* Gaps */}
+                {synthesisData.gaps?.length > 0 && (
+                  <SynthesisSection icon={AlertTriangle} title="Territory Gaps">
+                    {synthesisData.gaps.map((gap: any, i: number) => (
+                      <div key={i} className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
+                        <AlertTriangle className="h-3.5 w-3.5 text-warning mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium">{gap.area}</p>
+                            <Badge className={`text-[10px] border-0 ${gap.severity === "high" ? "bg-destructive/10 text-destructive" : gap.severity === "medium" ? "bg-warning/10 text-warning" : "bg-muted text-muted-foreground"}`}>{gap.severity}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{gap.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </SynthesisSection>
+                )}
+
+                {/* Collaborations */}
+                {synthesisData.collaborations?.length > 0 && (
+                  <SynthesisSection icon={Users} title="Suggested Collaborations">
+                    {synthesisData.collaborations.map((c: any, i: number) => (
+                      <div key={i} className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
+                        <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{c.description}</p>
+                          <p className="text-xs text-muted-foreground">{c.reason}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </SynthesisSection>
+                )}
+
+                {/* Funding Priorities */}
+                {synthesisData.fundingPriorities?.length > 0 && (
+                  <SynthesisSection icon={Coins} title="Funding Priorities">
+                    {synthesisData.fundingPriorities.map((f: any, i: number) => (
+                      <div key={i} className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
+                        <Coins className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{f.area}</p>
+                          <p className="text-xs text-muted-foreground">{f.reason}</p>
+                          {f.estimatedImpact && <Badge variant="secondary" className="text-[10px] mt-1">Impact: {f.estimatedImpact}</Badge>}
+                        </div>
+                      </div>
+                    ))}
+                  </SynthesisSection>
+                )}
+
+                {/* Trends & Risks */}
+                {(synthesisData.trends?.length > 0 || synthesisData.risks?.length > 0) && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {synthesisData.trends?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-2">
+                          <TrendingUp className="h-3.5 w-3.5" /> Emerging Trends
+                        </p>
+                        <ul className="space-y-1">
+                          {synthesisData.trends.map((t: string, i: number) => (
+                            <li key={i} className="text-sm flex items-start gap-1.5">
+                              <TrendingUp className="h-3 w-3 text-primary mt-1 shrink-0" />
+                              <span>{t}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {synthesisData.risks?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-2">
+                          <AlertTriangle className="h-3.5 w-3.5" /> Risks
+                        </p>
+                        <ul className="space-y-1">
+                          {synthesisData.risks.map((r: string, i: number) => (
+                            <li key={i} className="text-sm flex items-start gap-1.5">
+                              <AlertTriangle className="h-3 w-3 text-warning mt-1 shrink-0" />
+                              <span>{r}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+
           {/* Unit Cards */}
           {displayedUnits.length === 0 ? (
             <div className="text-center py-12 rounded-xl border border-dashed border-border bg-muted/20">
@@ -579,6 +743,17 @@ export function TerritoryExplorer() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function SynthesisSection({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-2">
+        <Icon className="h-3.5 w-3.5" /> {title}
+      </p>
+      <div className="space-y-1.5">{children}</div>
     </div>
   );
 }
