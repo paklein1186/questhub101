@@ -2,7 +2,7 @@ import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/com
 
 export default function TerritoriesHousesPage() {
   return (
-    <ContentPageShell title="Territories & Houses" subtitle="Where geography meets imagination.">
+    <ContentPageShell title="Territories & Topics" subtitle="Where geography meets imagination.">
       <ContentSection title="What are Territories?">
         <p>Territories are real-world places where quests, guilds and communities act.</p>
       </ContentSection>
