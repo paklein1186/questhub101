@@ -1,5 +1,13 @@
-import { Compass, Clock, Shield, Building2, CircleDot, GraduationCap, CalendarDays, MapPin, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import questPattern from "@/assets/patterns/quest-pattern.jpg";
+import servicePattern from "@/assets/patterns/service-pattern.jpg";
+import guildPattern from "@/assets/patterns/guild-pattern.jpg";
+import companyPattern from "@/assets/patterns/company-pattern.jpg";
+import podPattern from "@/assets/patterns/pod-pattern.jpg";
+import coursePattern from "@/assets/patterns/course-pattern.jpg";
+import eventPattern from "@/assets/patterns/event-pattern.jpg";
+import territoryPattern from "@/assets/patterns/territory-pattern.jpg";
 
 export type UnitType = "QUEST" | "SERVICE" | "GUILD" | "COMPANY" | "POD" | "COURSE" | "EVENT" | "TERRITORY";
 
@@ -14,31 +22,31 @@ interface UnitCoverImageProps {
   className?: string;
 }
 
-const TYPE_CONFIG: Record<UnitType, { icon: LucideIcon; bgClass: string; label: string }> = {
-  QUEST: { icon: Compass, bgClass: "bg-amber-500/10 dark:bg-amber-500/20", label: "Quest" },
-  SERVICE: { icon: Clock, bgClass: "bg-rose-500/10 dark:bg-rose-500/20", label: "Service" },
-  GUILD: { icon: Shield, bgClass: "bg-emerald-500/10 dark:bg-emerald-500/20", label: "Guild" },
-  COMPANY: { icon: Building2, bgClass: "bg-cyan-500/10 dark:bg-cyan-500/20", label: "Company" },
-  POD: { icon: CircleDot, bgClass: "bg-violet-500/10 dark:bg-violet-500/20", label: "Pod" },
-  COURSE: { icon: GraduationCap, bgClass: "bg-blue-500/10 dark:bg-blue-500/20", label: "Course" },
-  EVENT: { icon: CalendarDays, bgClass: "bg-orange-500/10 dark:bg-orange-500/20", label: "Event" },
-  TERRITORY: { icon: MapPin, bgClass: "bg-teal-500/10 dark:bg-teal-500/20", label: "Territory" },
+const TYPE_LABEL: Record<UnitType, string> = {
+  QUEST: "Quest",
+  SERVICE: "Service",
+  GUILD: "Guild",
+  COMPANY: "Company",
+  POD: "Pod",
+  COURSE: "Course",
+  EVENT: "Event",
+  TERRITORY: "Territory",
 };
 
-const ICON_COLOR: Record<UnitType, string> = {
-  QUEST: "text-amber-500/40",
-  SERVICE: "text-rose-500/40",
-  GUILD: "text-emerald-500/40",
-  COMPANY: "text-cyan-500/40",
-  POD: "text-violet-500/40",
-  COURSE: "text-blue-500/40",
-  EVENT: "text-orange-500/40",
-  TERRITORY: "text-teal-500/40",
+const FALLBACK_PATTERN: Record<UnitType, string> = {
+  QUEST: questPattern,
+  SERVICE: servicePattern,
+  GUILD: guildPattern,
+  COMPANY: companyPattern,
+  POD: podPattern,
+  COURSE: coursePattern,
+  EVENT: eventPattern,
+  TERRITORY: territoryPattern,
 };
 
 /**
  * Universal cover image for unit cards.
- * Priority: imageUrl > bannerUrl > logoUrl (centered) > type-based fallback.
+ * Priority: imageUrl > bannerUrl > logoUrl (centered over pattern) > type-based pattern fallback.
  */
 export function UnitCoverImage({
   type,
@@ -49,10 +57,7 @@ export function UnitCoverImage({
   height = "h-36",
   className,
 }: UnitCoverImageProps) {
-  const config = TYPE_CONFIG[type];
-  const Icon = config.icon;
-
-  // Resolve best image
+  const label = TYPE_LABEL[type];
   const coverSrc = imageUrl || bannerUrl;
 
   if (coverSrc) {
@@ -60,7 +65,7 @@ export function UnitCoverImage({
       <div className={cn("w-full overflow-hidden bg-muted", height, className)}>
         <img
           src={coverSrc}
-          alt={name ? `Cover image for ${config.label.toLowerCase()} ${name}` : `${config.label} cover`}
+          alt={name ? `Cover image for ${label.toLowerCase()} ${name}` : `${label} cover`}
           className="w-full h-full object-cover"
           loading="lazy"
         />
@@ -68,27 +73,38 @@ export function UnitCoverImage({
     );
   }
 
+  // Logo over pattern background
   if (logoUrl) {
     return (
-      <div className={cn("w-full flex items-center justify-center", height, config.bgClass, className)}>
+      <div className={cn("w-full relative overflow-hidden", height, className)}>
         <img
-          src={logoUrl}
-          alt={name ? `Logo for ${name}` : `${config.label} logo`}
-          className="h-16 w-16 rounded-xl object-cover shadow-sm"
+          src={FALLBACK_PATTERN[type]}
+          alt=""
+          className="w-full h-full object-cover absolute inset-0"
           loading="lazy"
+          aria-hidden="true"
         />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+          <img
+            src={logoUrl}
+            alt={name ? `Logo for ${name}` : `${label} logo`}
+            className="h-16 w-16 rounded-xl object-cover shadow-sm"
+            loading="lazy"
+          />
+        </div>
       </div>
     );
   }
 
-  // Fallback: type icon with tinted background
+  // Fallback: soft nature pattern
   return (
-    <div
-      className={cn("w-full flex items-center justify-center", height, config.bgClass, className)}
-      role="img"
-      aria-label={`${config.label} icon`}
-    >
-      <Icon className={cn("h-10 w-10", ICON_COLOR[type])} />
+    <div className={cn("w-full overflow-hidden", height, className)}>
+      <img
+        src={FALLBACK_PATTERN[type]}
+        alt={`${label} pattern`}
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
     </div>
   );
 }
