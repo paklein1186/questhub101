@@ -401,18 +401,20 @@ export default function Onboarding() {
   };
 
   // ─── Step indices ─────────────────────────────────────────
-  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
-  // Impact:  0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
+  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
+  // Impact:  0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
 
-  const CREATIVE_AFF_STEP = 4;
-  const CREATIVE_REVIEW_STEP = 5;
-  const CREATIVE_PROJECT_STEP = 6;
-  const CREATIVE_SERVICE_STEP = 7;
+  const CREATIVE_LANG_STEP = 4;
+  const CREATIVE_AFF_STEP = 5;
+  const CREATIVE_REVIEW_STEP = 6;
+  const CREATIVE_PROJECT_STEP = 7;
+  const CREATIVE_SERVICE_STEP = 8;
 
-  const IMPACT_AFF_STEP = 2;
-  const IMPACT_REVIEW_STEP = 3;
-  const IMPACT_PROJECT_STEP = 4;
-  const IMPACT_SERVICE_STEP = 5;
+  const IMPACT_LANG_STEP = 2;
+  const IMPACT_AFF_STEP = 3;
+  const IMPACT_REVIEW_STEP = 4;
+  const IMPACT_PROJECT_STEP = 5;
+  const IMPACT_SERVICE_STEP = 6;
 
   const goNext = () => {
     if (isCreativePath) {
