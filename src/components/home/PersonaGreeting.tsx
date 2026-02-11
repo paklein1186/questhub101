@@ -18,7 +18,7 @@ export function PersonaGreeting({ userName, persona }: Props) {
 
   return (
     <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-      className="font-display text-2xl md:text-3xl font-bold">
+      className="font-display text-xl sm:text-2xl md:text-3xl font-bold">
       {greeting}
     </motion.h1>
   );

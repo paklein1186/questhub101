@@ -50,16 +50,16 @@ export function ContextualActions({ persona }: Props) {
   const actions = ACTIONS[persona];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
       {actions.map((action, i) => {
         const Icon = action.icon;
         return (
           <motion.div key={action.label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.04 }}>
             <Link to={action.route}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium hover:border-primary/30 hover:shadow-sm transition-all group">
-              <Icon className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
-              {action.label}
+              className="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border bg-card px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium hover:border-primary/30 hover:shadow-sm transition-all group">
+              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary group-hover:scale-110 transition-transform shrink-0" />
+              <span className="line-clamp-1">{action.label}</span>
             </Link>
           </motion.div>
         );

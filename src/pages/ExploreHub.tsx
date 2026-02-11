@@ -44,17 +44,17 @@ export default function ExploreHub() {
       </div>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6 flex-wrap">
-          <TabsTrigger value="quests">{label("quest.label")}</TabsTrigger>
-          <TabsTrigger value="guilds">{label("guild.label")}</TabsTrigger>
-          <TabsTrigger value="pods">{label("pod.label")}</TabsTrigger>
-          <TabsTrigger value="services">{label("service.label_plural")}</TabsTrigger>
-          <TabsTrigger value="companies">{label("company.label")}</TabsTrigger>
-          <TabsTrigger value="courses">{label("course.label")}</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="houses">Houses</TabsTrigger>
-          <TabsTrigger value="territories"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
-          {currentUser.id && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
+        <TabsList className="mb-6 flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
+          <TabsTrigger value="guilds" className="text-xs sm:text-sm">{label("guild.label")}</TabsTrigger>
+          <TabsTrigger value="pods" className="text-xs sm:text-sm">{label("pod.label")}</TabsTrigger>
+          <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>
+          <TabsTrigger value="companies" className="text-xs sm:text-sm">{label("company.label")}</TabsTrigger>
+          <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
+          <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+          <TabsTrigger value="houses" className="text-xs sm:text-sm">Houses</TabsTrigger>
+          <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
+          {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
