@@ -42,7 +42,7 @@ export function PartnersBlock({ entityType, entityId }: Props) {
                 <AvatarFallback className="rounded-md text-xs">{partner.name[0]}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium">{partner.name}</span>
-              <Badge variant="outline" className="text-[9px] capitalize">{partner.type.toLowerCase()}</Badge>
+              <Badge variant="outline" className="text-[9px]">{partner.type === "COMPANY" ? "Trad. Org." : partner.type.toLowerCase()}</Badge>
             </Link>
           );
         })}

@@ -29,7 +29,7 @@ const TABLE_MAP = {
 const LABELS = {
   guild: "guild",
   pod: "pod",
-  company: "company network",
+  company: "organization",
 };
 
 export function EntityJoinButton({

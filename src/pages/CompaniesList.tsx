@@ -40,7 +40,7 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
     <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Building2 className="h-7 w-7 text-primary" /> Companies
+          <Building2 className="h-7 w-7 text-primary" /> Traditional Organizations
         </h1>
       </div>
 
@@ -85,7 +85,7 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
             </motion.div>
           );
         })}
-        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No companies match your filters.</p>}
+        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No traditional organizations match your filters.</p>}
       </div>
     </PageShell>
   );

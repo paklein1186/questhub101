@@ -8,7 +8,7 @@ export default function AdminCommunityCompanies() {
   return (
     <div className="space-y-4">
       <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-        <Building2 className="h-6 w-6 text-primary" /> Companies
+        <Building2 className="h-6 w-6 text-primary" /> Traditional Organizations
       </h2>
       <div className="rounded-xl border border-border overflow-hidden">
         <Table>
@@ -28,7 +28,7 @@ export default function AdminCommunityCompanies() {
               </TableRow>
             ))}
             {!isLoading && allCompanies.length === 0 && (
-              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No companies.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No traditional organizations.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

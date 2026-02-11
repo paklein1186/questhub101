@@ -41,7 +41,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/community/users", label: "Users", icon: UsersIcon },
       { to: "/admin/community/guilds", label: "Guilds", icon: Shield },
       { to: "/admin/community/pods", label: "Pods", icon: Hash },
-      { to: "/admin/community/companies", label: "Companies", icon: Building2 },
+      { to: "/admin/community/companies", label: "Trad. Organizations", icon: Building2 },
     ],
   },
   {
