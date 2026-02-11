@@ -60,8 +60,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     enabled: authorIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
-        .from("profiles")
-        .select("user_id, name, avatar_url, email")
+        .from("profiles_public" as any)
+        .select("user_id, name, avatar_url")
         .in("user_id", authorIds);
       return data ?? [];
     },
