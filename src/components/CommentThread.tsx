@@ -37,6 +37,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { checkRateLimit } = useRateLimit();
+  const { notifyComment, notifyUpvote } = useNotifications();
 
   const queryKey = ["comments", targetType, targetId];
 
