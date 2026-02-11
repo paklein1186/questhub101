@@ -135,9 +135,6 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-3">
             <Bot className="h-3.5 w-3.5" /> AI Assistant
           </div>
-          <h1 className="font-display text-2xl md:text-4xl font-bold mb-2">
-            Welcome back, <span className="text-primary">{userName}</span>
-          </h1>
           <p className="text-sm text-muted-foreground">{label("hero.tagline")}</p>
         </motion.div>
 

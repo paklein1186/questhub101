@@ -6,15 +6,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
-import { Brain, MessageSquare } from "lucide-react";
+import { Brain } from "lucide-react";
 import { usePersona } from "@/hooks/usePersona";
 
-import { HeroAI } from "@/components/home/HeroAI";
+import { PersonaGreeting } from "@/components/home/PersonaGreeting";
+import { ContextualActions } from "@/components/home/ContextualActions";
 import { HomeStats } from "@/components/home/HomeStats";
 import { ContinueWhereLeftOff } from "@/components/home/ContinueWhereLeftOff";
 import { YourUniverse } from "@/components/home/YourUniverse";
 import { ThisWeekInEcosystem } from "@/components/home/ThisWeekInEcosystem";
-import { FeedSection } from "@/components/feed/FeedSection";
+import { QuickShortcuts } from "@/components/home/QuickShortcuts";
+import { FeedToggle } from "@/components/home/FeedToggle";
+import { ShareholderCTA } from "@/components/home/ShareholderCTA";
+import { HeroAI } from "@/components/home/HeroAI";
 
 // Lightweight data hook for the shell (stats, topics, territories)
 function useHomeShellData(userId: string) {
@@ -81,7 +85,13 @@ export default function HomeFeed() {
   return (
     <PageShell>
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* 1. Hero AI Assistant */}
+        {/* 1. Persona-specific greeting */}
+        <PersonaGreeting userName={userName} persona={persona} />
+
+        {/* 2. Contextual action row */}
+        <ContextualActions persona={persona} />
+
+        {/* 3. AI Assistant (collapsible) */}
         <HeroAI
           userName={userName}
           userContext={{
@@ -97,7 +107,7 @@ export default function HomeFeed() {
           }}
         />
 
-        {/* 2. Stats + Onboarding */}
+        {/* 4. Stats + Onboarding */}
         <HomeStats
           xp={data?.xp ?? 0}
           contributionIndex={data?.contributionIndex ?? 0}
@@ -107,14 +117,22 @@ export default function HomeFeed() {
           userId={currentUser.id}
         />
 
+        {/* 5. Quick shortcuts */}
+        <QuickShortcuts />
+
         <Separator />
 
-        {/* 3. Continue where you left off */}
+        {/* 6. Shareholder CTA */}
+        <ShareholderCTA />
+
+        <Separator />
+
+        {/* 7. Continue where you left off */}
         <ContinueWhereLeftOff userId={currentUser.id} />
 
         <Separator />
 
-        {/* 4. Your Universe (personalized recommendations) */}
+        {/* 8. Your Universe (personalized recommendations / Discover block) */}
         <YourUniverse
           userId={currentUser.id}
           userTopicIds={userTopicIds}
@@ -123,7 +141,7 @@ export default function HomeFeed() {
 
         <Separator />
 
-        {/* 5. In your territories */}
+        {/* 9. In your territories */}
         {(data?.myTerritories ?? []).length > 0 && (
           <>
             <section className="space-y-4">
@@ -140,17 +158,12 @@ export default function HomeFeed() {
           </>
         )}
 
-        {/* 6. Community feed */}
-        <section className="space-y-4">
-          <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" /> {label("feed.label")}
-          </h2>
-          <FeedSection contextType="GLOBAL" />
-        </section>
+        {/* 10. Community feed with toggle */}
+        <FeedToggle />
 
         <Separator />
 
-        {/* 7. This week in the ecosystem */}
+        {/* 11. This week in the ecosystem */}
         <ThisWeekInEcosystem />
       </div>
     </PageShell>
