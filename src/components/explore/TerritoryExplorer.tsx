@@ -711,7 +711,7 @@ export function TerritoryExplorer() {
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 <Badge variant="secondary" className="text-[10px]">{unitLabel(item.type)}</Badge>
                                 <Link
-                                  to={`/explore?tab=territories`}
+                                  to={`/territories/${item.territoryId}`}
                                   onClick={(e) => e.stopPropagation()}
                                   className="inline-block"
                                 >
