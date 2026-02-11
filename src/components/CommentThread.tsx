@@ -87,11 +87,14 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   const handleUpvote = async (commentId: string) => {
     if (hasUpvoted(commentId)) {
-      toast({ title: "Already upvoted" });
-      return;
+      // Remove upvote
+      await supabase.from("comment_upvotes").delete().eq("comment_id", commentId).eq("user_id", currentUser.id);
+      await supabase.from("comments").update({ upvote_count: Math.max((comments.find((c) => c.id === commentId)?.upvote_count ?? 1) - 1, 0) }).eq("id", commentId);
+    } else {
+      // Add upvote
+      await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
+      await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
     }
-    await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
-    await supabase.from("comments").update({ upvote_count: (comments.find((c) => c.id === commentId)?.upvote_count ?? 0) + 1 }).eq("id", commentId);
     qc.invalidateQueries({ queryKey });
     qc.invalidateQueries({ queryKey: ["comment-upvotes", targetType, targetId] });
   };
