@@ -179,6 +179,27 @@ export default function QuestCreate() {
 
   const doCreate = async () => {
     if (!title.trim()) return;
+
+    const budget = Number(creditBudget) || 0;
+
+    // Validate credit budget against user's balance
+    if (budget > 0) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("credits_balance")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      const balance = (profile as any)?.credits_balance ?? 0;
+      if (budget > balance) {
+        toast({
+          title: "Insufficient Credits",
+          description: `You cannot allocate ${budget} Credits — you only have ${balance}. Top up your wallet or reduce the budget.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const allowed = await checkRateLimit("quest_creation");
@@ -187,7 +208,6 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
-      const budget = Number(creditBudget) || 0;
       const questStatus = isDraft ? "DRAFT" : openForProposals ? "OPEN_FOR_PROPOSALS" : "OPEN";
 
       const { data: quest, error } = await supabase
@@ -281,6 +301,22 @@ export default function QuestCreate() {
       });
 
       await limits.recordQuestCreation();
+
+      // Deduct credit budget from user's wallet
+      if (budget > 0) {
+        await (supabase.from("credit_transactions" as any) as any).insert({
+          user_id: currentUser.id,
+          type: "QUEST_BUDGET_SPENT",
+          amount: -budget,
+          source: `Quest budget: ${title.trim()}`,
+          related_entity_type: "QUEST",
+          related_entity_id: quest.id,
+        });
+        await supabase
+          .from("profiles")
+          .update({ credits_balance: ((await supabase.from("profiles").select("credits_balance").eq("user_id", currentUser.id).maybeSingle()).data as any)?.credits_balance - budget } as any)
+          .eq("user_id", currentUser.id);
+      }
 
       await grantXp(currentUser.id, {
         type: XP_EVENT_TYPES.QUEST_CREATED,
