@@ -325,8 +325,9 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action }: any) => {
-    if (recipientUserId !== userId) return;
+  const notifyBooking = useCallback(async ({ bookingId, serviceTitle, requesterName, recipientUserId, action, serviceId, requesterId }: any) => {
+    // Don't notify yourself
+    if (recipientUserId === userId && requesterId === userId) return;
     const typeMap: Record<string, NotificationType> = {
       requested: NotificationType.BOOKING_REQUESTED, confirmed: NotificationType.BOOKING_CONFIRMED,
       accepted: NotificationType.BOOKING_CONFIRMED, cancelled: NotificationType.BOOKING_CANCELLED,
