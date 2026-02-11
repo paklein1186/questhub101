@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
-  Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2,
+  Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,6 +35,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { UnitChat } from "@/components/UnitChat";
 import { formatDistanceToNow } from "date-fns";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
+import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
+import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -210,6 +212,7 @@ export default function CompanyDetail() {
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
+          <TabsTrigger value="partnerships"><Handshake className="h-4 w-4 mr-1" /> Partners</TabsTrigger>
           <TabsTrigger value="wall">Wall</TabsTrigger>
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>
@@ -231,6 +234,12 @@ export default function CompanyDetail() {
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></div>
           </div>
+          <PartnersBlock entityType="COMPANY" entityId={company.id} />
+        </TabsContent>
+
+        {/* Partnerships */}
+        <TabsContent value="partnerships" className="mt-6">
+          <PartnershipsTab entityType="COMPANY" entityId={company.id} isAdmin={isAdmin} />
         </TabsContent>
 
         {/* Members */}
