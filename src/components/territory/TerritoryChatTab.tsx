@@ -68,25 +68,23 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
       // If knowledge contribution, also save to territory memory
       let memoryEntryId: string | undefined;
       if (isKnowledge) {
+        const memResult = await addMemory.mutateAsync({
+          territory_id: territoryId,
+          title: userInput.slice(0, 80),
+          content: userInput,
+          category: "RAW_NOTES",
+          visibility: "PUBLIC",
+          tags: [],
+          created_by_user_id: userId,
+        });
+        memoryEntryId = (memResult as any)?.id;
+        // Grant knowledge XP
         try {
-          const memResult = await addMemory.mutateAsync({
-            territory_id: territoryId,
-            title: userInput.slice(0, 80),
-            content: userInput,
-            category: "RAW_NOTES",
-            visibility: "PUBLIC",
-            tags: [],
-            created_by_user_id: userId,
+          await grantXp(userId, {
+            type: XP_EVENT_TYPES.TERRITORY_CHAT_KNOWLEDGE as any,
+            relatedEntityId: memoryEntryId,
+            territoryId,
           });
-          memoryEntryId = (memResult as any)?.id;
-          // Grant knowledge XP
-          try {
-            await grantXp(userId, {
-              type: XP_EVENT_TYPES.TERRITORY_CHAT_KNOWLEDGE as any,
-              relatedEntityId: memoryEntryId,
-              territoryId,
-            });
-          } catch {}
         } catch {}
       }
 
