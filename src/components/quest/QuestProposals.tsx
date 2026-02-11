@@ -5,6 +5,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { useToast } from "@/hooks/use-toast";
 import { XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { calculateCommission, type CommissionRule } from "@/lib/commissionCalc";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp } from "lucide-react";
+import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalEvaluator } from "./ProposalEvaluator";
 
@@ -23,16 +25,34 @@ interface QuestProposalsProps {
   fundingGoalCredits?: number | null;
   allowFundraising: boolean;
   questStatus: string;
+  missionBudgetMin?: number | null;
+  missionBudgetMax?: number | null;
+  paymentType?: string;
 }
 
 export function QuestProposals({
   questId, questOwnerId, escrowCredits, fundingGoalCredits, allowFundraising, questStatus,
+  missionBudgetMin, missionBudgetMax, paymentType,
 }: QuestProposalsProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
+  const { plan } = usePlanLimits();
   const isOwner = currentUser.id === questOwnerId;
+
+  // Commission rules for payout estimates
+  const { data: commissionRules = [] } = useQuery({
+    queryKey: ["commission-rules"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_rules" as any)
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order") as any;
+      return (data ?? []) as CommissionRule[];
+    },
+  });
 
   // Proposals
   const { data: proposals = [] } = useQuery({

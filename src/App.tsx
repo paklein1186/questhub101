@@ -38,6 +38,7 @@ const AdminContentServices = lazy(() => import("./pages/admin/AdminContentServic
 const AdminContentReports = lazy(() => import("./pages/admin/AdminContentReports"));
 const AdminEconomyBookings = lazy(() => import("./pages/admin/AdminEconomyBookings"));
 const AdminEconomyPayments = lazy(() => import("./pages/admin/AdminEconomyPayments"));
+const AdminEconomyCommissions = lazy(() => import("./pages/admin/AdminEconomyCommissions"));
 const AdminEconomyXp = lazy(() => import("./pages/admin/AdminEconomyXp"));
 const AdminEconomyPlans = lazy(() => import("./pages/admin/AdminEconomyPlans"));
 const AdminEconomyNotifications = lazy(() => import("./pages/admin/AdminEconomyNotifications"));
@@ -205,6 +206,7 @@ const App = () => (
                   <Route path="content/excerpt-reports" element={<Suspense fallback={null}><AdminExcerptReports /></Suspense>} />
                   <Route path="economy/bookings" element={<Suspense fallback={null}><AdminEconomyBookings /></Suspense>} />
                   <Route path="economy/payments" element={<Suspense fallback={null}><AdminEconomyPayments /></Suspense>} />
+                  <Route path="economy/commissions" element={<Suspense fallback={null}><AdminEconomyCommissions /></Suspense>} />
                   <Route path="economy/xp" element={<Suspense fallback={null}><AdminEconomyXp /></Suspense>} />
                   <Route path="economy/plans" element={<Suspense fallback={null}><AdminEconomyPlans /></Suspense>} />
                   <Route path="economy/notifications" element={<Suspense fallback={null}><AdminEconomyNotifications /></Suspense>} />

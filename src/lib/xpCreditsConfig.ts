@@ -117,6 +117,7 @@ export const CREDIT_COSTS = {
   BOOST_GUILD_EXPLORE: 12,
   BOOST_COURSE: 8,
   ENABLE_AI_PRO_SESSION: 5,
+  REDUCE_COMMISSION_BY_1_PERCENT: 25,
 } as const;
 
 // ─── Credit Bundles (purchasable via Stripe) ────────────────

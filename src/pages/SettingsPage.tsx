@@ -9,7 +9,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins,
+  Coins, TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -705,6 +705,27 @@ export default function SettingsPage() {
                       ))}
                     </div>
                     <p className="text-xs text-muted-foreground mt-3">Credits are platform utility tokens — used for boosts, extra capacity, and AI features. Not exchangeable for money.</p>
+                  </Section>
+
+                  <Section title="Commission Benefits" icon={<TrendingDown className="h-5 w-5" />}>
+                    <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Base platform commission</span>
+                        <span className="font-medium">3–10% depending on mission size</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Your plan discount ({limits.plan.planName})</span>
+                        <span className="font-bold text-primary">{limits.plan.commissionDiscountPercent}%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Minimum final rate</span>
+                        <span className="font-medium">1%</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground pt-2 border-t border-border">
+                        You can further reduce commission using credits when accepting a proposal.
+                        {limits.plan.planCode === "FREE" && " Upgrade your plan for better commission rates."}
+                      </p>
+                    </div>
                   </Section>
                 </div>
               )}
