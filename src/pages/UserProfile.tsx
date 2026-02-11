@@ -242,6 +242,19 @@ export default function UserProfile() {
               </section>
             )}
 
+            {/* Activity summary */}
+            <ActivitySummary
+              name={profile.name.split(" ")[0]}
+              questsCreated={questsCreated}
+              questsJoined={questsJoined}
+              guilds={guilds}
+              pods={pods}
+              services={services}
+              topics={topics}
+              territories={territories}
+              persona={persona}
+            />
+
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
               <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
