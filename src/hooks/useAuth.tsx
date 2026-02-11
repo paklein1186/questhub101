@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import i18n from "i18next";
 import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
 
 interface AuthUser {
@@ -45,6 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: data.role,
         hasCompletedOnboarding: data.has_completed_onboarding,
       });
+      // Sync language preference
+      const lang = (data as any).preferred_language;
+      if (lang && lang !== i18n.language) {
+        i18n.changeLanguage(lang);
+      }
     }
   };
 

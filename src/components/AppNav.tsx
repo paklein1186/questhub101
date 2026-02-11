@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +25,7 @@ import {
 export function AppNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { unreadCount } = useNotifications();
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
@@ -39,11 +42,11 @@ export function AppNav() {
   };
 
   const authedLinks = [
-    { to: "/", label: "Home", icon: Home },
+    { to: "/", label: t("nav.home"), icon: Home },
     { to: "/explore", label: label("nav.explore"), icon: Search },
-    { to: "/work", label: label("nav.work"), icon: Briefcase },
+    { to: "/work", label: t("nav.work"), icon: Briefcase },
     ...(isFeatureEnabled(flags, "feature_network_section")
-      ? [{ to: "/network", label: "Network", icon: Users }]
+      ? [{ to: "/network", label: t("nav.network"), icon: Users }]
       : []),
   ];
 
@@ -139,6 +142,8 @@ export function AppNav() {
                   </Link>
                 )}
 
+                <LanguageSwitcher />
+
                 {/* Unified user menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -152,7 +157,7 @@ export function AppNav() {
                         <AvatarImage src={user?.avatarUrl} />
                         <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium text-foreground">Me</span>
+                      <span className="text-sm font-medium text-foreground">{t("nav.me")}</span>
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
@@ -163,12 +168,12 @@ export function AppNav() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/me" className="cursor-pointer">
-                        <User className="h-4 w-4 mr-2" /> My Hub
+                        <User className="h-4 w-4 mr-2" /> {t("nav.myHub")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
-                        <User className="h-4 w-4 mr-2" /> My public profile
+                        <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                       </Link>
                     </DropdownMenuItem>
                     {showAdmin && (
@@ -176,20 +181,21 @@ export function AppNav() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="cursor-pointer">
-                            <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
+                            <LayoutDashboard className="h-4 w-4 mr-2" /> {t("nav.admin")}
                           </Link>
                         </DropdownMenuItem>
                       </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                      <LogOut className="h-4 w-4 mr-2" /> Log out
+                      <LogOut className="h-4 w-4 mr-2" /> {t("nav.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
               <>
+                <LanguageSwitcher />
                 <Link
                   to="/explore"
                   className={cn(
@@ -200,13 +206,13 @@ export function AppNav() {
                   )}
                 >
                   <Search className="h-4 w-4" />
-                  <span>Explore</span>
+                  <span>{t("nav.explore")}</span>
                 </Link>
                 <Button size="sm" variant="ghost" asChild className="ml-2">
-                  <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+                  <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> {t("nav.login")}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/signup">{t("nav.signup")}</Link>
                 </Button>
               </>
             )}
@@ -273,11 +279,11 @@ export function AppNav() {
 
                         <Link to="/me" onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <User className="h-4 w-4" /> My Hub
+                          <User className="h-4 w-4" /> {t("nav.myHub")}
                         </Link>
                         <Link to={`/users/${currentUser.id}`} onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <User className="h-4 w-4" /> My public profile
+                          <User className="h-4 w-4" /> {t("nav.myPublicProfile")}
                         </Link>
 
                         {showAdmin && (
@@ -287,7 +293,7 @@ export function AppNav() {
                             </div>
                             <Link to="/admin" onClick={() => setMobileOpen(false)}
                               className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                              <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+                              <LayoutDashboard className="h-4 w-4" /> {t("nav.admin")}
                             </Link>
                           </>
                         )}
@@ -296,7 +302,7 @@ export function AppNav() {
                       <>
                         <Link to="/explore" onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <Search className="h-4 w-4" /> Explore
+                          <Search className="h-4 w-4" /> {t("nav.explore")}
                         </Link>
                       </>
                     )}
@@ -306,16 +312,16 @@ export function AppNav() {
                   <div className="border-t border-border px-3 py-4 space-y-2">
                     {isLoggedIn ? (
                       <Button variant="destructive" size="sm" className="w-full" onClick={() => { handleLogout(); setMobileOpen(false); }}>
-                        <LogOut className="h-4 w-4 mr-2" /> Log out
+                        <LogOut className="h-4 w-4 mr-2" /> {t("nav.logout")}
                       </Button>
                     ) : (
                       <>
                         <Button size="sm" className="w-full" asChild>
-                          <Link to="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+                          <Link to="/signup" onClick={() => setMobileOpen(false)}>{t("nav.signup")}</Link>
                         </Button>
                         <Button variant="outline" size="sm" className="w-full" asChild>
                           <Link to="/login" onClick={() => setMobileOpen(false)}>
-                            <LogIn className="h-4 w-4 mr-1" /> Log in
+                            <LogIn className="h-4 w-4 mr-1" /> {t("nav.login")}
                           </Link>
                         </Button>
                       </>

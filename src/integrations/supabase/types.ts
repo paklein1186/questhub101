@@ -614,6 +614,45 @@ export type Database = {
           },
         ]
       }
+      content_translations: {
+        Row: {
+          auto_generated: boolean
+          created_at: string
+          entity_id: string
+          entity_type: string
+          field_name: string
+          id: string
+          language_code: string
+          translated_by: string
+          translated_text: string
+          updated_at: string
+        }
+        Insert: {
+          auto_generated?: boolean
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          field_name: string
+          id?: string
+          language_code: string
+          translated_by?: string
+          translated_text: string
+          updated_at?: string
+        }
+        Update: {
+          auto_generated?: boolean
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          field_name?: string
+          id?: string
+          language_code?: string
+          translated_by?: string
+          translated_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cooperative_settings: {
         Row: {
           id: string
@@ -1523,6 +1562,30 @@ export type Database = {
         }
         Relationships: []
       }
+      languages: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       leaderboard_scores: {
         Row: {
           ai_score: number
@@ -2182,6 +2245,7 @@ export type Database = {
           persona_confidence: number | null
           persona_source: string | null
           persona_type: string
+          preferred_language: string
           role: string
           total_shares_a: number
           total_shares_b: number
@@ -2214,6 +2278,7 @@ export type Database = {
           persona_confidence?: number | null
           persona_source?: string | null
           persona_type?: string
+          preferred_language?: string
           role?: string
           total_shares_a?: number
           total_shares_b?: number
@@ -2246,6 +2311,7 @@ export type Database = {
           persona_confidence?: number | null
           persona_source?: string | null
           persona_type?: string
+          preferred_language?: string
           role?: string
           total_shares_a?: number
           total_shares_b?: number

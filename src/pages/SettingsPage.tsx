@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { usePersona } from "@/hooks/usePersona";
 import type { PersonaType } from "@/lib/personaLabels";
 import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
@@ -10,7 +11,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown, Rss,
+  Coins, TrendingDown, Rss, Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,28 +51,30 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { WalletTab } from "@/components/WalletTab";
 
 const TABS = [
-  { key: "profile", label: "Profile & Identity", icon: UserCircle },
-  { key: "persona", label: "My Persona", icon: Compass },
-  { key: "quests", label: "My Quests", icon: Swords },
-  { key: "guilds", label: "My Guilds", icon: Users },
-  { key: "pods", label: "My Pods", icon: Users },
-  { key: "courses", label: "My Courses", icon: GraduationCap },
-  { key: "services", label: "Services & Availability", icon: Briefcase },
-  { key: "bookings", label: "My Bookings", icon: CalendarCheck },
-  { key: "wallet", label: "Wallet", icon: Coins },
-  { key: "houses", label: "Houses & Territories", icon: Hash },
-  { key: "starred", label: "Starred Excerpts", icon: Star },
-  { key: "notifications", label: "Notifications", icon: Bell },
-  { key: "account", label: "Account & Security", icon: Shield },
-  { key: "privacy", label: "Privacy & Visibility", icon: Eye },
-  { key: "referrals", label: "Referrals", icon: UserCircle },
-  { key: "apps", label: "Connected Apps", icon: Plug },
+  { key: "profile", label: "settings.profile", icon: UserCircle },
+  { key: "persona", label: "settings.persona", icon: Compass },
+  { key: "language", label: "settings.language", icon: Languages },
+  { key: "quests", label: "settings.quests", icon: Swords },
+  { key: "guilds", label: "settings.guilds", icon: Users },
+  { key: "pods", label: "settings.pods", icon: Users },
+  { key: "courses", label: "settings.courses", icon: GraduationCap },
+  { key: "services", label: "settings.services", icon: Briefcase },
+  { key: "bookings", label: "settings.bookings", icon: CalendarCheck },
+  { key: "wallet", label: "settings.wallet", icon: Coins },
+  { key: "houses", label: "settings.houses", icon: Hash },
+  { key: "starred", label: "settings.starred", icon: Star },
+  { key: "notifications", label: "settings.notifications", icon: Bell },
+  { key: "account", label: "settings.account", icon: Shield },
+  { key: "privacy", label: "settings.privacy", icon: Eye },
+  { key: "referrals", label: "settings.referrals", icon: UserCircle },
+  { key: "apps", label: "settings.apps", icon: Plug },
 ];
 
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function SettingsPage() {
+  const { t, i18n } = useTranslation();
   const currentUser = useCurrentUser();
   const { persona, updatePersona, lexiconOverride, setLexiconOverride } = usePersona();
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
@@ -261,7 +264,7 @@ export default function SettingsPage() {
   return (
     <PageShell>
       <div className="max-w-5xl mx-auto">
-        <h1 className="font-display text-2xl font-bold mb-6">My Hub</h1>
+        <h1 className="font-display text-2xl font-bold mb-6">{t("settings.title")}</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar nav */}
@@ -277,7 +280,7 @@ export default function SettingsPage() {
                 }`}
               >
                 <tab.icon className="h-4 w-4 shrink-0" />
-                {tab.label}
+                {t(tab.label)}
               </button>
             ))}
           </nav>
@@ -663,6 +666,33 @@ export default function SettingsPage() {
               {/* ── Notifications & Emails ── */}
               {activeTab === "notifications" && (
                 <NotificationsSettingsTab toast={toast} />
+              )}
+
+              {/* ── Language ── */}
+              {activeTab === "language" && (
+                <div className="space-y-6">
+                  <Section title={t("settings.preferredLanguage")} icon={<Languages className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">{t("settings.languageDescription")}</p>
+                    <Select
+                      value={i18n.language}
+                      onValueChange={async (code) => {
+                        i18n.changeLanguage(code);
+                        if (authUser?.id) {
+                          await supabase.from("profiles").update({ preferred_language: code } as any).eq("user_id", authUser.id);
+                          toast({ title: t("language." + code) });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-64">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                        <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Section>
+                </div>
               )}
 
               {/* ── Services & Availability ── */}
