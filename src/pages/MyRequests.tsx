@@ -10,6 +10,7 @@ import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries"
 import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
+  PENDING: "bg-warning/10 text-warning",
   REQUESTED: "bg-warning/10 text-warning",
   PENDING_PAYMENT: "bg-amber-500/10 text-amber-600",
   ACCEPTED: "bg-primary/10 text-primary",
@@ -19,7 +20,7 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-muted text-muted-foreground",
 };
 
-const CANCELLABLE = ["REQUESTED", "PENDING_PAYMENT", "CONFIRMED", "ACCEPTED"];
+const CANCELLABLE = ["REQUESTED", "PENDING", "PENDING_PAYMENT", "CONFIRMED", "ACCEPTED"];
 
 export default function MyRequests({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
@@ -78,7 +79,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
                 <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace("_", " ") || "N/A"}</p>
               )}
 
-              {b.call_url && b.status === "CONFIRMED" && (
+              {b.call_url && (b.status === "CONFIRMED" || b.status === "ACCEPTED") && (
                 <a href={b.call_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
                   <Video className="h-3 w-3" /> Join call <ExternalLink className="h-3 w-3" />
                 </a>

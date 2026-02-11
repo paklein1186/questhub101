@@ -18,6 +18,38 @@ import { useServiceById, usePublicProfile, useGuildById, useAvailabilityRules, u
 import { generateSlots, generateCallUrl, type TimeSlot } from "@/lib/slots";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import { useQueryClient } from "@tanstack/react-query";
+
+async function insertBookingNotification(params: {
+  recipientUserId: string; bookingId: string; serviceTitle: string; requesterName: string; action: string;
+}) {
+  const titleMap: Record<string, string> = {
+    requested: "New booking request",
+    confirmed: "Booking confirmed",
+    sent: "Booking request sent",
+    accepted: "Booking accepted",
+    declined: "Booking declined",
+    cancelled: "Booking cancelled",
+  };
+  const bodyMap: Record<string, string> = {
+    requested: `${params.requesterName} requested "${params.serviceTitle}"`,
+    confirmed: `Your session for "${params.serviceTitle}" is confirmed`,
+    sent: `Your booking request for "${params.serviceTitle}" was sent`,
+    accepted: `Your booking for "${params.serviceTitle}" has been accepted`,
+    declined: `Your booking for "${params.serviceTitle}" was declined`,
+    cancelled: `Booking for "${params.serviceTitle}" was cancelled`,
+  };
+  await supabase.from("notifications").insert({
+    user_id: params.recipientUserId,
+    type: params.action === "requested" ? "BOOKING_REQUESTED" : params.action === "confirmed" || params.action === "accepted" ? "BOOKING_CONFIRMED" : params.action === "declined" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
+    title: titleMap[params.action] || `Booking ${params.action}`,
+    body: bodyMap[params.action] || `Booking for "${params.serviceTitle}" was ${params.action}`,
+    related_entity_type: "BOOKING",
+    related_entity_id: params.bookingId,
+    deep_link_url: `/bookings/${params.bookingId}`,
+    data: { bookingId: params.bookingId } as any,
+  });
+}
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { canManageServiceSync } from "@/lib/serviceOwnership";
@@ -28,6 +60,8 @@ export default function ServiceDetail() {
   const { data: svc, isLoading } = useServiceById(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  // notifications handled via insertBookingNotification helper
+  const queryClient = useQueryClient();
   const [bookOpen, setBookOpen] = useState(false);
   const [bookNotes, setBookNotes] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -77,8 +111,9 @@ export default function ServiceDetail() {
 
   const createBooking = async () => {
     if (!selectedSlot) { toast({ title: "Please select a time slot", variant: "destructive" }); return; }
+    if (!currentUser.id) { toast({ title: "Please log in to book", variant: "destructive" }); return; }
     const callUrl = isFree ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
-    const { error } = await supabase.from("bookings").insert({
+    const { data: newBooking, error } = await supabase.from("bookings").insert({
       service_id: svc.id, requester_id: currentUser.id,
       provider_user_id: svc.provider_user_id, provider_guild_id: svc.provider_guild_id,
       start_date_time: selectedSlot.startDateTime, end_date_time: selectedSlot.endDateTime,
@@ -86,11 +121,37 @@ export default function ServiceDetail() {
       payment_status: isFree ? "NOT_REQUIRED" : "PENDING",
       amount: svc.price_amount || 0, currency: svc.price_currency,
       notes: bookNotes.trim() || null, call_url: callUrl,
-    });
-    if (error) { toast({ title: "Failed to book", variant: "destructive" }); return; }
+    }).select("id").single();
+    if (error || !newBooking) { toast({ title: "Failed to book", description: error?.message || "This slot may no longer be available.", variant: "destructive" }); return; }
     setBookOpen(false); setBookNotes(""); setSelectedSlot(null); setWeekOffset(0);
-    if (isFree) toast({ title: "Session confirmed!", description: `Your call link: ${callUrl}` });
-    else toast({ title: "Session requested!" });
+    queryClient.invalidateQueries({ queryKey: ["bookings-for-provider"] });
+    queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+
+    // Notify provider
+    if (svc.provider_user_id) {
+      await insertBookingNotification({
+        recipientUserId: svc.provider_user_id,
+        bookingId: newBooking.id,
+        serviceTitle: svc.title,
+        requesterName: currentUser.name,
+        action: "requested",
+      });
+    }
+    // Notify requester (self-confirmation)
+    await insertBookingNotification({
+      recipientUserId: currentUser.id,
+      bookingId: newBooking.id,
+      serviceTitle: svc.title,
+      requesterName: currentUser.name,
+      action: isFree ? "confirmed" : "sent",
+    });
+
+    if (isFree) {
+      toast({ title: "✅ Session confirmed!", description: "You can join via the call link in your bookings." });
+    } else {
+      toast({ title: "✅ Booking request sent!", description: `${provider?.name || "The provider"} will be notified. You'll hear back soon.` });
+    }
+    navigate(`/bookings/${newBooking.id}`);
   };
 
   const weekStart = new Date(); weekStart.setDate(weekStart.getDate() + weekOffset * 7);
