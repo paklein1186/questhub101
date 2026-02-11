@@ -289,7 +289,14 @@ export default function GuildDetail() {
         </div>
 
         <TabsContent value="overview" className="mt-6 space-y-6">
-          <div><h3 className="font-display font-semibold mb-2">About</h3><p className="text-sm text-foreground/80 leading-relaxed">{guild.description}</p></div>
+          {guild.description && (
+            <div>
+              <h3 className="font-display font-semibold mb-2">About</h3>
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{guild.description}</p>
+              </div>
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
