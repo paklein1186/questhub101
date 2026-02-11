@@ -42,11 +42,11 @@ export function AppNav() {
   };
 
   const authedLinks = [
-    { to: "/", label: "Home", icon: Home },
+    { to: "/", label: t("nav.home"), icon: Home },
     { to: "/explore", label: label("nav.explore"), icon: Search },
-    { to: "/work", label: label("nav.work"), icon: Briefcase },
+    { to: "/work", label: t("nav.work"), icon: Briefcase },
     ...(isFeatureEnabled(flags, "feature_network_section")
-      ? [{ to: "/network", label: "Network", icon: Users }]
+      ? [{ to: "/network", label: t("nav.network"), icon: Users }]
       : []),
   ];
 
