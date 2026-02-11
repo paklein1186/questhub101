@@ -20,6 +20,7 @@ import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortCo
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
 import LeaderboardTab from "@/components/LeaderboardTab";
+import TerritoryTopicLeaderboard from "@/components/network/TerritoryTopicLeaderboard";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
@@ -170,9 +171,9 @@ export default function NetworkHub() {
           )}
         </TabsContent>
 
-        {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
+        {/* ═══════════════ TERRITORIES & TOPICS LEADERBOARD ═══════════════ */}
         <TabsContent value="territories" className="mt-0">
-          <TerritoriesTab territories={myTerritories} topics={myTopics} activity={territoryActivity} loadingT={loadingTerritories} loadingH={loadingTopics} />
+          <TerritoryTopicLeaderboard />
         </TabsContent>
 
         {/* ═══════════════ LEADERBOARD ═══════════════ */}
