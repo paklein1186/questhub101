@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check } from "lucide-react";
+import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
