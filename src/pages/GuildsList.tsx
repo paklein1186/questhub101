@@ -28,6 +28,7 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
   const isLoggedIn = !!session;
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const activeFilters = externalFilters ?? filters;
   const [createOpen, setCreateOpen] = useState(false);
   const [gName, setGName] = useState("");
   const [gDesc, setGDesc] = useState("");
@@ -37,7 +38,8 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
   const isAdm = checkIsGlobalAdmin(currentUser.email);
   const { data: guildsData, isLoading } = useGuilds();
   const createGuildMut = useCreateGuild();
-  const hf = useHouseFilter();
+  const ownHf = useHouseFilter();
+  const hf = externalHouseFilter ?? ownHf;
 
   const allGuilds = guildsData ?? [];
 
