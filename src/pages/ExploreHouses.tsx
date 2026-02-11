@@ -321,7 +321,7 @@ export default function ExploreHouses({ bare }: Props) {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Houses" : effectiveUniverse === "impact" ? "Impact Houses" : "All Houses"}
+            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Topics" : effectiveUniverse === "impact" ? "Impact Topics" : "All Topics"}
           </h2>
           {selectedSlugs.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
@@ -411,8 +411,8 @@ export default function ExploreHouses({ bare }: Props) {
           {selectedSlugs.length > 1 && (
             <span className="text-xs text-muted-foreground">
               {matchAll
-                ? "Showing items that belong to all selected Houses"
-                : "Showing items that belong to any selected House"}
+                ? "Showing items that belong to all selected Topics"
+                : "Showing items that belong to any selected Topic"}
             </span>
           )}
         </div>
@@ -422,13 +422,13 @@ export default function ExploreHouses({ bare }: Props) {
       {!hasSelection ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
           <Boxes className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-          <p className="font-display font-semibold text-lg">Pick one or more Houses to explore</p>
+          <p className="font-display font-semibold text-lg">Pick one or more Topics to explore</p>
           <p className="text-sm text-muted-foreground mt-1">
             {effectiveUniverse === "creative"
-              ? "Houses are creative realms that group circles, creations, and collaborators."
+              ? "Topics are creative realms that group circles, creations, and collaborators."
               : effectiveUniverse === "impact"
-              ? "Houses are thematic lenses that group missions, guilds, and services."
-              : "Houses are thematic lenses that group quests, guilds, users, and more."}
+              ? "Topics are thematic lenses that group missions, guilds, and services."
+              : "Topics are thematic lenses that group quests, guilds, users, and more."}
           </p>
         </div>
       ) : (
@@ -500,7 +500,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Quests */}
           <TabsContent value="quests" className="mt-6">
-            <EntityGrid items={quests} loading={questsLoading} empty="No quests found for these Houses." renderItem={(q: any) => (
+            <EntityGrid items={quests} loading={questsLoading} empty="No quests found for these Topics." renderItem={(q: any) => (
               <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} name={q.title} height="h-28" />
                 <div className="p-4">
@@ -517,7 +517,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Users */}
           <TabsContent value="users" className="mt-6">
-            <EntityGrid items={users} loading={usersLoading} empty="No users found for these Houses." renderItem={(u: any) => (
+            <EntityGrid items={users} loading={usersLoading} empty="No users found for these Topics." renderItem={(u: any) => (
               <Link key={u.user_id} to={`/users/${u.user_id}`} className="group block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-12 w-12"><AvatarImage src={u.avatar_url} /><AvatarFallback className="text-sm">{u.name?.[0]}</AvatarFallback></Avatar>
@@ -533,7 +533,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Guilds */}
           <TabsContent value="guilds" className="mt-6">
-            <EntityGrid items={guilds} loading={guildsLoading} empty="No guilds found for these Houses." renderItem={(g: any) => (
+            <EntityGrid items={guilds} loading={guildsLoading} empty="No guilds found for these Topics." renderItem={(g: any) => (
               <Link key={g.id} to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="GUILD" logoUrl={g.logo_url} name={g.name} height="h-24" />
                 <div className="p-4">
@@ -546,7 +546,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Pods */}
           <TabsContent value="pods" className="mt-6">
-            <EntityGrid items={pods} loading={podsLoading} empty="No pods found for these Houses." renderItem={(p: any) => (
+            <EntityGrid items={pods} loading={podsLoading} empty="No pods found for these Topics." renderItem={(p: any) => (
               <Link key={p.id} to={`/pods/${p.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="POD" imageUrl={p.image_url} name={p.name} height="h-24" />
                 <div className="p-4">
@@ -560,7 +560,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Services */}
           <TabsContent value="services" className="mt-6">
-            <EntityGrid items={services} loading={servicesLoading} empty="No services found for these Houses." renderItem={(s: any) => (
+            <EntityGrid items={services} loading={servicesLoading} empty="No services found for these Topics." renderItem={(s: any) => (
               <Link key={s.id} to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="SERVICE" imageUrl={s.image_url} name={s.title} height="h-24" />
                 <div className="p-4">
@@ -574,7 +574,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Courses */}
           <TabsContent value="courses" className="mt-6">
-            <EntityGrid items={courses} loading={coursesLoading} empty="No courses found for these Houses." renderItem={(c: any) => (
+            <EntityGrid items={courses} loading={coursesLoading} empty="No courses found for these Topics." renderItem={(c: any) => (
               <Link key={c.id} to={`/courses/${c.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="COURSE" imageUrl={c.cover_image_url} name={c.title} height="h-24" />
                 <div className="p-4">
@@ -588,7 +588,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Companies */}
           <TabsContent value="companies" className="mt-6">
-            <EntityGrid items={companies} loading={companiesLoading} empty="No companies found for these Houses." renderItem={(c: any) => (
+            <EntityGrid items={companies} loading={companiesLoading} empty="No companies found for these Topics." renderItem={(c: any) => (
               <Link key={c.id} to={`/companies/${c.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="COMPANY" logoUrl={c.logo_url} name={c.name} height="h-24" />
                 <div className="p-4">

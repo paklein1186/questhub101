@@ -373,8 +373,8 @@ export default function SettingsPage() {
 
                   <Separator />
 
-                  <Section title="Auto-filter by your Houses" icon={<Hash className="h-5 w-5" />}>
-                    <p className="text-sm text-muted-foreground mb-3">When enabled, Explore, Feed, and Search will prioritize content from your selected Houses and topics.</p>
+                  <Section title="Auto-filter by your Topics" icon={<Hash className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">When enabled, Explore, Feed, and Search will prioritize content from your selected Topics.</p>
                     <div className="flex items-center gap-3">
                       <Switch
                         checked={usePrefs}
@@ -382,11 +382,11 @@ export default function SettingsPage() {
                           setUsePrefs(checked);
                           if (authUser?.id) {
                             await supabase.from("profiles").update({ filter_by_houses: checked } as any).eq("user_id", authUser.id);
-                            toast({ title: checked ? "House filter enabled" : "House filter disabled" });
+                            toast({ title: checked ? "Topic filter enabled" : "Topic filter disabled" });
                           }
                         }}
                       />
-                      <span className="text-sm font-medium">Use my Houses as default filters across the platform</span>
+                      <span className="text-sm font-medium">Use my Topics as default filters across the platform</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">You can always override this with "Show all" in any section.</p>
                   </Section>
@@ -615,10 +615,10 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* ── Houses & Territories ── */}
+              {/* ── Topics & Territories ── */}
               {activeTab === "houses" && (
                 <div className="space-y-6">
-                  <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
+                  <Section title="Topics" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex items-center gap-2 mb-2">
                       <Button variant="outline" size="sm" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
@@ -654,7 +654,7 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
                     <div>
                       <p className="text-sm font-medium">Personalize feed & suggestions</p>
-                      <p className="text-xs text-muted-foreground">Use your Houses & Territories to personalize your Home feed and Explore recommendations.</p>
+                      <p className="text-xs text-muted-foreground">Use your Topics & Territories to personalize your Home feed and Explore recommendations.</p>
                     </div>
                     <Switch checked={usePrefs} onCheckedChange={setUsePrefs} />
                   </div>

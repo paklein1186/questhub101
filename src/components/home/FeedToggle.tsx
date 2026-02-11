@@ -17,7 +17,7 @@ export function FeedToggle() {
         <div className="flex gap-1 rounded-lg border border-border p-0.5 bg-muted/50">
           <Button variant={mode === "houses" ? "secondary" : "ghost"} size="sm" className="h-7 text-xs"
             onClick={() => setMode("houses")}>
-            My Houses only
+            My Topics only
           </Button>
           <Button variant={mode === "all" ? "secondary" : "ghost"} size="sm" className="h-7 text-xs"
             onClick={() => setMode("all")}>

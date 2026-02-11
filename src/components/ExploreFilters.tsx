@@ -56,7 +56,7 @@ interface Props {
   filters: ExploreFilterValues;
   onChange: (filters: ExploreFilterValues) => void;
   config: ExploreFilterConfig;
-  /** House filter state — when provided, shows "My Houses only" toggle */
+  /** Topic filter state — when provided, shows "My Topics only" toggle */
   houseFilter?: {
     active: boolean;
     onToggle: (val: boolean) => void;
@@ -145,12 +145,12 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             className="text-xs gap-1.5"
           >
             <Home className="h-3.5 w-3.5" />
-            My Houses only
+            My Topics only
           </Button>
         )}
         {houseFilter && houseFilter.active && !houseFilter.hasHouses && (
           <Badge variant="secondary" className="text-xs py-1 px-2">
-            No Houses selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
+            No Topics selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
           </Badge>
         )}
 
@@ -305,7 +305,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Hash className="h-3 w-3" /> Houses / Topics
+                  <Hash className="h-3 w-3" /> Topics
                 </p>
                 {filters.topicIds.length > 0 && (
                   <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => set({ topicIds: [] })}>

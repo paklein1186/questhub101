@@ -166,7 +166,7 @@ export default function QuestCreate() {
     const matching = topics.filter(t => aiSuggestion.suggestedHouses.some(h => t.name.toLowerCase().includes(h.toLowerCase())));
     const newIds = [...new Set([...selectedTopics, ...matching.map(t => t.id)])];
     setSelectedTopics(newIds);
-    toast({ title: `${matching.length} Houses added` });
+    toast({ title: `${matching.length} Topics added` });
   };
 
   const acceptTerritories = () => {
@@ -545,12 +545,12 @@ export default function QuestCreate() {
                 </div>
               </Card>
 
-              {/* Houses & Territories */}
+              {/* Topics & Territories */}
               <div className="grid grid-cols-2 gap-3">
                 {aiSuggestion.suggestedHouses.length > 0 && (
                   <Card className="p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-semibold">Houses</h4>
+                      <h4 className="text-xs font-semibold">Topics</h4>
                       <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={acceptHouses}>
                         <Check className="h-3 w-3 mr-1" /> Add
                       </Button>
@@ -696,7 +696,7 @@ export default function QuestCreate() {
 
           {(topics ?? []).length > 0 && (
             <div>
-              <Label>Topics (Houses)</Label>
+              <Label>Topics</Label>
               <div className="flex items-center gap-2 mt-1 mb-2">
                 <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTopics((topics ?? []).map((t) => t.id))}>Select all</Button>
                 <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>

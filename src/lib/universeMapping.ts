@@ -194,15 +194,15 @@ export function getHouseIcon(slug: string): string {
 
 export function getHousesPageCopy(universe: UniverseMode): { title: string; subtitle: string } {
   if (universe === "creative") return {
-    title: "Explore by Creative Houses",
+    title: "Explore by Creative Topics",
     subtitle: "Browse circles, studios, and creations by artistic realms and practices.",
   };
   if (universe === "impact") return {
-    title: "Explore by Houses",
+    title: "Explore by Topics",
     subtitle: "Browse missions, guilds, and services by theme and impact field.",
   };
   return {
-    title: "Explore by Universes",
-    subtitle: "Mix creative and impact houses to find what calls you.",
+    title: "Explore by Topics",
+    subtitle: "Mix creative and impact topics to find what calls you.",
   };
 }

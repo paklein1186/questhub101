@@ -50,7 +50,7 @@ export default function ExploreHub() {
           <TabsTrigger value="companies" className="text-xs sm:text-sm">{label("company.label")}</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
           <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
-          <TabsTrigger value="houses" className="text-xs sm:text-sm">Houses</TabsTrigger>
+          <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
           <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>

@@ -51,14 +51,14 @@ const LABELS: Record<string, LabelVariants> = {
   "guild.label": {
     IMPACT: "Guilds",
     CREATIVE: "Circles / Studios",
-    HYBRID: "Groups",
-    DEFAULT: "Groups",
+    HYBRID: "Guilds",
+    DEFAULT: "Guilds",
   },
   "guild.label_singular": {
     IMPACT: "Guild",
     CREATIVE: "Circle",
-    HYBRID: "Group",
-    DEFAULT: "Group",
+    HYBRID: "Guild",
+    DEFAULT: "Guild",
   },
 
   // ── Quests ──
@@ -155,12 +155,12 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Territory",
   },
 
-  // ── Houses ──
-  "houses.label": {
-    IMPACT: "Houses",
-    CREATIVE: "Houses of Art",
-    HYBRID: "Houses",
-    DEFAULT: "Houses",
+  // ── Topics ──
+  "topics.label": {
+    IMPACT: "Topics",
+    CREATIVE: "Topics",
+    HYBRID: "Topics",
+    DEFAULT: "Topics",
   },
 
   // ── Explore ──
@@ -231,7 +231,7 @@ const LABELS: Record<string, LabelVariants> = {
   "landing.subline": {
     IMPACT: "Discover missions, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
     CREATIVE: "Start a creative quest, join a circle, and let AI muses help your imagination bloom.",
-    HYBRID: "Discover quests, join groups, and share your expertise in a regenerative ecosystem built for changemakers.",
+    HYBRID: "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
     DEFAULT: "Discover quests, join communities, and share your expertise in a regenerative ecosystem built for changemakers.",
   },
   "landing.cta_primary": {
@@ -257,8 +257,8 @@ const LABELS: Record<string, LabelVariants> = {
   "home.guilds_section": {
     IMPACT: "Guilds to join",
     CREATIVE: "Circles you might join",
-    HYBRID: "Groups to join",
-    DEFAULT: "Groups to join",
+    HYBRID: "Guilds to join",
+    DEFAULT: "Guilds to join",
   },
   "home.pods_section": {
     IMPACT: "Pods for you",
@@ -306,7 +306,7 @@ export function getHeroPrompts(persona: PersonaType): string[] {
     return [
       "I want to join a mission that matters",
       "I'm ready to share my expertise as a service",
-      "Show me guilds driving regeneration",
+    "Show me guilds driving regeneration",
       "Help me grow my impact this week",
     ];
   }
@@ -322,7 +322,7 @@ export function getHeroPrompts(persona: PersonaType): string[] {
   return [
     "I want to discover quests I can join",
     "I'm ready to offer my skills as a service",
-    "Show me groups and communities to join",
+    "Show me guilds and communities to join",
     "Help me find collaborators in my territory",
   ];
 }
@@ -437,6 +437,6 @@ export const CREATIVE_BIO_SUGGESTIONS = [
 export const LEXICON_MODES: { value: LexiconMode; label: string; description: string }[] = [
   { value: "IMPACT", label: "Impact World", description: "Guilds, Missions, Services, XP" },
   { value: "CREATIVE", label: "Creative World", description: "Circles, Creations, Skill Sessions, Resonance" },
-  { value: "HYBRID", label: "Hybrid World", description: "Groups, Quests, Services, Impact Points" },
-  { value: "NEUTRAL", label: "Neutral Mode", description: "Groups, Quests, Services, XP" },
+  { value: "HYBRID", label: "Hybrid World", description: "Guilds, Quests, Services, Impact Points" },
+  { value: "NEUTRAL", label: "Neutral Mode", description: "Guilds, Quests, Services, XP" },
 ];

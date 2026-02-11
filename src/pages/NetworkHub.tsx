@@ -96,7 +96,7 @@ export default function NetworkHub() {
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
           <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> {label("pod.label")} ({podMemberships.length})</TabsTrigger>
           <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Trad. Orgs ({companyMemberships.length})</TabsTrigger>
-          <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Houses</TabsTrigger>
+          <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Topics</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
         </TabsList>
 
@@ -210,9 +210,9 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
 function OverviewTerritories({ territories, topics, activity }: { territories: any[]; topics: any[]; activity: any }) {
   return (
     <div>
-      <SectionHeader icon={MapPin} title="Territories & Houses around you" seeMoreTo="/network?tab=territories" />
+      <SectionHeader icon={MapPin} title="Territories & Topics around you" seeMoreTo="/network?tab=territories" />
       {territories.length === 0 && topics.length === 0 ? (
-        <EmptyState icon={MapPin} message="Add territories and houses in your profile settings." cta="Edit profile" to="/profile/edit" />
+        <EmptyState icon={MapPin} message="Add territories and topics in your profile settings." cta="Edit profile" to="/profile/edit" />
       ) : (
         <div className="space-y-3">
           {territories.length > 0 && (
@@ -429,9 +429,9 @@ function TerritoriesTab({ territories, topics, activity, loadingT, loadingH }: {
 
       {/* Houses */}
       <div>
-        <SectionHeader icon={Hash} title="Your houses (topics)" count={topics.length} />
+        <SectionHeader icon={Hash} title="Your topics" count={topics.length} />
         {topics.length === 0 ? (
-          <EmptyState icon={Hash} message="Add houses (topics) in your profile settings." cta="Edit profile" to="/profile/edit" />
+          <EmptyState icon={Hash} message="Add topics in your profile settings." cta="Edit profile" to="/profile/edit" />
         ) : (
           <div className="flex flex-wrap gap-2">
             {topics.map((t: any) => (
