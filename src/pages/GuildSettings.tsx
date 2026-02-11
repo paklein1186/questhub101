@@ -5,7 +5,7 @@ import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin,
-  AlertCircle, Check, Loader2, ClipboardList, X,
+  AlertCircle, Check, Loader2, ClipboardList, X, Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { Label } from "@/components/ui/label";
 import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -48,6 +49,7 @@ const TABS = [
   { key: "members", label: "Members & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
+  { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -696,6 +698,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     </div>
                   </Section>
                 </div>
+              )}
+
+              {/* ── Partnerships ── */}
+              {activeTab === "partnerships" && (
+                <PartnershipsTab entityType="GUILD" entityId={guildId} isAdmin={true} />
               )}
 
             </motion.div>

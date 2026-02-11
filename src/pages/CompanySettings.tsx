@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
-  Zap, Clock, Settings, ClipboardList,
+  Zap, Clock, Settings, ClipboardList, Handshake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,7 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
+import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -46,6 +47,7 @@ const TABS = [
   { key: "team", label: "Team & Permissions", icon: Users },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
+  { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -463,6 +465,11 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                     </div>
                   </Section>
                 </div>
+              )}
+
+              {/* ── Partnerships ── */}
+              {activeTab === "partnerships" && (
+                <PartnershipsTab entityType="COMPANY" entityId={companyId} isAdmin={true} />
               )}
 
             </motion.div>
