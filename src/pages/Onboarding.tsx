@@ -857,7 +857,7 @@ export default function Onboarding() {
     );
   }
 
-  // ─── Affiliations input step (shared) ─────────────────
+  function renderAffiliationsInput() {
     return (
       <AffiliationsStep
         persona={personaType}
