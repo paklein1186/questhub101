@@ -68,11 +68,6 @@ const TABS = [
   { key: "apps", label: "Connected Apps", icon: Plug },
 ];
 
-const CREDIT_BUNDLES_SETTINGS = [
-  { code: "STARTER_100", name: "Starter", credits: 100, price: 4 },
-  { code: "CREATOR_300", name: "Creator", credits: 300, price: 10 },
-  { code: "CATALYST_1000", name: "Catalyst", credits: 1000, price: 25 },
-];
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
