@@ -321,7 +321,7 @@ export default function ExploreHouses({ bare }: Props) {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Houses" : effectiveUniverse === "impact" ? "Impact Houses" : "All Houses"}
+            <Hash className="h-5 w-5 text-primary" /> {effectiveUniverse === "creative" ? "Creative Topics" : effectiveUniverse === "impact" ? "Impact Topics" : "All Topics"}
           </h2>
           {selectedSlugs.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearAll} className="text-xs">
