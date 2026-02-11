@@ -155,12 +155,12 @@ const LABELS: Record<string, LabelVariants> = {
     DEFAULT: "Territory",
   },
 
-  // ── Houses ──
-  "houses.label": {
-    IMPACT: "Houses",
-    CREATIVE: "Houses of Art",
-    HYBRID: "Houses",
-    DEFAULT: "Houses",
+  // ── Topics ──
+  "topics.label": {
+    IMPACT: "Topics",
+    CREATIVE: "Topics",
+    HYBRID: "Topics",
+    DEFAULT: "Topics",
   },
 
   // ── Explore ──
