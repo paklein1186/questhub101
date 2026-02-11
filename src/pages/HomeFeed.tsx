@@ -1,4 +1,6 @@
 import { Loader2 } from "lucide-react";
+import { MilestonePopup } from "@/components/MilestonePopup";
+import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
