@@ -3275,44 +3275,100 @@ export type Database = {
       }
       territory_memory: {
         Row: {
+          ai_score: number
           category: string
           content: string
           created_at: string
           created_by_user_id: string
+          human_score: number | null
           id: string
+          is_included_in_summary: boolean
           tags: string[] | null
           territory_id: string
           title: string
           updated_at: string
+          used_in_last_summary_at: string | null
           visibility: string
         }
         Insert: {
+          ai_score?: number
           category?: string
           content: string
           created_at?: string
           created_by_user_id: string
+          human_score?: number | null
           id?: string
+          is_included_in_summary?: boolean
           tags?: string[] | null
           territory_id: string
           title: string
           updated_at?: string
+          used_in_last_summary_at?: string | null
           visibility?: string
         }
         Update: {
+          ai_score?: number
           category?: string
           content?: string
           created_at?: string
           created_by_user_id?: string
+          human_score?: number | null
           id?: string
+          is_included_in_summary?: boolean
           tags?: string[] | null
           territory_id?: string
           title?: string
           updated_at?: string
+          used_in_last_summary_at?: string | null
           visibility?: string
         }
         Relationships: [
           {
             foreignKeyName: "territory_memory_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_summaries: {
+        Row: {
+          based_on_memory_ids: Json | null
+          content: string
+          created_at: string
+          generated_at: string
+          generated_by: string
+          id: string
+          summary_type: string
+          territory_id: string
+          updated_at: string
+        }
+        Insert: {
+          based_on_memory_ids?: Json | null
+          content?: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          summary_type?: string
+          territory_id: string
+          updated_at?: string
+        }
+        Update: {
+          based_on_memory_ids?: Json | null
+          content?: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          summary_type?: string
+          territory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_summaries_territory_id_fkey"
             columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
