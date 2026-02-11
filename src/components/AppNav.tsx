@@ -33,7 +33,7 @@ export function AppNav() {
 
   const authedLinks = [
     { to: "/", label: "Home", icon: Home },
-    { to: "/explore", label: "Explore", icon: Search },
+    { to: "/explore", label: label("nav.explore"), icon: Search },
     { to: "/work", label: label("nav.work"), icon: Briefcase },
     ...(isFeatureEnabled(flags, "feature_network_section")
       ? [{ to: "/network", label: "Network", icon: Users }]

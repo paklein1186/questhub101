@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
+import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -117,6 +118,7 @@ const App = () => (
       <AuthProvider>
         <CurrentUserProvider>
           <NotificationProvider currentUserId="">
+            <PersonaThemeProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -232,6 +234,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
+            </PersonaThemeProvider>
           </NotificationProvider>
         </CurrentUserProvider>
       </AuthProvider>

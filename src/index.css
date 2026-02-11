@@ -87,6 +87,70 @@
     --sidebar-border: 230 20% 14%;
     --sidebar-ring: 262 83% 62%;
   }
+
+  /* Creative Universe palette — warm, artistic, poetic */
+  .creative-universe {
+    --background: 30 20% 97%;
+    --foreground: 20 25% 10%;
+
+    --card: 30 15% 99%;
+    --card-foreground: 20 25% 10%;
+
+    --popover: 30 15% 99%;
+    --popover-foreground: 20 25% 10%;
+
+    --primary: 330 65% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 14% 92%;
+    --secondary-foreground: 20 25% 10%;
+
+    --muted: 30 14% 95%;
+    --muted-foreground: 20 10% 46%;
+
+    --accent: 45 80% 55%;
+    --accent-foreground: 20 25% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 13% 88%;
+    --input: 30 13% 88%;
+    --ring: 330 65% 50%;
+
+    --warning: 38 92% 50%;
+    --success: 160 84% 39%;
+  }
+
+  .dark .creative-universe {
+    --background: 20 20% 6%;
+    --foreground: 30 14% 92%;
+
+    --card: 20 18% 10%;
+    --card-foreground: 30 14% 92%;
+
+    --popover: 20 18% 10%;
+    --popover-foreground: 30 14% 92%;
+
+    --primary: 330 65% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 18% 16%;
+    --secondary-foreground: 30 14% 92%;
+
+    --muted: 20 18% 14%;
+    --muted-foreground: 20 10% 55%;
+
+    --accent: 45 80% 50%;
+    --accent-foreground: 20 25% 10%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 18% 18%;
+    --input: 20 18% 18%;
+    --ring: 330 65% 58%;
+  }
 }
 
 @layer base {
