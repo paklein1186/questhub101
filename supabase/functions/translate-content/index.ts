@@ -156,7 +156,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ translatedText, language: targetLanguage }),
+      JSON.stringify({ translatedText, language: targetLanguage, priorityLanguages }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
