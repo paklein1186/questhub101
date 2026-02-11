@@ -1,14 +1,32 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ThumbsUp, ArrowUpDown, Loader2, Sparkles, User, Compass, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  BookOpen, ThumbsUp, ArrowUpDown, Loader2, Sparkles, User, Compass, Plus,
+  Trash2, Flag, ChevronDown, ChevronUp, MessageSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   useTerritoryExcerpts,
   useExcerptUserUpvotes,
   useToggleExcerptUpvote,
   useCreateExcerpt,
+  useDeleteExcerpt,
+  useReportExcerpt,
+  type TerritoryExcerpt,
 } from "@/hooks/useTerritoryDetail";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -20,10 +38,234 @@ interface Props {
   userId?: string;
 }
 
+const REPORT_REASONS = [
+  "Spam or irrelevant",
+  "Offensive or harmful",
+  "Misinformation",
+  "Copyright violation",
+  "Other",
+];
+
+function ReportPopover({ excerptId, userId }: { excerptId: string; userId: string }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState(REPORT_REASONS[0]);
+  const [custom, setCustom] = useState("");
+  const reportExcerpt = useReportExcerpt();
+
+  const handleSubmit = () => {
+    reportExcerpt.mutate({
+      excerptId,
+      userId,
+      reason,
+      customReason: reason === "Other" ? custom : undefined,
+    });
+    setOpen(false);
+    setReason(REPORT_REASONS[0]);
+    setCustom("");
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded" title="Report">
+          <Flag className="h-3.5 w-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 space-y-3" align="end">
+        <h4 className="font-semibold text-sm">Report this excerpt</h4>
+        <RadioGroup value={reason} onValueChange={setReason} className="space-y-1.5">
+          {REPORT_REASONS.map(r => (
+            <div key={r} className="flex items-center gap-2">
+              <RadioGroupItem value={r} id={`report-${r}`} />
+              <Label htmlFor={`report-${r}`} className="text-xs cursor-pointer">{r}</Label>
+            </div>
+          ))}
+        </RadioGroup>
+        {reason === "Other" && (
+          <Input
+            placeholder="Describe the issue..."
+            value={custom}
+            onChange={e => setCustom(e.target.value)}
+            className="h-8 text-xs"
+          />
+        )}
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handleSubmit}
+            disabled={reportExcerpt.isPending || (reason === "Other" && !custom.trim())}
+          >
+            {reportExcerpt.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+            Report
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ExcerptCard({
+  excerpt,
+  userId,
+  isUpvoted,
+  onUpvote,
+  upvotePending,
+}: {
+  excerpt: TerritoryExcerpt;
+  userId?: string;
+  isUpvoted: boolean;
+  onUpvote: () => void;
+  upvotePending: boolean;
+}) {
+  const [showSource, setShowSource] = useState(false);
+  const deleteExcerpt = useDeleteExcerpt();
+  const isOwner = userId && excerpt.created_by_user_id === userId;
+
+  const hasSynthesis = !!excerpt.synthesis;
+  const hasSource = !!excerpt.source_prompt;
+  const displayText = hasSynthesis ? excerpt.synthesis : excerpt.text;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="rounded-xl border border-border bg-card p-5 space-y-3 hover:border-primary/20 transition-colors"
+    >
+      {/* Synthesis / main text */}
+      <div>
+        {hasSynthesis && (
+          <Badge variant="outline" className="text-[9px] mb-2 gap-1">
+            <Sparkles className="h-2.5 w-2.5" /> Synthesis
+          </Badge>
+        )}
+        <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
+          "{displayText}"
+        </p>
+      </div>
+
+      {/* Expandable source / full prompt */}
+      {hasSource && (
+        <div>
+          <button
+            onClick={() => setShowSource(!showSource)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <MessageSquare className="h-3 w-3" />
+            {showSource ? "Hide source" : "Show source / full prompt"}
+            {showSource ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+          <AnimatePresence>
+            {showSource && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-2 rounded-lg bg-muted/50 border border-border p-3">
+                  <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                    {excerpt.source_prompt}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* If no synthesis but there's a plain text that IS the full content, just show it (already shown above) */}
+      {!hasSynthesis && !hasSource && excerpt.text && null}
+
+      {/* Footer: contributor, source refs, actions */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {/* Contributor display */}
+          {excerpt.created_by_user_id && (
+            <Link
+              to={`/profile/${excerpt.created_by_user_id}`}
+              className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+            >
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={excerpt.contributor_avatar || undefined} />
+                <AvatarFallback className="text-[8px]">
+                  {excerpt.contributor_name?.[0]?.toUpperCase() || <User className="h-3 w-3" />}
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{excerpt.contributor_name || "Contributor"}</span>
+            </Link>
+          )}
+          {excerpt.source_quest_id && (
+            <Link to={`/quests/${excerpt.source_quest_id}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
+              <Compass className="h-3 w-3" /> From Quest
+            </Link>
+          )}
+          <span>{formatDistanceToNow(new Date(excerpt.created_at), { addSuffix: true })}</span>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1.5">
+          {/* Report */}
+          {userId && !isOwner && (
+            <ReportPopover excerptId={excerpt.id} userId={userId} />
+          )}
+
+          {/* Delete (owner only) */}
+          {isOwner && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded" title="Delete">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this excerpt?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove the excerpt from the library. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteExcerpt.mutate({ excerptId: excerpt.id, territoryId: excerpt.territory_id })}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {/* Upvote */}
+          <button
+            onClick={onUpvote}
+            disabled={upvotePending}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+              isUpvoted
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
+            )}
+          >
+            <ThumbsUp className={cn("h-3.5 w-3.5", isUpvoted && "fill-primary")} />
+            {excerpt.upvote_count}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function TerritoryLibraryTab({ territoryId, territoryName, userId }: Props) {
   const [sort, setSort] = useState<"top" | "recent">("top");
   const [showAdd, setShowAdd] = useState(false);
-  const [newText, setNewText] = useState("");
+  const [newSynthesis, setNewSynthesis] = useState("");
+  const [newSource, setNewSource] = useState("");
   const { data: excerpts = [], isLoading } = useTerritoryExcerpts(territoryId, sort);
   const { data: userUpvotes = new Set() } = useExcerptUserUpvotes(territoryId, userId);
   const toggleUpvote = useToggleExcerptUpvote();
@@ -39,13 +281,16 @@ export function TerritoryLibraryTab({ territoryId, territoryName, userId }: Prop
   };
 
   const handleCreate = () => {
-    if (!userId || !newText.trim()) return;
+    if (!userId || !newSynthesis.trim()) return;
     createExcerpt.mutate({
       territory_id: territoryId,
-      text: newText.trim(),
+      text: newSynthesis.trim(),
+      synthesis: newSynthesis.trim(),
+      source_prompt: newSource.trim() || undefined,
       created_by_user_id: userId,
     });
-    setNewText("");
+    setNewSynthesis("");
+    setNewSource("");
     setShowAdd(false);
   };
 
@@ -90,15 +335,31 @@ export function TerritoryLibraryTab({ territoryId, territoryName, userId }: Prop
             exit={{ opacity: 0, height: 0 }}
             className="rounded-xl border border-border bg-card p-4 space-y-3"
           >
-            <Textarea
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
-              placeholder="Write a meaningful excerpt about this territory…"
-              className="min-h-[80px] resize-none text-sm"
-            />
+            <div>
+              <Label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                Synthesis / Key insight
+              </Label>
+              <Textarea
+                value={newSynthesis}
+                onChange={(e) => setNewSynthesis(e.target.value)}
+                placeholder="Write the key insight or synthesis about this territory…"
+                className="min-h-[80px] resize-none text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                Source / Full prompt (optional)
+              </Label>
+              <Textarea
+                value={newSource}
+                onChange={(e) => setNewSource(e.target.value)}
+                placeholder="Paste the original prompt, conversation, or source material…"
+                className="min-h-[60px] resize-none text-sm"
+              />
+            </div>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowAdd(false)}>Cancel</Button>
-              <Button size="sm" onClick={handleCreate} disabled={!newText.trim() || createExcerpt.isPending}>
+              <Button size="sm" onClick={handleCreate} disabled={!newSynthesis.trim() || createExcerpt.isPending}>
                 {createExcerpt.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
                 Save to Library
               </Button>
@@ -128,51 +389,16 @@ export function TerritoryLibraryTab({ territoryId, territoryName, userId }: Prop
       {/* Excerpt cards */}
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
-          {excerpts.map((excerpt) => {
-            const isUpvoted = userUpvotes.has(excerpt.id);
-            return (
-              <motion.div
-                key={excerpt.id}
-                layout
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="rounded-xl border border-border bg-card p-5 space-y-3 hover:border-primary/20 transition-colors"
-              >
-                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
-                  "{excerpt.text}"
-                </p>
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {excerpt.created_by_user_id && (
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" /> Contributor
-                      </span>
-                    )}
-                    {excerpt.source_quest_id && (
-                      <span className="flex items-center gap-1">
-                        <Compass className="h-3 w-3" /> From Quest
-                      </span>
-                    )}
-                    <span>{formatDistanceToNow(new Date(excerpt.created_at), { addSuffix: true })}</span>
-                  </div>
-                  <button
-                    onClick={() => handleUpvote(excerpt.id, excerpt.created_by_user_id)}
-                    disabled={toggleUpvote.isPending}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-                      isUpvoted
-                        ? "bg-primary/10 text-primary border border-primary/30"
-                        : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
-                    )}
-                  >
-                    <ThumbsUp className={cn("h-3.5 w-3.5", isUpvoted && "fill-primary")} />
-                    {excerpt.upvote_count}
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+          {excerpts.map((excerpt) => (
+            <ExcerptCard
+              key={excerpt.id}
+              excerpt={excerpt}
+              userId={userId}
+              isUpvoted={userUpvotes.has(excerpt.id)}
+              onUpvote={() => handleUpvote(excerpt.id, excerpt.created_by_user_id)}
+              upvotePending={toggleUpvote.isPending}
+            />
+          ))}
         </AnimatePresence>
       </div>
     </div>
