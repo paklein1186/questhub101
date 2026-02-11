@@ -546,6 +546,39 @@ export type Database = {
           },
         ]
       }
+      company_topics: {
+        Row: {
+          company_id: string
+          id: string
+          topic_id: string
+        }
+        Insert: {
+          company_id: string
+          id?: string
+          topic_id: string
+        }
+        Update: {
+          company_id?: string
+          id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_topics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link } from "react-router-dom";
-import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight } from "lucide-react";
+import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/PageShell";
@@ -42,14 +42,15 @@ function useTopicStats(topicIds: string[]) {
     queryKey: ["houses-topic-stats", topicIds],
     enabled: topicIds.length > 0,
     queryFn: async () => {
-      const [users, quests, guilds, services, courses] = await Promise.all([
+      const [users, quests, guilds, services, courses, companies] = await Promise.all([
         supabase.from("user_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
         supabase.from("quest_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
         supabase.from("guild_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
         supabase.from("service_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
         supabase.from("course_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
+        supabase.from("company_topics").select("topic_id", { count: "exact", head: true }).in("topic_id", topicIds),
       ]);
-      return { users: users.count ?? 0, quests: quests.count ?? 0, guilds: guilds.count ?? 0, services: services.count ?? 0, courses: courses.count ?? 0 };
+      return { users: users.count ?? 0, quests: quests.count ?? 0, guilds: guilds.count ?? 0, services: services.count ?? 0, courses: courses.count ?? 0, companies: companies.count ?? 0 };
     },
     staleTime: 60_000,
   });
@@ -179,6 +180,20 @@ function useFilteredUsers(topicIds: string[], matchAll: boolean) {
   });
 }
 
+function useFilteredCompanies(topicIds: string[], matchAll: boolean) {
+  return useQuery({
+    queryKey: ["houses-companies", topicIds, matchAll],
+    enabled: topicIds.length > 0,
+    queryFn: async () => {
+      const ids = await getEntityIdsFromJunction("company_topics", "company_id", topicIds, matchAll);
+      if (ids.length === 0) return [];
+      const { data } = await supabase.from("companies").select("id, name, description, logo_url, sector").in("id", ids).eq("is_deleted", false).limit(PAGE_SIZE);
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+}
+
 // Pods use topic_id FK directly
 function useFilteredPods(topicIds: string[], matchAll: boolean) {
   return useQuery({
@@ -263,6 +278,7 @@ export default function ExploreHouses({ bare }: Props) {
   const { data: courses, isLoading: coursesLoading } = useFilteredCourses(selectedIds, matchAll);
   const { data: users, isLoading: usersLoading } = useFilteredUsers(selectedIds, matchAll);
   const { data: pods, isLoading: podsLoading } = useFilteredPods(selectedIds, matchAll);
+  const { data: companies, isLoading: companiesLoading } = useFilteredCompanies(selectedIds, matchAll);
 
   const hasSelection = selectedIds.length > 0;
 
@@ -342,6 +358,7 @@ export default function ExploreHouses({ bare }: Props) {
             <TabsTrigger value="pods">Pods {pods?.length ? `(${pods.length})` : ""}</TabsTrigger>
             <TabsTrigger value="services">Services {services?.length ? `(${services.length})` : ""}</TabsTrigger>
             <TabsTrigger value="courses">Courses {courses?.length ? `(${courses.length})` : ""}</TabsTrigger>
+            <TabsTrigger value="companies">Companies {companies?.length ? `(${companies.length})` : ""}</TabsTrigger>
           </TabsList>
 
           {/* Overview */}
@@ -383,6 +400,16 @@ export default function ExploreHouses({ bare }: Props) {
                 <div className="p-4">
                   <h4 className="font-display font-semibold text-sm">{s.title}</h4>
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{s.description}</p>
+                </div>
+              </Link>
+            )} />
+
+            <SectionPreview title="Companies" icon={Building2} items={companies} loading={companiesLoading} tab="companies" setTab={setTab} renderItem={(c: any) => (
+              <Link key={c.id} to={`/companies/${c.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="COMPANY" logoUrl={c.logo_url} name={c.name} height="h-full" className="w-16 shrink-0" />
+                <div className="min-w-0 py-3 pr-3">
+                  <p className="text-sm font-semibold truncate">{c.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{c.description}</p>
                 </div>
               </Link>
             )} />
@@ -471,6 +498,20 @@ export default function ExploreHouses({ bare }: Props) {
                   <h4 className="font-display font-semibold">{c.title}</h4>
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{c.description}</p>
                   <Badge variant="outline" className="text-[10px] mt-2 capitalize">{c.level}</Badge>
+                </div>
+              </Link>
+            )} />
+          </TabsContent>
+
+          {/* Companies */}
+          <TabsContent value="companies" className="mt-6">
+            <EntityGrid items={companies} loading={companiesLoading} empty="No companies found for these Houses." renderItem={(c: any) => (
+              <Link key={c.id} to={`/companies/${c.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                <UnitCoverImage type="COMPANY" logoUrl={c.logo_url} name={c.name} height="h-24" />
+                <div className="p-4">
+                  <h4 className="font-display font-semibold">{c.name}</h4>
+                  <p className="text-sm text-muted-foreground line-clamp-1">{c.description}</p>
+                  {c.sector && <Badge variant="outline" className="text-[10px] mt-2 capitalize">{c.sector}</Badge>}
                 </div>
               </Link>
             )} />
