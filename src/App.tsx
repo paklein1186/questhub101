@@ -86,6 +86,7 @@ import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
 import MyStarredExcerpts from "./pages/MyStarredExcerpts";
+import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
