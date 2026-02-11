@@ -98,25 +98,91 @@ export function getPushPermissionState(): NotificationPermission | "unsupported"
 export function linkForNotification(n: Notification): string {
   if (n.deepLinkUrl) return n.deepLinkUrl;
   const data = (n.data || {}) as Record<string, unknown>;
+
+  // Type-specific routing
   switch (n.type) {
     case NotificationType.COMMENT:
-    case NotificationType.UPVOTE: {
-      const targetType = data.targetType as CommentTargetType;
-      const targetId = data.targetId as string;
-      if (targetType === CommentTargetType.GUILD) return `/guilds/${targetId}`;
-      if (targetType === CommentTargetType.QUEST) return `/quests/${targetId}`;
-      if (targetType === CommentTargetType.USER) return `/users/${targetId}`;
+    case NotificationType.UPVOTE:
+    case NotificationType.QUEST_COMMENT:
+    case NotificationType.QUEST_UPVOTE: {
+      const targetType = (data.targetType as string) || n.relatedEntityType;
+      const targetId = (data.targetId as string) || n.relatedEntityId;
+      if (targetType && targetId) return buildNotifDeepLink(targetType, targetId);
       return "/";
     }
-    case NotificationType.QUEST_UPDATE: return `/quests/${data.questId as string}`;
-    case NotificationType.INVITE: return data.guildId ? `/guilds/${data.guildId as string}` : `/quests/${data.questId as string}`;
+    case NotificationType.QUEST_UPDATE:
+    case NotificationType.QUEST_CREATED:
+    case NotificationType.QUEST_UPDATED:
+    case NotificationType.QUEST_COMPLETED:
+    case NotificationType.QUEST_PROPOSAL_SUBMITTED:
+    case NotificationType.QUEST_PROPOSAL_ACCEPTED:
+    case NotificationType.QUEST_PROPOSAL_REJECTED:
+    case NotificationType.QUEST_FUNDED_CREDITS:
+    case NotificationType.QUEST_FUNDED_FIAT:
+    case NotificationType.USER_QUEST_UPDATE_FROM_FOLLOWED:
+    case NotificationType.SYSTEM_NEW_PUBLIC_QUEST:
+      return `/quests/${(data.questId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.INVITE:
+    case NotificationType.GUILD_MEMBER_ADDED:
+    case NotificationType.GUILD_ROLE_CHANGED:
+    case NotificationType.GUILD_QUEST_CREATED:
+    case NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST:
+      return data.guildId ? `/guilds/${data.guildId as string}` : (n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/");
+    case NotificationType.POD_CREATED:
+    case NotificationType.POD_MESSAGE:
+    case NotificationType.UNIT_NEW_POD_JOIN_REQUEST:
+      return `/pods/${(data.podId as string) || n.relatedEntityId || ""}`;
     case NotificationType.BOOKING:
     case NotificationType.BOOKING_REQUESTED:
     case NotificationType.BOOKING_CONFIRMED:
     case NotificationType.BOOKING_CANCELLED:
-      return data.bookingId ? `/bookings/${data.bookingId as string}` : "/work";
-    default: return "/";
+    case NotificationType.BOOKING_UPDATED:
+    case NotificationType.BOOKING_REQUIRES_PAYMENT:
+    case NotificationType.USER_BOOKING_STATUS_CHANGED:
+    case NotificationType.UNIT_BOOKING_REQUEST:
+    case NotificationType.UNIT_BOOKING_CONFIRMED:
+    case NotificationType.UNIT_BOOKING_CANCELLED:
+      return data.bookingId ? `/bookings/${data.bookingId as string}` : (n.relatedEntityId ? `/bookings/${n.relatedEntityId}` : "/work");
+    case NotificationType.FOLLOWER_NEW:
+      return `/users/${(data.followerId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.FOLLOWER_ACTIVITY:
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "USER", n.relatedEntityId) : "/network";
+    case NotificationType.XP_GAINED:
+    case NotificationType.ACHIEVEMENT_UNLOCKED:
+      return n.relatedEntityId ? `/achievements/${n.relatedEntityId}` : "/me";
+    case NotificationType.UNIT_PARTNERSHIP_REQUEST:
+    case NotificationType.UNIT_PARTNERSHIP_ACCEPTED:
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/work";
+    case NotificationType.UNIT_NEW_QUEST_CREATED_UNDER_UNIT:
+    case NotificationType.UNIT_NEW_QUEST_UPDATE:
+    case NotificationType.UNIT_NEW_COMMENT_ON_QUEST:
+      return `/quests/${(data.questId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.UNIT_EVENT_CREATED:
+      return `/events/${(data.eventId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.UNIT_COURSE_CREATED:
+      return `/courses/${(data.courseId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.USER_INVITED_TO_UNIT:
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/work";
+    case NotificationType.SYSTEM_NEW_USER:
+      return n.relatedEntityId ? `/users/${n.relatedEntityId}` : "/admin";
+    case NotificationType.SYSTEM_BUG_REPORT:
+      return "/admin/content/reports";
+    case NotificationType.SYSTEM_ABUSE_REPORT:
+      return "/admin/content/reports";
+    case NotificationType.SYSTEM_SHARE_PURCHASE:
+    case NotificationType.SYSTEM_PAYMENT_FAILED:
+    case NotificationType.USER_SHARE_PURCHASE_CONFIRMED:
+      return "/admin/economy/payments";
+    default:
+      break;
   }
+
+  // Universal fallback: use related_entity_type + related_entity_id
+  if (n.relatedEntityType && n.relatedEntityId) {
+    return buildNotifDeepLink(n.relatedEntityType, n.relatedEntityId);
+  }
+
+  return "/notifications";
 }
 
 // ─── Store interface ────────────────────────────────────────
@@ -149,6 +215,7 @@ const NotificationContext = createContext<NotificationStore>(null!);
 function buildNotifDeepLink(targetType: string, targetId: string): string {
   switch (targetType) {
     case "QUEST": return `/quests/${targetId}`;
+    case "QUEST_UPDATE": return `/quests/${targetId}`;
     case "SERVICE": return `/services/${targetId}`;
     case "GUILD": return `/guilds/${targetId}`;
     case "POD": return `/pods/${targetId}`;
@@ -156,8 +223,13 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "COURSE": return `/courses/${targetId}`;
     case "USER": return `/users/${targetId}`;
     case "GUILD_EVENT": return `/events/${targetId}`;
-    case "FEED_POST": return `/`;
-    default: return `/`;
+    case "BOOKING": return `/bookings/${targetId}`;
+    case "ACHIEVEMENT": return `/achievements/${targetId}`;
+    case "TERRITORY": return `/territories/${targetId}`;
+    case "FEED_POST": return `/`; // feed posts don't have individual pages
+    case "COMMENT": return `/notifications`; // comments don't have standalone pages
+    case "milestone": return `/milestones`;
+    default: return `/notifications`;
   }
 }
 
