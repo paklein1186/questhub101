@@ -465,7 +465,7 @@ export default function Onboarding() {
 
   const currentStepLabel = stepLabels[step] || "";
   const isLastStep = step === lastStepIndex;
-  const progressSteps = isCreativePath ? 8 : 6; // excluding final "done" step
+  const progressSteps = isCreativePath ? 9 : 7; // excluding final "done" step
 
   // Determine which step content to render
   const renderCreativeStep = () => {
