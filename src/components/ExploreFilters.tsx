@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -54,6 +54,14 @@ interface Props {
   filters: ExploreFilterValues;
   onChange: (filters: ExploreFilterValues) => void;
   config: ExploreFilterConfig;
+  /** House filter state — when provided, shows "My Houses only" toggle */
+  houseFilter?: {
+    active: boolean;
+    onToggle: (val: boolean) => void;
+    hasHouses: boolean;
+    topicNames: Record<string, string>;
+    myTopicIds: string[];
+  };
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -62,7 +70,7 @@ const ROLE_LABELS: Record<string, string> = {
   BOTH: "Both",
 };
 
-export function ExploreFilters({ filters, onChange, config }: Props) {
+export function ExploreFilters({ filters, onChange, config, houseFilter }: Props) {
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -117,7 +125,25 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
   return (
     <div className="space-y-3">
       {/* Toggle bar */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* House filter toggle */}
+        {houseFilter && houseFilter.hasHouses && (
+          <Button
+            variant={houseFilter.active ? "default" : "outline"}
+            size="sm"
+            onClick={() => houseFilter.onToggle(!houseFilter.active)}
+            className="text-xs gap-1.5"
+          >
+            <Home className="h-3.5 w-3.5" />
+            My Houses only
+          </Button>
+        )}
+        {houseFilter && houseFilter.active && !houseFilter.hasHouses && (
+          <Badge variant="secondary" className="text-xs py-1 px-2">
+            No Houses selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
+          </Badge>
+        )}
+
         <Button
           variant="outline"
           size="sm"
@@ -136,6 +162,24 @@ export function ExploreFilters({ filters, onChange, config }: Props) {
           </Button>
         )}
       </div>
+
+      {/* Active house chips */}
+      {houseFilter && houseFilter.active && houseFilter.myTopicIds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] text-muted-foreground mr-1">Showing:</span>
+          {houseFilter.myTopicIds.slice(0, 5).map((id) => (
+            <Badge key={id} variant="secondary" className="text-[10px] gap-1">
+              <Home className="h-2.5 w-2.5" />{houseFilter.topicNames[id] || id}
+            </Badge>
+          ))}
+          {houseFilter.myTopicIds.length > 5 && (
+            <span className="text-[10px] text-muted-foreground">+{houseFilter.myTopicIds.length - 5} more</span>
+          )}
+          <Button variant="ghost" size="sm" className="text-[10px] h-5 px-2" onClick={() => houseFilter.onToggle(false)}>
+            Show all
+          </Button>
+        </div>
+      )}
 
       {/* Collapsible panel */}
       <Collapsible open={open} onOpenChange={setOpen}>

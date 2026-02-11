@@ -7,14 +7,20 @@ import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
 import { useCourses } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 export default function CoursesExplore({ bare }: { bare?: boolean }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { data: coursesData, isLoading } = useCourses();
+  const hf = useHouseFilter();
   const allCourses = coursesData ?? [];
 
-  const filtered = allCourses.filter((c) => {
+  const preFiltered = hf.applyHouseFilter(allCourses, (c) =>
+    ((c as any).course_topics ?? []).map((ct: any) => ct.topic_id)
+  );
+
+  const filtered = preFiltered.filter((c) => {
     if (filters.level !== "all" && c.level !== filters.level) return false;
     if (filters.price === "free" && !c.is_free) return false;
     if (filters.price === "paid" && c.is_free) return false;
@@ -38,6 +44,13 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
           filters={filters}
           onChange={setFilters}
           config={{ showTopics: true, showLevel: true, showPrice: true }}
+          houseFilter={{
+            active: hf.houseFilterActive,
+            onToggle: hf.setHouseFilterActive,
+            hasHouses: hf.hasHouses,
+            topicNames: hf.topicNames,
+            myTopicIds: hf.myTopicIds,
+          }}
         />
       </div>
 

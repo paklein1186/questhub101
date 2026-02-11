@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2 } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useServices } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -23,8 +25,13 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
   const { data: servicesData, isLoading } = useServices();
+  const hf = useHouseFilter();
 
-  let filtered = (servicesData ?? []).filter((s) => {
+  const preFiltered = hf.applyHouseFilter(servicesData ?? [], (s) =>
+    ((s as any).service_topics ?? []).map((st: any) => st.topic_id)
+  );
+
+  let filtered = preFiltered.filter((s) => {
     if (s.is_draft && !isAdm && s.provider_user_id !== currentUser.id) return false;
     if (!s.is_active) return false;
     return true;
@@ -54,6 +61,13 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
           filters={filters}
           onChange={setFilters}
           config={{ showTopics: true, showTerritories: true, showPrice: true }}
+          houseFilter={{
+            active: hf.houseFilterActive,
+            onToggle: hf.setHouseFilterActive,
+            hasHouses: hf.hasHouses,
+            topicNames: hf.topicNames,
+            myTopicIds: hf.myTopicIds,
+          }}
         />
       </div>
 
@@ -107,7 +121,16 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
             </motion.div>
           );
         })}
-        {!isLoading && filtered.length === 0 && <p className="text-muted-foreground col-span-full">No services match your filters.</p>}
+        {!isLoading && filtered.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No services match your filters.</p>
+            {hf.houseFilterActive && (
+              <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
+                Try showing all Houses
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </PageShell>
   );

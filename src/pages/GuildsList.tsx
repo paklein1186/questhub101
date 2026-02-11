@@ -17,6 +17,7 @@ import { GuildType } from "@/types/enums";
 import { useGuilds, useCreateGuild } from "@/hooks/useSupabaseData";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 export default function GuildsList({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
@@ -31,10 +32,15 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
   const isAdm = checkIsGlobalAdmin(currentUser.email);
   const { data: guildsData, isLoading } = useGuilds();
   const createGuildMut = useCreateGuild();
+  const hf = useHouseFilter();
 
   const allGuilds = guildsData ?? [];
 
-  const filtered = allGuilds.filter((g) => {
+  const preFiltered = hf.applyHouseFilter(allGuilds, (g) =>
+    (g.guild_topics ?? []).map((gt: any) => gt.topic_id)
+  );
+
+  const filtered = preFiltered.filter((g) => {
     if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
     if (filters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => filters.topicIds.includes(gt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => filters.territoryIds.includes(gt.territory_id))) return false;
@@ -104,6 +110,13 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
           filters={filters}
           onChange={setFilters}
           config={{ showTopics: true, showTerritories: true, showGuildType: true }}
+          houseFilter={{
+            active: hf.houseFilterActive,
+            onToggle: hf.setHouseFilterActive,
+            hasHouses: hf.hasHouses,
+            topicNames: hf.topicNames,
+            myTopicIds: hf.myTopicIds,
+          }}
         />
       </div>
 
@@ -141,7 +154,16 @@ export default function GuildsList({ bare }: { bare?: boolean }) {
             </motion.div>
           );
         })}
-        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No guilds match your filters.</p>}
+        {!isLoading && filtered.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No guilds match your filters.</p>
+            {hf.houseFilterActive && (
+              <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
+                Try showing all Houses
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </PageShell>
   );

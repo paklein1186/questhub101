@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Home } from "lucide-react";
 import {
   CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
 
 const TYPE_LABELS: Record<SearchResultType, string> = {
@@ -32,6 +33,7 @@ export function GlobalSearchDialog() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
+  const { houseFilterActive, myTopicIds } = useHouseFilter();
 
   // Ctrl+K / Cmd+K shortcut
   useEffect(() => {
@@ -45,15 +47,18 @@ export function GlobalSearchDialog() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  // Debounced async search
+  // Debounced async search — applies house filter when active
   useEffect(() => {
     if (query.trim().length < 2) { setResults([]); return; }
     const timer = setTimeout(async () => {
-      const res = await globalSearch(query, currentUser.id);
+      const topicFilter = houseFilterActive && myTopicIds.length > 0
+        ? myTopicIds[0] // pass first topic for basic filtering
+        : undefined;
+      const res = await globalSearch(query, currentUser.id, topicFilter ? { topicId: topicFilter } : undefined);
       setResults(res);
     }, 300);
     return () => clearTimeout(timer);
-  }, [query, currentUser.id]);
+  }, [query, currentUser.id, houseFilterActive, myTopicIds]);
 
   const grouped = (() => {
     const map = new Map<SearchResultType, SearchResult[]>();
@@ -99,8 +104,15 @@ export function GlobalSearchDialog() {
           onValueChange={setQuery}
         />
         <CommandList>
+          {houseFilterActive && myTopicIds.length > 0 && (
+            <div className="px-3 py-1.5">
+              <Badge variant="secondary" className="text-[10px] gap-1">
+                <Home className="h-2.5 w-2.5" /> Filtered by my Houses
+              </Badge>
+            </div>
+          )}
           {query.trim().length >= 2 && results.length === 0 && (
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>No results found.{houseFilterActive ? " Try disabling your House filter in settings." : ""}</CommandEmpty>
           )}
 
           {Array.from(grouped.entries()).map(([type, items]) => (
