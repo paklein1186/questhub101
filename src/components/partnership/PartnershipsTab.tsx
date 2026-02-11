@@ -95,7 +95,12 @@ export function PartnershipsTab({ entityType, entityId, isAdmin }: Props) {
               <X className="h-3.5 w-3.5 mr-1" /> Withdraw
             </Button>
           )}
-          {!showActions && (
+          {!showActions && isAdmin && (
+            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive shrink-0" onClick={() => handleAction(p.id, "CANCELLED")} disabled={updateStatus.isPending}>
+              <X className="h-3.5 w-3.5 mr-1" /> End
+            </Button>
+          )}
+          {!showActions && !isAdmin && (
             <Button size="icon" variant="ghost" asChild className="shrink-0">
               <Link to={getPartnerLink(p)}><ExternalLink className="h-4 w-4" /></Link>
             </Button>
