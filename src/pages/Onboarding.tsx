@@ -431,6 +431,13 @@ export default function Onboarding() {
       if (step === IMPACT_SERVICE_STEP) { finishOnboarding(); return; }
       if (step === IMPACT_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(IMPACT_SERVICE_STEP); return; }
     }
+    // Validate languages step: at least one language required
+    if ((isCreativePath && step === CREATIVE_LANG_STEP) || (!isCreativePath && step === IMPACT_LANG_STEP)) {
+      if (spokenLangCodes.length === 0) {
+        toast({ title: "Please select at least one language", variant: "destructive" });
+        return;
+      }
+    }
     setDirection(1);
     setStep((s) => Math.min(s + 1, lastStepIndex));
   };
