@@ -27,6 +27,8 @@ import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications as useNotificationsHook, requestPushPermission as requestPushPermissionFn, getPushPermissionState } from "@/hooks/useNotifications";
+import { useNotificationPreferences as useNotificationPreferencesHook } from "@/hooks/useNotificationPreferences";
+import { useUserRoles } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
@@ -890,9 +892,29 @@ function NotifToggle({ label, checked, onChange }: { label: string; checked: boo
 }
 
 function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
-  // Import notification preferences from the hook
-  const { preferences, updatePreferences } = useNotificationsHook();
+  const { session } = useAuth();
+  const { label } = usePersona();
+  const { isAdmin: isSuperAdmin } = useUserRoles(session?.user?.id);
+
+  // DB-backed preferences
+  const { prefs, updatePrefs, isSaving } = useNotificationPreferencesHook();
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(getPushPermissionState());
+
+  // Check if user is an admin of any unit
+  const { data: isUnitAdmin = false } = useQuery({
+    queryKey: ["is-unit-admin", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const uid = session!.user.id;
+      const [gm, pm, cm] = await Promise.all([
+        supabase.from("guild_members").select("id").eq("user_id", uid).eq("role", "ADMIN").limit(1),
+        supabase.from("pod_members").select("id").eq("user_id", uid).eq("role", "HOST").limit(1),
+        supabase.from("company_members").select("id").eq("user_id", uid).eq("role", "admin").limit(1),
+      ]);
+      return (gm.data?.length ?? 0) > 0 || (pm.data?.length ?? 0) > 0 || (cm.data?.length ?? 0) > 0;
+    },
+    staleTime: 60_000,
+  });
 
   const handlePushToggle = async (enabled: boolean) => {
     if (enabled) {
@@ -903,24 +925,68 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
       }
       setPushPermission("granted");
     }
-    updatePreferences({ pushEnabled: enabled });
+    updatePrefs({ push_enabled: enabled });
     toast({ title: enabled ? "Push notifications enabled" : "Push notifications disabled" });
   };
 
+  const toggle = (key: keyof typeof prefs, label_text: string) => (
+    <NotifToggle label={label_text} checked={!!prefs[key]} onChange={(v) => updatePrefs({ [key]: v })} />
+  );
+
   return (
     <div className="space-y-6">
-      <Section title="In-App Notifications" icon={<Bell className="h-5 w-5" />}>
+      {/* Global channel toggles */}
+      <Section title="Channels" icon={<Bell className="h-5 w-5" />}>
         <div className="space-y-3">
-          <NotifToggle label="Quest updates I follow" checked={preferences.notifyOnQuestUpdates} onChange={(v) => updatePreferences({ notifyOnQuestUpdates: v })} />
-          <NotifToggle label="Guild activity" checked={preferences.notifyOnGuildActivity} onChange={(v) => updatePreferences({ notifyOnGuildActivity: v })} />
-          <NotifToggle label="Pod messages" checked={preferences.notifyOnPodMessages} onChange={(v) => updatePreferences({ notifyOnPodMessages: v })} />
-          <NotifToggle label="Booking notifications" checked={preferences.notifyOnBookings} onChange={(v) => updatePreferences({ notifyOnBookings: v })} />
-          <NotifToggle label="Comments & upvotes" checked={preferences.notifyOnComments} onChange={(v) => updatePreferences({ notifyOnComments: v })} />
-          <NotifToggle label="Follower activity" checked={preferences.notifyOnFollowerActivity} onChange={(v) => updatePreferences({ notifyOnFollowerActivity: v })} />
-          <NotifToggle label="XP & achievements" checked={preferences.notifyOnXpAndAchievements} onChange={(v) => updatePreferences({ notifyOnXpAndAchievements: v })} />
+          {toggle("channel_in_app_enabled", "In-app notifications")}
+          {toggle("channel_email_enabled", "Email notifications")}
         </div>
       </Section>
 
+      {/* Superadmin section */}
+      {isSuperAdmin && (
+        <Section title="Superadmin Notifications" icon={<Shield className="h-5 w-5" />}>
+          <p className="text-xs text-muted-foreground mb-3">Platform-level alerts visible only to superadmins.</p>
+          <div className="space-y-3">
+            {toggle("notify_new_user_registrations", "New user registrations")}
+            {toggle("notify_new_bug_reports", "Bug reports")}
+            {toggle("notify_payments_and_shares", "Payments & share purchases")}
+            {toggle("notify_abuse_reports", "Abuse reports")}
+            {toggle("notify_system_errors", "System errors & alerts")}
+          </div>
+        </Section>
+      )}
+
+      {/* Unit admin section */}
+      {(isUnitAdmin || isSuperAdmin) && (
+        <Section title="Unit Admin Notifications" icon={<Users className="h-5 w-5" />}>
+          <p className="text-xs text-muted-foreground mb-3">Notifications for entities you manage ({label("guild.label")}s, {label("pod.label")}s, organizations, {label("quest.label")}s).</p>
+          <div className="space-y-3">
+            {toggle("notify_new_join_requests_guilds", `New join requests (${label("guild.label")}s)`)}
+            {toggle("notify_new_join_requests_pods", `New join requests (${label("pod.label")}s)`)}
+            {toggle("notify_new_partnership_requests", "Partnership requests & status")}
+            {toggle("notify_quest_updates_and_comments", `${label("quest.label")} updates & comments`)}
+            {toggle("notify_bookings_and_cancellations", "Bookings & cancellations")}
+            {toggle("notify_co_host_changes", "Co-host changes")}
+            {toggle("notify_events_and_courses", "Events & courses")}
+            {toggle("notify_ai_flagged_content", "AI/moderation alerts")}
+          </div>
+        </Section>
+      )}
+
+      {/* Personal */}
+      <Section title="My Activity" icon={<Bell className="h-5 w-5" />}>
+        <div className="space-y-3">
+          {toggle("notify_booking_status_changes", "Booking status changes")}
+          {toggle("notify_quest_updates_from_followed", `Updates from ${label("quest.label")}s I follow`)}
+          {toggle("notify_invitations_to_units", "Invitations to join units")}
+          {toggle("notify_comments_and_upvotes", "Comments & upvotes")}
+          {toggle("notify_follower_activity", "Follower activity")}
+          {toggle("notify_xp_and_achievements", "XP & achievements")}
+        </div>
+      </Section>
+
+      {/* Push */}
       <Section title="Push Notifications" icon={<Bell className="h-5 w-5" />}>
         <div className="space-y-3">
           <div className="flex items-center justify-between py-1.5">
@@ -933,7 +999,7 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
               </p>
             </div>
             <Switch
-              checked={preferences.pushEnabled}
+              checked={prefs.push_enabled}
               onCheckedChange={handlePushToggle}
               disabled={pushPermission === "unsupported" || pushPermission === "denied"}
             />
@@ -941,13 +1007,14 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </div>
       </Section>
 
-      <Section title="Notification Frequency" icon={<Bell className="h-5 w-5" />}>
+      {/* Frequency */}
+      <Section title="Notification Frequency" icon={<Clock className="h-5 w-5" />}>
         <div className="flex items-center justify-between py-2">
           <div>
             <p className="text-sm font-medium">Delivery frequency</p>
             <p className="text-xs text-muted-foreground">How often you receive notifications and digest emails</p>
           </div>
-          <Select value={preferences.notificationFrequency} onValueChange={(v) => updatePreferences({ notificationFrequency: v as any })}>
+          <Select value={prefs.notification_frequency} onValueChange={(v) => updatePrefs({ notification_frequency: v })}>
             <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="INSTANT">Instant</SelectItem>
@@ -959,7 +1026,9 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </div>
       </Section>
 
-      <Button onClick={() => toast({ title: "Notification preferences saved!" })}><Save className="h-4 w-4 mr-1" /> Save preferences</Button>
+      <Button onClick={() => toast({ title: "Preferences saved automatically!" })} disabled={isSaving}>
+        <Save className="h-4 w-4 mr-1" /> {isSaving ? "Saving..." : "Preferences saved automatically"}
+      </Button>
     </div>
   );
 }
