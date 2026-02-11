@@ -1,0 +1,51 @@
+import { Link } from "react-router-dom";
+import { LogIn, UserPlus, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface Props {
+  /** Main message shown above the buttons */
+  message?: string;
+  /** Compact mode: inline, less padding */
+  compact?: boolean;
+  className?: string;
+}
+
+/**
+ * Reusable CTA block shown in Public Explore Mode to prompt
+ * non-logged users to sign up or log in.
+ */
+export function PublicExploreCTA({
+  message = "To see live content and participate, please log in or create an account.",
+  compact = false,
+  className = "",
+}: Props) {
+  if (compact) {
+    return (
+      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">{message}</span>
+        <Button size="sm" variant="outline" asChild>
+          <Link to="/login"><LogIn className="h-3.5 w-3.5 mr-1" /> Log in</Link>
+        </Button>
+        <Button size="sm" asChild>
+          <Link to="/signup"><UserPlus className="h-3.5 w-3.5 mr-1" /> Sign up</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`rounded-xl border border-dashed border-primary/30 bg-primary/5 p-6 text-center ${className}`}>
+      <Lock className="h-8 w-8 text-primary mx-auto mb-3 opacity-60" />
+      <p className="text-sm text-foreground mb-4">{message}</p>
+      <div className="flex justify-center gap-3">
+        <Button variant="outline" asChild>
+          <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+        </Button>
+        <Button asChild>
+          <Link to="/signup"><UserPlus className="h-4 w-4 mr-1" /> Create an account</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
