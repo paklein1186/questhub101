@@ -347,9 +347,7 @@ export default function HomeFeed() {
     navigate(target);
   };
 
-  const handleGuidedTile = (_tile: any) => {
-    // Legacy — no longer used, guided mode uses GuidedPathways
-  };
+  // handleGuidedTile removed — guided mode now uses GuidedPathways component
 
   const resetAll = () => {
     setResult(null);
