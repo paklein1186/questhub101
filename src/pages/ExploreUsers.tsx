@@ -320,8 +320,8 @@ function UserCard({ user, isLoggedIn }: { user: ExploreUser; isLoggedIn: boolean
             <Badge variant="outline" className="text-[10px] mt-1">{ROLE_LABELS[user.role] ?? user.role}</Badge>
           )}
         </div>
-        {isLoggedIn && user.xp > 0 && (
-          <Badge variant="secondary" className="text-[10px] shrink-0">{user.xp} XP</Badge>
+      {isLoggedIn && user.xp > 0 && (
+          <XpLevelBadge level={computeLevelFromXp(user.xp)} xp={user.xp} compact />
         )}
       </div>
       {user.topics.length > 0 && (
