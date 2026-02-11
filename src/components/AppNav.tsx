@@ -301,7 +301,7 @@ export function AppNav() {
                       <>
                         <Link to="/explore" onClick={() => setMobileOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                          <Search className="h-4 w-4" /> Explore
+                          <Search className="h-4 w-4" /> {t("nav.explore")}
                         </Link>
                       </>
                     )}
