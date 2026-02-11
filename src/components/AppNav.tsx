@@ -205,7 +205,7 @@ export function AppNav() {
                   )}
                 >
                   <Search className="h-4 w-4" />
-                  <span>Explore</span>
+                  <span>{t("nav.explore")}</span>
                 </Link>
                 <Button size="sm" variant="ghost" asChild className="ml-2">
                   <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
