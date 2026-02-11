@@ -94,7 +94,8 @@ export default function GuildDetail() {
   const services = guildServices || [];
   const achievements = guildAchievements || [];
 
-  const currentMembership = (guild.guild_members || []).find((gm: any) => gm.user_id === currentUser.id);
+  const isLoggedIn = !!currentUser.id;
+  const currentMembership = isLoggedIn ? (guild.guild_members || []).find((gm: any) => gm.user_id === currentUser.id) : undefined;
   const isAdmin = currentMembership?.role === "ADMIN";
   const isMember = !!currentMembership;
 
