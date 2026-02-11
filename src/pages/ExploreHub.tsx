@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
+import { TerritoryBrowseSection } from "@/components/explore/TerritoryBrowseSection";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { Button } from "@/components/ui/button";
