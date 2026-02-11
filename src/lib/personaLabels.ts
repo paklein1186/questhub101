@@ -5,6 +5,7 @@
  */
 
 export type PersonaType = "IMPACT" | "CREATIVE" | "HYBRID" | "UNSET";
+export type LexiconMode = "IMPACT" | "CREATIVE" | "HYBRID" | "NEUTRAL";
 
 type LabelVariants = {
   IMPACT: string;
@@ -18,31 +19,31 @@ const LABELS: Record<string, LabelVariants> = {
   "service.label": {
     IMPACT: "Services",
     CREATIVE: "Skill Sessions",
-    HYBRID: "Offerings",
+    HYBRID: "Services / Sessions",
     DEFAULT: "Services",
   },
   "service.label_plural": {
     IMPACT: "Services",
     CREATIVE: "Skill Sessions",
-    HYBRID: "Offerings",
+    HYBRID: "Services / Sessions",
     DEFAULT: "Services",
   },
   "service.label_singular": {
     IMPACT: "Service",
     CREATIVE: "Skill Session",
-    HYBRID: "Offering",
+    HYBRID: "Service",
     DEFAULT: "Service",
   },
   "service.create_button": {
     IMPACT: "Create a service",
     CREATIVE: "Offer a skill session",
-    HYBRID: "Create an offering",
+    HYBRID: "Create a service",
     DEFAULT: "Create a service",
   },
   "service.my_label": {
     IMPACT: "My Services",
     CREATIVE: "My Skill Sessions",
-    HYBRID: "My Offerings",
+    HYBRID: "My Services",
     DEFAULT: "My Services",
   },
 
@@ -51,13 +52,13 @@ const LABELS: Record<string, LabelVariants> = {
     IMPACT: "Guilds",
     CREATIVE: "Circles / Studios",
     HYBRID: "Groups",
-    DEFAULT: "Communities",
+    DEFAULT: "Groups",
   },
   "guild.label_singular": {
     IMPACT: "Guild",
     CREATIVE: "Circle",
     HYBRID: "Group",
-    DEFAULT: "Community",
+    DEFAULT: "Group",
   },
 
   // ── Quests ──
@@ -78,14 +79,14 @@ const LABELS: Record<string, LabelVariants> = {
   "pod.label": {
     IMPACT: "Pods",
     CREATIVE: "Ensembles",
-    HYBRID: "Groups",
-    DEFAULT: "Micro-teams",
+    HYBRID: "Teams",
+    DEFAULT: "Pods",
   },
   "pod.label_singular": {
     IMPACT: "Pod",
     CREATIVE: "Ensemble",
-    HYBRID: "Group",
-    DEFAULT: "Micro-team",
+    HYBRID: "Team",
+    DEFAULT: "Pod",
   },
 
   // ── XP ──
@@ -136,7 +137,7 @@ const LABELS: Record<string, LabelVariants> = {
   "nav.services_tab": {
     IMPACT: "Services & Availability",
     CREATIVE: "Skill Sessions & Availability",
-    HYBRID: "Offerings & Availability",
+    HYBRID: "Services & Availability",
     DEFAULT: "Services & Availability",
   },
 
@@ -257,12 +258,18 @@ const LABELS: Record<string, LabelVariants> = {
     IMPACT: "Guilds to join",
     CREATIVE: "Circles you might join",
     HYBRID: "Groups to join",
-    DEFAULT: "Communities to join",
+    DEFAULT: "Groups to join",
+  },
+  "home.pods_section": {
+    IMPACT: "Pods for you",
+    CREATIVE: "Ensembles for you",
+    HYBRID: "Teams for you",
+    DEFAULT: "Pods for you",
   },
   "home.services_section": {
     IMPACT: "Services",
     CREATIVE: "Skill sessions & workshops",
-    HYBRID: "Offerings",
+    HYBRID: "Services",
     DEFAULT: "Services",
   },
   "home.territories_section": {
@@ -274,14 +281,23 @@ const LABELS: Record<string, LabelVariants> = {
 };
 
 /**
+ * Map a LexiconMode to the internal key used for label lookup.
+ * "NEUTRAL" maps to DEFAULT.
+ */
+function resolveMode(mode: LexiconMode | PersonaType): "IMPACT" | "CREATIVE" | "HYBRID" | "DEFAULT" {
+  if (mode === "NEUTRAL" || mode === "UNSET") return "DEFAULT";
+  return mode;
+}
+
+/**
  * Get an adaptive label for the given key based on persona type.
  * Falls back to HYBRID → DEFAULT if persona-specific variant is missing.
  */
-export function getLabel(key: string, persona: PersonaType = "UNSET"): string {
+export function getLabel(key: string, persona: PersonaType | LexiconMode = "UNSET"): string {
   const entry = LABELS[key];
   if (!entry) return key; // safety fallback
-  if (persona === "UNSET") return entry.DEFAULT;
-  return entry[persona] || entry.DEFAULT;
+  const resolved = resolveMode(persona);
+  return entry[resolved] || entry.DEFAULT;
 }
 
 /** Persona-specific prompt suggestions for the HeroAI */
@@ -415,4 +431,12 @@ export const CREATIVE_BIO_SUGGESTIONS = [
   "I weave stories between people and places.",
   "I make invisible worlds visible.",
   "I follow curiosity until it becomes form.",
+];
+
+/** Available world/lexicon modes for the toggle */
+export const LEXICON_MODES: { value: LexiconMode; label: string; description: string }[] = [
+  { value: "IMPACT", label: "Impact World", description: "Guilds, Missions, Services, XP" },
+  { value: "CREATIVE", label: "Creative World", description: "Circles, Creations, Skill Sessions, Resonance" },
+  { value: "HYBRID", label: "Hybrid World", description: "Groups, Quests, Services, Impact Points" },
+  { value: "NEUTRAL", label: "Neutral Mode", description: "Groups, Quests, Services, XP" },
 ];

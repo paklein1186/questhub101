@@ -94,6 +94,7 @@ export default function NetworkHub() {
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
+          <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> {label("pod.label")} ({podMemberships.length})</TabsTrigger>
           <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Trad. Orgs ({companyMemberships.length})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Houses</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
@@ -136,6 +137,11 @@ export default function NetworkHub() {
         {/* ═══════════════ COMPANIES ═══════════════ */}
         <TabsContent value="companies" className="mt-0">
           <CompaniesTab memberships={companyMemberships} loading={loadingCompanies} />
+        </TabsContent>
+
+        {/* ═══════════════ PODS ═══════════════ */}
+        <TabsContent value="pods" className="mt-0">
+          <PodsTab memberships={podMemberships} loading={loadingPods} label={label} />
         </TabsContent>
 
         {/* ═══════════════ TERRITORIES & HOUSES ═══════════════ */}
@@ -341,6 +347,37 @@ function CompaniesTab({ memberships, loading }: { memberships: any[]; loading: b
       <div className="flex gap-2 pt-2">
         <Button size="sm" asChild><Link to="/me/companies"><Plus className="h-4 w-4 mr-1" /> Create organization</Link></Button>
         <Button size="sm" variant="outline" asChild><Link to="/explore?tab=companies">Explore organizations <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pods tab ────────────────────────────────────────────────
+function PodsTab({ memberships, loading, label }: { memberships: any[]; loading: boolean; label: (k: string) => string }) {
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-6">
+      {memberships.length > 0 ? (
+        <div>
+          <SectionHeader icon={CircleDot} title={`${label("pod.label")} you belong to`} count={memberships.length} />
+          <div className="grid gap-3 md:grid-cols-2">
+            {memberships.map((m: any, i: number) => (
+              <motion.div key={m.podId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                <Link to={`/pods/${m.podId}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                  <h4 className="font-display font-semibold">{m.podName}</h4>
+                  <Badge variant="secondary" className="text-[10px] capitalize mt-1">{m.role?.toLowerCase()}</Badge>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <EmptyState icon={CircleDot} message={`You haven't joined any ${label("pod.label").toLowerCase()} yet.`} cta={`Explore ${label("pod.label").toLowerCase()}`} to="/explore?tab=pods" />
+      )}
+
+      <div className="pt-2">
+        <Button variant="outline" asChild><Link to="/explore?tab=pods">Discover more {label("pod.label").toLowerCase()} <ArrowRight className="h-4 w-4 ml-1" /></Link></Button>
       </div>
     </div>
   );

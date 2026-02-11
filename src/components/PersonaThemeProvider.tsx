@@ -4,13 +4,13 @@ import type { ReactNode } from "react";
 
 /**
  * Adds or removes the `creative-universe` CSS class on <body>
- * based on the current user's persona type.
+ * based on the current user's effective lexicon mode or persona type.
  */
 export function PersonaThemeProvider({ children }: { children: ReactNode }) {
-  const { persona } = usePersona();
+  const { effectiveMode } = usePersona();
 
   useEffect(() => {
-    if (persona === "CREATIVE") {
+    if (effectiveMode === "CREATIVE") {
       document.body.classList.add("creative-universe");
     } else {
       document.body.classList.remove("creative-universe");
@@ -18,7 +18,7 @@ export function PersonaThemeProvider({ children }: { children: ReactNode }) {
     return () => {
       document.body.classList.remove("creative-universe");
     };
-  }, [persona]);
+  }, [effectiveMode]);
 
   return <>{children}</>;
 }
