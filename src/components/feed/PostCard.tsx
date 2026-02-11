@@ -115,7 +115,8 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
   const deletePost = useDeletePost();
   const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
-  const upvoteCount = (post as any).upvote_count ?? 0;
+  const upvoteCount = post.upvote_count ?? 0;
+  const isDeleting = deletePost.isPending;
 
   const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
   const videos = (post.post_attachments || []).filter((a) => a.type === "VIDEO_LINK");
