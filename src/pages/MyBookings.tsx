@@ -7,9 +7,11 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries";
+import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
+  PENDING: "bg-warning/10 text-warning",
   REQUESTED: "bg-warning/10 text-warning",
   PENDING_PAYMENT: "bg-amber-500/10 text-amber-600",
   CONFIRMED: "bg-primary/10 text-primary",
@@ -28,9 +30,26 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
   // Incoming = I am the provider
   const myIncoming = allBookings.filter((b) => b.provider_user_id === currentUser.id);
 
-  const handleUpdateStatus = (bookingId: string, status: string) => {
+  const handleUpdateStatus = async (bookingId: string, status: string) => {
+    const booking = myIncoming.find(b => b.id === bookingId);
     updateStatus.mutate({ bookingId, status }, {
-      onSuccess: () => toast({ title: `Booking ${status.toLowerCase()}` }),
+      onSuccess: async () => {
+        toast({ title: `Booking ${status.toLowerCase()}` });
+        // Notify requester of status change
+        if (booking) {
+          const svc = booking.services as any;
+          await supabase.from("notifications").insert({
+            user_id: booking.requester_id,
+            type: status === "ACCEPTED" ? "BOOKING_CONFIRMED" : status === "DECLINED" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
+            title: status === "ACCEPTED" ? "Booking accepted!" : status === "DECLINED" ? "Booking declined" : `Booking ${status.toLowerCase()}`,
+            body: `Your booking for "${svc?.title || "a service"}" has been ${status.toLowerCase()}`,
+            related_entity_type: "BOOKING",
+            related_entity_id: bookingId,
+            deep_link_url: `/bookings/${bookingId}`,
+            data: { bookingId } as any,
+          });
+        }
+      },
     });
   };
 
@@ -79,7 +98,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
               )}
               <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.created_at), { addSuffix: true })}</p>
 
-              {b.status === "REQUESTED" && (
+              {(b.status === "REQUESTED" || b.status === "PENDING") && (
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => handleUpdateStatus(b.id, "ACCEPTED")}>
                     <Check className="h-3.5 w-3.5 mr-1" /> Accept
@@ -89,7 +108,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                   </Button>
                 </div>
               )}
-              {b.status === "ACCEPTED" && (
+              {(b.status === "ACCEPTED" || b.status === "CONFIRMED") && (
                 <Button size="sm" variant="outline" onClick={() => handleUpdateStatus(b.id, "COMPLETED")}>
                   <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark Completed
                 </Button>

@@ -12,6 +12,7 @@ import { useUserRoles } from "@/lib/admin";
 import { useBookingById } from "@/hooks/useEntityQueries";
 
 const statusColors: Record<string, string> = {
+  PENDING: "bg-warning/10 text-warning",
   REQUESTED: "bg-warning/10 text-warning",
   PENDING_PAYMENT: "bg-amber-500/10 text-amber-600",
   CONFIRMED: "bg-primary/10 text-primary",
@@ -64,7 +65,7 @@ export default function BookingDetail() {
   }
 
   const service = booking.services as any;
-  const isConfirmed = booking.status === "CONFIRMED";
+  const isConfirmed = booking.status === "CONFIRMED" || booking.status === "ACCEPTED";
   const effectiveCallUrl = booking.call_url || (isConfirmed ? `https://meet.jit.si/gamechanger-${booking.id}` : undefined);
 
   return (

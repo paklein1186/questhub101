@@ -80,7 +80,9 @@ export function generateSlots(
           if (
             b.status !== BookingStatus.REQUESTED &&
             b.status !== BookingStatus.PENDING_PAYMENT &&
-            b.status !== BookingStatus.CONFIRMED
+            b.status !== BookingStatus.CONFIRMED &&
+            b.status !== "PENDING" as any &&
+            b.status !== BookingStatus.ACCEPTED
           )
             return false;
           const bStart = b.startDateTime ? new Date(b.startDateTime) : null;
