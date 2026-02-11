@@ -96,9 +96,7 @@ export default function NetworkHub() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
-          <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> {label("guild.label")} ({guildMemberships.length})</TabsTrigger>
-          <TabsTrigger value="pods"><CircleDot className="h-3.5 w-3.5 mr-1" /> {label("pod.label")} ({podMemberships.length})</TabsTrigger>
-          <TabsTrigger value="companies"><Building2 className="h-3.5 w-3.5 mr-1" /> Trad. Orgs ({companyMemberships.length})</TabsTrigger>
+          <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 mr-1" /> Entities ({totalEntities})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Topics</TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
         </TabsList>
