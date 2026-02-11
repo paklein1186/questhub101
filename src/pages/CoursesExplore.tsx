@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GraduationCap, Users, Loader2 } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
 import { useCourses } from "@/hooks/useSupabaseData";
@@ -51,11 +52,7 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
           return (
             <motion.div key={course.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/courses/${course.id}`} className="group block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-                {course.cover_image_url && (
-                  <div className="h-40 overflow-hidden">
-                    <img src={course.cover_image_url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </div>
-                )}
+                <UnitCoverImage type="COURSE" imageUrl={course.cover_image_url} name={course.title} height="h-40" />
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     {course.is_free ? (

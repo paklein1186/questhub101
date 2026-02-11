@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, MapPin, Users, Loader2 } from "lucide-react";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
 import { useQuery } from "@tanstack/react-query";
@@ -61,21 +62,24 @@ export default function CompaniesList({ bare }: { bare?: boolean }) {
           const memberCount = company.company_members?.length ?? 0;
           return (
             <motion.div key={company.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card p-5 hover:shadow-md hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-3 mb-3">
-                  {company.logo_url && <img src={company.logo_url} alt="" className="h-10 w-10 rounded-lg" />}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-semibold truncate">{company.name}</h3>
-                    {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
+              <Link to={`/companies/${company.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+                <UnitCoverImage type="COMPANY" imageUrl={company.banner_url} logoUrl={company.logo_url} name={company.name} height="h-32" />
+                <div className="p-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    {company.logo_url && <img src={company.logo_url} alt="" className="h-10 w-10 rounded-lg" />}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-semibold truncate">{company.name}</h3>
+                      {company.sector && <span className="text-xs text-muted-foreground">{company.sector}</span>}
+                    </div>
+                    {company.size && <Badge variant="outline" className="ml-auto text-xs shrink-0">{company.size}</Badge>}
                   </div>
-                  {company.size && <Badge variant="outline" className="ml-auto text-xs shrink-0">{company.size}</Badge>}
-                </div>
-                {company.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{company.description}</p>}
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {cTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" /> {memberCount} members
+                  {company.description && <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{company.description}</p>}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {cTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" /> {memberCount} members
+                  </div>
                 </div>
               </Link>
             </motion.div>
