@@ -70,9 +70,19 @@ export function useQuestUpdates(questId: string | undefined) {
         .select("*")
         .eq("quest_id", questId!)
         .eq("is_deleted", false)
+        .order("pinned", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+
+      // Resolve author profiles
+      const authorIds = [...new Set((data ?? []).map((u: any) => u.author_id))];
+      if (authorIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
+        .in("user_id", authorIds);
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
+      return (data ?? []).map((u: any) => ({ ...u, author: profileMap.get(u.author_id) }));
     },
     enabled: !!questId,
   });

@@ -2398,6 +2398,7 @@ export type Database = {
       quest_updates: {
         Row: {
           author_id: string
+          comments_enabled: boolean
           content: string | null
           created_at: string
           deleted_at: string | null
@@ -2405,13 +2406,16 @@ export type Database = {
           image_url: string | null
           is_deleted: boolean
           is_draft: boolean
+          pinned: boolean
           quest_id: string
           title: string
           type: string
           updated_at: string
+          visibility: string
         }
         Insert: {
           author_id: string
+          comments_enabled?: boolean
           content?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -2419,13 +2423,16 @@ export type Database = {
           image_url?: string | null
           is_deleted?: boolean
           is_draft?: boolean
+          pinned?: boolean
           quest_id: string
           title: string
           type?: string
           updated_at?: string
+          visibility?: string
         }
         Update: {
           author_id?: string
+          comments_enabled?: boolean
           content?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -2433,10 +2440,12 @@ export type Database = {
           image_url?: string | null
           is_deleted?: boolean
           is_draft?: boolean
+          pinned?: boolean
           quest_id?: string
           title?: string
           type?: string
           updated_at?: string
+          visibility?: string
         }
         Relationships: [
           {

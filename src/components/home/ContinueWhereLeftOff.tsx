@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, FileEdit, CircleDot, Inbox, ChevronRight } from "lucide-react";
+import { Clock, FileEdit, CircleDot, Inbox, ChevronRight, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,7 @@ export function ContinueWhereLeftOff({ userId }: Props) {
   const { data } = useQuery({
     queryKey: ["continue-where-left", userId],
     queryFn: async () => {
-      const [unfinishedQuests, draftServices, draftCourses, activePods, pendingApps] = await Promise.all([
+      const [unfinishedQuests, draftServices, draftCourses, activePods, pendingApps, ownedQuests] = await Promise.all([
         supabase.from("quest_participants").select("quest_id, quests(id, title, status)")
           .eq("user_id", userId).eq("status", "active").limit(5),
         supabase.from("services").select("id, title").eq("provider_user_id", userId)
@@ -27,6 +27,10 @@ export function ContinueWhereLeftOff({ userId }: Props) {
           .eq("user_id", userId).limit(5),
         supabase.from("guild_applications").select("id, guild_id, guilds(name), status")
           .eq("applicant_user_id", userId).eq("status", "PENDING").limit(5),
+        supabase.from("quests").select("id, title, status")
+          .eq("created_by_user_id", userId).eq("is_deleted", false)
+          .in("status", ["OPEN", "ACTIVE", "IN_PROGRESS", "OPEN_FOR_PROPOSALS"])
+          .limit(3),
       ]);
 
       const items: { id: string; title: string; type: string; icon: string; route: string }[] = [];
@@ -48,6 +52,12 @@ export function ContinueWhereLeftOff({ userId }: Props) {
       (pendingApps.data ?? []).forEach((a: any) => {
         items.push({ id: a.id, title: a.guilds?.name || "Application", type: "Pending Application", icon: "pending", route: `/guilds/${a.guild_id}` });
       });
+      (ownedQuests.data ?? []).forEach((q: any) => {
+        // Add a "post update" shortcut for quests the user owns
+        if (!items.some(it => it.id === `update-${q.id}`)) {
+          items.push({ id: `update-${q.id}`, title: `Post update on "${q.title}"`, type: "Quest Update", icon: "update", route: `/quests/${q.id}?tab=updates` });
+        }
+      });
 
       return items.slice(0, 6);
     },
@@ -57,7 +67,7 @@ export function ContinueWhereLeftOff({ userId }: Props) {
 
   if (!data || data.length === 0) return null;
 
-  const iconMap: Record<string, any> = { quest: Clock, draft: FileEdit, pod: CircleDot, pending: Inbox };
+  const iconMap: Record<string, any> = { quest: Clock, draft: FileEdit, pod: CircleDot, pending: Inbox, update: Send };
 
   return (
     <section>

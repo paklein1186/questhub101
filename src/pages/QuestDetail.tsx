@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake } from "lucide-react";
@@ -50,6 +50,7 @@ const updateIcons: Record<string, typeof Sparkles> = {
 
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);
   const { data: participants } = useQuestParticipants(id);
   const { data: updates } = useQuestUpdates(id);
@@ -68,7 +69,9 @@ export default function QuestDetail() {
   const [uType, setUType] = useState("GENERAL");
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [uVisibility, setUVisibility] = useState("PUBLIC");
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
 
   const [podOpen, setPodOpen] = useState(false);
   const [podName, setPodName] = useState("");
@@ -100,6 +103,14 @@ export default function QuestDetail() {
   const isParticipant = (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
+  // Check if user is admin of a host or co-host entity
+  const isHostAdmin = (() => {
+    if (!resolvedHosts || resolvedHosts.length === 0) return false;
+    // This is a simplified check; full check would query guild_members/company_members
+    return false; // Host admin is checked via isOwner + isCollaborator for now
+  })();
+  const canPostUpdate = isOwner || isCollaborator || isHostAdmin;
+
   const isPaidQuest = quest && quest.price_fiat > 0;
 
   const joinQuest = async () => {
@@ -125,10 +136,34 @@ export default function QuestDetail() {
 
   const postUpdate = async () => {
     if (!uTitle.trim() || !uContent.trim()) return;
-    await supabase.from("quest_updates").insert({ quest_id: quest.id, author_id: currentUser.id, title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft });
+    if (editingUpdateId) {
+      await supabase.from("quest_updates").update({
+        title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft, visibility: uVisibility,
+      } as any).eq("id", editingUpdateId);
+    } else {
+      await supabase.from("quest_updates").insert({
+        quest_id: quest.id, author_id: currentUser.id, title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft, visibility: uVisibility,
+      } as any);
+    }
     qc.invalidateQueries({ queryKey: ["quest-updates", id] });
-    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false);
-    toast({ title: uDraft ? "Draft saved!" : "Update posted!" });
+    setUpdateOpen(false); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setEditingUpdateId(null);
+    toast({ title: uDraft ? "Draft saved!" : editingUpdateId ? "Update edited!" : "Update posted!" });
+  };
+
+  const openEditUpdate = (update: any) => {
+    setUTitle(update.title); setUContent(update.content || ""); setUType(update.type); setUImageUrl(update.image_url || undefined); setUDraft(update.is_draft); setUVisibility(update.visibility || "PUBLIC"); setEditingUpdateId(update.id); setUpdateOpen(true);
+  };
+
+  const deleteUpdate = async (updateId: string) => {
+    await supabase.from("quest_updates").update({ is_deleted: true, deleted_at: new Date().toISOString() } as any).eq("id", updateId);
+    qc.invalidateQueries({ queryKey: ["quest-updates", id] });
+    toast({ title: "Update deleted" });
+  };
+
+  const togglePin = async (updateId: string, currentPinned: boolean) => {
+    await supabase.from("quest_updates").update({ pinned: !currentPinned } as any).eq("id", updateId);
+    qc.invalidateQueries({ queryKey: ["quest-updates", id] });
+    toast({ title: currentPinned ? "Unpinned" : "Pinned!" });
   };
 
   const createPod = async () => {
@@ -253,11 +288,11 @@ export default function QuestDetail() {
           )}
           <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
           {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
-          {isCollaborator && (
-            <Dialog open={updateOpen} onOpenChange={setUpdateOpen}>
+          {canPostUpdate && (
+            <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
               <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Post Quest Update</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>{editingUpdateId ? "Edit Quest Update" : "Post Quest Update"}</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-2">
                   <div><label className="text-sm font-medium mb-1 block">Type</label><Select value={uType} onValueChange={setUType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="GENERAL">General</SelectItem><SelectItem value="MILESTONE">Milestone</SelectItem><SelectItem value="CALL_FOR_HELP">Call for Help</SelectItem><SelectItem value="REFLECTION">Reflection</SelectItem></SelectContent></Select></div>
                   <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={uTitle} onChange={e => setUTitle(e.target.value)} maxLength={120} /></div>
@@ -274,8 +309,18 @@ export default function QuestDetail() {
                     <Textarea value={uContent} onChange={e => setUContent(e.target.value)} maxLength={1000} className="resize-none min-h-[100px]" />
                   </div>
                   <ImageUpload label="Image (optional)" currentImageUrl={uImageUrl} onChange={setUImageUrl} aspectRatio="16/9" />
+                  <div><label className="text-sm font-medium mb-1 block">Visibility</label>
+                    <Select value={uVisibility} onValueChange={setUVisibility}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PUBLIC">Public — anyone can see</SelectItem>
+                        <SelectItem value="FOLLOWERS">Followers only</SelectItem>
+                        <SelectItem value="INTERNAL">Internal — hosts & members only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={uDraft} onCheckedChange={setUDraft} /></div>
-                  <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : "Post Update"}</Button>
+                  <Button onClick={postUpdate} disabled={!uTitle.trim() || !uContent.trim()} className="w-full"><Send className="h-4 w-4 mr-1" /> {uDraft ? "Save Draft" : editingUpdateId ? "Save Changes" : "Post Update"}</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -440,28 +485,60 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="updates" className="mt-6 space-y-4">
-          {(updates || []).length === 0 && <p className="text-muted-foreground">No updates yet.</p>}
+          {canPostUpdate && (
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground">Share progress, milestones, and calls-to-action with your community.</p>
+              <Button size="sm" onClick={() => { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUpdateOpen(true); }}>
+                <Send className="h-4 w-4 mr-1" /> Create Update
+              </Button>
+            </div>
+          )}
+          {(updates || []).length === 0 && <div className="text-center py-10"><p className="text-muted-foreground">No updates yet.</p>{canPostUpdate && <p className="text-sm text-muted-foreground mt-1">Share your first progress update.</p>}</div>}
           {(updates || []).map((update: any, i: number) => {
             const Icon = updateIcons[update.type] || MessageCircle;
+            const isUpdateAuthor = currentUser.id === update.author_id;
+            const canEdit = isUpdateAuthor || isOwner;
             return (
-              <motion.div key={update.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-xl border border-border bg-card p-5 space-y-3">
+              <motion.div key={update.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`rounded-xl border bg-card p-5 space-y-3 ${update.pinned ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                 <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 text-sm">
+                  {update.author && (
+                    <Link to={`/users/${update.author.user_id}`}>
+                      <Avatar className="h-9 w-9"><AvatarImage src={update.author.avatar_url} /><AvatarFallback>{update.author.name?.[0]}</AvatarFallback></Avatar>
+                    </Link>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
+                      {update.author && <Link to={`/users/${update.author.user_id}`} className="font-medium hover:text-primary">{update.author.name}</Link>}
                       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
                       <Badge variant="secondary" className="text-[10px] capitalize">{update.type.toLowerCase().replace(/_/g, " ")}</Badge>
+                      {update.pinned && <Badge className="text-[10px] bg-primary/10 text-primary border-0">📌 Pinned</Badge>}
+                      {update.visibility && update.visibility !== "PUBLIC" && (
+                        <Badge variant="outline" className="text-[10px] capitalize">{update.visibility === "FOLLOWERS" ? "Followers" : "Internal"}</Badge>
+                      )}
                       <span className="text-muted-foreground text-xs">{formatDistanceToNow(new Date(update.created_at), { addSuffix: true })}</span>
                     </div>
                     <h4 className="font-display font-semibold mt-1">{update.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">{update.content}</p>
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
                     {update.image_url && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.image_url} alt="" className="w-full h-auto" /></div>}
                     <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
                   </div>
+                  {canEdit && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditUpdate(update)}><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
+                        {isOwner && <DropdownMenuItem onClick={() => togglePin(update.id, update.pinned)}>{update.pinned ? "Unpin" : "📌 Pin"}</DropdownMenuItem>}
+                        <DropdownMenuItem className="text-destructive" onClick={() => deleteUpdate(update.id)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
-                <div className="ml-12 pt-3 border-t border-border">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Comments on this update</p>
-                  <CommentThread targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />
-                </div>
+                {update.comments_enabled !== false && (
+                  <div className="ml-12 pt-3 border-t border-border">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Comments on this update</p>
+                    <CommentThread targetType={CommentTargetType.QUEST_UPDATE} targetId={update.id} />
+                  </div>
+                )}
               </motion.div>
             );
           })}
