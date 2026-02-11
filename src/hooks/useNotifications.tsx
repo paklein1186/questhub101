@@ -354,7 +354,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   }, [userId, addNotification]);
 
   const notifyGuildRoleChanged = useCallback(async ({ guildId, userId: targetUserId, newRole }: any) => {
-    if (targetUserId !== userId) return;
+    if (targetUserId === userId) return;
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_ROLE_CHANGED,
       title: "Role changed", body: `Your guild role was changed to ${newRole}`,
