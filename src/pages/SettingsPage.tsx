@@ -47,6 +47,7 @@ import {
 import { MyServicesPanel } from "@/components/MyServicesPanel";
 import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { WalletTab } from "@/components/WalletTab";
 
 const TABS = [
   { key: "profile", label: "Profile & Identity", icon: UserCircle },
