@@ -598,12 +598,7 @@ export default function QuestCreate() {
             <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what this quest is about…" className="mt-1" rows={4} />
           </div>
 
-          <div>
-            <Label>Cover Image</Label>
-            <div className="mt-1">
-              <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
-            </div>
-          </div>
+          <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
 
           {/* Mission Budget (Euros) */}
           <div className="rounded-lg border border-border p-4 space-y-4">
