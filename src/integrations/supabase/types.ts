@@ -3273,6 +3273,53 @@ export type Database = {
           },
         ]
       }
+      territory_memory: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by_user_id: string
+          id: string
+          tags: string[] | null
+          territory_id: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          tags?: string[] | null
+          territory_id: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          tags?: string[] | null
+          territory_id?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_memory_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       topic_features: {
         Row: {
           added_by_user_id: string
