@@ -29,6 +29,7 @@ function useCompaniesExplore() {
 
 export default function CompaniesList({ bare, hideFilters, externalFilters }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const activeFilters = externalFilters ?? filters;
   const { data: companiesData, isLoading } = useCompaniesExplore();
   const { session } = useAuth();
   const isLoggedIn = !!session;
