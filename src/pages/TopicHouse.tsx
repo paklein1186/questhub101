@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X, Brain } from "lucide-react";
+import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X, Brain, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
+import { TerritoryMemoryTab } from "@/components/territory/TerritoryMemoryTab";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePersona } from "@/hooks/usePersona";
 import { useToast } from "@/hooks/use-toast";
 import { CommentTargetType } from "@/types/enums";
 import { useTopicBySlug, useTopicStewards, useTopicFeatures, useQuestsForTopic, useGuildsForTopic } from "@/hooks/useEntityQueries";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export default function TopicHouse() {
   const { slug } = useParams<{ slug: string }>();
@@ -25,10 +28,28 @@ export default function TopicHouse() {
   const { data: topicQuests } = useQuestsForTopic(topic?.id);
   const { data: topicGuilds } = useGuildsForTopic(topic?.id);
   const currentUser = useCurrentUser();
+  const { persona } = usePersona();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [featureQuestId, setFeatureQuestId] = useState("");
   const [featureGuildId, setFeatureGuildId] = useState("");
+
+  const isLoggedIn = !!currentUser.id;
+
+  // Check if user is a territory member
+  const { data: isMember = false } = useQuery({
+    queryKey: ["user-territory-member", topic?.id, currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_territories")
+        .select("id")
+        .eq("territory_id", topic!.id)
+        .eq("user_id", currentUser.id)
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!topic?.id && isLoggedIn,
+  });
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!topic) return <PageShell><p>Topic not found.</p></PageShell>;
@@ -54,9 +75,11 @@ export default function TopicHouse() {
   };
 
   const removeFeature = async (featureId: string) => {
-    // topic_features doesn't have a delete policy in the schema, so this may fail. Keep for UI.
     toast({ title: "Removed from featured" });
   };
+
+  // Persona-adaptive tab label
+  const memoryTabLabel = persona === "CREATIVE" ? "Lore" : persona === "IMPACT" ? "Intelligence" : "Knowledge";
 
   return (
     <PageShell>
@@ -90,7 +113,8 @@ export default function TopicHouse() {
           <TabsTrigger value="featured"><Star className="h-3.5 w-3.5 mr-1" /> Featured ({featuredQuests.length + featuredGuilds.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 mr-1" /> Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> Guilds ({guilds.length})</TabsTrigger>
-          <TabsTrigger value="intelligence"><Brain className="h-3.5 w-3.5 mr-1" /> Intelligence</TabsTrigger>
+          <TabsTrigger value="memory"><BookOpen className="h-3.5 w-3.5 mr-1" /> {memoryTabLabel}</TabsTrigger>
+          <TabsTrigger value="intelligence"><Brain className="h-3.5 w-3.5 mr-1" /> AI Analysis</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
         </TabsList>
 
@@ -191,6 +215,14 @@ export default function TopicHouse() {
             ))}
             {guilds.length === 0 && <p className="col-span-full text-center text-muted-foreground py-8">No guilds in this topic.</p>}
           </div>
+        </TabsContent>
+
+        <TabsContent value="memory" className="mt-6">
+          <TerritoryMemoryTab
+            territoryId={topic.id}
+            territoryName={topic.name}
+            isMember={isMember || isSteward}
+          />
         </TabsContent>
 
         <TabsContent value="intelligence" className="mt-6">
