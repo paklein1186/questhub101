@@ -179,9 +179,7 @@ export default function SettingsPage() {
 
   // ── Services state (no longer using mock) ──
 
-  // ── Billing state ──
-  const [buyLoading, setBuyLoading] = useState<string | null>(null);
-  const [portalLoading, setPortalLoading] = useState(false);
+  // ── Billing state (moved to WalletTab) ──
 
   // ── Data export & deletion ──
   const [exportLoading, setExportLoading] = useState(false);
