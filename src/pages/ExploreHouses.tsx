@@ -422,13 +422,13 @@ export default function ExploreHouses({ bare }: Props) {
       {!hasSelection ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
           <Boxes className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-          <p className="font-display font-semibold text-lg">Pick one or more Houses to explore</p>
+          <p className="font-display font-semibold text-lg">Pick one or more Topics to explore</p>
           <p className="text-sm text-muted-foreground mt-1">
             {effectiveUniverse === "creative"
-              ? "Houses are creative realms that group circles, creations, and collaborators."
+              ? "Topics are creative realms that group circles, creations, and collaborators."
               : effectiveUniverse === "impact"
-              ? "Houses are thematic lenses that group missions, guilds, and services."
-              : "Houses are thematic lenses that group quests, guilds, users, and more."}
+              ? "Topics are thematic lenses that group missions, guilds, and services."
+              : "Topics are thematic lenses that group quests, guilds, users, and more."}
           </p>
         </div>
       ) : (
