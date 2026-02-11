@@ -156,7 +156,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   };
 
   const handleSubmit = async () => {
-    if (!canSubmit || !currentUser.id) return;
+    if (!canSubmit || !currentUser.id || uploading || createPost.isPending) return;
     setUploading(true);
 
     try {
@@ -364,7 +364,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
         </div>
         <Button
           size="sm"
-          disabled={!canSubmit || uploading}
+          disabled={!canSubmit || uploading || createPost.isPending}
           onClick={handleSubmit}
         >
           {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}

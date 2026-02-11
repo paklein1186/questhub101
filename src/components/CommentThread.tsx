@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check } from "lucide-react";
+import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,6 +89,8 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const [pendingMentions, setPendingMentions] = useState<MentionedUser[]>([]);
   const [replyMentions, setReplyMentions] = useState<MentionedUser[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const getAuthor = (userId: string) => authorProfiles.find((p) => p.user_id === userId);
   const topLevel = comments.filter((c) => !c.parent_id && !c.is_deleted);
@@ -114,43 +116,50 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   const addComment = async (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
-    if (!content || !currentUser.id) return;
+    if (!content || !currentUser.id || isSubmitting) return;
 
-    const allowed = await checkRateLimit("comment");
-    if (!allowed) return;
+    setIsSubmitting(true);
+    try {
+      const allowed = await checkRateLimit("comment");
+      if (!allowed) return;
 
-    const { data: inserted, error } = await supabase.from("comments").insert({
-      content,
-      author_id: currentUser.id,
-      parent_id: parentId || null,
-      target_type: targetType,
-      target_id: targetId,
-    }).select("id").single();
+      const { data: inserted, error } = await supabase.from("comments").insert({
+        content,
+        author_id: currentUser.id,
+        parent_id: parentId || null,
+        target_type: targetType,
+        target_id: targetId,
+      }).select("id").single();
 
-    if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
+      if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
 
-    // Process @mentions (users + entities)
-    const mentionIds = extractMentionIds(content);
-    const allEntityMentions = extractAllMentions(content);
-    if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
-      await processMentions({
-        commentId: inserted.id,
-        authorUserId: currentUser.id,
-        authorName: currentUser.name,
-        mentionedUserIds: mentionIds,
-        mentionedEntities: allEntityMentions,
-        targetType,
-        targetId,
-        snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
-          const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
-          return `@${name}`;
-        }),
-      });
+      // Process @mentions (users + entities)
+      const mentionIds = extractMentionIds(content);
+      const allEntityMentions = extractAllMentions(content);
+      if ((mentionIds.length > 0 || allEntityMentions.length > 0) && inserted) {
+        await processMentions({
+          commentId: inserted.id,
+          authorUserId: currentUser.id,
+          authorName: currentUser.name,
+          mentionedUserIds: mentionIds,
+          mentionedEntities: allEntityMentions,
+          targetType,
+          targetId,
+          snippet: content.replace(/@\[[^\]]+\]\([^)]+\)/g, (m) => {
+            const name = m.match(/@\[([^\]]+)\]/)?.[1] ?? "";
+            return `@${name}`;
+          }),
+        });
+      }
+
+      if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
+      toast({ title: "Comment added" });
+      qc.invalidateQueries({ queryKey });
+    } catch (err: any) {
+      toast({ title: err.message || "Failed to post comment", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
-    toast({ title: "Comment added" });
-    qc.invalidateQueries({ queryKey });
   };
 
   const saveEdit = async (commentId: string) => {
@@ -163,18 +172,29 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("comments")
-      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
-      .eq("id", deleteTarget);
-    if (error) {
+    if (!deleteTarget || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .eq("id", deleteTarget)
+        .eq("author_id", currentUser.id)
+        .select("id");
+      if (error) {
+        toast({ title: "Failed to delete comment", variant: "destructive" });
+      } else if (!data || data.length === 0) {
+        toast({ title: "You don't have permission to delete this comment", variant: "destructive" });
+      } else {
+        toast({ title: "Comment deleted" });
+        qc.invalidateQueries({ queryKey });
+      }
+    } catch {
       toast({ title: "Failed to delete comment", variant: "destructive" });
-    } else {
-      toast({ title: "Comment deleted" });
-      qc.invalidateQueries({ queryKey });
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
     }
-    setDeleteTarget(null);
   };
 
   const renderComment = (comment: typeof comments[0], isReply = false) => {
@@ -265,7 +285,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                     maxLength={500}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(comment.id); } }}
                   />
-                  <Button size="sm" className="self-end" disabled={!replyText.trim()} onClick={() => addComment(comment.id)}><Send className="h-4 w-4" /></Button>
+                  <Button size="sm" className="self-end" disabled={!replyText.trim() || isSubmitting} onClick={() => addComment(comment.id)}>
+                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -297,7 +319,10 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
             />
             <div className="flex justify-end mt-2">
-              <Button size="sm" disabled={!newComment.trim()} onClick={() => addComment()}><Send className="h-4 w-4 mr-1" /> Comment</Button>
+              <Button size="sm" disabled={!newComment.trim() || isSubmitting} onClick={() => addComment()}>
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+                Comment
+              </Button>
             </div>
           </div>
         </div>
@@ -313,9 +338,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? "Deleting…" : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

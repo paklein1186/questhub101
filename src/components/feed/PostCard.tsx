@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -115,7 +115,8 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
   const deletePost = useDeletePost();
   const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
-  const upvoteCount = (post as any).upvote_count ?? 0;
+  const upvoteCount = post.upvote_count ?? 0;
+  const isDeleting = deletePost.isPending;
 
   const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
   const videos = (post.post_attachments || []).filter((a) => a.type === "VIDEO_LINK");
@@ -169,8 +170,8 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
           )}
         </div>
         {isOwn && (
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete}>
-            <Trash2 className="h-3.5 w-3.5" />
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete} disabled={isDeleting}>
+            {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
           </Button>
         )}
       </div>

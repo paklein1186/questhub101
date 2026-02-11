@@ -10,6 +10,7 @@ export interface FeedPost {
   created_at: string;
   updated_at: string;
   is_deleted: boolean;
+  upvote_count: number;
 }
 
 export interface PostAttachment {
@@ -37,7 +38,7 @@ export function useFeedPosts(contextType: string, contextId?: string) {
     queryKey: ["feed-posts", contextType, contextId],
     queryFn: async () => {
       let q = supabase
-        .from("feed_posts" as any)
+        .from("feed_posts")
         .select("*, post_attachments(*)")
         .eq("context_type", contextType)
         .eq("is_deleted", false)
@@ -88,18 +89,18 @@ export function useCreatePost() {
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
-        .from("feed_posts" as any)
+        .from("feed_posts")
         .insert({
           author_user_id: authorUserId,
           context_type: contextType,
           context_id: contextId || null,
           content: content || null,
-        } as any)
+        })
         .select("id")
         .single();
 
       if (postError) throw postError;
-      const postId = (post as any).id;
+      const postId = post.id;
 
       // Insert attachments
       if (attachments.length > 0) {
@@ -116,7 +117,7 @@ export function useCreatePost() {
           sort_order: i,
         }));
         const { error: attError } = await supabase
-          .from("post_attachments" as any)
+          .from("post_attachments")
           .insert(rows as any);
         if (attError) throw attError;
       }
@@ -133,14 +134,19 @@ export function useDeletePost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { error } = await supabase
-        .from("feed_posts" as any)
-        .update({ is_deleted: true, deleted_at: new Date().toISOString() } as any)
-        .eq("id", postId);
+      const { data, error } = await supabase
+        .from("feed_posts")
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .eq("id", postId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Could not delete post. You may not have permission.");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
+      qc.invalidateQueries({ queryKey: ["following-feed"] });
     },
   });
 }
