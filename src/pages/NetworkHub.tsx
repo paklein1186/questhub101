@@ -221,7 +221,7 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
   const top = memberships.slice(0, 4);
   return (
     <div>
-      <SectionHeader icon={Building2} title="Traditional Organizations in your orbit" count={memberships.length} seeMoreTo="/network?tab=companies" />
+      <SectionHeader icon={Building2} title="Traditional Organizations in your orbit" count={memberships.length} seeMoreTo="/network?tab=entities" />
       {top.length === 0 ? (
         <EmptyState icon={Building2} message="No traditional organizations linked to your account." cta="Create one" to="/me/companies" />
       ) : (
