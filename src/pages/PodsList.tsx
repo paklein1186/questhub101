@@ -34,6 +34,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
   const isLoggedIn = !!session;
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const activeFilters = externalFilters ?? filters;
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -49,7 +50,8 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
   const { data: topics } = useTopics();
   const { data: questsData } = useQuests();
   const createPodMut = useCreatePod();
-  const hf = useHouseFilter();
+  const ownHf = useHouseFilter();
+  const hf = externalHouseFilter ?? ownHf;
 
   const allPods = podsData ?? [];
   const quests = questsData ?? [];
