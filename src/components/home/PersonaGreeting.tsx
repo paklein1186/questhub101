@@ -1,12 +1,6 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import type { PersonaType } from "@/lib/personaLabels";
-
-const GREETINGS: Record<PersonaType, (name: string) => string> = {
-  CREATIVE: (name) => `Welcome back, ${name}. What do you want to create or move today?`,
-  IMPACT: (name) => `Welcome back, ${name}. What mission or collaboration needs your attention?`,
-  HYBRID: (name) => `Welcome back, ${name}. Ready to weave your worlds again?`,
-  UNSET: () => "Welcome back!",
-};
 
 interface Props {
   userName: string;
@@ -14,12 +8,26 @@ interface Props {
 }
 
 export function PersonaGreeting({ userName, persona }: Props) {
-  const greeting = GREETINGS[persona](userName);
+  const { t } = useTranslation();
+
+  const getGreeting = () => {
+    const name = userName;
+    switch (persona) {
+      case "CREATIVE":
+        return t("home.welcomeCreative", { name });
+      case "IMPACT":
+        return t("home.welcomeImpact", { name });
+      case "HYBRID":
+        return t("home.welcomeHybrid", { name });
+      default:
+        return t("home.welcome");
+    }
+  };
 
   return (
     <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
       className="font-display text-xl sm:text-2xl md:text-3xl font-bold">
-      {greeting}
+      {getGreeting()}
     </motion.h1>
   );
 }

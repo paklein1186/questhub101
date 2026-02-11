@@ -37,6 +37,9 @@
   },
   "home": {
     "welcome": "Bienvenue",
+    "welcomeCreative": "Bienvenue, {{name}}. Qu'est-ce que vous voulez créer ou transformer aujourd'hui?",
+    "welcomeImpact": "Bienvenue, {{name}}. Quelle mission ou collaboration nécessite votre attention?",
+    "welcomeHybrid": "Bienvenue, {{name}}. Prêt à tisser à nouveau vos mondes?",
     "feed": "Fil d'actualité",
     "forYou": "Pour vous",
     "following": "Abonnements"
