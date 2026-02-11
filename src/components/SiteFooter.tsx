@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { Zap, ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -129,7 +130,7 @@ export function SiteFooter() {
           {/* Brand & Mission */}
           <div className="lg:max-w-xs shrink-0">
             <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
-              <Zap className="h-5 w-5 text-primary" /> changethegame
+              <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
             </Link>
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
               Human-powered. AI-augmented. Game-changing.

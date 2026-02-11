@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Zap, ArrowRight, UserPlus, Compass, Shield, Users, Briefcase,
+  ArrowRight, UserPlus, Compass, Shield, Users, Briefcase,
   Lightbulb, Target, Handshake, Star, BookOpen, Award, Layers,
   Sprout, MapPin, Building2, ChevronRight,
 } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,7 +101,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-            <Zap className="h-5 w-5 text-primary" /> changethegame
+            <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
           </Link>
           <nav className="flex items-center gap-2">
             <Button size="sm" variant="ghost" asChild>
