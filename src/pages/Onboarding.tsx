@@ -811,8 +811,53 @@ export default function Onboarding() {
     );
   }
 
+  // ─── Languages Step (shared) ─────────────────────────────
+  function renderLanguagesStep() {
+    const toggleLang = (code: string) => {
+      setSpokenLangCodes((p) =>
+        p.includes(code) ? p.filter((c) => c !== code) : [...p, code]
+      );
+    };
+
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Languages you speak 🌍</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Which languages do you speak and feel comfortable collaborating in?
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          {AVAILABLE_LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => toggleLang(lang.code)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                spokenLangCodes.includes(lang.code)
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/30"
+              )}
+            >
+              <span className="text-xl">{lang.flag}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{lang.label}</p>
+                <p className="text-xs text-muted-foreground">{lang.native}</p>
+              </div>
+              {spokenLangCodes.includes(lang.code) && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          {spokenLangCodes.length} selected · Translations and AI responses will prioritize these languages.
+        </p>
+      </div>
+    );
+  }
+
   // ─── Affiliations input step (shared) ─────────────────
-  function renderAffiliationsInput() {
     return (
       <AffiliationsStep
         persona={personaType}
