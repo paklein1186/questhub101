@@ -905,6 +905,7 @@ export default function Onboarding() {
         services={suggestedServices}
         onServicesChange={setSuggestedServices}
         loading={aiLoading}
+        guilds={existingGuilds}
       />
     );
   }

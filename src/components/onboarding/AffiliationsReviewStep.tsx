@@ -184,11 +184,19 @@ export function AffiliationsReviewStep({
                   {aff.role && (
                     <span className="text-xs text-muted-foreground">{aff.role}</span>
                   )}
-                  {aff.matchedEntityId && (
-                    <span className="text-[10px] text-primary">
-                      ✓ Matches existing entity
-                    </span>
-                  )}
+                  {aff.matchedEntityId && (() => {
+                    const needsApproval = aff.matchedEntityType === "COMPANY" ||
+                      (aff.matchedEntityType === "GUILD" && guilds.find(g => g.id === aff.matchedEntityId)?.join_policy !== "OPEN");
+                    return needsApproval ? (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
+                        <Clock className="h-3 w-3" /> Application sent to admins
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-primary">
+                        ✓ Instant join
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
               <Button
