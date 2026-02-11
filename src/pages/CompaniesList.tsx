@@ -27,42 +27,47 @@ function useCompaniesExplore() {
   });
 }
 
-export default function CompaniesList({ bare }: { bare?: boolean }) {
+export default function CompaniesList({ bare, hideFilters, externalFilters }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const activeFilters = externalFilters ?? filters;
   const { data: companiesData, isLoading } = useCompaniesExplore();
   const { session } = useAuth();
   const isLoggedIn = !!session;
 
   let filtered = companiesData ?? [];
 
-  if (filters.territoryIds.length > 0) {
+  if (activeFilters.territoryIds.length > 0) {
     filtered = filtered.filter((c: any) =>
-      c.company_territories?.some((ct: any) => filters.territoryIds.includes(ct.territory_id))
+      c.company_territories?.some((ct: any) => activeFilters.territoryIds.includes(ct.territory_id))
     );
   }
 
   return (
     <PageShell bare={bare}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Building2 className="h-7 w-7 text-primary" /> Traditional Organizations
-        </h1>
-      </div>
+      {!hideFilters && (
+        <>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+              <Building2 className="h-7 w-7 text-primary" /> Traditional Organizations
+            </h1>
+          </div>
 
-      {!isLoggedIn && (
-        <PublicExploreCTA
-          message="This is a preview of organizations in the ecosystem. Log in to see full details."
-          className="mb-6"
-        />
+          {!isLoggedIn && (
+            <PublicExploreCTA
+              message="This is a preview of organizations in the ecosystem. Log in to see full details."
+              className="mb-6"
+            />
+          )}
+
+          <div className="mb-6">
+            <ExploreFilters
+              filters={activeFilters}
+              onChange={setFilters}
+              config={{ showTerritories: true }}
+            />
+          </div>
+        </>
       )}
-
-      <div className="mb-6">
-        <ExploreFilters
-          filters={filters}
-          onChange={setFilters}
-          config={{ showTerritories: true }}
-        />
-      </div>
 
       {isLoading && (
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
