@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Briefcase, FileEdit, Plus, CalendarDays } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
@@ -46,19 +47,31 @@ export default function WorkHub() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
-          <TabsTrigger value="teams">My Teams ({teamsList.length})</TabsTrigger>
-          <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
-          <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          <TabsTrigger value="calendar" asChild>
-            <Link to="/calendar" className="flex items-center gap-1"><CalendarDays className="h-4 w-4" />Calendar</Link>
-          </TabsTrigger>
-          <TabsTrigger value="requests">Requests</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center gap-1 mb-6">
+          <TabsList>
+            <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
+            <TabsTrigger value="teams">My Teams ({teamsList.length})</TabsTrigger>
+            <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
+          </TabsList>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-9 px-2.5 shrink-0">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="ml-1 text-sm hidden sm:inline">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTab("courses")}>Courses</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTab("availability")}>Availability</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTab("requests")}>Requests</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/calendar" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Calendar</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <TabsContent value="quests">
           {questsList.length === 0 && (

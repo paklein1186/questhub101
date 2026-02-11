@@ -89,7 +89,7 @@ export default function NetworkHub() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-6 flex-wrap">
+        <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>

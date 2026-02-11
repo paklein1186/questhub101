@@ -1,11 +1,12 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
@@ -38,6 +39,7 @@ export default function PodDetail() {
 
   const limits = usePlanLimits();
   const [showPodXpDialog, setShowPodXpDialog] = useState(false);
+  const [activeTab, setActiveTab] = useState("members");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
@@ -153,14 +155,34 @@ export default function PodDetail() {
       </motion.div>
 
       <Tabs defaultValue="members">
-        <TabsList>
-          <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
-          {isMember && <TabsTrigger value="facilitator"><Sparkles className="h-4 w-4 mr-1" /> Facilitator</TabsTrigger>}
-          {isMember && <TabsTrigger value="memory"><Brain className="h-4 w-4 mr-1" /> Memory</TabsTrigger>}
-          {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
-        </TabsList>
+        <div className="flex items-center gap-1">
+          <TabsList>
+            <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="discussion">Discussion</TabsTrigger>
+          </TabsList>
+          {isMember && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 px-2.5 shrink-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="ml-1 text-sm hidden sm:inline">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => document.querySelector<HTMLButtonElement>('[data-state][value="facilitator"]')?.click()}>
+                  <Sparkles className="h-4 w-4 mr-2" /> Facilitator
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => document.querySelector<HTMLButtonElement>('[data-state][value="memory"]')?.click()}>
+                  <Brain className="h-4 w-4 mr-2" /> Memory
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => document.querySelector<HTMLButtonElement>('[data-state][value="ai-chat"]')?.click()}>
+                  <Bot className="h-4 w-4 mr-2" /> Chat & AI
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         <TabsContent value="members" className="mt-6">
           <div className="grid gap-3 md:grid-cols-2">

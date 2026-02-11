@@ -215,7 +215,7 @@ export default function CompanyDetail() {
       </motion.div>
 
       <Tabs defaultValue="overview">
-        <TabsList className="flex-wrap">
+        <TabsList>
           <TabsTrigger value="overview"><Building2 className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
