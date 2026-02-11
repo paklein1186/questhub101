@@ -238,7 +238,7 @@ export function useMilestoneChecker() {
     const spokenLangsRes = await supabase.from("user_spoken_languages").select("id", { count: "exact", head: true }).eq("user_id", uid);
     const guildMembersRes = await supabase.from("guild_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
     const podMembersRes = await supabase.from("pod_members").select("id", { count: "exact", head: true }).eq("user_id", uid);
-    const territoryMemoryRes = await supabase.from("territory_memory").select("id", { count: "exact", head: true }).eq("author_user_id", uid);
+    const territoryMemoryRes = await (supabase.from("territory_memory").select("id", { count: "exact", head: true }) as any).eq("author_user_id", uid);
     const eventAttendeesRes = await supabase.from("guild_event_attendees").select("id", { count: "exact", head: true }).eq("user_id", uid);
     const shareholdingsRes = await supabase.from("shareholdings").select("id", { count: "exact", head: true }).eq("user_id", uid);
     const eventsHostedRes = await supabase.from("guild_events").select("id", { count: "exact", head: true }).eq("created_by_user_id", uid);
