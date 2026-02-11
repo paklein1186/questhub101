@@ -257,10 +257,50 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   // ── Trigger stubs — these insert into the DB notifications table ──
 
   const notifyComment = useCallback(async ({ commentAuthorId, targetType, targetId, commentId, commentSnippet }: any) => {
-    // We'd need to resolve the target owner — for now, just skip self-notifications
-    if (commentAuthorId === userId) return;
-    // In a full implementation, resolve the owner and notify them
-  }, [userId]);
+    if (commentAuthorId === userId) return; // Don't self-notify
+
+    // Resolve the owner of the target entity
+    let ownerUserId: string | null = null;
+    try {
+      if (targetType === "QUEST") {
+        const { data } = await supabase.from("quests").select("owner_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.owner_user_id ?? null;
+      } else if (targetType === "GUILD") {
+        const { data } = await supabase.from("guild_members").select("user_id").eq("guild_id", targetId).eq("role", "ADMIN").limit(1);
+        ownerUserId = data?.[0]?.user_id ?? null;
+      } else if (targetType === "SERVICE") {
+        const { data } = await supabase.from("services").select("provider_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.provider_user_id ?? null;
+      } else if (targetType === "COMPANY") {
+        const { data } = await supabase.from("company_members").select("user_id").eq("company_id", targetId).in("role", ["admin", "owner"]).limit(1);
+        ownerUserId = data?.[0]?.user_id ?? null;
+      } else if (targetType === "COURSE") {
+        const { data } = await supabase.from("courses").select("owner_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.owner_user_id ?? null;
+      } else if (targetType === "FEED_POST") {
+        const { data } = await supabase.from("feed_posts").select("author_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.author_user_id ?? null;
+      } else if (targetType === "USER") {
+        ownerUserId = targetId; // Comment on a user's profile wall
+      }
+    } catch { /* silent */ }
+
+    if (!ownerUserId || ownerUserId === commentAuthorId) return;
+
+    const truncated = (commentSnippet || "").slice(0, 60);
+    const entityLabel = targetType.toLowerCase().replace(/_/g, " ");
+    
+    await addNotification({
+      userId: ownerUserId,
+      type: NotificationType.COMMENT,
+      title: "New comment",
+      body: `Someone commented on your ${entityLabel}: "${truncated}"`,
+      relatedEntityType: targetType,
+      relatedEntityId: targetId,
+      deepLinkUrl: buildCommentDeepLink(targetType, targetId),
+      data: { targetType, targetId, commentId },
+    });
+  }, [userId, addNotification]);
 
   const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
     if (commentAuthorId !== userId || commentAuthorId === upvoterId) return;
