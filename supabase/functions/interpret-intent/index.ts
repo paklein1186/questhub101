@@ -7,6 +7,58 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const VALID_ROUTES: Record<string, string> = {
+  "/quests/new": "Create a Quest",
+  "/services/new": "Create a Service",
+  "/courses/new": "Create a Course",
+  "/explore": "Explore everything",
+  "/explore?tab=entities": "Explore entities",
+  "/explore?tab=quests": "Explore quests",
+  "/explore?tab=services": "Explore services",
+  "/explore?tab=courses": "Explore courses",
+  "/explore?tab=events": "Explore events",
+  "/explore?tab=people": "Find people",
+  "/work": "See my work & quests",
+  "/network": "My network",
+  "/network?tab=entities": "My entities",
+  "/network?tab=people": "People in my orbit",
+  "/network?tab=territories": "My territories",
+  "/wall": "My wall / feed",
+  "/me": "My profile",
+  "/guilds": "Browse guilds",
+  "/pods": "Browse pods",
+  "/companies": "Browse organizations",
+  "/services": "Browse services",
+  "/quests": "Browse quests",
+  "/courses": "Browse courses",
+  "/territories": "Explore territories",
+};
+
+const VALID_ROUTES_LIST = Object.entries(VALID_ROUTES).map(([route, desc]) => `  ${route} — ${desc}`).join("\n");
+
+function sanitizeRoute(route: string): string {
+  // Check exact match first
+  if (VALID_ROUTES[route]) return route;
+  // Check if it starts with a valid prefix
+  const validPrefixes = Object.keys(VALID_ROUTES);
+  for (const prefix of validPrefixes) {
+    if (route === prefix || route.startsWith(prefix + "?") || route.startsWith(prefix + "#")) {
+      return route;
+    }
+  }
+  // Fallback: map common AI hallucinations to real routes
+  if (route.includes("quest")) return "/explore?tab=quests";
+  if (route.includes("service")) return "/explore?tab=services";
+  if (route.includes("people") || route.includes("user")) return "/explore?tab=people";
+  if (route.includes("guild") || route.includes("entit")) return "/explore?tab=entities";
+  if (route.includes("territor")) return "/territories";
+  if (route.includes("course") || route.includes("learn")) return "/explore?tab=courses";
+  if (route.includes("event")) return "/explore?tab=events";
+  if (route.includes("work") || route.includes("my")) return "/work";
+  if (route.includes("wall") || route.includes("post") || route.includes("share")) return "/wall";
+  return "/explore";
+}
+
 const SYSTEM_PROMPT = `You are the intent-routing AI for "changethegame", a regenerative community platform.
 Your ONLY job is to classify a user's freeform text into one actionable intent.
 
@@ -30,18 +82,21 @@ VALID action types:
 - LEARN: User wants to learn/grow/find mentors
 - OTHER: Doesn't fit any known flow — this is an odd/novel proposal
 
+VALID ROUTES (you MUST only use these exact routes):
+${VALID_ROUTES_LIST}
+
 Respond ONLY with this JSON:
 {
   "actionType": "ONE_OF_THE_ABOVE",
   "confidence": 0.0-1.0,
   "summary": "one-sentence summary of the user's intent",
   "suggestions": [
-    { "label": "Short CTA label", "route": "/app/route", "description": "Why this fits" }
+    { "label": "Short CTA label", "route": "/exact/valid/route", "description": "Why this fits" }
   ],
   "followUpQuestion": "optional clarifying question if intent is ambiguous"
 }
 
-Give 2-3 suggestions max. Routes should be real app routes like /quests/new, /explore, /work, /network, /services/new, etc.
+Give 2-3 suggestions max. ONLY use routes from the VALID ROUTES list above.
 If actionType is OTHER, set confidence to the probability it IS a real intent (low = truly odd).
 Adapt language to the persona provided in context.`;
 
