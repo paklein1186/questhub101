@@ -40,7 +40,7 @@ const ACTION_ICONS: Record<string, any> = {
   start_course: BookOpen,
   find_service: Briefcase,
   create_service: Briefcase,
-  explore_houses: Hash,
+   explore_houses: Hash,
   explore_territories: MapPin,
   browse_quests: Compass,
   fund_quest: Coins,
