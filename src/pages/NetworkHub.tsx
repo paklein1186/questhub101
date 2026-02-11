@@ -210,7 +210,7 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
 function OverviewTerritories({ territories, topics, activity }: { territories: any[]; topics: any[]; activity: any }) {
   return (
     <div>
-      <SectionHeader icon={MapPin} title="Territories & Houses around you" seeMoreTo="/network?tab=territories" />
+      <SectionHeader icon={MapPin} title="Territories & Topics around you" seeMoreTo="/network?tab=territories" />
       {territories.length === 0 && topics.length === 0 ? (
         <EmptyState icon={MapPin} message="Add territories and houses in your profile settings." cta="Edit profile" to="/profile/edit" />
       ) : (
