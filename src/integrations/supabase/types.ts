@@ -3525,6 +3525,50 @@ export type Database = {
           },
         ]
       }
+      territory_excerpt_reports: {
+        Row: {
+          created_at: string
+          custom_reason: string | null
+          excerpt_id: string
+          id: string
+          reason: string
+          reported_by_user_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          custom_reason?: string | null
+          excerpt_id: string
+          id?: string
+          reason: string
+          reported_by_user_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          custom_reason?: string | null
+          excerpt_id?: string
+          id?: string
+          reason?: string
+          reported_by_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_excerpt_reports_excerpt_id_fkey"
+            columns: ["excerpt_id"]
+            isOneToOne: false
+            referencedRelation: "territory_excerpts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       territory_excerpt_upvotes: {
         Row: {
           created_at: string
@@ -3558,11 +3602,15 @@ export type Database = {
         Row: {
           created_at: string
           created_by_user_id: string | null
+          deleted_at: string | null
           id: string
+          is_deleted: boolean
           source_chat_log_id: string | null
           source_event_id: string | null
           source_memory_entry_id: string | null
+          source_prompt: string | null
           source_quest_id: string | null
+          synthesis: string | null
           territory_id: string
           text: string
           updated_at: string
@@ -3571,11 +3619,15 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by_user_id?: string | null
+          deleted_at?: string | null
           id?: string
+          is_deleted?: boolean
           source_chat_log_id?: string | null
           source_event_id?: string | null
           source_memory_entry_id?: string | null
+          source_prompt?: string | null
           source_quest_id?: string | null
+          synthesis?: string | null
           territory_id: string
           text: string
           updated_at?: string
@@ -3584,11 +3636,15 @@ export type Database = {
         Update: {
           created_at?: string
           created_by_user_id?: string | null
+          deleted_at?: string | null
           id?: string
+          is_deleted?: boolean
           source_chat_log_id?: string | null
           source_event_id?: string | null
           source_memory_entry_id?: string | null
+          source_prompt?: string | null
           source_quest_id?: string | null
+          synthesis?: string | null
           territory_id?: string
           text?: string
           updated_at?: string
