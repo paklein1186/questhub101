@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,6 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import { AffiliationsStep, type AffiliationLink, type ManualAffiliation } from "@/components/onboarding/AffiliationsStep";
+import { AffiliationsReviewStep, type SuggestedAffiliation, type SuggestedHouse, type SuggestedService } from "@/components/onboarding/AffiliationsReviewStep";
+import { useQuery } from "@tanstack/react-query";
 import {
   CREATIVE_INTENTION_OPTIONS,
   CREATIVE_BIO_SUGGESTIONS,
@@ -31,8 +34,10 @@ import {
 } from "@/lib/personaLabels";
 
 // ─── Step config ──────────────────────────────────────────────
-const STEP_LABELS_IMPACT = ["Intention", "Identity", "Project", "Offering", "Get Started"];
-const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Proud Project", "Skill Session", "Get Started"];
+// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
+// Impact: 0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
@@ -76,7 +81,7 @@ export default function Onboarding() {
   // Creative vs Impact path
   const [isCreativePath, setIsCreativePath] = useState(false);
 
-  // Step 0 – Intention (Impact path) or Creative entry
+  // Step 0 – Intention
   const [intentions, setIntentions] = useState<string[]>([]);
   const [creativeIntentions, setCreativeIntentions] = useState<string[]>([]);
 
@@ -85,6 +90,18 @@ export default function Onboarding() {
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
+
+  // Affiliations step
+  const [affLinks, setAffLinks] = useState<AffiliationLink>({ website: "", linkedin: "", other: "" });
+  const [manualAffiliations, setManualAffiliations] = useState<ManualAffiliation[]>([]);
+  const [selectedEntityIds, setSelectedEntityIds] = useState<string[]>([]);
+
+  // AI review step
+  const [suggestedAffiliations, setSuggestedAffiliations] = useState<SuggestedAffiliation[]>([]);
+  const [suggestedHouses, setSuggestedHouses] = useState<SuggestedHouse[]>([]);
+  const [suggestedServices, setSuggestedServices] = useState<SuggestedService[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiRequested, setAiRequested] = useState(false);
 
   // Project
   const [wantsProject, setWantsProject] = useState<boolean | null>(null);
@@ -103,6 +120,22 @@ export default function Onboarding() {
   const [serviceTopics, setServiceTopics] = useState<string[]>([]);
   const [serviceImage, setServiceImage] = useState<string | undefined>();
 
+  // Fetch existing guilds & companies for affiliations step
+  const { data: existingGuilds = [] } = useQuery({
+    queryKey: ["onboarding-guilds"],
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("id, name").eq("is_deleted", false).eq("is_approved", true).limit(100);
+      return data || [];
+    },
+  });
+  const { data: existingCompanies = [] } = useQuery({
+    queryKey: ["onboarding-companies"],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, name").eq("is_deleted", false).limit(100);
+      return data || [];
+    },
+  });
+
   // Pre-fill from profile
   const [preloaded, setPreloaded] = useState(false);
   useEffect(() => {
@@ -110,12 +143,19 @@ export default function Onboarding() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, bio, headline")
+        .select("name, bio, headline, website_url, linkedin_url, instagram_url")
         .eq("user_id", authUser.id)
         .single();
       if (data) {
         if (data.name) setName(data.name);
         if (data.bio) setBio(data.bio);
+        if (data.website_url || data.linkedin_url || data.instagram_url) {
+          setAffLinks({
+            website: data.website_url || "",
+            linkedin: data.linkedin_url || "",
+            other: data.instagram_url || "",
+          });
+        }
       }
       const { data: ut } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser.id);
       if (ut?.length) setSelectedTopics(ut.map((r) => r.topic_id));
@@ -137,24 +177,76 @@ export default function Onboarding() {
     setCreativeIntentions((p) => p.includes(key) ? p.filter((x) => x !== key) : [...p, key]);
   const toggleArr = (arr: string[], id: string) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
+  const toggleEntity = (id: string) =>
+    setSelectedEntityIds((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+
+  // ─── Trigger AI suggestions ─────────────────────────────
+  const requestAiSuggestions = useCallback(async () => {
+    if (aiRequested) return;
+    setAiLoading(true);
+    setAiRequested(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("onboarding-suggest", {
+        body: {
+          persona: personaType,
+          name,
+          headline: bio?.slice(0, 100),
+          bio,
+          links: affLinks,
+          manualAffiliations,
+          selectedHouseIds: selectedTopics,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.suggestedAffiliations) {
+        setSuggestedAffiliations(
+          data.suggestedAffiliations.map((a: any) => ({ ...a, accepted: a.confidence > 0.5 }))
+        );
+      }
+      if (data?.suggestedHouses) {
+        setSuggestedHouses(
+          data.suggestedHouses.map((h: any) => ({ ...h, accepted: h.confidence > 0.5 }))
+        );
+      }
+      if (data?.suggestedServices) {
+        setSuggestedServices(
+          data.suggestedServices.map((s: any) => ({ ...s, accepted: true }))
+        );
+      }
+    } catch (e: any) {
+      console.error("AI suggestions error:", e);
+      toast({ title: "AI suggestions unavailable", description: "You can add everything manually later.", variant: "default" });
+    } finally {
+      setAiLoading(false);
+    }
+  }, [aiRequested, personaType, name, bio, affLinks, manualAffiliations, selectedTopics, toast]);
 
   // ─── Save all onboarding data ─────────────────────────────
   const finishOnboarding = async () => {
     if (!authUser?.id) return;
     setSaving(true);
     try {
+      // Save social links to profile
       await supabase.from("profiles").update({
         name: name.trim() || undefined,
         bio: bio.trim() || null,
         has_completed_onboarding: true,
         persona_type: personaType,
         persona_source: "onboarding_intent",
+        website_url: affLinks.website.trim() || null,
+        linkedin_url: affLinks.linkedin.trim() || null,
+        instagram_url: affLinks.other.trim() || null,
       }).eq("user_id", authUser.id);
 
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
-      if (selectedTopics.length) {
+      // Merge selected topics + accepted AI house suggestions
+      const allTopicIds = new Set(selectedTopics);
+      suggestedHouses.filter(h => h.accepted).forEach(h => allTopicIds.add(h.topicId));
+      if (allTopicIds.size > 0) {
         await supabase.from("user_topics").insert(
-          selectedTopics.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
+          Array.from(allTopicIds).map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
         );
       }
 
@@ -165,6 +257,57 @@ export default function Onboarding() {
         );
       }
 
+      // Save accepted affiliations as guild/company memberships
+      for (const aff of suggestedAffiliations.filter(a => a.accepted && a.matchedEntityId)) {
+        if (aff.matchedEntityType === "GUILD") {
+          await supabase.from("guild_members").upsert([{
+            guild_id: aff.matchedEntityId!,
+            user_id: authUser.id,
+            role: "MEMBER" as const,
+          }], { onConflict: "guild_id,user_id" }).select();
+        } else if (aff.matchedEntityType === "COMPANY") {
+          await supabase.from("company_members").upsert([{
+            company_id: aff.matchedEntityId!,
+            user_id: authUser.id,
+            role: aff.role || "member",
+          }], { onConflict: "company_id,user_id" }).select();
+        }
+      }
+
+      // Also join directly selected entities
+      for (const entityId of selectedEntityIds) {
+        const isGuild = existingGuilds.some(g => g.id === entityId);
+        if (isGuild) {
+          await supabase.from("guild_members").upsert([{
+            guild_id: entityId,
+            user_id: authUser.id,
+            role: "MEMBER" as const,
+          }], { onConflict: "guild_id,user_id" }).select();
+        } else {
+          await supabase.from("company_members").upsert([{
+            company_id: entityId,
+            user_id: authUser.id,
+            role: "member",
+          }], { onConflict: "company_id,user_id" }).select();
+        }
+      }
+
+      // Save accepted draft services
+      for (const svc of suggestedServices.filter(s => s.accepted)) {
+        await supabase.from("services").insert({
+          title: svc.title,
+          description: svc.description,
+          provider_user_id: authUser.id,
+          owner_type: "USER",
+          owner_id: authUser.id,
+          price_amount: 0,
+          price_currency: "EUR",
+          is_active: false, // draft
+          is_draft: true,
+        } as any);
+      }
+
+      // Infer persona in background
       supabase.functions.invoke("infer-persona", {
         body: {
           selections: isCreativePath
@@ -252,19 +395,34 @@ export default function Onboarding() {
     }
   };
 
-  // ─── Creative path step mapping ─────────────────────────────
-  // Creative: 0=entry choice, 1=Houses of Art, 2=territories, 3=bio, 4=project, 5=service, 6=done
-  // Impact:  0=intention, 1=identity, 2=project, 3=service, 4=done
+  // ─── Step indices ─────────────────────────────────────────
+  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
+  // Impact:  0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
+
+  const CREATIVE_AFF_STEP = 4;
+  const CREATIVE_REVIEW_STEP = 5;
+  const CREATIVE_PROJECT_STEP = 6;
+  const CREATIVE_SERVICE_STEP = 7;
+
+  const IMPACT_AFF_STEP = 2;
+  const IMPACT_REVIEW_STEP = 3;
+  const IMPACT_PROJECT_STEP = 4;
+  const IMPACT_SERVICE_STEP = 5;
 
   const goNext = () => {
     if (isCreativePath) {
-      // Creative step 5 (service): finalize
-      if (step === 5) { finishOnboarding(); return; }
-      // Creative step 4 (project): skip if no
-      if (step === 4 && wantsProject === false) { setDirection(1); setStep(5); return; }
+      // Trigger AI when entering review step
+      if (step === CREATIVE_AFF_STEP) {
+        requestAiSuggestions();
+      }
+      if (step === CREATIVE_SERVICE_STEP) { finishOnboarding(); return; }
+      if (step === CREATIVE_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(CREATIVE_SERVICE_STEP); return; }
     } else {
-      if (step === 2 && wantsProject === false) { setDirection(1); setStep(3); return; }
-      if (step === 3) { finishOnboarding(); return; }
+      if (step === IMPACT_AFF_STEP) {
+        requestAiSuggestions();
+      }
+      if (step === IMPACT_SERVICE_STEP) { finishOnboarding(); return; }
+      if (step === IMPACT_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(IMPACT_SERVICE_STEP); return; }
     }
     setDirection(1);
     setStep((s) => Math.min(s + 1, lastStepIndex));
@@ -278,17 +436,16 @@ export default function Onboarding() {
   const selectCreativePath = () => {
     setIsCreativePath(true);
     setDirection(1);
-    setStep(1); // go to Houses of Art
+    setStep(1);
   };
 
   const selectImpactPath = () => {
     setIsCreativePath(false);
-    // Stay on step 0 which becomes the standard intention step
   };
 
   const currentStepLabel = stepLabels[step] || "";
   const isLastStep = step === lastStepIndex;
-  const progressSteps = isCreativePath ? 6 : 4; // excluding final "done" step
+  const progressSteps = isCreativePath ? 8 : 6; // excluding final "done" step
 
   // Determine which step content to render
   const renderCreativeStep = () => {
@@ -297,9 +454,11 @@ export default function Onboarding() {
       case 1: return renderHousesOfArt();
       case 2: return renderCreativeGround();
       case 3: return renderCreativeEssence();
-      case 4: return renderProject(true);
-      case 5: return renderService(true);
-      case 6: return renderDone(true);
+      case 4: return renderAffiliationsInput();
+      case 5: return renderAffiliationsReview();
+      case 6: return renderProject(true);
+      case 7: return renderService(true);
+      case 8: return renderDone(true);
       default: return null;
     }
   };
@@ -308,14 +467,16 @@ export default function Onboarding() {
     switch (step) {
       case 0: return renderEntryChoice();
       case 1: return renderIdentity();
-      case 2: return renderProject(false);
-      case 3: return renderService(false);
-      case 4: return renderDone(false);
+      case 2: return renderAffiliationsInput();
+      case 3: return renderAffiliationsReview();
+      case 4: return renderProject(false);
+      case 5: return renderService(false);
+      case 6: return renderDone(false);
       default: return null;
     }
   };
 
-  // ─── Step: Entry choice (Step 0 for both paths) ─────────
+  // ─── Step: Entry choice ─────────────────────────────────
   function renderEntryChoice() {
     return (
       <div className="space-y-5">
@@ -324,7 +485,6 @@ export default function Onboarding() {
           <p className="text-sm text-muted-foreground mt-1">What are you up to? Select everything that resonates — or choose the Creative path.</p>
         </div>
 
-        {/* Creative entry point */}
         <button
           onClick={selectCreativePath}
           className={cn(
@@ -396,7 +556,6 @@ export default function Onboarding() {
         <div className="space-y-2">
           {CREATIVE_HOUSE_KEYS.map((key) => {
             const house = HOUSES_OF_ART[key];
-            // Try to find a matching topic in DB
             const matchingTopic = dbTopics.find(t =>
               t.name?.toLowerCase().replace(/\s+/g, "-") === key
             );
@@ -425,7 +584,6 @@ export default function Onboarding() {
           })}
         </div>
 
-        {/* Also show other DB topics if they don't match Houses of Art */}
         {dbTopics.filter(t => !CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).length > 0 && (
           <div>
             <p className="text-xs text-muted-foreground mb-2">Other Houses</p>
@@ -453,7 +611,7 @@ export default function Onboarding() {
     );
   }
 
-  // ─── Creative Step 2: Creative Ground (Territories) ─────
+  // ─── Creative Step 2: Creative Ground ─────────────────
   function renderCreativeGround() {
     return (
       <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
@@ -496,7 +654,7 @@ export default function Onboarding() {
     );
   }
 
-  // ─── Creative Step 3: Creative Essence (bio) ─────────────
+  // ─── Creative Step 3: Creative Essence ─────────────────
   function renderCreativeEssence() {
     return (
       <div className="space-y-5">
@@ -628,6 +786,39 @@ export default function Onboarding() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // ─── Affiliations input step (shared) ─────────────────
+  function renderAffiliationsInput() {
+    return (
+      <AffiliationsStep
+        persona={personaType}
+        links={affLinks}
+        onLinksChange={setAffLinks}
+        manualAffiliations={manualAffiliations}
+        onAffiliationsChange={setManualAffiliations}
+        existingGuilds={existingGuilds}
+        existingCompanies={existingCompanies}
+        selectedEntityIds={selectedEntityIds}
+        onToggleEntity={toggleEntity}
+      />
+    );
+  }
+
+  // ─── Affiliations review step (shared) ─────────────────
+  function renderAffiliationsReview() {
+    return (
+      <AffiliationsReviewStep
+        persona={personaType}
+        affiliations={suggestedAffiliations}
+        onAffiliationsChange={setSuggestedAffiliations}
+        houses={suggestedHouses}
+        onHousesChange={setSuggestedHouses}
+        services={suggestedServices}
+        onServicesChange={setSuggestedServices}
+        loading={aiLoading}
+      />
     );
   }
 
@@ -819,6 +1010,8 @@ export default function Onboarding() {
 
   // ─── Final: Done step ──────────────────────────────────
   function renderDone(creative: boolean) {
+    const hasDraftServices = suggestedServices.filter(s => s.accepted).length > 0;
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
         {saving ? (
@@ -845,6 +1038,16 @@ export default function Onboarding() {
                   : "Your profile is ready. Here's what you can do next."}
               </p>
             </motion.div>
+
+            {hasDraftServices && (
+              <div className="w-full rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-left">
+                <p className="font-medium">✨ We've created draft {creative ? "skill sessions" : "services"} for you.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  You can review and publish them in{" "}
+                  <Link to="/me/settings" className="underline text-primary">My {creative ? "Skill Sessions" : "Services"}</Link>.
+                </p>
+              </div>
+            )}
 
             <div className="w-full space-y-3">
               <Button asChild className="w-full" variant="default">
@@ -902,17 +1105,17 @@ export default function Onboarding() {
   const showNextButton = () => {
     if (isLastStep) return false;
     if (isCreativePath) {
-      if (step === 4 && wantsProject === null) return false;
-      if (step === 5 && wantsService === null) return false;
+      if (step === CREATIVE_PROJECT_STEP && wantsProject === null) return false;
+      if (step === CREATIVE_SERVICE_STEP && wantsService === null) return false;
       return true;
     } else {
-      if (step === 2 && wantsProject === null) return false;
-      if (step === 3 && wantsService === null) return false;
+      if (step === IMPACT_PROJECT_STEP && wantsProject === null) return false;
+      if (step === IMPACT_SERVICE_STEP && wantsService === null) return false;
       return true;
     }
   };
 
-  const isFinishStep = isCreativePath ? step === 5 : step === 3;
+  const isFinishStep = isCreativePath ? step === CREATIVE_SERVICE_STEP : step === IMPACT_SERVICE_STEP;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
@@ -957,7 +1160,7 @@ export default function Onboarding() {
                 <ArrowLeft className="h-4 w-4 mr-1" /> Back
               </Button>
               {showNextButton() && (
-                <Button onClick={goNext} size="sm" disabled={saving}>
+                <Button onClick={goNext} size="sm" disabled={saving || aiLoading}>
                   {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
                   {isFinishStep ? "Finish" : "Next"} <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
