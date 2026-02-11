@@ -137,6 +137,8 @@ export function useCreateExcerpt() {
     mutationFn: async (entry: {
       territory_id: string;
       text: string;
+      synthesis?: string;
+      source_prompt?: string;
       created_by_user_id: string;
       source_memory_entry_id?: string;
       source_chat_log_id?: string;
@@ -162,6 +164,72 @@ export function useCreateExcerpt() {
     },
     onError: (e: any) => {
       toast({ title: "Failed to save excerpt", description: e.message, variant: "destructive" });
+    },
+  });
+}
+
+/* ───── Delete Excerpt (soft) ───── */
+
+export function useDeleteExcerpt() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ excerptId }: { excerptId: string; territoryId: string }) => {
+      const { error } = await supabase
+        .from("territory_excerpts" as any)
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() } as any)
+        .eq("id", excerptId);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["territory-excerpts", vars.territoryId] });
+      toast({ title: "Excerpt removed" });
+    },
+    onError: (e: any) => {
+      toast({ title: "Failed to delete", description: e.message, variant: "destructive" });
+    },
+  });
+}
+
+/* ───── Report Excerpt ───── */
+
+export function useReportExcerpt() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ excerptId, userId, reason, customReason }: {
+      excerptId: string; userId: string; reason: string; customReason?: string;
+    }) => {
+      // Insert report
+      const { error } = await supabase
+        .from("territory_excerpt_reports" as any)
+        .insert({ excerpt_id: excerptId, reported_by_user_id: userId, reason, custom_reason: customReason } as any);
+      if (error) throw error;
+
+      // Notify admins via notification
+      const { data: admins } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin");
+      if (admins && admins.length > 0) {
+        const notifications = admins.map((a: any) => ({
+          user_id: a.id,
+          type: "excerpt_report",
+          title: "Excerpt reported",
+          body: `Reason: ${reason}${customReason ? ` — ${customReason}` : ""}`,
+          related_entity_type: "territory_excerpt",
+          related_entity_id: excerptId,
+        }));
+        await supabase.from("notifications").insert(notifications);
+      }
+    },
+    onSuccess: () => {
+      toast({ title: "Report submitted", description: "Admins have been notified." });
+    },
+    onError: (e: any) => {
+      toast({ title: "Failed to report", description: e.message, variant: "destructive" });
     },
   });
 }
