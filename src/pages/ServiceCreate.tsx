@@ -40,8 +40,23 @@ export default function ServiceCreate() {
         is_active: true,
       } as any).select("id").single();
       if (error) throw error;
+
+      const serviceId = (data as any).id;
+
+      // Create default Mon-Fri 9:00–17:00 availability rules
+      const defaultRules = [1, 2, 3, 4, 5].map(weekday => ({
+        provider_user_id: user.id,
+        service_id: serviceId,
+        weekday,
+        start_time: "09:00",
+        end_time: "17:00",
+        is_active: true,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris",
+      }));
+      await supabase.from("availability_rules").insert(defaultRules);
+
       // Auto-follow
-      if (data) await autoFollowEntity(user.id, "SERVICE", (data as any).id);
+      if (data) await autoFollowEntity(user.id, "SERVICE", serviceId);
     },
     onSuccess: () => {
       toast({ title: "Service created" });
