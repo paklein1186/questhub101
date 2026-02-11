@@ -63,7 +63,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         .from("profiles_public" as any)
         .select("user_id, name, avatar_url")
         .in("user_id", authorIds);
-      return data ?? [];
+      return (data ?? []) as { user_id: string; name: string; avatar_url: string | null }[];
     },
   });
 
