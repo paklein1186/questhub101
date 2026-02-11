@@ -208,10 +208,10 @@ export function AppNav() {
                   <span>{t("nav.explore")}</span>
                 </Link>
                 <Button size="sm" variant="ghost" asChild className="ml-2">
-                  <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+                  <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> {t("nav.login")}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/signup">{t("nav.signup")}</Link>
                 </Button>
               </>
             )}
