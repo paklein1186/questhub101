@@ -53,6 +53,7 @@ const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles
 const AdminSuperMode = lazy(() => import("./pages/admin/AdminSuperMode"));
 const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports"));
 const AdminMilestones = lazy(() => import("./pages/admin/AdminMilestones"));
+const AdminFeatureSuggestions = lazy(() => import("./pages/admin/AdminFeatureSuggestions"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -248,6 +249,7 @@ const App = () => (
                   <Route path="system/feature-toggles" element={<Suspense fallback={null}><AdminFeatureToggles /></Suspense>} />
                   <Route path="system/super-mode" element={<Suspense fallback={null}><AdminSuperMode /></Suspense>} />
                   <Route path="economy/milestones" element={<Suspense fallback={null}><AdminMilestones /></Suspense>} />
+                  <Route path="content/feature-suggestions" element={<Suspense fallback={null}><AdminFeatureSuggestions /></Suspense>} />
                 </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />

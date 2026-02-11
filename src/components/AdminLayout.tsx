@@ -52,6 +52,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/content/courses", label: "Courses", icon: ScrollText },
       { to: "/admin/content/services", label: "Services", icon: ShoppingBag },
       { to: "/admin/content/reports", label: "Reports & Moderation", icon: Flag },
+      { to: "/admin/content/feature-suggestions", label: "Feature Ideas", icon: Zap },
     ],
   },
   {

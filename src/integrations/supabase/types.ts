@@ -1093,6 +1093,54 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_suggestions: {
+        Row: {
+          admin_comment: string | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          interpreted_action_type: string | null
+          original_text: string
+          persona_at_time: string | null
+          source: string
+          status: string
+          tags: string[] | null
+          updated_at: string
+          user_explicit: boolean
+          user_id: string | null
+        }
+        Insert: {
+          admin_comment?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          interpreted_action_type?: string | null
+          original_text: string
+          persona_at_time?: string | null
+          source?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_explicit?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          admin_comment?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          interpreted_action_type?: string | null
+          original_text?: string
+          persona_at_time?: string | null
+          source?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_explicit?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feed_posts: {
         Row: {
           author_user_id: string
