@@ -193,6 +193,7 @@ const App = () => (
                 <Route path="/explore/companies-info" element={<CompaniesInfoPage />} />
                 <Route path="/explore/people-info" element={<PeopleInfoPage />} />
                 <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
+                <Route path="/territories/:id" element={<TerritoryDetail />} />
                 <Route path="/create/quest-info" element={<CreateQuestInfoPage />} />
                 <Route path="/create/service-info" element={<ServiceInfoPage />} />
                 <Route path="/create/guild-info" element={<CreateGuildInfoPage />} />
