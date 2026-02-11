@@ -3419,6 +3419,8 @@ export type Database = {
           name: string
           parent_id: string | null
           slug: string | null
+          stats: Json | null
+          summary: string | null
           updated_at: string
         }
         Insert: {
@@ -3430,6 +3432,8 @@ export type Database = {
           name: string
           parent_id?: string | null
           slug?: string | null
+          stats?: Json | null
+          summary?: string | null
           updated_at?: string
         }
         Update: {
@@ -3441,12 +3445,155 @@ export type Database = {
           name?: string
           parent_id?: string | null
           slug?: string | null
+          stats?: Json | null
+          summary?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "territories_parent_id_fkey"
             columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_chat_logs: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_knowledge_contribution: boolean
+          linked_memory_entry_id: string | null
+          message_role: string
+          territory_id: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_knowledge_contribution?: boolean
+          linked_memory_entry_id?: string | null
+          message_role: string
+          territory_id: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_knowledge_contribution?: boolean
+          linked_memory_entry_id?: string | null
+          message_role?: string
+          territory_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_chat_logs_linked_memory_entry_id_fkey"
+            columns: ["linked_memory_entry_id"]
+            isOneToOne: false
+            referencedRelation: "territory_memory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_chat_logs_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_excerpt_upvotes: {
+        Row: {
+          created_at: string
+          excerpt_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          excerpt_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          excerpt_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_excerpt_upvotes_excerpt_id_fkey"
+            columns: ["excerpt_id"]
+            isOneToOne: false
+            referencedRelation: "territory_excerpts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_excerpts: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          source_chat_log_id: string | null
+          source_event_id: string | null
+          source_memory_entry_id: string | null
+          source_quest_id: string | null
+          territory_id: string
+          text: string
+          updated_at: string
+          upvote_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          source_chat_log_id?: string | null
+          source_event_id?: string | null
+          source_memory_entry_id?: string | null
+          source_quest_id?: string | null
+          territory_id: string
+          text: string
+          updated_at?: string
+          upvote_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          source_chat_log_id?: string | null
+          source_event_id?: string | null
+          source_memory_entry_id?: string | null
+          source_quest_id?: string | null
+          territory_id?: string
+          text?: string
+          updated_at?: string
+          upvote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_excerpts_source_memory_entry_id_fkey"
+            columns: ["source_memory_entry_id"]
+            isOneToOne: false
+            referencedRelation: "territory_memory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_excerpts_source_quest_id_fkey"
+            columns: ["source_quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_excerpts_territory_id_fkey"
+            columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
             referencedColumns: ["id"]
