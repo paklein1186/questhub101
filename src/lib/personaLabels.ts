@@ -257,8 +257,8 @@ const LABELS: Record<string, LabelVariants> = {
   "home.guilds_section": {
     IMPACT: "Guilds to join",
     CREATIVE: "Circles you might join",
-    HYBRID: "Groups to join",
-    DEFAULT: "Groups to join",
+    HYBRID: "Guilds to join",
+    DEFAULT: "Guilds to join",
   },
   "home.pods_section": {
     IMPACT: "Pods for you",
