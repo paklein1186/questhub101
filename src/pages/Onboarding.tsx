@@ -320,7 +320,7 @@ export default function Onboarding() {
     return (
       <div className="space-y-5">
         <div>
-          <h2 className="font-display text-2xl font-bold">Welcome to ChangeTheGame ✨</h2>
+          <h2 className="font-display text-2xl font-bold">Welcome to changethegame ✨</h2>
           <p className="text-sm text-muted-foreground mt-1">What are you up to? Select everything that resonates — or choose the Creative path.</p>
         </div>
 

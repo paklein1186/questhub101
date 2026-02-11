@@ -18,7 +18,7 @@ export default function BugReportingPage() {
   };
 
   return (
-    <ContentPageShell title="Bug Reporting" subtitle="Help us improve ChangeTheGame.">
+    <ContentPageShell title="Bug Reporting" subtitle="Help us improve changethegame.">
       <ContentSection title="Report a Bug">
         <p>If something is broken, confusing or incomplete, we want to know. This platform evolves with your feedback.</p>
       </ContentSection>

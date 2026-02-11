@@ -44,7 +44,7 @@ export function AppNav() {
       <div className="container flex h-14 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
           <Zap className="h-5 w-5 text-primary" />
-          <span>ChangeTheGame</span>
+          <span>changethegame</span>
         </Link>
 
         <nav className="flex items-center gap-1">

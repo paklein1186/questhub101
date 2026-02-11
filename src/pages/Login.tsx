@@ -37,7 +37,7 @@ export default function Login() {
       >
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 font-display text-2xl font-bold">
-            <Zap className="h-6 w-6 text-primary" /> ChangeTheGame
+            <Zap className="h-6 w-6 text-primary" /> changethegame
           </Link>
           <p className="text-muted-foreground mt-2">Welcome back! Sign in to continue.</p>
         </div>

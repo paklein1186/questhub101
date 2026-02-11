@@ -4,7 +4,7 @@ export default function SecurityPage() {
   return (
     <ContentPageShell title="Security" subtitle="How we protect your data and the platform.">
       <ContentSection title="Our Commitment">
-        <p>Security is foundational to ChangeTheGame. We implement industry-standard protections across all layers of the platform.</p>
+        <p>Security is foundational to changethegame. We implement industry-standard protections across all layers of the platform.</p>
       </ContentSection>
 
       <ContentSection title="Measures in Place">

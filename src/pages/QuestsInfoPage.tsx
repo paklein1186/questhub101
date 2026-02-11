@@ -4,7 +4,7 @@ export default function QuestsInfoPage() {
   return (
     <ContentPageShell title="Discover Quests" subtitle="Missions, projects, creative acts, and impact initiatives.">
       <ContentSection title="What are Quests?">
-        <p>Quests are the beating heart of ChangeTheGame. They can be:</p>
+        <p>Quests are the beating heart of changethegame. They can be:</p>
         <ContentList items={["Personal projects", "Community missions", "Creative journeys", "Impact collaborations", "Guild projects", "Company assignments"]} />
       </ContentSection>
 

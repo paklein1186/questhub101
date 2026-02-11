@@ -4,7 +4,7 @@ export default function TermsPage() {
   return (
     <ContentPageShell title="Terms of Service" subtitle="Last updated: February 10, 2026">
       <ContentSection title="1. Agreement">
-        <p>By accessing and using ChangeTheGame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
+        <p>By accessing and using changethegame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
       </ContentSection>
 
       <ContentSection title="2. Accounts & Security">
@@ -16,7 +16,7 @@ export default function TermsPage() {
       </ContentSection>
 
       <ContentSection title="4. Content Ownership">
-        <p>Content you create on the Platform remains yours. By posting, you grant ChangeTheGame a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
+        <p>Content you create on the Platform remains yours. By posting, you grant changethegame a non-exclusive, royalty-free license to display and distribute your content within the Platform.</p>
       </ContentSection>
 
       <ContentSection title="5. AI-Generated Content Usage">
@@ -28,19 +28,19 @@ export default function TermsPage() {
       </ContentSection>
 
       <ContentSection title="7. Listing Services and Bookings">
-        <p>Service providers are responsible for the accuracy of their listings, availability, and fulfillment. ChangeTheGame facilitates but does not guarantee service delivery.</p>
+        <p>Service providers are responsible for the accuracy of their listings, availability, and fulfillment. changethegame facilitates but does not guarantee service delivery.</p>
       </ContentSection>
 
       <ContentSection title="8. Collaborations and Quests">
-        <p>Quest participation is voluntary. ChangeTheGame is not liable for the outcome of collaborations between users.</p>
+        <p>Quest participation is voluntary. changethegame is not liable for the outcome of collaborations between users.</p>
       </ContentSection>
 
       <ContentSection title="9. Guild, Company and Pod Governance">
-        <p>Guilds, companies, and pods are self-governed by their members. ChangeTheGame provides tools but does not enforce internal governance decisions.</p>
+        <p>Guilds, companies, and pods are self-governed by their members. changethegame provides tools but does not enforce internal governance decisions.</p>
       </ContentSection>
 
       <ContentSection title="10. Limitations of Liability">
-        <p>ChangeTheGame is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages arising from your use of the Platform.</p>
+        <p>changethegame is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages arising from your use of the Platform.</p>
       </ContentSection>
 
       <ContentSection title="11. Suspension & Termination">

@@ -3,8 +3,8 @@ import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/com
 export default function CompaniesInfoPage() {
   return (
     <ContentPageShell title="Browse Companies" subtitle="Professional organizations, studios, agencies and teams.">
-      <ContentSection title="Companies in ChangeTheGame">
-        <p>Companies represent the professional world inside ChangeTheGame. You can:</p>
+      <ContentSection title="Companies in changethegame">
+        <p>Companies represent the professional world inside changethegame. You can:</p>
         <ContentList items={["Attach yourself to an organization", "Create or join company quests", "Offer services as a company", "Build teams and pods"]} />
       </ContentSection>
 

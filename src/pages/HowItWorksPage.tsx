@@ -2,7 +2,7 @@ import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/com
 
 export default function HowItWorksPage() {
   return (
-    <ContentPageShell title="How ChangeTheGame Works" subtitle="A collaborative ecosystem for quests, guilds, territories and AI-powered creativity.">
+    <ContentPageShell title="How changethegame Works" subtitle="A collaborative ecosystem for quests, guilds, territories and AI-powered creativity.">
       <ContentSection title="1. Create Your Profile">
         <p>Pick your Houses (interests), choose your Territory, and define your persona (Impact, Creative, or Hybrid).</p>
       </ContentSection>
