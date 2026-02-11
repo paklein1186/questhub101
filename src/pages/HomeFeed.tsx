@@ -340,12 +340,14 @@ export default function HomeFeed() {
     }
   }, [input, currentUser.id, persona, mode]);
 
-  const handleSuggestionClick = (route: string) => {
-    if (route && route.startsWith("/") && !route.includes("://")) {
-      navigate(route);
-    } else {
-      navigate("/explore");
+  const handleSuggestionClick = (route: string, queryParams?: Record<string, string>) => {
+    let target = route && route.startsWith("/") && !route.includes("://") ? route : "/explore";
+    if (queryParams && Object.keys(queryParams).length > 0) {
+      const url = new URL(target, window.location.origin);
+      Object.entries(queryParams).forEach(([k, v]) => url.searchParams.set(k, v));
+      target = url.pathname + url.search + url.hash;
     }
+    navigate(target);
   };
 
   const handleGuidedTile = (tile: typeof GUIDED_TILES[0]) => {
