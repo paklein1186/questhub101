@@ -37,16 +37,13 @@ const VALID_ROUTES: Record<string, string> = {
 const VALID_ROUTES_LIST = Object.entries(VALID_ROUTES).map(([route, desc]) => `  ${route} — ${desc}`).join("\n");
 
 function sanitizeRoute(route: string): string {
-  // Check exact match first
   if (VALID_ROUTES[route]) return route;
-  // Check if it starts with a valid prefix
   const validPrefixes = Object.keys(VALID_ROUTES);
   for (const prefix of validPrefixes) {
     if (route === prefix || route.startsWith(prefix + "?") || route.startsWith(prefix + "#")) {
       return route;
     }
   }
-  // Fallback: map common AI hallucinations to real routes
   if (route.includes("quest")) return "/explore?tab=quests";
   if (route.includes("service")) return "/explore?tab=services";
   if (route.includes("people") || route.includes("user")) return "/explore?tab=people";
@@ -77,6 +74,7 @@ VALID action types:
 - FIND_COURSES: User wants to learn via courses
 - FIND_EVENTS: User wants to attend events
 - EXPLORE_TERRITORIES: User wants to explore a territory/place
+- TERRITORY_INTENT: User expresses a local/territorial wish, idea or need — anything about improving, creating, or changing something in a city, neighbourhood, region, community, or "around me". Triggers: references to a city, region, "my territory", "around me", "where I live", "local area", "nearby", "community", impact/creative ideas scoped geographically.
 - VIEW_MY_WORK: User wants to see their active quests/work
 - VIEW_MY_ENTITIES: User wants to see guilds/pods they belong to
 - LEARN: User wants to learn/grow/find mentors
@@ -84,6 +82,11 @@ VALID action types:
 
 VALID ROUTES (you MUST only use these exact routes):
 ${VALID_ROUTES_LIST}
+
+When actionType is TERRITORY_INTENT, also include:
+- "questDraft": { "title": "AI-generated quest title", "description": "narrative description of the user's territorial vision transformed into a quest brief", "suggestedSkills": ["skill1", "skill2"], "suggestedTopics": ["topic1", "topic2"] }
+- "memorySummary": "a one-sentence AI summary of the user's territorial contribution for the territory memory"
+- "memoryThemes": ["theme1", "theme2"] (array of 2-4 themes extracted from the text)
 
 Respond ONLY with this JSON:
 {
@@ -93,7 +96,10 @@ Respond ONLY with this JSON:
   "suggestions": [
     { "label": "Short CTA label", "route": "/exact/valid/route", "description": "Why this fits" }
   ],
-  "followUpQuestion": "optional clarifying question if intent is ambiguous"
+  "followUpQuestion": "optional clarifying question if intent is ambiguous",
+  "questDraft": null,
+  "memorySummary": null,
+  "memoryThemes": null
 }
 
 Give 2-3 suggestions max. ONLY use routes from the VALID ROUTES list above.
@@ -127,7 +133,36 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const contextLine = `\n\nUser persona: ${persona || "UNSET"}. Source: ${source || "HOME_FREE"}.`;
+    // Fetch user territories for context
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const { data: userTerritories } = await adminClient
+      .from("user_territories")
+      .select("territory_id, is_primary, attachment_type")
+      .eq("user_id", authData.user.id);
+
+    let territoryNames: string[] = [];
+    let primaryTerritoryId: string | null = null;
+    if (userTerritories && userTerritories.length > 0) {
+      const tIds = userTerritories.map((ut: any) => ut.territory_id);
+      const primary = userTerritories.find((ut: any) => ut.is_primary);
+      primaryTerritoryId = primary?.territory_id || tIds[0];
+
+      const { data: territories } = await adminClient
+        .from("territories")
+        .select("id, name")
+        .in("id", tIds);
+      territoryNames = (territories ?? []).map((t: any) => t.name);
+    }
+
+    const territoryContext = territoryNames.length > 0
+      ? `\nUser's territories: ${territoryNames.join(", ")}. Primary territory ID: ${primaryTerritoryId}.`
+      : "\nUser has no declared territories.";
+
+    const contextLine = `\n\nUser persona: ${persona || "UNSET"}. Source: ${source || "HOME_FREE"}.${territoryContext}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -176,19 +211,76 @@ serve(async (req) => {
     if (!parsed.confidence) parsed.confidence = 0.5;
     if (!parsed.actionType) parsed.actionType = "OTHER";
 
-    // Sanitize all suggestion routes to prevent broken links
+    // Sanitize all suggestion routes
     parsed.suggestions = parsed.suggestions.map((s: any) => ({
       ...s,
       route: sanitizeRoute(s.route || "/explore"),
     }));
 
-    // Log odd proposals to feature_suggestions
+    // For TERRITORY_INTENT, attach user's territory info
+    if (parsed.actionType === "TERRITORY_INTENT") {
+      parsed.userTerritoryId = primaryTerritoryId;
+      parsed.userTerritoryNames = territoryNames;
+
+      // Fetch local allies (guilds, pods, companies in the same territory)
+      if (primaryTerritoryId) {
+        const [guildsRes, companiesRes] = await Promise.all([
+          adminClient
+            .from("guild_territories")
+            .select("guild_id")
+            .eq("territory_id", primaryTerritoryId)
+            .limit(6),
+          adminClient
+            .from("company_territories")
+            .select("company_id")
+            .eq("territory_id", primaryTerritoryId)
+            .limit(6),
+        ]);
+
+        const guildIds = (guildsRes.data ?? []).map((g: any) => g.guild_id);
+        const companyIds = (companiesRes.data ?? []).map((c: any) => c.company_id);
+
+        let allies: any[] = [];
+
+        if (guildIds.length > 0) {
+          const { data: guilds } = await adminClient
+            .from("guilds")
+            .select("id, name, logo_url, type")
+            .in("id", guildIds)
+            .eq("is_deleted", false)
+            .limit(4);
+          allies.push(...(guilds ?? []).map((g: any) => ({
+            id: g.id,
+            name: g.name,
+            logo_url: g.logo_url,
+            entityType: g.type === "pod" ? "Pod" : "Guild",
+            route: g.type === "pod" ? `/pods/${g.id}` : `/guilds/${g.id}`,
+          })));
+        }
+
+        if (companyIds.length > 0) {
+          const { data: companies } = await adminClient
+            .from("companies")
+            .select("id, name, logo_url")
+            .in("id", companyIds)
+            .eq("is_deleted", false)
+            .limit(4);
+          allies.push(...(companies ?? []).map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            logo_url: c.logo_url,
+            entityType: "Organization",
+            route: `/companies/${c.id}`,
+          })));
+        }
+
+        parsed.localAllies = allies.slice(0, 6);
+      }
+    }
+
+    // Log odd proposals
     const isOdd = parsed.actionType === "OTHER" || parsed.confidence < 0.5;
     if (isOdd) {
-      const adminClient = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-      );
       await adminClient.from("feature_suggestions").insert({
         user_id: authData.user.id,
         source: source || "HOME_FREE",

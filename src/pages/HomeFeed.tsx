@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, Lightbulb, MessageCircle, Users, Briefcase, Heart } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { PersonaType } from "@/lib/personaLabels";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -64,6 +65,217 @@ function useRotatingVerb(persona: PersonaType) {
   return verbs[idx];
 }
 
+/* ───────── Territory Flow Component ───────── */
+
+function TerritoryFlow({
+  result,
+  originalInput,
+  userId,
+  persona,
+  onReset,
+}: {
+  result: any;
+  originalInput: string;
+  userId?: string;
+  persona: string;
+  onReset: () => void;
+}) {
+  const navigate = useNavigate();
+  const [questTitle, setQuestTitle] = useState(result.questDraft?.title || "");
+  const [questDesc, setQuestDesc] = useState(result.questDraft?.description || "");
+  const [saving, setSaving] = useState(false);
+  const [memSaved, setMemSaved] = useState(false);
+  const [questSaved, setQuestSaved] = useState<string | null>(null);
+
+  const territoryId = result.userTerritoryId;
+
+  const saveToMemory = useCallback(async () => {
+    if (!territoryId || !userId) return;
+    try {
+      await supabase.from("territory_memory" as any).insert({
+        territory_id: territoryId,
+        title: result.memorySummary || "User vision",
+        content: originalInput,
+        category: "OPPORTUNITIES",
+        visibility: "PUBLIC",
+        tags: result.memoryThemes || [],
+        created_by_user_id: userId,
+      } as any);
+      setMemSaved(true);
+    } catch {
+      toast.error("Could not save to territory memory");
+    }
+  }, [territoryId, userId, originalInput, result]);
+
+  const saveQuestDraft = useCallback(async () => {
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from("quests")
+        .insert({
+          title: questTitle,
+          description: questDesc,
+          created_by_user_id: userId,
+          is_draft: true,
+          status: "DRAFT",
+          owner_type: "USER",
+          owner_id: userId,
+        } as any)
+        .select("id")
+        .single();
+      if (error) throw error;
+      setQuestSaved((data as any).id);
+      toast.success("Quest draft saved!");
+    } catch (e: any) {
+      toast.error(e?.message || "Could not save quest");
+    } finally {
+      setSaving(false);
+    }
+  }, [userId, questTitle, questDesc]);
+
+  // Auto-save to memory on mount
+  useEffect(() => {
+    if (territoryId && userId && !memSaved) {
+      saveToMemory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full space-y-6"
+    >
+      {/* Summary */}
+      {result.summary && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <p className="text-sm text-foreground/80 leading-relaxed">{result.summary}</p>
+        </div>
+      )}
+
+      {/* Territory confirmation */}
+      {memSaved && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Check className="h-3.5 w-3.5 text-emerald-500" />
+          Your contribution has enriched the territory.
+        </div>
+      )}
+
+      {/* Quest draft */}
+      {result.questDraft && (
+        <div className="space-y-3">
+          <p className="text-xs font-medium text-muted-foreground">Quest draft generated from your vision:</p>
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            <input
+              type="text"
+              value={questTitle}
+              onChange={(e) => setQuestTitle(e.target.value)}
+              className="w-full bg-transparent text-base font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
+              placeholder="Quest title…"
+            />
+            <Textarea
+              value={questDesc}
+              onChange={(e) => setQuestDesc(e.target.value)}
+              className="min-h-[80px] resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
+              placeholder="Quest description…"
+            />
+            {result.questDraft.suggestedSkills?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs text-muted-foreground mr-1">Skills:</span>
+                {result.questDraft.suggestedSkills.map((s: string) => (
+                  <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s}</span>
+                ))}
+              </div>
+            )}
+            {result.questDraft.suggestedTopics?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs text-muted-foreground mr-1">Topics:</span>
+                {result.questDraft.suggestedTopics.map((t: string) => (
+                  <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 pt-1">
+              {!questSaved ? (
+                <>
+                  <Button size="sm" onClick={saveQuestDraft} disabled={saving || !questTitle.trim()}>
+                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                    Save as draft
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate("/quests/new")}>
+                    Open full editor
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => navigate(`/quests/${questSaved}`)}>
+                  View quest <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Local Allies */}
+      {result.localAllies?.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" /> Local Allies Who Could Help
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {result.localAllies.map((ally: any) => (
+              <button
+                key={ally.id}
+                onClick={() => navigate(ally.route)}
+                className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
+              >
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={ally.logo_url} />
+                  <AvatarFallback className="text-xs">{ally.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground truncate">{ally.name}</p>
+                  <p className="text-xs text-muted-foreground">{ally.entityType}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Standard suggestions */}
+      {result.suggestions?.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium">Other next steps:</p>
+          {result.suggestions.map((s: any, i: number) => (
+            <button
+              key={i}
+              onClick={() => {
+                const route = s.route || "/explore";
+                if (route.startsWith("/") && !route.includes("://")) navigate(route);
+                else navigate("/explore");
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
+            >
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">{s.label}</p>
+                {s.description && <p className="text-xs text-muted-foreground truncate">{s.description}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex justify-center pt-2">
+        <Button variant="ghost" size="sm" onClick={onReset}>Start over</Button>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ───────── Main Component ───────── */
 
 export default function HomeFeed() {
@@ -81,13 +293,13 @@ export default function HomeFeed() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [guidedTile, setGuidedTile] = useState<string | null>(null);
+  const [lastInput, setLastInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
   const verb = useRotatingVerb(persona);
 
   const userName = (authUser?.name || currentUser.name).split(" ")[0];
 
-  // Persist mode
   useEffect(() => {
     localStorage.setItem("home-mode", mode);
   }, [mode]);
@@ -96,6 +308,7 @@ export default function HomeFeed() {
     if (!text.trim()) return;
     setLoading(true);
     setResult(null);
+    setLastInput(text);
     try {
       const { data, error } = await supabase.functions.invoke("interpret-intent", {
         body: { intentText: text, persona, source },
@@ -128,7 +341,6 @@ export default function HomeFeed() {
   }, [input, currentUser.id, persona, mode]);
 
   const handleSuggestionClick = (route: string) => {
-    // Only navigate to routes that start with / and don't contain protocol
     if (route && route.startsWith("/") && !route.includes("://")) {
       navigate(route);
     } else {
@@ -147,7 +359,16 @@ export default function HomeFeed() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  const resetAll = () => {
+    setResult(null);
+    setInput("");
+    setGuidedTile(null);
+    setLastInput("");
+  };
+
   const activeGuidedTile = GUIDED_TILES.find((t) => t.id === guidedTile);
+
+  const isTerritory = result?.actionType === "TERRITORY_INTENT";
 
   return (
     <PageShell>
@@ -172,9 +393,7 @@ export default function HomeFeed() {
             checked={mode === "guided"}
             onCheckedChange={(checked) => {
               setMode(checked ? "guided" : "free");
-              setGuidedTile(null);
-              setResult(null);
-              setInput("");
+              resetAll();
             }}
           />
           <span className={cn("text-sm font-medium transition-colors", mode === "guided" ? "text-foreground" : "text-muted-foreground")}>
@@ -189,7 +408,6 @@ export default function HomeFeed() {
             animate={{ opacity: 1, y: 0 }}
             className="w-full space-y-4"
           >
-            {/* Dynamic sentence */}
             <p className="text-center text-base sm:text-lg text-foreground/80 font-medium">
               What do I want to{" "}
               <AnimatePresence mode="wait">
@@ -207,7 +425,6 @@ export default function HomeFeed() {
               {" "}now?
             </p>
 
-            {/* Input */}
             <Textarea
               ref={inputRef}
               value={input}
@@ -307,8 +524,19 @@ export default function HomeFeed() {
           </motion.div>
         )}
 
-        {/* ─── AI result / suggestions ─── */}
-        {result && (
+        {/* ─── Territory Intent Flow ─── */}
+        {result && isTerritory && (
+          <TerritoryFlow
+            result={result}
+            originalInput={lastInput}
+            userId={currentUser.id}
+            persona={persona}
+            onReset={resetAll}
+          />
+        )}
+
+        {/* ─── Standard AI result (non-territory) ─── */}
+        {result && !isTerritory && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -349,17 +577,7 @@ export default function HomeFeed() {
             )}
 
             <div className="flex justify-center pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setResult(null);
-                  setInput("");
-                  setGuidedTile(null);
-                }}
-              >
-                Start over
-              </Button>
+              <Button variant="ghost" size="sm" onClick={resetAll}>Start over</Button>
             </div>
           </motion.div>
         )}
