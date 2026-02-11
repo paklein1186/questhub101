@@ -500,7 +500,7 @@ export default function ExploreHouses({ bare }: Props) {
 
           {/* Quests */}
           <TabsContent value="quests" className="mt-6">
-            <EntityGrid items={quests} loading={questsLoading} empty="No quests found for these Houses." renderItem={(q: any) => (
+            <EntityGrid items={quests} loading={questsLoading} empty="No quests found for these Topics." renderItem={(q: any) => (
               <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                 <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} name={q.title} height="h-28" />
                 <div className="p-4">
