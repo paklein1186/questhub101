@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
-import { FeedSection } from "@/components/feed/FeedSection";
+import { ProfileWallSection } from "@/components/feed/ProfileWallSection";
 import { CommentTargetType, FollowTargetType, ReportTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ReportButton } from "@/components/ReportButton";
@@ -498,7 +498,7 @@ export default function UserProfile() {
 
         {/* ─── Wall ─── */}
         <TabsContent value="wall" className="space-y-6">
-          <FeedSection contextType="USER" contextId={profile.userId} />
+          <ProfileWallSection profileUserId={profile.userId} isOwnProfile={isOwnProfile} />
           <CommentThread targetType={CommentTargetType.USER} targetId={profile.userId} />
         </TabsContent>
       </Tabs>
