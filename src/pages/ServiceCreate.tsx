@@ -138,6 +138,13 @@ export default function ServiceCreate() {
     <PageShell>
       <div className="max-w-xl mx-auto py-10 px-4 space-y-6">
         <h1 className="text-2xl font-display font-bold">{isEditMode ? "Edit Service" : "Create Service"}</h1>
+        <ImageUpload
+          label="Cover image"
+          description="Add a visual to make your service stand out"
+          currentImageUrl={imageUrl}
+          onChange={setImageUrl}
+          aspectRatio="16/9"
+        />
         <div>
           <label className="text-sm font-medium mb-1 block">Title</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Strategy Workshop" maxLength={120} />
