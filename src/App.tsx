@@ -247,6 +247,7 @@ const App = () => (
                   <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
                   <Route path="system/feature-toggles" element={<Suspense fallback={null}><AdminFeatureToggles /></Suspense>} />
                   <Route path="system/super-mode" element={<Suspense fallback={null}><AdminSuperMode /></Suspense>} />
+                  <Route path="economy/milestones" element={<Suspense fallback={null}><AdminMilestones /></Suspense>} />
                 </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
