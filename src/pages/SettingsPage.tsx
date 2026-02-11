@@ -48,6 +48,7 @@ import {
 import { MyServicesPanel } from "@/components/MyServicesPanel";
 import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/MyContentTabs";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { LanguageSettingsTab } from "@/components/LanguageSettingsTab";
 import { WalletTab } from "@/components/WalletTab";
 
 const TABS = [
