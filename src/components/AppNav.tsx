@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Palette } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { cn } from "@/lib/utils";
@@ -9,11 +10,15 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet, SheetContent, SheetTrigger, SheetClose,
+} from "@/components/ui/sheet";
 
 export function AppNav() {
   const { pathname } = useLocation();
@@ -25,6 +30,8 @@ export function AppNav() {
   const isLoggedIn = !!session;
   const { isAdmin: showAdmin } = useUserRoles(session?.user?.id);
   const { data: flags = [] } = useFeatureFlags();
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -40,145 +47,285 @@ export function AppNav() {
       : []),
   ];
 
+  const navLink = (link: { to: string; label: string; icon: any }, onClick?: () => void) => {
+    const active = link.to === "/"
+      ? pathname === "/"
+      : pathname.startsWith(link.to);
+    return (
+      <Link
+        key={link.to}
+        to={link.to}
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          active
+            ? "bg-primary text-primary-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
+      >
+        <link.icon className="h-4 w-4" />
+        <span>{link.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-14 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+      <div className="container flex h-14 items-center justify-between gap-2">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight shrink-0">
           <img src={logoImg} alt="changethegame" className="h-6 w-6" />
-          <span>changethegame</span>
+          <span className="hidden xs:inline">changethegame</span>
         </Link>
 
-        <nav className="flex items-center gap-1">
-          {isLoggedIn ? (
-            <>
-              <GlobalSearchDialog />
-              {authedLinks.map((link) => {
-                const active = link.to === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.to);
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{link.label}</span>
-                  </Link>
-                );
-              })}
+        {/* Desktop nav */}
+        {!isMobile && (
+          <nav className="flex items-center gap-1">
+            {isLoggedIn ? (
+              <>
+                <GlobalSearchDialog />
+                {authedLinks.map((link) => {
+                  const active = link.to === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.to);
+                  return (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
 
-              {/* Bell */}
-              <Link
-                to="/notifications"
-                className={cn(
-                  "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
-                  pathname === "/notifications"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}
-                title="Notifications"
-              >
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-
-              {showAdmin && (
+                {/* Bell */}
                 <Link
-                  to="/admin"
+                  to="/notifications"
                   className={cn(
-                    "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
-                    pathname === "/admin"
+                    "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
+                    pathname === "/notifications"
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
-                  title="Admin Dashboard"
+                  title="Notifications"
                 >
-                  <LayoutDashboard className="h-4 w-4" />
-                </Link>
-              )}
-
-              {/* Unified user menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className={cn(
-                    "ml-2 flex items-center gap-1.5 rounded-full px-1.5 py-1 transition-all",
-                    pathname.startsWith("/me")
-                      ? "ring-2 ring-primary"
-                      : "hover:ring-2 hover:ring-primary/20"
-                  )}>
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.avatarUrl} />
-                      <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline text-sm font-medium text-foreground">Me</span>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-medium truncate">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/me" className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> My Hub
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> My public profile
-                    </Link>
-                  </DropdownMenuItem>
-                  {showAdmin && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer">
-                          <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" /> Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/explore"
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                  pathname.startsWith("/explore")
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                </Link>
+
+                {showAdmin && (
+                  <Link
+                    to="/admin"
+                    className={cn(
+                      "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                      pathname === "/admin"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                    title="Admin Dashboard"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                  </Link>
                 )}
-              >
-                <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">Explore</span>
-              </Link>
-              <Button size="sm" variant="ghost" asChild className="ml-2">
-                <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link to="/signup">Sign up</Link>
-              </Button>
-            </>
-          )}
-        </nav>
+
+                {/* Unified user menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className={cn(
+                      "ml-2 flex items-center gap-1.5 rounded-full px-1.5 py-1 transition-all",
+                      pathname.startsWith("/me")
+                        ? "ring-2 ring-primary"
+                        : "hover:ring-2 hover:ring-primary/20"
+                    )}>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.avatarUrl} />
+                        <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-foreground">Me</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <div className="px-3 py-2">
+                      <p className="text-sm font-medium truncate">{user?.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/me" className="cursor-pointer">
+                        <User className="h-4 w-4 mr-2" /> My Hub
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={`/users/${currentUser.id}`} className="cursor-pointer">
+                        <User className="h-4 w-4 mr-2" /> My public profile
+                      </Link>
+                    </DropdownMenuItem>
+                    {showAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/admin" className="cursor-pointer">
+                            <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                      <LogOut className="h-4 w-4 mr-2" /> Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/explore"
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                    pathname.startsWith("/explore")
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  <Search className="h-4 w-4" />
+                  <span>Explore</span>
+                </Link>
+                <Button size="sm" variant="ghost" asChild className="ml-2">
+                  <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </>
+            )}
+          </nav>
+        )}
+
+        {/* Mobile nav */}
+        {isMobile && (
+          <div className="flex items-center gap-1">
+            {isLoggedIn && (
+              <>
+                <GlobalSearchDialog />
+                <Link
+                  to="/notifications"
+                  className="relative flex items-center px-2 py-1.5 rounded-md text-sm text-muted-foreground"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
+
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="px-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0">
+                <div className="flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <Link to="/" onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2 font-display text-lg font-bold">
+                      <img src={logoImg} alt="changethegame" className="h-5 w-5" /> changethegame
+                    </Link>
+                  </div>
+
+                  {/* Links */}
+                  <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+                    {isLoggedIn ? (
+                      <>
+                        {/* User info */}
+                        <div className="flex items-center gap-3 px-3 py-3 mb-2 rounded-lg bg-muted/50">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={user?.avatarUrl} />
+                            <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{user?.name}</p>
+                            <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
+                          </div>
+                        </div>
+
+                        {authedLinks.map((link) => navLink(link, () => setMobileOpen(false)))}
+
+                        <div className="py-2">
+                          <div className="h-px bg-border" />
+                        </div>
+
+                        <Link to="/me" onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
+                          <User className="h-4 w-4" /> My Hub
+                        </Link>
+                        <Link to={`/users/${currentUser.id}`} onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
+                          <User className="h-4 w-4" /> My public profile
+                        </Link>
+
+                        {showAdmin && (
+                          <>
+                            <div className="py-2">
+                              <div className="h-px bg-border" />
+                            </div>
+                            <Link to="/admin" onClick={() => setMobileOpen(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
+                              <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+                            </Link>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Link to="/explore" onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
+                          <Search className="h-4 w-4" /> Explore
+                        </Link>
+                      </>
+                    )}
+                  </nav>
+
+                  {/* Bottom actions */}
+                  <div className="border-t border-border px-3 py-4 space-y-2">
+                    {isLoggedIn ? (
+                      <Button variant="destructive" size="sm" className="w-full" onClick={() => { handleLogout(); setMobileOpen(false); }}>
+                        <LogOut className="h-4 w-4 mr-2" /> Log out
+                      </Button>
+                    ) : (
+                      <>
+                        <Button size="sm" className="w-full" asChild>
+                          <Link to="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+                        </Button>
+                        <Button variant="outline" size="sm" className="w-full" asChild>
+                          <Link to="/login" onClick={() => setMobileOpen(false)}>
+                            <LogIn className="h-4 w-4 mr-1" /> Log in
+                          </Link>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        )}
       </div>
     </header>
   );

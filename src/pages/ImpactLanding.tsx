@@ -107,7 +107,7 @@ export default function ImpactLanding() {
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="container py-20 md:py-32 text-center relative z-10">
+        <div className="container py-12 sm:py-20 md:py-32 text-center relative z-10 px-4">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
               <Shield className="h-3 w-3 mr-1" /> Missions · Guilds · Territories
@@ -118,7 +118,7 @@ export default function ImpactLanding() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6 }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
+            className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1] px-2"
           >
             A home for{" "}
             <span className="text-primary">operators,</span>{" "}
@@ -139,7 +139,7 @@ export default function ImpactLanding() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
+            className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center px-4"
           >
             <Button size="lg" asChild className="gap-2">
               <Link to="/quests/new"><Target className="h-4 w-4" /> Start a Mission</Link>

@@ -126,7 +126,7 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
   const hasRecommended = rec && (rec.quests?.length || rec.guilds?.length || rec.territories?.length || rec.collaborators?.length);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-accent/5 p-6 md:p-10">
+    <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-accent/5 p-4 sm:p-6 md:p-10">
       <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
       <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-accent/10 blur-3xl" />
 

@@ -111,18 +111,18 @@ export default function SharesPage() {
 
   return (
     <PageShell>
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 px-1">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium text-primary">
             <Crown className="h-4 w-4" /> Membership & Shares
           </div>
-          <h1 className="font-display text-3xl md:text-4xl font-bold">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold">
             Co-own <span className="text-primary">changethegame</span>
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             changethegame is co-owned by its members. You can become a shareholder starting at {sharePrice} €.
-            Your voice and vote count through a fair logarithmic system that protects small shareholders while avoiding dominance.
+            Your voice and vote count through a fair logarithmic system.
           </p>
         </motion.div>
 
@@ -266,27 +266,27 @@ export default function SharesPage() {
         {holdings.length > 0 && (
           <div className="space-y-4">
             <h2 className="font-display text-xl font-semibold">Your share history</h2>
-            <div className="rounded-xl border border-border overflow-hidden">
-              <table className="w-full text-sm">
+            <div className="rounded-xl border border-border overflow-x-auto">
+              <table className="w-full text-sm min-w-[360px]">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="text-left p-3 font-medium">Date</th>
-                    <th className="text-left p-3 font-medium">Class</th>
-                    <th className="text-right p-3 font-medium">Shares</th>
-                    <th className="text-right p-3 font-medium">Total Paid</th>
+                    <th className="text-left p-2 sm:p-3 font-medium">Date</th>
+                    <th className="text-left p-2 sm:p-3 font-medium">Class</th>
+                    <th className="text-right p-2 sm:p-3 font-medium">Shares</th>
+                    <th className="text-right p-2 sm:p-3 font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {holdings.map((h: any) => (
                     <tr key={h.id} className="border-b last:border-0">
-                      <td className="p-3 text-muted-foreground">{new Date(h.created_at).toLocaleDateString()}</td>
-                      <td className="p-3">
+                      <td className="p-2 sm:p-3 text-muted-foreground text-xs sm:text-sm">{new Date(h.created_at).toLocaleDateString()}</td>
+                      <td className="p-2 sm:p-3">
                         <Badge variant={h.share_class === "A" ? "default" : "secondary"} className="text-xs">
-                          Class {h.share_class}
+                          {h.share_class}
                         </Badge>
                       </td>
-                      <td className="p-3 text-right font-medium">{h.number_of_shares}</td>
-                      <td className="p-3 text-right">{Number(h.total_paid).toFixed(2)} €</td>
+                      <td className="p-2 sm:p-3 text-right font-medium">{h.number_of_shares}</td>
+                      <td className="p-2 sm:p-3 text-right text-xs sm:text-sm">{Number(h.total_paid).toFixed(2)} €</td>
                     </tr>
                   ))}
                 </tbody>
