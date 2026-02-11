@@ -224,7 +224,7 @@ export function useCompanyById(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("*, company_members(id, user_id, role, joined_at), company_territories(territory_id, territories(id, name))")
+        .select("*, company_members(id, user_id, role, joined_at), company_territories(territory_id, territories(id, name, level)), company_topics(topic_id, topics(id, name))")
         .eq("id", id!)
         .single();
       if (error) throw error;

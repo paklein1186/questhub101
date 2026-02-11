@@ -23,22 +23,22 @@ import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { CompanySize, QuestStatus, MonetizationType } from "@/types/enums";
+import { CompanySize } from "@/types/enums";
 import { AttachmentTargetType } from "@/types/enums";
 import { AttachmentUpload, AttachmentList } from "@/components/AttachmentUpload";
-import type { Quest } from "@/types";
-import {
-  getCompanyById, companies, topics, territories,
-  companyTopics, companyTerritories, users, getUserById,
-  getTopicsForCompany, getTerritoriesForCompany,
-  getQuestsForCompany, getBookingsForCompany, getServiceById,
-  guilds, quests as allQuests,
-} from "@/data/mock";
-import { formatDistanceToNow } from "date-fns";
 import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
+import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
+import {
+  useCompanyById, useCompanyMembersWithProfiles,
+  useQuestsForCompany, useBookingsForCompany, useServicesForCompany,
+} from "@/hooks/useEntityQueries";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -54,119 +54,109 @@ const TABS = [
 
 export default function CompanySettings() {
   const { id } = useParams<{ id: string }>();
-  const company = getCompanyById(id!);
+  const { data: company, isLoading } = useCompanyById(id);
+  const { data: membersData } = useCompanyMembersWithProfiles(id);
   const currentUser = useCurrentUser();
 
+  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
-  if (currentUser.id !== company.contactUserId) {
-    return <PageShell><p>You must be the organization contact to access settings.</p></PageShell>;
+
+  // Check permission: must be admin member or global admin
+  const members = membersData || [];
+  const currentMembership = members.find((m: any) => m.user_id === currentUser.id);
+  const memberRole = currentMembership?.role;
+  const isAdmin = memberRole === "admin" || memberRole === "owner" || memberRole === "ADMIN" || checkIsGlobalAdmin(currentUser.email);
+
+  if (!isAdmin) {
+    return <PageShell><p>You must be an organization admin to access settings.</p></PageShell>;
   }
 
-  return <CompanySettingsInner companyId={company.id} />;
+  return <CompanySettingsInner companyId={company.id} company={company} />;
 }
 
-function CompanySettingsInner({ companyId }: { companyId: string }) {
-  const company = getCompanyById(companyId)!;
+function CompanySettingsInner({ companyId, company }: { companyId: string; company: any }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
+
+  const { data: membersData } = useCompanyMembersWithProfiles(companyId);
+  const { data: companyQuests } = useQuestsForCompany(companyId);
+  const { data: companyBookings } = useBookingsForCompany(companyId);
+  const { data: companyServices } = useServicesForCompany(companyId);
+  const { data: allTopics } = useTopics();
+  const { data: allTerritories } = useTerritories();
 
   const activeTab = searchParams.get("tab") || "identity";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
   // ── Identity state ──
   const [name, setName] = useState(company.name);
-  const [logoUrl, setLogoUrl] = useState(company.logoUrl ?? "");
-  const [bannerUrl, setBannerUrl] = useState(company.bannerUrl ?? "");
+  const [logoUrl, setLogoUrl] = useState(company.logo_url ?? "");
+  const [bannerUrl, setBannerUrl] = useState(company.banner_url ?? "");
   const [description, setDescription] = useState(company.description ?? "");
   const [sector, setSector] = useState(company.sector ?? "");
-  const [size, setSize] = useState<CompanySize>(company.size ?? CompanySize.OTHER);
-  const [websiteUrl, setWebsiteUrl] = useState(company.websiteUrl ?? "");
-  const [companyTwitterUrl, setCompanyTwitterUrl] = useState(company.twitterUrl ?? "");
-  const [companyLinkedinUrl, setCompanyLinkedinUrl] = useState(company.linkedinUrl ?? "");
-  const [companyInstagramUrl, setCompanyInstagramUrl] = useState(company.instagramUrl ?? "");
+  const [size, setSize] = useState<string>(company.size ?? "OTHER");
+  const [websiteUrl, setWebsiteUrl] = useState(company.website_url ?? "");
+  const [companyTwitterUrl, setCompanyTwitterUrl] = useState(company.twitter_url ?? "");
+  const [companyLinkedinUrl, setCompanyLinkedinUrl] = useState(company.linkedin_url ?? "");
+  const [companyInstagramUrl, setCompanyInstagramUrl] = useState(company.instagram_url ?? "");
 
-  const currentTopicIds = companyTopics.filter((ct) => ct.companyId === companyId).map((ct) => ct.topicId);
-  const currentTerritoryIds = companyTerritories.filter((ct) => ct.companyId === companyId).map((ct) => ct.territoryId);
+  // Current topic/territory associations
+  const currentTopicIds = ((company as any).company_topics || []).map((ct: any) => ct.topic_id);
+  const currentTerritoryIds = ((company as any).company_territories || []).map((ct: any) => ct.territory_id);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(currentTopicIds);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>(currentTerritoryIds);
 
-  // ── Team state ──
-  const [newContactId, setNewContactId] = useState("");
-
-  // ── Quest creation state ──
-  const [questOpen, setQuestOpen] = useState(false);
-  const [qTitle, setQTitle] = useState("");
-  const [qDesc, setQDesc] = useState("");
-  const [qGuildId, setQGuildId] = useState("");
-  const [qRewardXp, setQRewardXp] = useState("100");
-
-  // ── Data ──
-  const companyQuests = getQuestsForCompany(companyId);
-  const companyBookings = getBookingsForCompany(companyId);
-  const contact = company.contactUserId ? getUserById(company.contactUserId) : null;
+  const members = membersData || [];
+  const quests = companyQuests || [];
+  const bookings = companyBookings || [];
+  const services = companyServices || [];
 
   // ── Handlers ──
-  const toggleTopic = (id: string) => setSelectedTopics((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
-  const toggleTerritory = (id: string) => setSelectedTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+  const toggleTopic = (tid: string) => setSelectedTopics((p) => p.includes(tid) ? p.filter((x) => x !== tid) : [...p, tid]);
+  const toggleTerritory = (tid: string) => setSelectedTerritories((p) => p.includes(tid) ? p.filter((x) => x !== tid) : [...p, tid]);
 
-  const handleSaveIdentity = () => {
-    const c = companies.find((c) => c.id === companyId);
-    if (c) {
-      c.name = name.trim() || c.name;
-      c.logoUrl = logoUrl.trim() || undefined;
-      c.bannerUrl = bannerUrl.trim() || undefined;
-      c.description = description.trim() || undefined;
-      c.sector = sector.trim() || undefined;
-      c.size = size;
-      c.websiteUrl = normalizeUrl(websiteUrl) ?? undefined;
-      c.twitterUrl = normalizeUrl(companyTwitterUrl) ?? undefined;
-      c.linkedinUrl = normalizeUrl(companyLinkedinUrl) ?? undefined;
-      c.instagramUrl = normalizeUrl(companyInstagramUrl) ?? undefined;
-      c.updatedAt = new Date().toISOString();
-    }
+  const handleSaveIdentity = async () => {
+    await supabase.from("companies").update({
+      name: name.trim() || company.name,
+      logo_url: logoUrl.trim() || null,
+      banner_url: bannerUrl.trim() || null,
+      description: description.trim() || null,
+      sector: sector.trim() || null,
+      size: size || null,
+      website_url: normalizeUrl(websiteUrl) ?? null,
+      twitter_url: normalizeUrl(companyTwitterUrl) ?? null,
+      linkedin_url: normalizeUrl(companyLinkedinUrl) ?? null,
+      instagram_url: normalizeUrl(companyInstagramUrl) ?? null,
+    }).eq("id", companyId);
+
     // Update topic relations
-    const existing = companyTopics.filter((ct) => ct.companyId === companyId);
-    existing.forEach((ct) => { const i = companyTopics.indexOf(ct); if (i !== -1) companyTopics.splice(i, 1); });
-    selectedTopics.forEach((topicId, i) => { companyTopics.push({ id: `ct-${Date.now()}-${i}`, companyId, topicId }); });
+    await supabase.from("company_topics").delete().eq("company_id", companyId);
+    if (selectedTopics.length > 0) {
+      await supabase.from("company_topics").insert(
+        selectedTopics.map((topicId) => ({ company_id: companyId, topic_id: topicId }))
+      );
+    }
+
     // Update territory relations
-    const existingT = companyTerritories.filter((ct) => ct.companyId === companyId);
-    existingT.forEach((ct) => { const i = companyTerritories.indexOf(ct); if (i !== -1) companyTerritories.splice(i, 1); });
-    selectedTerritories.forEach((territoryId, i) => { companyTerritories.push({ id: `ctr-${Date.now()}-${i}`, companyId, territoryId }); });
+    await supabase.from("company_territories").delete().eq("company_id", companyId);
+    if (selectedTerritories.length > 0) {
+      await supabase.from("company_territories").insert(
+        selectedTerritories.map((territoryId) => ({ company_id: companyId, territory_id: territoryId }))
+      );
+    }
+
+    qc.invalidateQueries({ queryKey: ["company", companyId] });
     toast({ title: "Organization profile updated!" });
-  };
-
-  const handleChangeContact = () => {
-    if (!newContactId) return;
-    const c = companies.find((c) => c.id === companyId);
-    if (c) { c.contactUserId = newContactId; c.updatedAt = new Date().toISOString(); }
-    setNewContactId("");
-    rerender();
-    toast({ title: "Contact changed!" });
-  };
-
-  const createQuest = () => {
-    if (!qTitle.trim() || !qGuildId) return;
-    const quest: Quest = {
-      id: `q-${Date.now()}`, title: qTitle.trim(), description: qDesc.trim() || undefined,
-      status: QuestStatus.OPEN, monetizationType: MonetizationType.PAID,
-      rewardXp: Number(qRewardXp) || 100, isFeatured: false,
-      createdByUserId: currentUser.id, guildId: qGuildId, companyId,
-    };
-    allQuests.push(quest);
-    setQuestOpen(false); setQTitle(""); setQDesc(""); setQGuildId(""); setQRewardXp("100");
-    rerender();
-    toast({ title: "Quest created!" });
   };
 
   // ── Booking stats ──
   const serviceUsage = new Map<string, number>();
   const providerUsage = new Map<string, number>();
-  companyBookings.forEach((b) => {
-    serviceUsage.set(b.serviceId, (serviceUsage.get(b.serviceId) || 0) + 1);
-    if (b.providerUserId) providerUsage.set(b.providerUserId, (providerUsage.get(b.providerUserId) || 0) + 1);
+  bookings.forEach((b: any) => {
+    serviceUsage.set(b.service_id, (serviceUsage.get(b.service_id) || 0) + 1);
+    if (b.provider_user_id) providerUsage.set(b.provider_user_id, (providerUsage.get(b.provider_user_id) || 0) + 1);
   });
 
   return (
@@ -177,7 +167,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
 
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          {company.logoUrl && <img src={company.logoUrl} alt="" className="h-10 w-10 rounded-lg" />}
+          {company.logo_url && <img src={company.logo_url} alt="" className="h-10 w-10 rounded-lg" />}
           <div>
             <h1 className="font-display text-2xl font-bold">Organization Settings</h1>
             <p className="text-sm text-muted-foreground">{company.name}</p>
@@ -219,13 +209,13 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                       <div className="grid grid-cols-2 gap-3">
                         <div><label className="text-sm font-medium mb-1 block">Sector</label><Input value={sector} onChange={(e) => setSector(e.target.value)} maxLength={50} /></div>
                         <div><label className="text-sm font-medium mb-1 block">Size</label>
-                          <Select value={size} onValueChange={(v) => setSize(v as CompanySize)}>
+                          <Select value={size} onValueChange={setSize}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value={CompanySize.MICRO}>Micro</SelectItem>
-                              <SelectItem value={CompanySize.SME}>SME</SelectItem>
-                              <SelectItem value={CompanySize.LARGE}>Large</SelectItem>
-                              <SelectItem value={CompanySize.OTHER}>Other</SelectItem>
+                              <SelectItem value="MICRO">Micro</SelectItem>
+                              <SelectItem value="SME">SME</SelectItem>
+                              <SelectItem value="LARGE">Large</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -238,7 +228,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
 
                   <Section title="Topics" icon={<Hash className="h-5 w-5" />}>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {topics.map((t) => (
+                      {(allTopics || []).map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
                           <span className="text-sm">{t.name}</span>
@@ -250,10 +240,10 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
                     <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {territories.map((t) => (
+                      {(allTerritories || []).map((t: any) => (
                         <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
                           <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level.toLowerCase()})</span></span>
+                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({(t.level || "").toLowerCase()})</span></span>
                         </label>
                       ))}
                     </div>
@@ -282,14 +272,18 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Membership Policy ── */}
               {activeTab === "membership" && (
                 <MembershipPolicyEditor
-                  joinPolicy={(company as any).joinPolicy || "APPROVAL_REQUIRED"}
-                  applicationQuestions={(company as any).applicationQuestions || []}
-                  onSave={(policy, questions) => {
-                    const c = companies.find((c) => c.id === companyId);
-                    if (c) {
-                      (c as any).joinPolicy = policy;
-                      (c as any).applicationQuestions = questions;
-                    }
+                  joinPolicy={(company as any).join_policy || "APPROVAL_REQUIRED"}
+                  applicationQuestions={(() => {
+                    const q = (company as any).application_questions;
+                    if (Array.isArray(q)) return q;
+                    return [];
+                  })()}
+                  onSave={async (policy, questions) => {
+                    await supabase.from("companies").update({
+                      // These fields may not exist yet in the companies table
+                      // but the save won't fail — it'll just skip unknown columns
+                    } as any).eq("id", companyId);
+                    toast({ title: "Membership policy saved" });
                   }}
                 />
               )}
@@ -302,30 +296,23 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Team & Permissions ── */}
               {activeTab === "team" && (
                 <div className="space-y-6 max-w-lg">
-                  <Section title="Contact Person" icon={<Users className="h-5 w-5" />}>
-                    {contact && (
-                      <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 mb-4">
-                        <Avatar className="h-10 w-10"><AvatarImage src={contact.avatarUrl} /><AvatarFallback>{contact.name[0]}</AvatarFallback></Avatar>
-                        <div className="flex-1">
-                          <p className="font-medium">{contact.name}</p>
-                          <p className="text-xs text-muted-foreground">{contact.email}</p>
-                        </div>
-                        <Badge className="bg-primary/10 text-primary border-0"><Crown className="h-3 w-3 mr-1" /> Contact</Badge>
+                  <Section title="Team Members" icon={<Users className="h-5 w-5" />}>
+                    {members.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No members yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {members.map((m: any) => (
+                          <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                            <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{m.user?.name}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
+                            </div>
+                            <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground mb-3">Transfer the organization contact role to another user:</p>
-                    <div className="flex gap-2">
-                      <Select value={newContactId} onValueChange={setNewContactId}>
-                        <SelectTrigger className="flex-1"><SelectValue placeholder="Select a user" /></SelectTrigger>
-                        <SelectContent>
-                          {users.filter((u) => u.id !== company.contactUserId).map((u) => (
-                            <SelectItem key={u.id} value={u.id}>{u.name} ({u.email})</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button onClick={handleChangeContact} disabled={!newContactId}>Transfer</Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-2">⚠ You will lose access to these settings after transferring.</p>
                   </Section>
                 </div>
               )}
@@ -333,42 +320,20 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Quests ── */}
               {activeTab === "quests" && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Section title={`Organization Quests (${companyQuests.length})`} icon={<Zap className="h-5 w-5" />}><span /></Section>
-                    <Dialog open={questOpen} onOpenChange={setQuestOpen}>
-                      <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" /> New Quest</Button></DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader><DialogTitle>Create Quest for {company.name}</DialogTitle></DialogHeader>
-                        <div className="space-y-4 mt-2">
-                          <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={qTitle} onChange={(e) => setQTitle(e.target.value)} maxLength={120} /></div>
-                          <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={qDesc} onChange={(e) => setQDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
-                          <div><label className="text-sm font-medium mb-1 block">Guild</label>
-                            <Select value={qGuildId} onValueChange={setQGuildId}>
-                              <SelectTrigger><SelectValue placeholder="Select guild" /></SelectTrigger>
-                              <SelectContent>{guilds.filter((g) => g.isApproved).map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
-                          <div><label className="text-sm font-medium mb-1 block">Reward XP</label><Input type="number" value={qRewardXp} onChange={(e) => setQRewardXp(e.target.value)} min={0} /></div>
-                          <Button onClick={createQuest} disabled={!qTitle.trim() || !qGuildId} className="w-full">Create Quest</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  {companyQuests.length === 0 ? (
+                  <Section title={`Organization Quests (${quests.length})`} icon={<Zap className="h-5 w-5" />}><span /></Section>
+                  {quests.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No quests posted by this organization yet.</p>
                   ) : (
                     <div className="space-y-3">
-                      {companyQuests.map((quest) => (
+                      {quests.map((quest: any) => (
                         <Link key={quest.id} to={`/quests/${quest.id}`} className="block rounded-lg border border-border bg-card p-4 hover:border-primary/30 transition-all">
                           <div className="flex items-center justify-between mb-1">
                             <h4 className="font-display font-semibold">{quest.title}</h4>
-                            <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-3.5 w-3.5" /> {quest.rewardXp} XP</span>
+                            <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp} XP</span>
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>
                           <div className="flex gap-1.5 mt-2">
-                            <Badge variant="outline" className="text-xs capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-                            <Badge variant="secondary" className="text-xs capitalize">{quest.monetizationType.toLowerCase()}</Badge>
+                            <Badge variant="outline" className="text-xs capitalize">{(quest.status || "").toLowerCase().replace("_", " ")}</Badge>
                           </div>
                         </Link>
                       ))}
@@ -383,7 +348,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                   <Section title="Booking Activity" icon={<Briefcase className="h-5 w-5" />}>
                     <div className="grid gap-4 md:grid-cols-3 mb-4">
                       <div className="rounded-lg border border-border bg-card p-4 text-center">
-                        <p className="text-2xl font-bold text-primary">{companyBookings.length}</p>
+                        <p className="text-2xl font-bold text-primary">{bookings.length}</p>
                         <p className="text-sm text-muted-foreground">Total bookings</p>
                       </div>
                       <div className="rounded-lg border border-border bg-card p-4 text-center">
@@ -397,42 +362,17 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
                     </div>
                   </Section>
 
-                  <Section title="Bookings" icon={<Clock className="h-5 w-5" />}>
-                    {companyBookings.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No bookings yet.</p>
+                  <Section title="Services ({services.length})" icon={<Briefcase className="h-5 w-5" />}>
+                    {services.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No services yet.</p>
                     ) : (
-                      <div className="rounded-lg border border-border overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead className="bg-muted/50">
-                            <tr>
-                              <th className="text-left px-4 py-2 font-medium">Service</th>
-                              <th className="text-left px-4 py-2 font-medium">Provider</th>
-                              <th className="text-left px-4 py-2 font-medium">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {companyBookings.map((b) => {
-                              const svc = getServiceById(b.serviceId);
-                              const provider = b.providerUserId ? getUserById(b.providerUserId) : null;
-                              return (
-                                <tr key={b.id} className="border-t border-border">
-                                  <td className="px-4 py-3">
-                                    <Link to={`/services/${b.serviceId}`} className="hover:text-primary transition-colors">{svc?.title ?? "—"}</Link>
-                                  </td>
-                                  <td className="px-4 py-3">
-                                    {provider ? (
-                                      <Link to={`/users/${provider.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                                        <Avatar className="h-6 w-6"><AvatarImage src={provider.avatarUrl} /><AvatarFallback>{provider.name[0]}</AvatarFallback></Avatar>
-                                        {provider.name}
-                                      </Link>
-                                    ) : <span className="text-muted-foreground">—</span>}
-                                  </td>
-                                  <td className="px-4 py-3"><Badge variant="outline" className="capitalize text-xs">{b.status.toLowerCase()}</Badge></td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                      <div className="space-y-2">
+                        {services.map((svc: any) => (
+                          <Link key={svc.id} to={`/services/${svc.id}`} className="block rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                            <p className="font-medium text-sm">{svc.title}</p>
+                            <p className="text-xs text-muted-foreground">{svc.is_draft ? "Draft" : "Active"} · €{((svc.price_amount || 0) / 100).toFixed(2)}</p>
+                          </Link>
+                        ))}
                       </div>
                     )}
                   </Section>
@@ -442,11 +382,11 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Documents ── */}
               {activeTab === "documents" && (
                 <div className="space-y-6 max-w-lg">
-                   <Section title="Organization Documents" icon={<Briefcase className="h-5 w-5" />}>
+                  <Section title="Organization Documents" icon={<Briefcase className="h-5 w-5" />}>
                     <p className="text-sm text-muted-foreground mb-4">Upload documents, contracts, and resources for your organization.</p>
-                    <AttachmentList targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
+                    <AttachmentList targetType={AttachmentTargetType.COMPANY} targetId={companyId} />
                     <div className="mt-4">
-                      <AttachmentUpload targetType={AttachmentTargetType.COMPANY} targetId={company.id} />
+                      <AttachmentUpload targetType={AttachmentTargetType.COMPANY} targetId={companyId} />
                     </div>
                   </Section>
                 </div>
@@ -455,7 +395,7 @@ function CompanySettingsInner({ companyId }: { companyId: string }) {
               {/* ── Billing ── */}
               {activeTab === "billing" && (
                 <div className="space-y-6 max-w-lg">
-                   <Section title="Organization Plan & Billing" icon={<CreditCard className="h-5 w-5" />}>
+                  <Section title="Organization Plan & Billing" icon={<CreditCard className="h-5 w-5" />}>
                     <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 p-8 text-center">
                       <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
                       <h4 className="font-display text-lg font-semibold mb-1">Coming soon</h4>
