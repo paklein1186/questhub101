@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { ImageUpload } from "@/components/ImageUpload";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import { useSpokenLanguages, AVAILABLE_LANGUAGES } from "@/hooks/useSpokenLanguages";
 import { AffiliationsStep, type AffiliationLink, type ManualAffiliation } from "@/components/onboarding/AffiliationsStep";
 import { AffiliationsReviewStep, type SuggestedAffiliation, type SuggestedHouse, type SuggestedService } from "@/components/onboarding/AffiliationsReviewStep";
 import { useQuery } from "@tanstack/react-query";
@@ -34,10 +35,10 @@ import {
 } from "@/lib/personaLabels";
 
 // ─── Step config ──────────────────────────────────────────────
-// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
-const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
-// Impact: 0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
-const STEP_LABELS_IMPACT = ["Intention", "Identity", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
+// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
+// Impact: 0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Languages", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
@@ -119,6 +120,10 @@ export default function Onboarding() {
   const [servicePrice, setServicePrice] = useState("");
   const [serviceTopics, setServiceTopics] = useState<string[]>([]);
   const [serviceImage, setServiceImage] = useState<string | undefined>();
+
+  // Languages step
+  const [spokenLangCodes, setSpokenLangCodes] = useState<string[]>(["en"]);
+  const { saveSpokenLanguages } = useSpokenLanguages();
 
   // Fetch existing guilds & companies for affiliations step
   const { data: existingGuilds = [] } = useQuery({
@@ -228,6 +233,11 @@ export default function Onboarding() {
     if (!authUser?.id) return;
     setSaving(true);
     try {
+      // Save spoken languages
+      await saveSpokenLanguages(spokenLangCodes);
+
+      // Set preferred language to first spoken language if not already set
+      const preferredLang = spokenLangCodes[0] || "en";
       // Save social links to profile
       await supabase.from("profiles").update({
         name: name.trim() || undefined,
@@ -235,10 +245,11 @@ export default function Onboarding() {
         has_completed_onboarding: true,
         persona_type: personaType,
         persona_source: "onboarding_intent",
+        preferred_language: preferredLang,
         website_url: affLinks.website.trim() || null,
         linkedin_url: affLinks.linkedin.trim() || null,
         instagram_url: affLinks.other.trim() || null,
-      }).eq("user_id", authUser.id);
+      } as any).eq("user_id", authUser.id);
 
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
       // Merge selected topics + accepted AI house suggestions
@@ -396,18 +407,20 @@ export default function Onboarding() {
   };
 
   // ─── Step indices ─────────────────────────────────────────
-  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=affiliations, 5=review, 6=project, 7=service, 8=done
-  // Impact:  0=intention, 1=identity, 2=affiliations, 3=review, 4=project, 5=service, 6=done
+  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
+  // Impact:  0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
 
-  const CREATIVE_AFF_STEP = 4;
-  const CREATIVE_REVIEW_STEP = 5;
-  const CREATIVE_PROJECT_STEP = 6;
-  const CREATIVE_SERVICE_STEP = 7;
+  const CREATIVE_LANG_STEP = 4;
+  const CREATIVE_AFF_STEP = 5;
+  const CREATIVE_REVIEW_STEP = 6;
+  const CREATIVE_PROJECT_STEP = 7;
+  const CREATIVE_SERVICE_STEP = 8;
 
-  const IMPACT_AFF_STEP = 2;
-  const IMPACT_REVIEW_STEP = 3;
-  const IMPACT_PROJECT_STEP = 4;
-  const IMPACT_SERVICE_STEP = 5;
+  const IMPACT_LANG_STEP = 2;
+  const IMPACT_AFF_STEP = 3;
+  const IMPACT_REVIEW_STEP = 4;
+  const IMPACT_PROJECT_STEP = 5;
+  const IMPACT_SERVICE_STEP = 6;
 
   const goNext = () => {
     if (isCreativePath) {
@@ -423,6 +436,13 @@ export default function Onboarding() {
       }
       if (step === IMPACT_SERVICE_STEP) { finishOnboarding(); return; }
       if (step === IMPACT_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(IMPACT_SERVICE_STEP); return; }
+    }
+    // Validate languages step: at least one language required
+    if ((isCreativePath && step === CREATIVE_LANG_STEP) || (!isCreativePath && step === IMPACT_LANG_STEP)) {
+      if (spokenLangCodes.length === 0) {
+        toast({ title: "Please select at least one language", variant: "destructive" });
+        return;
+      }
     }
     setDirection(1);
     setStep((s) => Math.min(s + 1, lastStepIndex));
@@ -445,7 +465,7 @@ export default function Onboarding() {
 
   const currentStepLabel = stepLabels[step] || "";
   const isLastStep = step === lastStepIndex;
-  const progressSteps = isCreativePath ? 8 : 6; // excluding final "done" step
+  const progressSteps = isCreativePath ? 9 : 7; // excluding final "done" step
 
   // Determine which step content to render
   const renderCreativeStep = () => {
@@ -454,11 +474,12 @@ export default function Onboarding() {
       case 1: return renderHousesOfArt();
       case 2: return renderCreativeGround();
       case 3: return renderCreativeEssence();
-      case 4: return renderAffiliationsInput();
-      case 5: return renderAffiliationsReview();
-      case 6: return renderProject(true);
-      case 7: return renderService(true);
-      case 8: return renderDone(true);
+      case 4: return renderLanguagesStep();
+      case 5: return renderAffiliationsInput();
+      case 6: return renderAffiliationsReview();
+      case 7: return renderProject(true);
+      case 8: return renderService(true);
+      case 9: return renderDone(true);
       default: return null;
     }
   };
@@ -467,11 +488,12 @@ export default function Onboarding() {
     switch (step) {
       case 0: return renderEntryChoice();
       case 1: return renderIdentity();
-      case 2: return renderAffiliationsInput();
-      case 3: return renderAffiliationsReview();
-      case 4: return renderProject(false);
-      case 5: return renderService(false);
-      case 6: return renderDone(false);
+      case 2: return renderLanguagesStep();
+      case 3: return renderAffiliationsInput();
+      case 4: return renderAffiliationsReview();
+      case 5: return renderProject(false);
+      case 6: return renderService(false);
+      case 7: return renderDone(false);
       default: return null;
     }
   };
@@ -789,7 +811,52 @@ export default function Onboarding() {
     );
   }
 
-  // ─── Affiliations input step (shared) ─────────────────
+  // ─── Languages Step (shared) ─────────────────────────────
+  function renderLanguagesStep() {
+    const toggleLang = (code: string) => {
+      setSpokenLangCodes((p) =>
+        p.includes(code) ? p.filter((c) => c !== code) : [...p, code]
+      );
+    };
+
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl font-bold">Languages you speak 🌍</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Which languages do you speak and feel comfortable collaborating in?
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          {AVAILABLE_LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => toggleLang(lang.code)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                spokenLangCodes.includes(lang.code)
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border hover:border-primary/30"
+              )}
+            >
+              <span className="text-xl">{lang.flag}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{lang.label}</p>
+                <p className="text-xs text-muted-foreground">{lang.native}</p>
+              </div>
+              {spokenLangCodes.includes(lang.code) && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          {spokenLangCodes.length} selected · Translations and AI responses will prioritize these languages.
+        </p>
+      </div>
+    );
+  }
+
   function renderAffiliationsInput() {
     return (
       <AffiliationsStep
