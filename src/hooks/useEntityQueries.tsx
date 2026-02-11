@@ -725,3 +725,309 @@ export function useGuildMembersWithProfiles(guildId: string | undefined) {
     enabled: !!guildId,
   });
 }
+
+// ─── All companies ───────────────────────────────────────────
+export function useAllCompanies() {
+  return useQuery({
+    queryKey: ["all-companies"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("is_deleted", false)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+// ─── Booking by ID ───────────────────────────────────────────
+export function useBookingById(id: string | undefined) {
+  return useQuery({
+    queryKey: ["booking", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*, services(id, title, description, duration_minutes, price_amount, price_currency, online_location_type)")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+// ─── Update booking status mutation ──────────────────────────
+export function useUpdateBookingStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ bookingId, status }: { bookingId: string; status: string }) => {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["booking"] });
+      qc.invalidateQueries({ queryKey: ["bookings-for-provider"] });
+      qc.invalidateQueries({ queryKey: ["bookings-for-company"] });
+    },
+  });
+}
+
+// ─── My course enrollments ───────────────────────────────────
+export function useMyEnrollments(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-enrollments", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("course_enrollments")
+        .select("*, courses(id, title, description, cover_image_url, is_free, price_amount, level, owner_user_id, owner_type)")
+        .eq("user_id", userId!);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
+// ─── Courses I created / own ─────────────────────────────────
+export function useMyCourses(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-created-courses", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*, lessons(id)")
+        .eq("owner_user_id", userId!)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
+// ─── Availability mutations ──────────────────────────────────
+export function useCreateAvailabilityRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      provider_user_id: string; weekday: number; start_time: string;
+      end_time: string; timezone?: string; service_id?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("availability_rules")
+        .insert({
+          provider_user_id: input.provider_user_id,
+          weekday: input.weekday,
+          start_time: input.start_time,
+          end_time: input.end_time,
+          timezone: input.timezone || "Europe/Paris",
+          service_id: input.service_id || null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-rules"] }),
+  });
+}
+
+export function useUpdateAvailabilityRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; weekday?: number; start_time?: string; end_time?: string; is_active?: boolean }) => {
+      const { error } = await supabase
+        .from("availability_rules")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-rules"] }),
+  });
+}
+
+export function useDeleteAvailabilityRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("availability_rules")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-rules"] }),
+  });
+}
+
+export function useCreateAvailabilityException() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      provider_user_id: string; date: string; is_available: boolean;
+      start_time?: string; end_time?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("availability_exceptions")
+        .insert(input)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-exceptions"] }),
+  });
+}
+
+export function useUpdateAvailabilityException() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; date?: string; is_available?: boolean; start_time?: string; end_time?: string }) => {
+      const { error } = await supabase
+        .from("availability_exceptions")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-exceptions"] }),
+  });
+}
+
+export function useDeleteAvailabilityException() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("availability_exceptions")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["availability-exceptions"] }),
+  });
+}
+
+// ─── Update guild mutation ───────────────────────────────────
+export function useUpdateGuild() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; name?: string; description?: string; type?: "COLLECTIVE" | "GUILD" | "NETWORK"; logo_url?: string; banner_url?: string }) => {
+      const { error } = await supabase
+        .from("guilds")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["guild", vars.id] });
+      qc.invalidateQueries({ queryKey: ["guilds"] });
+    },
+  });
+}
+
+// ─── Guild topic/territory mutations ─────────────────────────
+export function useSetGuildTopics() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ guildId, topicIds }: { guildId: string; topicIds: string[] }) => {
+      await supabase.from("guild_topics").delete().eq("guild_id", guildId);
+      if (topicIds.length > 0) {
+        const { error } = await supabase.from("guild_topics").insert(
+          topicIds.map(topic_id => ({ guild_id: guildId, topic_id }))
+        );
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["guild", vars.guildId] }),
+  });
+}
+
+export function useSetGuildTerritories() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ guildId, territoryIds }: { guildId: string; territoryIds: string[] }) => {
+      await supabase.from("guild_territories").delete().eq("guild_id", guildId);
+      if (territoryIds.length > 0) {
+        const { error } = await supabase.from("guild_territories").insert(
+          territoryIds.map(territory_id => ({ guild_id: guildId, territory_id }))
+        );
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["guild", vars.guildId] }),
+  });
+}
+
+// ─── Guild member mutations ──────────────────────────────────
+export function useAddGuildMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ guildId, userId, role }: { guildId: string; userId: string; role: string }) => {
+      const { data, error } = await supabase
+        .from("guild_members")
+        .insert({ guild_id: guildId, user_id: userId, role: role as any })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["guild-members-profiles", vars.guildId] });
+      qc.invalidateQueries({ queryKey: ["guild", vars.guildId] });
+    },
+  });
+}
+
+export function useUpdateGuildMemberRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ memberId, role }: { memberId: string; role: string }) => {
+      const { error } = await supabase
+        .from("guild_members")
+        .update({ role: role as any })
+        .eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["guild-members-profiles"] }),
+  });
+}
+
+export function useRemoveGuildMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase
+        .from("guild_members")
+        .delete()
+        .eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["guild-members-profiles"] });
+      qc.invalidateQueries({ queryKey: ["guild"] });
+    },
+  });
+}
+
+// ─── All profiles (for admin) ────────────────────────────────
+export function useAllProfiles() {
+  return useQuery({
+    queryKey: ["all-profiles-public"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url, email")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+}

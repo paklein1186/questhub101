@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { getReferralByCode } from "@/data/mock";
 
 export default function Signup() {
   const { signUp } = useAuth();
@@ -18,7 +17,6 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const refCode = searchParams.get("ref") || "";
-  const referral = refCode ? getReferralByCode(refCode) : undefined;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,12 +42,10 @@ export default function Signup() {
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
     } else {
-      // Store ref code for onboarding completion reward
       if (refCode) {
         sessionStorage.setItem("referralCode", refCode);
       }
     }
-    // Redirect handled by App.tsx
   };
 
   return (
@@ -64,7 +60,7 @@ export default function Signup() {
             <img src={logoImg} alt="changethegame" className="h-7 w-7" /> changethegame
           </Link>
           <p className="text-muted-foreground mt-2">Create your account and start your journey.</p>
-          {referral && (
+          {refCode && (
             <Badge variant="secondary" className="mt-2 gap-1"><Gift className="h-3 w-3" /> You were referred! Complete onboarding to earn bonus XP.</Badge>
           )}
         </div>
@@ -72,58 +68,22 @@ export default function Signup() {
         <form onSubmit={handleSubmit} className="rounded-2xl border border-border bg-card p-8 space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
-              required
-              maxLength={80}
-              autoComplete="name"
-            />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" required maxLength={80} autoComplete="name" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 6 characters"
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} autoComplete="new-password" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm">Confirm password</Label>
-            <Input
-              id="confirm"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repeat password"
-              required
-              autoComplete="new-password"
-            />
+            <Input id="confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" required autoComplete="new-password" />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
-            <Checkbox
-              checked={isEcosystemBuilder}
-              onCheckedChange={(v) => setIsEcosystemBuilder(!!v)}
-            />
+            <Checkbox checked={isEcosystemBuilder} onCheckedChange={(v) => setIsEcosystemBuilder(!!v)} />
             <span className="text-sm">I'm an ecosystem builder</span>
           </label>
           <Button type="submit" className="w-full" disabled={loading}>

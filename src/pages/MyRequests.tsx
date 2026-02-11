@@ -1,55 +1,38 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CalendarClock, Video, ExternalLink, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
-import { BookingStatus, PaymentStatus } from "@/types/enums";
-import {
-  bookings, getUserById, getGuildById, getServiceById,
-} from "@/data/mock";
+import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
-  [BookingStatus.REQUESTED]: "bg-warning/10 text-warning",
-  [BookingStatus.PENDING_PAYMENT]: "bg-amber-500/10 text-amber-600",
-  [BookingStatus.ACCEPTED]: "bg-primary/10 text-primary",
-  [BookingStatus.CONFIRMED]: "bg-primary/10 text-primary",
-  [BookingStatus.DECLINED]: "bg-destructive/10 text-destructive",
-  [BookingStatus.COMPLETED]: "bg-emerald-500/10 text-emerald-600",
-  [BookingStatus.CANCELLED]: "bg-muted text-muted-foreground",
+  REQUESTED: "bg-warning/10 text-warning",
+  PENDING_PAYMENT: "bg-amber-500/10 text-amber-600",
+  ACCEPTED: "bg-primary/10 text-primary",
+  CONFIRMED: "bg-primary/10 text-primary",
+  DECLINED: "bg-destructive/10 text-destructive",
+  COMPLETED: "bg-emerald-500/10 text-emerald-600",
+  CANCELLED: "bg-muted text-muted-foreground",
 };
+
+const CANCELLABLE = ["REQUESTED", "PENDING_PAYMENT", "CONFIRMED", "ACCEPTED"];
 
 export default function MyRequests({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const { notifyBooking } = useNotifications();
-  const [, forceUpdate] = useState(0);
-  const rerender = () => forceUpdate((n) => n + 1);
-  const myRequests = bookings.filter((b) => b.requesterId === currentUser.id);
+  const { data: allBookings = [], isLoading } = useMyBookings(currentUser.id);
+  const updateStatus = useUpdateBookingStatus();
+
+  const myRequests = allBookings.filter((b) => b.requester_id === currentUser.id);
 
   const cancelBooking = (bookingId: string) => {
-    const booking = bookings.find((b) => b.id === bookingId);
-    if (!booking) return;
-    booking.status = BookingStatus.CANCELLED;
-    booking.updatedAt = new Date().toISOString();
-    const svc = getServiceById(booking.serviceId);
-    if (booking.providerUserId) {
-      notifyBooking({
-        bookingId: booking.id,
-        serviceTitle: svc?.title ?? "Service",
-        requesterName: currentUser.name,
-        recipientUserId: booking.providerUserId,
-        action: "cancelled",
-      });
-    }
-    rerender();
-    toast({ title: "Booking cancelled" });
+    updateStatus.mutate({ bookingId, status: "CANCELLED" }, {
+      onSuccess: () => toast({ title: "Booking cancelled" }),
+    });
   };
 
   return (
@@ -61,14 +44,13 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
         <p className="text-muted-foreground mt-1">Sessions you've requested from providers.</p>
       </div>
 
-      {myRequests.length === 0 && <p className="text-muted-foreground">You haven't requested any sessions yet.</p>}
+      {isLoading && <p className="text-muted-foreground">Loading…</p>}
+      {!isLoading && myRequests.length === 0 && <p className="text-muted-foreground">You haven't requested any sessions yet.</p>}
 
       <div className="space-y-3">
         {myRequests.map((b, i) => {
-          const svc = getServiceById(b.serviceId);
-          const provider = b.providerUserId ? getUserById(b.providerUserId) : null;
-          const guild = b.providerGuildId ? getGuildById(b.providerGuildId) : null;
-          const canCancel = [BookingStatus.REQUESTED, BookingStatus.PENDING_PAYMENT, BookingStatus.CONFIRMED, BookingStatus.ACCEPTED].includes(b.status);
+          const svc = b.services as any;
+          const canCancel = CANCELLABLE.includes(b.status);
           return (
             <motion.div
               key={b.id}
@@ -80,45 +62,31 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <Link to={`/bookings/${b.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title ?? "Booking"}</Link>
-                  <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                    {provider && (
-                      <Link to={`/users/${provider.id}`} className="flex items-center gap-1 hover:text-primary transition-colors">
-                        <Avatar className="h-5 w-5"><AvatarImage src={provider.avatarUrl} /><AvatarFallback>{provider.name[0]}</AvatarFallback></Avatar>
-                        {provider.name}
-                      </Link>
-                    )}
-                    {guild && (
-                      <Link to={`/guilds/${guild.id}`} className="hover:text-primary transition-colors">{guild.name}</Link>
-                    )}
-                  </div>
                 </div>
-                <Badge className={`${statusColors[b.status]} border-0 capitalize`}>{b.status.toLowerCase().replace("_", " ")}</Badge>
+                <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace("_", " ")}</Badge>
               </div>
 
               {b.notes && <p className="text-sm text-muted-foreground mb-2">{b.notes}</p>}
 
-              {b.startDateTime && (
+              {b.start_date_time && (
                 <p className="text-xs text-muted-foreground mb-1">
-                  📅 {new Date(b.startDateTime).toLocaleString()} – {b.endDateTime ? new Date(b.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                  📅 {new Date(b.start_date_time).toLocaleString()} – {b.end_date_time ? new Date(b.end_date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
                 </p>
-              )}
-              {b.requestedDateTime && !b.startDateTime && (
-                <p className="text-xs text-muted-foreground mb-2">Preferred: {new Date(b.requestedDateTime).toLocaleString()}</p>
               )}
 
               {b.amount != null && b.amount > 0 && (
-                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.paymentStatus?.toLowerCase().replace("_", " ") || "N/A"}</p>
+                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace("_", " ") || "N/A"}</p>
               )}
 
-              {b.callUrl && b.status === BookingStatus.CONFIRMED && (
-                <a href={b.callUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
+              {b.call_url && b.status === "CONFIRMED" && (
+                <a href={b.call_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">
                   <Video className="h-3 w-3" /> Join call <ExternalLink className="h-3 w-3" />
                 </a>
               )}
 
-              <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.createdAt), { addSuffix: true })}</p>
+              <p className="text-[11px] text-muted-foreground mb-3">{formatDistanceToNow(new Date(b.created_at), { addSuffix: true })}</p>
 
-              {canCancel && b.status !== BookingStatus.COMPLETED && (
+              {canCancel && b.status !== "COMPLETED" && (
                 <Button size="sm" variant="outline" onClick={() => cancelBooking(b.id)}>
                   <X className="h-3.5 w-3.5 mr-1" /> Cancel
                 </Button>
