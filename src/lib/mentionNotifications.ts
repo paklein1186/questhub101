@@ -82,41 +82,41 @@ export async function processMentions({
 
   if (guildIds.length > 0) {
     fetches.push(
-      supabase
-        .from("guild_members")
-        .select("user_id")
-        .in("guild_id", guildIds)
-        .in("role", ["admin", "owner"])
-        .then(({ data }) => {
-          (data ?? []).forEach((r: any) => adminUserIds.add(r.user_id));
-        }),
+      (async () => {
+        const { data } = await supabase
+          .from("guild_members")
+          .select("user_id")
+          .in("guild_id", guildIds)
+          .eq("role", "ADMIN");
+        (data ?? []).forEach((r: any) => adminUserIds.add(r.user_id));
+      })(),
     );
   }
 
   if (companyIds.length > 0) {
     fetches.push(
-      supabase
-        .from("company_members")
-        .select("user_id")
-        .in("company_id", companyIds)
-        .in("role", ["admin", "owner"])
-        .then(({ data }) => {
-          (data ?? []).forEach((r: any) => adminUserIds.add(r.user_id));
-        }),
+      (async () => {
+        const { data } = await supabase
+          .from("company_members")
+          .select("user_id")
+          .in("company_id", companyIds)
+          .in("role", ["admin", "owner"]);
+        (data ?? []).forEach((r: any) => adminUserIds.add(r.user_id));
+      })(),
     );
   }
 
   if (questIds.length > 0) {
     fetches.push(
-      supabase
-        .from("quests")
-        .select("owner_user_id")
-        .in("id", questIds)
-        .then(({ data }) => {
-          (data ?? []).forEach((r: any) => {
-            if (r.owner_user_id) adminUserIds.add(r.owner_user_id);
-          });
-        }),
+      (async () => {
+        const { data } = await supabase
+          .from("quests")
+          .select("owner_user_id")
+          .in("id", questIds);
+        (data ?? []).forEach((r: any) => {
+          if (r.owner_user_id) adminUserIds.add(r.owner_user_id);
+        });
+      })(),
     );
   }
 
