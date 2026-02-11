@@ -73,12 +73,17 @@ export default function TerritoryDetail() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
             <TerritoryOverviewTab territoryId={id!} territoryName={territory.name} />
+          </TabsContent>
+
+          <TabsContent value="ecosystem" className="mt-6">
+            <TerritoryEcosystemTab territoryId={id!} />
           </TabsContent>
 
           <TabsContent value="library" className="mt-6">
