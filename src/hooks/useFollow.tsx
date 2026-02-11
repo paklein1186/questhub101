@@ -10,17 +10,20 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
   const qc = useQueryClient();
   const userId = user?.id;
 
+  const queryKey = ["follow", userId, targetType, targetId];
+
   const { data: followRecord } = useQuery({
-    queryKey: ["follow", userId, targetType, targetId],
+    queryKey,
     enabled: !!userId && !!targetId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("follows")
         .select("id")
         .eq("follower_id", userId!)
         .eq("target_type", targetType)
         .eq("target_id", targetId)
         .maybeSingle();
+      if (error) throw error;
       return data;
     },
   });
@@ -37,9 +40,24 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
       } as any);
       if (error && !error.message.includes("duplicate")) throw error;
     },
+    onMutate: async () => {
+      // Optimistic update
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, { id: "optimistic" });
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(queryKey, context?.prev);
+      toast.error("Failed to follow");
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["follow", userId, targetType, targetId] });
+      toast.success("Following!");
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey });
       qc.invalidateQueries({ queryKey: ["my-follows"] });
+      qc.invalidateQueries({ queryKey: ["following-feed"] });
     },
   });
 
@@ -54,9 +72,23 @@ export function useFollow(targetType: FollowTargetType, targetId: string) {
         .eq("target_id", targetId);
       if (error) throw error;
     },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, null);
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      qc.setQueryData(queryKey, context?.prev);
+      toast.error("Failed to unfollow");
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["follow", userId, targetType, targetId] });
+      toast.success("Unfollowed");
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey });
       qc.invalidateQueries({ queryKey: ["my-follows"] });
+      qc.invalidateQueries({ queryKey: ["following-feed"] });
     },
   });
 
