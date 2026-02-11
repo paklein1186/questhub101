@@ -41,7 +41,7 @@ const PERSONA_DESCRIPTION: Record<string, string> = {
   UNSET: "Use changethegame to discover quests, connect with people, and build something meaningful.",
 };
 
-/* ───────── Guided mode tiles ───────── */
+/* ───────── Guided mode uses GuidedPathways component ───────── */
 
 /* ───────── Guided mode now uses GuidedPathways component ───────── */
 /* ───────── Verb rotator hook ───────── */
