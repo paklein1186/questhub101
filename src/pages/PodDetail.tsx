@@ -108,7 +108,11 @@ export default function PodDetail() {
           <Badge variant="secondary" className="capitalize">{pod.type.replace("_", " ").toLowerCase()}</Badge>
         </div>
         <h1 className="font-display text-3xl font-bold">{pod.name}</h1>
-        <p className="text-muted-foreground max-w-2xl mt-2">{pod.description}</p>
+        {pod.description && (
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mt-2">
+            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{pod.description}</p>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
           {quest && (

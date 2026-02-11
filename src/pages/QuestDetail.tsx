@@ -275,7 +275,11 @@ export default function QuestDetail() {
           {quest.is_featured && <Badge className="bg-warning/10 text-warning border-0">Featured</Badge>}
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
-        <p className="text-muted-foreground max-w-2xl">{quest.description}</p>
+        {quest.description && (
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{quest.description}</p>
+          </div>
+        )}
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t: any) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}

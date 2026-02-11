@@ -270,7 +270,11 @@ export default function ServiceDetail() {
           {svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
         </div>
 
-        <p className="text-muted-foreground max-w-2xl mb-4">{svc.description}</p>
+        {svc.description && (
+          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
+            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{svc.description}</p>
+          </div>
+        )}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
