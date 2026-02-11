@@ -41,6 +41,7 @@ import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-r
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
+import { UnitWalletTab } from "@/components/UnitWalletTab";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
