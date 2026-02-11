@@ -5,23 +5,83 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Eye, EyeOff, Archive, Trash2, RotateCcw, Search, ShieldAlert } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Eye, EyeOff, Trash2, Search, ShieldAlert, Save, Pencil, X } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type EntityType = "profiles" | "guilds" | "companies" | "quests" | "services" | "courses" | "pods";
 
-const ENTITY_CONFIG: Record<EntityType, { label: string; searchField: string; nameField: string }> = {
-  profiles: { label: "Users", searchField: "name", nameField: "name" },
-  guilds: { label: "Guilds", searchField: "name", nameField: "name" },
-  companies: { label: "Traditional Organizations", searchField: "name", nameField: "name" },
-  quests: { label: "Quests", searchField: "title", nameField: "title" },
-  services: { label: "Services", searchField: "title", nameField: "title" },
-  courses: { label: "Courses", searchField: "title", nameField: "title" },
-  pods: { label: "Pods", searchField: "name", nameField: "name" },
+const ENTITY_CONFIG: Record<EntityType, {
+  label: string;
+  searchField: string;
+  nameField: string;
+  idField: string;
+  editableFields: string[];
+  columns: string[];
+}> = {
+  profiles: {
+    label: "Users",
+    searchField: "name",
+    nameField: "name",
+    idField: "user_id",
+    editableFields: ["name", "bio", "role", "persona"],
+    columns: ["name", "email", "role", "xp", "created_at"],
+  },
+  guilds: {
+    label: "Guilds",
+    searchField: "name",
+    nameField: "name",
+    idField: "id",
+    editableFields: ["name", "description", "type", "universe_visibility"],
+    columns: ["name", "type", "is_draft", "is_deleted", "created_at"],
+  },
+  companies: {
+    label: "Traditional Organizations",
+    searchField: "name",
+    nameField: "name",
+    idField: "id",
+    editableFields: ["name", "description", "sector", "size"],
+    columns: ["name", "sector", "size", "is_deleted", "created_at"],
+  },
+  quests: {
+    label: "Quests",
+    searchField: "title",
+    nameField: "title",
+    idField: "id",
+    editableFields: ["title", "description", "status", "budget_amount"],
+    columns: ["title", "status", "budget_amount", "is_deleted", "created_at"],
+  },
+  services: {
+    label: "Services",
+    searchField: "title",
+    nameField: "title",
+    idField: "id",
+    editableFields: ["title", "description", "price_amount", "price_currency"],
+    columns: ["title", "price_amount", "is_deleted", "created_at"],
+  },
+  courses: {
+    label: "Courses",
+    searchField: "title",
+    nameField: "title",
+    idField: "id",
+    editableFields: ["title", "description", "level", "is_published"],
+    columns: ["title", "level", "is_published", "is_deleted", "created_at"],
+  },
+  pods: {
+    label: "Pods",
+    searchField: "name",
+    nameField: "name",
+    idField: "id",
+    editableFields: ["name", "description", "type"],
+    columns: ["name", "type", "is_draft", "is_deleted", "created_at"],
+  },
 };
 
 interface AdminEntityEditorProps {
@@ -43,23 +103,24 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
   const [entityType, setEntityType] = useState<EntityType>("profiles");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
-  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const config = ENTITY_CONFIG[entityType];
 
   const doSearch = async () => {
-    if (!search.trim()) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from(entityType as any)
-        .select("*")
-        .ilike(config.searchField as any, `%${search}%` as any)
-        .limit(20);
+      let query = supabase.from(entityType as any).select("*");
+      if (search.trim()) {
+        query = query.ilike(config.searchField as any, `%${search}%` as any);
+      }
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       setResults((data ?? []) as any[]);
-      setSelectedRecord(null);
+      setEditingId(null);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -67,15 +128,82 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
     }
   };
 
-  const handleVisibility = async (record: any, status: "VISIBLE" | "HIDDEN" | "ARCHIVED") => {
-    const isDeleteModel = "is_deleted" in record;
+  const startEdit = (record: any) => {
+    const id = record[config.idField];
+    setEditingId(id);
+    const vals: Record<string, any> = {};
+    config.editableFields.forEach((f) => {
+      vals[f] = record[f] ?? "";
+    });
+    setEditValues(vals);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValues({});
+  };
+
+  const saveEdit = async (record: any) => {
+    const id = record[config.idField];
+    setSaving(true);
     try {
-      if (status === "HIDDEN") {
-        await supabase.from(entityType as any).update({ is_deleted: true, deleted_at: new Date().toISOString() } as any).eq("id", record.id ?? record.user_id);
-      } else if (status === "VISIBLE") {
-        await supabase.from(entityType as any).update({ is_deleted: false, deleted_at: null } as any).eq("id", record.id ?? record.user_id);
-      }
-      toast.success(`Status updated to ${status}`);
+      const updatePayload: Record<string, any> = {};
+      config.editableFields.forEach((f) => {
+        const val = editValues[f];
+        if (val === "") {
+          updatePayload[f] = null;
+        } else if (f === "budget_amount" || f === "price_amount") {
+          updatePayload[f] = val ? Number(val) : null;
+        } else if (f === "is_published") {
+          updatePayload[f] = val === "true" || val === true;
+        } else {
+          updatePayload[f] = val;
+        }
+      });
+
+      const { error } = await (supabase
+        .from(entityType as any)
+        .update(updatePayload as any) as any)
+        .eq(config.idField, id);
+      if (error) throw error;
+      toast.success("Record updated");
+      setEditingId(null);
+      doSearch();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleSoftDelete = async (record: any) => {
+    const id = record[config.idField];
+    const newVal = !record.is_deleted;
+    try {
+      const { error } = await (supabase
+        .from(entityType as any)
+        .update({
+          is_deleted: newVal,
+          deleted_at: newVal ? new Date().toISOString() : null,
+        } as any) as any)
+        .eq(config.idField, id);
+      if (error) throw error;
+      toast.success(newVal ? "Record hidden" : "Record restored");
+      doSearch();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const hardDelete = async (record: any) => {
+    const id = record[config.idField];
+    try {
+      const { error } = await (supabase
+        .from(entityType as any)
+        .delete() as any)
+        .eq(config.idField, id);
+      if (error) throw error;
+      toast.success("Record permanently deleted");
       doSearch();
     } catch (e: any) {
       toast.error(e.message);
@@ -83,11 +211,17 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
   };
 
   const displayValue = (key: string, value: any) => {
-    if (value === null || value === undefined) return <span className="text-muted-foreground italic">null</span>;
+    if (value === null || value === undefined) return <span className="text-muted-foreground italic text-xs">—</span>;
     if (maskPII && key === "email" && typeof value === "string") return maskEmail(value);
     if (maskPII && (key === "name" || key === "title") && typeof value === "string") return maskString(value);
-    if (typeof value === "boolean") return value ? "true" : "false";
-    if (typeof value === "object") return JSON.stringify(value).slice(0, 100);
+    if (typeof value === "boolean") {
+      return value
+        ? <Badge variant="default" className="text-[10px]">Yes</Badge>
+        : <Badge variant="outline" className="text-[10px]">No</Badge>;
+    }
+    if (key === "created_at" || key === "updated_at") {
+      return new Date(value).toLocaleDateString();
+    }
     return String(value);
   };
 
@@ -97,8 +231,15 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
       <div className="flex gap-2 items-end flex-wrap">
         <div>
           <Label className="text-xs mb-1 block">Entity type</Label>
-          <Select value={entityType} onValueChange={(v) => { setEntityType(v as EntityType); setResults([]); setSelectedRecord(null); }}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <Select
+            value={entityType}
+            onValueChange={(v) => {
+              setEntityType(v as EntityType);
+              setResults([]);
+              setEditingId(null);
+            }}
+          >
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
               {Object.entries(ENTITY_CONFIG).map(([k, v]) => (
                 <SelectItem key={k} value={k}>{v.label}</SelectItem>
@@ -116,80 +257,158 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
               onKeyDown={(e) => e.key === "Enter" && doSearch()}
             />
             <Button onClick={doSearch} disabled={loading} size="sm">
-              <Search className="h-4 w-4" />
+              <Search className="h-4 w-4 mr-1" /> Search
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Results list */}
+      <p className="text-xs text-muted-foreground">
+        Leave search empty and click Search to browse all records (limited to 50).
+      </p>
+
+      {/* Results table */}
       {results.length > 0 && (
-        <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
-          {results.map((r) => {
-            const id = r.id ?? r.user_id;
-            const name = r[config.nameField] ?? id;
-            const isHidden = r.is_deleted === true;
-            return (
-              <button
-                key={id}
-                onClick={() => setSelectedRecord(r)}
-                className="w-full text-left px-3 py-2 hover:bg-muted/50 flex items-center gap-2 text-sm"
-              >
-                <span className="flex-1 truncate font-medium">
-                  {maskPII ? maskString(name) : name}
-                </span>
-                {isHidden && <Badge variant="destructive" className="text-[10px]">Hidden</Badge>}
-                <span className="text-xs text-muted-foreground font-mono">{String(id).slice(0, 8)}…</span>
-              </button>
-            );
-          })}
+        <div className="rounded-xl border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {config.columns.map((col) => (
+                  <TableHead key={col} className="text-xs uppercase">{col.replace(/_/g, " ")}</TableHead>
+                ))}
+                <TableHead className="text-xs uppercase text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {results.map((record) => {
+                const id = record[config.idField];
+                const isEditing = editingId === id;
+
+                return (
+                  <TableRow key={id} className={record.is_deleted ? "opacity-50" : ""}>
+                    {config.columns.map((col) => (
+                      <TableCell key={col} className="text-sm">
+                        {isEditing && config.editableFields.includes(col) ? (
+                          col === "description" || col === "bio" ? (
+                            <Textarea
+                              value={editValues[col] ?? ""}
+                              onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
+                              className="text-xs min-h-[60px]"
+                            />
+                          ) : (
+                            <Input
+                              value={editValues[col] ?? ""}
+                              onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
+                              className="text-xs h-7"
+                            />
+                          )
+                        ) : (
+                          displayValue(col, record[col])
+                        )}
+                      </TableCell>
+                    ))}
+                    <TableCell className="text-right">
+                      <div className="flex gap-1 justify-end">
+                        {isEditing ? (
+                          <>
+                            <Button size="sm" variant="default" onClick={() => saveEdit(record)} disabled={saving}>
+                              <Save className="h-3.5 w-3.5 mr-1" /> Save
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => startEdit(record)} title="Edit">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            {"is_deleted" in record && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => toggleSoftDelete(record)}
+                                title={record.is_deleted ? "Restore" : "Hide"}
+                              >
+                                {record.is_deleted ? <Eye className="h-3.5 w-3.5 text-primary" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                              </Button>
+                            )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" title="Delete permanently">
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Permanently delete this record?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently remove <strong>{record[config.nameField]}</strong> from the database. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => hardDelete(record)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete forever
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
 
-      {/* Record detail / editor */}
-      {selectedRecord && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-primary" />
-              Record Editor
-              <Badge variant="outline" className="ml-auto font-mono text-[10px]">
-                {(selectedRecord.id ?? selectedRecord.user_id)?.slice(0, 12)}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Visibility controls */}
-            {"is_deleted" in selectedRecord && (
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  variant={selectedRecord.is_deleted ? "default" : "outline"}
-                  onClick={() => handleVisibility(selectedRecord, "VISIBLE")}
-                >
-                  <Eye className="h-3.5 w-3.5 mr-1" /> Make Visible
-                </Button>
-                <Button
-                  size="sm"
-                  variant={selectedRecord.is_deleted ? "outline" : "destructive"}
-                  onClick={() => handleVisibility(selectedRecord, "HIDDEN")}
-                >
-                  <EyeOff className="h-3.5 w-3.5 mr-1" /> Hide from Public
-                </Button>
-              </div>
-            )}
+      {/* Inline editor for non-column fields */}
+      {editingId && (() => {
+        const record = results.find((r) => r[config.idField] === editingId);
+        if (!record) return null;
+        const hiddenEditableFields = config.editableFields.filter((f) => !config.columns.includes(f));
+        if (hiddenEditableFields.length === 0) return null;
 
-            {/* Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-              {Object.entries(selectedRecord).map(([key, value]) => (
-                <div key={key} className="flex flex-col gap-0.5">
-                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{key}</span>
-                  <span className="text-sm break-all">{displayValue(key, value)}</span>
+        return (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-primary" />
+                Additional fields for: {maskPII ? maskString(record[config.nameField]) : record[config.nameField]}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {hiddenEditableFields.map((field) => (
+                <div key={field} className="space-y-1">
+                  <Label className="text-xs uppercase tracking-wider">{field.replace(/_/g, " ")}</Label>
+                  {field === "description" || field === "bio" ? (
+                    <Textarea
+                      value={editValues[field] ?? ""}
+                      onChange={(e) => setEditValues((v) => ({ ...v, [field]: e.target.value }))}
+                      className="text-sm"
+                    />
+                  ) : (
+                    <Input
+                      value={editValues[field] ?? ""}
+                      onChange={(e) => setEditValues((v) => ({ ...v, [field]: e.target.value }))}
+                      className="text-sm"
+                    />
+                  )}
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {results.length === 0 && !loading && (
+        <p className="text-sm text-muted-foreground text-center py-8">
+          Use the search above to find and manage records.
+        </p>
       )}
     </div>
   );
