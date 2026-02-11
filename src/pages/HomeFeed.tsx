@@ -7,8 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
-import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
-import { Brain } from "lucide-react";
+import { usePersona } from "@/hooks/usePersona";
 import { usePersona } from "@/hooks/usePersona";
 
 import { PersonaGreeting } from "@/components/home/PersonaGreeting";
