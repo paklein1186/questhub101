@@ -212,7 +212,7 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
     <div>
       <SectionHeader icon={MapPin} title="Territories & Topics around you" seeMoreTo="/network?tab=territories" />
       {territories.length === 0 && topics.length === 0 ? (
-        <EmptyState icon={MapPin} message="Add territories and houses in your profile settings." cta="Edit profile" to="/profile/edit" />
+        <EmptyState icon={MapPin} message="Add territories and topics in your profile settings." cta="Edit profile" to="/profile/edit" />
       ) : (
         <div className="space-y-3">
           {territories.length > 0 && (
