@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, CalendarDays, MapPin, Video, Users, Euro, Check, X, Clock, Shield, MessageSquare, RefreshCw } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Video, Users, Euro, Check, X, Clock, Shield, MessageSquare, RefreshCw, Pencil, Settings } from "lucide-react";
 import { format, isPast } from "date-fns";
 
 export default function EventDetail() {
@@ -184,8 +184,18 @@ export default function EventDetail() {
                 )}
               </div>
             )}
-            {canManage && !isCancelled && (
-              <Button size="sm" variant="destructive" onClick={() => setCancelDialogOpen(true)}>Cancel Event</Button>
+            {canManage && (
+              <div className="flex gap-1.5">
+                <Button size="sm" variant="outline" asChild>
+                  <Link to={`/events/${id}/edit`}><Pencil className="h-3.5 w-3.5 mr-1" />Edit</Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to={`/events/${id}/settings`}><Settings className="h-3.5 w-3.5 mr-1" />Settings</Link>
+                </Button>
+                {!isCancelled && (
+                  <Button size="sm" variant="destructive" onClick={() => setCancelDialogOpen(true)}>Cancel Event</Button>
+                )}
+              </div>
             )}
           </div>
         </div>
