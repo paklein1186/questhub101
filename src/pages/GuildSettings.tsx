@@ -40,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { LayoutGrid, FileText, CalendarDays, ListChecks, Puzzle } from "lucide-react";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
+import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -49,6 +50,7 @@ const TABS = [
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
   { key: "services", label: "Services", icon: Briefcase },
+  { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
@@ -671,6 +673,18 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── Availability ── */}
+              {activeTab === "availability" && (
+                <div className="space-y-5 max-w-lg">
+                  <Section title="Unit Availability" icon={<CalendarDays className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Configure when this guild is available for bookings. This schedule applies to all guild-hosted services.
+                    </p>
+                    <UnitAvailabilityEditor unitType="GUILD" unitId={guildId} />
+                  </Section>
                 </div>
               )}
 
