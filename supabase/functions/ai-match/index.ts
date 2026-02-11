@@ -116,8 +116,27 @@ Output:
 Return 2-5 items per array. Keep reasons under 20 words. Be concrete and actionable. Reference actual context given.
 ONLY output valid JSON, nothing else.`;
 
+function unauthorizedResponse() {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // --- Auth check ---
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return unauthorizedResponse();
+  const supabaseAuth = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { data: authData, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (authError || !authData.user) return unauthorizedResponse();
+  // --- End auth check ---
 
   try {
     const { matchType, userId, guildId, questId } = await req.json();

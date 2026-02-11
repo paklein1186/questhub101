@@ -7,6 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function unauthorizedResponse() {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 const MUSE_MAP: Record<string, { name: string; style: string }> = {
   "house-of-light": { name: "The Prism", style: "Visual, colorful, metaphorical. Speaks in imagery and aesthetics." },
   "house-of-sound": { name: "The Echo", style: "Rhythmic, harmonic, sound-based. Thinks in patterns and resonance." },
@@ -39,14 +46,22 @@ function buildSystemPrompt(entityType: string, entityName: string, contextSummar
 
   let starredSection = "";
   if (starredSummary) {
-    starredSection = `\n\nImportant past insights for this unit (starred by members):\n${starredSummary}\n\nUse these to recognise recurring themes, avoid repeating old advice, and build continuity.`;
+    starredSection = `
+
+Important past insights for this unit (starred by members):
+${starredSummary}
+
+Use these to recognise recurring themes, avoid repeating old advice, and build continuity.`;
   }
 
-  // Check for creative Muse personality
   const muse = resolveMuseFromTopicNames(topicNames);
   let museSection = "";
   if (muse) {
-    museSection = `\n\nYou are also known as "${muse.name}" — a creative AI muse.\nYour style: ${muse.style}\nAdapt your language, metaphors, and suggestions to match this creative sensibility. Offer creative prompts and artistic inspiration when appropriate.`;
+    museSection = `
+
+You are also known as "${muse.name}" — a creative AI muse.
+Your style: ${muse.style}
+Adapt your language, metaphors, and suggestions to match this creative sensibility. Offer creative prompts and artistic inspiration when appropriate.`;
   }
 
   return `You are the "${agentName} of ${entityName}" — a helpful, non-authoritarian AI assistant embedded in a collaborative platform unit.
@@ -135,7 +150,6 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
     console.error("Context gathering error:", e);
   }
 
-  // Extract topic names for Muse resolution
   const topicNames: string[] = [];
   try {
     const topicTable: Record<string, { table: string; fk: string }> = {
@@ -152,13 +166,12 @@ async function gatherContext(supabase: any, entityType: string, entityId: string
         }
       }
     }
-  } catch {}
+  } catch { }
 
   return { name, summary: parts.join("\n") || "No additional context available.", topicNames };
 }
 
 async function getConversationFromDB(supabase: any, entityType: string, entityId: string, limit = 20) {
-  // Get or find thread
   const { data: thread } = await supabase
     .from("unit_chat_threads")
     .select("id")
@@ -167,7 +180,6 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
     .maybeSingle();
   if (!thread) return { threadId: null, messages: [], starredSummary: "" };
 
-  // Get recent messages (all users + agent)
   const { data: msgs } = await supabase
     .from("unit_chat_messages")
     .select("sender_type, sender_user_id, message_text, profiles:sender_user_id(name)")
@@ -182,7 +194,6 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
       : m.message_text,
   }));
 
-  // Get starred excerpts summary — prefer most upvoted
   const { data: starred } = await supabase
     .from("starred_excerpts")
     .select("title, excerpt_text, upvotes_count")
@@ -207,6 +218,18 @@ async function getConversationFromDB(supabase: any, entityType: string, entityId
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // --- Auth check ---
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return unauthorizedResponse();
+  const supabaseAuth = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+  const { data: authData, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (authError || !authData.user) return unauthorizedResponse();
+  // --- End auth check ---
+
   try {
     const { entityType, entityId, message } = await req.json();
     
@@ -223,15 +246,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Gather unit context
     const { name: entityName, summary: contextSummary } = await gatherContext(supabase, entityType, entityId);
-
-    // Read conversation history from DB (shared memory)
     const { threadId: existingThreadId, messages: dbHistory, starredSummary } = await getConversationFromDB(supabase, entityType, entityId);
 
     const systemPrompt = buildSystemPrompt(entityType, entityName, contextSummary, starredSummary);
 
-    // Build messages array from DB history
     const aiMessages: any[] = [{ role: "system", content: systemPrompt }];
     for (const msg of dbHistory) {
       aiMessages.push(msg);
@@ -271,19 +290,18 @@ serve(async (req) => {
     const data = await response.json();
     const replyText = data.choices?.[0]?.message?.content ?? "I'm not sure how to help with that right now.";
 
-    // Parse structured suggestions
     const suggestions: any[] = [];
     const pollMatch = replyText.match(/\[POLL:(.*?)\]/s);
     if (pollMatch) {
-      try { suggestions.push({ type: "DECISION_POLL", ...JSON.parse(pollMatch[1]) }); } catch {}
+      try { suggestions.push({ type: "DECISION_POLL", ...JSON.parse(pollMatch[1]) }); } catch { }
     }
     const stepsMatch = replyText.match(/\[STEPS:(.*?)\]/s);
     if (stepsMatch) {
-      try { suggestions.push({ type: "NEXT_STEPS", ...JSON.parse(stepsMatch[1]) }); } catch {}
+      try { suggestions.push({ type: "NEXT_STEPS", ...JSON.parse(stepsMatch[1]) }); } catch { }
     }
     const skillsMatch = replyText.match(/\[SKILLS:(.*?)\]/s);
     if (skillsMatch) {
-      try { suggestions.push({ type: "MISSING_SKILLS", ...JSON.parse(skillsMatch[1]) }); } catch {}
+      try { suggestions.push({ type: "MISSING_SKILLS", ...JSON.parse(skillsMatch[1]) }); } catch { }
     }
 
     const cleanText = replyText
@@ -292,7 +310,6 @@ serve(async (req) => {
       .replace(/\[SKILLS:.*?\]/s, "")
       .trim();
 
-    // Store agent message
     let threadId = existingThreadId;
     if (!threadId) {
       const { data: newThread } = await supabase
@@ -306,7 +323,6 @@ serve(async (req) => {
     if (threadId) {
       const metadataJson: any = {};
       if (suggestions.length > 0) metadataJson.suggestions = suggestions;
-      // Tag as suggestion if it contains structured suggestions
       if (suggestions.length > 0) {
         metadataJson.isSuggestion = true;
         metadataJson.suggestionTypes = suggestions.map(s => s.type);
