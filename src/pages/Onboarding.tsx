@@ -129,7 +129,7 @@ export default function Onboarding() {
   const { data: existingGuilds = [] } = useQuery({
     queryKey: ["onboarding-guilds"],
     queryFn: async () => {
-      const { data } = await supabase.from("guilds").select("id, name").eq("is_deleted", false).eq("is_approved", true).limit(100);
+      const { data } = await supabase.from("guilds").select("id, name, join_policy").eq("is_deleted", false).eq("is_approved", true).limit(100);
       return data || [];
     },
   });
