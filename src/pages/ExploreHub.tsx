@@ -4,11 +4,9 @@ import { Search, Sparkles, Brain } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
-import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
+import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
-import { useTerritories } from "@/hooks/useSupabaseData";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GuildsList from "./GuildsList";
 import QuestsMarketplace from "./QuestsMarketplace";
 import PodsList from "./PodsList";
@@ -26,8 +24,8 @@ export default function ExploreHub() {
   const [tab, setTab] = useState(initialTab);
   const currentUser = useCurrentUser();
   const { label } = usePersona();
-  const { data: territories } = useTerritories();
-  const [selectedTerritoryId, setSelectedTerritoryId] = useState<string>("");
+
+
 
   const handleTabChange = (value: string) => {
     setTab(value);
@@ -66,33 +64,7 @@ export default function ExploreHub() {
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
         <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
         <TabsContent value="territories">
-          <div className="space-y-4">
-            <div className="max-w-xs">
-              <label className="text-sm font-medium mb-1 block">Select a territory</label>
-              <Select value={selectedTerritoryId} onValueChange={setSelectedTerritoryId}>
-                <SelectTrigger><SelectValue placeholder="Choose territory..." /></SelectTrigger>
-                <SelectContent>
-                  {(territories ?? []).map((t: any) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedTerritoryId ? (
-              <TerritoryIntelligencePanel
-                territoryId={selectedTerritoryId}
-                territoryName={(territories ?? []).find((t: any) => t.id === selectedTerritoryId)?.name}
-              />
-            ) : (
-              <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
-                <Brain className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="font-display font-semibold text-lg">Select a territory to analyze</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  AI will summarize quests, guilds, gaps, and suggest collaborations.
-                </p>
-              </div>
-            )}
-          </div>
+          <TerritoryExplorer />
         </TabsContent>
         {currentUser.id && (
           <TabsContent value="matchmaker">
