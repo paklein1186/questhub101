@@ -230,7 +230,7 @@ export default function GuildDetail() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-1">
           <TabsList>
             <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
             <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>

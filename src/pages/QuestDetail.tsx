@@ -410,7 +410,7 @@ export default function QuestDetail() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-1">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {isLoggedIn && <TabsTrigger value="proposals">Proposals</TabsTrigger>}

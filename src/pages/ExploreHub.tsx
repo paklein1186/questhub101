@@ -42,7 +42,7 @@ export default function ExploreHub() {
       </div>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6 flex-wrap h-auto gap-1 p-1">
+        <TabsList className="mb-6">
           <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
           <TabsTrigger value="guilds" className="text-xs sm:text-sm">{label("guild.label")}</TabsTrigger>
           <TabsTrigger value="pods" className="text-xs sm:text-sm">{label("pod.label")}</TabsTrigger>
