@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ExploreUser {
@@ -160,13 +161,17 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
   const [sort, setSort] = useState("relevance");
   const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const hf = useHouseFilter();
 
-  const handleFilterChange = (f: ExploreFilterValues) => { setFilters(f); setPage(0); };
+  // When house filter is active and no manual topic filter set, inject user's topics
+  const effectiveTopicIds = hf.houseFilterActive && filters.topicIds.length === 0
+    ? hf.myTopicIds
+    : filters.topicIds;
 
   const { data, isLoading } = useExploreUsers({
     search,
     role: filters.role,
-    topicIds: filters.topicIds,
+    topicIds: effectiveTopicIds,
     territoryIds: filters.territoryIds,
     sort,
     page,
@@ -203,8 +208,15 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
 
       <ExploreFilters
         filters={filters}
-        onChange={handleFilterChange}
+        onChange={(f: ExploreFilterValues) => { setFilters(f); setPage(0); }}
         config={{ showTopics: true, showTerritories: true, showRole: true }}
+        houseFilter={{
+          active: hf.houseFilterActive,
+          onToggle: hf.setHouseFilterActive,
+          hasHouses: hf.hasHouses,
+          topicNames: hf.topicNames,
+          myTopicIds: hf.myTopicIds,
+        }}
       />
 
       <p className="text-sm text-muted-foreground">

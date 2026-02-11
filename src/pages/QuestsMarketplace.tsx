@@ -12,6 +12,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
@@ -80,9 +81,14 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const isAdm = checkIsGlobalAdmin(currentUser.email);
 
   const { data: questsData, isLoading } = useQuests();
+  const hf = useHouseFilter();
   const allQuests = questsData ?? [];
 
-  const filtered = allQuests.filter((q) => {
+  const preFiltered = hf.applyHouseFilter(allQuests, (q) =>
+    (q.quest_topics ?? []).map((qt: any) => qt.topic_id)
+  );
+
+  const filtered = preFiltered.filter((q) => {
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
@@ -105,6 +111,13 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
           filters={filters}
           onChange={setFilters}
           config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true }}
+          houseFilter={{
+            active: hf.houseFilterActive,
+            onToggle: hf.setHouseFilterActive,
+            hasHouses: hf.hasHouses,
+            topicNames: hf.topicNames,
+            myTopicIds: hf.myTopicIds,
+          }}
         />
       </div>
 
@@ -154,7 +167,16 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
             </Link>
           </motion.div>
         ))}
-        {!isLoading && filtered.length === 0 && <p className="col-span-full text-center text-muted-foreground py-12">No quests match your filters.</p>}
+        {!isLoading && filtered.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No quests match your filters.</p>
+            {hf.houseFilterActive && (
+              <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
+                Try showing all Houses
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </PageShell>
   );

@@ -18,6 +18,7 @@ import { PodType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { usePods, useCreatePod, useTopics, useQuests } from "@/hooks/useSupabaseData";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -43,11 +44,16 @@ export default function PodsList({ bare }: { bare?: boolean }) {
   const { data: topics } = useTopics();
   const { data: questsData } = useQuests();
   const createPodMut = useCreatePod();
+  const hf = useHouseFilter();
 
   const allPods = podsData ?? [];
   const quests = questsData ?? [];
 
-  let filtered = allPods.filter((p) => {
+  const preFiltered = hf.applyHouseFilter(allPods, (p) =>
+    p.topic_id ? [p.topic_id] : []
+  );
+
+  let filtered = preFiltered.filter((p) => {
     if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
     return true;
   });
@@ -155,6 +161,13 @@ export default function PodsList({ bare }: { bare?: boolean }) {
           filters={filters}
           onChange={setFilters}
           config={{ showTopics: true, showPodType: true }}
+          houseFilter={{
+            active: hf.houseFilterActive,
+            onToggle: hf.setHouseFilterActive,
+            hasHouses: hf.hasHouses,
+            topicNames: hf.topicNames,
+            myTopicIds: hf.myTopicIds,
+          }}
         />
       </div>
 
@@ -189,7 +202,16 @@ export default function PodsList({ bare }: { bare?: boolean }) {
             </motion.div>
           );
         })}
-        {!isLoading && filtered.length === 0 && <p className="text-muted-foreground col-span-full">No pods match your filters.</p>}
+        {!isLoading && filtered.length === 0 && (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No pods match your filters.</p>
+            {hf.houseFilterActive && (
+              <Button variant="link" size="sm" className="mt-2" onClick={() => hf.setHouseFilterActive(false)}>
+                Try showing all Houses
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </PageShell>
   );
