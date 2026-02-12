@@ -81,7 +81,7 @@ export function usePlanLimits() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("xp, current_plan_code, xp_level, credits_balance")
+        .select("xp, current_plan_code, xp_level, credits_balance, created_at")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -89,6 +89,15 @@ export function usePlanLimits() {
         setUserXp(profile.xp ?? 0);
         setUserCredits((profile as any).credits_balance ?? 0);
         setUserLevel((profile as any).xp_level ?? 1);
+
+        // Grace period: check if account is < GRACE_PERIOD_DAYS old
+        const createdAt = new Date(profile.created_at);
+        const now = new Date();
+        const diffMs = now.getTime() - createdAt.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        const isGrace = diffDays < GRACE_PERIOD_DAYS;
+        setInGracePeriod(isGrace);
+        setGracePeriodDaysLeft(isGrace ? Math.ceil(GRACE_PERIOD_DAYS - diffDays) : 0);
       }
 
       // Fetch current plan via user_subscriptions
