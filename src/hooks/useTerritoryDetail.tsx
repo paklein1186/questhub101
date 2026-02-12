@@ -56,22 +56,33 @@ export function useTerritoryExcerpts(territoryId: string | undefined, sort: "top
       if (error) throw error;
       const excerpts = (data ?? []) as unknown as TerritoryExcerpt[];
 
-      // Fetch contributor profiles
-      const userIds = [...new Set(excerpts.filter(e => e.created_by_user_id).map(e => e.created_by_user_id!))];
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url")
-          .in("id", userIds);
-        const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-        excerpts.forEach(e => {
-          const p = e.created_by_user_id ? profileMap.get(e.created_by_user_id) : null;
-          if (p) {
-            e.contributor_name = p.display_name;
-            e.contributor_avatar = p.avatar_url;
-          }
-        });
-      }
+      // Fetch contributor profiles and auth users
+       const userIds = [...new Set(excerpts.filter(e => e.created_by_user_id).map(e => e.created_by_user_id!))];
+       if (userIds.length > 0) {
+         const { data: profiles } = await supabase
+           .from("profiles")
+           .select("id, display_name, avatar_url")
+           .in("id", userIds);
+         const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+         
+         // Get auth user data as fallback
+         const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+         const authMap = new Map((authUsers ?? []).map((u: any) => [u.id, u]));
+         
+         excerpts.forEach(e => {
+           const p = e.created_by_user_id ? profileMap.get(e.created_by_user_id) : null;
+           if (p) {
+             e.contributor_name = p.display_name;
+             e.contributor_avatar = p.avatar_url;
+           } else if (e.created_by_user_id) {
+             // Fallback to email if no profile
+             const authUser = authMap.get(e.created_by_user_id);
+             if (authUser?.email) {
+               e.contributor_name = authUser.email.split("@")[0];
+             }
+           }
+         });
+       }
       return excerpts;
     },
     enabled: !!territoryId,
