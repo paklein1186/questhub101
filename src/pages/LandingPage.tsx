@@ -319,7 +319,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section className="border-t border-border bg-primary/5">
+      <section className="border-t border-border/50 gradient-hero">
         <div className="container py-16 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to make an impact?</h2>
           <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
