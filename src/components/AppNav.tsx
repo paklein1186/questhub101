@@ -73,8 +73,8 @@ export function AppNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-14 items-center justify-between gap-2">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+      <div className="container flex h-16 items-center justify-between gap-2">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight shrink-0">
           <img src={logoImg} alt="changethegame" className="h-6 w-6" />
