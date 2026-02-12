@@ -351,16 +351,20 @@ export default function HomeFeed() {
 
   // handleGuidedTile removed — guided mode now uses GuidedPathways component
 
-  const toggleVoice = useCallback(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast.error("Voice input is not supported in this browser.");
+  const isListeningRef = useRef(false);
+
+  const toggleVoice = () => {
+    // Stop if already listening
+    if (isListeningRef.current && recognitionRef.current) {
+      isListeningRef.current = false;
+      recognitionRef.current.stop();
+      setIsListening(false);
       return;
     }
 
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Voice input is not supported in this browser.");
       return;
     }
 
@@ -372,7 +376,10 @@ export default function HomeFeed() {
 
     let finalTranscript = "";
 
-    recognition.onstart = () => setIsListening(true);
+    recognition.onstart = () => {
+      isListeningRef.current = true;
+      setIsListening(true);
+    };
 
     recognition.onresult = (event: any) => {
       let interim = "";
@@ -388,6 +395,7 @@ export default function HomeFeed() {
     };
 
     recognition.onend = () => {
+      isListeningRef.current = false;
       setIsListening(false);
       recognitionRef.current = null;
       if (finalTranscript.trim()) {
@@ -396,15 +404,27 @@ export default function HomeFeed() {
     };
 
     recognition.onerror = (event: any) => {
+      isListeningRef.current = false;
       setIsListening(false);
       recognitionRef.current = null;
-      if (event.error !== "aborted") {
+      if (event.error === "not-allowed") {
+        toast.error("Microphone permission denied. Please allow access in your browser settings.");
+      } else if (event.error !== "aborted" && event.error !== "no-speech") {
         toast.error("Could not capture audio. Please try again.");
       }
     };
 
+    // CRITICAL: must be called synchronously from click handler
     recognition.start();
-  }, [isListening, submitIntent]);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isListeningRef.current = false;
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const resetAll = () => {
     setResult(null);
