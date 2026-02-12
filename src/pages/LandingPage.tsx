@@ -121,7 +121,7 @@ export default function LandingPage() {
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero pointer-events-none" />
-        <div className="container py-20 md:py-32 text-center relative z-10">
+        <div className="container py-24 md:py-36 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
               <Sprout className="h-3 w-3 mr-1" /> Regeneration · Impact · Community
