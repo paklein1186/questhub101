@@ -260,10 +260,10 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
                   <Separator />
 
                   <Section title="Topic" icon={<Hash className="h-5 w-5" />}>
-                    <Select value={topicId} onValueChange={setTopicId}>
+                    <Select value={topicId || "__none__"} onValueChange={(v) => setTopicId(v === "__none__" ? "" : v)}>
                       <SelectTrigger><SelectValue placeholder="Select a topic…" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="__none__">None</SelectItem>
                         {allTopics.map((t: any) => (
                           <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                         ))}
