@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,10 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { usePersona } from "@/hooks/usePersona";
 import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "@/types/enums";
 import { UniverseToggle } from "@/components/UniverseToggle";
-import type { UniverseMode } from "@/lib/universeMapping";
+import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon } from "@/lib/universeMapping";
 
 // ─── Filter shape ───────────────────────────────────────────
 export interface ExploreFilterValues {
@@ -79,6 +80,25 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
+  const { persona } = usePersona();
+  const effectiveUniverse: UniverseMode = universeMode ?? defaultUniverseForPersona(persona);
+
+  /** Get universe-aware label for a topic */
+  const getTopicDisplayLabel = (topic: { id: string; name: string; slug?: string }) => {
+    const slug = (topic as any).slug;
+    if (slug && HOUSE_DEFINITIONS[slug]) {
+      return getHouseLabel(slug, effectiveUniverse);
+    }
+    return topic.name;
+  };
+
+  const getTopicDisplayIcon = (topic: { id: string; name: string; slug?: string }) => {
+    const slug = (topic as any).slug;
+    if (slug && HOUSE_DEFINITIONS[slug]) {
+      return getHouseIcon(slug);
+    }
+    return null;
+  };
   const currentUser = useCurrentUser();
 
   // Fetch user's territory IDs for "My territories" quick filter
@@ -314,16 +334,21 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {(topics ?? []).map(t => (
-                  <Badge
-                    key={t.id}
-                    variant={filters.topicIds.includes(t.id) ? "default" : "outline"}
-                    className="cursor-pointer text-xs"
-                    onClick={() => toggleTopic(t.id)}
-                  >
-                    {t.name}
-                  </Badge>
-                ))}
+                {(topics ?? []).map(t => {
+                  const icon = getTopicDisplayIcon(t);
+                  const label = getTopicDisplayLabel(t);
+                  return (
+                    <Badge
+                      key={t.id}
+                      variant={filters.topicIds.includes(t.id) ? "default" : "outline"}
+                      className="cursor-pointer text-xs gap-1"
+                      onClick={() => toggleTopic(t.id)}
+                    >
+                      {icon && <span>{icon}</span>}
+                      {label}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -379,12 +404,15 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           <span className="text-[10px] text-muted-foreground mr-1">Active:</span>
           {filters.topicIds.map(id => {
             const t = (topics ?? []).find(x => x.id === id);
-            return t ? (
+            if (!t) return null;
+            const icon = getTopicDisplayIcon(t);
+            const label = getTopicDisplayLabel(t);
+            return (
               <Badge key={id} variant="secondary" className="text-[10px] gap-1">
-                <Hash className="h-2.5 w-2.5" />{t.name}
+                {icon ? <span>{icon}</span> : <Hash className="h-2.5 w-2.5" />}{label}
                 <button onClick={() => toggleTopic(id)} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
               </Badge>
-            ) : null;
+            );
           })}
           {filters.territoryIds.map(id => {
             const t = (territories ?? []).find(x => x.id === id);
