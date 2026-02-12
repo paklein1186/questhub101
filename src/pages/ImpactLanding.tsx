@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Compass, Users, Target, Briefcase,
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { useAuth } from "@/hooks/useAuth";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -76,9 +78,21 @@ function useUserHouses(userId: string | undefined) {
 
 export default function ImpactLanding() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: missions = [], isLoading: loadingMissions } = useFeaturedMissions();
   const { data: guilds = [], isLoading: loadingGuilds } = useFeaturedGuilds();
   const { data: userHouses = [] } = useUserHouses(user?.id);
+  const [guestOpen, setGuestOpen] = useState(false);
+  const [guestAction, setGuestAction] = useState("");
+
+  const handleGatedClick = (label: string, authRoute: string) => {
+    if (user) {
+      navigate(authRoute);
+    } else {
+      setGuestAction(label);
+      setGuestOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -141,14 +155,14 @@ export default function ImpactLanding() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center px-4"
           >
-            <Button size="lg" asChild className="gap-2">
-              <Link to="/quests/new"><Target className="h-4 w-4" /> Start a Mission</Link>
+            <Button size="lg" className="gap-2" onClick={() => handleGatedClick("start a mission", "/quests/new")}>
+              <Target className="h-4 w-4" /> Start a Mission
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2">
-              <Link to="/services/new"><Briefcase className="h-4 w-4" /> Offer a Service</Link>
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => handleGatedClick("offer a service", "/services/new")}>
+              <Briefcase className="h-4 w-4" /> Offer a Service
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
-              <Link to="/explore"><Users className="h-4 w-4" /> Join a Guild</Link>
+            <Button size="lg" variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleGatedClick("join a guild", "/explore")}>
+              <Users className="h-4 w-4" /> Join a Guild
             </Button>
           </motion.div>
 
@@ -156,7 +170,8 @@ export default function ImpactLanding() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.55 }}
-            className="mt-5 text-sm text-muted-foreground italic"
+            className="mt-5 text-sm text-muted-foreground italic cursor-pointer hover:text-foreground transition-colors"
+            onClick={() => { if (!user) { setGuestAction("get guidance"); setGuestOpen(true); } else { navigate("/"); } }}
           >
             Need clarity? Ask your Navigator for help.
           </motion.p>
@@ -169,9 +184,9 @@ export default function ImpactLanding() {
           <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">What you can do</h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {[
-              { icon: Target, title: "Launch a Mission", text: "Share a challenge, project, or transformation you want to drive." },
-              { icon: Briefcase, title: "Offer Your Expertise", text: "Consulting, facilitation, governance, design, engineering, research." },
-              { icon: Users, title: "Join a Guild", text: "Collaborate with structured networks across territories and ecosystems." },
+              { icon: Target, title: "Launch a Mission", text: "Share a challenge, project, or transformation you want to drive.", action: "launch a mission", route: "/quests/new" },
+              { icon: Briefcase, title: "Offer Your Expertise", text: "Consulting, facilitation, governance, design, engineering, research.", action: "offer expertise", route: "/services/new" },
+              { icon: Users, title: "Join a Guild", text: "Collaborate with structured networks across territories and ecosystems.", action: "join a guild", route: "/explore" },
             ].map((card, i) => (
               <motion.div
                 key={card.title}
@@ -180,7 +195,8 @@ export default function ImpactLanding() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-8 text-center"
+                className="rounded-2xl border border-border bg-card p-8 text-center cursor-pointer hover:border-primary/30 transition-all"
+                onClick={() => handleGatedClick(card.action, card.route)}
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                   <card.icon className="h-6 w-6 text-primary" />
@@ -345,6 +361,7 @@ export default function ImpactLanding() {
 
       <SiteFooter />
       <CookieConsentBanner />
+      <GuestOnboardingAssistant open={guestOpen} onOpenChange={setGuestOpen} actionLabel={guestAction} />
     </div>
   );
 }
