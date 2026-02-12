@@ -362,7 +362,10 @@ export default function CompanyDetail() {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
-                  {svc.is_draft && <Badge variant="outline" className="mt-1 text-[10px]">Draft</Badge>}
+                  <div className="flex items-center gap-2 mt-1">
+                    {(svc as any)._provider_name && <span className="text-xs text-muted-foreground">by {(svc as any)._provider_name}</span>}
+                    {svc.is_draft && <Badge variant="outline" className="text-[10px]">Draft</Badge>}
+                  </div>
                 </div>
               </Link>
               {isAdmin && (
