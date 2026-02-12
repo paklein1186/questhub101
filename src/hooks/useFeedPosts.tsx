@@ -177,6 +177,7 @@ export function useDeletePost() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
       qc.invalidateQueries({ queryKey: ["following-feed"] });
+      qc.invalidateQueries({ queryKey: ["profile-wall-feed"] });
     },
   });
 }
