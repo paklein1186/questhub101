@@ -67,7 +67,7 @@ const PATHWAYS: Pathway[] = [
     subActions: [
       { id: "active-quests", label: { IMPACT: "Continue an active Mission", CREATIVE: "Continue an active Creation", HYBRID: "Continue an active Quest", DEFAULT: "Continue an active Quest" }, icon: Compass, behavior: "navigate", route: "/work" },
       { id: "recent", label: { IMPACT: "Finish something I started", CREATIVE: "Finish something I started", HYBRID: "Finish something I started", DEFAULT: "Finish something I started" }, icon: Zap, behavior: "navigate", route: "/work" },
-      { id: "manage-entities", label: { IMPACT: "Manage my Guilds / Pods / Orgs", CREATIVE: "Manage my Circles / Ensembles", HYBRID: "Manage my Groups / Teams", DEFAULT: "Manage my Entities" }, icon: Shield, behavior: "navigate", route: "/me/guilds" },
+      { id: "manage-entities", label: { IMPACT: "Manage my Guilds / Pods / Orgs", CREATIVE: "Manage my Circles / Ensembles", HYBRID: "Manage my Guilds / Pods / Orgs", DEFAULT: "Manage my Entities" }, icon: Shield, behavior: "navigate", route: "/me/guilds" },
       { id: "update-services", label: { IMPACT: "Update my Services", CREATIVE: "Update my Skill Sessions", HYBRID: "Update my Services", DEFAULT: "Update my Services" }, icon: Briefcase, behavior: "navigate", route: "/me/services" },
       { id: "review-bookings", label: { IMPACT: "Review my Events & Bookings", CREATIVE: "Review my Events & Bookings", HYBRID: "Review my Events & Bookings", DEFAULT: "Review my Events & Bookings" }, icon: Calendar, behavior: "navigate", route: "/me/bookings" },
       { id: "update-profile", label: { IMPACT: "Update my Profile", CREATIVE: "Update my Portfolio", HYBRID: "Update my Profile", DEFAULT: "Update my Profile" }, icon: User, behavior: "navigate", route: "/profile/edit" },
