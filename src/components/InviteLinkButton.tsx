@@ -26,7 +26,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
 
   // Use published URL if available, otherwise window origin
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const inviteUrl = `${origin}${ROUTE_MAP[entityType]}/${entityId}`;
+  const inviteUrl = `${origin}${ROUTE_MAP[entityType]}/${entityId}?ref=invite`;
 
   const copyToClipboard = async () => {
     try {

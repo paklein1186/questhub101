@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogIn, Loader2 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
@@ -12,10 +12,17 @@ import { useToast } from "@/hooks/use-toast";
 export default function Login() {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const redirectTo = searchParams.get("redirect") || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Store redirect destination so RedirectIfAuthed picks it up after auth
+  if (redirectTo) {
+    sessionStorage.setItem("postAuthRedirect", redirectTo);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +86,7 @@ export default function Login() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           No account yet?{" "}
-          <Link to="/signup" className="text-primary font-medium hover:underline">Sign up</Link>
+          <Link to={`/signup${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-primary font-medium hover:underline">Sign up</Link>
         </p>
       </motion.div>
     </div>

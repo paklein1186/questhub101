@@ -17,6 +17,12 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const refCode = searchParams.get("ref") || "";
+  const redirectTo = searchParams.get("redirect") || "";
+
+  // Store redirect destination so RedirectIfAuthed picks it up after auth
+  if (redirectTo) {
+    sessionStorage.setItem("postAuthRedirect", redirectTo);
+  }
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -94,7 +100,7 @@ export default function Signup() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">Log in</Link>
+          <Link to={`/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`} className="text-primary font-medium hover:underline">Log in</Link>
         </p>
       </motion.div>
     </div>
