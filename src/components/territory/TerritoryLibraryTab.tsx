@@ -132,9 +132,16 @@ function ExcerptCard({
   const hasSource = !!excerpt.source_prompt;
   const displayText = hasSynthesis ? excerpt.synthesis : excerpt.text;
 
-  // Truncate for card preview (roughly 6 lines / 400 chars)
-  const isLong = (displayText?.length ?? 0) > 400;
-  const previewText = isLong ? displayText?.slice(0, 400) + "…" : displayText;
+  // Truncate for card preview (4 sentences max)
+  const getSentencePreview = (text: string | null | undefined, maxSentences: number = 4) => {
+    if (!text) return text;
+    const sentences = text.split(/(?<=[.!?])\s+/).slice(0, maxSentences).join(" ");
+    const isTruncated = text.split(/(?<=[.!?])\s+/).length > maxSentences;
+    return isTruncated ? sentences + "…" : sentences;
+  };
+
+  const isLong = (displayText?.split(/(?<=[.!?])\s+/).length ?? 0) > 4;
+  const previewText = getSentencePreview(displayText, 4);
 
   const excerptHeader = (
     <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
