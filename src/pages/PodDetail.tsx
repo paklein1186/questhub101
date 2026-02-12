@@ -62,7 +62,7 @@ export default function PodDetail() {
   const quest = pod.quests;
   const topic = pod.topics;
   const myMembership = members.find((m: any) => m.user_id === currentUser.id);
-  const isHost = myMembership?.role === "HOST";
+  const isHost = myMembership?.role === "HOST" || (isLoggedIn && pod.creator_id === currentUser.id);
   const isMember = !!myMembership;
 
   const doJoinPod = async () => {
