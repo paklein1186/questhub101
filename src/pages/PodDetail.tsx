@@ -32,6 +32,7 @@ import { FeedSection } from "@/components/feed/FeedSection";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
+import { sendInviteNotification } from "@/lib/inviteNotification";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -207,6 +208,7 @@ export default function PodDetail() {
                           pod_id: pod.id, user_id: user.user_id, role: "MEMBER" as any,
                         });
                         if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
+                        sendInviteNotification({ invitedUserId: user.user_id, inviterName: currentUser.name, entityType: "pod", entityId: pod.id, entityName: pod.name });
                         setInviteOpen(false);
                         qc.invalidateQueries({ queryKey: ["pod", id] });
                         toast({ title: `${user.display_name || "User"} invited!` });
