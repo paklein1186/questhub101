@@ -176,7 +176,7 @@ export default function LandingPage() {
                 className="flex flex-col items-center text-center group"
               >
                 <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mb-5 shadow-playful group-hover:scale-110 transition-transform duration-300">
-                  <step.icon className="h-6 w-6 text-primary" />
+                  <step.icon className="h-7 w-7 text-white" />
                 </div>
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Step {i + 1}</p>
                 <h3 className="font-display font-semibold text-lg mb-1">{step.title}</h3>
