@@ -215,7 +215,23 @@ export default function ServiceCreate() {
         </div>
 
         <div>
-          <label className="text-sm font-medium mb-2 block">Topics</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium">Topics</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedTopicIds(topics.map(t => t.id))}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+              >
+                Select all
+              </button>
+              <button
+                onClick={() => setSelectedTopicIds([])}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+              >
+                Deselect all
+              </button>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             {topics.map(topic => {
               const isSelected = selectedTopicIds.includes(topic.id);
