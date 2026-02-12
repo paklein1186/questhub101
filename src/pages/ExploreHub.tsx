@@ -22,15 +22,20 @@ import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
 
-const VALID_TABS = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_GUEST = ["entities", "houses", "courses"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
 export default function ExploreHub() {
+  const currentUser = useCurrentUser();
+  const isGuest = !currentUser.id;
+  const validTabs = isGuest ? VALID_TABS_GUEST : VALID_TABS_AUTH;
+
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get("tab") || "";
   const isLegacyEntity = ["guilds", "pods", "companies"].includes(rawTab);
-  const initialTab = VALID_TABS.includes(rawTab) ? rawTab : isLegacyEntity ? "entities" : "quests";
+  const initialTab = validTabs.includes(rawTab) ? rawTab : isLegacyEntity ? "entities" : "entities";
   const initialSub: EntitySub = isLegacyEntity ? (rawTab as EntitySub) : "all";
 
   const createParam = searchParams.get("create") as "guild" | "pod" | "company" | null;
@@ -41,7 +46,6 @@ export default function ExploreHub() {
   const [wizardOpen, setWizardOpen] = useState(!!createParam);
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const entityHf = useHouseFilter();
-  const currentUser = useCurrentUser();
   const { label } = usePersona();
 
   const handleTabChange = (value: string) => {
@@ -61,12 +65,12 @@ export default function ExploreHub() {
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="entities" className="text-xs sm:text-sm">Entities</TabsTrigger>
-          <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
-          <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>
-          <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
-          <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+          {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>}
           <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
-          <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
+          <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
+          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>}
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
