@@ -357,8 +357,11 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                         <DialogContent>
                           <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
                           <div className="space-y-3 mt-2">
-                            <Input placeholder="User email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
-                            <Button onClick={inviteMember} className="w-full"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button>
+                            <UserSearchInput
+                              onSelect={(user) => inviteMember(user.user_id)}
+                              placeholder="Type a member name…"
+                              excludeUserIds={members.map((m: any) => m.user_id)}
+                            />
                           </div>
                         </DialogContent>
                       </Dialog>

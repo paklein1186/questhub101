@@ -547,10 +547,13 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                         <DialogHeader><DialogTitle>Add Member</DialogTitle></DialogHeader>
                         <div className="space-y-4 mt-2">
                           <div>
-                            <label className="text-sm font-medium mb-1 block">User email</label>
-                            <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="user@example.com" />
+                            <label className="text-sm font-medium mb-1 block">Search by name</label>
+                            <UserSearchInput
+                              onSelect={(user) => inviteMember(user.user_id)}
+                              placeholder="Type a member name…"
+                              excludeUserIds={members.map((m: any) => m.user_id)}
+                            />
                           </div>
-                          <Button onClick={inviteMember} disabled={!inviteEmail.trim()} className="w-full">Add to guild</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
