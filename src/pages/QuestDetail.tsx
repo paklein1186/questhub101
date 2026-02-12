@@ -1,8 +1,8 @@
-import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2 } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -65,6 +65,7 @@ export default function QuestDetail() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
+  const navigate = useNavigate();
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
   const { data: resolvedHosts } = useResolvedQuestHosts(id);
@@ -193,10 +194,12 @@ export default function QuestDetail() {
     const fiat = Number(editPriceFiat) || 0;
     const credits = Number(editCreditReward) || 0;
     const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
+    const isDraft = editStatus === QuestStatus.DRAFT;
     await supabase.from("quests").update({
       title: editTitle.trim() || quest.title,
       description: editDesc.trim() || null,
       status: editStatus as any,
+      is_draft: isDraft,
       cover_image_url: editCoverImageUrl || null,
       credit_reward: credits,
       price_fiat: fiat,
@@ -455,6 +458,17 @@ export default function QuestDetail() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
                     <Coins className="h-4 w-4 mr-2" /> Fundraising AI
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={async () => {
+                      if (!confirm("Are you sure you want to delete this quest?")) return;
+                      await supabase.from("quests").update({ is_deleted: true, deleted_at: new Date().toISOString() } as any).eq("id", quest.id);
+                      toast({ title: "Quest deleted" });
+                      navigate("/explore?tab=quests");
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete Quest
                   </DropdownMenuItem>
                 </>
               )}
