@@ -300,15 +300,27 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
     } else {
-      // Resolve interest labels
+      // Resolve interest labels and keep raw IDs for persistence
       const interestLabels = selectedInterests.map((id) => {
         const item = topicItems.find((t) => t.id === id);
         return item?.label ?? id;
       });
 
+      // Extract topic UUIDs (format "topic:<uuid>") for DB persistence
+      const topicIds = selectedInterests
+        .filter((id) => id.startsWith("topic:"))
+        .map((id) => id.replace("topic:", ""));
+
+      // Extract house slugs (format "house:<slug>") for DB persistence
+      const houseSlugs = selectedInterests
+        .filter((id) => id.startsWith("house:"))
+        .map((id) => id.replace("house:", ""));
+
       const ctx = {
         persona: selectedPersona,
         interests: interestLabels,
+        interest_topic_ids: topicIds,
+        interest_house_slugs: houseSlugs,
         goals: selectedGoal ? [selectedGoal] : [],
         suggested_role: role,
         org: scrapedOrg ? { name: scrapedOrg.name, url: scrapedOrg.url, sector: scrapedOrg.sector, logo: scrapedOrg.logo } : null,
