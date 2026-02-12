@@ -2293,6 +2293,78 @@ export type Database = {
           },
         ]
       }
+      post_territories: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          territory_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          territory_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_territories_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_topics: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          topic_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          topic_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_topics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_upvotes: {
         Row: {
           created_at: string

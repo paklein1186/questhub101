@@ -30,6 +30,8 @@ export interface PostAttachment {
 
 export interface FeedPostWithAttachments extends FeedPost {
   post_attachments: PostAttachment[];
+  post_territories?: { territory_id: string; territories: { id: string; name: string; slug: string | null } }[];
+  post_topics?: { topic_id: string; topics: { id: string; name: string; slug: string } }[];
   author?: { user_id: string; name: string; avatar_url: string | null; email: string };
 }
 
@@ -39,7 +41,7 @@ export function useFeedPosts(contextType: string, contextId?: string) {
     queryFn: async () => {
       let q = supabase
         .from("feed_posts")
-        .select("*, post_attachments(*)")
+        .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
         .eq("context_type", contextType)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
@@ -80,12 +82,16 @@ export function useCreatePost() {
       contextId,
       content,
       attachments,
+      territoryIds = [],
+      topicIds = [],
     }: {
       authorUserId: string;
       contextType: string;
       contextId?: string;
       content: string;
       attachments: Omit<PostAttachment, "id" | "post_id" | "created_at">[];
+      territoryIds?: string[];
+      topicIds?: string[];
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
@@ -120,6 +126,30 @@ export function useCreatePost() {
           .from("post_attachments")
           .insert(rows as any);
         if (attError) throw attError;
+      }
+
+      // Insert territory relations
+      if (territoryIds.length > 0) {
+        const terrRows = territoryIds.map((tid) => ({
+          post_id: postId,
+          territory_id: tid,
+        }));
+        const { error: terrError } = await supabase
+          .from("post_territories")
+          .insert(terrRows as any);
+        if (terrError) throw terrError;
+      }
+
+      // Insert topic relations
+      if (topicIds.length > 0) {
+        const topicRows = topicIds.map((tid) => ({
+          post_id: postId,
+          topic_id: tid,
+        }));
+        const { error: topicError } = await supabase
+          .from("post_topics")
+          .insert(topicRows as any);
+        if (topicError) throw topicError;
       }
 
       return postId;

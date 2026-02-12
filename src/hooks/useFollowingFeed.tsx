@@ -70,7 +70,7 @@ export function useFollowingFeed(filterType?: string) {
 
       const { data: posts, error: pErr } = await supabase
         .from("feed_posts" as any)
-        .select("*, post_attachments(*)")
+        .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
         .eq("is_deleted", false)
         .or(orParts.join(","))
         .order("created_at", { ascending: false })

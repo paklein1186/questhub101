@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2 } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeletePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -184,6 +185,28 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
       {videos.map((v) => <VideoEmbed key={v.id} attachment={v} />)}
       {links.map((l) => <LinkPreview key={l.id} attachment={l} />)}
       {docs.length > 0 && <div className="space-y-1">{docs.map((d) => <DocumentChip key={d.id} attachment={d} />)}</div>}
+
+      {/* Ontology chips */}
+      {((post.post_territories && post.post_territories.length > 0) || (post.post_topics && post.post_topics.length > 0)) && (
+        <div className="flex flex-wrap gap-1.5">
+          {(post.post_territories ?? []).map((pt) => (
+            <Link key={pt.territory_id} to={`/territories/${pt.territories?.slug || pt.territory_id}`}>
+              <Badge variant="outline" className="text-[10px] h-5 gap-1 hover:bg-accent transition-colors cursor-pointer">
+                <Globe className="h-2.5 w-2.5" />
+                {pt.territories?.name || "Territory"}
+              </Badge>
+            </Link>
+          ))}
+          {(post.post_topics ?? []).map((pt) => (
+            <Link key={pt.topic_id} to={`/topics/${pt.topics?.slug || pt.topic_id}`}>
+              <Badge variant="outline" className="text-[10px] h-5 gap-1 hover:bg-accent transition-colors cursor-pointer">
+                <Compass className="h-2.5 w-2.5" />
+                {pt.topics?.name || "Topic"}
+              </Badge>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Actions bar */}
       <div className="flex items-center gap-1 pt-1">
