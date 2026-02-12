@@ -41,7 +41,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
-import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
@@ -292,7 +292,7 @@ export default function QuestDetail() {
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 
-        <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+        <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
 
         <div className="flex items-center gap-3 mt-4 flex-wrap">
             <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => {

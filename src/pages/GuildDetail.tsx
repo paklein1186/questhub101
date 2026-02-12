@@ -50,7 +50,7 @@ import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
-import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 export default function GuildDetail() {
@@ -184,7 +184,7 @@ export default function GuildDetail() {
   return (
     <PageShell>
       
-      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+      <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
 
       <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_CREDIT_COST} userXp={limits.userCredits} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_GUILD_CREDIT_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 

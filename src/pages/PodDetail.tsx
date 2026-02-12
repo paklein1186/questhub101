@@ -34,7 +34,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus } from "lucide-react";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
-import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -90,7 +90,7 @@ export default function PodDetail() {
 
   return (
     <PageShell>
-      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+      <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
 
       <XpSpendDialog
         open={showPodXpDialog}

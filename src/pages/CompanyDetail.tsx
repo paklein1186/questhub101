@@ -38,7 +38,7 @@ import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
-import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -152,7 +152,7 @@ export default function CompanyDetail() {
 
   return (
     <PageShell>
-      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+      <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Traditional Organizations</Link>
       </Button>
