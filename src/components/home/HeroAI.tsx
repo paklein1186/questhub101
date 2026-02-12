@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, Send, Sparkles, Compass, Shield, CircleDot, BookOpen, Briefcase,
   Hash, User, Loader2, MapPin, Heart, Calendar, Coins, PlusCircle,
-  FileText, Users, Eye, MessageSquare, ListChecks,
+  FileText, Users, Eye, MessageSquare, ListChecks, Mic, MicOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -147,7 +147,9 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<AIResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
   const { persona, label } = usePersona();
 
@@ -176,6 +178,63 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
       setLoading(false);
     }
   };
+
+  const toggleVoice = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setError("Voice input is not supported in this browser.");
+      return;
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim += transcript;
+        }
+      }
+      setQuery(finalTranscript + interim);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (finalTranscript.trim()) {
+        setQuery(finalTranscript.trim());
+        // Auto-submit after voice input completes
+        handleSubmit(finalTranscript.trim());
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (event.error !== "aborted") {
+        setError("Could not capture audio. Please try again.");
+      }
+    };
+
+    recognition.start();
+  }, [isListening, handleSubmit]);
 
   const handleAction = (action: AIAction) => {
     const route = action.route || FALLBACK_ROUTES[action.type];
@@ -214,15 +273,36 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
         {/* Input */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="flex gap-2">
-          <Input
-            ref={inputRef}
-            placeholder="Ask me anything..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            className="h-12 text-base bg-background/80 backdrop-blur-sm"
-            disabled={loading}
-          />
+          <div className="relative flex-1">
+            <Input
+              ref={inputRef}
+              placeholder={isListening ? "Listening..." : "Ask me anything..."}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              className={`h-12 text-base bg-background/80 backdrop-blur-sm pr-11 ${isListening ? "border-primary ring-2 ring-primary/20" : ""}`}
+              disabled={loading}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleVoice}
+              disabled={loading}
+              className={`absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg transition-colors ${
+                isListening
+                  ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+              }`}
+              title={isListening ? "Stop listening" : "Voice input"}
+            >
+              {isListening ? (
+                <MicOff className="h-4 w-4 animate-pulse" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
           <Button size="lg" onClick={() => handleSubmit()} disabled={loading || !query.trim()} className="h-12 px-5">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
