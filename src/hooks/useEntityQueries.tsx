@@ -318,8 +318,10 @@ export function useBookingsForCompany(companyId: string | undefined) {
 }
 
 // ─── Services for guild ──────────────────────────────────────
-// Returns guild-owned services PLUS accepted-member services that share
-// at least one topic with the guild, deduplicated by service id.
+// Returns guild-owned services PLUS accepted-member services that either:
+//  a) share at least one topic with the guild, OR
+//  b) have no topics assigned (treated as uncategorized → always visible)
+// Deduplicated by service id.
 export function useServicesForGuild(guildId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-guild", guildId],
@@ -332,16 +334,7 @@ export function useServicesForGuild(guildId: string | undefined) {
         .eq("is_deleted", false);
       if (ownedErr) throw ownedErr;
 
-      // 2. Get guild topic ids
-      const { data: guildTopics } = await supabase
-        .from("guild_topics")
-        .select("topic_id")
-        .eq("guild_id", guildId!);
-      const topicIds = (guildTopics ?? []).map((gt) => gt.topic_id);
-
-      if (topicIds.length === 0) return guildOwned ?? [];
-
-      // 3. Get accepted member user ids
+      // 2. Get accepted member user ids
       const { data: membersRows } = await supabase
         .from("guild_members")
         .select("user_id")
@@ -350,27 +343,53 @@ export function useServicesForGuild(guildId: string | undefined) {
 
       if (memberUserIds.length === 0) return guildOwned ?? [];
 
-      // 4. Get service ids that match at least one guild topic
-      const { data: matchingServiceTopics } = await supabase
-        .from("service_topics")
-        .select("service_id")
-        .in("topic_id", topicIds);
-      const matchingServiceIds = [...new Set((matchingServiceTopics ?? []).map((st) => st.service_id))];
-
-      if (matchingServiceIds.length === 0) return guildOwned ?? [];
-
-      // 5. Fetch those services owned by members
-      const { data: memberServices } = await supabase
+      // 3. Get ALL active, non-draft services from members
+      const { data: allMemberServices } = await supabase
         .from("services")
         .select("*")
-        .in("id", matchingServiceIds)
         .in("provider_user_id", memberUserIds)
         .eq("is_deleted", false)
         .eq("is_active", true);
 
-      // 6. Deduplicate by id
+      if (!allMemberServices || allMemberServices.length === 0) return guildOwned ?? [];
+
+      // 4. Get guild topic ids
+      const { data: guildTopics } = await supabase
+        .from("guild_topics")
+        .select("topic_id")
+        .eq("guild_id", guildId!);
+      const topicIds = (guildTopics ?? []).map((gt) => gt.topic_id);
+
+      // 5. Get service topic assignments for all member services
+      const memberServiceIds = allMemberServices.map((s) => s.id);
+      const { data: serviceTopicRows } = await supabase
+        .from("service_topics")
+        .select("service_id, topic_id")
+        .in("service_id", memberServiceIds);
+
+      // Build a map: serviceId → set of topic ids
+      const serviceTopicMap = new Map<string, Set<string>>();
+      for (const row of serviceTopicRows ?? []) {
+        if (!serviceTopicMap.has(row.service_id)) serviceTopicMap.set(row.service_id, new Set());
+        serviceTopicMap.get(row.service_id)!.add(row.topic_id);
+      }
+
+      // 6. Filter: include services that have NO topics (uncategorized) OR share at least one topic with guild
+      const topicIdSet = new Set(topicIds);
+      const matchingMemberServices = allMemberServices.filter((s) => {
+        const sTopics = serviceTopicMap.get(s.id);
+        // No topics assigned → always include (uncategorized member service)
+        if (!sTopics || sTopics.size === 0) return true;
+        // Has topics → must share at least one with guild
+        for (const t of sTopics) {
+          if (topicIdSet.has(t)) return true;
+        }
+        return false;
+      });
+
+      // 7. Deduplicate by id
       const ownedIds = new Set((guildOwned ?? []).map((s) => s.id));
-      const extra = (memberServices ?? []).filter((s) => !ownedIds.has(s.id));
+      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id));
       return [...(guildOwned ?? []), ...extra];
     },
     enabled: !!guildId,
