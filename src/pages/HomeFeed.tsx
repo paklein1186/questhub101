@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
+import { MyTaskBoard } from "@/components/home/MyTaskBoard";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -629,6 +630,13 @@ export default function HomeFeed() {
           </div>
         )}
       </div>
+
+      {/* Task Board — below the AI section */}
+      {currentUser.id && (
+        <div className="max-w-2xl mx-auto px-4 pb-12">
+          <MyTaskBoard userId={currentUser.id} />
+        </div>
+      )}
     </PageShell>
   );
 }

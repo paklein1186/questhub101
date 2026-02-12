@@ -2044,6 +2044,60 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_tasks: {
+        Row: {
+          converted_to_quest_id: string | null
+          converted_to_subtask_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          converted_to_quest_id?: string | null
+          converted_to_subtask_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          converted_to_quest_id?: string | null
+          converted_to_subtask_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_tasks_converted_to_quest_id_fkey"
+            columns: ["converted_to_quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_tasks_converted_to_subtask_id_fkey"
+            columns: ["converted_to_subtask_id"]
+            isOneToOne: false
+            referencedRelation: "quest_subtasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pod_applications: {
         Row: {
           admin_note: string | null
