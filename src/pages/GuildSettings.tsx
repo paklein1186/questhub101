@@ -483,6 +483,8 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     </div>
                     <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save features</Button>
                   </Section>
+
+                  <GuildFeatureSuggestionBox guildId={guildId} userId={currentUser.id} />
                 </div>
               )}
 
@@ -778,5 +780,57 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
       <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3">{icon} {title}</h3>
       {children}
     </div>
+  );
+}
+
+// ── Guild Feature Suggestion Box ──
+function GuildFeatureSuggestionBox({ guildId, userId }: { guildId: string; userId: string }) {
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!text.trim()) return;
+    setSending(true);
+    try {
+      await supabase.from("feature_suggestions").insert({
+        user_id: userId || null,
+        original_text: text.trim(),
+        source: "GUILD",
+        status: "NEW",
+        user_explicit: true,
+        tags: [guildId],
+      } as any);
+      toast({ title: "Suggestion sent — thank you!" });
+      setText("");
+    } catch {
+      toast({ title: "Something went wrong", variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Section title="Suggest a Feature" icon={<Puzzle className="h-5 w-5" />}>
+      <p className="text-sm text-muted-foreground mb-3">
+        Have an idea to improve this guild's collaboration tools? Share it with the builders.
+      </p>
+      <Textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Describe a feature you'd like to see…"
+        className="min-h-[100px] resize-none"
+        maxLength={1000}
+      />
+      <Button
+        onClick={handleSubmit}
+        disabled={sending || !text.trim()}
+        variant="outline"
+        size="sm"
+        className="mt-3"
+      >
+        {sending ? "Sending…" : "Submit suggestion"}
+      </Button>
+    </Section>
   );
 }
