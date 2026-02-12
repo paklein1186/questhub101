@@ -38,6 +38,7 @@ export default function ExploreHub() {
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [guildCreateOpen, setGuildCreateOpen] = useState(false);
   const [podCreateOpen, setPodCreateOpen] = useState(false);
+  const [entityPickerOpen, setEntityPickerOpen] = useState(false);
   const entityHf = useHouseFilter();
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export default function ExploreHub() {
               </Button>
             ))}
             </div>
-            <Dialog>
+            <Dialog open={entityPickerOpen} onOpenChange={setEntityPickerOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
                   <Plus className="h-4 w-4 mr-1" /> Create Entity
@@ -107,20 +108,22 @@ export default function ExploreHub() {
                 <DialogHeader><DialogTitle>What would you like to create?</DialogTitle></DialogHeader>
                 <div className="space-y-2 mt-2">
                   <Button variant="outline" className="w-full justify-between" onClick={() => {
+                    setEntityPickerOpen(false);
                     setEntitySub("guilds");
-                    setGuildCreateOpen(true);
+                    setTimeout(() => setGuildCreateOpen(true), 150);
                   }}>
                     <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> {label("guild.label")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" className="w-full justify-between" onClick={() => {
+                    setEntityPickerOpen(false);
                     setEntitySub("pods");
-                    setPodCreateOpen(true);
+                    setTimeout(() => setPodCreateOpen(true), 150);
                   }}>
                     <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> {label("pod.label")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" className="w-full justify-between" onClick={() => navigate("/companies/info")}>
+                  <Button variant="outline" className="w-full justify-between" onClick={() => { setEntityPickerOpen(false); navigate("/companies/info"); }}>
                     <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {label("company.label")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
