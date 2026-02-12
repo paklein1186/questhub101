@@ -673,7 +673,7 @@ export function TerritoryExplorer() {
                   <Link to="/quests/new">Start a {label("quest.label").toLowerCase()}</Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
-                  <Link to="/guilds/new">Create a {label("guild.label").toLowerCase()}</Link>
+                  <Link to="/explore?tab=entities&create=guild">Create a {label("guild.label").toLowerCase()}</Link>
                 </Button>
               </div>
             </div>

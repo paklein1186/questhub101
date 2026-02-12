@@ -55,10 +55,10 @@ const ACTION_ICONS: Record<string, any> = {
 };
 
 const ACTION_ROUTES: Record<string, string> = {
-  create_quest: "/quests/create",
-  create_guild: "/guilds/new",
-  create_pod: "/pods/new",
-  create_company: "/companies/info",
+  create_quest: "/quests/new",
+  create_guild: "/explore?tab=entities&create=guild",
+  create_pod: "/explore?tab=entities&create=pod",
+  create_company: "/create/company-info",
   create_course: "/courses/new",
   join_quest: "/explore?tab=quests",
   submit_proposal: "/explore?tab=quests",
