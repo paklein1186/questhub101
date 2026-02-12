@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   UserPlus, Loader2, ArrowRight, ArrowLeft,
@@ -16,6 +16,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  HOUSE_DEFINITIONS,
+  type UniverseMode,
+  getHouseLabel,
+  getHouseIcon,
+} from "@/lib/universeMapping";
 
 interface Props {
   open: boolean;
@@ -26,7 +32,7 @@ interface Props {
 type Step = "goal" | "persona" | "interests" | "connect" | "signup";
 
 const STEPS_ORDER: Step[] = ["goal", "persona", "interests", "connect", "signup"];
-const STEP_LABELS = ["Goal", "World", "Interests", "Connect", "Account"];
+const STEP_LABELS = ["Goal", "World", "Topics", "Connect", "Account"];
 
 const GOALS = [
   { key: "create", label: "Launch a project", icon: Rocket, desc: "Start a quest, mission, or creation" },
@@ -42,11 +48,12 @@ const PERSONAS = [
   { key: "hybrid", label: "Both", icon: Blend, desc: "Creative meets strategic", color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
 ];
 
-const INTEREST_TAGS = [
-  "Design", "Music", "Film", "Writing", "Tech", "Sustainability",
-  "Social Innovation", "Education", "Health", "Art", "Strategy",
-  "Community Building", "Entrepreneurship", "Culture", "Research",
-];
+interface TopicItem {
+  id: string;
+  label: string;
+  icon: string;
+  type: "house" | "topic";
+}
 
 interface ScrapedOrg {
   name: string | null;
@@ -71,6 +78,12 @@ interface SuggestedUser {
   headline: string | null;
 }
 
+function getUniverseForPersona(persona: string | null): UniverseMode {
+  if (persona === "creative") return "creative";
+  if (persona === "impact") return "impact";
+  return "both";
+}
+
 export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action" }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -81,6 +94,10 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+
+  // Dynamic topics from DB + Houses
+  const [topicItems, setTopicItems] = useState<TopicItem[]>([]);
+  const [loadingTopics, setLoadingTopics] = useState(false);
 
   // Connect step
   const [orgUrl, setOrgUrl] = useState("");
@@ -102,6 +119,61 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
   const stepIndex = STEPS_ORDER.indexOf(step);
   const totalSteps = STEPS_ORDER.length;
+  const universe = getUniverseForPersona(selectedPersona);
+
+  // Fetch topics when persona changes
+  useEffect(() => {
+    if (!selectedPersona) return;
+    setLoadingTopics(true);
+    setSelectedInterests([]);
+
+    const items: TopicItem[] = [];
+
+    // Add Houses for creative/hybrid
+    if (universe === "creative" || universe === "both") {
+      Object.entries(HOUSE_DEFINITIONS).forEach(([slug, def]) => {
+        items.push({
+          id: `house:${slug}`,
+          label: getHouseLabel(slug, universe),
+          icon: def.icon,
+          type: "house",
+        });
+      });
+    }
+
+    // Fetch DB topics for impact/hybrid
+    if (universe === "impact" || universe === "both") {
+      supabase
+        .from("topics")
+        .select("id, name, slug")
+        .eq("is_deleted", false)
+        .order("name")
+        .limit(30)
+        .then(({ data }) => {
+          if (data) {
+            data.forEach((t: any) => {
+              // Avoid duplicates with houses that map to the same concept
+              const alreadyHas = items.some(
+                (i) => i.label.toLowerCase() === t.name.toLowerCase()
+              );
+              if (!alreadyHas) {
+                items.push({
+                  id: `topic:${t.id}`,
+                  label: t.name,
+                  icon: "📌",
+                  type: "topic",
+                });
+              }
+            });
+          }
+          setTopicItems([...items]);
+          setLoadingTopics(false);
+        });
+    } else {
+      setTopicItems(items);
+      setLoadingTopics(false);
+    }
+  }, [selectedPersona, universe]);
 
   const goNext = useCallback(() => {
     const idx = STEPS_ORDER.indexOf(step);
@@ -113,9 +185,9 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     if (idx > 0) setStep(STEPS_ORDER[idx - 1]);
   }, [step]);
 
-  const toggleInterest = (tag: string) => {
+  const toggleInterest = (id: string) => {
     setSelectedInterests((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.length < 5 ? [...prev, tag] : prev
+      prev.includes(id) ? prev.filter((t) => t !== id) : prev.length < 7 ? [...prev, id] : prev
     );
   };
 
@@ -139,25 +211,20 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     setSuggestedUsers([]);
 
     try {
-      // Scrape the URL
       const { data: scraped, error: scrapeErr } = await supabase.functions.invoke("scrape-entity", {
         body: { url },
       });
       if (scrapeErr) throw scrapeErr;
       setScrapedOrg(scraped);
 
-      // Build search terms from scraped data
-      const searchTerms = [scraped?.name, scraped?.sector].filter(Boolean).join(" ");
-
-      // Fetch matching guilds and users in parallel
       const [guildsRes, usersRes] = await Promise.all([
-        searchTerms
+        scraped?.name
           ? supabase
               .from("guilds")
               .select("id, name, logo_url, description")
               .eq("is_deleted", false)
               .eq("is_draft", false)
-              .ilike("name", `%${(scraped?.name || "").split(/\s+/)[0]}%`)
+              .ilike("name", `%${(scraped.name || "").split(/\s+/)[0]}%`)
               .limit(5)
           : Promise.resolve({ data: [] }),
         scraped?.sector
@@ -170,7 +237,6 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           : Promise.resolve({ data: [] }),
       ]);
 
-      // Map guild results with member counts
       const guildData = guildsRes.data || [];
       if (guildData.length > 0) {
         const guildIds = guildData.map((g: any) => g.id);
@@ -186,10 +252,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
         setSuggestedGuilds(
           guildData.map((g: any) => ({
-            id: g.id,
-            name: g.name,
-            logo_url: g.logo_url,
-            description: g.description,
+            id: g.id, name: g.name, logo_url: g.logo_url, description: g.description,
             member_count: countMap[g.id] || 0,
           }))
         );
@@ -197,10 +260,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
       setSuggestedUsers(
         (usersRes.data || []).map((u: any) => ({
-          id: u.user_id,
-          display_name: u.display_name,
-          avatar_url: u.avatar_url,
-          headline: u.headline,
+          id: u.user_id, display_name: u.display_name, avatar_url: u.avatar_url, headline: u.headline,
         }))
       );
     } catch (err) {
@@ -240,14 +300,21 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
     } else {
+      // Resolve interest labels
+      const interestLabels = selectedInterests.map((id) => {
+        const item = topicItems.find((t) => t.id === id);
+        return item?.label ?? id;
+      });
+
       const ctx = {
         persona: selectedPersona,
-        interests: selectedInterests,
+        interests: interestLabels,
         goals: selectedGoal ? [selectedGoal] : [],
         suggested_role: role,
         org: scrapedOrg ? { name: scrapedOrg.name, url: scrapedOrg.url, sector: scrapedOrg.sector, logo: scrapedOrg.logo } : null,
         preselected_guild_ids: selectedGuildIds,
         preselected_follow_user_ids: selectedUserIds,
+        show_post_signup_wizard: true,
       };
       sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
       onOpenChange(false);
@@ -267,6 +334,14 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     exit: { opacity: 0, x: -30 },
     transition: { duration: 0.2 },
   };
+
+  // Section heading for interests based on universe
+  const interestsHeading =
+    universe === "creative"
+      ? "Choose your creative houses"
+      : universe === "impact"
+        ? "What topics interest you?"
+        : "Pick your topics & houses";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -294,310 +369,378 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* ─── Step 1: Goal ─── */}
-          {step === "goal" && (
-            <motion.div key="goal" {...motionProps} className="p-5">
-              <h2 className="font-display font-semibold text-base mb-1">What brings you here?</h2>
-              <p className="text-xs text-muted-foreground mb-4">Pick what resonates most — you can do everything later.</p>
-              <div className="space-y-2">
-                {GOALS.map((g) => {
-                  const Icon = g.icon;
-                  const selected = selectedGoal === g.key;
-                  return (
-                    <button
-                      key={g.key}
-                      onClick={() => setSelectedGoal(g.key)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                        selected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30 hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
-                        selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      }`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{g.label}</p>
-                        <p className="text-xs text-muted-foreground">{g.desc}</p>
-                      </div>
-                      {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ─── Step 2: Persona ─── */}
-          {step === "persona" && (
-            <motion.div key="persona" {...motionProps} className="p-5">
-              <h2 className="font-display font-semibold text-base mb-1">Which world fits you?</h2>
-              <p className="text-xs text-muted-foreground mb-4">This shapes your vocabulary & experience. Changeable anytime.</p>
-              <div className="space-y-3">
-                {PERSONAS.map((p) => {
-                  const Icon = p.icon;
-                  const selected = selectedPersona === p.key;
-                  return (
-                    <button
-                      key={p.key}
-                      onClick={() => setSelectedPersona(p.key)}
-                      className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                        selected ? `border-2 ${p.bg} shadow-sm` : "border-border hover:border-primary/30 hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${selected ? p.bg : "bg-muted"}`}>
-                        <Icon className={`h-5 w-5 ${selected ? p.color : "text-muted-foreground"}`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-semibold ${selected ? p.color : ""}`}>{p.label}</p>
-                        <p className="text-xs text-muted-foreground">{p.desc}</p>
-                      </div>
-                      {selected && <Check className={`h-4 w-4 shrink-0 ${p.color}`} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ─── Step 3: Interests ─── */}
-          {step === "interests" && (
-            <motion.div key="interests" {...motionProps} className="p-5">
-              <h2 className="font-display font-semibold text-base mb-1">What interests you?</h2>
-              <p className="text-xs text-muted-foreground mb-4">
-                Pick up to 5 topics — helps us personalize your feed. <span className="italic">Optional.</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {INTEREST_TAGS.map((tag) => {
-                  const selected = selectedInterests.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      onClick={() => toggleInterest(tag)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                        selected
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted/50 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
-                      }`}
-                    >
-                      {selected && <Check className="inline h-3 w-3 mr-1 -mt-0.5" />}
-                      {tag}
-                    </button>
-                  );
-                })}
-              </div>
-              {selectedInterests.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-3">{selectedInterests.length}/5 selected</p>
-              )}
-            </motion.div>
-          )}
-
-          {/* ─── Step 4: Connect (Org URL) ─── */}
-          {step === "connect" && (
-            <motion.div key="connect" {...motionProps} className="p-5">
-              <h2 className="font-display font-semibold text-base mb-1">Your organization</h2>
-              <p className="text-xs text-muted-foreground mb-4">
-                Paste a website to discover relevant communities and people. <span className="italic">Optional.</span>
-              </p>
-
-              {/* URL input */}
-              {!scrapedOrg ? (
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        value={orgUrl}
-                        onChange={(e) => setOrgUrl(e.target.value)}
-                        placeholder="https://your-organization.com"
-                        className="pl-9"
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleScrapeOrg(); } }}
-                      />
-                    </div>
-                    <Button onClick={handleScrapeOrg} disabled={scraping || !orgUrl.trim()} size="default">
-                      {scraping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analyze"}
-                    </Button>
-                  </div>
-                  {scraping && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Loader2 className="h-3 w-3 animate-spin" /> Analyzing website…
-                    </p>
-                  )}
+        <ScrollArea className="max-h-[60vh]">
+          <AnimatePresence mode="wait">
+            {/* ─── Step 1: Goal ─── */}
+            {step === "goal" && (
+              <motion.div key="goal" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">What brings you here?</h2>
+                <p className="text-xs text-muted-foreground mb-4">Pick what resonates most — you can do everything later.</p>
+                <div className="space-y-2">
+                  {GOALS.map((g) => {
+                    const Icon = g.icon;
+                    const selected = selectedGoal === g.key;
+                    return (
+                      <button
+                        key={g.key}
+                        onClick={() => setSelectedGoal(g.key)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                          selected ? "border-primary bg-primary/5 shadow-sm" : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        }`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{g.label}</p>
+                          <p className="text-xs text-muted-foreground">{g.desc}</p>
+                        </div>
+                        {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Scraped org card */}
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5">
-                    {scrapedOrg.logo ? (
-                      <img src={scrapedOrg.logo} alt="" className="h-10 w-10 rounded-lg object-cover bg-background shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                    ) : (
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                        <Building2 className="h-5 w-5 text-muted-foreground" />
+              </motion.div>
+            )}
+
+            {/* ─── Step 2: Persona ─── */}
+            {step === "persona" && (
+              <motion.div key="persona" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">Which world fits you?</h2>
+                <p className="text-xs text-muted-foreground mb-4">This shapes your vocabulary & experience. Changeable anytime.</p>
+                <div className="space-y-3">
+                  {PERSONAS.map((p) => {
+                    const Icon = p.icon;
+                    const selected = selectedPersona === p.key;
+                    return (
+                      <button
+                        key={p.key}
+                        onClick={() => setSelectedPersona(p.key)}
+                        className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
+                          selected ? `border-2 ${p.bg} shadow-sm` : "border-border hover:border-primary/30 hover:bg-muted/50"
+                        }`}
+                      >
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${selected ? p.bg : "bg-muted"}`}>
+                          <Icon className={`h-5 w-5 ${selected ? p.color : "text-muted-foreground"}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${selected ? p.color : ""}`}>{p.label}</p>
+                          <p className="text-xs text-muted-foreground">{p.desc}</p>
+                        </div>
+                        {selected && <Check className={`h-4 w-4 shrink-0 ${p.color}`} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ─── Step 3: Interests (Dynamic Topics + Houses) ─── */}
+            {step === "interests" && (
+              <motion.div key="interests" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">{interestsHeading}</h2>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Pick up to 7 — helps us personalize your feed. <span className="italic">Optional.</span>
+                </p>
+
+                {loadingTopics ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    {/* Houses section (creative / both) */}
+                    {topicItems.some((t) => t.type === "house") && (
+                      <div className="mb-4">
+                        {universe === "both" && (
+                          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Creative Houses
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {topicItems
+                            .filter((t) => t.type === "house")
+                            .map((t) => {
+                              const selected = selectedInterests.includes(t.id);
+                              return (
+                                <button
+                                  key={t.id}
+                                  onClick={() => toggleInterest(t.id)}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                                    selected
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-muted/50 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                                  }`}
+                                >
+                                  <span>{t.icon}</span>
+                                  {t.label}
+                                  {selected && <Check className="h-3 w-3 ml-0.5" />}
+                                </button>
+                              );
+                            })}
+                        </div>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{scrapedOrg.name || "Organization"}</p>
-                      {scrapedOrg.sector && (
-                        <span className="inline-block text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full mt-0.5">
-                          {scrapedOrg.sector}
-                        </span>
-                      )}
-                      {scrapedOrg.description && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{scrapedOrg.description}</p>
-                      )}
-                    </div>
-                    <button onClick={clearOrg} className="text-muted-foreground hover:text-foreground p-1 shrink-0">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
 
-                  {/* Suggested guilds */}
-                  {suggestedGuilds.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
-                        <UsersRound className="h-3.5 w-3.5" /> Communities to join
-                      </p>
-                      <ScrollArea className="max-h-[120px]">
-                        <div className="space-y-1.5">
-                          {suggestedGuilds.map((g) => {
-                            const selected = selectedGuildIds.includes(g.id);
-                            return (
-                              <button
-                                key={g.id}
-                                onClick={() => toggleGuild(g.id)}
-                                className={`w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
-                                  selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                                }`}
-                              >
-                                <Avatar className="h-8 w-8 shrink-0">
-                                  {g.logo_url && <AvatarImage src={g.logo_url} />}
-                                  <AvatarFallback className="text-[10px]">{g.name.slice(0, 2)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{g.name}</p>
-                                  <p className="text-[10px] text-muted-foreground">{g.member_count} members</p>
-                                </div>
-                                {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                              </button>
-                            );
-                          })}
+                    {/* Topics section (impact / both) */}
+                    {topicItems.some((t) => t.type === "topic") && (
+                      <div>
+                        {universe === "both" && (
+                          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                            Impact Topics
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2">
+                          {topicItems
+                            .filter((t) => t.type === "topic")
+                            .map((t) => {
+                              const selected = selectedInterests.includes(t.id);
+                              return (
+                                <button
+                                  key={t.id}
+                                  onClick={() => toggleInterest(t.id)}
+                                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                                    selected
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-muted/50 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                                  }`}
+                                >
+                                  {selected && <Check className="inline h-3 w-3 mr-1 -mt-0.5" />}
+                                  {t.label}
+                                </button>
+                              );
+                            })}
                         </div>
-                      </ScrollArea>
-                    </div>
-                  )}
+                      </div>
+                    )}
+                  </>
+                )}
 
-                  {/* Suggested users */}
-                  {suggestedUsers.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
-                        <UserCheck className="h-3.5 w-3.5" /> People to follow
+                {selectedInterests.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-3">{selectedInterests.length}/7 selected</p>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── Step 4: Connect (Org URL) ─── */}
+            {step === "connect" && (
+              <motion.div key="connect" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">Your project or organization</h2>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Paste a website to discover relevant communities, people, and pre-fill services. <span className="italic">Optional.</span>
+                </p>
+
+                {!scrapedOrg ? (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={orgUrl}
+                          onChange={(e) => setOrgUrl(e.target.value)}
+                          placeholder="https://your-project.com"
+                          className="pl-9"
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleScrapeOrg(); } }}
+                        />
+                      </div>
+                      <Button onClick={handleScrapeOrg} disabled={scraping || !orgUrl.trim()} size="default">
+                        {scraping ? <Loader2 className="h-4 w-4 animate-spin" /> : "Analyze"}
+                      </Button>
+                    </div>
+                    {scraping && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Analyzing website…
                       </p>
-                      <ScrollArea className="max-h-[120px]">
-                        <div className="space-y-1.5">
-                          {suggestedUsers.map((u) => {
-                            const selected = selectedUserIds.includes(u.id);
-                            return (
-                              <button
-                                key={u.id}
-                                onClick={() => toggleUser(u.id)}
-                                className={`w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
-                                  selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                                }`}
-                              >
-                                <Avatar className="h-8 w-8 shrink-0">
-                                  {u.avatar_url && <AvatarImage src={u.avatar_url} />}
-                                  <AvatarFallback className="text-[10px]">{u.display_name?.slice(0, 2)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{u.display_name}</p>
-                                  {u.headline && <p className="text-[10px] text-muted-foreground truncate">{u.headline}</p>}
-                                </div>
-                                {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-
-                  {/* No results message */}
-                  {suggestedGuilds.length === 0 && suggestedUsers.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      No matching communities found yet — you'll be able to create or join after signing up.
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      We'll look for matching communities, users with similar expertise, and suggest services you could offer.
                     </p>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Scraped org card */}
+                    <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5">
+                      {scrapedOrg.logo ? (
+                        <img src={scrapedOrg.logo} alt="" className="h-10 w-10 rounded-lg object-cover bg-background shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      ) : (
+                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Building2 className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{scrapedOrg.name || "Organization"}</p>
+                        {scrapedOrg.sector && (
+                          <span className="inline-block text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full mt-0.5">
+                            {scrapedOrg.sector}
+                          </span>
+                        )}
+                        {scrapedOrg.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{scrapedOrg.description}</p>
+                        )}
+                      </div>
+                      <button onClick={clearOrg} className="text-muted-foreground hover:text-foreground p-1 shrink-0">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
 
-          {/* ─── Step 5: Signup ─── */}
-          {step === "signup" && (
-            <motion.div key="signup" {...motionProps} className="p-5">
-              <h2 className="font-display font-semibold text-base mb-1">Create your account</h2>
-              <p className="text-xs text-muted-foreground mb-4">One last step — then we'll personalize everything for you.</p>
+                    {/* Suggested guilds */}
+                    {suggestedGuilds.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
+                          <UsersRound className="h-3.5 w-3.5" /> Communities to join
+                        </p>
+                        <ScrollArea className="max-h-[120px]">
+                          <div className="space-y-1.5">
+                            {suggestedGuilds.map((g) => {
+                              const selected = selectedGuildIds.includes(g.id);
+                              return (
+                                <button
+                                  key={g.id}
+                                  onClick={() => toggleGuild(g.id)}
+                                  className={`w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
+                                    selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                                  }`}
+                                >
+                                  <Avatar className="h-8 w-8 shrink-0">
+                                    {g.logo_url && <AvatarImage src={g.logo_url} />}
+                                    <AvatarFallback className="text-[10px]">{g.name.slice(0, 2)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{g.name}</p>
+                                    <p className="text-[10px] text-muted-foreground">{g.member_count} members</p>
+                                  </div>
+                                  {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
 
-              {/* Summary chips */}
-              {(selectedGoal || selectedPersona || selectedInterests.length > 0 || scrapedOrg) && (
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {selectedGoal && (
-                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                      🎯 {GOALS.find((g) => g.key === selectedGoal)?.label}
-                    </span>
-                  )}
-                  {selectedPersona && (
-                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                      🌍 {PERSONAS.find((p) => p.key === selectedPersona)?.label}
-                    </span>
-                  )}
-                  {scrapedOrg?.name && (
-                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                      🏢 {scrapedOrg.name}
-                    </span>
-                  )}
-                  {selectedInterests.map((t) => (
-                    <span key={t} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t}</span>
-                  ))}
-                </div>
-              )}
+                    {/* Suggested users */}
+                    {suggestedUsers.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-1.5">
+                          <UserCheck className="h-3.5 w-3.5" /> People to follow
+                        </p>
+                        <ScrollArea className="max-h-[120px]">
+                          <div className="space-y-1.5">
+                            {suggestedUsers.map((u) => {
+                              const selected = selectedUserIds.includes(u.id);
+                              return (
+                                <button
+                                  key={u.id}
+                                  onClick={() => toggleUser(u.id)}
+                                  className={`w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition-all ${
+                                    selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                                  }`}
+                                >
+                                  <Avatar className="h-8 w-8 shrink-0">
+                                    {u.avatar_url && <AvatarImage src={u.avatar_url} />}
+                                    <AvatarFallback className="text-[10px]">{u.display_name?.slice(0, 2)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{u.display_name}</p>
+                                    {u.headline && <p className="text-[10px] text-muted-foreground truncate">{u.headline}</p>}
+                                  </div>
+                                  {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
 
-              <form onSubmit={handleSignup} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="guest-name" className="text-xs">Full name</Label>
-                  <Input id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required autoComplete="name" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="guest-email" className="text-xs">Email</Label>
-                  <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+                    {suggestedGuilds.length === 0 && suggestedUsers.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-2">
+                        No matching communities found yet — you'll be able to create or join after signing up.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── Step 5: Signup ─── */}
+            {step === "signup" && (
+              <motion.div key="signup" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">Create your account</h2>
+                <p className="text-xs text-muted-foreground mb-4">One last step — then we'll personalize everything for you.</p>
+
+                {/* Summary chips */}
+                {(selectedGoal || selectedPersona || selectedInterests.length > 0 || scrapedOrg) && (
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {selectedGoal && (
+                      <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                        🎯 {GOALS.find((g) => g.key === selectedGoal)?.label}
+                      </span>
+                    )}
+                    {selectedPersona && (
+                      <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                        🌍 {PERSONAS.find((p) => p.key === selectedPersona)?.label}
+                      </span>
+                    )}
+                    {scrapedOrg?.name && (
+                      <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                        🏢 {scrapedOrg.name}
+                      </span>
+                    )}
+                    {selectedInterests.slice(0, 4).map((id) => {
+                      const item = topicItems.find((t) => t.id === id);
+                      return (
+                        <span key={id} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          {item?.icon} {item?.label ?? id}
+                        </span>
+                      );
+                    })}
+                    {selectedInterests.length > 4 && (
+                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        +{selectedInterests.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <form onSubmit={handleSignup} className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="guest-pw" className="text-xs">Password</Label>
-                    <Input id="guest-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 chars" required minLength={6} autoComplete="new-password" />
+                    <Label htmlFor="guest-name" className="text-xs">Full name</Label>
+                    <Input id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required autoComplete="name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="guest-pw2" className="text-xs">Confirm</Label>
-                    <Input id="guest-pw2" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" required autoComplete="new-password" />
+                    <Label htmlFor="guest-email" className="text-xs">Email</Label>
+                    <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
                   </div>
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="guest-pw" className="text-xs">Password</Label>
+                      <Input id="guest-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 chars" required minLength={6} autoComplete="new-password" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="guest-pw2" className="text-xs">Confirm</Label>
+                      <Input id="guest-pw2" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" required autoComplete="new-password" />
+                    </div>
+                  </div>
 
-                <Button type="submit" className="w-full" disabled={signingUp}>
-                  {signingUp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                  Create account
-                </Button>
-              </form>
+                  <Button type="submit" className="w-full" disabled={signingUp}>
+                    {signingUp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                    Create account
+                  </Button>
+                </form>
 
-              <p className="text-center text-xs text-muted-foreground mt-4">
-                Already have an account?{" "}
-                <button onClick={() => { onOpenChange(false); navigate(`/login${redirectParam}`); }} className="text-primary font-medium hover:underline">
-                  Log in
-                </button>
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <p className="text-center text-xs text-muted-foreground mt-4">
+                  Already have an account?{" "}
+                  <button onClick={() => { onOpenChange(false); navigate(`/login${redirectParam}`); }} className="text-primary font-medium hover:underline">
+                    Log in
+                  </button>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </ScrollArea>
 
         {/* Footer nav */}
         <div className="p-3 border-t flex items-center justify-between">
