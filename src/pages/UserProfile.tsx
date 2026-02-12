@@ -28,6 +28,7 @@ import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
+import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -173,6 +174,7 @@ export default function UserProfile() {
   const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
 
   const [tab, setTab] = useState("overview");
+  const [showCreateUnit, setShowCreateUnit] = useState(false);
 
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
@@ -252,8 +254,8 @@ export default function UserProfile() {
                 <Button size="sm" variant="outline" asChild>
                   <Link to="/me"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
                 </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Open wizard</Link>
+                <Button size="sm" variant="outline" onClick={() => setShowCreateUnit(true)}>
+                  <Plus className="h-4 w-4 mr-1" /> Add unit
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to="/me"><Settings className="h-4 w-4" /></Link>
@@ -669,6 +671,10 @@ export default function UserProfile() {
           )}
         </TabsContent>
       </Tabs>
+
+      {isOwnProfile && (
+        <EntityCreationWizard open={showCreateUnit} onOpenChange={setShowCreateUnit} />
+      )}
     </PageShell>
   );
 }
