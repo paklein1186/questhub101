@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LogIn, UserPlus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -19,16 +19,19 @@ export function PublicExploreCTA({
   compact = false,
   className = "",
 }: Props) {
+  const location = useLocation();
+  const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+
   if (compact) {
     return (
       <div className={`flex flex-wrap items-center gap-2 ${className}`}>
         <Lock className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">{message}</span>
         <Button size="sm" variant="outline" asChild>
-          <Link to="/login"><LogIn className="h-3.5 w-3.5 mr-1" /> Log in</Link>
+          <Link to={`/login${redirectParam}`}><LogIn className="h-3.5 w-3.5 mr-1" /> Log in</Link>
         </Button>
         <Button size="sm" asChild>
-          <Link to="/signup"><UserPlus className="h-3.5 w-3.5 mr-1" /> Sign up</Link>
+          <Link to={`/signup${redirectParam}`}><UserPlus className="h-3.5 w-3.5 mr-1" /> Sign up</Link>
         </Button>
       </div>
     );
@@ -40,10 +43,10 @@ export function PublicExploreCTA({
       <p className="text-sm text-foreground mb-4">{message}</p>
       <div className="flex justify-center gap-3">
         <Button variant="outline" asChild>
-          <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
+          <Link to={`/login${redirectParam}`}><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
         </Button>
         <Button asChild>
-          <Link to="/signup"><UserPlus className="h-4 w-4 mr-1" /> Create an account</Link>
+          <Link to={`/signup${redirectParam}`}><UserPlus className="h-4 w-4 mr-1" /> Create an account</Link>
         </Button>
       </div>
     </div>

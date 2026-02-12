@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -20,6 +20,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 /** Redirects authenticated users away from login/signup */
 export function RedirectIfAuthed({ children }: { children: ReactNode }) {
   const { session, user, loading } = useAuth();
+  const location = useLocation();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -28,6 +30,13 @@ export function RedirectIfAuthed({ children }: { children: ReactNode }) {
     );
   }
   if (session) {
+    // Check for a redirect URL stored in sessionStorage (e.g. from invite links)
+    const storedRedirect = sessionStorage.getItem("postAuthRedirect");
+    if (storedRedirect) {
+      sessionStorage.removeItem("postAuthRedirect");
+      return <Navigate to={storedRedirect} replace />;
+    }
+
     if (user && !user.hasCompletedOnboarding) {
       return <Navigate to="/onboarding" replace />;
     }
