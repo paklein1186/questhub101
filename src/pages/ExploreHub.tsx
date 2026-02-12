@@ -69,7 +69,7 @@ export default function ExploreHub() {
           {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>}
           <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
-          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm">Humans</TabsTrigger>}
           {!isGuest && <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>}
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>

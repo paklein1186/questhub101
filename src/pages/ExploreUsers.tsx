@@ -256,7 +256,7 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
       ) : users.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <Users className="h-10 w-10 mx-auto mb-3 opacity-40" />
-          <p className="font-medium">No users found</p>
+          <p className="font-medium">No humans found</p>
           <p className="text-sm mt-1">Try adjusting your filters or search query.</p>
         </div>
       ) : (
