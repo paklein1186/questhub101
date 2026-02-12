@@ -29,6 +29,9 @@ import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { Sparkles } from "lucide-react";
 import { FeedSection } from "@/components/feed/FeedSection";
+import { UserSearchInput } from "@/components/UserSearchInput";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { UserPlus } from "lucide-react";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +43,7 @@ export default function PodDetail() {
   const limits = usePlanLimits();
   const [showPodXpDialog, setShowPodXpDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("members");
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
@@ -185,6 +189,36 @@ export default function PodDetail() {
         </div>
 
         <TabsContent value="members" className="mt-6">
+          {isHost && (
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm text-muted-foreground">{members.length} member{members.length !== 1 ? "s" : ""}</p>
+              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
+                  <div className="space-y-3 mt-2">
+                    <UserSearchInput
+                      onSelect={async (user) => {
+                        const already = members.some((m: any) => m.user_id === user.user_id);
+                        if (already) { toast({ title: "Already a member" }); return; }
+                        const { error } = await supabase.from("pod_members").insert({
+                          pod_id: pod.id, user_id: user.user_id, role: "MEMBER" as any,
+                        });
+                        if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
+                        setInviteOpen(false);
+                        qc.invalidateQueries({ queryKey: ["pod", id] });
+                        toast({ title: `${user.display_name || "User"} invited!` });
+                      }}
+                      placeholder="Search by name…"
+                      excludeUserIds={members.map((m: any) => m.user_id)}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {members.map((m: any) => (
               <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">

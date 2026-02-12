@@ -41,6 +41,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { UserSearchInput } from "@/components/UserSearchInput";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -91,6 +92,7 @@ export default function QuestDetail() {
   const [editCreditBudget, setEditCreditBudget] = useState("0");
   const [editAllowFundraising, setEditAllowFundraising] = useState(false);
   const [editFundingGoal, setEditFundingGoal] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -462,7 +464,36 @@ export default function QuestDetail() {
             />
           )}
 
-          <h3 className="font-display font-semibold mb-3 flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-display font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
+            {canPostUpdate && (
+              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Invite a participant</DialogTitle></DialogHeader>
+                  <div className="space-y-3 mt-2">
+                    <UserSearchInput
+                      onSelect={async (user) => {
+                        const already = (participants || []).some((p: any) => p.user_id === user.user_id);
+                        if (already) { toast({ title: "Already a participant" }); return; }
+                        const { error } = await supabase.from("quest_participants").insert({
+                          quest_id: quest.id, user_id: user.user_id, role: "COLLABORATOR", status: "ACCEPTED",
+                        });
+                        if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
+                        setInviteOpen(false);
+                        qc.invalidateQueries({ queryKey: ["quest-participants", id] });
+                        toast({ title: `${user.display_name || "User"} invited!` });
+                      }}
+                      placeholder="Search by name…"
+                      excludeUserIds={(participants || []).map((p: any) => p.user_id)}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           <div className="grid gap-3 md:grid-cols-2">
             {(participants || []).map((p: any) => (
               <Link key={p.id} to={`/users/${p.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
