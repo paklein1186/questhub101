@@ -69,6 +69,8 @@ export function usePlanLimits() {
   const [guildCount, setGuildCount] = useState(0);
   const [podCount, setPodCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [inGracePeriod, setInGracePeriod] = useState(false);
+  const [gracePeriodDaysLeft, setGracePeriodDaysLeft] = useState(0);
 
   const fetchData = useCallback(async () => {
     if (!userId) {
