@@ -128,14 +128,8 @@ function ExcerptCard({
   const hasSource = !!excerpt.source_prompt;
   const displayText = hasSynthesis ? excerpt.synthesis : excerpt.text;
 
-  // Parse synthesis into key points if it has line breaks or bullet patterns
-  const keyPoints = hasSynthesis
-    ? displayText!
-        .split(/\n/)
-        .map(l => l.replace(/^[-•*]\s*/, "").trim())
-        .filter(l => l.length > 0)
-    : [];
-  const hasMultiplePoints = keyPoints.length > 1;
+
+
 
   return (
     <motion.div
