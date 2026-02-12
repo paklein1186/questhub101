@@ -1,5 +1,6 @@
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
@@ -180,6 +181,7 @@ export default function QuestDetail() {
     const { data: pod, error } = await supabase.from("pods").insert({ name: podName.trim(), description: podDesc.trim() || null, image_url: podImageUrl || null, type: "QUEST_POD" as any, quest_id: quest.id, creator_id: currentUser.id, start_date: podStart || null, end_date: podEnd || null }).select().single();
     if (error) { toast({ title: "Failed to create pod", variant: "destructive" }); return; }
     await supabase.from("pod_members").insert({ pod_id: pod.id, user_id: currentUser.id, role: "HOST" as any });
+    autoFollowEntity(currentUser.id, "POD", pod.id);
     qc.invalidateQueries({ queryKey: ["pods-for-quest", id] });
     setPodOpen(false); setPodName(""); setPodDesc(""); setPodStart(""); setPodEnd(""); setPodImageUrl(undefined);
     toast({ title: "Pod created!" });

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { GuildJoinPolicy, GuildApplicationStatus } from "@/types/enums";
 import { useNotifications } from "@/hooks/useNotifications";
 
@@ -68,6 +69,7 @@ export function GuildJoinButton({
     if (error) {
       toast({ title: "Failed to join", description: error.message, variant: "destructive" });
     } else {
+      autoFollowEntity(currentUserId, "GUILD", guildId);
       toast({ title: "Joined guild!" });
       onJoined?.();
     }

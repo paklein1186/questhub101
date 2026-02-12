@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import {
@@ -121,6 +122,7 @@ export default function GuildDetail() {
   const doJoinGuild = async () => {
     const { error } = await supabase.from("guild_members").insert({ guild_id: guild.id, user_id: currentUser.id, role: "MEMBER" as any });
     if (error) { toast({ title: "Failed to join", variant: "destructive" }); return; }
+    autoFollowEntity(currentUser.id, "GUILD", guild.id);
     qc.invalidateQueries({ queryKey: ["guild", id] });
     qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] });
     toast({ title: "Joined guild!" });

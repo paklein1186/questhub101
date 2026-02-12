@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain, MoreHorizontal } from "lucide-react";
@@ -67,6 +68,7 @@ export default function PodDetail() {
   const doJoinPod = async () => {
     const { error } = await supabase.from("pod_members").insert({ pod_id: pod.id, user_id: currentUser.id, role: "MEMBER" as any });
     if (error) { toast({ title: "Failed to join", variant: "destructive" }); return; }
+    autoFollowEntity(currentUser.id, "POD", pod.id);
     qc.invalidateQueries({ queryKey: ["pod", id] });
     toast({ title: "Joined pod!" });
   };

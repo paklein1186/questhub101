@@ -5,6 +5,40 @@ import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
 
 const CONTEXT_TYPES = ["USER", "GUILD", "COMPANY", "POD", "QUEST", "SERVICE", "COURSE", "EVENT", "TERRITORY"];
 
+/**
+ * Ensures the user's memberships are reflected as follows.
+ * Runs once per query cycle, fire-and-forget.
+ */
+async function syncMembershipFollows(userId: string) {
+  const { data: follows } = await supabase
+    .from("follows")
+    .select("target_type, target_id")
+    .eq("follower_id", userId);
+  const followSet = new Set((follows || []).map(f => `${f.target_type}:${f.target_id}`));
+
+  const missing: { follower_id: string; target_type: string; target_id: string }[] = [];
+
+  const [gm, pm, cm] = await Promise.all([
+    supabase.from("guild_members").select("guild_id").eq("user_id", userId),
+    supabase.from("pod_members").select("pod_id").eq("user_id", userId),
+    supabase.from("company_members").select("company_id").eq("user_id", userId),
+  ]);
+
+  (gm.data || []).forEach((r: any) => {
+    if (!followSet.has(`GUILD:${r.guild_id}`)) missing.push({ follower_id: userId, target_type: "GUILD", target_id: r.guild_id });
+  });
+  (pm.data || []).forEach((r: any) => {
+    if (!followSet.has(`POD:${r.pod_id}`)) missing.push({ follower_id: userId, target_type: "POD", target_id: r.pod_id });
+  });
+  (cm.data || []).forEach((r: any) => {
+    if (!followSet.has(`COMPANY:${r.company_id}`)) missing.push({ follower_id: userId, target_type: "COMPANY", target_id: r.company_id });
+  });
+
+  if (missing.length > 0) {
+    await supabase.from("follows").insert(missing as any);
+  }
+}
+
 export function useFollowingFeed(filterType?: string) {
   const { user } = useAuth();
   const userId = user?.id;
@@ -16,6 +50,8 @@ export function useFollowingFeed(filterType?: string) {
     queryFn: async () => {
       if (!userId) return [];
 
+      // Sync membership follows (backfill any missing)
+      await syncMembershipFollows(userId);
       // 1. Fetch all follows for this user
       const { data: follows, error: fErr } = await supabase
         .from("follows")

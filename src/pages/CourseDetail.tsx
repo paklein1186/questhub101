@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useCourseById, useLessonsForCourse, useCourseEnrollment, useCourseEnrollmentCount, usePublicProfile } from "@/hooks/useEntityQueries";
 import { supabase } from "@/integrations/supabase/client";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { useQueryClient } from "@tanstack/react-query";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
@@ -45,6 +46,7 @@ export default function CourseDetail() {
       course_id: course.id, user_id: currentUser.id, progress_percent: 0,
     });
     if (error) { toast({ title: "Failed to enroll", variant: "destructive" }); return; }
+    autoFollowEntity(currentUser.id, "COURSE", course.id);
     qc.invalidateQueries({ queryKey: ["course-enrollment", id] });
     toast({ title: "Enrolled!" });
     if (lessonsList.length > 0) navigate(`/courses/${course.id}/lessons/${lessonsList[0].id}`);
