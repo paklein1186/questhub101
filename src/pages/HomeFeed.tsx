@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
@@ -291,7 +291,9 @@ export default function HomeFeed() {
   const [result, setResult] = useState<any>(null);
   const [guidedTile, setGuidedTile] = useState<string | null>(null);
   const [lastInput, setLastInput] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
   const verb = useRotatingVerb(persona);
 
@@ -348,6 +350,61 @@ export default function HomeFeed() {
   };
 
   // handleGuidedTile removed — guided mode now uses GuidedPathways component
+
+  const toggleVoice = useCallback(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Voice input is not supported in this browser.");
+      return;
+    }
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = navigator.language || "en-US";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += t + " ";
+        } else {
+          interim += t;
+        }
+      }
+      setInput(finalTranscript + interim);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (finalTranscript.trim()) {
+        submitIntent(finalTranscript.trim(), "HOME_FREE");
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (event.error !== "aborted") {
+        toast.error("Could not capture audio. Please try again.");
+      }
+    };
+
+    recognition.start();
+  }, [isListening, submitIntent]);
 
   const resetAll = () => {
     setResult(null);
@@ -417,8 +474,11 @@ export default function HomeFeed() {
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type what you want to work on, explore, fix, create, or find…"
-              className="min-h-[56px] max-h-[120px] resize-none text-base bg-card border-border focus-visible:ring-primary/30"
+              placeholder={isListening ? "Listening…" : "Type what you want to work on, explore, fix, create, or find…"}
+              className={cn(
+                "min-h-[56px] max-h-[120px] resize-none text-base bg-card border-border focus-visible:ring-primary/30",
+                isListening && "border-primary ring-2 ring-primary/20"
+              )}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -427,7 +487,27 @@ export default function HomeFeed() {
               }}
             />
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleVoice}
+                disabled={loading}
+                className={cn(
+                  "h-10 w-10 rounded-xl transition-colors",
+                  isListening
+                    ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                )}
+                title={isListening ? "Stop listening" : "Voice input"}
+              >
+                {isListening ? (
+                  <MicOff className="h-4 w-4 animate-pulse" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
               <Button
                 onClick={() => submitIntent(input, "HOME_FREE")}
                 disabled={loading || !input.trim()}
