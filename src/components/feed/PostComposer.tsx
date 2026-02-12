@@ -18,6 +18,7 @@ import {
   ACCEPTED_IMAGE_TYPES,
   ACCEPTED_DOC_TYPES,
 } from "@/lib/postHelpers";
+import { OntologyPicker } from "@/components/feed/OntologyPicker";
 
 interface PendingFile {
   file: File;
@@ -57,6 +58,8 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>([]);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
 
   const imgRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
@@ -199,6 +202,8 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
         contextId,
         content: content.trim(),
         attachments,
+        territoryIds: selectedTerritoryIds,
+        topicIds: selectedTopicIds,
       });
 
       // Reset
@@ -206,6 +211,8 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
       files.forEach((f) => URL.revokeObjectURL(f.previewUrl));
       setFiles([]);
       setLink(null);
+      setSelectedTerritoryIds([]);
+      setSelectedTopicIds([]);
       toast.success("Post published!");
     } catch (err: any) {
       toast.error(err.message || "Failed to publish post");
@@ -311,6 +318,14 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
               </button>
             </div>
           )}
+
+          {/* Ontology picker */}
+          <OntologyPicker
+            selectedTerritoryIds={selectedTerritoryIds}
+            selectedTopicIds={selectedTopicIds}
+            onTerritoriesChange={setSelectedTerritoryIds}
+            onTopicsChange={setSelectedTopicIds}
+          />
 
           {/* Link URL input */}
           {showLinkInput && (
