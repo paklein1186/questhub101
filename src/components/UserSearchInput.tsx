@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface UserSearchResult {
   user_id: string;
-  display_name: string | null;
+  display_name: string | null;  // mapped from profiles.name
   avatar_url: string | null;
 }
 
