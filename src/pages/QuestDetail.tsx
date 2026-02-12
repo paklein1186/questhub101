@@ -43,6 +43,7 @@ import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/Quest
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -297,6 +298,7 @@ export default function QuestDetail() {
               </Button>
             )}
             <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
+            {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
             {canPostUpdate && (
               <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
