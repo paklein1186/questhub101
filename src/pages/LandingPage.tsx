@@ -98,10 +98,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Nav ─── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="container flex h-14 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-            <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+        <div className="container flex h-16 items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight group">
+            <img src={logoImg} alt="changethegame" className="h-7 w-7 transition-transform group-hover:scale-110 group-hover:rotate-6" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">changethegame</span>
           </Link>
           <nav className="flex items-center gap-2">
             <Button size="sm" variant="ghost" asChild>
@@ -119,8 +120,8 @@ export default function LandingPage() {
 
       {/* ─── Hero ─── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="container py-20 md:py-32 text-center relative z-10">
+        <div className="absolute inset-0 gradient-hero pointer-events-none" />
+        <div className="container py-24 md:py-36 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
               <Sprout className="h-3 w-3 mr-1" /> Regeneration · Impact · Community
@@ -130,11 +131,11 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6 }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
+            className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.05]"
           >
             Human-powered.{" "}
-            <span className="text-primary">AI-augmented.</span>{" "}
-            <span className="text-accent">Game-changing.</span>
+            <span className="bg-clip-text text-transparent gradient-primary">AI-augmented.</span>{" "}
+            <span className="bg-clip-text text-transparent gradient-cool">Game-changing.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -150,10 +151,10 @@ export default function LandingPage() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" asChild className="gap-2">
+            <Button size="lg" asChild className="gap-2 gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
               <Link to="/signup?role=gamechanger"><Lightbulb className="h-4 w-4" /> Join as a Gamechanger</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
+            <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground rounded-full hover:scale-105 transition-transform">
               <Link to="/signup?role=ecosystem"><Shield className="h-4 w-4" /> Join as an Ecosystem Builder</Link>
             </Button>
           </motion.div>
@@ -166,16 +167,16 @@ export default function LandingPage() {
       </section>
 
       {/* ─── How it works ─── */}
-      <section className="border-t border-border bg-muted/40">
-        <div className="container py-16 md:py-24">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">How it works</h2>
+      <section className="border-t border-border/50 bg-muted/30">
+        <div className="container py-20 md:py-28">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-14">How it works</h2>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
               <motion.div key={step.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center group"
               >
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <step.icon className="h-6 w-6 text-primary" />
+                <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mb-5 shadow-playful group-hover:scale-110 transition-transform duration-300">
+                  <step.icon className="h-7 w-7 text-white" />
                 </div>
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Step {i + 1}</p>
                 <h3 className="font-display font-semibold text-lg mb-1">{step.title}</h3>
@@ -196,7 +197,7 @@ export default function LandingPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {personas.map((p, i) => (
               <motion.div key={p.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-6 flex flex-col"
+                className="rounded-2xl border border-border/60 bg-card p-7 flex flex-col shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`h-10 w-10 rounded-xl bg-${p.accent}/10 flex items-center justify-center`}>
@@ -306,7 +307,7 @@ export default function LandingPage() {
               { icon: BookOpen, title: "Pods", desc: "Small learning & action groups that keep you accountable and connected." },
             ].map((item, i) => (
               <motion.div key={item.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-5"
+                className="rounded-2xl border border-border/60 bg-card p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
               >
                 <item.icon className="h-6 w-6 text-primary mx-auto mb-3" />
                 <h3 className="font-display font-semibold text-sm mb-1">{item.title}</h3>
@@ -318,15 +319,15 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section className="border-t border-border bg-primary/5">
+      <section className="border-t border-border/50 gradient-hero">
         <div className="container py-16 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to make an impact?</h2>
           <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
               <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="rounded-full hover:scale-105 transition-transform">
               <Link to="/explore">Explore the platform</Link>
             </Button>
           </div>

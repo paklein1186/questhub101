@@ -73,12 +73,12 @@ export function AppNav() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-      <div className="container flex h-14 items-center justify-between gap-2">
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+      <div className="container flex h-16 items-center justify-between gap-2">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight shrink-0">
-          <img src={logoImg} alt="changethegame" className="h-6 w-6" />
-          <span className="hidden xs:inline">changethegame</span>
+        <Link to="/" className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight shrink-0 group">
+          <img src={logoImg} alt="changethegame" className="h-7 w-7 transition-transform group-hover:scale-110 group-hover:rotate-6" />
+          <span className="hidden xs:inline bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">changethegame</span>
         </Link>
 
         {/* Desktop nav */}
@@ -96,10 +96,10 @@ export function AppNav() {
                       key={link.to}
                       to={link.to}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                        "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200",
                         active
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          ? "gradient-primary text-primary-foreground shadow-playful"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                       )}
                     >
                       <link.icon className="h-4 w-4" />
