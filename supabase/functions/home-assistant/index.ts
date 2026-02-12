@@ -20,10 +20,14 @@ Your job is to understand what the user wants to accomplish and suggest CONCRETE
 
 Available action types:
 - create_quest: User wants to create a new quest/project
+- create_guild: User wants to create a guild/circle/collective
+- create_pod: User wants to create a pod/team/ensemble
+- create_company: User wants to create/register a company or organization
+- create_course: User wants to create a course
 - join_quest: User wants to join an existing quest
 - submit_proposal: User wants to submit a proposal on a quest
 - find_guild: User wants to discover or join a guild
-- join_pod: User wants to join or create a study/quest pod
+- join_pod: User wants to join an existing pod
 - start_course: User wants to learn something via a course
 - find_service: User wants to book a service/session
 - create_service: User wants to offer a service or skill session

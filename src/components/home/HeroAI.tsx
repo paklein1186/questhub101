@@ -35,6 +35,10 @@ interface AIResponse {
 
 const ACTION_ICONS: Record<string, any> = {
   create_quest: PlusCircle,
+  create_guild: Shield,
+  create_pod: CircleDot,
+  create_company: Briefcase,
+  create_course: BookOpen,
   join_quest: Compass,
   submit_proposal: FileText,
   find_guild: Shield,
@@ -52,9 +56,13 @@ const ACTION_ICONS: Record<string, any> = {
 
 const ACTION_ROUTES: Record<string, string> = {
   create_quest: "/quests/create",
+  create_guild: "/guilds/new",
+  create_pod: "/pods/new",
+  create_company: "/companies/info",
+  create_course: "/courses/new",
   join_quest: "/explore?tab=quests",
   submit_proposal: "/explore?tab=quests",
-  find_guild: "/explore?tab=guilds",
+  find_guild: "/explore?tab=entities",
   join_pod: "/explore?tab=pods",
   start_course: "/explore?tab=courses",
   find_service: "/explore?tab=services",

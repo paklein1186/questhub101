@@ -33,6 +33,10 @@ interface AIResponse {
 
 const ACTION_ICONS: Record<string, any> = {
   create_quest: PlusCircle,
+  create_guild: Shield,
+  create_pod: CircleDot,
+  create_company: Briefcase,
+  create_course: BookOpen,
   join_quest: Compass,
   submit_proposal: FileText,
   find_guild: Shield,
@@ -40,7 +44,7 @@ const ACTION_ICONS: Record<string, any> = {
   start_course: BookOpen,
   find_service: Briefcase,
   create_service: Briefcase,
-   explore_houses: Hash,
+  explore_houses: Hash,
   explore_territories: MapPin,
   browse_quests: Compass,
   fund_quest: Coins,

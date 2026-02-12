@@ -11,6 +11,9 @@ const VALID_ROUTES: Record<string, string> = {
   "/quests/new": "Create a Quest",
   "/services/new": "Create a Service",
   "/courses/new": "Create a Course",
+  "/guilds/new": "Create a Guild",
+  "/pods/new": "Create a Pod",
+  "/companies/info": "Create an Organization",
   "/explore": "Explore everything",
   "/explore?tab=entities": "Explore entities",
   "/explore?tab=quests": "Explore quests",
@@ -49,8 +52,11 @@ const ACTION_ROUTE_MAP: Record<string, { route: string; queryParams?: Record<str
   CREATE_SERVICE: { route: "/services/new" },
   CREATE_EVENT: { route: "/explore", queryParams: { tab: "events" } },
   CREATE_COURSE: { route: "/courses/new" },
-  START_POD: { route: "/pods" },
-  START_GUILD: { route: "/guilds" },
+  CREATE_GUILD: { route: "/guilds/new" },
+  CREATE_POD: { route: "/pods/new" },
+  CREATE_COMPANY: { route: "/companies/info" },
+  START_POD: { route: "/pods/new" },
+  START_GUILD: { route: "/guilds/new" },
   POST_WALL: { route: "/wall" },
   FIND_PEOPLE: { route: "/explore", queryParams: { tab: "people" } },
   FIND_ENTITIES: { route: "/explore", queryParams: { tab: "entities" } },
@@ -98,8 +104,11 @@ VALID action types:
 - CREATE_SERVICE: User wants to offer a service or skill session
 - CREATE_EVENT: User wants to create an event
 - CREATE_COURSE: User wants to create a course
-- START_POD: User wants to start a pod/team/ensemble
-- START_GUILD: User wants to create a guild/circle
+- CREATE_GUILD: User wants to create a guild/circle/collective
+- CREATE_POD: User wants to create a pod/team/ensemble
+- CREATE_COMPANY: User wants to create/register a company or organization
+- START_POD: User wants to start a pod/team/ensemble (same as CREATE_POD)
+- START_GUILD: User wants to create a guild/circle (same as CREATE_GUILD)
 - POST_WALL: User wants to share a thought on their wall
 - FIND_PEOPLE: User wants to discover people, collaborators, mentors
 - FIND_ENTITIES: User wants to discover guilds, pods, companies
