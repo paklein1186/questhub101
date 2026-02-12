@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, RefreshCw, Loader2, Users, BookOpen, AlertTriangle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +86,20 @@ export function TerritorySynthesis({ territoryId, territoryName, isMember }: Pro
   const { data: contributors = [] } = useTerritoryContributors(territoryId);
   const generateMutation = useGenerateTerritorySummary();
 
+  // Fetch the profile of who generated the last synthesis
+  const { data: generatorProfile } = useQuery({
+    queryKey: ["profile-mini", summary?.generated_by],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .eq("user_id", summary!.generated_by)
+        .single();
+      return data;
+    },
+    enabled: !!summary?.generated_by,
+  });
+
   const sectionTitle = persona === "CREATIVE" ? "World Synthesis" : persona === "IMPACT" ? "Territory Synthesis" : "Resilience Synthesis";
   const contributorsTitle = persona === "CREATIVE"
     ? "World-builders of this territory"
@@ -114,9 +130,18 @@ export function TerritorySynthesis({ territoryId, territoryName, isMember }: Pro
                 <div>
                   <h3 className="font-display font-semibold text-base">{sectionTitle}</h3>
                   {summary && (
-                    <p className="text-[11px] text-muted-foreground leading-tight">
-                      Updated {formatDistanceToNow(new Date(summary.generated_at), { addSuffix: true })}
-                      {" · "}{contributors.length} contributor{contributors.length !== 1 ? "s" : ""}
+                    <p className="text-[11px] text-muted-foreground leading-tight flex items-center gap-1.5 flex-wrap">
+                      {generatorProfile && (
+                        <Link to={`/users/${generatorProfile.user_id}`} className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+                          <Avatar className="h-4 w-4">
+                            <AvatarImage src={generatorProfile.avatar_url ?? undefined} />
+                            <AvatarFallback className="text-[8px]">{generatorProfile.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{generatorProfile.name}</span>
+                        </Link>
+                      )}
+                      <span>· {formatDistanceToNow(new Date(summary.generated_at), { addSuffix: true })}</span>
+                      <span>· {contributors.length} contributor{contributors.length !== 1 ? "s" : ""}</span>
                     </p>
                   )}
                 </div>
