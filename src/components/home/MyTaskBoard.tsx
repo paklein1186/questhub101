@@ -307,6 +307,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       return;
     }
 
+    // Add creator as OWNER participant with ACCEPTED status
+    await supabase.from("quest_participants").insert({
+      quest_id: (data as any).id,
+      user_id: userId,
+      role: "OWNER",
+      status: "ACCEPTED",
+    });
+
     await supabase.from("personal_tasks" as any).update({
       converted_to_quest_id: (data as any).id,
       status: "DONE",
