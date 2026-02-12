@@ -22,7 +22,7 @@ import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
 
-const VALID_TABS = ["quests", "entities", "services", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
@@ -60,8 +60,8 @@ export default function ExploreHub() {
 
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
-          <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
           <TabsTrigger value="entities" className="text-xs sm:text-sm">Entities</TabsTrigger>
+          <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>
           <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
           <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
@@ -69,13 +69,6 @@ export default function ExploreHub() {
           <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
-
-        <TabsContent value="quests">
-          <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
-          </div>
-          <QuestsMarketplace bare />
-        </TabsContent>
 
         <TabsContent value="entities">
           {/* Entity type chips + create */}
@@ -146,6 +139,13 @@ export default function ExploreHub() {
               <CompaniesList bare hideFilters externalFilters={entityFilters} />
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="quests">
+          <div className="flex justify-end mb-4">
+            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
+          </div>
+          <QuestsMarketplace bare />
         </TabsContent>
 
         <TabsContent value="services">
