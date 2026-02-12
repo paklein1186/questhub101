@@ -141,8 +141,8 @@ const App = () => (
             <PersonaThemeProvider>
             <Toaster />
             <Sonner />
-            <PostSignupWizard />
             <BrowserRouter>
+            <PostSignupWizard />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
