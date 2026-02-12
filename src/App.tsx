@@ -57,6 +57,7 @@ const AdminMilestones = lazy(() => import("./pages/admin/AdminMilestones"));
 const AdminFeatureSuggestions = lazy(() => import("./pages/admin/AdminFeatureSuggestions"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
+import PodSettings from "./pages/PodSettings";
 import ServiceDetail from "./pages/ServiceDetail";
 import BookingDetail from "./pages/BookingDetail";
 import CallRoom from "./pages/CallRoom";
@@ -169,6 +170,7 @@ const App = () => (
                 <Route path="/users/:id" element={<UserProfile />} />
                 <Route path="/achievements/:id" element={<AchievementDetail />} />
                 <Route path="/pods/:id" element={<PodDetail />} />
+                <Route path="/pods/:id/settings" element={<RequireAuth><PodSettings /></RequireAuth>} />
                 <Route path="/services/new" element={<RequireAuth><ServiceCreate /></RequireAuth>} />
                 <Route path="/services/:id/edit" element={<RequireAuth><ServiceCreate /></RequireAuth>} />
                 <Route path="/services/:id" element={<ServiceDetail />} />
