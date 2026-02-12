@@ -280,8 +280,11 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     setSelectedUserIds([]);
   };
 
+  const [signupError, setSignupError] = useState<string | null>(null);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSignupError(null);
     if (!name.trim() || !email.trim() || !password) return;
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", variant: "destructive" });
@@ -293,13 +296,29 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     }
     setSigningUp(true);
 
+    // Pre-check if email already exists in profiles to give immediate feedback
+    const { data: existingProfile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("email", email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (existingProfile) {
+      setSigningUp(false);
+      setSignupError("This email is already registered. Please use a different one or log in.");
+      toast({ title: "Email already in use", description: "Try a different email address or log in.", variant: "destructive" });
+      return;
+    }
+
     const roleMap: Record<string, string> = { creative: "CREATOR", impact: "GAMECHANGER", hybrid: "HYBRID" };
     const role = roleMap[selectedPersona || ""] || "GAMECHANGER";
     const { error } = await signUp(email.trim(), password, name.trim(), role);
     setSigningUp(false);
     if (error) {
+      setSignupError(error);
       toast({ title: "Signup failed", description: error, variant: "destructive" });
     } else {
+      setSignupError(null);
       // Resolve interest labels and keep raw IDs for persistence
       const interestLabels = selectedInterests.map((id) => {
         const item = topicItems.find((t) => t.id === id);
@@ -724,7 +743,8 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="guest-email" className="text-xs">Email</Label>
-                    <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
+                    <Input id="guest-email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setSignupError(null); }} placeholder="you@example.com" required autoComplete="email" className={signupError ? "border-destructive" : ""} />
+                    {signupError && <p className="text-[11px] text-destructive">{signupError}</p>}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
