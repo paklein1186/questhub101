@@ -164,15 +164,11 @@ export function useDeletePost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("feed_posts")
         .update({ is_deleted: true, deleted_at: new Date().toISOString() })
-        .eq("id", postId)
-        .select("id");
+        .eq("id", postId);
       if (error) throw error;
-      if (!data || data.length === 0) {
-        throw new Error("Could not delete post. You may not have permission.");
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
