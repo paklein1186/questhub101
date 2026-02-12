@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
-  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram,
+  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -103,10 +103,10 @@ function TerritoryLine({ territories }: { territories: any[] }) {
 
 // ─── Activity Summary ──────────────────────────────────────
 function ActivitySummary({
-  name, questsCreated, questsJoined, guilds, pods, services, topics, territories, persona,
+  name, questsCreated, questsJoined, guilds, pods, companies, services, topics, territories, persona,
 }: {
   name: string; questsCreated: any[]; questsJoined: any[]; guilds: any[]; pods: any[];
-  services: any[]; topics: any[]; territories: any[]; persona: PersonaType;
+  companies: any[]; services: any[]; topics: any[]; territories: any[]; persona: PersonaType;
 }) {
   const sentences: string[] = [];
 
@@ -117,6 +117,7 @@ function ActivitySummary({
     if (questsCreated.length > 0) parts.push(`${questsCreated.length} quest${questsCreated.length > 1 ? "s" : ""}`);
     if (guilds.length > 0) parts.push(`${guilds.length} guild${guilds.length > 1 ? "s" : ""}`);
     if (pods.length > 0) parts.push(`${pods.length} pod${pods.length > 1 ? "s" : ""}`);
+    if (companies.length > 0) parts.push(`${companies.length} organization${companies.length > 1 ? "s" : ""}`);
     sentences.push(`${name} is actively involved in ${parts.join(", ")}.`);
   }
 
@@ -161,7 +162,7 @@ export default function UserProfile() {
   const isOwnProfile = !!id && currentUser.id === id;
 
   const {
-    profile, topics, territories, guilds, pods,
+    profile, topics, territories, guilds, pods, companies,
     questsCreated, questsJoined, proposals, fundedQuests, services,
     isLoading, isError,
   } = useProfileData(id);
@@ -182,6 +183,7 @@ export default function UserProfile() {
   const persona = profile.personaType;
   const canSeePrivate = isOwnProfile || viewerIsAdmin;
   const serviceLabel = getLabel("service.label_plural", persona);
+  const totalEntities = guilds.length + pods.length + companies.length;
 
   return (
     <PageShell>
@@ -277,7 +279,7 @@ export default function UserProfile() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
-          <TabsTrigger value="guilds-pods">Guilds & Pods</TabsTrigger>
+          <TabsTrigger value="entities">Entities</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
           <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
@@ -302,6 +304,7 @@ export default function UserProfile() {
               questsJoined={questsJoined}
               guilds={guilds}
               pods={pods}
+              companies={companies}
               services={services}
               topics={topics}
               territories={territories}
@@ -314,35 +317,89 @@ export default function UserProfile() {
               <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
               <StatCard icon={Shield} label="Guilds" count={guilds.length} />
               <StatCard icon={CircleDot} label="Pods" count={pods.length} />
+              <StatCard icon={Building2} label="Organizations" count={companies.length} />
               <StatCard icon={Briefcase} label={serviceLabel} count={services.length} />
             </div>
 
+            {/* Entities preview */}
+            {totalEntities > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-semibold">Entities ({totalEntities})</h3>
+                  <Button size="sm" variant="ghost" onClick={() => setTab("entities")} className="text-xs">View all →</Button>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {guilds.slice(0, 2).map((gm: any) => (
+                    <Link key={gm.id} to={`/guilds/${gm.guildId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 rounded-lg">
+                          <AvatarImage src={gm.guild?.logo_url} />
+                          <AvatarFallback><Shield className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <h4 className="font-display font-semibold text-sm truncate">{gm.guild?.name}</h4>
+                          <p className="text-[10px] text-muted-foreground capitalize">{getLabel("guild.label_singular", persona)} · {gm.role?.toLowerCase()}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                  {pods.slice(0, 2).map((pm: any) => (
+                    <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 rounded-lg">
+                          <AvatarFallback><CircleDot className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <h4 className="font-display font-semibold text-sm truncate">{pm.pod?.name}</h4>
+                          <p className="text-[10px] text-muted-foreground capitalize">Pod · {pm.role?.toLowerCase()}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                  {companies.slice(0, 2).map((cm: any) => (
+                    <Link key={cm.id} to={`/companies/${cm.companyId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9 rounded-lg">
+                          <AvatarImage src={cm.company?.logo_url} />
+                          <AvatarFallback><Building2 className="h-4 w-4" /></AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <h4 className="font-display font-semibold text-sm truncate">{cm.company?.name}</h4>
+                          <p className="text-[10px] text-muted-foreground capitalize">Organization · {cm.role?.toLowerCase()}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Featured items */}
-            {(questsCreated.length > 0 || services.length > 0 || guilds.length > 0) && (
+            {(questsCreated.length > 0 || services.length > 0) && (
               <section>
                 <h3 className="font-display font-semibold mb-3">Highlights</h3>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {questsCreated.slice(0, 1).map((q: any) => (
+                  {questsCreated.slice(0, 2).map((q: any) => (
                     <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
                       <h4 className="font-display font-semibold truncate">{q.title}</h4>
                       <Badge variant="outline" className="text-[10px] capitalize mt-1">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
                     </Link>
                   ))}
-                  {services.slice(0, 1).map((s: any) => (
-                    <Link key={s.id} to={`/services/${s.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("service.label", persona)}</p>
-                      <h4 className="font-display font-semibold truncate">{s.title}</h4>
-                      {s.price_amount != null && (
-                        <Badge variant="secondary" className="text-[10px] mt-1">{s.price_amount === 0 ? "Free" : `€${s.price_amount}`}</Badge>
+                  {services.slice(0, 2).map((s: any) => (
+                    <Link key={s.id} to={`/services/${s.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                      {s.image_url && (
+                        <div className="h-24 bg-muted">
+                          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover" />
+                        </div>
                       )}
-                    </Link>
-                  ))}
-                  {guilds.slice(0, 1).map((g: any) => (
-                    <Link key={g.guildId} to={`/guilds/${g.guildId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("guild.label_singular", persona)}</p>
-                      <h4 className="font-display font-semibold truncate">{g.guild?.name}</h4>
-                      <Badge variant="outline" className="text-[10px] capitalize mt-1">{g.role?.toLowerCase()}</Badge>
+                      <div className="p-4">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("service.label", persona)}</p>
+                        <h4 className="font-display font-semibold truncate">{s.title}</h4>
+                        {s.price_amount != null && (
+                          <Badge variant="secondary" className="text-[10px] mt-1">{s.price_amount === 0 ? "Free" : `€${s.price_amount}`}</Badge>
+                        )}
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -491,29 +548,40 @@ export default function UserProfile() {
             )}
           </div>
           <EntityGrid items={services} emptyMsg={isOwnProfile ? `Create your first ${getLabel("service.label", persona).toLowerCase()} to get started.` : `No ${serviceLabel.toLowerCase()} offered yet.`} renderItem={(svc: any) => (
-            <Link key={svc.id} to={`/services/${svc.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-              <div className="flex items-start justify-between">
-                <h4 className="font-display font-semibold truncate">{svc.title}</h4>
-                {svc.price_amount != null && (
-                  <Badge className="bg-primary/10 text-primary border-0 text-xs shrink-0 ml-2">
-                    {svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}
-                  </Badge>
-                )}
+            <Link key={svc.id} to={`/services/${svc.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all block">
+              {svc.image_url ? (
+                <div className="h-32 bg-muted">
+                  <img src={svc.image_url} alt={svc.title} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="h-20 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                  <Briefcase className="h-8 w-8 text-primary/30" />
+                </div>
+              )}
+              <div className="p-4">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-display font-semibold truncate">{svc.title}</h4>
+                  {svc.price_amount != null && (
+                    <Badge className="bg-primary/10 text-primary border-0 text-xs shrink-0 ml-2">
+                      {svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}
+                    </Badge>
+                  )}
+                </div>
+                {svc.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>}
               </div>
-              {svc.description && <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>}
             </Link>
           )} />
         </TabsContent>
 
-        {/* ─── Guilds & Pods ─── */}
-        <TabsContent value="guilds-pods">
+        {/* ─── Entities ─── */}
+        <TabsContent value="entities">
           <div className="space-y-8">
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display font-semibold">{getLabel("guild.label", persona)} ({guilds.length})</h3>
                 {isOwnProfile && (
                   <Button size="sm" variant="outline" asChild>
-                    <Link to="/explore?tab=guilds"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
+                    <Link to="/explore?tab=entities"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
                   </Button>
                 )}
               </div>
@@ -522,7 +590,7 @@ export default function UserProfile() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 rounded-lg">
                       <AvatarImage src={gm.guild?.logo_url} />
-                      <AvatarFallback>{gm.guild?.name?.[0]}</AvatarFallback>
+                      <AvatarFallback><Shield className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                       <h4 className="font-display font-semibold truncate">{gm.guild?.name}</h4>
@@ -534,20 +602,41 @@ export default function UserProfile() {
             </section>
 
             <section>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display font-semibold">Pods ({pods.length})</h3>
-                {isOwnProfile && (
-                  <Button size="sm" variant="outline" asChild>
-                    <Link to="/explore?tab=pods"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
-                  </Button>
-                )}
-              </div>
+              <h3 className="font-display font-semibold mb-3">Pods ({pods.length})</h3>
               <EntityGrid items={pods} emptyMsg="Not part of any pods yet." renderItem={(pm: any) => (
                 <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-                  <h4 className="font-display font-semibold truncate">{pm.pod?.name}</h4>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] capitalize">{pm.role?.toLowerCase()}</Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{pm.pod?.type?.toLowerCase().replace("_", " ")}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 rounded-lg">
+                      <AvatarFallback><CircleDot className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h4 className="font-display font-semibold truncate">{pm.pod?.name}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant="secondary" className="text-[10px] capitalize">{pm.role?.toLowerCase()}</Badge>
+                        <Badge variant="outline" className="text-[10px] capitalize">{pm.pod?.type?.toLowerCase().replace("_", " ")}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              )} />
+            </section>
+
+            <section>
+              <h3 className="font-display font-semibold mb-3">Organizations ({companies.length})</h3>
+              <EntityGrid items={companies} emptyMsg="Not part of any organizations yet." renderItem={(cm: any) => (
+                <Link key={cm.id} to={`/companies/${cm.companyId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 rounded-lg">
+                      <AvatarImage src={cm.company?.logo_url} />
+                      <AvatarFallback><Building2 className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h4 className="font-display font-semibold truncate">{cm.company?.name}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant="outline" className="text-[10px] capitalize">{cm.role?.toLowerCase()}</Badge>
+                        {cm.company?.sector && <Badge variant="secondary" className="text-[10px]">{cm.company.sector}</Badge>}
+                      </div>
+                    </div>
                   </div>
                 </Link>
               )} />
