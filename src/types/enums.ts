@@ -85,6 +85,7 @@ export enum CommentTargetType {
   SERVICE = "SERVICE",
   COMPANY = "COMPANY",
   QUEST_PROPOSAL = "QUEST_PROPOSAL",
+  FEED_POST = "FEED_POST",
 }
 
 export enum NotificationType {

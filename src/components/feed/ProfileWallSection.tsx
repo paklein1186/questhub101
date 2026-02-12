@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 interface ProfileWallSectionProps {
   profileUserId: string;
   isOwnProfile: boolean;
+  allowComments?: boolean;
   className?: string;
 }
 
@@ -37,7 +38,7 @@ const EMPTY_MESSAGES: Record<WallSourceFilter, string> = {
   COURSE_EVENT: "No visible activity from courses or events yet.",
 };
 
-export function ProfileWallSection({ profileUserId, isOwnProfile, className }: ProfileWallSectionProps) {
+export function ProfileWallSection({ profileUserId, isOwnProfile, allowComments = true, className }: ProfileWallSectionProps) {
   const { session } = useAuth();
   const [sourceFilter, setSourceFilter] = useState<WallSourceFilter>("ALL");
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
@@ -124,7 +125,7 @@ export function ProfileWallSection({ profileUserId, isOwnProfile, className }: P
           </div>
         ) : (
           sortedPosts.map((post) => (
-            <PostCard key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} />
+            <PostCard key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} allowComments={allowComments} />
           ))
         )}
       </div>

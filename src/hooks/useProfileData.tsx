@@ -20,6 +20,7 @@ export interface ProfileData {
   linkedinUrl: string | null;
   instagramUrl: string | null;
   hasCompletedOnboarding: boolean;
+  allowWallComments: boolean;
 }
 
 export function useProfileData(userId: string | undefined) {
@@ -237,6 +238,7 @@ export function useProfileData(userId: string | undefined) {
         linkedinUrl: (priv as any)?.linkedin_url ?? null,
         instagramUrl: (priv as any)?.instagram_url ?? null,
         hasCompletedOnboarding: (priv as any)?.has_completed_onboarding ?? false,
+        allowWallComments: (pub as any)?.allow_wall_comments !== false,
       }
     : null;
 
