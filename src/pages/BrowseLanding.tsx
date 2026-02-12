@@ -270,7 +270,7 @@ export default function BrowseLanding() {
             {[
               { icon: Star, title: "XP & Contribution", desc: "Earn experience points for every quest and service you contribute to." },
               { icon: Award, title: "Achievements", desc: "Unlock badges for milestones — your track record speaks for itself." },
-              { icon: BookOpen, title: "Pods & Teams", desc: "Small learning & action groups that keep you accountable and connected." },
+              { icon: BookOpen, title: "Pods", desc: "Small learning & action groups that keep you accountable and connected." },
             ].map((item, i) => (
               <motion.div key={item.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
                 className="rounded-2xl border border-border bg-card p-5"

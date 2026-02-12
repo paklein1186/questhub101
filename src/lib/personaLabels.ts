@@ -79,7 +79,7 @@ const LABELS: Record<string, LabelVariants> = {
   "pod.label": {
     IMPACT: "Pods",
     CREATIVE: "Ensembles",
-    HYBRID: "Teams",
+    HYBRID: "Pods",
     DEFAULT: "Pods",
   },
   "pod.label_singular": {
@@ -263,7 +263,7 @@ const LABELS: Record<string, LabelVariants> = {
   "home.pods_section": {
     IMPACT: "Pods for you",
     CREATIVE: "Ensembles for you",
-    HYBRID: "Teams for you",
+    HYBRID: "Pods for you",
     DEFAULT: "Pods for you",
   },
   "home.services_section": {

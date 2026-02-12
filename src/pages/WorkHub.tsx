@@ -77,14 +77,14 @@ export default function WorkHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Briefcase className="h-7 w-7 text-primary" /> {label("nav.work")}
         </h1>
-        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, teams, {label("service.label_plural").toLowerCase()}, and bookings.</p>
+        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, pods, {label("service.label_plural").toLowerCase()}, and bookings.</p>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex items-center gap-1 mb-6">
           <TabsList ref={tabsListRef}>
             <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
-            <TabsTrigger value="teams">My Teams ({teamsList.length})</TabsTrigger>
+            <TabsTrigger value="teams">My Pods ({teamsList.length})</TabsTrigger>
             <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
@@ -140,9 +140,9 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
-        {/* ── Teams ── */}
+        {/* ── Pods ── */}
         <TabsContent value="teams">
-          {teamsList.length === 0 && <p className="text-muted-foreground">No teams yet. Join a guild, organization, or pod to see them here.</p>}
+          {teamsList.length === 0 && <p className="text-muted-foreground">No pods yet. Join a guild, organization, or pod to see them here.</p>}
           <div className="grid gap-3 md:grid-cols-2">
             {teamsList.map((item: any, i: number) => {
               const isGuild = item._type === "guild";
