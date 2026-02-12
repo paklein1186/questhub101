@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CREDIT_COSTS } from "@/lib/xpCreditsConfig";
+import { CREDIT_COSTS, GRACE_PERIOD_DAYS } from "@/lib/xpCreditsConfig";
 
 // Credit costs for exceeding plan limits
 export const EXTRA_QUEST_CREDIT_COST = CREDIT_COSTS.EXTRA_QUEST_CREATION;
