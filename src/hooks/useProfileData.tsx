@@ -120,6 +120,24 @@ export function useProfileData(userId: string | undefined) {
     enabled: !!userId,
   });
 
+  // Companies (Traditional Organizations)
+  const companiesQuery = useQuery({
+    queryKey: ["profile-companies", userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_members")
+        .select("id, role, company_id, companies(id, name, logo_url, sector)")
+        .eq("user_id", userId!);
+      return (data ?? []).filter((m: any) => m.companies && !m.companies.is_deleted).map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        companyId: m.company_id,
+        company: m.companies,
+      }));
+    },
+    enabled: !!userId,
+  });
+
   // Quests created
   const questsCreatedQuery = useQuery({
     queryKey: ["profile-quests-created", userId],
@@ -228,6 +246,7 @@ export function useProfileData(userId: string | undefined) {
     territories: territoriesQuery.data ?? [],
     guilds: guildsQuery.data ?? [],
     pods: podsQuery.data ?? [],
+    companies: companiesQuery.data ?? [],
     questsCreated: questsCreatedQuery.data ?? [],
     questsJoined: questsJoinedQuery.data ?? [],
     proposals: proposalsQuery.data ?? [],
