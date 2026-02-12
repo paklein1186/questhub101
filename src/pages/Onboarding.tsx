@@ -78,6 +78,11 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [pendingRedirect] = useState(() => {
+    const stored = sessionStorage.getItem("postAuthRedirect");
+    if (stored) sessionStorage.removeItem("postAuthRedirect");
+    return stored;
+  });
 
   // Creative vs Impact path
   const [isCreativePath, setIsCreativePath] = useState(false);
@@ -1139,8 +1144,8 @@ export default function Onboarding() {
 
             <div className="w-full space-y-3">
               <Button asChild className="w-full" variant="default">
-                <Link to="/">
-                  <Compass className="h-4 w-4 mr-2" /> Go to Home Feed
+                <Link to={pendingRedirect || "/"}>
+                  <Compass className="h-4 w-4 mr-2" /> {pendingRedirect ? "Continue where you left off" : "Go to Home Feed"}
                 </Link>
               </Button>
               <div className="grid grid-cols-2 gap-3">

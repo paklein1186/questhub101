@@ -32,14 +32,17 @@ export function RedirectIfAuthed({ children }: { children: ReactNode }) {
   if (session) {
     // Check for a redirect URL stored in sessionStorage (e.g. from invite links)
     const storedRedirect = sessionStorage.getItem("postAuthRedirect");
+
+    if (user && !user.hasCompletedOnboarding) {
+      // Keep the redirect stored so it's used after onboarding completes
+      return <Navigate to="/onboarding" replace />;
+    }
+
     if (storedRedirect) {
       sessionStorage.removeItem("postAuthRedirect");
       return <Navigate to={storedRedirect} replace />;
     }
 
-    if (user && !user.hasCompletedOnboarding) {
-      return <Navigate to="/onboarding" replace />;
-    }
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
