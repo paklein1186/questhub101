@@ -42,6 +42,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
+import { UserSearchInput } from "@/components/UserSearchInput";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
