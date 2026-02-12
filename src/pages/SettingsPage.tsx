@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { usePersona } from "@/hooks/usePersona";
 import type { PersonaType } from "@/lib/personaLabels";
@@ -40,6 +40,7 @@ import { UserRole, OnlineLocationType } from "@/types/enums";
 import type { Service } from "@/types";
 import { SocialLinksEdit, normalizeUrl as normUrl } from "@/components/SocialLinks";
 import { AddTerritoryDialog } from "@/components/AddTerritoryDialog";
+import { HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon, defaultUniverseForPersona } from "@/lib/universeMapping";
 import type { AvailabilityRule, AvailabilityException } from "@/types";
 import MyAvailability from "./MyAvailability";
 import {
@@ -622,17 +623,31 @@ export default function SettingsPage() {
               {activeTab === "houses" && (
                 <div className="space-y-6">
                   <Section title="Topics" icon={<Hash className="h-5 w-5" />}>
+                    {(persona === "CREATIVE" || persona === "HYBRID") && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {persona === "CREATIVE"
+                          ? "Topics are shown with creative labels. Your selections will also include related impact topics in navigation filters."
+                          : "Topics are shown with hybrid labels. Your selections include both creative and impact perspectives."}
+                      </p>
+                    )}
                     <div className="flex items-center gap-2 mb-2">
                       <Button variant="outline" size="sm" onClick={() => setSelectedTopics(dbTopics.map((t) => t.id))}>Select all</Button>
                       <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {dbTopics.map((t) => (
-                        <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                          <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
-                          <span className="text-sm">{t.name}</span>
-                        </label>
-                      ))}
+                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-64 overflow-y-auto">
+                      {dbTopics.map((t) => {
+                        const universe = defaultUniverseForPersona(persona);
+                        const houseDef = HOUSE_DEFINITIONS[(t as any).slug];
+                        const icon = houseDef ? getHouseIcon((t as any).slug) : null;
+                        const label = houseDef ? getHouseLabel((t as any).slug, universe) : t.name;
+                        return (
+                          <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
+                            <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
+                            {icon && <span className="text-sm">{icon}</span>}
+                            <span className="text-sm">{label}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
                   </Section>
