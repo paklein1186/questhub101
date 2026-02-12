@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, Send, Sparkles, Compass, Shield, CircleDot, BookOpen, Briefcase,
   Hash, User, Loader2, MapPin, Heart, Calendar, Coins, PlusCircle,
-  FileText, Users,
+  FileText, Users, Eye, MessageSquare, ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,25 @@ interface AIAction {
   type: string;
   label: string;
   description: string;
+  route?: string;
+  entity_id?: string;
+}
+
+interface AIRecommendedItem {
+  name: string;
+  id: string;
+  route: string;
 }
 
 interface AIRecommended {
-  quests?: string[];
-  guilds?: string[];
-  territories?: string[];
-  collaborators?: string[];
+  quests?: (string | AIRecommendedItem)[];
+  guilds?: (string | AIRecommendedItem)[];
+  events?: (string | AIRecommendedItem)[];
+  services?: (string | AIRecommendedItem)[];
+  courses?: (string | AIRecommendedItem)[];
+  users?: (string | AIRecommendedItem)[];
+  territories?: (string | AIRecommendedItem)[];
+  collaborators?: (string | AIRecommendedItem)[];
 }
 
 interface AIResponse {
@@ -39,40 +51,80 @@ const ACTION_ICONS: Record<string, any> = {
   create_pod: CircleDot,
   create_company: Briefcase,
   create_course: BookOpen,
+  create_event: Calendar,
+  create_service: Briefcase,
+  create_post: MessageSquare,
   join_quest: Compass,
   submit_proposal: FileText,
   find_guild: Shield,
   join_pod: CircleDot,
   start_course: BookOpen,
   find_service: Briefcase,
-  create_service: Briefcase,
   explore_houses: Hash,
   explore_territories: MapPin,
   view_profile: User,
   browse_quests: Compass,
   fund_quest: Coins,
   attend_event: Calendar,
+  view_quest: Eye,
+  view_guild: Eye,
+  view_event: Eye,
+  view_service: Eye,
+  view_course: Eye,
+  view_user: Eye,
+  add_subtask: ListChecks,
 };
 
-const ACTION_ROUTES: Record<string, string> = {
+const FALLBACK_ROUTES: Record<string, string> = {
   create_quest: "/quests/new",
   create_guild: "/explore?tab=entities&create=guild",
   create_pod: "/explore?tab=entities&create=pod",
   create_company: "/create/company-info",
   create_course: "/courses/new",
+  create_event: "/calendar",
+  create_service: "/services/new",
+  create_post: "/home",
   join_quest: "/explore?tab=quests",
   submit_proposal: "/explore?tab=quests",
   find_guild: "/explore?tab=entities",
   join_pod: "/explore?tab=pods",
   start_course: "/explore?tab=courses",
   find_service: "/explore?tab=services",
-  create_service: "/services/new",
   explore_houses: "/explore?tab=houses",
   explore_territories: "/explore?tab=territories",
   view_profile: "/me",
   browse_quests: "/explore?tab=quests",
   fund_quest: "/explore?tab=quests",
-  attend_event: "/explore?tab=guilds",
+  attend_event: "/calendar",
+  view_quest: "/explore?tab=quests",
+  view_guild: "/explore?tab=entities",
+  view_event: "/calendar",
+  view_service: "/explore?tab=services",
+  view_course: "/explore?tab=courses",
+  view_user: "/explore?tab=users",
+  add_subtask: "/explore?tab=quests",
+};
+
+const REC_ICONS: Record<string, any> = {
+  quests: Compass,
+  guilds: Shield,
+  events: Calendar,
+  services: Briefcase,
+  courses: BookOpen,
+  users: Users,
+  territories: MapPin,
+  collaborators: Users,
+};
+
+const REC_FALLBACK_ROUTES: Record<string, string> = {
+  quests: "/explore?tab=quests",
+  guilds: "/explore?tab=entities",
+  events: "/calendar",
+  services: "/explore?tab=services",
+  courses: "/explore?tab=courses",
+  users: "/explore?tab=users",
+  territories: "/explore?tab=territories",
+  collaborators: "/explore?tab=users",
 };
 
 interface HeroAIProps {
@@ -126,12 +178,25 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
   };
 
   const handleAction = (action: AIAction) => {
-    const route = ACTION_ROUTES[action.type];
+    const route = action.route || FALLBACK_ROUTES[action.type];
     if (route) navigate(route);
   };
 
+  const handleRecClick = (item: string | AIRecommendedItem, category: string) => {
+    if (typeof item === "object" && item.route) {
+      navigate(item.route);
+    } else {
+      navigate(REC_FALLBACK_ROUTES[category] || "/explore");
+    }
+  };
+
+  const getRecName = (item: string | AIRecommendedItem) =>
+    typeof item === "object" ? item.name : item;
+
   const rec = response?.recommended;
-  const hasRecommended = rec && (rec.quests?.length || rec.guilds?.length || rec.territories?.length || rec.collaborators?.length);
+  const recCategories = rec
+    ? Object.entries(rec).filter(([, items]) => items && items.length > 0)
+    : [];
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-accent/5 p-4 sm:p-6 md:p-10">
@@ -228,36 +293,26 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
                 })}
               </div>
 
-              {/* Recommended items */}
-              {hasRecommended && (
+              {/* Recommended items — now supports deep-linked objects */}
+              {recCategories.length > 0 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                   className="space-y-2 pt-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Suggestions for you</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {rec.quests?.map((q, i) => (
-                      <Badge key={`q-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate("/explore?tab=quests")}>
-                        <Compass className="h-3 w-3 mr-1" />{q}
-                      </Badge>
-                    ))}
-                    {rec.guilds?.map((g, i) => (
-                      <Badge key={`g-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate("/explore?tab=guilds")}>
-                        <Shield className="h-3 w-3 mr-1" />{g}
-                      </Badge>
-                    ))}
-                    {rec.territories?.map((t, i) => (
-                      <Badge key={`t-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate("/explore?tab=territories")}>
-                        <MapPin className="h-3 w-3 mr-1" />{t}
-                      </Badge>
-                    ))}
-                    {rec.collaborators?.map((c, i) => (
-                      <Badge key={`c-${i}`} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate("/explore?tab=users")}>
-                        <Users className="h-3 w-3 mr-1" />{c}
-                      </Badge>
-                    ))}
+                    {recCategories.map(([category, items]) => {
+                      const Icon = REC_ICONS[category] || Compass;
+                      return (items as (string | AIRecommendedItem)[]).map((item, i) => (
+                        <Badge
+                          key={`${category}-${i}`}
+                          variant="secondary"
+                          className="text-xs cursor-pointer hover:bg-primary/10"
+                          onClick={() => handleRecClick(item, category)}
+                        >
+                          <Icon className="h-3 w-3 mr-1" />
+                          {getRecName(item)}
+                        </Badge>
+                      ));
+                    })}
                   </div>
                 </motion.div>
               )}
