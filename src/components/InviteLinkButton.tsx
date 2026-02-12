@@ -24,9 +24,17 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Use published URL if available, otherwise window origin
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const inviteUrl = `${origin}${ROUTE_MAP[entityType]}/${entityId}?ref=invite`;
+  // Prefer published domain over preview URLs
+  const getOrigin = () => {
+    if (typeof window === "undefined") return "";
+    const hostname = window.location.hostname;
+    // If on a preview/dev URL, use the published domain instead
+    if (hostname.includes("id-preview--") || hostname.includes("lovableproject.com")) {
+      return "https://questhub101.lovable.app";
+    }
+    return window.location.origin;
+  };
+  const inviteUrl = `${getOrigin()}${ROUTE_MAP[entityType]}/${entityId}?ref=invite`;
 
   const copyToClipboard = async () => {
     try {
