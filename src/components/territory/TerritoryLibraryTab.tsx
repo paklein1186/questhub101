@@ -153,7 +153,7 @@ function ExcerptCard({
                   {excerpt.contributor_name?.[0]?.toUpperCase() || <User className="h-3 w-3" />}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium truncate">{excerpt.contributor_name || "Contributor"}</span>
+              <span className="text-sm font-medium truncate">{excerpt.contributor_name || "Unknown user"}</span>
             </Link>
           )}
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground shrink-0">
