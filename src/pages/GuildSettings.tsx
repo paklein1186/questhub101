@@ -6,6 +6,7 @@ import {
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin,
   AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
+  ChevronUp, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -601,13 +602,18 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                             </td>
                             <td className="px-4 py-3 text-right">
                               <div className="flex justify-end gap-1">
-                                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => toggleMemberRole(m.id)}
-                                  title={m.role === "ADMIN" ? "Demote to member" : "Promote to admin"}>
-                                  {m.role === "ADMIN" ? "Demote" : "Promote"}
-                                </Button>
+                                {m.role === "ADMIN" ? (
+                                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => toggleMemberRole(m.id)} title="Demote to member">
+                                    <ChevronDown className="h-3.5 w-3.5" /> Demote
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10" onClick={() => toggleMemberRole(m.id)} title="Promote to admin">
+                                    <ChevronUp className="h-3.5 w-3.5" /> Promote
+                                  </Button>
+                                )}
                                 {m.user_id !== currentUser.id && (
-                                  <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => removeMember(m.id)}>
-                                    <Trash2 className="h-3 w-3" />
+                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeMember(m.id)} title="Remove member">
+                                    <Trash2 className="h-3.5 w-3.5" />
                                   </Button>
                                 )}
                               </div>
@@ -667,13 +673,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                               <span className="flex items-center gap-1"><Video className="h-3 w-3" />{svc.online_location_type?.toLowerCase()}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Badge className={svc.is_active ? "bg-primary/10 text-primary border-0" : "bg-muted text-muted-foreground border-0"}>
                               {svc.is_active ? "Active" : "Paused"}
                             </Badge>
-                            <Button size="sm" variant="ghost" onClick={() => toggleServiceActive(svc)}>
-                              {svc.is_active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                            </Button>
+                            <Switch checked={svc.is_active} onCheckedChange={() => toggleServiceActive(svc)} />
                           </div>
                         </div>
                       ))}
