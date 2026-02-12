@@ -28,14 +28,19 @@ const fadeUp = {
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06 } }),
 };
 
-export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter> }) {
+export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const activeFilters = externalFilters ?? filters;
-  const [createOpen, setCreateOpen] = useState(false);
+  const [internalCreateOpen, setInternalCreateOpen] = useState(false);
+  const createOpen = externalCreateOpen ?? internalCreateOpen;
+  const setCreateOpen = (open: boolean) => {
+    onExternalCreateOpenChange?.(open);
+    setInternalCreateOpen(open);
+  };
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newType, setNewType] = useState<string>(PodType.STUDY_POD);
@@ -84,88 +89,94 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
     }
   };
 
+  const createDialog = (
+    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      {!hideFilters && (
+        <DialogTrigger asChild>
+          <Button><Plus className="h-4 w-4 mr-1" /> Create Pod</Button>
+        </DialogTrigger>
+      )}
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>Create a Pod</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Name</label>
+            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Pod name" maxLength={100} />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Description</label>
+            <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this pod about?" maxLength={500} className="resize-none" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Type</label>
+            <Select value={newType} onValueChange={setNewType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
+                <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {newType === PodType.QUEST_POD && (
+            <div>
+              <label className="text-sm font-medium mb-1 block">Quest</label>
+              <Select value={newQuestId} onValueChange={setNewQuestId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No quest</SelectItem>
+                  {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {newType === PodType.STUDY_POD && (
+            <div>
+              <label className="text-sm font-medium mb-1 block">Topic</label>
+              <Select value={newTopicId} onValueChange={setNewTopicId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No topic</SelectItem>
+                  {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Start date</label>
+              <Input type="date" value={newStart} onChange={(e) => setNewStart(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">End date</label>
+              <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Save as draft</label>
+            <Switch checked={newDraft} onCheckedChange={setNewDraft} />
+          </div>
+          <Button onClick={handleCreate} disabled={!newName.trim() || createPodMut.isPending} className="w-full">
+            {createPodMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+            Create
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <PageShell bare={bare}>
+      {/* Render standalone dialog for external trigger */}
+      {hideFilters && createDialog}
       {!hideFilters && (
         <>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="font-display text-3xl font-bold">Pods</h1>
-              <p className="text-muted-foreground mt-1">Small collaboration groups around quests and topics.</p>
-            </div>
-            {isLoggedIn && (
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button><Plus className="h-4 w-4 mr-1" /> Create Pod</Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader><DialogTitle>Create a Pod</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-2">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Name</label>
-                      <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Pod name" maxLength={100} />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Description</label>
-                      <Textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="What is this pod about?" maxLength={500} className="resize-none" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Type</label>
-                      <Select value={newType} onValueChange={setNewType}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
-                          <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {newType === PodType.QUEST_POD && (
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Quest</label>
-                        <Select value={newQuestId} onValueChange={setNewQuestId}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No quest</SelectItem>
-                            {quests.map((q) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    {newType === PodType.STUDY_POD && (
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Topic</label>
-                        <Select value={newTopicId} onValueChange={setNewTopicId}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">No topic</SelectItem>
-                            {(topics ?? []).map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Start date</label>
-                        <Input type="date" value={newStart} onChange={(e) => setNewStart(e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">End date</label>
-                        <Input type="date" value={newEnd} onChange={(e) => setNewEnd(e.target.value)} />
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Save as draft</label>
-                      <Switch checked={newDraft} onCheckedChange={setNewDraft} />
-                    </div>
-                    <Button onClick={handleCreate} disabled={!newName.trim() || createPodMut.isPending} className="w-full">
-                      {createPodMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                      Create
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
+           <div className="flex items-center justify-between mb-6">
+             <div>
+               <h1 className="font-display text-3xl font-bold">Pods</h1>
+               <p className="text-muted-foreground mt-1">Small collaboration groups around quests and topics.</p>
+             </div>
+             {isLoggedIn && createDialog}
+           </div>
 
           {!isLoggedIn && (
             <PublicExploreCTA

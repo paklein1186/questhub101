@@ -22,14 +22,19 @@ import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
 
-export default function GuildsList({ bare, hideFilters, externalFilters, externalHouseFilter }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter> }) {
+export default function GuildsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const activeFilters = externalFilters ?? filters;
-  const [createOpen, setCreateOpen] = useState(false);
+  const [internalCreateOpen, setInternalCreateOpen] = useState(false);
+  const createOpen = externalCreateOpen ?? internalCreateOpen;
+  const setCreateOpen = (open: boolean) => {
+    onExternalCreateOpenChange?.(open);
+    setInternalCreateOpen(open);
+  };
   const [gName, setGName] = useState("");
   const [gDesc, setGDesc] = useState("");
   const [gType, setGType] = useState<GuildType>(GuildType.GUILD);
@@ -67,54 +72,60 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
     }
   };
 
+  const createDialog = (
+    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      {!hideFilters && (
+        <DialogTrigger asChild>
+          <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
+        </DialogTrigger>
+      )}
+      <DialogContent>
+        <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Name</label>
+            <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Description</label>
+            <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Type</label>
+            <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
+                <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
+                <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Save as draft</label>
+            <Switch checked={gDraft} onCheckedChange={setGDraft} />
+          </div>
+          <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
+            {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+            Create Guild
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <PageShell bare={bare}>
+      {/* Render standalone dialog for external trigger */}
+      {hideFilters && createDialog}
       {!hideFilters && (
         <>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-              <Shield className="h-7 w-7 text-primary" /> Guilds
-            </h1>
-            {isLoggedIn && (
-              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Create Guild</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Create a new Guild</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-2">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Name</label>
-                      <Input value={gName} onChange={e => setGName(e.target.value)} placeholder="Guild name" maxLength={80} />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Description</label>
-                      <Textarea value={gDesc} onChange={e => setGDesc(e.target.value)} placeholder="What is your guild about?" maxLength={500} className="resize-none" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Type</label>
-                      <Select value={gType} onValueChange={v => setGType(v as GuildType)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={GuildType.GUILD}>Guild</SelectItem>
-                          <SelectItem value={GuildType.NETWORK}>Network</SelectItem>
-                          <SelectItem value={GuildType.COLLECTIVE}>Collective</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Save as draft</label>
-                      <Switch checked={gDraft} onCheckedChange={setGDraft} />
-                    </div>
-                    <Button onClick={handleCreate} disabled={!gName.trim() || createGuildMut.isPending} className="w-full">
-                      {createGuildMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                      Create Guild
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
+           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+             <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+               <Shield className="h-7 w-7 text-primary" /> Guilds
+             </h1>
+             {isLoggedIn && createDialog}
+           </div>
 
           {!isLoggedIn && (
             <PublicExploreCTA
