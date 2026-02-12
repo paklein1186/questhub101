@@ -104,11 +104,11 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   return (
     <PageShell bare={bare}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Compass className="h-7 w-7 text-primary" /> Quests Marketplace
-        </h1>
-        {isLoggedIn && <CreateQuestButton />}
-      </div>
+         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+           <Compass className="h-7 w-7 text-primary" /> Quests Marketplace
+         </h1>
+         {isLoggedIn && !bare && <CreateQuestButton />}
+       </div>
 
       {!isLoggedIn && (
         <PublicExploreCTA
