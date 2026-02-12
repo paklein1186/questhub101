@@ -322,42 +322,14 @@ export function useServicesForGuild(guildId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-guild", guildId],
     queryFn: async () => {
-      // 1. Guild-owned services (by owner_type/owner_id OR legacy provider_guild_id)
-      const guildServicesPromise = supabase
+      // Fetch by owner_type/owner_id OR legacy provider_guild_id
+      const { data, error } = await supabase
         .from("services")
         .select("*")
         .or(`and(owner_type.eq.GUILD,owner_id.eq.${guildId}),provider_guild_id.eq.${guildId}`)
         .eq("is_deleted", false);
-
-      // 2. Get accepted member user IDs
-      const membersPromise = supabase
-        .from("guild_members")
-        .select("user_id")
-        .eq("guild_id", guildId!);
-
-      const [guildRes, membersRes] = await Promise.all([guildServicesPromise, membersPromise]);
-      if (guildRes.error) throw guildRes.error;
-      if (membersRes.error) throw membersRes.error;
-
-      const memberUserIds = (membersRes.data ?? []).map((m) => m.user_id);
-      const guildServices = guildRes.data ?? [];
-
-      if (memberUserIds.length === 0) return guildServices;
-
-      // 3. Fetch individual services from members (owner_type USER)
-      const { data: memberServices, error: msErr } = await supabase
-        .from("services")
-        .select("*")
-        .eq("owner_type", "USER")
-        .in("owner_id", memberUserIds)
-        .eq("is_deleted", false);
-      if (msErr) throw msErr;
-
-      // Merge and deduplicate by id
-      const allMap = new Map<string, any>();
-      for (const s of guildServices) allMap.set(s.id, s);
-      for (const s of (memberServices ?? [])) allMap.set(s.id, s);
-      return Array.from(allMap.values());
+      if (error) throw error;
+      return data;
     },
     enabled: !!guildId,
   });
