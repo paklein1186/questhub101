@@ -9,23 +9,56 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    // --- Authentication & Admin check ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Verify the caller's identity
+    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check admin role
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const hasAdmin = (roles || []).some((r: any) => ["admin", "superadmin"].includes(r.role));
+    if (!hasAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Existing computation logic ---
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString();
     const monthAgo = new Date(now.getTime() - 30 * 86400000).toISOString();
 
-    // Get all active user IDs from profiles
     const { data: profiles } = await supabase.from("profiles").select("user_id").limit(1000);
     const userIds = (profiles ?? []).map((p: any) => p.user_id);
     if (userIds.length === 0) {
       return new Response(JSON.stringify({ ok: true, computed: 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Batch-fetch all the raw data we need
     const [
       { data: postUpvotes },
       { data: commentUpvotes },
@@ -58,15 +91,12 @@ Deno.serve(async (req) => {
       supabase.from("starred_excerpts").select("id, user_id, created_at").limit(5000),
     ]);
 
-    // Map post_id -> author for upvote attribution
     const postAuthorMap = new Map<string, string>();
     for (const p of feedPosts ?? []) postAuthorMap.set(p.id, p.author_user_id);
 
-    // Map comment_id -> author
     const commentAuthorMap = new Map<string, string>();
     for (const c of comments ?? []) commentAuthorMap.set(c.id, c.author_id);
 
-    // Helper: check if date is in scope
     const inScope = (dateStr: string, scope: string) => {
       if (scope === "ALL_TIME") return true;
       const cutoff = scope === "WEEKLY" ? weekAgo : monthAgo;
@@ -78,55 +108,43 @@ Deno.serve(async (req) => {
 
     for (const userId of userIds) {
       for (const scope of scopes) {
-        // A) Helpful: upvotes received on own posts + comments
         let postUpvotesReceived = 0;
         for (const pu of postUpvotes ?? []) {
-          if (inScope(pu.created_at, scope) && postAuthorMap.get(pu.post_id) === userId) {
-            postUpvotesReceived++;
-          }
+          if (inScope(pu.created_at, scope) && postAuthorMap.get(pu.post_id) === userId) postUpvotesReceived++;
         }
         let commentUpvotesReceived = 0;
         for (const cu of commentUpvotes ?? []) {
-          if (inScope(cu.created_at, scope) && commentAuthorMap.get(cu.comment_id) === userId) {
-            commentUpvotesReceived++;
-          }
+          if (inScope(cu.created_at, scope) && commentAuthorMap.get(cu.comment_id) === userId) commentUpvotesReceived++;
         }
         const helpfulScore = postUpvotesReceived + Math.round(commentUpvotesReceived * 0.7);
 
-        // B) Creator: quests, updates, services, courses created
         const questsCreated = (quests ?? []).filter(q => q.created_by_user_id === userId && inScope(q.created_at, scope)).length;
         const updatesCreated = (questUpdates ?? []).filter(u => u.author_id === userId && inScope(u.created_at, scope)).length;
         const servicesCreated = (services ?? []).filter(s => s.owner_user_id === userId && inScope(s.created_at, scope)).length;
         const coursesCreated = (courses ?? []).filter(c => c.owner_user_id === userId && inScope(c.created_at, scope) && c.is_published).length;
         const creatorScore = questsCreated * 3 + updatesCreated * 1 + servicesCreated * 2 + coursesCreated * 2;
 
-        // C) Collaborator: joined quests, pods, comments on others
         const joinedQuests = (questParticipants ?? []).filter(p => p.user_id === userId && inScope(p.created_at, scope)).length;
         const activePods = (podMembers ?? []).filter(p => p.user_id === userId && inScope(p.joined_at, scope)).length;
         const commentsOnOthers = (comments ?? []).filter(c => c.author_id === userId && inScope(c.created_at, scope)).length;
         const collaboratorScore = joinedQuests * 2 + activePods * 2 + commentsOnOthers;
 
-        // D) Territory: posts in territory context
         const territoryPosts = (feedPosts ?? []).filter(p => p.author_user_id === userId && p.context_type === "TERRITORY" && inScope(p.created_at, scope)).length;
         const territoryScore = territoryPosts * 2;
 
-        // E) Mentor: bookings completed, courses
         const completedBookings = (bookings ?? []).filter(b => b.provider_user_id === userId && inScope(b.created_at, scope) && b.status === "COMPLETED").length;
         const mentorScore = completedBookings * 2 + coursesCreated * 3;
 
-        // F) Guild champion: admin guilds + activity
         const adminGuilds = (guildMembers ?? []).filter(gm => gm.user_id === userId && ["admin", "steward", "owner"].includes(gm.role));
         const adminGuildIds = new Set(adminGuilds.map(g => g.guild_id));
         const guildPostsCount = (feedPosts ?? []).filter(p => p.context_type === "GUILD" && p.context_id && adminGuildIds.has(p.context_id) && inScope(p.created_at, scope)).length;
         const guildNewMembersCount = (guildMembers ?? []).filter(gm => adminGuildIds.has(gm.guild_id) && gm.user_id !== userId && inScope(gm.joined_at, scope)).length;
         const guildScore = adminGuilds.length * 2 + guildPostsCount + guildNewMembersCount * 2;
 
-        // G) Rising: XP gained approximated by upvotes + followers gained
         const newFollowers = (follows ?? []).filter(f => f.target_type === "USER" && f.target_id === userId && inScope(f.created_at, scope)).length;
         const newUpvotes = postUpvotesReceived + commentUpvotesReceived;
         const risingScore = newUpvotes + newFollowers * 2;
 
-        // H) AI: starred excerpts
         const starredCount = (starredExcerpts ?? []).filter(s => s.user_id === userId && inScope(s.created_at, scope)).length;
         const aiScore = starredCount;
 
@@ -149,7 +167,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Upsert all rows
     const { error } = await supabase
       .from("leaderboard_scores")
       .upsert(rows, { onConflict: "user_id,time_scope" });
@@ -162,7 +179,7 @@ Deno.serve(async (req) => {
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: (err as Error).message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
