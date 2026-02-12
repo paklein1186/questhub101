@@ -279,8 +279,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const insertPayload: any = {
       title: pendingConvertTask.title,
       created_by_user_id: userId,
-      is_draft: true,
-      status: "DRAFT",
+      is_draft: false,
+      status: "OPEN_FOR_PROPOSALS",
     };
 
     if (unit && unit.type === "GUILD") {
@@ -317,7 +317,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setConverting(false);
     setUnitPickerOpen(false);
     setPendingConvertTask(null);
-    toast({ title: "Task converted to quest draft!" });
+    toast({ title: "Task converted to quest!" });
     navigate(`/quests/${(data as any).id}`);
   };
 
