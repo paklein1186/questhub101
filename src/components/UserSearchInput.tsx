@@ -32,12 +32,12 @@ export function UserSearchInput({ onSelect, placeholder = "Search by name…", e
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("user_id, display_name, avatar_url")
-        .ilike("display_name", `%${trimmed}%`)
+        .select("user_id, name, avatar_url")
+        .ilike("name", `%${trimmed}%`)
         .limit(10);
-      const filtered = (data ?? []).filter(
-        (p) => !excludeUserIds.includes(p.user_id)
-      ) as UserSearchResult[];
+      const filtered = (data ?? [])
+        .filter((p) => !excludeUserIds.includes(p.user_id))
+        .map((p) => ({ user_id: p.user_id, display_name: p.name, avatar_url: p.avatar_url }));
       setResults(filtered);
       setOpen(filtered.length > 0);
       setLoading(false);
