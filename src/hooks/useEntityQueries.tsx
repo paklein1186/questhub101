@@ -318,18 +318,60 @@ export function useBookingsForCompany(companyId: string | undefined) {
 }
 
 // ─── Services for guild ──────────────────────────────────────
+// Returns guild-owned services PLUS accepted-member services that share
+// at least one topic with the guild, deduplicated by service id.
 export function useServicesForGuild(guildId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-guild", guildId],
     queryFn: async () => {
-      // Fetch by owner_type/owner_id OR legacy provider_guild_id
-      const { data, error } = await supabase
+      // 1. Guild-owned services (owner or legacy provider)
+      const { data: guildOwned, error: ownedErr } = await supabase
         .from("services")
         .select("*")
         .or(`and(owner_type.eq.GUILD,owner_id.eq.${guildId}),provider_guild_id.eq.${guildId}`)
         .eq("is_deleted", false);
-      if (error) throw error;
-      return data;
+      if (ownedErr) throw ownedErr;
+
+      // 2. Get guild topic ids
+      const { data: guildTopics } = await supabase
+        .from("guild_topics")
+        .select("topic_id")
+        .eq("guild_id", guildId!);
+      const topicIds = (guildTopics ?? []).map((gt) => gt.topic_id);
+
+      if (topicIds.length === 0) return guildOwned ?? [];
+
+      // 3. Get accepted member user ids
+      const { data: membersRows } = await supabase
+        .from("guild_members")
+        .select("user_id")
+        .eq("guild_id", guildId!);
+      const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
+
+      if (memberUserIds.length === 0) return guildOwned ?? [];
+
+      // 4. Get service ids that match at least one guild topic
+      const { data: matchingServiceTopics } = await supabase
+        .from("service_topics")
+        .select("service_id")
+        .in("topic_id", topicIds);
+      const matchingServiceIds = [...new Set((matchingServiceTopics ?? []).map((st) => st.service_id))];
+
+      if (matchingServiceIds.length === 0) return guildOwned ?? [];
+
+      // 5. Fetch those services owned by members
+      const { data: memberServices } = await supabase
+        .from("services")
+        .select("*")
+        .in("id", matchingServiceIds)
+        .in("provider_user_id", memberUserIds)
+        .eq("is_deleted", false)
+        .eq("is_active", true);
+
+      // 6. Deduplicate by id
+      const ownedIds = new Set((guildOwned ?? []).map((s) => s.id));
+      const extra = (memberServices ?? []).filter((s) => !ownedIds.has(s.id));
+      return [...(guildOwned ?? []), ...extra];
     },
     enabled: !!guildId,
   });
