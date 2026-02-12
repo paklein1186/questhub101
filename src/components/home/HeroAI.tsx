@@ -83,11 +83,11 @@ const FALLBACK_ROUTES: Record<string, string> = {
   create_course: "/courses/new",
   create_event: "/calendar",
   create_service: "/services/new",
-  create_post: "/home",
+  create_post: "/",
   join_quest: "/explore?tab=quests",
   submit_proposal: "/explore?tab=quests",
   find_guild: "/explore?tab=entities",
-  join_pod: "/explore?tab=pods",
+  join_pod: "/explore?tab=entities",
   start_course: "/explore?tab=courses",
   find_service: "/explore?tab=services",
   explore_houses: "/explore?tab=houses",
@@ -104,6 +104,35 @@ const FALLBACK_ROUTES: Record<string, string> = {
   view_user: "/explore?tab=users",
   add_subtask: "/explore?tab=quests",
 };
+
+// Valid route prefixes in the app — used to sanitize AI-generated routes
+const VALID_ROUTE_PREFIXES = [
+  "/quests/", "/guilds/", "/pods/", "/companies/", "/services/", "/courses/",
+  "/events/", "/users/", "/territories/", "/topics/", "/explore", "/calendar",
+  "/me", "/work", "/network", "/profile/edit", "/quests/new", "/services/new",
+  "/courses/new", "/create/", "/bookings/", "/notifications", "/plans",
+  "/onboarding", "/about", "/how-it-works", "/guides", "/",
+];
+
+function sanitizeRoute(route: string | undefined, actionType: string): string {
+  if (!route) return FALLBACK_ROUTES[actionType] || "/explore";
+
+  // Fix common AI hallucinations
+  let cleaned = route
+    .replace(/^\/home$/, "/")
+    .replace(/^\/home\//, "/")
+    .replace(/tab=pods/, "tab=entities")
+    .replace(/tab=guilds(?!-)/, "tab=entities")
+    .replace(/tab=companies/, "tab=entities");
+
+  // Check the route starts with a valid prefix
+  const pathname = cleaned.split("?")[0];
+  const isValid = VALID_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix)
+  );
+
+  return isValid ? cleaned : (FALLBACK_ROUTES[actionType] || "/explore");
+}
 
 const REC_ICONS: Record<string, any> = {
   quests: Compass,
@@ -237,13 +266,14 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
   }, [isListening, handleSubmit]);
 
   const handleAction = (action: AIAction) => {
-    const route = action.route || FALLBACK_ROUTES[action.type];
-    if (route) navigate(route);
+    const route = sanitizeRoute(action.route, action.type);
+    navigate(route);
   };
 
   const handleRecClick = (item: string | AIRecommendedItem, category: string) => {
     if (typeof item === "object" && item.route) {
-      navigate(item.route);
+      const cleaned = sanitizeRoute(item.route, `view_${category.replace(/s$/, "")}`);
+      navigate(cleaned);
     } else {
       navigate(REC_FALLBACK_ROUTES[category] || "/explore");
     }

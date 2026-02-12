@@ -84,7 +84,7 @@ Route patterns:
 - Create event in guild: /guilds/{guild_id} (with note to use Events tab)
 - Post on guild wall: /guilds/{guild_id} (with note to use Wall tab)
 - Post on quest wall: /quests/{quest_id}
-- Post on global feed: /home
+- Post on global feed: /
 - Add subtask to quest: /quests/{quest_id} (with note to use Subtasks section)
 - Browse quests: /explore?tab=quests
 - Browse guilds: /explore?tab=entities
