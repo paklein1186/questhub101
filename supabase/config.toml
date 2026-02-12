@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.ai-storyteller]
 verify_jwt = false
+
+[functions.scrape-entity]
+verify_jwt = false
