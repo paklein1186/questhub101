@@ -96,10 +96,10 @@ export function AppNav() {
                       key={link.to}
                       to={link.to}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                        "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all duration-200",
                         active
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          ? "gradient-primary text-primary-foreground shadow-playful"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                       )}
                     >
                       <link.icon className="h-4 w-4" />
