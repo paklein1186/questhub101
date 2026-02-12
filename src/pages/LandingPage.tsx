@@ -324,7 +324,7 @@ export default function LandingPage() {
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to make an impact?</h2>
           <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
               <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
