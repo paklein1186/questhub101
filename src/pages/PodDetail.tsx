@@ -33,6 +33,7 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserPlus } from "lucide-react";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -155,6 +156,7 @@ export default function PodDetail() {
           ) : !isHost ? (
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
+          {isHost && <InviteLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />}
           <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />
         </div>
       </motion.div>

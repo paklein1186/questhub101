@@ -43,6 +43,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -353,7 +354,9 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                   <Section title="Members & Roles" icon={<Users className="h-5 w-5" />}>
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm text-muted-foreground">{members.length} member{members.length !== 1 ? "s" : ""}</p>
-                      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                      <div className="flex items-center gap-2">
+                        <InviteLinkButton entityType="company" entityId={companyId} entityName={company?.name || "Organization"} />
+                        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                         <DialogTrigger asChild>
                           <Button size="sm"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
                         </DialogTrigger>
@@ -368,6 +371,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                           </div>
                         </DialogContent>
                       </Dialog>
+                      </div>
                     </div>
                     {members.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No members yet.</p>

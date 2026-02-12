@@ -50,6 +50,7 @@ import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -212,6 +213,7 @@ export default function GuildDetail() {
               )}
               {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
               {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
+              {isAdmin && <InviteLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />}
               <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
             </div>
           ) : (
