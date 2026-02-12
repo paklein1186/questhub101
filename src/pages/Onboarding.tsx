@@ -93,6 +93,8 @@ export default function Onboarding() {
 
   // Identity
   const [name, setName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
@@ -153,12 +155,14 @@ export default function Onboarding() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, bio, headline, website_url, linkedin_url, instagram_url")
+        .select("name, bio, headline, avatar_url, website_url, linkedin_url, instagram_url")
         .eq("user_id", authUser.id)
         .single();
       if (data) {
         if (data.name) setName(data.name);
         if (data.bio) setBio(data.bio);
+        if ((data as any).headline) setHeadline((data as any).headline);
+        if ((data as any).avatar_url) setAvatarUrl((data as any).avatar_url);
         if (data.website_url || data.linkedin_url || data.instagram_url) {
           setAffLinks({
             website: data.website_url || "",
@@ -243,9 +247,11 @@ export default function Onboarding() {
 
       // Set preferred language to first spoken language if not already set
       const preferredLang = spokenLangCodes[0] || "en";
-      // Save social links to profile
+      // Save profile data
       await supabase.from("profiles").update({
         name: name.trim() || undefined,
+        headline: headline.trim() || null,
+        avatar_url: avatarUrl || null,
         bio: bio.trim() || null,
         has_completed_onboarding: true,
         persona_type: personaType,
@@ -667,9 +673,25 @@ export default function Onboarding() {
           <p className="text-sm text-muted-foreground mt-1">Which places inspire you or feel like home for your creation?</p>
         </div>
 
+        <div className="flex flex-col items-center gap-3">
+          <ImageUpload
+            label="Profile picture"
+            currentImageUrl={avatarUrl}
+            onChange={(url) => setAvatarUrl(url)}
+            aspectRatio="1/1"
+            description="Square photo, 256×256 recommended"
+          />
+        </div>
+
         <div>
           <label className="text-sm font-medium mb-1 block">Name</label>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">Headline</label>
+          <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Visual artist & sound designer" maxLength={120} />
+          <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
         </div>
 
         <div>
@@ -755,9 +777,25 @@ export default function Onboarding() {
           <p className="text-sm text-muted-foreground mt-1">A few things to help us know you better.</p>
         </div>
 
+        <div className="flex flex-col items-center gap-3">
+          <ImageUpload
+            label="Profile picture"
+            currentImageUrl={avatarUrl}
+            onChange={(url) => setAvatarUrl(url)}
+            aspectRatio="1/1"
+            description="Square photo, 256×256 recommended"
+          />
+        </div>
+
         <div>
           <label className="text-sm font-medium mb-1 block">Name</label>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" maxLength={100} />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">Headline</label>
+          <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Social entrepreneur, renewable energy" maxLength={120} />
+          <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
         </div>
 
         <div>
