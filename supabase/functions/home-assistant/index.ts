@@ -24,39 +24,135 @@ Available action types:
 - create_pod: User wants to create a pod/team/ensemble
 - create_company: User wants to create/register a company or organization
 - create_course: User wants to create a course
+- create_event: User wants to create an event in a guild
+- create_service: User wants to offer a service or skill session
+- create_post: User wants to post on a wall (global, guild, quest, user profile)
 - join_quest: User wants to join an existing quest
 - submit_proposal: User wants to submit a proposal on a quest
 - find_guild: User wants to discover or join a guild
 - join_pod: User wants to join an existing pod
 - start_course: User wants to learn something via a course
 - find_service: User wants to book a service/session
-- create_service: User wants to offer a service or skill session
 - explore_houses: User wants to browse topics/houses
 - explore_territories: User wants to browse territories
 - view_profile: User wants to check their profile/stats
 - browse_quests: User wants to explore existing quests
 - fund_quest: User wants to fund a quest with credits
 - attend_event: User wants to find and attend guild events
+- view_quest: User wants to view a specific quest
+- view_guild: User wants to view a specific guild
+- view_event: User wants to view a specific event
+- view_service: User wants to view a specific service
+- view_course: User wants to view a specific course
+- view_user: User wants to view a specific user profile
+- add_subtask: User wants to add a subtask to a quest
+
+PLATFORM CONTENT will be provided below. When the user refers to existing content (a quest name, guild name, user name, event, etc.), match it to the provided content and include the entity_id and a route in each action.
 
 ALWAYS respond in this exact JSON format:
 {
   "message": "Your friendly, concise response (2-3 sentences max)",
-  "microcopy": "One short inspiring phrase (optional, e.g. 'Every small action ripples outward.')",
+  "microcopy": "One short inspiring phrase (optional)",
   "actions": [
-    { "type": "create_quest", "label": "Create a Quest", "description": "Short description" }
+    { "type": "view_quest", "label": "View Quest: Solar Farm", "description": "Open the Solar Farm quest", "route": "/quests/abc-123", "entity_id": "abc-123" }
   ],
   "recommended": {
-    "quests": ["quest title suggestion based on user context"],
-    "guilds": ["guild name suggestion based on user interests"],
-    "territories": ["territory name if relevant"],
-    "collaborators": ["type of collaborator they might seek"]
+    "quests": [{ "name": "Solar Farm", "id": "abc-123", "route": "/quests/abc-123" }],
+    "guilds": [{ "name": "Green Guild", "id": "def-456", "route": "/guilds/def-456" }],
+    "events": [{ "name": "Workshop", "id": "evt-789", "route": "/events/evt-789" }],
+    "services": [{ "name": "Coaching", "id": "svc-111", "route": "/services/svc-111" }],
+    "courses": [{ "name": "Intro to Impact", "id": "crs-222", "route": "/courses/crs-222" }],
+    "users": [{ "name": "Alice", "id": "usr-333", "route": "/users/usr-333" }]
   }
 }
 
-Return 2-4 actions maximum. The "recommended" object should contain 0-3 items per category, based on context. Be warm, brief, and action-oriented. Use emojis sparingly. Adapt your language to the user's persona:
+Route patterns:
+- Quest: /quests/{id}
+- Guild: /guilds/{id}
+- Pod: /pods/{id}
+- Company: /companies/{id}
+- Event: /events/{id}
+- Service: /services/{id}
+- Course: /courses/{id}
+- User profile: /users/{id}
+- Create quest: /quests/new
+- Create guild: /explore?tab=entities&create=guild
+- Create pod: /explore?tab=entities&create=pod
+- Create company: /create/company-info
+- Create course: /courses/new
+- Create service: /services/new
+- Create event in guild: /guilds/{guild_id} (with note to use Events tab)
+- Post on guild wall: /guilds/{guild_id} (with note to use Wall tab)
+- Post on quest wall: /quests/{quest_id}
+- Post on global feed: /home
+- Add subtask to quest: /quests/{quest_id} (with note to use Subtasks section)
+- Browse quests: /explore?tab=quests
+- Browse guilds: /explore?tab=entities
+- Browse services: /explore?tab=services
+- Browse courses: /explore?tab=courses
+- Calendar: /calendar
+
+Return 2-4 actions maximum. The "recommended" object should contain 0-3 items per category with real IDs and routes when matching content exists. Be warm, brief, and action-oriented. Adapt your language to the user's persona:
 - IMPACT: focus on missions, systemic change, regeneration
 - CREATIVE: focus on creation, expression, skill sharing
 - HYBRID: blend both perspectives`;
+
+async function fetchPlatformContent(supabaseAdmin: any, userId: string) {
+  // Fetch recent/relevant content in parallel for context
+  const [questsRes, guildsRes, eventsRes, servicesRes, coursesRes, usersRes, userGuildsRes, userQuestsRes] = await Promise.all([
+    supabaseAdmin.from("quests").select("id, title, status").eq("is_deleted", false).order("created_at", { ascending: false }).limit(30),
+    supabaseAdmin.from("guilds").select("id, name, type").eq("is_deleted", false).eq("is_draft", false).order("created_at", { ascending: false }).limit(30),
+    supabaseAdmin.from("guild_events").select("id, title, guild_id, start_at, status").eq("is_cancelled", false).order("start_at", { ascending: false }).limit(20),
+    supabaseAdmin.from("services").select("id, title, status").eq("is_deleted", false).eq("is_published", true).order("created_at", { ascending: false }).limit(20),
+    supabaseAdmin.from("courses").select("id, title, level").eq("is_deleted", false).eq("is_published", true).order("created_at", { ascending: false }).limit(20),
+    supabaseAdmin.from("profiles").select("id, display_name, role").limit(30),
+    supabaseAdmin.from("guild_members").select("guild_id, guilds(id, name)").eq("user_id", userId).limit(20),
+    supabaseAdmin.from("quest_members").select("quest_id, quests(id, title)").eq("user_id", userId).limit(20),
+  ]);
+
+  const lines: string[] = [];
+
+  if (questsRes.data?.length) {
+    lines.push("## Available Quests");
+    for (const q of questsRes.data) lines.push(`- "${q.title}" (id: ${q.id}, status: ${q.status})`);
+  }
+  if (guildsRes.data?.length) {
+    lines.push("## Available Guilds");
+    for (const g of guildsRes.data) lines.push(`- "${g.name}" (id: ${g.id}, type: ${g.type})`);
+  }
+  if (eventsRes.data?.length) {
+    lines.push("## Upcoming Events");
+    for (const e of eventsRes.data) lines.push(`- "${e.title}" (id: ${e.id}, guild_id: ${e.guild_id}, starts: ${e.start_at})`);
+  }
+  if (servicesRes.data?.length) {
+    lines.push("## Available Services");
+    for (const s of servicesRes.data) lines.push(`- "${s.title}" (id: ${s.id})`);
+  }
+  if (coursesRes.data?.length) {
+    lines.push("## Available Courses");
+    for (const c of coursesRes.data) lines.push(`- "${c.title}" (id: ${c.id})`);
+  }
+  if (usersRes.data?.length) {
+    lines.push("## Community Members");
+    for (const u of usersRes.data) lines.push(`- "${u.display_name || 'Unnamed'}" (id: ${u.id})`);
+  }
+  if (userGuildsRes.data?.length) {
+    lines.push("## User's Guilds");
+    for (const m of userGuildsRes.data) {
+      const g = m.guilds as any;
+      if (g) lines.push(`- "${g.name}" (id: ${g.id})`);
+    }
+  }
+  if (userQuestsRes.data?.length) {
+    lines.push("## User's Quests");
+    for (const m of userQuestsRes.data) {
+      const q = m.quests as any;
+      if (q) lines.push(`- "${q.title}" (id: ${q.id})`);
+    }
+  }
+
+  return lines.length > 0 ? "\n\nPLATFORM CONTENT:\n" + lines.join("\n") : "";
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -71,12 +167,24 @@ serve(async (req) => {
   );
   const { data: authData, error: authError } = await supabaseAuth.auth.getUser(authHeader.replace("Bearer ", ""));
   if (authError || !authData.user) return unauthorizedResponse();
+  const userId = authData.user.id;
   // --- End auth check ---
 
   try {
     const { message, userContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Use service role to query platform content
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Fetch platform content and user context in parallel
+    const [platformContent] = await Promise.all([
+      fetchPlatformContent(supabaseAdmin, userId),
+    ]);
 
     let contextNote = "";
     if (userContext) {
@@ -103,7 +211,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + contextNote },
+          { role: "system", content: SYSTEM_PROMPT + contextNote + platformContent },
           { role: "user", content: message },
         ],
       }),
