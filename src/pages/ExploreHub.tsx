@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Search, Sparkles, Brain, Plus, Shield, CircleDot, Building2, ChevronRight } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Search, Sparkles, Brain, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
 import { TerritoryBrowseSection } from "@/components/explore/TerritoryBrowseSection";
+import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,9 @@ export default function ExploreHub() {
   const [tab, setTab] = useState(initialTab);
   const [entitySub, setEntitySub] = useState<EntitySub>(initialSub);
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
-  const [guildCreateOpen, setGuildCreateOpen] = useState(false);
-  const [podCreateOpen, setPodCreateOpen] = useState(false);
-  const [entityPickerOpen, setEntityPickerOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const entityHf = useHouseFilter();
   const currentUser = useCurrentUser();
-  const navigate = useNavigate();
   const { label } = usePersona();
 
   const handleTabChange = (value: string) => {
@@ -98,38 +95,10 @@ export default function ExploreHub() {
               </Button>
             ))}
             </div>
-            <Dialog open={entityPickerOpen} onOpenChange={setEntityPickerOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-1" /> Create Entity
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader><DialogTitle>What would you like to create?</DialogTitle></DialogHeader>
-                <div className="space-y-2 mt-2">
-                  <Button variant="outline" className="w-full justify-between" onClick={() => {
-                    setEntityPickerOpen(false);
-                    setEntitySub("guilds");
-                    setTimeout(() => setGuildCreateOpen(true), 150);
-                  }}>
-                    <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> {label("guild.label")}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" className="w-full justify-between" onClick={() => {
-                    setEntityPickerOpen(false);
-                    setEntitySub("pods");
-                    setTimeout(() => setPodCreateOpen(true), 150);
-                  }}>
-                    <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> {label("pod.label")}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" className="w-full justify-between" onClick={() => { setEntityPickerOpen(false); navigate("/companies/info"); }}>
-                    <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {label("company.label")}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button size="sm" onClick={() => setWizardOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Create Entity
+            </Button>
+            <EntityCreationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
           </div>
 
           {/* Shared filter bar for all entity types */}
@@ -159,13 +128,13 @@ export default function ExploreHub() {
           {(entitySub === "all" || entitySub === "guilds") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
               {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("guild.label")}</h3>}
-              <GuildsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} externalCreateOpen={guildCreateOpen} onExternalCreateOpenChange={setGuildCreateOpen} />
+              <GuildsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "pods") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
               {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("pod.label")}</h3>}
-              <PodsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} externalCreateOpen={podCreateOpen} onExternalCreateOpenChange={setPodCreateOpen} />
+              <PodsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "companies") && (
