@@ -151,6 +151,7 @@ export function usePlanLimits() {
   }, [fetchData]);
 
   // Derived state
+  const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
   // During grace period, limits are not enforced (no credit cost)
   const questLimitReached = inGracePeriod ? false : freeQuestsRemaining === 0;
   const canAffordExtraQuest = inGracePeriod || userCredits >= EXTRA_QUEST_CREDIT_COST;
