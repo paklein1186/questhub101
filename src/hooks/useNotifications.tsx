@@ -131,12 +131,14 @@ export function linkForNotification(n: Notification): string {
     case NotificationType.GUILD_MEMBER_ADDED:
     case NotificationType.GUILD_ROLE_CHANGED:
     case NotificationType.GUILD_QUEST_CREATED:
-    case NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST:
       return data.guildId ? `/guilds/${data.guildId as string}` : (n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/");
+    case NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST:
+      return n.relatedEntityId ? `/guilds/${n.relatedEntityId}/settings?tab=applications` : "/";
     case NotificationType.POD_CREATED:
     case NotificationType.POD_MESSAGE:
-    case NotificationType.UNIT_NEW_POD_JOIN_REQUEST:
       return `/pods/${(data.podId as string) || n.relatedEntityId || ""}`;
+    case NotificationType.UNIT_NEW_POD_JOIN_REQUEST:
+      return n.relatedEntityId ? `/pods/${n.relatedEntityId}/settings?tab=applications` : "/";
     case NotificationType.BOOKING:
     case NotificationType.BOOKING_REQUESTED:
     case NotificationType.BOOKING_CONFIRMED:
@@ -444,6 +446,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [userId, qc]);
 
+  // ── Helper: resolve actor name ──
+  const resolveActorName = useCallback(async (actorUserId: string): Promise<string> => {
+    try {
+      const { data } = await supabase.from("profiles").select("name").eq("user_id", actorUserId).maybeSingle();
+      return data?.name || "Someone";
+    } catch { return "Someone"; }
+  }, []);
+
   // ── Trigger: Comment on entity ──
 
   const notifyComment = useCallback(async ({ commentAuthorId, targetType, targetId, commentId, commentSnippet }: any) => {
@@ -477,6 +487,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
     if (!ownerUserId || ownerUserId === commentAuthorId) return;
 
+    const actorName = await resolveActorName(commentAuthorId);
     const truncated = (commentSnippet || "").slice(0, 60);
     const entityLabel = targetType.toLowerCase().replace(/_/g, " ");
 
@@ -484,25 +495,26 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       userId: ownerUserId,
       type: NotificationType.COMMENT,
       title: "New comment",
-      body: `Someone commented on your ${entityLabel}: "${truncated}"`,
+      body: `${actorName} commented on your ${entityLabel}: "${truncated}"`,
       relatedEntityType: targetType,
       relatedEntityId: commentId,
       deepLinkUrl: buildNotifDeepLink(targetType, targetId),
       data: { targetType, targetId, commentId },
     });
-  }, [userId, addNotification]);
+  }, [userId, addNotification, resolveActorName]);
 
   // ── Trigger: Comment upvote ──
 
   const notifyUpvote = useCallback(async ({ upvoterId, commentAuthorId, commentId, commentSnippet }: any) => {
     if (commentAuthorId === upvoterId) return;
+    const actorName = await resolveActorName(upvoterId);
     await addNotification({
       userId: commentAuthorId, type: NotificationType.UPVOTE,
-      title: "Comment upvoted", body: `Someone upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
+      title: "Comment upvoted", body: `${actorName} upvoted your comment: "${(commentSnippet || "").slice(0, 60)}"`,
       relatedEntityType: NotificationEntityType.COMMENT, relatedEntityId: commentId,
       deepLinkUrl: "/notifications",
     });
-  }, [addNotification]);
+  }, [addNotification, resolveActorName]);
 
   // ── Trigger: Quest update — notify ALL participants ──
 
@@ -552,9 +564,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   const notifyGuildMemberAdded = useCallback(async ({ guildId, userId: targetUserId }: any) => {
     if (targetUserId === userId) return;
+    let guildName = "a guild";
+    try {
+      const { data } = await supabase.from("guilds").select("name").eq("id", guildId).maybeSingle();
+      if (data?.name) guildName = data.name;
+    } catch { /* silent */ }
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_MEMBER_ADDED,
-      title: "Added to guild", body: "You were added to a guild",
+      title: "Added to guild", body: `You were added to ${guildName}`,
       relatedEntityType: NotificationEntityType.GUILD, relatedEntityId: guildId,
       deepLinkUrl: `/guilds/${guildId}`,
     });
@@ -564,9 +581,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   const notifyGuildRoleChanged = useCallback(async ({ guildId, userId: targetUserId, newRole }: any) => {
     if (targetUserId === userId) return;
+    let guildName = "your guild";
+    try {
+      const { data } = await supabase.from("guilds").select("name").eq("id", guildId).maybeSingle();
+      if (data?.name) guildName = data.name;
+    } catch { /* silent */ }
     await addNotification({
       userId: targetUserId, type: NotificationType.GUILD_ROLE_CHANGED,
-      title: "Role changed", body: `Your guild role was changed to ${newRole}`,
+      title: "Role changed", body: `Your role in ${guildName} was changed to ${newRole}`,
       relatedEntityType: NotificationEntityType.GUILD, relatedEntityId: guildId,
       deepLinkUrl: `/guilds/${guildId}`,
     });
@@ -601,9 +623,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   const notifyPodInvite = useCallback(async ({ podId, userId: targetUserId }: any) => {
     if (targetUserId === userId) return;
+    let podName = "a pod";
+    try {
+      const { data } = await supabase.from("pods").select("name").eq("id", podId).maybeSingle();
+      if (data?.name) podName = data.name;
+    } catch { /* silent */ }
     await addNotification({
       userId: targetUserId, type: NotificationType.POD_CREATED,
-      title: "Pod invitation", body: "You were invited to a pod",
+      title: "Pod invitation", body: `You were invited to ${podName}`,
       relatedEntityType: NotificationEntityType.POD, relatedEntityId: podId,
       deepLinkUrl: `/pods/${podId}`,
     });
@@ -637,13 +664,14 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   const notifyNewFollower = useCallback(async ({ followerId, targetUserId }: any) => {
     if (targetUserId === followerId) return;
+    const actorName = await resolveActorName(followerId);
     await addNotification({
       userId: targetUserId, type: NotificationType.FOLLOWER_NEW,
-      title: "New follower", body: "Someone started following you",
+      title: "New follower", body: `${actorName} started following you`,
       relatedEntityType: NotificationEntityType.USER, relatedEntityId: followerId,
       deepLinkUrl: `/users/${followerId}`,
     });
-  }, [addNotification]);
+  }, [addNotification, resolveActorName]);
 
   // ── Trigger: XP gained ──
 
@@ -697,8 +725,8 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     } catch { /* silent */ }
 
     const notifType = entityType === "pod" ? NotificationType.UNIT_NEW_POD_JOIN_REQUEST : NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST;
-    const entityTypeName = entityType === "company" ? "organization" : entityType;
-    const deepLink = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}`;
+    // Route to the applications tab in settings
+    const settingsPath = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}/settings?tab=applications`;
 
     for (const adminId of adminIds) {
       if (adminId === userId) continue;
@@ -706,7 +734,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         userId: adminId, type: notifType,
         title: `New join request`, body: `${applicantName} wants to join ${entityName}`,
         relatedEntityType: entityType.toUpperCase(), relatedEntityId: entityId,
-        deepLinkUrl: deepLink,
+        deepLinkUrl: settingsPath,
       });
     }
   }, [userId, addNotification]);
