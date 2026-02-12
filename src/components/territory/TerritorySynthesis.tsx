@@ -14,6 +14,64 @@ import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
+/** Enhance synthesis text with better section spacing and emoji markers */
+function formatSynthesisContent(content: string): string {
+  if (!content) return "";
+  let formatted = content;
+
+  // Add emoji markers to common section headers if not already present
+  const sectionEmojis: Record<string, string> = {
+    "overview": "🌍",
+    "context": "📍",
+    "key findings": "🔑",
+    "key insights": "🔑",
+    "strengths": "💪",
+    "opportunities": "🚀",
+    "challenges": "⚡",
+    "risks": "⚠️",
+    "recommendations": "💡",
+    "next steps": "👣",
+    "conclusion": "🎯",
+    "summary": "📋",
+    "ecosystem": "🌱",
+    "community": "👥",
+    "economy": "💰",
+    "culture": "🎭",
+    "innovation": "✨",
+    "infrastructure": "🏗️",
+    "education": "📚",
+    "governance": "⚖️",
+    "environment": "🌿",
+    "health": "🏥",
+    "technology": "🔧",
+    "resources": "📦",
+    "partnerships": "🤝",
+    "impact": "📊",
+    "vision": "🔭",
+    "gaps": "🧩",
+    "actors": "🎭",
+    "key actors": "🎭",
+    "takeaways": "📌",
+    "key takeaways": "📌",
+    "lessons": "📝",
+    "key lessons": "📝",
+  };
+
+  // Process each line - add emoji to markdown headers that match known sections
+  formatted = formatted.replace(/^(#{1,3})\s+(.+)$/gm, (match, hashes, title) => {
+    const lower = title.toLowerCase().replace(/[^a-z\s]/g, "").trim();
+    // Don't add emoji if it already starts with one
+    if (/^[\u{1F000}-\u{1FFFF}]/u.test(title)) return match;
+    const emoji = sectionEmojis[lower];
+    return emoji ? `${hashes} ${emoji} ${title}` : match;
+  });
+
+  // Ensure sections have breathing room with horizontal rules between major sections
+  formatted = formatted.replace(/\n(## )/g, "\n---\n\n$1");
+
+  return formatted;
+}
+
 interface Props {
   territoryId: string;
   territoryName: string;
@@ -108,13 +166,13 @@ export function TerritorySynthesis({ territoryId, territoryName, isMember }: Pro
           {/* Content */}
           {!summaryLoading && summary && (
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-[1.75] prose-headings:font-display prose-headings:text-foreground/90 prose-p:text-foreground/80 prose-strong:text-foreground/90 prose-li:text-foreground/80">
-                <ReactMarkdown>{summary.content}</ReactMarkdown>
+              <div className="prose prose-sm dark:prose-invert max-w-none text-[0.9rem] leading-[1.9] prose-headings:font-display prose-headings:text-foreground/90 prose-headings:mt-6 prose-headings:mb-3 prose-p:text-foreground/80 prose-p:mb-4 prose-strong:text-foreground/90 prose-li:text-foreground/80 prose-li:mb-1.5 prose-ul:my-3 prose-ol:my-3 prose-hr:my-6 prose-hr:border-primary/10 prose-blockquote:border-primary/30 prose-blockquote:bg-primary/[0.03] prose-blockquote:rounded-lg prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:not-italic">
+                <ReactMarkdown>{formatSynthesisContent(summary.content)}</ReactMarkdown>
               </div>
               {generateMutation.data?.hasFractalContext && (
-                <div className="flex items-center gap-2 mt-4 px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/15 text-xs text-amber-700 dark:text-amber-400">
+                <div className="flex items-center gap-2 mt-5 px-3.5 py-2.5 rounded-xl bg-amber-500/5 border border-amber-500/15 text-xs text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Parts of this synthesis are inferred from neighboring territories due to sparse local data.
+                  🧩 Parts of this synthesis are inferred from neighboring territories due to sparse local data.
                 </div>
               )}
             </motion.div>
