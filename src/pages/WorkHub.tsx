@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -39,6 +39,8 @@ function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; 
 
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
+  const [showMore, setShowMore] = useState(true);
+  const tabsListRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
   const { label } = usePersona();
 
@@ -57,6 +59,18 @@ export default function WorkHub() {
   const teamsList = [...guildsList.map((g: any) => ({ ...g, _type: "guild" })), ...companiesList.map((c: any) => ({ ...c, _type: "company" })), ...podsList.map((p: any) => ({ ...p, _type: "pod" }))];
   const totalDrafts = (drafts?.quests?.length || 0) + (drafts?.guilds?.length || 0) + (drafts?.pods?.length || 0) + (drafts?.services?.length || 0);
 
+  // Check if tabs are overflowing
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (tabsListRef.current) {
+        setShowMore(tabsListRef.current.scrollWidth > tabsListRef.current.clientWidth);
+      }
+    };
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, []);
+
   return (
     <PageShell>
       <div className="mb-6">
@@ -68,29 +82,31 @@ export default function WorkHub() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex items-center gap-1 mb-6">
-          <TabsList>
+          <TabsList ref={tabsListRef}>
             <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
             <TabsTrigger value="teams">My Teams ({teamsList.length})</TabsTrigger>
             <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
           </TabsList>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 px-2.5 shrink-0">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="ml-1 text-sm hidden sm:inline">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTab("courses")}>Courses</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTab("availability")}>Availability</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTab("requests")}>Requests</DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/calendar" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Calendar</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {showMore && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 px-2.5 shrink-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="ml-1 text-sm hidden sm:inline">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTab("courses")}>Courses</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("availability")}>Availability</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTab("requests")}>Requests</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/calendar" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Calendar</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         {/* ── Quests ── */}
