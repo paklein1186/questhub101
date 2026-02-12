@@ -1,17 +1,17 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bot, Send, Loader2, UserPlus, LogIn, ArrowRight } from "lucide-react";
+import {
+  UserPlus, LogIn, Loader2, ArrowRight, ArrowLeft,
+  Rocket, Users, BookOpen, Briefcase, Compass,
+  Palette, Shield, Blend, Sparkles, Check,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ReactMarkdown from "react-markdown";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -19,27 +19,38 @@ interface Props {
   actionLabel?: string;
 }
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Step = "goal" | "persona" | "interests" | "signup";
 
-interface GuestContext {
-  persona?: string;
-  interests?: string[];
-  goals?: string[];
-  suggested_role?: string;
-}
+const GOALS = [
+  { key: "create", label: "Launch a project", icon: Rocket, desc: "Start a quest, mission, or creation" },
+  { key: "collaborate", label: "Find my people", icon: Users, desc: "Join a guild, circle, or pod" },
+  { key: "learn", label: "Learn & grow", icon: BookOpen, desc: "Take courses, attend events" },
+  { key: "offer", label: "Offer my skills", icon: Briefcase, desc: "Publish services or sessions" },
+  { key: "explore", label: "Just browsing", icon: Compass, desc: "See what's possible first" },
+];
+
+const PERSONAS = [
+  { key: "creative", label: "Creator", icon: Palette, desc: "Artist, designer, writer, performer", color: "text-purple-500", bg: "bg-purple-500/10 border-purple-500/20" },
+  { key: "impact", label: "Impact Builder", icon: Shield, desc: "Consultant, facilitator, ecosystem builder", color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
+  { key: "hybrid", label: "Both", icon: Blend, desc: "Creative meets strategic", color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
+];
+
+const INTEREST_TAGS = [
+  "Design", "Music", "Film", "Writing", "Tech", "Sustainability",
+  "Social Innovation", "Education", "Health", "Art", "Strategy",
+  "Community Building", "Entrepreneurship", "Culture", "Research",
+];
 
 export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action" }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const { toast } = useToast();
-  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [phase, setPhase] = useState<"chat" | "signup">("chat");
-  const [guestContext, setGuestContext] = useState<GuestContext>({});
+  const [step, setStep] = useState<Step>("goal");
+  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   // Signup form
   const [name, setName] = useState("");
@@ -50,58 +61,26 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
   const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
-  // Initial greeting on open
-  useEffect(() => {
-    if (open && messages.length === 0) {
-      setMessages([
-        {
-          role: "assistant",
-          content: `Hey there! 👋 I'd love to help you get started. Before we set you up, I'm curious — what brings you to changethegame today?`,
-        },
-      ]);
-    }
-  }, [open]);
+  const stepIndex = ["goal", "persona", "interests", "signup"].indexOf(step);
+  const totalSteps = 4;
 
-  // Auto-scroll
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, phase]);
+  const goNext = useCallback(() => {
+    if (step === "goal") setStep("persona");
+    else if (step === "persona") setStep("interests");
+    else if (step === "interests") setStep("signup");
+  }, [step]);
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim();
-    if (!text || loading) return;
+  const goBack = useCallback(() => {
+    if (step === "persona") setStep("goal");
+    else if (step === "interests") setStep("persona");
+    else if (step === "signup") setStep("interests");
+  }, [step]);
 
-    const userMsg: Msg = { role: "user", content: text };
-    const updated = [...messages, userMsg];
-    setMessages(updated);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("guest-onboarding-assistant", {
-        body: {
-          messages: updated.map((m) => ({ role: m.role, content: m.content })),
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.ready_for_signup) {
-        const cleanMsg = (data.message || "").replace(/READY_FOR_SIGNUP/g, "").trim();
-        setMessages((prev) => [...prev, { role: "assistant", content: cleanMsg || "Great! Let's get you set up with an account." }]);
-        if (data.context) setGuestContext(data.context);
-        // Short delay then show signup
-        setTimeout(() => setPhase("signup"), 1200);
-      } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: data?.message || "Tell me more!" }]);
-      }
-    } catch (e: any) {
-      console.error("Assistant error:", e);
-      toast({ title: "Could not reach assistant", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  }, [input, loading, messages, toast]);
+  const toggleInterest = (tag: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : prev.length < 5 ? [...prev, tag] : prev
+    );
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,138 +94,248 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
       return;
     }
     setSigningUp(true);
-    const role = guestContext.suggested_role || "GAMECHANGER";
+
+    const roleMap: Record<string, string> = { creative: "CREATOR", impact: "GAMECHANGER", hybrid: "HYBRID" };
+    const role = roleMap[selectedPersona || ""] || "GAMECHANGER";
     const { error } = await signUp(email.trim(), password, name.trim(), role);
     setSigningUp(false);
     if (error) {
       toast({ title: "Signup failed", description: error, variant: "destructive" });
     } else {
-      // Store guest context for onboarding wizard
-      if (guestContext.persona || guestContext.interests?.length || guestContext.goals?.length) {
-        sessionStorage.setItem("guestOnboardingContext", JSON.stringify(guestContext));
-      }
+      // Store context for the onboarding wizard
+      const ctx = {
+        persona: selectedPersona,
+        interests: selectedInterests,
+        goals: selectedGoal ? [selectedGoal] : [],
+        suggested_role: role,
+      };
+      sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
       onOpenChange(false);
     }
   };
 
-  const handleSkipToSignup = () => {
-    setPhase("signup");
-  };
-
   const handleReset = () => {
-    setMessages([]);
-    setPhase("chat");
-    setGuestContext({});
+    setStep("goal");
+    setSelectedGoal(null);
+    setSelectedPersona(null);
+    setSelectedInterests([]);
     onOpenChange(false);
   };
+
+  const canProceed =
+    (step === "goal" && !!selectedGoal) ||
+    (step === "persona" && !!selectedPersona) ||
+    step === "interests" ||
+    step === "signup";
+
+  const stepLabels = ["Goal", "World", "Interests", "Account"];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center gap-3 p-4 border-b bg-gradient-to-r from-primary/5 to-accent/5">
-          <Avatar className="h-9 w-9 border-2 border-primary/20">
-            <AvatarFallback className="bg-primary/10 text-primary">
-              <Bot className="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-display font-semibold text-sm">Welcome Assistant</p>
-            <p className="text-xs text-muted-foreground truncate">
-              {phase === "chat" ? "Let's find the best way for you to get started" : "Create your free account"}
+        <div className="p-4 pb-3 border-b bg-gradient-to-r from-primary/5 to-accent/5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <p className="font-display font-semibold text-sm">Get Started</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Step {stepIndex + 1} of {totalSteps}
             </p>
           </div>
-          {phase === "chat" && (
-            <Button variant="ghost" size="sm" onClick={handleSkipToSignup} className="text-xs shrink-0">
-              Skip to signup <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          )}
+          {/* Progress dots */}
+          <div className="flex gap-1.5">
+            {stepLabels.map((label, i) => (
+              <div key={label} className="flex-1 flex flex-col gap-1">
+                <div
+                  className={`h-1 rounded-full transition-colors duration-300 ${
+                    i <= stepIndex ? "bg-primary" : "bg-muted"
+                  }`}
+                />
+                <span className={`text-[10px] ${i <= stepIndex ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {phase === "chat" ? (
-            <motion.div key="chat" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col">
-              {/* Messages */}
-              <ScrollArea className="h-[340px] px-4 py-3" ref={scrollRef}>
-                <div className="space-y-3">
-                  {messages.map((msg, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+          {/* ─── Step 1: Goal ─── */}
+          {step === "goal" && (
+            <motion.div
+              key="goal"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.2 }}
+              className="p-5"
+            >
+              <h2 className="font-display font-semibold text-base mb-1">What brings you here?</h2>
+              <p className="text-xs text-muted-foreground mb-4">Pick what resonates most — you can do everything later.</p>
+              <div className="space-y-2">
+                {GOALS.map((g) => {
+                  const Icon = g.icon;
+                  const selected = selectedGoal === g.key;
+                  return (
+                    <button
+                      key={g.key}
+                      onClick={() => setSelectedGoal(g.key)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                        selected
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      }`}
                     >
-                      <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : "bg-muted rounded-bl-md"
-                        }`}
-                      >
-                        <div className="prose prose-sm dark:prose-invert [&>p]:m-0"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+                        selected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      }`}>
+                        <Icon className="h-4 w-4" />
                       </div>
-                    </motion.div>
-                  ))}
-                  {loading && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                      <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{g.label}</p>
+                        <p className="text-xs text-muted-foreground">{g.desc}</p>
                       </div>
-                    </motion.div>
-                  )}
-                </div>
-              </ScrollArea>
-
-              {/* Input */}
-              <div className="p-3 border-t">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    sendMessage();
-                  }}
-                  className="flex gap-2"
-                >
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your answer…"
-                    disabled={loading}
-                    className="flex-1"
-                    autoFocus
-                  />
-                  <Button type="submit" size="icon" disabled={loading || !input.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+                      {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
-          ) : (
-            <motion.div key="signup" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="p-5">
-              {guestContext.interests?.length ? (
+          )}
+
+          {/* ─── Step 2: Persona ─── */}
+          {step === "persona" && (
+            <motion.div
+              key="persona"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.2 }}
+              className="p-5"
+            >
+              <h2 className="font-display font-semibold text-base mb-1">Which world fits you?</h2>
+              <p className="text-xs text-muted-foreground mb-4">This shapes your vocabulary & experience. Changeable anytime.</p>
+              <div className="space-y-3">
+                {PERSONAS.map((p) => {
+                  const Icon = p.icon;
+                  const selected = selectedPersona === p.key;
+                  return (
+                    <button
+                      key={p.key}
+                      onClick={() => setSelectedPersona(p.key)}
+                      className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
+                        selected
+                          ? `border-2 ${p.bg} shadow-sm`
+                          : "border-border hover:border-primary/30 hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${selected ? p.bg : "bg-muted"}`}>
+                        <Icon className={`h-5 w-5 ${selected ? p.color : "text-muted-foreground"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold ${selected ? p.color : ""}`}>{p.label}</p>
+                        <p className="text-xs text-muted-foreground">{p.desc}</p>
+                      </div>
+                      {selected && <Check className={`h-4 w-4 shrink-0 ${p.color}`} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ─── Step 3: Interests ─── */}
+          {step === "interests" && (
+            <motion.div
+              key="interests"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.2 }}
+              className="p-5"
+            >
+              <h2 className="font-display font-semibold text-base mb-1">What interests you?</h2>
+              <p className="text-xs text-muted-foreground mb-4">
+                Pick up to 5 topics — helps us personalize your feed. <span className="italic">Optional.</span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {INTEREST_TAGS.map((tag) => {
+                  const selected = selectedInterests.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => toggleInterest(tag)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/50 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                      }`}
+                    >
+                      {selected && <Check className="inline h-3 w-3 mr-1 -mt-0.5" />}
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedInterests.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  {selectedInterests.length}/5 selected
+                </p>
+              )}
+            </motion.div>
+          )}
+
+          {/* ─── Step 4: Signup ─── */}
+          {step === "signup" && (
+            <motion.div
+              key="signup"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.2 }}
+              className="p-5"
+            >
+              <h2 className="font-display font-semibold text-base mb-1">Create your account</h2>
+              <p className="text-xs text-muted-foreground mb-4">One last step — then we'll personalize everything for you.</p>
+
+              {/* Summary chips */}
+              {(selectedGoal || selectedPersona || selectedInterests.length > 0) && (
                 <div className="flex flex-wrap gap-1.5 mb-4">
-                  {guestContext.interests.map((t) => (
-                    <span key={t} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t}</span>
+                  {selectedGoal && (
+                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                      🎯 {GOALS.find((g) => g.key === selectedGoal)?.label}
+                    </span>
+                  )}
+                  {selectedPersona && (
+                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                      🌍 {PERSONAS.find((p) => p.key === selectedPersona)?.label}
+                    </span>
+                  )}
+                  {selectedInterests.map((t) => (
+                    <span key={t} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">{t}</span>
                   ))}
                 </div>
-              ) : null}
+              )}
 
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="guest-name" className="text-xs">Full name</Label>
-                    <Input id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required autoComplete="name" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="guest-email" className="text-xs">Email</Label>
-                    <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
-                  </div>
+              <form onSubmit={handleSignup} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="guest-name" className="text-xs">Full name</Label>
+                  <Input id="guest-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" required autoComplete="name" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="guest-email" className="text-xs">Email</Label>
+                  <Input id="guest-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="guest-pw" className="text-xs">Password</Label>
-                    <Input id="guest-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 characters" required minLength={6} autoComplete="new-password" />
+                    <Input id="guest-pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 6 chars" required minLength={6} autoComplete="new-password" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="guest-pw2" className="text-xs">Confirm password</Label>
-                    <Input id="guest-pw2" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" required autoComplete="new-password" />
+                    <Label htmlFor="guest-pw2" className="text-xs">Confirm</Label>
+                    <Input id="guest-pw2" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" required autoComplete="new-password" />
                   </div>
                 </div>
 
@@ -265,6 +354,22 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Footer nav */}
+        <div className="p-3 border-t flex items-center justify-between">
+          {stepIndex > 0 ? (
+            <Button variant="ghost" size="sm" onClick={goBack}>
+              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
+            </Button>
+          ) : (
+            <div />
+          )}
+          {step !== "signup" && (
+            <Button size="sm" onClick={goNext} disabled={!canProceed}>
+              {step === "interests" ? "Create account" : "Continue"} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
