@@ -11,7 +11,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown, Rss, Languages,
+  Coins, TrendingDown, Rss, Languages, CalendarSync,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,7 @@ import { MyQuestsTab, MyGuildsTab, MyPodsTab, MyCoursesTab } from "@/components/
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { LanguageSettingsTab } from "@/components/LanguageSettingsTab";
 import { WalletTab } from "@/components/WalletTab";
+import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 
 const TABS = [
   { key: "profile", label: "settings.profile", icon: UserCircle },
@@ -61,6 +62,7 @@ const TABS = [
   { key: "pods", label: "settings.pods", icon: Users },
   { key: "courses", label: "settings.courses", icon: GraduationCap },
   { key: "services", label: "settings.services", icon: Briefcase },
+  { key: "calendar", label: "settings.calendar", icon: CalendarSync },
   { key: "bookings", label: "settings.bookings", icon: CalendarCheck },
   { key: "wallet", label: "settings.wallet", icon: Coins },
   { key: "houses", label: "settings.houses", icon: Hash },
@@ -748,6 +750,9 @@ export default function SettingsPage() {
                 </div>
               )}
 
+              {/* ── Calendar Sync ── */}
+              {activeTab === "calendar" && <CalendarSyncTab />}
+
               {/* ── Connected Apps ── */}
               {activeTab === "apps" && (
                 <div className="space-y-6">
@@ -763,20 +768,6 @@ export default function SettingsPage() {
                       <Plug className="h-4 w-4 mr-1" /> Connect Stripe
                     </Button>
                     <p className="text-xs text-muted-foreground mt-1">Coming soon — Stripe Connect onboarding will be available here.</p>
-                  </Section>
-
-                  <Section title="Calendar Integration" icon={<Clock className="h-5 w-5" />}>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
-                      <div>
-                        <p className="text-sm font-medium">Google Calendar</p>
-                        <p className="text-xs text-muted-foreground">Sync your availability with Google Calendar.</p>
-                      </div>
-                      <Badge variant="outline">Not connected</Badge>
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-2" disabled>
-                      <Plug className="h-4 w-4 mr-1" /> Connect Calendar
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-1">Coming soon — Calendar sync will be available here.</p>
                   </Section>
                 </div>
               )}
