@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, Pencil, Crown, Hash, MapPin,
-  AlertCircle, Loader2, ClipboardList,
+  AlertCircle, Loader2, ClipboardList, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -379,10 +379,15 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
                             </td>
                             <td className="px-4 py-3 text-right">
                               <div className="flex justify-end gap-1">
-                                <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => toggleMemberRole(m.id)}
-                                  title={m.role === "HOST" ? "Demote to member" : "Promote to host"}>
-                                  {m.role === "HOST" ? "Demote" : "Promote"}
-                                </Button>
+                                {m.role === "HOST" ? (
+                                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => toggleMemberRole(m.id)} title="Demote to member">
+                                    <ChevronDown className="h-3.5 w-3.5" /> Demote
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10" onClick={() => toggleMemberRole(m.id)} title="Promote to host">
+                                    <ChevronUp className="h-3.5 w-3.5" /> Promote
+                                  </Button>
+                                )}
                                 {m.user_id !== currentUser.id && (
                                   <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => removeMember(m.id)}>
                                     <Trash2 className="h-3 w-3" />
