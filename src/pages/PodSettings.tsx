@@ -68,7 +68,8 @@ export default function PodSettings() {
   const currentMembership = pod.pod_members?.find(
     (pm: any) => pm.user_id === currentUser.id
   );
-  if (currentMembership?.role !== "HOST") {
+  const isCreator = !!currentUser.id && pod.creator_id === currentUser.id;
+  if (currentMembership?.role !== "HOST" && !isCreator) {
     return <PageShell><p>You must be a host of this pod to access settings.</p></PageShell>;
   }
 
