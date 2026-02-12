@@ -98,10 +98,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ─── Nav ─── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
-        <div className="container flex h-14 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
-            <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+        <div className="container flex h-16 items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight group">
+            <img src={logoImg} alt="changethegame" className="h-7 w-7 transition-transform group-hover:scale-110 group-hover:rotate-6" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">changethegame</span>
           </Link>
           <nav className="flex items-center gap-2">
             <Button size="sm" variant="ghost" asChild>
