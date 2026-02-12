@@ -307,7 +307,7 @@ export default function LandingPage() {
               { icon: BookOpen, title: "Pods", desc: "Small learning & action groups that keep you accountable and connected." },
             ].map((item, i) => (
               <motion.div key={item.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-5"
+                className="rounded-2xl border border-border/60 bg-card p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
               >
                 <item.icon className="h-6 w-6 text-primary mx-auto mb-3" />
                 <h3 className="font-display font-semibold text-sm mb-1">{item.title}</h3>
