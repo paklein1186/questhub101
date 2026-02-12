@@ -103,17 +103,17 @@ export function PostSignupWizard() {
 
   const handleSave = async () => {
     setSaving(true);
-    const updates: Record<string, string | null> = {};
+    const updates: Record<string, any> = { has_completed_onboarding: true };
     updates.avatar_url = avatarUrl || null;
     if (headline.trim()) updates.headline = headline.trim();
     if (location.trim()) updates.location = location.trim();
     if (bio.trim()) updates.bio = bio.trim();
 
     const hasChanges = avatarUrl || headline.trim() || location.trim() || bio.trim();
-    if (hasChanges) {
+    if (hasChanges || true) { // Always update to set has_completed_onboarding
       const { error } = await supabase
         .from("profiles")
-        .update(updates as any)
+        .update(updates)
         .eq("user_id", user.id);
 
       if (error) {
