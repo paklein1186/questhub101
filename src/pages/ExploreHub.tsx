@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Sparkles, Brain } from "lucide-react";
+import { Search, Sparkles, Brain, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
@@ -64,11 +65,17 @@ export default function ExploreHub() {
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="quests"><QuestsMarketplace bare /></TabsContent>
+        <TabsContent value="quests">
+          <div className="flex justify-end mb-4">
+            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
+          </div>
+          <QuestsMarketplace bare />
+        </TabsContent>
 
         <TabsContent value="entities">
-          {/* Entity type chips */}
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
+          {/* Entity type chips + create */}
+          <div className="flex items-center gap-2 mb-4 flex-wrap justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
             {([
               ["all", "All"],
               ["guilds", label("guild.label")],
@@ -85,6 +92,12 @@ export default function ExploreHub() {
                 {lbl}
               </Button>
             ))}
+            </div>
+            <Button size="sm" asChild>
+              <Link to={entitySub === "companies" ? "/companies/info" : entitySub === "pods" ? "/guilds/new" : entitySub === "guilds" ? "/guilds/new" : "/guilds/new"}>
+                <Plus className="h-4 w-4 mr-1" /> Create {entitySub === "all" ? "Entity" : entitySub === "guilds" ? label("guild.label") : entitySub === "pods" ? label("pod.label") : label("company.label")}
+              </Link>
+            </Button>
           </div>
 
           {/* Shared filter bar for all entity types */}
@@ -131,8 +144,18 @@ export default function ExploreHub() {
           )}
         </TabsContent>
 
-        <TabsContent value="services"><ServicesMarketplace bare /></TabsContent>
-        <TabsContent value="courses"><CoursesExplore bare /></TabsContent>
+        <TabsContent value="services">
+          <div className="flex justify-end mb-4">
+            <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> Create Service</Link></Button>
+          </div>
+          <ServicesMarketplace bare />
+        </TabsContent>
+        <TabsContent value="courses">
+          <div className="flex justify-end mb-4">
+            <Button size="sm" asChild><Link to="/courses/new"><Plus className="h-4 w-4 mr-1" /> Create Course</Link></Button>
+          </div>
+          <CoursesExplore bare />
+        </TabsContent>
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
         <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
         <TabsContent value="territories" className="space-y-8">
