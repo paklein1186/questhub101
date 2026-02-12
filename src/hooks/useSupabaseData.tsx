@@ -43,7 +43,7 @@ export function useGuilds() {
         .from("guilds")
         .select("*, guild_topics(topic_id, topics(id, name)), guild_territories(territory_id, territories(id, name)), guild_members(id, user_id, role)")
         .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -90,7 +90,7 @@ export function useQuests() {
         .from("quests")
         .select("*, quest_topics(topic_id), quest_territories(territory_id, territories(id, name)), guilds(id, name)")
         .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -106,7 +106,7 @@ export function useServices() {
         .from("services")
         .select("*, service_topics(topic_id, topics(id, name)), service_territories(territory_id, territories(id, name)), guilds(id, name, logo_url)")
         .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       // Enrich with provider profiles
       const userIds = [...new Set((data || []).map(s => s.provider_user_id).filter(Boolean))] as string[];
@@ -129,7 +129,7 @@ export function usePods() {
         .from("pods")
         .select("*, pod_members(id, user_id, role), quests(id, title), topics(id, name)")
         .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },

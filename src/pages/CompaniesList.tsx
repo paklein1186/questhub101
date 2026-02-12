@@ -20,7 +20,7 @@ function useCompaniesExplore() {
         .from("companies")
         .select("*, company_territories(territory_id, territories(id, name)), company_members(id)")
         .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
