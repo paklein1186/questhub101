@@ -151,7 +151,7 @@ export default function LandingPage() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" asChild className="gap-2">
+            <Button size="lg" asChild className="gap-2 gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
               <Link to="/signup?role=gamechanger"><Lightbulb className="h-4 w-4" /> Join as a Gamechanger</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
