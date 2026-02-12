@@ -43,6 +43,7 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
 import { UserSearchInput } from "@/components/UserSearchInput";
+import { sendInviteNotification } from "@/lib/inviteNotification";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -251,6 +252,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       guild_id: guildId, user_id: selectedUserId, role: "MEMBER" as any,
     });
     if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
+    sendInviteNotification({ invitedUserId: selectedUserId, inviterName: currentUser.name, entityType: "guild", entityId: guildId!, entityName: guild?.name || "Guild" });
     setInviteOpen(false);
     refetchMembers();
     toast({ title: "Member added!" });

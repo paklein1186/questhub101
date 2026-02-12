@@ -42,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { UserSearchInput } from "@/components/UserSearchInput";
+import { sendInviteNotification } from "@/lib/inviteNotification";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -129,6 +130,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
       company_id: companyId, user_id: selectedUserId, role: "member",
     });
     if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
+    sendInviteNotification({ invitedUserId: selectedUserId, inviterName: currentUser.name, entityType: "company", entityId: companyId, entityName: company?.name || "Organization" });
     setInviteOpen(false);
     qc.invalidateQueries({ queryKey: ["company-members", companyId] });
     toast({ title: "Member added!" });

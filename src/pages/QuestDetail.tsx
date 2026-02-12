@@ -42,6 +42,7 @@ import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { UserSearchInput } from "@/components/UserSearchInput";
+import { sendInviteNotification } from "@/lib/inviteNotification";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -482,6 +483,7 @@ export default function QuestDetail() {
                           quest_id: quest.id, user_id: user.user_id, role: "COLLABORATOR", status: "ACCEPTED",
                         });
                         if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
+                        sendInviteNotification({ invitedUserId: user.user_id, inviterName: currentUser.name, entityType: "quest", entityId: quest.id, entityName: quest.title });
                         setInviteOpen(false);
                         qc.invalidateQueries({ queryKey: ["quest-participants", id] });
                         toast({ title: `${user.display_name || "User"} invited!` });
