@@ -41,6 +41,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
+import { UserSearchInput } from "@/components/UserSearchInput";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -120,21 +121,15 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
 
-  const inviteMember = async () => {
-    if (!inviteEmail.trim()) return;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("email", inviteEmail.trim())
-      .single();
-    if (!profile) { toast({ title: "User not found", variant: "destructive" }); return; }
-    const already = members.some((m: any) => m.user_id === profile.user_id);
+  const inviteMember = async (selectedUserId: string) => {
+    if (!selectedUserId) return;
+    const already = members.some((m: any) => m.user_id === selectedUserId);
     if (already) { toast({ title: "Already a member", variant: "destructive" }); return; }
     const { error } = await supabase.from("company_members").insert({
-      company_id: companyId, user_id: profile.user_id, role: "member",
+      company_id: companyId, user_id: selectedUserId, role: "member",
     });
     if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
-    setInviteEmail(""); setInviteOpen(false);
+    setInviteOpen(false);
     qc.invalidateQueries({ queryKey: ["company-members", companyId] });
     toast({ title: "Member added!" });
   };
@@ -363,8 +358,11 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                         <DialogContent>
                           <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
                           <div className="space-y-3 mt-2">
-                            <Input placeholder="User email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
-                            <Button onClick={inviteMember} className="w-full"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button>
+                            <UserSearchInput
+                              onSelect={(user) => inviteMember(user.user_id)}
+                              placeholder="Type a member name…"
+                              excludeUserIds={members.map((m: any) => m.user_id)}
+                            />
                           </div>
                         </DialogContent>
                       </Dialog>

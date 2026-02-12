@@ -42,6 +42,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
+import { UserSearchInput } from "@/components/UserSearchInput";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -242,22 +243,15 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
     toast({ title: "Guild identity updated!" });
   };
 
-  const inviteMember = async () => {
-    if (!inviteEmail.trim()) return;
-    // Look up user by email
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("user_id")
-      .eq("email", inviteEmail.trim())
-      .single();
-    if (!profile) { toast({ title: "User not found", variant: "destructive" }); return; }
-    const already = members.some((m: any) => m.user_id === profile.user_id);
+  const inviteMember = async (selectedUserId: string) => {
+    if (!selectedUserId) return;
+    const already = members.some((m: any) => m.user_id === selectedUserId);
     if (already) { toast({ title: "Already a member", variant: "destructive" }); return; }
     const { error } = await supabase.from("guild_members").insert({
-      guild_id: guildId, user_id: profile.user_id, role: "MEMBER" as any,
+      guild_id: guildId, user_id: selectedUserId, role: "MEMBER" as any,
     });
     if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
-    setInviteEmail(""); setInviteOpen(false);
+    setInviteOpen(false);
     refetchMembers();
     toast({ title: "Member added!" });
   };
@@ -554,10 +548,13 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                         <DialogHeader><DialogTitle>Add Member</DialogTitle></DialogHeader>
                         <div className="space-y-4 mt-2">
                           <div>
-                            <label className="text-sm font-medium mb-1 block">User email</label>
-                            <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="user@example.com" />
+                            <label className="text-sm font-medium mb-1 block">Search by name</label>
+                            <UserSearchInput
+                              onSelect={(user) => inviteMember(user.user_id)}
+                              placeholder="Type a member name…"
+                              excludeUserIds={members.map((m: any) => m.user_id)}
+                            />
                           </div>
-                          <Button onClick={inviteMember} disabled={!inviteEmail.trim()} className="w-full">Add to guild</Button>
                         </div>
                       </DialogContent>
                     </Dialog>
