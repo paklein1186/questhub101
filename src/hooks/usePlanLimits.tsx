@@ -229,6 +229,9 @@ export function usePlanLimits() {
     userXp,
     userCredits,
     userLevel,
+    // Grace period
+    inGracePeriod,
+    gracePeriodDaysLeft,
     // Quest limits
     freeQuestsRemaining,
     questLimitReached,
