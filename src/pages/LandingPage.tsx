@@ -167,15 +167,15 @@ export default function LandingPage() {
       </section>
 
       {/* ─── How it works ─── */}
-      <section className="border-t border-border bg-muted/40">
-        <div className="container py-16 md:py-24">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">How it works</h2>
+      <section className="border-t border-border/50 bg-muted/30">
+        <div className="container py-20 md:py-28">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-14">How it works</h2>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
               <motion.div key={step.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center group"
               >
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mb-5 shadow-playful group-hover:scale-110 transition-transform duration-300">
                   <step.icon className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Step {i + 1}</p>
