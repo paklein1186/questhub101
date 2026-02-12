@@ -14,7 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown } from "lucide-react";
+import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare } from "lucide-react";
+import { CommentThread } from "@/components/CommentThread";
+import { CommentTargetType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalEvaluator } from "./ProposalEvaluator";
 
@@ -110,6 +112,7 @@ export function QuestProposals({
   const profileMap = Object.fromEntries(proposerProfiles.map((p: any) => [p.user_id, p]));
 
   // ── Submit Proposal ─────────────────────────────────────
+  const [expandedComments, setExpandedComments] = useState<string | null>(null);
   const [propOpen, setPropOpen] = useState(false);
   const [propTitle, setPropTitle] = useState("");
   const [propDesc, setPropDesc] = useState("");
@@ -420,6 +423,14 @@ export function QuestProposals({
                     >
                       <ArrowUp className="h-3.5 w-3.5 mr-0.5" /> {proposal.upvotes_count}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-muted-foreground hover:text-primary"
+                      onClick={() => setExpandedComments(expandedComments === proposal.id ? null : proposal.id)}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5 mr-0.5" /> Discuss
+                    </Button>
                   </div>
                 </div>
                 {isOwner && isPending && (
@@ -445,6 +456,11 @@ export function QuestProposals({
                   </div>
                 )}
               </div>
+              {expandedComments === proposal.id && (
+                <div className="mt-3 pt-3 border-t border-border">
+                  <CommentThread targetType={CommentTargetType.QUEST_PROPOSAL} targetId={proposal.id} />
+                </div>
+              )}
             </div>
           );
         })}
