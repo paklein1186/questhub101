@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Sparkles, Palette, Music, Users, Compass,
@@ -15,6 +16,7 @@ import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { HOUSES_OF_ART } from "@/lib/personaLabels";
 import { useEffect } from "react";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 /* ─── animation helpers ─── */
 const fadeUp = {
@@ -81,9 +83,12 @@ function useUserHouses(userId: string | undefined) {
 /* ─── page ─── */
 export default function CreativeLanding() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: creations = [], isLoading: loadingCreations } = useFeaturedCreations();
   const { data: circles = [], isLoading: loadingCircles } = useFeaturedCircles();
   const { data: userHouses = [] } = useUserHouses(user?.id);
+  const [guestOpen, setGuestOpen] = useState(false);
+  const [guestAction, setGuestAction] = useState("");
 
   // Force creative theme on this page regardless of persona
   useEffect(() => {
@@ -94,6 +99,15 @@ export default function CreativeLanding() {
   }, []);
 
   const houseEntries = Object.values(HOUSES_OF_ART);
+
+  const handleGatedClick = (label: string, authRoute: string) => {
+    if (user) {
+      navigate(authRoute);
+    } else {
+      setGuestAction(label);
+      setGuestOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -162,20 +176,24 @@ export default function CreativeLanding() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" asChild className="gap-2">
-              <Link to="/quests/new"><Feather className="h-4 w-4" /> Begin a Creation</Link>
+            <Button size="lg" className="gap-2" onClick={() => handleGatedClick("begin a creation", "/quests/new")}>
+              <Feather className="h-4 w-4" /> Begin a Creation
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2">
-              <Link to="/services/new"><Palette className="h-4 w-4" /> Offer a Skill Session</Link>
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => handleGatedClick("offer a skill session", "/services/new")}>
+              <Palette className="h-4 w-4" /> Offer a Skill Session
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
-              <Link to="/explore"><Users className="h-4 w-4" /> Join a Circle or Studio</Link>
+            <Button size="lg" variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleGatedClick("join a circle or studio", "/explore")}>
+              <Users className="h-4 w-4" /> Join a Circle or Studio
             </Button>
           </motion.div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="mt-4">
-            <Button variant="link" asChild className="text-muted-foreground text-sm italic">
-              <Link to="/">Or ask the Muse for guidance <Sparkles className="h-3.5 w-3.5 ml-1" /></Link>
+            <Button
+              variant="link"
+              className="text-muted-foreground text-sm italic"
+              onClick={() => { if (!user) { setGuestAction("get creative guidance"); setGuestOpen(true); } else { navigate("/"); } }}
+            >
+              Or ask the Muse for guidance <Sparkles className="h-3.5 w-3.5 ml-1" />
             </Button>
           </motion.div>
         </div>
@@ -187,21 +205,9 @@ export default function CreativeLanding() {
           <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">What you can do here</h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {[
-              {
-                icon: Feather,
-                title: "Launch a Creation",
-                text: "Start a story, project, journey, performance, or experiment.",
-              },
-              {
-                icon: Palette,
-                title: "Share Your Craft",
-                text: "Teach, jam, mentor, or offer skill sessions.",
-              },
-              {
-                icon: Users,
-                title: "Find Your Circle",
-                text: "Join studios, collectives, ensembles, Houses of Art.",
-              },
+              { icon: Feather, title: "Launch a Creation", text: "Start a story, project, journey, performance, or experiment.", action: "launch a creation", route: "/quests/new" },
+              { icon: Palette, title: "Share Your Craft", text: "Teach, jam, mentor, or offer skill sessions.", action: "share your craft", route: "/services/new" },
+              { icon: Users, title: "Find Your Circle", text: "Join studios, collectives, ensembles, Houses of Art.", action: "find your circle", route: "/explore" },
             ].map((card, i) => (
               <motion.div
                 key={card.title}
@@ -210,7 +216,8 @@ export default function CreativeLanding() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-8 text-center"
+                className="rounded-2xl border border-border bg-card p-8 text-center cursor-pointer hover:border-primary/30 transition-all"
+                onClick={() => handleGatedClick(card.action, card.route)}
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                   <card.icon className="h-6 w-6 text-primary" />
@@ -409,6 +416,7 @@ export default function CreativeLanding() {
       {/* ─── Footer ─── */}
       <SiteFooter />
       <CookieConsentBanner />
+      <GuestOnboardingAssistant open={guestOpen} onOpenChange={setGuestOpen} actionLabel={guestAction} />
     </div>
   );
 }

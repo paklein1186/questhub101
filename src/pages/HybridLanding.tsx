@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Sparkles, Compass, Users, Layers,
@@ -14,6 +15,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { HOUSES_OF_ART } from "@/lib/personaLabels";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -77,9 +79,21 @@ function useUserHouses(userId: string | undefined) {
 
 export default function HybridLanding() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: quests = [], isLoading: loadingQuests } = useFeaturedQuests();
   const { data: groups = [], isLoading: loadingGroups } = useFeaturedGroups();
   const { data: userHouses = [] } = useUserHouses(user?.id);
+  const [guestOpen, setGuestOpen] = useState(false);
+  const [guestAction, setGuestAction] = useState("");
+
+  const handleGatedClick = (label: string, authRoute: string) => {
+    if (user) {
+      navigate(authRoute);
+    } else {
+      setGuestAction(label);
+      setGuestOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -143,14 +157,14 @@ export default function HybridLanding() {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" asChild className="gap-2">
-              <Link to="/quests/new"><Feather className="h-4 w-4" /> Start a Quest</Link>
+            <Button size="lg" className="gap-2" onClick={() => handleGatedClick("start a quest", "/quests/new")}>
+              <Feather className="h-4 w-4" /> Start a Quest
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2">
-              <Link to="/services/new"><Briefcase className="h-4 w-4" /> Share a Skill or Service</Link>
+            <Button size="lg" variant="outline" className="gap-2" onClick={() => handleGatedClick("share a skill or service", "/services/new")}>
+              <Briefcase className="h-4 w-4" /> Share a Skill or Service
             </Button>
-            <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground">
-              <Link to="/explore"><Users className="h-4 w-4" /> Join a Guild or Circle</Link>
+            <Button size="lg" variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleGatedClick("join a guild or circle", "/explore")}>
+              <Users className="h-4 w-4" /> Join a Guild or Circle
             </Button>
           </motion.div>
 
@@ -158,7 +172,8 @@ export default function HybridLanding() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.55 }}
-            className="mt-5 text-sm text-muted-foreground italic"
+            className="mt-5 text-sm text-muted-foreground italic cursor-pointer hover:text-foreground transition-colors"
+            onClick={() => { if (!user) { setGuestAction("get guidance"); setGuestOpen(true); } else { navigate("/"); } }}
           >
             Let your two worlds speak — your guide adapts to your flow.
           </motion.p>
@@ -171,9 +186,9 @@ export default function HybridLanding() {
           <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">What you can do</h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {[
-              { icon: Feather, title: "Start a Quest", text: "Mix creativity and strategy. Launch a project, creation, or mission." },
-              { icon: Briefcase, title: "Share What You Know", text: "From artistic skills to consulting services — support others with both worlds." },
-              { icon: Users, title: "Join a Space", text: "Guilds, circles, traditional organizations, collectives — hybrid collaboration thrives here." },
+              { icon: Feather, title: "Start a Quest", text: "Mix creativity and strategy. Launch a project, creation, or mission.", action: "start a quest", route: "/quests/new" },
+              { icon: Briefcase, title: "Share What You Know", text: "From artistic skills to consulting services — support others with both worlds.", action: "share what you know", route: "/services/new" },
+              { icon: Users, title: "Join a Space", text: "Guilds, circles, traditional organizations, collectives — hybrid collaboration thrives here.", action: "join a space", route: "/explore" },
             ].map((card, i) => (
               <motion.div
                 key={card.title}
@@ -182,7 +197,8 @@ export default function HybridLanding() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-8 text-center"
+                className="rounded-2xl border border-border bg-card p-8 text-center cursor-pointer hover:border-primary/30 transition-all"
+                onClick={() => handleGatedClick(card.action, card.route)}
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                   <card.icon className="h-6 w-6 text-primary" />
@@ -354,6 +370,7 @@ export default function HybridLanding() {
 
       <SiteFooter />
       <CookieConsentBanner />
+      <GuestOnboardingAssistant open={guestOpen} onOpenChange={setGuestOpen} actionLabel={guestAction} />
     </div>
   );
 }
