@@ -349,7 +349,7 @@ export function renderMentions(text: string): (string | JSX.Element)[] {
         className="font-semibold text-primary hover:underline"
         title={`View ${parsed.type}`}
       >
-        @{name}
+        {name}
       </a>,
     );
     lastIndex = re.lastIndex;

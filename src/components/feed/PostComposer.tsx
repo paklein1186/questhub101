@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
+import { MentionTextarea, extractMentionIds, extractAllMentions, type MentionedUser } from "@/components/MentionTextarea";
+import { processMentions } from "@/lib/mentionNotifications";
 import { ImagePlus, Paperclip, Link2, Send, X, Loader2, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -53,6 +54,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   const createPost = useCreatePost();
 
   const [content, setContent] = useState("");
+  const [pendingMentions, setPendingMentions] = useState<MentionedUser[]>([]);
   const [files, setFiles] = useState<PendingFile[]>([]);
   const [link, setLink] = useState<PendingLink | null>(null);
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -229,10 +231,11 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
           <AvatarFallback>{authUser?.name?.[0] || "?"}</AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-3">
-          <Textarea
+          <MentionTextarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Share an update, idea, or creation…"
+            onChange={setContent}
+            onMentionsChange={setPendingMentions}
+            placeholder="Share an update, idea, or creation… (type @ to mention)"
             className="min-h-[80px] resize-none text-sm border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none"
             maxLength={2000}
           />
