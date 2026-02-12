@@ -456,9 +456,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       <Badge variant="outline" className="ml-2 text-[10px]">→ Subtask</Badge>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 hidden sm:table-cell">
-                    <Badge variant="secondary" className="text-[10px] capitalize">
-                      {task.source === "personal" ? "Personal" : task.sourceLabel || task.source}
+                  <td className="px-3 py-2.5 hidden sm:table-cell max-w-[120px]">
+                    <Badge variant="secondary" className="text-[10px] capitalize truncate max-w-full inline-block">
+                      {(task.source === "personal" ? "Personal" : task.sourceLabel || task.source).slice(0, 16)}
                     </Badge>
                   </td>
                   <td className="px-3 py-2.5">
