@@ -43,6 +43,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { useNotifications } from "@/hooks/useNotifications";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 const TABS = [
@@ -84,6 +85,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { notifyGuildRoleChanged } = useNotifications();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: membersData } = useCompanyMembersWithProfiles(companyId);
@@ -138,7 +140,9 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   };
 
   const promoteMember = async (memberId: string) => {
+    const gm = members.find((m: any) => m.id === memberId);
     await supabase.from("company_members").update({ role: "admin" as any }).eq("id", memberId);
+    if (gm) notifyGuildRoleChanged({ guildId: companyId, userId: gm.user_id, newRole: "Admin" });
     qc.invalidateQueries({ queryKey: ["company-members", companyId] });
     toast({ title: "Member promoted to Admin" });
   };
@@ -152,6 +156,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
       return;
     }
     await supabase.from("company_members").update({ role: "member" as any }).eq("id", memberId);
+    notifyGuildRoleChanged({ guildId: companyId, userId: gm.user_id, newRole: "Member" });
     qc.invalidateQueries({ queryKey: ["company-members", companyId] });
     toast({ title: "Member demoted to Member" });
   };

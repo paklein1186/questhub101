@@ -13,6 +13,7 @@ import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
+import { useNotifications } from "@/hooks/useNotifications";
 import { ImageUpload } from "@/components/ImageUpload";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { useAcceptedPartners } from "@/hooks/useQuestHosts";
@@ -48,6 +49,7 @@ export default function QuestCreate() {
   const { checkRateLimit, isChecking } = useRateLimit();
   const { grantXp } = useXpCredits();
   const { persona } = usePersona();
+  const { notifyGuildQuestCreated } = useNotifications();
 
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -374,7 +376,10 @@ export default function QuestCreate() {
       await autoFollowEntity(currentUser.id, "QUEST", quest.id);
 
       qc.invalidateQueries({ queryKey: ["quests"] });
-      if (guildId) qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });
+      if (guildId) {
+        qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });
+        notifyGuildQuestCreated({ guildId, questId: quest.id, questTitle: title.trim() });
+      }
       toast({ title: "Quest created! +5 XP" });
       navigate(`/quests/${quest.id}`);
     } finally {

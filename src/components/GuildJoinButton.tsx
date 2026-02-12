@@ -9,23 +9,29 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GuildJoinPolicy, GuildApplicationStatus } from "@/types/enums";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface GuildJoinButtonProps {
   guildId: string;
+  guildName?: string;
   joinPolicy: GuildJoinPolicy;
   applicationQuestions: string[];
   currentUserId: string;
+  currentUserName?: string;
   onJoined?: () => void;
 }
 
 export function GuildJoinButton({
   guildId,
+  guildName,
   joinPolicy,
   applicationQuestions,
   currentUserId,
+  currentUserName,
   onJoined,
 }: GuildJoinButtonProps) {
   const { toast } = useToast();
+  const { notifyJoinRequest } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [pendingApp, setPendingApp] = useState(false);
   const [checkingApp, setCheckingApp] = useState(true);
@@ -90,6 +96,7 @@ export function GuildJoinButton({
       setPendingApp(true);
       setApplyOpen(false);
       toast({ title: "Application submitted!", description: "Guild admins will review it." });
+      notifyJoinRequest({ entityType: "guild", entityId: guildId, entityName: guildName || "guild", applicantName: currentUserName || "Someone" });
     }
   };
 

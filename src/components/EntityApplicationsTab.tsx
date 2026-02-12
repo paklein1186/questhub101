@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type EntityType = "guild" | "pod" | "company";
 
@@ -44,11 +45,13 @@ interface ApplicationRow {
 interface EntityApplicationsTabProps {
   entityType: EntityType;
   entityId: string;
+  entityName?: string;
   currentUserId: string;
 }
 
-export function EntityApplicationsTab({ entityType, entityId, currentUserId }: EntityApplicationsTabProps) {
+export function EntityApplicationsTab({ entityType, entityId, entityName, currentUserId }: EntityApplicationsTabProps) {
   const { toast } = useToast();
+  const { notifyApplicationDecision, notifyGuildMemberAdded } = useNotifications();
   const [apps, setApps] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("PENDING");
@@ -132,6 +135,12 @@ export function EntityApplicationsTab({ entityType, entityId, currentUserId }: E
     setSelectedApp(null);
     setAdminNote("");
     toast({ title: action === "APPROVED" ? "Application approved" : "Application rejected" });
+    // Notify applicant
+    notifyApplicationDecision({ entityType, entityId, entityName: entityName || "entity", applicantUserId: app.applicant_user_id, decision: action });
+    // If approved, also notify them they were added
+    if (action === "APPROVED") {
+      notifyGuildMemberAdded({ guildId: entityId, userId: app.applicant_user_id });
+    }
     fetchApps();
   };
 
