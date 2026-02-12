@@ -467,10 +467,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         value={task.status}
                         onValueChange={(v) => updateTaskStatus(task.id, v)}
                       >
-                        <SelectTrigger className="h-6 w-[110px] text-[10px] px-2 py-0">
-                          <Badge className={cn("text-[10px]", STATUS_COLORS[task.status] || STATUS_COLORS.TODO)}>
-                            {task.status?.replace("_", " ")}
-                          </Badge>
+                        <SelectTrigger className={cn(
+                          "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
+                          STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
+                        )}>
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="TODO">TODO</SelectItem>
