@@ -23,8 +23,7 @@ export function SiteFooter() {
             <Link
               key={link.href}
               to={link.href}
-              className="text-xs sm:text-sm hover:underline transition-colors"
-              style={{ color: "#6B6B6B" }}
+              className="text-xs sm:text-sm font-bold text-primary hover:underline transition-colors"
             >
               {link.label}
             </Link>
