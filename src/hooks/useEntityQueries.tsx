@@ -599,7 +599,7 @@ export function useUserQuestParticipations(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_participants")
-        .select("*, quests(id, title, reward_xp, status, company_id)")
+        .select("*, quests(id, title, reward_xp, status, company_id, cover_image_url)")
         .eq("user_id", userId!);
       if (error) throw error;
       return data;
@@ -615,7 +615,7 @@ export function useUserPodMemberships(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pod_members")
-        .select("*, pods(id, name, type)")
+        .select("*, pods(id, name, type, image_url)")
         .eq("user_id", userId!);
       if (error) throw error;
       return data;
@@ -697,10 +697,10 @@ export function useMyDrafts(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return { quests: [], guilds: [], pods: [], services: [] };
       const [questsRes, guildsRes, podsRes, servicesRes] = await Promise.all([
-        supabase.from("quests").select("id, title, description").eq("created_by_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
-        supabase.from("guilds").select("id, name, description").eq("created_by_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
-        supabase.from("pods").select("id, name, description").eq("creator_id", userId).eq("is_draft", true).eq("is_deleted", false),
-        supabase.from("services").select("id, title, description").eq("provider_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
+        supabase.from("quests").select("id, title, description, cover_image_url").eq("created_by_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
+        supabase.from("guilds").select("id, name, description, logo_url").eq("created_by_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
+        supabase.from("pods").select("id, name, description, image_url").eq("creator_id", userId).eq("is_draft", true).eq("is_deleted", false),
+        supabase.from("services").select("id, title, description, image_url").eq("provider_user_id", userId).eq("is_draft", true).eq("is_deleted", false),
       ]);
       return {
         quests: questsRes.data || [],

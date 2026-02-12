@@ -17,6 +17,26 @@ import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
 import MyCourses from "./MyCourses";
 
+import questPattern from "@/assets/patterns/quest-pattern.jpg";
+import guildPattern from "@/assets/patterns/guild-pattern.jpg";
+import podPattern from "@/assets/patterns/pod-pattern.jpg";
+import servicePattern from "@/assets/patterns/service-pattern.jpg";
+import companyPattern from "@/assets/patterns/company-pattern.jpg";
+
+/** Small thumbnail with fallback pattern */
+function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; alt: string }) {
+  return (
+    <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-muted">
+      <img
+        src={src || fallback}
+        alt={alt}
+        className="w-full h-full object-cover"
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 export default function WorkHub() {
   const [tab, setTab] = useState("quests");
   const currentUser = useCurrentUser();
@@ -73,6 +93,7 @@ export default function WorkHub() {
           </DropdownMenu>
         </div>
 
+        {/* ── Quests ── */}
         <TabsContent value="quests">
           {questsList.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -84,15 +105,18 @@ export default function WorkHub() {
           <div className="grid gap-3 md:grid-cols-2">
             {questsList.map((qp: any, i: number) => (
               <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Link to={`/quests/${qp.quest_id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-display font-semibold">{qp.quests?.title}</h4>
-                    <span className="flex items-center gap-1 text-xs font-semibold text-primary"><Zap className="h-3 w-3" /> {qp.quests?.reward_xp}</span>
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] capitalize">{qp.role.toLowerCase()}</Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{qp.status.toLowerCase()}</Badge>
-                    {qp.quests?.company_id && <Badge className="bg-accent text-accent-foreground border-0 text-[10px]"><Building2 className="h-2.5 w-2.5 mr-0.5" />Client</Badge>}
+                <Link to={`/quests/${qp.quest_id}`} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                  <Thumb src={qp.quests?.cover_image_url} fallback={questPattern} alt={qp.quests?.title || "Quest"} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-display font-semibold truncate">{qp.quests?.title}</h4>
+                      <span className="flex items-center gap-1 text-xs font-semibold text-primary shrink-0"><Zap className="h-3 w-3" /> {qp.quests?.reward_xp}</span>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="secondary" className="text-[10px] capitalize">{qp.role.toLowerCase()}</Badge>
+                      <Badge variant="outline" className="text-[10px] capitalize">{qp.status.toLowerCase()}</Badge>
+                      {qp.quests?.company_id && <Badge className="bg-accent text-accent-foreground border-0 text-[10px]"><Building2 className="h-2.5 w-2.5 mr-0.5" />Client</Badge>}
+                    </div>
                   </div>
                 </Link>
               </motion.div>
@@ -100,6 +124,7 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        {/* ── Teams ── */}
         <TabsContent value="teams">
           {teamsList.length === 0 && <p className="text-muted-foreground">No teams yet. Join a guild, organization, or pod to see them here.</p>}
           <div className="grid gap-3 md:grid-cols-2">
@@ -112,17 +137,22 @@ export default function WorkHub() {
               const TypeIcon = isGuild ? Shield : isCompany ? Building2 : Users;
               const typeLabel = isGuild ? label("guild.label") : isCompany ? "Trad. Org" : label("pod.label");
               const role = isGuild ? item.role : isCompany ? item.role : item.role;
+              const imgSrc = isGuild ? item.guilds?.logo_url : isCompany ? item.company?.logo_url : item.pods?.image_url;
+              const fallback = isGuild ? guildPattern : isCompany ? companyPattern : podPattern;
               if (!name) return null;
               return (
                 <motion.div key={`${item._type}-${id}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <Link to={route} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                    <div className="flex items-center gap-2 mb-1">
-                      <TypeIcon className="h-4 w-4 text-primary" />
-                      <h4 className="font-display font-semibold">{name}</h4>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="secondary" className="text-[10px]">{typeLabel}</Badge>
-                      <Badge variant="outline" className="text-[10px] capitalize">{role?.toLowerCase()}</Badge>
+                  <Link to={route} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                    <Thumb src={imgSrc} fallback={fallback} alt={name} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <TypeIcon className="h-4 w-4 text-primary shrink-0" />
+                        <h4 className="font-display font-semibold truncate">{name}</h4>
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant="secondary" className="text-[10px]">{typeLabel}</Badge>
+                        <Badge variant="outline" className="text-[10px] capitalize">{role?.toLowerCase()}</Badge>
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
@@ -131,6 +161,7 @@ export default function WorkHub() {
           </div>
         </TabsContent>
 
+        {/* ── Services ── */}
         <TabsContent value="services">
           {servicesList.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -142,22 +173,26 @@ export default function WorkHub() {
           <div className="grid gap-3 md:grid-cols-2">
             {servicesList.map((svc: any, i: number) => (
               <motion.div key={svc.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Link to={`/services/${svc.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-display font-semibold">{svc.title}</h4>
-                    {svc.price_amount != null && (
-                      <Badge className="bg-primary/10 text-primary border-0 text-xs">
-                        {svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}
-                      </Badge>
-                    )}
+                <Link to={`/services/${svc.id}`} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
+                  <Thumb src={svc.image_url} fallback={servicePattern} alt={svc.title} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-display font-semibold truncate">{svc.title}</h4>
+                      {svc.price_amount != null && (
+                        <Badge className="bg-primary/10 text-primary border-0 text-xs shrink-0">
+                          {svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
                 </Link>
               </motion.div>
             ))}
           </div>
         </TabsContent>
 
+        {/* ── Drafts ── */}
         <TabsContent value="drafts">
           {totalDrafts === 0 && <p className="text-muted-foreground">No drafts.</p>}
           <div className="space-y-6">
@@ -167,12 +202,15 @@ export default function WorkHub() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.quests || []).map((q: any, i: number) => (
                     <motion.div key={q.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                      <Link to={`/quests/${q.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-display font-semibold">{q.title}</h4>
-                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                      <Link to={`/quests/${q.id}`} className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <Thumb src={q.cover_image_url} fallback={questPattern} alt={q.title} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                            <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 shrink-0">Draft</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{q.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{q.description}</p>
                       </Link>
                     </motion.div>
                   ))}
@@ -185,12 +223,15 @@ export default function WorkHub() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.guilds || []).map((g: any, i: number) => (
                     <motion.div key={g.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                      <Link to={`/guilds/${g.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-display font-semibold">{g.name}</h4>
-                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                      <Link to={`/guilds/${g.id}`} className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <Thumb src={g.logo_url} fallback={guildPattern} alt={g.name} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-display font-semibold truncate">{g.name}</h4>
+                            <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 shrink-0">Draft</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{g.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{g.description}</p>
                       </Link>
                     </motion.div>
                   ))}
@@ -203,12 +244,15 @@ export default function WorkHub() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.pods || []).map((p: any, i: number) => (
                     <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                      <Link to={`/pods/${p.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-display font-semibold">{p.name}</h4>
-                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                      <Link to={`/pods/${p.id}`} className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <Thumb src={p.image_url} fallback={podPattern} alt={p.name} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-display font-semibold truncate">{p.name}</h4>
+                            <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 shrink-0">Draft</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
                       </Link>
                     </motion.div>
                   ))}
@@ -221,12 +265,15 @@ export default function WorkHub() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.services || []).map((s: any, i: number) => (
                     <motion.div key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                      <Link to={`/services/${s.id}`} className="block rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-display font-semibold">{s.title}</h4>
-                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Draft</Badge>
+                      <Link to={`/services/${s.id}`} className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all">
+                        <Thumb src={s.image_url} fallback={servicePattern} alt={s.title} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-display font-semibold truncate">{s.title}</h4>
+                            <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 shrink-0">Draft</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{s.description}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{s.description}</p>
                       </Link>
                     </motion.div>
                   ))}
