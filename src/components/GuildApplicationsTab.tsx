@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { Link } from "react-router-dom";
 import { Check, X, Loader2, Eye, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -124,6 +125,7 @@ export function GuildApplicationsTab({ guildId, guildName, currentUserId }: Guil
       if (memberError && !memberError.message?.includes("duplicate")) {
         toast({ title: "Approved but failed to add member", description: memberError.message, variant: "destructive" });
       }
+      autoFollowEntity(app.applicant_user_id, "GUILD", guildId);
     }
 
     setActing(false);

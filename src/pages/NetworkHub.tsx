@@ -566,6 +566,7 @@ const FEED_FILTERS = [
   { key: "GUILD", label: "Guilds" },
   { key: "COMPANY", label: "Companies" },
   { key: "QUEST", label: "Quests" },
+  { key: "SERVICE", label: "Services" },
   { key: "POD", label: "Pods" },
   { key: "COURSE", label: "Courses" },
   { key: "EVENT", label: "Events" },

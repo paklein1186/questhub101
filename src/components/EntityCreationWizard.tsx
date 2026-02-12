@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -297,6 +298,7 @@ Respond ONLY in this exact JSON format, no markdown:
           .single();
         if (error) throw error;
         await supabase.from("company_members").insert({ company_id: newCompany.id, user_id: currentUser.id, role: "ADMIN" });
+        await autoFollowEntity(currentUser.id, "COMPANY", newCompany.id);
         if (selectedTopicIds.length > 0) {
           await supabase.from("company_topics").insert(
             selectedTopicIds.map(tid => ({ company_id: newCompany.id, topic_id: tid }))

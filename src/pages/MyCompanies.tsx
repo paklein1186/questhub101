@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, Plus, MapPin, Hash, Settings, ArrowLeft } from "lucide-react";
@@ -70,6 +71,7 @@ export default function MyCompanies({ bare }: { bare?: boolean }) {
     if (error) { toast({ title: "Failed to create organization", variant: "destructive" }); return; }
     // Add creator as admin member
     await supabase.from("company_members").insert({ company_id: newCompany.id, user_id: currentUser.id, role: "ADMIN" });
+    autoFollowEntity(currentUser.id, "COMPANY", newCompany.id);
     setCreateOpen(false);
     setName(""); setDescription(""); setSector(""); setSize(CompanySize.SME);
     setLogoUrl(undefined); setBannerUrl(undefined);

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { autoFollowEntity } from "@/hooks/useFollow";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
@@ -75,6 +76,8 @@ export function useCreateGuild() {
         .from("guild_members")
         .insert({ guild_id: guild.id, user_id: user.id, role: "ADMIN" as any });
       if (memErr) throw memErr;
+      // Auto-follow the created guild
+      await autoFollowEntity(user.id, "GUILD", guild.id);
       return guild;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["guilds"] }),
@@ -165,6 +168,7 @@ export function useCreatePod() {
         .from("pod_members")
         .insert({ pod_id: pod.id, user_id: user.id, role: "HOST" as any });
       if (memErr) throw memErr;
+      await autoFollowEntity(user.id, "POD", pod.id);
       return pod;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["pods"] }),
