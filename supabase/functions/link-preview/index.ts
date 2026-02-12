@@ -5,6 +5,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const BLOCKED_HOSTS = [
+  "localhost", "127.0.0.1", "0.0.0.0", "::1",
+  "169.254.169.254", // cloud metadata
+  "metadata.google.internal",
+];
+
+const BLOCKED_IP_RANGES = [
+  /^10\./, /^172\.(1[6-9]|2[0-9]|3[01])\./,
+  /^192\.168\./, /^0\./, /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,
+  /^fd[0-9a-f]{2}:/i, /^fe80:/i,
+];
+
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (BLOCKED_HOSTS.includes(h)) return true;
+  return BLOCKED_IP_RANGES.some((p) => p.test(h));
+}
+
 /** Extract Open Graph / meta info from a URL */
 async function fetchPreview(url: string) {
   const controller = new AbortController();
@@ -20,15 +38,15 @@ async function fetchPreview(url: string) {
 
     if (!res.ok) return { url, title: null, description: null, image: null, siteName: null };
 
-    const html = await res.text();
+    // Limit response size to 1MB
+    const text = await res.text();
+    const html = text.slice(0, 1_048_576);
 
     const getMetaContent = (property: string): string | null => {
-      // Try og: first, then twitter:, then generic name
       for (const attr of [`property="${property}"`, `name="${property}"`, `property="twitter:${property.replace("og:", "")}"`, `name="twitter:${property.replace("og:", "")}"`]) {
         const regex = new RegExp(`<meta[^>]+${attr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^>]+content="([^"]*)"`, "i");
         const match = html.match(regex);
         if (match?.[1]) return match[1];
-        // Also check content before property
         const regex2 = new RegExp(`<meta[^>]+content="([^"]*)"[^>]+${attr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, "i");
         const match2 = html.match(regex2);
         if (match2?.[1]) return match2[1];
@@ -66,10 +84,27 @@ serve(async (req) => {
     }
 
     // Validate URL
+    let parsedUrl: URL;
     try {
-      new URL(url);
+      parsedUrl = new URL(url);
     } catch {
       return new Response(JSON.stringify({ error: "Invalid URL" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SSRF protection: only allow http/https
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return new Response(JSON.stringify({ error: "Only HTTP/HTTPS URLs allowed" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SSRF protection: block private/internal IPs
+    if (isBlockedHost(parsedUrl.hostname)) {
+      return new Response(JSON.stringify({ error: "URL not allowed" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -80,8 +115,8 @@ serve(async (req) => {
     return new Response(JSON.stringify(preview), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Failed to fetch preview" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
