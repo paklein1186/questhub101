@@ -160,9 +160,9 @@ export function useProfileData(userId: string | undefined) {
     queryFn: async () => {
       const { data } = await supabase
         .from("quest_participants")
-        .select("id, role, status, quest_id, quests(id, title, status, cover_image_url)")
+        .select("id, role, status, quest_id, quests(id, title, status, cover_image_url, created_by_user_id)")
         .eq("user_id", userId!);
-      return (data ?? []).filter((qp: any) => qp.quests).map((qp: any) => ({
+      return (data ?? []).filter((qp: any) => qp.quests && qp.quests.created_by_user_id !== userId).map((qp: any) => ({
         id: qp.id,
         role: qp.role,
         status: qp.status,
