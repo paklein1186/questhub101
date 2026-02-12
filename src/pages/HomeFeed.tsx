@@ -364,7 +364,7 @@ export default function HomeFeed() {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.error("Voice input is not supported in this browser.");
+      toast.error("Voice input is not supported in this browser. Please use Chrome or Edge.");
       return;
     }
 
@@ -372,11 +372,12 @@ export default function HomeFeed() {
     recognitionRef.current = recognition;
     recognition.lang = navigator.language || "en-US";
     recognition.interimResults = true;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
     let finalTranscript = "";
 
     recognition.onstart = () => {
+      console.log("[STT] Recognition started");
       isListeningRef.current = true;
       setIsListening(true);
     };
@@ -395,6 +396,12 @@ export default function HomeFeed() {
     };
 
     recognition.onend = () => {
+      console.log("[STT] Recognition ended, wasListening:", isListeningRef.current);
+      if (isListeningRef.current && !finalTranscript.trim()) {
+        // Auto-restart if user hasn't spoken yet (browser timeout)
+        try { recognition.start(); } catch (_) { /* ignore */ }
+        return;
+      }
       isListeningRef.current = false;
       setIsListening(false);
       recognitionRef.current = null;
@@ -404,18 +411,29 @@ export default function HomeFeed() {
     };
 
     recognition.onerror = (event: any) => {
-      isListeningRef.current = false;
-      setIsListening(false);
-      recognitionRef.current = null;
-      if (event.error === "not-allowed") {
-        toast.error("Microphone permission denied. Please allow access in your browser settings.");
-      } else if (event.error !== "aborted" && event.error !== "no-speech") {
+      console.error("[STT] Error:", event.error);
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        isListeningRef.current = false;
+        setIsListening(false);
+        recognitionRef.current = null;
+        toast.error("Microphone permission denied. Please allow access in your browser settings, or open the app in a new tab.");
+      } else if (event.error === "no-speech") {
+        // Normal timeout, onend will auto-restart
+      } else if (event.error !== "aborted") {
+        isListeningRef.current = false;
+        setIsListening(false);
+        recognitionRef.current = null;
         toast.error("Could not capture audio. Please try again.");
       }
     };
 
     // CRITICAL: must be called synchronously from click handler
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e: any) {
+      console.error("[STT] Start failed:", e);
+      toast.error("Failed to start voice capture. Try opening the app in a new tab.");
+    }
   };
 
   // Cleanup on unmount
