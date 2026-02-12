@@ -44,6 +44,7 @@ import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -93,6 +94,7 @@ export default function GuildSettings() {
 
 function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any }) {
   const currentUser = useCurrentUser();
+  const { notifyGuildMemberAdded, notifyGuildRoleChanged } = useNotifications();
   const { toast } = useToast();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -253,6 +255,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
     });
     if (error) { toast({ title: "Failed to add member", variant: "destructive" }); return; }
     sendInviteNotification({ invitedUserId: selectedUserId, inviterName: currentUser.name, entityType: "guild", entityId: guildId!, entityName: guild?.name || "Guild" });
+    notifyGuildMemberAdded({ guildId: guildId!, userId: selectedUserId });
     setInviteOpen(false);
     refetchMembers();
     toast({ title: "Member added!" });
@@ -268,6 +271,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
     }
     const newRole = gm.role === "ADMIN" ? "MEMBER" : "ADMIN";
     await supabase.from("guild_members").update({ role: newRole as any }).eq("id", memberId);
+    notifyGuildRoleChanged({ guildId: guildId!, userId: gm.user_id, newRole });
     refetchMembers();
     toast({ title: `Role changed to ${newRole.toLowerCase()}` });
   };

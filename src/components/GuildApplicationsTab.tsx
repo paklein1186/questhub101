@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface ApplicationRow {
   id: string;
@@ -36,11 +37,13 @@ interface ApplicationRow {
 
 interface GuildApplicationsTabProps {
   guildId: string;
+  guildName?: string;
   currentUserId: string;
 }
 
-export function GuildApplicationsTab({ guildId, currentUserId }: GuildApplicationsTabProps) {
+export function GuildApplicationsTab({ guildId, guildName, currentUserId }: GuildApplicationsTabProps) {
   const { toast } = useToast();
+  const { notifyApplicationDecision, notifyGuildMemberAdded } = useNotifications();
   const [apps, setApps] = useState<ApplicationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("PENDING");
@@ -127,6 +130,10 @@ export function GuildApplicationsTab({ guildId, currentUserId }: GuildApplicatio
     setSelectedApp(null);
     setAdminNote("");
     toast({ title: action === "APPROVED" ? "Application approved" : "Application rejected" });
+    notifyApplicationDecision({ entityType: "guild", entityId: guildId, entityName: guildName || "guild", applicantUserId: app.applicant_user_id, decision: action });
+    if (action === "APPROVED") {
+      notifyGuildMemberAdded({ guildId, userId: app.applicant_user_id });
+    }
     fetchApps();
   };
 

@@ -154,7 +154,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
 
   const handleUpvote = () => {
     toggleUpvote.mutate(
-      { postId: post.id, hasUpvoted },
+      { postId: post.id, hasUpvoted, postAuthorId: post.author_user_id },
       { onError: () => toast.error("Failed to update vote") }
     );
   };

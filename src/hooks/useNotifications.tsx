@@ -42,6 +42,7 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.QUEST_COMMENT:
     case NotificationType.UPVOTE:
     case NotificationType.QUEST_UPVOTE:
+    case NotificationType.POST_UPVOTED:
       return "notifyOnComments";
     case NotificationType.BOOKING:
     case NotificationType.BOOKING_REQUESTED:
@@ -57,6 +58,10 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.GUILD_ROLE_CHANGED:
     case NotificationType.GUILD_QUEST_CREATED:
     case NotificationType.INVITE:
+    case NotificationType.APPLICATION_APPROVED:
+    case NotificationType.APPLICATION_REJECTED:
+    case NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST:
+    case NotificationType.UNIT_NEW_POD_JOIN_REQUEST:
       return "notifyOnGuildActivity";
     case NotificationType.FOLLOWER_NEW:
     case NotificationType.FOLLOWER_ACTIVITY:
@@ -206,6 +211,9 @@ interface NotificationStore {
   notifyNewFollower: (params: { followerId: string; targetUserId: string }) => void;
   notifyXpGained: (params: { userId: string; amount: number; reason: string }) => void;
   notifyAchievement: (params: { userId: string; achievementTitle: string }) => void;
+  notifyPostUpvote: (params: { postId: string; postAuthorId: string; upvoterName: string }) => void;
+  notifyJoinRequest: (params: { entityType: string; entityId: string; entityName: string; applicantName: string }) => void;
+  notifyApplicationDecision: (params: { entityType: string; entityId: string; entityName: string; applicantUserId: string; decision: "APPROVED" | "REJECTED" }) => void;
 }
 
 const NotificationContext = createContext<NotificationStore>(null!);
@@ -659,6 +667,66 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [addNotification]);
 
+  // ── Trigger: Post upvoted — notify post author ──
+
+  const notifyPostUpvote = useCallback(async ({ postId, postAuthorId, upvoterName }: any) => {
+    if (postAuthorId === userId) return;
+    await addNotification({
+      userId: postAuthorId, type: NotificationType.POST_UPVOTED,
+      title: "Your post was upvoted", body: `${upvoterName || "Someone"} upvoted your post`,
+      relatedEntityType: "FEED_POST", relatedEntityId: postId,
+      deepLinkUrl: "/",
+    });
+  }, [userId, addNotification]);
+
+  // ── Trigger: Join request — notify entity admins ──
+
+  const notifyJoinRequest = useCallback(async ({ entityType, entityId, entityName, applicantName }: any) => {
+    const adminIds: string[] = [];
+    try {
+      if (entityType === "guild") {
+        const { data } = await supabase.from("guild_members").select("user_id").eq("guild_id", entityId).eq("role", "ADMIN");
+        (data ?? []).forEach((r: any) => adminIds.push(r.user_id));
+      } else if (entityType === "company") {
+        const { data } = await supabase.from("company_members").select("user_id").eq("company_id", entityId).in("role", ["admin", "owner", "ADMIN"]);
+        (data ?? []).forEach((r: any) => adminIds.push(r.user_id));
+      } else if (entityType === "pod") {
+        const { data } = await supabase.from("pod_members").select("user_id").eq("pod_id", entityId).eq("role", "HOST");
+        (data ?? []).forEach((r: any) => adminIds.push(r.user_id));
+      }
+    } catch { /* silent */ }
+
+    const notifType = entityType === "pod" ? NotificationType.UNIT_NEW_POD_JOIN_REQUEST : NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST;
+    const entityTypeName = entityType === "company" ? "organization" : entityType;
+    const deepLink = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}`;
+
+    for (const adminId of adminIds) {
+      if (adminId === userId) continue;
+      await addNotification({
+        userId: adminId, type: notifType,
+        title: `New join request`, body: `${applicantName} wants to join ${entityName}`,
+        relatedEntityType: entityType.toUpperCase(), relatedEntityId: entityId,
+        deepLinkUrl: deepLink,
+      });
+    }
+  }, [userId, addNotification]);
+
+  // ── Trigger: Application decision — notify applicant ──
+
+  const notifyApplicationDecision = useCallback(async ({ entityType, entityId, entityName, applicantUserId, decision }: any) => {
+    if (applicantUserId === userId) return;
+    const approved = decision === "APPROVED";
+    const deepLink = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}`;
+    await addNotification({
+      userId: applicantUserId,
+      type: approved ? NotificationType.APPLICATION_APPROVED : NotificationType.APPLICATION_REJECTED,
+      title: approved ? "Application approved!" : "Application not accepted",
+      body: approved ? `Your application to join ${entityName} was approved` : `Your application to join ${entityName} was not accepted`,
+      relatedEntityType: entityType.toUpperCase(), relatedEntityId: entityId,
+      deepLinkUrl: deepLink,
+    });
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
@@ -667,6 +735,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       notifyGuildMemberAdded, notifyGuildRoleChanged, notifyGuildQuestCreated,
       notifyPodInvite, notifyPodMessage, notifyNewFollower,
       notifyXpGained, notifyAchievement,
+      notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
     }}>
       {children}
     </NotificationContext.Provider>

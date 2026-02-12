@@ -8,15 +8,18 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type EntityType = "guild" | "pod" | "company";
 
 interface EntityJoinButtonProps {
   entityType: EntityType;
   entityId: string;
-  joinPolicy: string; // OPEN | APPROVAL_REQUIRED | INVITE_ONLY
+  entityName?: string;
+  joinPolicy: string;
   applicationQuestions: string[];
   currentUserId: string;
+  currentUserName?: string;
   onJoined?: () => void;
 }
 
@@ -35,12 +38,15 @@ const LABELS = {
 export function EntityJoinButton({
   entityType,
   entityId,
+  entityName,
   joinPolicy,
   applicationQuestions,
   currentUserId,
+  currentUserName,
   onJoined,
 }: EntityJoinButtonProps) {
   const { toast } = useToast();
+  const { notifyJoinRequest } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [pendingApp, setPendingApp] = useState(false);
   const [checkingApp, setCheckingApp] = useState(true);
@@ -105,6 +111,8 @@ export function EntityJoinButton({
       setPendingApp(true);
       setApplyOpen(false);
       toast({ title: "Application submitted!", description: "Admins will review it." });
+      // Notify admins about the join request
+      notifyJoinRequest({ entityType, entityId, entityName: entityName || label, applicantName: currentUserName || "Someone" });
     }
   };
 
