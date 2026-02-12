@@ -193,16 +193,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const unified: UnifiedTask[] = [];
 
   for (const t of personalTasks) {
-    if (t.status !== "DONE" || !t.converted_to_quest_id) {
-      unified.push({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        source: "personal",
-        convertedToQuestId: t.converted_to_quest_id,
-        convertedToSubtaskId: t.converted_to_subtask_id,
-      });
-    }
+    unified.push({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      source: "personal",
+      convertedToQuestId: t.converted_to_quest_id,
+      convertedToSubtaskId: t.converted_to_subtask_id,
+    });
   }
 
   for (const q of myQuests) {
@@ -317,7 +315,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
     await supabase.from("personal_tasks" as any).update({
       converted_to_quest_id: (data as any).id,
-      status: "DONE",
     } as any).eq("id", pendingConvertTask.id);
 
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
@@ -340,7 +337,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     if (error) { toast({ title: "Failed to create subtask", variant: "destructive" }); return; }
     await supabase.from("personal_tasks" as any).update({
       converted_to_subtask_id: (data as any).id,
-      status: "DONE",
     } as any).eq("id", task.id);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
@@ -427,10 +423,16 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               {filtered.map((task) => (
                 <tr key={`${task.source}-${task.id}`} className="border-t border-border group hover:bg-accent/30 transition-colors">
                   <td className="px-3 py-2.5">
-                    {task.source === "personal" && (
+                    {task.source === "personal" && !task.convertedToQuestId && !task.convertedToSubtaskId && (
                       <Checkbox
                         checked={task.status === "DONE"}
                         onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "DONE" : "TODO")}
+                      />
+                    )}
+                    {task.source === "personal" && (task.convertedToQuestId || task.convertedToSubtaskId) && (
+                      <Checkbox
+                        checked={task.status === "DONE"}
+                        onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "DONE" : "IN_PROGRESS")}
                       />
                     )}
                     {task.source === "subtask" && (
@@ -444,7 +446,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     <span className={cn(
                       "text-sm",
                       task.status === "DONE" && "line-through text-muted-foreground",
-                      task.convertedToQuestId && "text-muted-foreground"
                     )}>
                       {task.title}
                     </span>
@@ -461,12 +462,30 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     </Badge>
                   </td>
                   <td className="px-3 py-2.5">
-                    <Badge className={cn("text-[10px]", STATUS_COLORS[task.status] || STATUS_COLORS.TODO)}>
-                      {task.status?.replace("_", " ")}
-                    </Badge>
+                    {task.source === "personal" && (task.convertedToQuestId || task.convertedToSubtaskId) ? (
+                      <Select
+                        value={task.status}
+                        onValueChange={(v) => updateTaskStatus(task.id, v)}
+                      >
+                        <SelectTrigger className="h-6 w-[110px] text-[10px] px-2 py-0">
+                          <Badge className={cn("text-[10px]", STATUS_COLORS[task.status] || STATUS_COLORS.TODO)}>
+                            {task.status?.replace("_", " ")}
+                          </Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="TODO">TODO</SelectItem>
+                          <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
+                          <SelectItem value="DONE">DONE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge className={cn("text-[10px]", STATUS_COLORS[task.status] || STATUS_COLORS.TODO)}>
+                        {task.status?.replace("_", " ")}
+                      </Badge>
+                    )}
                   </td>
                   <td className="px-3 py-2.5">
-                    {task.source === "personal" && !task.convertedToQuestId && !task.convertedToSubtaskId && (
+                    {task.source === "personal" && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
