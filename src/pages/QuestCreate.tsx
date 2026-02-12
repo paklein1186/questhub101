@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -70,6 +70,39 @@ export default function QuestCreate() {
     },
   });
 
+  // Auto-populate topics and territories from the parent unit
+  const { data: unitTopics } = useQuery({
+    queryKey: ["unit-topics-for-quest", guildId, companyId],
+    enabled: !!guildId || !!companyId,
+    queryFn: async () => {
+      if (guildId) {
+        const { data } = await supabase.from("guild_topics").select("topic_id").eq("guild_id", guildId);
+        return data?.map(r => r.topic_id) ?? [];
+      }
+      if (companyId) {
+        const { data } = await supabase.from("company_topics").select("topic_id").eq("company_id", companyId);
+        return data?.map(r => r.topic_id) ?? [];
+      }
+      return [];
+    },
+  });
+
+  const { data: unitTerritories } = useQuery({
+    queryKey: ["unit-territories-for-quest", guildId, companyId],
+    enabled: !!guildId || !!companyId,
+    queryFn: async () => {
+      if (guildId) {
+        const { data } = await supabase.from("guild_territories").select("territory_id").eq("guild_id", guildId);
+        return data?.map(r => r.territory_id) ?? [];
+      }
+      if (companyId) {
+        const { data } = await supabase.from("company_territories").select("territory_id").eq("company_id", companyId);
+        return data?.map(r => r.territory_id) ?? [];
+      }
+      return [];
+    },
+  });
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [rewardXp, setRewardXp] = useState("100");
@@ -102,6 +135,19 @@ export default function QuestCreate() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
   const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean }[]>([]);
+
+  // Pre-populate topics & territories from the parent unit
+  useEffect(() => {
+    if (unitTopics && unitTopics.length > 0) {
+      setSelectedTopics(prev => [...new Set([...prev, ...unitTopics])]);
+    }
+  }, [unitTopics]);
+
+  useEffect(() => {
+    if (unitTerritories && unitTerritories.length > 0) {
+      setSelectedTerritories(prev => [...new Set([...prev, ...unitTerritories])]);
+    }
+  }, [unitTerritories]);
 
   const contextLabel = guild?.name ?? company?.name ?? "Personal";
 
