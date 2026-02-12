@@ -123,7 +123,26 @@ function sanitizeRoute(route: string | undefined, actionType: string): string {
     .replace(/^\/home\//, "/")
     .replace(/tab=pods/, "tab=entities")
     .replace(/tab=guilds(?!-)/, "tab=entities")
-    .replace(/tab=companies/, "tab=entities");
+    .replace(/tab=companies/, "tab=entities")
+    // Fix profile routes: /profile/{id} → /users/{id}
+    .replace(/^\/profile\/(?!edit)([\w-]+)/, "/users/$1")
+    // Fix wall routes on entities: append tab=wall as query param if "wall" is a path segment
+    .replace(/^(\/guilds\/[\w-]+)\/wall\b/, "$1?tab=wall")
+    .replace(/^(\/quests\/[\w-]+)\/wall\b/, "$1?tab=wall")
+    .replace(/^(\/companies\/[\w-]+)\/wall\b/, "$1?tab=wall")
+    .replace(/^(\/events\/[\w-]+)\/wall\b/, "$1?tab=wall")
+    .replace(/^(\/pods\/[\w-]+)\/wall\b/, "$1?tab=wall")
+    // Fix /user/{id} → /users/{id}
+    .replace(/^\/user\/([\w-]+)/, "/users/$1")
+    // Fix /quest/{id} → /quests/{id} etc.
+    .replace(/^\/quest\/([\w-]+)/, "/quests/$1")
+    .replace(/^\/guild\/([\w-]+)/, "/guilds/$1")
+    .replace(/^\/pod\/([\w-]+)/, "/pods/$1")
+    .replace(/^\/company\/([\w-]+)/, "/companies/$1")
+    .replace(/^\/event\/([\w-]+)/, "/events/$1")
+    .replace(/^\/service\/([\w-]+)/, "/services/$1")
+    .replace(/^\/course\/([\w-]+)/, "/courses/$1")
+    .replace(/^\/territory\/([\w-]+)/, "/territories/$1");
 
   // Check the route starts with a valid prefix
   const pathname = cleaned.split("?")[0];
