@@ -387,10 +387,26 @@ export function useServicesForGuild(guildId: string | undefined) {
         return false;
       });
 
-      // 7. Deduplicate by id
+      // 7. Fetch profile names for member services
+      const uniqueProviderIds = [...new Set(matchingMemberServices.map((s) => s.provider_user_id).filter(Boolean))];
+      const profileMap = new Map<string, string>();
+      if (uniqueProviderIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name")
+          .in("user_id", uniqueProviderIds as string[]);
+        for (const p of profiles ?? []) {
+          if (p.name) profileMap.set(p.user_id, p.name);
+        }
+      }
+
+      // 8. Deduplicate by id and attach provider name
       const ownedIds = new Set((guildOwned ?? []).map((s) => s.id));
-      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id));
-      return [...(guildOwned ?? []), ...extra];
+      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id)).map((s) => ({
+        ...s,
+        _provider_name: s.provider_user_id ? profileMap.get(s.provider_user_id) ?? null : null,
+      }));
+      return [...(guildOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null })), ...extra];
     },
     enabled: !!guildId,
   });

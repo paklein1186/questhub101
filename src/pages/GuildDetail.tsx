@@ -417,6 +417,7 @@ export default function GuildDetail() {
                   <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{svc.title}</h4>
                     <div className="flex items-center gap-2">{svc.duration_minutes && <span className="text-xs text-muted-foreground">{svc.duration_minutes} min</span>}{svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}</Badge>}</div>
                   </div>
+                  {svc._provider_name && <p className="text-xs text-muted-foreground mt-0.5">by {svc._provider_name}</p>}
                   <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
                   {svc.is_draft && <Badge variant="outline" className="mt-1 text-[10px]">Draft</Badge>}
                 </div>
