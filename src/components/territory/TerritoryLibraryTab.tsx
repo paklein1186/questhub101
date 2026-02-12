@@ -206,7 +206,7 @@ function ExcerptCard({
         </div>
       </div>
 
-      {/* Synthesis content as key points */}
+      {/* Synthesis content rendered as markdown */}
       <div className="px-5 pb-3">
         {hasSynthesis && (
           <div className="flex items-center gap-1.5 mb-2">
@@ -216,31 +216,20 @@ function ExcerptCard({
           </div>
         )}
 
-        {hasMultiplePoints ? (
-          <ul className="space-y-1.5">
-            {keyPoints.map((point, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/85">
-                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary/40 shrink-0" />
-                <span>{point}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line">
-            {displayText}
-          </p>
-        )}
+        <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed prose-headings:text-sm prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1 prose-p:text-foreground/85 prose-li:text-foreground/85 prose-strong:text-foreground/90 prose-ul:my-1 prose-ol:my-1">
+          <ReactMarkdown>{displayText || ""}</ReactMarkdown>
+        </div>
       </div>
 
-      {/* Expandable source / full prompt */}
-      {hasSource && (
+      {/* Full source / original message */}
+      {(hasSource || (hasSynthesis && excerpt.text && excerpt.text !== excerpt.synthesis)) && (
         <div className="px-5 pb-3">
           <button
             onClick={() => setShowSource(!showSource)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+            className="flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary font-medium transition-colors py-1"
           >
             <MessageSquare className="h-3 w-3" />
-            {showSource ? "Hide full message" : "View full message"}
+            {showSource ? "Hide full source" : "Read full source"}
             {showSource ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </button>
           <AnimatePresence>
@@ -251,10 +240,10 @@ function ExcerptCard({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="mt-1.5 rounded-lg bg-muted/40 border border-border/60 p-3">
-                  <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
-                    {excerpt.source_prompt}
-                  </p>
+                <div className="mt-1.5 rounded-lg bg-muted/40 border border-border/60 p-4">
+                  <div className="prose prose-xs dark:prose-invert max-w-none text-xs leading-relaxed prose-headings:text-xs prose-headings:font-semibold prose-p:text-muted-foreground prose-li:text-muted-foreground">
+                    <ReactMarkdown>{excerpt.source_prompt || excerpt.text || ""}</ReactMarkdown>
+                  </div>
                 </div>
               </motion.div>
             )}
