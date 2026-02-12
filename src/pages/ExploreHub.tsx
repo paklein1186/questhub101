@@ -36,8 +36,11 @@ export default function ExploreHub() {
   const [tab, setTab] = useState(initialTab);
   const [entitySub, setEntitySub] = useState<EntitySub>(initialSub);
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const [guildCreateOpen, setGuildCreateOpen] = useState(false);
+  const [podCreateOpen, setPodCreateOpen] = useState(false);
   const entityHf = useHouseFilter();
   const currentUser = useCurrentUser();
+  const navigate = useNavigate();
   const { label } = usePersona();
 
   const handleTabChange = (value: string) => {
@@ -103,23 +106,23 @@ export default function ExploreHub() {
               <DialogContent className="sm:max-w-md">
                 <DialogHeader><DialogTitle>What would you like to create?</DialogTitle></DialogHeader>
                 <div className="space-y-2 mt-2">
-                  <Button variant="outline" className="w-full justify-between" asChild>
-                    <Link to="/guilds/new">
-                      <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> {label("guild.label")}</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
+                  <Button variant="outline" className="w-full justify-between" onClick={() => {
+                    setEntitySub("guilds");
+                    setGuildCreateOpen(true);
+                  }}>
+                    <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> {label("guild.label")}</span>
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" className="w-full justify-between" asChild>
-                    <Link to="/pods/new">
-                      <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> {label("pod.label")}</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
+                  <Button variant="outline" className="w-full justify-between" onClick={() => {
+                    setEntitySub("pods");
+                    setPodCreateOpen(true);
+                  }}>
+                    <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> {label("pod.label")}</span>
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" className="w-full justify-between" asChild>
-                    <Link to="/companies/info">
-                      <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {label("company.label")}</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
+                  <Button variant="outline" className="w-full justify-between" onClick={() => navigate("/companies/info")}>
+                    <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {label("company.label")}</span>
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </DialogContent>
@@ -153,13 +156,13 @@ export default function ExploreHub() {
           {(entitySub === "all" || entitySub === "guilds") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
               {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("guild.label")}</h3>}
-              <GuildsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
+              <GuildsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} externalCreateOpen={guildCreateOpen} onExternalCreateOpenChange={setGuildCreateOpen} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "pods") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
               {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("pod.label")}</h3>}
-              <PodsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
+              <PodsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} externalCreateOpen={podCreateOpen} onExternalCreateOpenChange={setPodCreateOpen} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "companies") && (
