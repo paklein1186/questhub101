@@ -327,7 +327,7 @@ export default function LandingPage() {
             <Button size="lg" asChild className="gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
               <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="rounded-full hover:scale-105 transition-transform">
               <Link to="/explore">Explore the platform</Link>
             </Button>
           </div>
