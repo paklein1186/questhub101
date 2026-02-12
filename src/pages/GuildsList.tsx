@@ -181,7 +181,8 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
                     <p className="text-sm text-muted-foreground mb-3 italic">Log in to see details</p>
                   )}
                   <div className="flex flex-wrap gap-1.5 mb-3">
-                    {gTopics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+                    {gTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs">{t.name}</Badge>)}
+                    {gTopics.length > 5 && <Badge variant="secondary" className="text-xs text-muted-foreground">+{gTopics.length - 5}</Badge>}
                     {gTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">

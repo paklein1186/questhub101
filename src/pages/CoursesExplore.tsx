@@ -102,7 +102,8 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
                   )}
                   {cTopics.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {cTopics.slice(0, 3).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]">{t.name}</Badge>)}
+                      {cTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]">{t.name}</Badge>)}
+                      {cTopics.length > 5 && <Badge variant="secondary" className="text-[10px] text-muted-foreground">+{cTopics.length - 5}</Badge>}
                     </div>
                   )}
                 </div>
