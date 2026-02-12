@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CREDIT_COSTS } from "@/lib/xpCreditsConfig";
+import { CREDIT_COSTS, GRACE_PERIOD_DAYS } from "@/lib/xpCreditsConfig";
 
 // Credit costs for exceeding plan limits
 export const EXTRA_QUEST_CREDIT_COST = CREDIT_COSTS.EXTRA_QUEST_CREATION;
@@ -69,6 +69,8 @@ export function usePlanLimits() {
   const [guildCount, setGuildCount] = useState(0);
   const [podCount, setPodCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [inGracePeriod, setInGracePeriod] = useState(false);
+  const [gracePeriodDaysLeft, setGracePeriodDaysLeft] = useState(0);
 
   const fetchData = useCallback(async () => {
     if (!userId) {
@@ -79,7 +81,7 @@ export function usePlanLimits() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("xp, current_plan_code, xp_level, credits_balance")
+        .select("xp, current_plan_code, xp_level, credits_balance, created_at")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -87,6 +89,15 @@ export function usePlanLimits() {
         setUserXp(profile.xp ?? 0);
         setUserCredits((profile as any).credits_balance ?? 0);
         setUserLevel((profile as any).xp_level ?? 1);
+
+        // Grace period: check if account is < GRACE_PERIOD_DAYS old
+        const createdAt = new Date(profile.created_at);
+        const now = new Date();
+        const diffMs = now.getTime() - createdAt.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        const isGrace = diffDays < GRACE_PERIOD_DAYS;
+        setInGracePeriod(isGrace);
+        setGracePeriodDaysLeft(isGrace ? Math.ceil(GRACE_PERIOD_DAYS - diffDays) : 0);
       }
 
       // Fetch current plan via user_subscriptions
@@ -141,14 +152,15 @@ export function usePlanLimits() {
 
   // Derived state
   const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
-  const questLimitReached = freeQuestsRemaining === 0;
-  const canAffordExtraQuest = userCredits >= EXTRA_QUEST_CREDIT_COST;
+  // During grace period, limits are not enforced (no credit cost)
+  const questLimitReached = inGracePeriod ? false : freeQuestsRemaining === 0;
+  const canAffordExtraQuest = inGracePeriod || userCredits >= EXTRA_QUEST_CREDIT_COST;
 
-  const guildLimitReached = plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships;
-  const canAffordExtraGuild = userCredits >= EXTRA_GUILD_CREDIT_COST;
+  const guildLimitReached = inGracePeriod ? false : (plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships);
+  const canAffordExtraGuild = inGracePeriod || userCredits >= EXTRA_GUILD_CREDIT_COST;
 
-  const podLimitReached = plan.maxPods !== null && podCount >= plan.maxPods;
-  const canAffordExtraPod = userCredits >= EXTRA_POD_CREDIT_COST;
+  const podLimitReached = inGracePeriod ? false : (plan.maxPods !== null && podCount >= plan.maxPods);
+  const canAffordExtraPod = inGracePeriod || userCredits >= EXTRA_POD_CREDIT_COST;
 
   // Increment weekly usage after quest creation
   const recordQuestCreation = useCallback(async () => {
@@ -174,9 +186,12 @@ export function usePlanLimits() {
     setWeeklyQuestsUsed((prev) => prev + 1);
   }, [userId]);
 
-  // Spend Credits
+  // Spend Credits (skipped during grace period)
   const spendCredits = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
     if (!userId) return false;
+
+    // Grace period: no credits consumed
+    if (inGracePeriod) return true;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -203,7 +218,7 @@ export function usePlanLimits() {
 
     setUserCredits(balance - amount);
     return true;
-  }, [userId]);
+  }, [userId, inGracePeriod]);
 
   // Legacy alias
   const spendXp = spendCredits;
@@ -214,6 +229,9 @@ export function usePlanLimits() {
     userXp,
     userCredits,
     userLevel,
+    // Grace period
+    inGracePeriod,
+    gracePeriodDaysLeft,
     // Quest limits
     freeQuestsRemaining,
     questLimitReached,

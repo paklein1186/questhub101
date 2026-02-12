@@ -156,6 +156,10 @@ export type PlanCode = (typeof PLAN_CODES)[keyof typeof PLAN_CODES];
 
 export const PLAN_ORDER: PlanCode[] = ["FREE", "CREATOR", "CATALYST"];
 
+// ─── Grace Period ───────────────────────────────────────────
+/** Number of days new users can play without spending credits */
+export const GRACE_PERIOD_DAYS = 30;
+
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
   moneyDisclaimer: "Mission budgets are in euros. Credits are not used for compensation.",

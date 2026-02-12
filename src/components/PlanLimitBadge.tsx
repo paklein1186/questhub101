@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Zap, Gift } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface PlanLimitBadgeProps {
@@ -12,9 +12,21 @@ interface PlanLimitBadgeProps {
   limitReached: boolean;
   /** compact mode for inline display */
   compact?: boolean;
+  /** Is the user in the grace period? */
+  inGracePeriod?: boolean;
+  /** Days left in the grace period */
+  gracePeriodDaysLeft?: number;
 }
 
-export function PlanLimitBadge({ freeRemaining = 0, itemLabel, xpCost, limitReached, compact }: PlanLimitBadgeProps) {
+export function PlanLimitBadge({ freeRemaining = 0, itemLabel, xpCost, limitReached, compact, inGracePeriod, gracePeriodDaysLeft }: PlanLimitBadgeProps) {
+  if (inGracePeriod) {
+    return (
+      <Badge variant="secondary" className="text-[10px] gap-1 border-primary/30 text-primary">
+        <Gift className="h-3 w-3" /> Free trial — {gracePeriodDaysLeft} day{gracePeriodDaysLeft !== 1 ? "s" : ""} left
+      </Badge>
+    );
+  }
+
   if (!limitReached) {
     if (freeRemaining <= 2 && freeRemaining > 0) {
       return (
