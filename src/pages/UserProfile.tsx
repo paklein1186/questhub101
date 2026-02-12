@@ -277,11 +277,11 @@ export default function UserProfile() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6 flex-wrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="wall">Wall</TabsTrigger>
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
           <TabsTrigger value="entities">Entities</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
-          <TabsTrigger value="wall">Wall</TabsTrigger>
         </TabsList>
 
         {/* ─── Overview ─── */}
