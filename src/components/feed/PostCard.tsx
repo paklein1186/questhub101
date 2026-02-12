@@ -6,6 +6,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeletePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
+import { renderMentions } from "@/components/MentionTextarea";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
@@ -199,7 +200,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
       </div>
 
       {/* Content */}
-      {post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>}
+      {post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMentions(post.content)}</p>}
 
       {/* Attachments */}
       {images.length > 0 && <ImageGrid images={images} />}
