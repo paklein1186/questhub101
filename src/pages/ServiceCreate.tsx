@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 
@@ -30,7 +31,13 @@ export default function ServiceCreate() {
   const [isDraft, setIsDraft] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
+  const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+
+  // Fetch topics and territories
+  const { data: topics = [] } = useTopics();
+  const { data: territories = [] } = useTerritories();
 
   // Load existing service for editing
   const { data: existingService, isLoading: loadingService } = useQuery({
@@ -39,7 +46,7 @@ export default function ServiceCreate() {
       if (!editId) return null;
       const { data, error } = await supabase
         .from("services")
-        .select("*")
+        .select("*, service_topics(topic_id), service_territories(territory_id)")
         .eq("id", editId)
         .single();
       if (error) throw error;
@@ -60,6 +67,10 @@ export default function ServiceCreate() {
       setIsDraft(existingService.is_draft || false);
       setIsActive(existingService.is_active ?? true);
       setImageUrl(existingService.image_url || undefined);
+      const topicIds = (existingService as any).service_topics?.map((st: any) => st.topic_id) || [];
+      const territoryIds = (existingService as any).service_territories?.map((st: any) => st.territory_id) || [];
+      setSelectedTopicIds(topicIds);
+      setSelectedTerritoryIds(territoryIds);
       setLoaded(true);
     }
   }, [existingService, loaded]);
@@ -82,6 +93,20 @@ export default function ServiceCreate() {
           image_url: imageUrl || null,
         } as any).eq("id", editId);
         if (error) throw error;
+
+        // Update topics and territories
+        await supabase.from("service_topics").delete().eq("service_id", editId);
+        await supabase.from("service_territories").delete().eq("service_id", editId);
+        if (selectedTopicIds.length > 0) {
+          await supabase.from("service_topics").insert(
+            selectedTopicIds.map(tid => ({ service_id: editId, topic_id: tid }))
+          );
+        }
+        if (selectedTerritoryIds.length > 0) {
+          await supabase.from("service_territories").insert(
+            selectedTerritoryIds.map(tid => ({ service_id: editId, territory_id: tid }))
+          );
+        }
       } else {
         // CREATE new service
         const { data, error } = await supabase.from("services").insert({
@@ -112,6 +137,20 @@ export default function ServiceCreate() {
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris",
         }));
         await supabase.from("availability_rules").insert(defaultRules);
+
+        // Add topics
+        if (selectedTopicIds.length > 0) {
+          await supabase.from("service_topics").insert(
+            selectedTopicIds.map(tid => ({ service_id: serviceId, topic_id: tid }))
+          );
+        }
+
+        // Add territories
+        if (selectedTerritoryIds.length > 0) {
+          await supabase.from("service_territories").insert(
+            selectedTerritoryIds.map(tid => ({ service_id: serviceId, territory_id: tid }))
+          );
+        }
 
         // Auto-follow
         if (data) await autoFollowEntity(user.id, "SERVICE", serviceId);
@@ -174,6 +213,53 @@ export default function ServiceCreate() {
             </SelectContent>
           </Select>
         </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block">Topics</label>
+          <div className="flex flex-wrap gap-2">
+            {topics.map(topic => {
+              const isSelected = selectedTopicIds.includes(topic.id);
+              return (
+                <button
+                  key={topic.id}
+                  onClick={() => setSelectedTopicIds(p => isSelected ? p.filter(id => id !== topic.id) : [...p, topic.id])}
+                  className={`px-3 py-1.5 rounded-full border text-sm transition-all flex items-center gap-2 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:border-foreground/50"
+                  }`}
+                >
+                  {topic.name}
+                  {isSelected && <Check className="h-3.5 w-3.5" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block">Territories</label>
+          <div className="flex flex-wrap gap-2">
+            {territories.map(territory => {
+              const isSelected = selectedTerritoryIds.includes(territory.id);
+              return (
+                <button
+                  key={territory.id}
+                  onClick={() => setSelectedTerritoryIds(p => isSelected ? p.filter(id => id !== territory.id) : [...p, territory.id])}
+                  className={`px-3 py-1.5 rounded-full border text-sm transition-all flex items-center gap-2 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border hover:border-foreground/50"
+                  }`}
+                >
+                  {territory.name}
+                  {isSelected && <Check className="h-3.5 w-3.5" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {isEditMode && (
           <div className="space-y-3 rounded-lg border p-4">
             <div className="flex items-center justify-between">
