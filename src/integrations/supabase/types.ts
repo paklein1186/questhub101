@@ -2414,6 +2414,7 @@ export type Database = {
           last_milestone_popup_at: string | null
           last_xp_recalculated_at: string | null
           linkedin_url: string | null
+          location: string | null
           milestone_popups_enabled: boolean
           name: string
           persona_confidence: number | null
@@ -2450,6 +2451,7 @@ export type Database = {
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
+          location?: string | null
           milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null
@@ -2486,6 +2488,7 @@ export type Database = {
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
           linkedin_url?: string | null
+          location?: string | null
           milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null

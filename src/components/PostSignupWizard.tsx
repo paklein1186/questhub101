@@ -33,6 +33,26 @@ export function PostSignupWizard() {
   const [location, setLocation] = useState("");
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Pre-fill from existing profile data
+  useEffect(() => {
+    if (!user || prefilled) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url, headline, bio, location")
+        .eq("user_id", user.id)
+        .single();
+      if (data) {
+        if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data.headline) setHeadline(data.headline);
+        if ((data as any).bio) setBio((data as any).bio);
+        if ((data as any).location) setLocation((data as any).location);
+      }
+      setPrefilled(true);
+    })();
+  }, [user, prefilled]);
 
   // Check for post-signup context
   useEffect(() => {
@@ -65,19 +85,21 @@ export function PostSignupWizard() {
 
   const handleSave = async () => {
     setSaving(true);
-    const updates: Record<string, string> = {};
-    if (avatarUrl) updates.avatar_url = avatarUrl;
+    const updates: Record<string, string | null> = {};
+    updates.avatar_url = avatarUrl || null;
     if (headline.trim()) updates.headline = headline.trim();
     if (location.trim()) updates.location = location.trim();
     if (bio.trim()) updates.bio = bio.trim();
 
-    if (Object.keys(updates).length > 0) {
+    const hasChanges = avatarUrl || headline.trim() || location.trim() || bio.trim();
+    if (hasChanges) {
       const { error } = await supabase
         .from("profiles")
-        .update(updates)
+        .update(updates as any)
         .eq("user_id", user.id);
 
       if (error) {
+        console.error("Profile save error:", error);
         toast({ title: "Could not save profile", variant: "destructive" });
         setSaving(false);
         return;
