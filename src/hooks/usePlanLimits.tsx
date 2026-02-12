@@ -186,9 +186,12 @@ export function usePlanLimits() {
     setWeeklyQuestsUsed((prev) => prev + 1);
   }, [userId]);
 
-  // Spend Credits
+  // Spend Credits (skipped during grace period)
   const spendCredits = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
     if (!userId) return false;
+
+    // Grace period: no credits consumed
+    if (inGracePeriod) return true;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -215,7 +218,7 @@ export function usePlanLimits() {
 
     setUserCredits(balance - amount);
     return true;
-  }, [userId]);
+  }, [userId, inGracePeriod]);
 
   // Legacy alias
   const spendXp = spendCredits;
