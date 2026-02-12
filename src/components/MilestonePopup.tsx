@@ -86,8 +86,8 @@ export function MilestonePopup() {
               </button>
             </div>
 
-            {/* Content */}
-            <div className="px-5 py-4 space-y-3">
+            {/* Content — clickable to milestones page */}
+            <Link to="/me/milestones" onClick={handleDismiss} className="block px-5 py-4 space-y-3 hover:bg-accent/30 transition-colors cursor-pointer">
               <div className="flex items-start gap-3">
                 <span className="text-3xl">{current.icon}</span>
                 <div>
@@ -119,7 +119,7 @@ export function MilestonePopup() {
                   )}
                 </div>
               )}
-            </div>
+            </Link>
 
             {/* Actions */}
             <div className="px-5 pb-4 flex items-center justify-between">
