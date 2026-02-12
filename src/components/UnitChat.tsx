@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedEntity } from "@/components/MentionTextarea";
+import { processMentions } from "@/lib/mentionNotifications";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -178,6 +180,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("conversation");
   const [excerptSort, setExcerptSort] = useState("newest");
+  const [pendingEntityMentions, setPendingEntityMentions] = useState<MentionedEntity[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -234,9 +237,31 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
     if (!msg.trim() || !currentUser.id) return;
     try {
       const threadId = await ensureThread();
-      await supabase.from("unit_chat_messages").insert({ thread_id: threadId, sender_type: "USER", sender_user_id: currentUser.id, message_text: msg.trim() });
+      const { data: inserted } = await supabase.from("unit_chat_messages").insert({ thread_id: threadId, sender_type: "USER", sender_user_id: currentUser.id, message_text: msg.trim() }).select("id").single();
+      const capturedMentions = [...pendingEntityMentions];
       setInput("");
+      setPendingEntityMentions([]);
       qc.invalidateQueries({ queryKey: ["unit-chat-messages", threadId] });
+
+      // Process mentions for notifications
+      if (inserted?.id) {
+        const mentionedUserIds = extractMentionIds(msg);
+        const allMentions = extractAllMentions(msg);
+        const entityMentions = allMentions.length > 0 ? allMentions : capturedMentions;
+        if (mentionedUserIds.length > 0 || entityMentions.length > 0) {
+          processMentions({
+            commentId: inserted.id,
+            authorUserId: currentUser.id,
+            authorName: currentUser.name ?? "Someone",
+            mentionedUserIds,
+            mentionedEntities: entityMentions,
+            targetType: entityType,
+            targetId: entityId,
+            snippet: msg.slice(0, 100),
+          }).catch(() => {});
+        }
+      }
+
       const shouldAsk = msg.includes("@agent") || msg.includes("@Agent") || msg.endsWith("?") || /what (next|should|can)/i.test(msg) || /help|suggest|idea/i.test(msg);
       if (shouldAsk) {
         setAiLoading(true);
@@ -388,11 +413,20 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
               </motion.div>
             )}
           </div>
-          <div className="border-t border-border p-3 flex gap-2">
-            <Input placeholder="Type a message... (use @Agent to ask AI)" value={input} onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()} disabled={aiLoading} className="text-sm" />
-            <Button size="sm" variant="outline" onClick={askAgent} disabled={aiLoading} title="Ask the agent"><Bot className="h-4 w-4" /></Button>
-            <Button size="sm" onClick={() => sendMessage()} disabled={aiLoading || !input.trim()}><Send className="h-4 w-4" /></Button>
+          <div className="border-t border-border p-3 flex flex-col gap-2">
+            <MentionTextarea
+              value={input}
+              onChange={setInput}
+              onEntityMentionsChange={setPendingEntityMentions}
+              placeholder="Type a message... (use @ to tag people/entities, @Agent for AI)"
+              className="text-sm min-h-[40px] max-h-[100px]"
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+              mentionHint="Type @ to mention users, guilds, companies or quests"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button size="sm" variant="outline" onClick={askAgent} disabled={aiLoading} title="Ask the agent"><Bot className="h-4 w-4" /></Button>
+              <Button size="sm" onClick={() => sendMessage()} disabled={aiLoading || !input.trim()}><Send className="h-4 w-4" /></Button>
+            </div>
           </div>
         </TabsContent>
 
@@ -556,7 +590,11 @@ function MessageBubble({ msg, agentLabel, isOwn, onCreatePoll, onStarMessage }: 
         </div>
         <div className={`rounded-xl px-3 py-2 text-sm ${isAgent ? "bg-primary/5 border border-primary/10" : isOwn ? "bg-primary text-primary-foreground" : "bg-muted"}`}
           onMouseUp={handleTextSelection}>
-          <div className="prose prose-sm max-w-none dark:prose-invert"><ReactMarkdown>{msg.message_text}</ReactMarkdown></div>
+          {/@\[.+?\]\(.+?\)/.test(msg.message_text) ? (
+            <div className="whitespace-pre-wrap">{renderMentions(msg.message_text)}</div>
+          ) : (
+            <div className="prose prose-sm max-w-none dark:prose-invert"><ReactMarkdown>{msg.message_text}</ReactMarkdown></div>
+          )}
         </div>
         {suggestions.length > 0 && (
           <div className="space-y-2 pt-1">
