@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, CircleDot, Building2, ChevronRight, ChevronLeft, Sparkles,
-  Loader2, MapPin, Hash, Lock, Users, Eye, ArrowRight, Check
+  Loader2, MapPin, Hash, Lock, Users, Eye, ArrowRight, Check, Globe, PenLine
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,13 +31,13 @@ interface EntityCreationWizardProps {
   initialKind?: EntityKind;
 }
 
-const STEPS = ["kind", "purpose", "details", "classify", "policy", "branding", "review"] as const;
+const STEPS = ["kind", "source", "details", "classify", "policy", "branding", "review"] as const;
 type Step = typeof STEPS[number];
 
 const STEP_LABELS: Record<Step, string> = {
   kind: "Choose type",
-  purpose: "Mission & purpose",
-  details: "Details",
+  source: "Get started",
+  details: "Name & details",
   classify: "Topics & Territories",
   policy: "Access & visibility",
   branding: "Branding",
@@ -67,9 +67,14 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
 
   // Wizard state
   const [kind, setKind] = useState<EntityKind | null>(initialKind ?? null);
-  const [step, setStep] = useState<Step>(initialKind ? "purpose" : "kind");
+  const [step, setStep] = useState<Step>(initialKind ? "source" : "kind");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+
+  // Source step
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [scraping, setScraping] = useState(false);
+  const [scraped, setScraped] = useState(false);
 
   // Entity fields
   const [name, setName] = useState("");
@@ -95,8 +100,9 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
 
   const resetState = useCallback(() => {
     setKind(initialKind ?? null);
-    setStep(initialKind ? "purpose" : "kind");
+    setStep(initialKind ? "source" : "kind");
     setName(""); setMission(""); setDescription("");
+    setSourceUrl(""); setScraping(false); setScraped(false);
     setGuildType(GuildType.GUILD); setPodType(PodType.STUDY_POD);
     setQuestId("none"); setPodTopicId("none");
     setSector(""); setCompanySize(CompanySize.SME);
@@ -114,12 +120,10 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
   // Step navigation
   const getSteps = (): Step[] => {
     if (!kind) return ["kind"];
-    const steps: Step[] = ["kind", "purpose", "details", "classify", "policy", "branding", "review"];
-    // Pods don't need separate classify step (single topic) and simpler branding
     if (kind === "pod") {
-      return ["kind", "purpose", "details", "policy", "review"];
+      return ["kind", "source", "details", "policy", "review"];
     }
-    return steps;
+    return ["kind", "source", "details", "classify", "policy", "branding", "review"];
   };
 
   const activeSteps = getSteps();
@@ -133,7 +137,46 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
 
   const selectKind = (k: EntityKind) => {
     setKind(k);
-    setStep("purpose");
+    setStep("source");
+  };
+
+  // URL scraping
+  const handleScrape = async () => {
+    if (!sourceUrl.trim()) return;
+    setScraping(true);
+    try {
+      let urlToScrape = sourceUrl.trim();
+      if (!/^https?:\/\//i.test(urlToScrape)) {
+        urlToScrape = "https://" + urlToScrape;
+      }
+      const { data, error } = await supabase.functions.invoke("scrape-entity", {
+        body: { url: urlToScrape },
+      });
+      if (error) throw error;
+      if (data) {
+        if (data.name && !name) setName(data.name);
+        if (data.description && !description) setDescription(data.description);
+        if (data.logo) setLogoUrl(data.logo);
+        if (data.sector && kind === "company") setSector(data.sector);
+        setScraped(true);
+        toast({ title: "Website data imported!", description: "Review and adjust the pre-filled fields." });
+      }
+    } catch (err) {
+      console.error("Scrape error:", err);
+      toast({ title: "Could not extract data", description: "You can fill in the details manually.", variant: "destructive" });
+    } finally {
+      setScraping(false);
+    }
+  };
+
+  const handleSkipSource = () => {
+    setScraped(false);
+    goNext();
+  };
+
+  const handleScrapeAndContinue = async () => {
+    await handleScrape();
+    goNext();
   };
 
   // AI Assist
@@ -162,17 +205,11 @@ Respond ONLY in this exact JSON format, no markdown:
       });
 
       if (data) {
-        // Try to parse AI response
         let responseText = "";
-        if (typeof data === "string") {
-          responseText = data;
-        } else if (data.choices?.[0]?.message?.content) {
-          responseText = data.choices[0].message.content;
-        } else if (data.content) {
-          responseText = data.content;
-        }
+        if (typeof data === "string") responseText = data;
+        else if (data.choices?.[0]?.message?.content) responseText = data.choices[0].message.content;
+        else if (data.content) responseText = data.content;
 
-        // Try parsing JSON from the response
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -203,19 +240,16 @@ Respond ONLY in this exact JSON format, no markdown:
           type: guildType,
           isDraft,
         });
-        // Add topics
         if (selectedTopicIds.length > 0) {
           await supabase.from("guild_topics").insert(
             selectedTopicIds.map(tid => ({ guild_id: guild.id, topic_id: tid }))
           );
         }
-        // Add territories
         if (selectedTerritoryIds.length > 0) {
           await supabase.from("guild_territories").insert(
             selectedTerritoryIds.map(tid => ({ guild_id: guild.id, territory_id: tid }))
           );
         }
-        // Update join policy, logo, banner, universe
         await supabase.from("guilds").update({
           join_policy: joinPolicy as any,
           universe_visibility: universeVisibility,
@@ -237,7 +271,6 @@ Respond ONLY in this exact JSON format, no markdown:
           endDate: undefined,
           isDraft,
         });
-        // Update join policy & universe
         await supabase.from("pods").update({
           join_policy: joinPolicy as any,
           universe_visibility: universeVisibility,
@@ -264,13 +297,11 @@ Respond ONLY in this exact JSON format, no markdown:
           .single();
         if (error) throw error;
         await supabase.from("company_members").insert({ company_id: newCompany.id, user_id: currentUser.id, role: "ADMIN" });
-        // Add topics
         if (selectedTopicIds.length > 0) {
           await supabase.from("company_topics").insert(
             selectedTopicIds.map(tid => ({ company_id: newCompany.id, topic_id: tid }))
           );
         }
-        // Add territories
         if (selectedTerritoryIds.length > 0) {
           await supabase.from("company_territories").insert(
             selectedTerritoryIds.map(tid => ({ company_id: newCompany.id, territory_id: tid }))
@@ -322,41 +353,67 @@ Respond ONLY in this exact JSON format, no markdown:
           </div>
         );
 
-      case "purpose":
+      case "source":
         return (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <h3 className="font-display font-semibold mb-1">What's the mission?</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Describe why this {KIND_CONFIG[kind!].label.toLowerCase()} should exist. What problem does it solve or what passion does it serve?
+              <h3 className="font-display font-semibold mb-1">Do you have a website?</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Paste a URL and we'll auto-fill your {KIND_CONFIG[kind!].label.toLowerCase()}'s details — name, description, logo, and more.
               </p>
-              <Textarea
-                value={mission}
-                onChange={e => setMission(e.target.value)}
-                placeholder={kind === "guild" ? "e.g. Unite urban farmers to share knowledge and create community gardens..." : kind === "pod" ? "e.g. Study regenerative agriculture techniques as a small group..." : "e.g. Our non-profit helps local communities transition to renewable energy..."}
-                maxLength={500}
-                className="resize-none min-h-[120px]"
-              />
-              <p className="text-xs text-muted-foreground mt-1 text-right">{mission.length}/500</p>
+              <div className="space-y-3">
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={sourceUrl}
+                    onChange={e => setSourceUrl(e.target.value)}
+                    placeholder="https://your-organization.com"
+                    className="pl-10"
+                    onKeyDown={e => { if (e.key === "Enter" && sourceUrl.trim()) handleScrapeAndContinue(); }}
+                  />
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handleScrapeAndContinue}
+                  disabled={!sourceUrl.trim() || scraping}
+                >
+                  {scraping ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Importing data...</>
+                  ) : (
+                    <><Globe className="h-4 w-4 mr-2" /> Import from website</>
+                  )}
+                </Button>
+              </div>
             </div>
-            {mission.trim().length > 20 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleAiAssist}
-                disabled={aiLoading}
-              >
-                {aiLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                {aiLoading ? "AI is thinking..." : "Let AI suggest name & description"}
-              </Button>
-            )}
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleSkipSource}
+            >
+              <PenLine className="h-4 w-4 mr-2" /> Fill in manually
+            </Button>
           </div>
         );
 
       case "details":
         return (
           <div className="space-y-4">
+            {scraped && (
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
+                <Check className="h-3.5 w-3.5 shrink-0" />
+                <span>Pre-filled from website — review and adjust below.</span>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">Name *</label>
               <Input
@@ -371,11 +428,24 @@ Respond ONLY in this exact JSON format, no markdown:
               <Textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="A concise description for discovery..."
+                placeholder="What does this entity do? What's its mission?"
                 maxLength={500}
-                className="resize-none min-h-[80px]"
+                className="resize-none min-h-[100px]"
               />
+              <p className="text-xs text-muted-foreground mt-1 text-right">{description.length}/500</p>
             </div>
+            {!scraped && description.trim().length > 20 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleAiAssist}
+                disabled={aiLoading}
+              >
+                {aiLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                {aiLoading ? "AI is thinking..." : "Let AI suggest name & description"}
+              </Button>
+            )}
             {kind === "guild" && (
               <div>
                 <label className="text-sm font-medium mb-1 block">Type</label>
@@ -540,7 +610,11 @@ Respond ONLY in this exact JSON format, no markdown:
       case "branding":
         return (
           <div className="space-y-4">
-            <p className="text-xs text-muted-foreground">Upload images to give your {KIND_CONFIG[kind!].label.toLowerCase()} a unique identity. You can skip this and add them later.</p>
+            <p className="text-xs text-muted-foreground">
+              {scraped && logoUrl
+                ? "We imported a logo from your website. You can replace it or add a banner."
+                : `Upload images to give your ${KIND_CONFIG[kind!].label.toLowerCase()} a unique identity. You can skip this and add them later.`}
+            </p>
             <ImageUpload
               label="Logo"
               currentImageUrl={logoUrl}
@@ -610,7 +684,7 @@ Respond ONLY in this exact JSON format, no markdown:
 
   const canProceed = () => {
     if (step === "kind") return !!kind;
-    if (step === "purpose") return mission.trim().length > 5;
+    if (step === "source") return true; // handled by buttons
     if (step === "details") return name.trim().length > 0;
     return true;
   };
@@ -654,8 +728,8 @@ Respond ONLY in this exact JSON format, no markdown:
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation */}
-        {step !== "kind" && (
+        {/* Navigation — source step has its own buttons */}
+        {step !== "kind" && step !== "source" && (
           <div className="flex items-center justify-between pt-2">
             <Button variant="ghost" size="sm" onClick={goBack} disabled={!canGoBack}>
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
@@ -670,6 +744,13 @@ Respond ONLY in this exact JSON format, no markdown:
                 Next <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             )}
+          </div>
+        )}
+        {step === "source" && (
+          <div className="flex items-center justify-start pt-2">
+            <Button variant="ghost" size="sm" onClick={goBack}>
+              <ChevronLeft className="h-4 w-4 mr-1" /> Back
+            </Button>
           </div>
         )}
       </DialogContent>
