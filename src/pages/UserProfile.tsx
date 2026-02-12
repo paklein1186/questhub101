@@ -27,6 +27,7 @@ import { XP_LEVEL_THRESHOLDS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -379,11 +380,14 @@ export default function UserProfile() {
               <section>
                 <h3 className="font-display font-semibold mb-3">Highlights</h3>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {questsCreated.slice(0, 2).map((q: any) => (
-                    <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
-                      <h4 className="font-display font-semibold truncate">{q.title}</h4>
-                      <Badge variant="outline" className="text-[10px] capitalize mt-1">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+              {questsCreated.slice(0, 2).map((q: any) => (
+                    <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                      <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
+                      <div className="p-4">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
+                        <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                        <Badge variant="outline" className="text-[10px] capitalize mt-1">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                      </div>
                     </Link>
                   ))}
                   {services.slice(0, 2).map((s: any) => (
@@ -472,15 +476,18 @@ export default function UserProfile() {
                 )}
               </div>
               <EntityGrid items={questsCreated} emptyMsg="No quests created yet." renderItem={(q: any) => (
-                <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-                  <h4 className="font-display font-semibold truncate">{q.title}</h4>
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] capitalize">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
-                    {q.credit_budget > 0 && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                        <Coins className="h-3 w-3" /> {q.escrow_credits}/{q.credit_budget}
-                      </span>
-                    )}
+                <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all block">
+                  <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
+                  <div className="p-4">
+                    <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <Badge variant="outline" className="text-[10px] capitalize">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                      {q.credit_budget > 0 && (
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                          <Coins className="h-3 w-3" /> {q.escrow_credits}/{q.credit_budget}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </Link>
               )} />
@@ -490,11 +497,14 @@ export default function UserProfile() {
             <section>
               <h3 className="font-display font-semibold mb-3">Quests joined ({questsJoined.length})</h3>
               <EntityGrid items={questsJoined} emptyMsg="Not participating in any quests." renderItem={(qp: any) => (
-                <Link key={qp.id} to={`/quests/${qp.quest?.id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-                  <h4 className="font-display font-semibold truncate">{qp.quest?.title}</h4>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="secondary" className="text-[10px] capitalize">{qp.role?.toLowerCase()}</Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{qp.status?.toLowerCase()}</Badge>
+                <Link key={qp.id} to={`/quests/${qp.quest?.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all block">
+                  <UnitCoverImage type="QUEST" imageUrl={qp.quest?.cover_image_url} height="h-24" />
+                  <div className="p-4">
+                    <h4 className="font-display font-semibold truncate">{qp.quest?.title}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="text-[10px] capitalize">{qp.role?.toLowerCase()}</Badge>
+                      <Badge variant="outline" className="text-[10px] capitalize">{qp.status?.toLowerCase()}</Badge>
+                    </div>
                   </div>
                 </Link>
               )} />
