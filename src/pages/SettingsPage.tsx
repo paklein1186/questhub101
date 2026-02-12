@@ -175,10 +175,13 @@ export default function SettingsPage() {
   const [allowFollow, setAllowFollow] = useState(currentUser.allowFollows !== false);
   const [allowWallComments, setAllowWallComments] = useState(currentUser.allowProfileComments !== false);
 
-  // Sync privacy changes to mock user object
-  const updatePrivacy = (field: keyof typeof currentUser, value: boolean, setter: (v: boolean) => void) => {
+  // Sync privacy changes to DB + local state
+  const updatePrivacy = async (field: keyof typeof currentUser, value: boolean, setter: (v: boolean) => void, dbColumn?: string) => {
     setter(value);
     (currentUser as any)[field] = value;
+    if (dbColumn && currentUser.id) {
+      await supabase.from("profiles").update({ [dbColumn]: value } as any).eq("user_id", currentUser.id);
+    }
   };
 
   // ── Services state (no longer using mock) ──
@@ -722,7 +725,7 @@ export default function SettingsPage() {
                   <Section title="Social & Privacy" icon={<Shield className="h-5 w-5" />}>
                     <div className="space-y-3">
                       <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={(v) => updatePrivacy("allowFollows", v, setAllowFollow)} />
-                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={(v) => updatePrivacy("allowProfileComments", v, setAllowWallComments)} />
+                      <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={(v) => updatePrivacy("allowProfileComments", v, setAllowWallComments, "allow_wall_comments")} />
                     </div>
                   </Section>
 

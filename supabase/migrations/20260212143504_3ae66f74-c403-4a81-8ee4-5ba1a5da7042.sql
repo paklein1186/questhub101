@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN allow_wall_comments boolean NOT NULL DEFAULT true;

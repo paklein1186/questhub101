@@ -653,8 +653,10 @@ export default function UserProfile() {
 
         {/* ─── Wall ─── */}
         <TabsContent value="wall" className="space-y-6">
-          <ProfileWallSection profileUserId={profile.userId} isOwnProfile={isOwnProfile} />
-          <CommentThread targetType={CommentTargetType.USER} targetId={profile.userId} />
+          <ProfileWallSection profileUserId={profile.userId} isOwnProfile={isOwnProfile} allowComments={profile.allowWallComments} />
+          {profile.allowWallComments && (
+            <CommentThread targetType={CommentTargetType.USER} targetId={profile.userId} />
+          )}
         </TabsContent>
       </Tabs>
     </PageShell>

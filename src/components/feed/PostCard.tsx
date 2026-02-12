@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,10 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
+import { CommentThread } from "@/components/CommentThread";
+import { CommentTargetType } from "@/types/enums";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 function ImageGrid({ images }: { images: PostAttachment[] }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -109,15 +113,32 @@ function DocumentChip({ attachment }: { attachment: PostAttachment }) {
 interface PostCardProps {
   post: FeedPostWithAttachments;
   hasUpvoted?: boolean;
+  /** Whether comments are allowed on this post's context wall */
+  allowComments?: boolean;
 }
 
-export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
+export function PostCard({ post, hasUpvoted = false, allowComments = true }: PostCardProps) {
   const currentUser = useCurrentUser();
   const deletePost = useDeletePost();
   const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
   const upvoteCount = post.upvote_count ?? 0;
   const isDeleting = deletePost.isPending;
+  const [showComments, setShowComments] = useState(false);
+
+  // Comment count
+  const { data: commentCount = 0 } = useQuery({
+    queryKey: ["post-comment-count", post.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("comments")
+        .select("id", { count: "exact", head: true })
+        .eq("target_type", "FEED_POST")
+        .eq("target_id", post.id)
+        .eq("is_deleted", false);
+      return count ?? 0;
+    },
+  });
 
   const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
   const videos = (post.post_attachments || []).filter((a) => a.type === "VIDEO_LINK");
@@ -235,8 +256,33 @@ export function PostCard({ post, hasUpvoted = false }: PostCardProps) {
               {hasUpvoted ? "Remove upvote" : "Upvote"}
             </TooltipContent>
           </Tooltip>
+          {allowComments && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-2.5 gap-1.5 ${showComments ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={() => setShowComments(!showComments)}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="text-xs font-medium">{commentCount}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {showComments ? "Hide comments" : "Comments"}
+              </TooltipContent>
+            </Tooltip>
+          )}
         </TooltipProvider>
       </div>
+
+      {/* Comments */}
+      {allowComments && showComments && (
+        <div className="pt-2 border-t border-border">
+          <CommentThread targetType={CommentTargetType.FEED_POST} targetId={post.id} />
+        </div>
+      )}
     </div>
   );
 }

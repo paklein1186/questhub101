@@ -2396,6 +2396,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allow_wall_comments: boolean
           avatar_url: string | null
           bio: string | null
           contribution_index: number
@@ -2431,6 +2432,7 @@ export type Database = {
           xp_recent_12m: number
         }
         Insert: {
+          allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number
@@ -2466,6 +2468,7 @@ export type Database = {
           xp_recent_12m?: number
         }
         Update: {
+          allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number
@@ -4415,6 +4418,7 @@ export type Database = {
     Views: {
       profiles_public: {
         Row: {
+          allow_wall_comments: boolean | null
           avatar_url: string | null
           bio: string | null
           contribution_index: number | null
@@ -4434,6 +4438,7 @@ export type Database = {
           xp: number | null
         }
         Insert: {
+          allow_wall_comments?: boolean | null
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number | null
@@ -4453,6 +4458,7 @@ export type Database = {
           xp?: number | null
         }
         Update: {
+          allow_wall_comments?: boolean | null
           avatar_url?: string | null
           bio?: string | null
           contribution_index?: number | null
