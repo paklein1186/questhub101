@@ -197,7 +197,7 @@ export default function LandingPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {personas.map((p, i) => (
               <motion.div key={p.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-6 flex flex-col"
+                className="rounded-2xl border border-border/60 bg-card p-7 flex flex-col shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`h-10 w-10 rounded-xl bg-${p.accent}/10 flex items-center justify-center`}>
