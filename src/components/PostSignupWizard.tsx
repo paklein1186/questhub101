@@ -54,13 +54,31 @@ export function PostSignupWizard() {
     })();
   }, [user, prefilled]);
 
-  // Check for post-signup context
+  // Check for post-signup context and persist onboarding selections
   useEffect(() => {
     if (!user) return;
     try {
       const raw = sessionStorage.getItem("guestOnboardingContext");
       if (!raw) return;
       const ctx = JSON.parse(raw);
+
+      // Persist selected topics to user_topics table
+      if (ctx.interest_topic_ids?.length > 0) {
+        const topicRows = ctx.interest_topic_ids.map((topicId: string) => ({
+          user_id: user.id,
+          topic_id: topicId,
+        }));
+        supabase
+          .from("user_topics")
+          .upsert(topicRows, { onConflict: "user_id,topic_id", ignoreDuplicates: true })
+          .then(({ error }) => {
+            if (error) console.error("Failed to persist onboarding topics:", error);
+          });
+        // Clear so we don't re-insert on re-render
+        delete ctx.interest_topic_ids;
+        sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+      }
+
       if (ctx.show_post_signup_wizard) {
         // Show after a brief delay to let the page settle
         const t = setTimeout(() => setOpen(true), 1500);
