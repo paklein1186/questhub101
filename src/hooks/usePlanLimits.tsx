@@ -151,15 +151,15 @@ export function usePlanLimits() {
   }, [fetchData]);
 
   // Derived state
-  const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
-  const questLimitReached = freeQuestsRemaining === 0;
-  const canAffordExtraQuest = userCredits >= EXTRA_QUEST_CREDIT_COST;
+  // During grace period, limits are not enforced (no credit cost)
+  const questLimitReached = inGracePeriod ? false : freeQuestsRemaining === 0;
+  const canAffordExtraQuest = inGracePeriod || userCredits >= EXTRA_QUEST_CREDIT_COST;
 
-  const guildLimitReached = plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships;
-  const canAffordExtraGuild = userCredits >= EXTRA_GUILD_CREDIT_COST;
+  const guildLimitReached = inGracePeriod ? false : (plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships);
+  const canAffordExtraGuild = inGracePeriod || userCredits >= EXTRA_GUILD_CREDIT_COST;
 
-  const podLimitReached = plan.maxPods !== null && podCount >= plan.maxPods;
-  const canAffordExtraPod = userCredits >= EXTRA_POD_CREDIT_COST;
+  const podLimitReached = inGracePeriod ? false : (plan.maxPods !== null && podCount >= plan.maxPods);
+  const canAffordExtraPod = inGracePeriod || userCredits >= EXTRA_POD_CREDIT_COST;
 
   // Increment weekly usage after quest creation
   const recordQuestCreation = useCallback(async () => {
