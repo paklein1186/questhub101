@@ -155,8 +155,9 @@ export function linkForNotification(n: Notification): string {
     case NotificationType.FOLLOWER_ACTIVITY:
       return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "USER", n.relatedEntityId) : "/network";
     case NotificationType.XP_GAINED:
+      return "/me";
     case NotificationType.ACHIEVEMENT_UNLOCKED:
-      return n.relatedEntityId ? `/achievements/${n.relatedEntityId}` : "/me";
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "ACHIEVEMENT", n.relatedEntityId) : "/milestones";
     case NotificationType.UNIT_PARTNERSHIP_REQUEST:
     case NotificationType.UNIT_PARTNERSHIP_ACCEPTED:
       return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/work";
@@ -180,8 +181,12 @@ export function linkForNotification(n: Notification): string {
     case NotificationType.SYSTEM_PAYMENT_FAILED:
     case NotificationType.USER_SHARE_PURCHASE_CONFIRMED:
       return "/admin/economy/payments";
-    default:
+    default: {
+      // Handle milestone_completed and other non-enum types
+      const typeStr = n.type as string;
+      if (typeStr === "milestone_completed") return "/milestones";
       break;
+    }
   }
 
   // Universal fallback: use related_entity_type + related_entity_id
@@ -234,7 +239,8 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "USER": return `/users/${targetId}`;
     case "GUILD_EVENT": return `/events/${targetId}`;
     case "BOOKING": return `/bookings/${targetId}`;
-    case "ACHIEVEMENT": return `/achievements/${targetId}`;
+    case "ACHIEVEMENT": return `/milestones`;
+    case "milestone": return `/milestones`;
     case "TERRITORY": return `/territories/${targetId}`;
     case "FEED_POST": return `/`; // feed posts don't have individual pages
     case "COMMENT": return `/notifications`; // comments don't have standalone pages
@@ -686,12 +692,13 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   // ── Trigger: Achievement unlocked ──
 
-  const notifyAchievement = useCallback(async ({ userId: targetUserId, achievementTitle }: any) => {
+  const notifyAchievement = useCallback(async ({ userId: targetUserId, achievementTitle, relatedEntityType, relatedEntityId, deepLinkUrl }: any) => {
     await addNotification({
       userId: targetUserId, type: NotificationType.ACHIEVEMENT_UNLOCKED,
       title: "Achievement unlocked!", body: achievementTitle,
-      relatedEntityType: NotificationEntityType.ACHIEVEMENT, relatedEntityId: "",
-      deepLinkUrl: "/me",
+      relatedEntityType: relatedEntityType || NotificationEntityType.ACHIEVEMENT,
+      relatedEntityId: relatedEntityId || "",
+      deepLinkUrl: deepLinkUrl || "/milestones",
     });
   }, [addNotification]);
 

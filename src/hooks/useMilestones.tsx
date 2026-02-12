@@ -206,6 +206,7 @@ export function useMilestones() {
             : `Congratulations!`,
         related_entity_type: "milestone",
         related_entity_id: milestone.id,
+        deep_link_url: "/milestones",
       });
 
       qc.invalidateQueries({ queryKey: ["user-milestones", user.id] });
