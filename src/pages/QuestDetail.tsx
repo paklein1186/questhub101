@@ -41,6 +41,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
@@ -95,6 +96,8 @@ export default function QuestDetail() {
   const [editAllowFundraising, setEditAllowFundraising] = useState(false);
   const [editFundingGoal, setEditFundingGoal] = useState("");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptAction, setAuthPromptAction] = useState("");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -289,15 +292,22 @@ export default function QuestDetail() {
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
         </div>
 
-        {isLoggedIn ? (
-          <div className="flex items-center gap-3 mt-4 flex-wrap">
-            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+        <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+
+        <div className="flex items-center gap-3 mt-4 flex-wrap">
+            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => {
+              if (!isLoggedIn) { setAuthPromptAction("follow this quest"); setAuthPromptOpen(true); return; }
+              toggleFollow();
+            }}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
             {!isParticipant && (
-              <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={joinQuest}>
+              <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={() => {
+                if (!isLoggedIn) { setAuthPromptAction("join this quest"); setAuthPromptOpen(true); return; }
+                joinQuest();
+              }}>
                 {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
               </Button>
             )}
-            <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />
+            {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
             {canPostUpdate && (
@@ -354,11 +364,6 @@ export default function QuestDetail() {
               </DialogContent>
             </Dialog>
           </div>
-        ) : (
-          <div className="mt-4">
-            <PublicExploreCTA compact message="Sign in to join this quest, follow updates, and participate." />
-          </div>
-        )}
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-h-[85vh] overflow-y-auto">

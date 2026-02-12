@@ -38,6 +38,7 @@ import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -79,6 +80,8 @@ export default function CompanyDetail() {
   const [editWebsite, setEditWebsite] = useState("");
   const [editLogoUrl, setEditLogoUrl] = useState<string | undefined>();
   const [editBannerUrl, setEditBannerUrl] = useState<string | undefined>();
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptAction, setAuthPromptAction] = useState("");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!company) return <PageShell><p>Traditional Organization not found.</p></PageShell>;
@@ -149,6 +152,7 @@ export default function CompanyDetail() {
 
   return (
     <PageShell>
+      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Traditional Organizations</Link>
       </Button>
@@ -171,11 +175,19 @@ export default function CompanyDetail() {
               <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {members.length} members</span>
             </div>
           </div>
-          {isLoggedIn ? (
-            <div className="flex flex-col gap-2 shrink-0">
-              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+          <div className="flex flex-col gap-2 shrink-0">
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => {
+                if (!isLoggedIn) { setAuthPromptAction("follow this organization"); setAuthPromptOpen(true); return; }
+                toggleFollow();
+              }}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
               {!isMember && (
-                <EntityJoinButton entityType="company" entityId={company.id} joinPolicy="APPROVAL_REQUIRED" applicationQuestions={[]} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["company", id] }); qc.invalidateQueries({ queryKey: ["company-members-profiles", id] }); }} />
+                isLoggedIn ? (
+                  <EntityJoinButton entityType="company" entityId={company.id} joinPolicy="APPROVAL_REQUIRED" applicationQuestions={[]} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["company", id] }); qc.invalidateQueries({ queryKey: ["company-members-profiles", id] }); }} />
+                ) : (
+                  <Button size="sm" onClick={() => { setAuthPromptAction("join this organization"); setAuthPromptOpen(true); }}>
+                    <Users className="h-4 w-4 mr-1" /> Join
+                  </Button>
+                )
               )}
               {isAdmin && (
                 <>
@@ -184,11 +196,6 @@ export default function CompanyDetail() {
                 </>
               )}
             </div>
-          ) : (
-            <div className="shrink-0">
-              <PublicExploreCTA compact message="Sign in to join and participate." />
-            </div>
-          )}
         </div>
 
         {company.description && <p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p>}

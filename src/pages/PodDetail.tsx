@@ -34,6 +34,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus } from "lucide-react";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +47,10 @@ export default function PodDetail() {
   const [showPodXpDialog, setShowPodXpDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("members");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptAction, setAuthPromptAction] = useState("");
+
+  const isLoggedIn = !!currentUser.id;
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!pod) return <PageShell><p>Pod not found.</p></PageShell>;
@@ -85,6 +90,8 @@ export default function PodDetail() {
 
   return (
     <PageShell>
+      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+
       <XpSpendDialog
         open={showPodXpDialog}
         onOpenChange={setShowPodXpDialog}
@@ -137,27 +144,33 @@ export default function PodDetail() {
 
         <div className="mt-4 flex items-center gap-3">
           {!isMember ? (
-            <div className="flex flex-col gap-1">
-              <EntityJoinButton
-                entityType="pod"
-                entityId={pod.id}
-                joinPolicy={pod.join_policy || "OPEN"}
-                applicationQuestions={(pod.application_questions as string[]) || []}
-                currentUserId={currentUser.id}
-                onJoined={() => qc.invalidateQueries({ queryKey: ["pod", id] })}
-              />
-              <PlanLimitBadge
-                limitReached={limits.podLimitReached}
-                xpCost={EXTRA_POD_CREDIT_COST}
-                itemLabel="pod slot"
-                compact
-              />
-            </div>
+            isLoggedIn ? (
+              <div className="flex flex-col gap-1">
+                <EntityJoinButton
+                  entityType="pod"
+                  entityId={pod.id}
+                  joinPolicy={pod.join_policy || "OPEN"}
+                  applicationQuestions={(pod.application_questions as string[]) || []}
+                  currentUserId={currentUser.id}
+                  onJoined={() => qc.invalidateQueries({ queryKey: ["pod", id] })}
+                />
+                <PlanLimitBadge
+                  limitReached={limits.podLimitReached}
+                  xpCost={EXTRA_POD_CREDIT_COST}
+                  itemLabel="pod slot"
+                  compact
+                />
+              </div>
+            ) : (
+              <Button size="sm" onClick={() => { setAuthPromptAction("join this pod"); setAuthPromptOpen(true); }}>
+                <Users className="h-4 w-4 mr-1" /> Join
+              </Button>
+            )
           ) : !isHost ? (
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
           {isHost && <InviteLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />}
-          <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />
+          {isLoggedIn && <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />}
         </div>
       </motion.div>
 
