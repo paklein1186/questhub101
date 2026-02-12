@@ -30,6 +30,7 @@ import {
 } from "@/hooks/useTerritoryDetail";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 import { formatDistanceToNow } from "date-fns";
 
 interface Props {
