@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, Compass, Calendar, UserMinus, ShieldCheck, Trash2, Bot, Brain, MoreHorizontal, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -172,6 +172,11 @@ export default function PodDetail() {
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
           {isHost && <InviteLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />}
+          {isHost && (
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/pods/${pod.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link>
+            </Button>
+          )}
           {isLoggedIn && <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />}
         </div>
       </motion.div>
