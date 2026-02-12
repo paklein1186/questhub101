@@ -131,11 +131,11 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6 }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
+            className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.05]"
           >
             Human-powered.{" "}
-            <span className="text-primary">AI-augmented.</span>{" "}
-            <span className="text-accent">Game-changing.</span>
+            <span className="bg-clip-text text-transparent gradient-primary">AI-augmented.</span>{" "}
+            <span className="bg-clip-text text-transparent gradient-cool">Game-changing.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
