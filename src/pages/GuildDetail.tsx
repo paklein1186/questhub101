@@ -50,6 +50,7 @@ import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 
 export default function GuildDetail() {
@@ -69,6 +70,8 @@ export default function GuildDetail() {
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [editSvcId, setEditSvcId] = useState<string | null>(null);
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authPromptAction, setAuthPromptAction] = useState("");
 
   // Service creation
   const [createSvcOpen, setCreateSvcOpen] = useState(false);
@@ -101,6 +104,15 @@ export default function GuildDetail() {
   const currentMembership = isLoggedIn ? (guild.guild_members || []).find((gm: any) => gm.user_id === currentUser.id) : undefined;
   const isAdmin = currentMembership?.role === "ADMIN";
   const isMember = !!currentMembership;
+
+  const requireAuth = (action: string, callback?: () => void) => {
+    if (!isLoggedIn) {
+      setAuthPromptAction(action);
+      setAuthPromptOpen(true);
+      return;
+    }
+    callback?.();
+  };
 
   // Feature flags
   const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
@@ -172,6 +184,8 @@ export default function GuildDetail() {
   return (
     <PageShell>
       
+      <AuthPromptDialog open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
+
       <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_CREDIT_COST} userXp={limits.userCredits} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_GUILD_CREDIT_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 
       <Button variant="ghost" size="sm" asChild className="mb-4">
@@ -200,27 +214,27 @@ export default function GuildDetail() {
             </div>
             <p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{guild.description}</p>
           </div>
-          {isLoggedIn ? (
-            <div className="flex flex-col gap-2 shrink-0">
-              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+          <div className="flex flex-col gap-2 shrink-0">
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth("follow this guild", toggleFollow)}>
                 <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? "Unfollow" : "Follow"}
               </Button>
               {!isMember && (
-                <div className="flex flex-col gap-1 items-end">
-                  <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
-                  <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_CREDIT_COST} itemLabel="guild slot" compact />
-                </div>
+                isLoggedIn ? (
+                  <div className="flex flex-col gap-1 items-end">
+                    <EntityJoinButton entityType="guild" entityId={guild.id} joinPolicy={guild.join_policy || "OPEN"} applicationQuestions={(guild.application_questions as string[]) || []} currentUserId={currentUser.id} onJoined={() => { qc.invalidateQueries({ queryKey: ["guild", id] }); qc.invalidateQueries({ queryKey: ["guild-members-profiles", id] }); }} />
+                    <PlanLimitBadge limitReached={limits.guildLimitReached} xpCost={EXTRA_GUILD_CREDIT_COST} itemLabel="guild slot" compact />
+                  </div>
+                ) : (
+                  <Button size="sm" onClick={() => requireAuth("join this guild")}>
+                    <Users className="h-4 w-4 mr-1" /> Join
+                  </Button>
+                )
               )}
               {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
               {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
               {isAdmin && <InviteLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />}
-              <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />
+              {isLoggedIn && <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />}
             </div>
-          ) : (
-            <div className="shrink-0">
-              <PublicExploreCTA compact message="Sign in to join and participate." />
-            </div>
-          )}
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t: any) => <Link key={t.id} to={`/topics/${t.slug}`}><Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge></Link>)}
