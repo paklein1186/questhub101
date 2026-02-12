@@ -18,6 +18,7 @@ import type { PersonaType } from "@/lib/personaLabels";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
+import { FollowingActivity } from "@/components/home/FollowingActivity";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -633,8 +634,9 @@ export default function HomeFeed() {
 
       {/* Task Board — below the AI section */}
       {currentUser.id && (
-        <div className="max-w-2xl mx-auto px-4 pb-12">
+        <div className="max-w-2xl mx-auto px-4 pb-12 space-y-10">
           <MyTaskBoard userId={currentUser.id} />
+          <FollowingActivity />
         </div>
       )}
     </PageShell>
