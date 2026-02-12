@@ -257,18 +257,94 @@ export function useCompanyMembersWithProfiles(companyId: string | undefined) {
 }
 
 // ─── Services for company ────────────────────────────────────
+// Returns company-owned services PLUS accepted-member services that either:
+//  a) share at least one topic with the company, OR
+//  b) have no topics assigned (treated as uncategorized → always visible)
+// Deduplicated by service id.
 export function useServicesForCompany(companyId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-company", companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Company-owned services
+      const { data: companyOwned, error: ownedErr } = await supabase
         .from("services")
         .select("*")
         .eq("owner_type", "COMPANY")
         .eq("owner_id", companyId!)
         .eq("is_deleted", false);
-      if (error) throw error;
-      return data;
+      if (ownedErr) throw ownedErr;
+
+      // 2. Get accepted member user ids
+      const { data: membersRows } = await supabase
+        .from("company_members")
+        .select("user_id")
+        .eq("company_id", companyId!);
+      const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
+
+      if (memberUserIds.length === 0) return (companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
+
+      // 3. Get ALL active, non-draft services from members
+      const { data: allMemberServices } = await supabase
+        .from("services")
+        .select("*")
+        .in("provider_user_id", memberUserIds)
+        .eq("is_deleted", false)
+        .eq("is_active", true);
+
+      if (!allMemberServices || allMemberServices.length === 0) return (companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
+
+      // 4. Get company topic ids
+      const { data: companyTopics } = await supabase
+        .from("company_topics")
+        .select("topic_id")
+        .eq("company_id", companyId!);
+      const topicIds = (companyTopics ?? []).map((ct) => ct.topic_id);
+
+      // 5. Get service topic assignments for all member services
+      const memberServiceIds = allMemberServices.map((s) => s.id);
+      const { data: serviceTopicRows } = await supabase
+        .from("service_topics")
+        .select("service_id, topic_id")
+        .in("service_id", memberServiceIds);
+
+      // Build a map: serviceId → set of topic ids
+      const serviceTopicMap = new Map<string, Set<string>>();
+      for (const row of serviceTopicRows ?? []) {
+        if (!serviceTopicMap.has(row.service_id)) serviceTopicMap.set(row.service_id, new Set());
+        serviceTopicMap.get(row.service_id)!.add(row.topic_id);
+      }
+
+      // 6. Filter: include services that have NO topics (uncategorized) OR share at least one topic with company
+      const topicIdSet = new Set(topicIds);
+      const matchingMemberServices = allMemberServices.filter((s) => {
+        const sTopics = serviceTopicMap.get(s.id);
+        if (!sTopics || sTopics.size === 0) return true;
+        for (const t of sTopics) {
+          if (topicIdSet.has(t)) return true;
+        }
+        return false;
+      });
+
+      // 7. Fetch profile names for member services
+      const uniqueProviderIds = [...new Set(matchingMemberServices.map((s) => s.provider_user_id).filter(Boolean))];
+      const profileMap = new Map<string, string>();
+      if (uniqueProviderIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name")
+          .in("user_id", uniqueProviderIds as string[]);
+        for (const p of profiles ?? []) {
+          if (p.name) profileMap.set(p.user_id, p.name);
+        }
+      }
+
+      // 8. Deduplicate by id and attach provider name
+      const ownedIds = new Set((companyOwned ?? []).map((s) => s.id));
+      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id)).map((s) => ({
+        ...s,
+        _provider_name: s.provider_user_id ? profileMap.get(s.provider_user_id) ?? null : null,
+      }));
+      return [...(companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null })), ...extra];
     },
     enabled: !!companyId,
   });
