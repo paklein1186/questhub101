@@ -127,93 +127,55 @@ function ExcerptCard({
   const hasSource = !!excerpt.source_prompt;
   const displayText = hasSynthesis ? excerpt.synthesis : excerpt.text;
 
+  // Parse synthesis into key points if it has line breaks or bullet patterns
+  const keyPoints = hasSynthesis
+    ? displayText!
+        .split(/\n/)
+        .map(l => l.replace(/^[-•*]\s*/, "").trim())
+        .filter(l => l.length > 0)
+    : [];
+  const hasMultiplePoints = keyPoints.length > 1;
+
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="rounded-xl border border-border bg-card p-5 space-y-3 hover:border-primary/20 transition-colors"
+      className="rounded-2xl border border-border bg-card overflow-hidden hover:border-primary/20 transition-colors"
     >
-      {/* Synthesis / main text */}
-      <div>
-        {hasSynthesis && (
-          <Badge variant="outline" className="text-[9px] mb-2 gap-1">
-            <Sparkles className="h-2.5 w-2.5" /> Synthesis
-          </Badge>
-        )}
-        <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
-          "{displayText}"
-        </p>
-      </div>
-
-      {/* Expandable source / full prompt */}
-      {hasSource && (
-        <div>
-          <button
-            onClick={() => setShowSource(!showSource)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <MessageSquare className="h-3 w-3" />
-            {showSource ? "Hide source" : "Show source / full prompt"}
-            {showSource ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </button>
-          <AnimatePresence>
-            {showSource && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-2 rounded-lg bg-muted/50 border border-border p-3">
-                  <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
-                    {excerpt.source_prompt}
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* If no synthesis but there's a plain text that IS the full content, just show it (already shown above) */}
-      {!hasSynthesis && !hasSource && excerpt.text && null}
-
-      {/* Footer: contributor, source refs, actions */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {/* Contributor display */}
+      {/* Header with contributor */}
+      <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
+        <div className="flex items-center gap-3 min-w-0">
           {excerpt.created_by_user_id && (
             <Link
               to={`/profile/${excerpt.created_by_user_id}`}
-              className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+              className="flex items-center gap-2 hover:text-foreground transition-colors min-w-0"
             >
-              <Avatar className="h-5 w-5">
+              <Avatar className="h-7 w-7 ring-1 ring-border">
                 <AvatarImage src={excerpt.contributor_avatar || undefined} />
-                <AvatarFallback className="text-[8px]">
+                <AvatarFallback className="text-[9px] bg-primary/5 text-primary">
                   {excerpt.contributor_name?.[0]?.toUpperCase() || <User className="h-3 w-3" />}
                 </AvatarFallback>
               </Avatar>
-              <span className="font-medium">{excerpt.contributor_name || "Contributor"}</span>
+              <span className="text-sm font-medium truncate">{excerpt.contributor_name || "Contributor"}</span>
             </Link>
           )}
-          {excerpt.source_quest_id && (
-            <Link to={`/quests/${excerpt.source_quest_id}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-              <Compass className="h-3 w-3" /> From Quest
-            </Link>
-          )}
-          <span>{formatDistanceToNow(new Date(excerpt.created_at), { addSuffix: true })}</span>
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground shrink-0">
+            {excerpt.source_quest_id && (
+              <Link to={`/quests/${excerpt.source_quest_id}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                <Compass className="h-3 w-3" /> Quest
+              </Link>
+            )}
+            <span>{formatDistanceToNow(new Date(excerpt.created_at), { addSuffix: true })}</span>
+          </div>
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-1.5">
-          {/* Report */}
+        <div className="flex items-center gap-1">
           {userId && !isOwner && (
             <ReportPopover excerptId={excerpt.id} userId={userId} />
           )}
-
-          {/* Delete (owner only) */}
           {isOwner && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -240,22 +202,80 @@ function ExcerptCard({
               </AlertDialogContent>
             </AlertDialog>
           )}
-
-          {/* Upvote */}
-          <button
-            onClick={onUpvote}
-            disabled={upvotePending}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-              isUpvoted
-                ? "bg-primary/10 text-primary border border-primary/30"
-                : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
-            )}
-          >
-            <ThumbsUp className={cn("h-3.5 w-3.5", isUpvoted && "fill-primary")} />
-            {excerpt.upvote_count}
-          </button>
         </div>
+      </div>
+
+      {/* Synthesis content as key points */}
+      <div className="px-5 pb-3">
+        {hasSynthesis && (
+          <div className="flex items-center gap-1.5 mb-2">
+            <Badge variant="outline" className="text-[9px] gap-1 border-primary/20 text-primary/80 bg-primary/5">
+              <Sparkles className="h-2.5 w-2.5" /> Synthesis
+            </Badge>
+          </div>
+        )}
+
+        {hasMultiplePoints ? (
+          <ul className="space-y-1.5">
+            {keyPoints.map((point, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm leading-relaxed text-foreground/85">
+                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary/40 shrink-0" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm leading-relaxed text-foreground/85 whitespace-pre-line">
+            {displayText}
+          </p>
+        )}
+      </div>
+
+      {/* Expandable source / full prompt */}
+      {hasSource && (
+        <div className="px-5 pb-3">
+          <button
+            onClick={() => setShowSource(!showSource)}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+          >
+            <MessageSquare className="h-3 w-3" />
+            {showSource ? "Hide full message" : "View full message"}
+            {showSource ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+          <AnimatePresence>
+            {showSource && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-1.5 rounded-lg bg-muted/40 border border-border/60 p-3">
+                  <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
+                    {excerpt.source_prompt}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Footer with upvote */}
+      <div className="flex items-center justify-end px-5 pb-4">
+        <button
+          onClick={onUpvote}
+          disabled={upvotePending}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+            isUpvoted
+              ? "bg-primary/10 text-primary border border-primary/30"
+              : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
+          )}
+        >
+          <ThumbsUp className={cn("h-3.5 w-3.5", isUpvoted && "fill-primary")} />
+          {excerpt.upvote_count}
+        </button>
       </div>
     </motion.div>
   );

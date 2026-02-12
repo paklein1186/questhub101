@@ -341,9 +341,11 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
                 {msg.message_role === "AI" && userId && (
                   <button
                     onClick={() => saveAsExcerpt(msg)}
-                    className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground mt-2 transition-colors"
+                    className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-medium hover:bg-primary/20 hover:border-primary/30 transition-all group"
                   >
-                    <BookOpen className="h-3 w-3" /> Save as Library excerpt
+                    <BookOpen className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+                    <span>Save to Library</span>
+                    <Sparkles className="h-3 w-3 opacity-50" />
                   </button>
                 )}
               </div>
