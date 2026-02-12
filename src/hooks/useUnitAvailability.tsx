@@ -99,9 +99,9 @@ export function generateUnitSlots(
   startDate: string,
   endDate: string,
   existingBookings: { start_date_time: string | null; end_date_time: string | null; status: string }[] = [],
+  calendarBusyEvents: { start_at: string; end_at: string }[] = [],
 ) {
   if (!availability || availability.availability_mode === "always_available") {
-    // Default: Mon-Fri 9-17
     return generateSlotsFromSchedule(
       defaultWeeklySchedule(),
       [],
@@ -109,6 +109,7 @@ export function generateUnitSlots(
       startDate,
       endDate,
       existingBookings,
+      calendarBusyEvents,
     );
   }
 
@@ -119,6 +120,7 @@ export function generateUnitSlots(
     startDate,
     endDate,
     existingBookings,
+    calendarBusyEvents,
   );
 }
 
@@ -136,6 +138,7 @@ function generateSlotsFromSchedule(
   startDate: string,
   endDate: string,
   existingBookings: { start_date_time: string | null; end_date_time: string | null; status: string }[],
+  calendarBusyEvents: { start_at: string; end_at: string }[] = [],
 ) {
   const slots: { startDateTime: string; endDateTime: string; label: string }[] = [];
   const start = new Date(startDate);
@@ -185,6 +188,14 @@ function generateSlotsFromSchedule(
         });
 
         if (!overlaps) {
+          // Also check against external calendar busy events
+          const calBusy = calendarBusyEvents.some(e => {
+            const eStart = new Date(e.start_at);
+            const eEnd = new Date(e.end_at);
+            return slotStart < eEnd && slotEnd > eStart;
+          });
+          if (calBusy) continue;
+
           const fmt = (date: Date) => `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
           slots.push({
             startDateTime: slotStart.toISOString(),

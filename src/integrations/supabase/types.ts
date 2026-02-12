@@ -259,6 +259,92 @@ export type Database = {
           },
         ]
       }
+      calendar_busy_events: {
+        Row: {
+          connection_id: string
+          created_at: string
+          end_at: string
+          external_event_id: string | null
+          id: string
+          start_at: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          end_at: string
+          external_event_id?: string | null
+          id?: string
+          start_at: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          end_at?: string
+          external_event_id?: string | null
+          id?: string
+          start_at?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_busy_events_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_connections: {
+        Row: {
+          access_token: string
+          calendar_id: string | null
+          created_at: string
+          id: string
+          last_synced_at: string | null
+          provider: string
+          refresh_token: string | null
+          sync_enabled: boolean
+          sync_error: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          provider: string
+          refresh_token?: string | null
+          sync_enabled?: boolean
+          sync_error?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          sync_enabled?: boolean
+          sync_error?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comment_mentions: {
         Row: {
           comment_id: string
