@@ -33,10 +33,13 @@ export default function ExploreHub() {
   const initialTab = VALID_TABS.includes(rawTab) ? rawTab : isLegacyEntity ? "entities" : "quests";
   const initialSub: EntitySub = isLegacyEntity ? (rawTab as EntitySub) : "all";
 
+  const createParam = searchParams.get("create") as "guild" | "pod" | "company" | null;
+
   const [tab, setTab] = useState(initialTab);
   const [entitySub, setEntitySub] = useState<EntitySub>(initialSub);
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
-  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(!!createParam);
+  const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const entityHf = useHouseFilter();
   const currentUser = useCurrentUser();
   const { label } = usePersona();
@@ -98,7 +101,7 @@ export default function ExploreHub() {
             <Button size="sm" onClick={() => setWizardOpen(true)}>
               <Plus className="h-4 w-4 mr-1" /> Create Entity
             </Button>
-            <EntityCreationWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+            <EntityCreationWizard open={wizardOpen} onOpenChange={setWizardOpen} initialKind={wizardKind} />
           </div>
 
           {/* Shared filter bar for all entity types */}

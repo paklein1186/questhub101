@@ -53,8 +53,8 @@ const PATHWAYS: Pathway[] = [
       { id: "quest", label: { IMPACT: "Start a Mission", CREATIVE: "Start a Creation", HYBRID: "Start a Quest", DEFAULT: "Create a Quest" }, icon: Compass, behavior: "navigate", route: "/quests/new" },
       { id: "service", label: { IMPACT: "Create a Service", CREATIVE: "Offer a Skill Session", HYBRID: "Create a Service", DEFAULT: "Create a Service" }, icon: Briefcase, behavior: "navigate", route: "/services/new" },
       { id: "event", label: { IMPACT: "Create an Event", CREATIVE: "Create a Gathering", HYBRID: "Create an Event", DEFAULT: "Create an Event" }, icon: Calendar, behavior: "navigate", route: "/explore?tab=guilds" },
-      { id: "guild", label: { IMPACT: "Create a Guild", CREATIVE: "Create a Circle / Studio", HYBRID: "Create a Guild", DEFAULT: "Create a Guild" }, icon: Shield, behavior: "navigate", route: "/guilds/new" },
-      { id: "pod", label: { IMPACT: "Create a Pod", CREATIVE: "Create an Ensemble", HYBRID: "Create a Team", DEFAULT: "Create a Pod" }, icon: CircleDot, behavior: "navigate", route: "/pods/new" },
+      { id: "guild", label: { IMPACT: "Create a Guild", CREATIVE: "Create a Circle / Studio", HYBRID: "Create a Guild", DEFAULT: "Create a Guild" }, icon: Shield, behavior: "navigate", route: "/explore?tab=entities&create=guild" },
+      { id: "pod", label: { IMPACT: "Create a Pod", CREATIVE: "Create an Ensemble", HYBRID: "Create a Team", DEFAULT: "Create a Pod" }, icon: CircleDot, behavior: "navigate", route: "/explore?tab=entities&create=pod" },
       { id: "course", label: { IMPACT: "Create a Course", CREATIVE: "Create a Course", HYBRID: "Create a Course", DEFAULT: "Create a Course" }, icon: BookOpen, behavior: "navigate", route: "/courses/new" },
       { id: "territory-mem", label: { IMPACT: "Add Knowledge to my Territory", CREATIVE: "Enrich my Place of Resonance", HYBRID: "Add Knowledge to my Territory", DEFAULT: "Add Knowledge to my Territory" }, icon: Brain, behavior: "ai-prompt", promptText: { DEFAULT: "What knowledge or insight would you like to contribute to your territory?" }, aiCode: "CREATE_TERRITORY_MEMORY" },
     ],
@@ -70,7 +70,7 @@ const PATHWAYS: Pathway[] = [
       { id: "manage-entities", label: { IMPACT: "Manage my Guilds / Pods / Orgs", CREATIVE: "Manage my Circles / Ensembles", HYBRID: "Manage my Groups / Teams", DEFAULT: "Manage my Entities" }, icon: Shield, behavior: "navigate", route: "/me/guilds" },
       { id: "update-services", label: { IMPACT: "Update my Services", CREATIVE: "Update my Skill Sessions", HYBRID: "Update my Services", DEFAULT: "Update my Services" }, icon: Briefcase, behavior: "navigate", route: "/me/services" },
       { id: "review-bookings", label: { IMPACT: "Review my Events & Bookings", CREATIVE: "Review my Events & Bookings", HYBRID: "Review my Events & Bookings", DEFAULT: "Review my Events & Bookings" }, icon: Calendar, behavior: "navigate", route: "/me/bookings" },
-      { id: "update-profile", label: { IMPACT: "Update my Profile", CREATIVE: "Update my Portfolio", HYBRID: "Update my Profile", DEFAULT: "Update my Profile" }, icon: User, behavior: "navigate", route: "/me/edit" },
+      { id: "update-profile", label: { IMPACT: "Update my Profile", CREATIVE: "Update my Portfolio", HYBRID: "Update my Profile", DEFAULT: "Update my Profile" }, icon: User, behavior: "navigate", route: "/profile/edit" },
     ],
   },
   {
@@ -94,7 +94,7 @@ const PATHWAYS: Pathway[] = [
     subActions: [
       { id: "quests", label: { IMPACT: "Missions looking for collaborators", CREATIVE: "Creations looking for collaborators", HYBRID: "Quests looking for collaborators", DEFAULT: "Quests looking for collaborators" }, icon: Compass, behavior: "navigate", route: "/explore?tab=quests" },
       { id: "recruiting", label: { IMPACT: "Guilds / Pods recruiting", CREATIVE: "Circles / Ensembles recruiting", HYBRID: "Groups recruiting", DEFAULT: "Guilds recruiting" }, icon: Shield, behavior: "navigate", route: "/explore?tab=guilds" },
-      { id: "events", label: { IMPACT: "Events happening soon", CREATIVE: "Gatherings happening soon", HYBRID: "Events happening soon", DEFAULT: "Events happening soon" }, icon: Calendar, behavior: "navigate", route: "/explore?tab=events" },
+      { id: "events", label: { IMPACT: "Events happening soon", CREATIVE: "Gatherings happening soon", HYBRID: "Events happening soon", DEFAULT: "Events happening soon" }, icon: Calendar, behavior: "navigate", route: "/calendar" },
       { id: "territories", label: { IMPACT: "Territories with emerging activity", CREATIVE: "Places with emerging energy", HYBRID: "Territories with activity", DEFAULT: "Territories with activity" }, icon: MapPin, behavior: "navigate", route: "/explore?tab=territories" },
       { id: "courses", label: { IMPACT: "Courses I can take", CREATIVE: "Courses I can take", HYBRID: "Courses I can take", DEFAULT: "Courses I can take" }, icon: BookOpen, behavior: "navigate", route: "/explore?tab=courses" },
       { id: "services", label: { IMPACT: "Services available", CREATIVE: "Skill Sessions available", HYBRID: "Services available", DEFAULT: "Services available" }, icon: Briefcase, behavior: "navigate", route: "/explore?tab=services" },
