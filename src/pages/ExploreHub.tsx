@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Search, Sparkles, Brain, Plus } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Search, Sparkles, Brain, Plus, Shield, CircleDot, Building2, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
@@ -93,11 +94,36 @@ export default function ExploreHub() {
               </Button>
             ))}
             </div>
-            <Button size="sm" asChild>
-              <Link to={entitySub === "companies" ? "/companies/info" : entitySub === "pods" ? "/guilds/new" : entitySub === "guilds" ? "/guilds/new" : "/guilds/new"}>
-                <Plus className="h-4 w-4 mr-1" /> Create {entitySub === "all" ? "Entity" : entitySub === "guilds" ? label("guild.label") : entitySub === "pods" ? label("pod.label") : label("company.label")}
-              </Link>
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="h-4 w-4 mr-1" /> Create Entity
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader><DialogTitle>What would you like to create?</DialogTitle></DialogHeader>
+                <div className="space-y-2 mt-2">
+                  <Button variant="outline" className="w-full justify-between" asChild>
+                    <Link to="/guilds/new">
+                      <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> {label("guild.label")}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-between" asChild>
+                    <Link to="/pods/new">
+                      <span className="flex items-center gap-2"><CircleDot className="h-4 w-4" /> {label("pod.label")}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-between" asChild>
+                    <Link to="/companies/info">
+                      <span className="flex items-center gap-2"><Building2 className="h-4 w-4" /> {label("company.label")}</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Shared filter bar for all entity types */}
