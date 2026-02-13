@@ -165,12 +165,40 @@ export function useCreatePost() {
 export function useEditPost() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+    mutationFn: async ({
+      postId,
+      content,
+      territoryIds,
+      topicIds,
+    }: {
+      postId: string;
+      content: string;
+      territoryIds?: string[];
+      topicIds?: string[];
+    }) => {
       const { error } = await supabase
         .from("feed_posts")
         .update({ content: content || null, updated_at: new Date().toISOString() })
         .eq("id", postId);
       if (error) throw error;
+
+      // Sync territories if provided
+      if (territoryIds !== undefined) {
+        await supabase.from("post_territories").delete().eq("post_id", postId);
+        if (territoryIds.length > 0) {
+          const rows = territoryIds.map((territory_id) => ({ post_id: postId, territory_id }));
+          await supabase.from("post_territories").insert(rows as any);
+        }
+      }
+
+      // Sync topics if provided
+      if (topicIds !== undefined) {
+        await supabase.from("post_topics").delete().eq("post_id", postId);
+        if (topicIds.length > 0) {
+          const rows = topicIds.map((topic_id) => ({ post_id: postId, topic_id }));
+          await supabase.from("post_topics").insert(rows as any);
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });

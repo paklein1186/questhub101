@@ -19,6 +19,7 @@ import { CommentTargetType } from "@/types/enums";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
+import { OntologyPicker } from "@/components/feed/OntologyPicker";
 
 function ImageGrid({ images }: { images: PostAttachment[] }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -130,6 +131,8 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
   const [showComments, setShowComments] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content || "");
+  const [editTerritoryIds, setEditTerritoryIds] = useState<string[]>([]);
+  const [editTopicIds, setEditTopicIds] = useState<string[]>([]);
 
   // Comment count
   const { data: commentCount = 0 } = useQuery({
@@ -166,7 +169,12 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
 
   const handleSaveEdit = () => {
     editPost.mutate(
-      { postId: post.id, content: editContent.trim() },
+      {
+        postId: post.id,
+        content: editContent.trim(),
+        territoryIds: editTerritoryIds,
+        topicIds: editTopicIds,
+      },
       {
         onSuccess: () => {
           setEditing(false);
@@ -219,7 +227,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
         </div>
         {isOwn && !editing && (
           <div className="flex items-center gap-0.5">
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => { setEditContent(post.content || ""); setEditing(true); }}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => { setEditContent(post.content || ""); setEditTerritoryIds((post.post_territories ?? []).map(pt => pt.territory_id)); setEditTopicIds((post.post_topics ?? []).map(pt => pt.topic_id)); setEditing(true); }}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete} disabled={isDeleting}>
@@ -231,12 +239,18 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
 
       {/* Content */}
       {editing ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Textarea
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             className="min-h-[80px] text-sm"
             maxLength={2000}
+          />
+          <OntologyPicker
+            selectedTerritoryIds={editTerritoryIds}
+            selectedTopicIds={editTopicIds}
+            onTerritoriesChange={setEditTerritoryIds}
+            onTopicsChange={setEditTopicIds}
           />
           <div className="flex items-center gap-2 justify-end">
             <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={editPost.isPending}>
