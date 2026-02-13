@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useUnreadMessageCount } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
@@ -27,6 +28,7 @@ export function AppNav() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { unreadCount } = useNotifications();
+  const unreadMessages = useUnreadMessageCount();
   const { user, signOut, session } = useAuth();
   const currentUser = useCurrentUser();
   const { label } = usePersona();
@@ -108,6 +110,25 @@ export function AppNav() {
                     </Link>
                   );
                 })}
+
+                {/* Inbox */}
+                <Link
+                  to="/inbox"
+                  className={cn(
+                    "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
+                    pathname === "/inbox"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  title="Messages"
+                >
+                  <Mail className="h-4 w-4" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadMessages > 9 ? "9+" : unreadMessages}
+                    </span>
+                  )}
+                </Link>
 
                 {/* Bell */}
                 <Link
@@ -226,6 +247,17 @@ export function AppNav() {
             {isLoggedIn && (
               <>
                 <GlobalSearchDialog />
+                <Link
+                  to="/inbox"
+                  className="relative flex items-center px-2 py-1.5 rounded-md text-sm text-muted-foreground"
+                >
+                  <Mail className="h-5 w-5" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadMessages > 9 ? "9+" : unreadMessages}
+                    </span>
+                  )}
+                </Link>
                 <Link
                   to="/notifications"
                   className="relative flex items-center px-2 py-1.5 rounded-md text-sm text-muted-foreground"

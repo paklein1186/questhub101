@@ -739,6 +739,65 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_group: boolean
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_group?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_group?: boolean
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cooperative_settings: {
         Row: {
           id: string
@@ -1142,6 +1201,41 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "unit_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      direct_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
