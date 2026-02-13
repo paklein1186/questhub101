@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAllJobPositions } from "@/hooks/useJobPositions";
-import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { formatDistanceToNow } from "date-fns";
+import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 
 const CONTRACT_OPTIONS = [
   { value: "all", label: "All types" },
@@ -32,14 +32,11 @@ interface Props {
 
 export default function JobsExplore({ bare }: Props) {
   const { data: jobs = [], isLoading } = useAllJobPositions();
-  const { data: allTopics = [] } = useTopics();
-  const { data: allTerritories = [] } = useTerritories();
 
   const [search, setSearch] = useState("");
   const [contractFilter, setContractFilter] = useState("all");
   const [remoteFilter, setRemoteFilter] = useState("all");
-  const [topicFilter, setTopicFilter] = useState("all");
-  const [territoryFilter, setTerritoryFilter] = useState("all");
+  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const filtered = useMemo(() => {
     return jobs.filter((job: any) => {
@@ -48,21 +45,21 @@ export default function JobsExplore({ bare }: Props) {
           !(job.companies?.name ?? "").toLowerCase().includes(search.toLowerCase())) return false;
       if (contractFilter !== "all" && job.contract_type !== contractFilter) return false;
       if (remoteFilter !== "all" && job.remote_policy !== remoteFilter) return false;
-      if (topicFilter !== "all") {
+      if (filters.topicIds.length > 0) {
         const topicIds = (job.job_position_topics ?? []).map((jt: any) => jt.topic_id);
-        if (!topicIds.includes(topicFilter)) return false;
+        if (!filters.topicIds.some(id => topicIds.includes(id))) return false;
       }
-      if (territoryFilter !== "all") {
+      if (filters.territoryIds.length > 0) {
         const terrIds = (job.job_position_territories ?? []).map((jt: any) => jt.territory_id);
-        if (!terrIds.includes(territoryFilter)) return false;
+        if (!filters.territoryIds.some(id => terrIds.includes(id))) return false;
       }
       return true;
     });
-  }, [jobs, search, contractFilter, remoteFilter, topicFilter, territoryFilter]);
+  }, [jobs, search, contractFilter, remoteFilter, filters]);
 
   const content = (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Search & quick filters */}
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -89,25 +86,17 @@ export default function JobsExplore({ bare }: Props) {
             {REMOTE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={topicFilter} onValueChange={setTopicFilter}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue placeholder="Topic" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All topics</SelectItem>
-            {allTopics.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={territoryFilter} onValueChange={setTerritoryFilter}>
-          <SelectTrigger className="w-[140px] h-9 text-xs">
-            <SelectValue placeholder="Territory" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All territories</SelectItem>
-            {allTerritories.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </div>
+
+      {/* Standard filters (topics & territories) */}
+      <ExploreFilters
+        filters={filters}
+        onChange={setFilters}
+        config={{
+          showTopics: true,
+          showTerritories: true,
+        }}
+      />
 
       {/* Results count */}
       <p className="text-xs text-muted-foreground">{filtered.length} position{filtered.length !== 1 ? "s" : ""} found</p>
