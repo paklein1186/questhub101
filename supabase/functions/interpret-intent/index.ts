@@ -20,20 +20,22 @@ const VALID_ROUTES: Record<string, string> = {
   "/explore?tab=services": "Explore services",
   "/explore?tab=courses": "Explore courses",
   "/explore?tab=events": "Explore events",
-  "/explore?tab=people": "Find people",
+  "/explore?tab=users": "Find people",
+  "/explore/territories": "Explore territories",
   "/work": "See my work & quests",
   "/network": "My network",
   "/network?tab=entities": "My entities",
   "/network?tab=people": "People in my orbit",
   "/network?tab=territories": "My territories",
-  "/wall": "My wall / feed",
   "/me": "My profile",
+  "/me?tab=wall": "My wall / feed",
   "/guilds": "Browse guilds",
   "/pods": "Browse pods",
   "/companies": "Browse organizations",
   "/services": "Browse services",
   "/quests": "Browse quests",
   "/courses": "Browse courses",
+  "/calendar": "Calendar & events",
   "/territories": "Explore territories",
   "/support": "Help & tutorials",
   "/support#getting-started": "Getting started guide",
@@ -46,6 +48,12 @@ const VALID_ROUTES: Record<string, string> = {
   "/cooperative-venture": "Cooperative venture info",
 };
 
+// Dynamic route prefixes that accept UUIDs (e.g. /quests/<uuid>)
+const DYNAMIC_ROUTE_PREFIXES = [
+  "/quests/", "/guilds/", "/pods/", "/companies/", "/services/",
+  "/courses/", "/events/", "/users/", "/territories/",
+];
+
 // Map action types to their default routes and query params
 const ACTION_ROUTE_MAP: Record<string, { route: string; queryParams?: Record<string, string> }> = {
   CREATE_QUEST: { route: "/quests/new" },
@@ -57,14 +65,14 @@ const ACTION_ROUTE_MAP: Record<string, { route: string; queryParams?: Record<str
   CREATE_COMPANY: { route: "/companies/info" },
   START_POD: { route: "/pods/new" },
   START_GUILD: { route: "/guilds/new" },
-  POST_WALL: { route: "/wall" },
-  FIND_PEOPLE: { route: "/explore", queryParams: { tab: "people" } },
+  POST_WALL: { route: "/me", queryParams: { tab: "wall" } },
+  FIND_PEOPLE: { route: "/explore", queryParams: { tab: "users" } },
   FIND_ENTITIES: { route: "/explore", queryParams: { tab: "entities" } },
   FIND_QUESTS: { route: "/explore", queryParams: { tab: "quests" } },
   FIND_SERVICES: { route: "/explore", queryParams: { tab: "services" } },
   FIND_COURSES: { route: "/explore", queryParams: { tab: "courses" } },
   FIND_EVENTS: { route: "/explore", queryParams: { tab: "events" } },
-  EXPLORE_TERRITORIES: { route: "/territories" },
+  EXPLORE_TERRITORIES: { route: "/explore/territories" },
   VIEW_MY_WORK: { route: "/work" },
   VIEW_MY_ENTITIES: { route: "/network", queryParams: { tab: "entities" } },
   LEARN: { route: "/explore", queryParams: { tab: "courses" } },
@@ -75,24 +83,58 @@ const ACTION_ROUTE_MAP: Record<string, { route: string; queryParams?: Record<str
 const VALID_ROUTES_LIST = Object.entries(VALID_ROUTES).map(([route, desc]) => `  ${route} — ${desc}`).join("\n");
 
 function sanitizeRoute(route: string): string {
-  if (VALID_ROUTES[route]) return route;
+  if (!route || typeof route !== "string") return "/explore";
+
+  // Fix common AI hallucinations
+  let cleaned = route
+    .replace(/^\/home$/, "/")
+    .replace(/^\/home\//, "/")
+    .replace(/tab=people/, "tab=users")
+    .replace(/tab=pods/, "tab=entities")
+    .replace(/tab=guilds(?!-)/, "tab=entities")
+    .replace(/tab=companies/, "tab=entities")
+    .replace(/^\/wall$/, "/me?tab=wall")
+    .replace(/^\/profile\/(?!edit)([\w-]+)/, "/users/$1")
+    .replace(/^\/user\/([\w-]+)/, "/users/$1")
+    .replace(/^\/quest\/([\w-]+)/, "/quests/$1")
+    .replace(/^\/guild\/([\w-]+)/, "/guilds/$1")
+    .replace(/^\/pod\/([\w-]+)/, "/pods/$1")
+    .replace(/^\/company\/([\w-]+)/, "/companies/$1")
+    .replace(/^\/event\/([\w-]+)/, "/events/$1")
+    .replace(/^\/service\/([\w-]+)/, "/services/$1")
+    .replace(/^\/course\/([\w-]+)/, "/courses/$1")
+    .replace(/^\/territory\/([\w-]+)/, "/territories/$1");
+
+  // Check exact match in VALID_ROUTES
+  if (VALID_ROUTES[cleaned]) return cleaned;
+
+  // Check if it starts with a valid static route (with query params or hash)
   const validPrefixes = Object.keys(VALID_ROUTES);
   for (const prefix of validPrefixes) {
-    if (route === prefix || route.startsWith(prefix + "?") || route.startsWith(prefix + "#")) {
-      return route;
+    if (cleaned === prefix || cleaned.startsWith(prefix + "?") || cleaned.startsWith(prefix + "#")) {
+      return cleaned;
     }
   }
-  if (route.includes("help") || route.includes("tutorial") || route.includes("support") || route.includes("guide")) return "/support";
-  if (route.includes("how")) return "/how-it-works";
-  if (route.includes("quest")) return "/explore?tab=quests";
-  if (route.includes("service")) return "/explore?tab=services";
-  if (route.includes("people") || route.includes("user")) return "/explore?tab=people";
-  if (route.includes("guild") || route.includes("entit")) return "/explore?tab=entities";
-  if (route.includes("territor")) return "/territories";
-  if (route.includes("course") || route.includes("learn")) return "/explore?tab=courses";
-  if (route.includes("event")) return "/explore?tab=events";
-  if (route.includes("work") || route.includes("my")) return "/work";
-  if (route.includes("wall") || route.includes("post") || route.includes("share")) return "/wall";
+
+  // Check dynamic routes (e.g. /quests/<uuid>)
+  for (const prefix of DYNAMIC_ROUTE_PREFIXES) {
+    if (cleaned.startsWith(prefix) && cleaned.length > prefix.length) {
+      return cleaned;
+    }
+  }
+
+  // Keyword-based fallbacks
+  if (cleaned.includes("help") || cleaned.includes("tutorial") || cleaned.includes("support") || cleaned.includes("guide")) return "/support";
+  if (cleaned.includes("how")) return "/how-it-works";
+  if (cleaned.includes("quest")) return "/explore?tab=quests";
+  if (cleaned.includes("service")) return "/explore?tab=services";
+  if (cleaned.includes("people") || cleaned.includes("user")) return "/explore?tab=users";
+  if (cleaned.includes("guild") || cleaned.includes("entit")) return "/explore?tab=entities";
+  if (cleaned.includes("territor")) return "/explore/territories";
+  if (cleaned.includes("course") || cleaned.includes("learn")) return "/explore?tab=courses";
+  if (cleaned.includes("event") || cleaned.includes("calendar")) return "/calendar";
+  if (cleaned.includes("work") || cleaned.includes("my")) return "/work";
+  if (cleaned.includes("wall") || cleaned.includes("post") || cleaned.includes("share")) return "/me?tab=wall";
   return "/explore";
 }
 
@@ -135,7 +177,14 @@ When actionType is TERRITORY_INTENT, also include:
 When actionType is HELP, include:
 - "helpTopic": the specific platform concept or feature they're asking about (e.g. "quests", "guilds", "territories", "services", "courses", "getting-started")
 
-For EVERY suggestion, you MUST include a "route" field with one of the VALID ROUTES above, and optionally a "queryParams" object with key-value pairs for query parameters (e.g. {"tab": "quests", "q": "search term"}).
+For EVERY suggestion, you MUST include a "route" field with one of the VALID ROUTES above. You may also use dynamic routes for specific entities: /quests/<id>, /guilds/<id>, /pods/<id>, /companies/<id>, /services/<id>, /courses/<id>, /events/<id>, /users/<id>, /territories/<id>. Optionally include a "queryParams" object with key-value pairs (e.g. {"tab": "quests", "q": "search term"}).
+
+IMPORTANT ROUTE RULES:
+- Use "/explore?tab=users" NOT "/explore?tab=people" for finding people
+- Use "/me?tab=wall" NOT "/wall" for the user's feed/wall
+- Use "/explore/territories" or "/territories" for territory browsing
+- Use "/calendar" for events calendar
+- Only suggest routes you are confident exist. When in doubt, use a general explore route.
 
 Respond ONLY with this JSON:
 {
@@ -154,7 +203,7 @@ Respond ONLY with this JSON:
   "helpTopic": null
 }
 
-Give 2-3 suggestions max. ONLY use routes from the VALID ROUTES list above.
+Give 2-3 suggestions max. ONLY use routes from the VALID ROUTES list above or dynamic entity routes.
 If actionType is OTHER, set confidence to the probability it IS a real intent (low = truly odd).
 Adapt language to the persona provided in context.`;
 
