@@ -25,7 +25,7 @@ import JobsExplore from "./JobsExplore";
 import { AddJobDialog } from "@/components/AddJobDialog";
 
 const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_GUEST = ["entities", "houses", "courses"];
+const VALID_TABS_GUEST = ["entities", "houses", "courses", "jobs"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
@@ -68,9 +68,9 @@ export default function ExploreHub() {
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
           <TabsTrigger value="entities" className="text-xs sm:text-sm"><Compass className="h-3.5 w-3.5 mr-1" /> Entities</TabsTrigger>
-          {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm"><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</TabsTrigger>}
-          {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm"><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</TabsTrigger>}
-          {!isGuest && <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>}
+           {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm"><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</TabsTrigger>}
+           {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm"><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</TabsTrigger>}
+           <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>
           <TabsTrigger value="houses" className="text-xs sm:text-sm"><Tag className="h-3.5 w-3.5 mr-1" /> Topics</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm"><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</TabsTrigger>
           {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm"><Users className="h-3.5 w-3.5 mr-1" /> Humans</TabsTrigger>}
