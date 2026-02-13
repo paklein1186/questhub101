@@ -1,5 +1,6 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2 } from "lucide-react";
@@ -69,6 +70,22 @@ export default function QuestDetail() {
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
   const { data: resolvedHosts } = useResolvedQuestHosts(id);
+
+  // Subtask counts for tab label
+  const { data: subtaskCounts } = useQuery({
+    queryKey: ["quest-subtask-counts", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quest_subtasks" as any)
+        .select("status")
+        .eq("quest_id", id!);
+      if (error) throw error;
+      const all = data || [];
+      const open = all.filter((s: any) => s.status !== "DONE").length;
+      return { open, total: all.length };
+    },
+    enabled: !!id,
+  });
 
   const [updateOpen, setUpdateOpen] = useState(false);
   const [uTitle, setUTitle] = useState("");
@@ -429,7 +446,7 @@ export default function QuestDetail() {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {isLoggedIn && <TabsTrigger value="proposals">Proposals</TabsTrigger>}
-            {isLoggedIn && <TabsTrigger value="subtasks">Subtasks</TabsTrigger>}
+            {isLoggedIn && <TabsTrigger value="subtasks">Subtasks{subtaskCounts && subtaskCounts.total > 0 ? ` (${subtaskCounts.open}/${subtaskCounts.total})` : ""}</TabsTrigger>}
             <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
             <TabsTrigger value="discussion">Discussion</TabsTrigger>
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
