@@ -556,8 +556,8 @@ export default function SettingsPage() {
                             onAccept={(text) => setBio(text)}
                           />
                         </div>
-                        <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself…" maxLength={1000} className="min-h-[140px]" />
-                        <span className="text-xs text-muted-foreground text-right block mt-1">{bio?.length || 0}/1000</span>
+                        <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself…" maxLength={1300} className="min-h-[140px]" />
+                        <span className="text-xs text-muted-foreground text-right block mt-1">{bio?.length || 0}/1300</span>
                       </div>
                       <div><label className="text-sm font-medium mb-1 block">Role</label>
                         <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
