@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Sparkles, Brain, Plus, Briefcase } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
@@ -22,6 +22,7 @@ import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
 import JobsExplore from "./JobsExplore";
+import { AddJobDialog } from "@/components/AddJobDialog";
 
 const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses"];
@@ -46,6 +47,7 @@ export default function ExploreHub() {
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [wizardOpen, setWizardOpen] = useState(!!createParam);
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
+  const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const entityHf = useHouseFilter();
   const { label } = usePersona();
 
@@ -65,14 +67,14 @@ export default function ExploreHub() {
 
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList className="mb-6">
-          <TabsTrigger value="entities" className="text-xs sm:text-sm">Entities</TabsTrigger>
-          {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>}
-          {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>}
+          <TabsTrigger value="entities" className="text-xs sm:text-sm"><Compass className="h-3.5 w-3.5 mr-1" /> Entities</TabsTrigger>
+          {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm"><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm"><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</TabsTrigger>}
           {!isGuest && <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>}
-          <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
-          <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
-          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm">Humans</TabsTrigger>}
-          {!isGuest && <TabsTrigger value="territories" className="text-xs sm:text-sm"><Brain className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>}
+          <TabsTrigger value="houses" className="text-xs sm:text-sm"><Tag className="h-3.5 w-3.5 mr-1" /> Topics</TabsTrigger>
+          <TabsTrigger value="courses" className="text-xs sm:text-sm"><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</TabsTrigger>
+          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm"><Users className="h-3.5 w-3.5 mr-1" /> Humans</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="territories" className="text-xs sm:text-sm"><Map className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>}
           {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
@@ -161,7 +163,15 @@ export default function ExploreHub() {
           <ServicesMarketplace bare />
         </TabsContent>
         <TabsContent value="jobs">
+          {!isGuest && (
+            <div className="flex justify-end mb-4">
+              <Button size="sm" onClick={() => setJobDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-1" /> Post a Job
+              </Button>
+            </div>
+          )}
           <JobsExplore bare />
+          {!isGuest && <AddJobDialog open={jobDialogOpen} onOpenChange={setJobDialogOpen} />}
         </TabsContent>
         <TabsContent value="courses">
           <div className="flex justify-end mb-4">
