@@ -12,7 +12,7 @@ export function useAutoTranslatePost(postId: string, originalContent: string | n
   const { i18n } = useTranslation();
   const lang = i18n.language;
   const qc = useQueryClient();
-  const needsTranslation = !!originalContent && lang !== "en";
+  const needsTranslation = !!originalContent;
 
   // 1. Check for cached translation in DB
   const { data: cachedTranslation, isLoading: isCacheLoading } = useQuery({
