@@ -482,95 +482,137 @@ export default function HomeFeed() {
       <MilestonePopup />
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
-        {/* Floating glowing orb — soft reassuring presence */}
+        {/* Floating fluid orb — sharp & alive */}
         <motion.div
-          className="pointer-events-none absolute -left-8 top-1/3 sm:-left-16 md:-left-24 z-0"
-          initial={{ opacity: 0, scale: 0.6 }}
+          className="pointer-events-none absolute -left-6 top-1/3 sm:-left-14 md:-left-20 z-0"
+          initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <motion.div
             animate={{
-              y: [0, -20, 8, -12, 15, -6, 0],
-              x: [0, 6, -8, 5, -4, 3, 0],
-              scale: [1, 1.08, 0.98, 1.05, 0.99, 1.03, 1],
-              rotate: [0, 12, -8, 10, -6, 4, 0],
+              y: [0, -18, 6, -10, 12, -5, 0],
+              x: [0, 5, -6, 4, -3, 2, 0],
+              rotate: [0, 8, -5, 6, -4, 3, 0],
             }}
             transition={{
-              duration: 13,
+              duration: 11,
               repeat: Infinity,
               ease: "easeInOut",
-              times: [0, 0.15, 0.3, 0.5, 0.65, 0.85, 1],
+              times: [0, 0.14, 0.28, 0.48, 0.64, 0.84, 1],
             }}
-            className="relative"
+            className="relative w-16 h-16 sm:w-22 sm:h-22 md:w-24 md:h-24"
           >
-            {/* Core orb — fluid shape with contained color-shifting glow */}
-            <motion.div
-              className="relative w-14 h-14 sm:w-20 sm:h-20 overflow-hidden"
-              animate={{
-                borderRadius: [
-                  "50% 50% 45% 55% / 55% 45% 55% 45%",
-                  "45% 55% 55% 45% / 45% 55% 45% 55%",
-                  "55% 45% 45% 55% / 50% 50% 55% 45%",
-                  "50% 50% 50% 50% / 55% 45% 50% 50%",
-                  "50% 50% 45% 55% / 55% 45% 55% 45%",
-                ],
-              }}
-              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-              style={{
-                boxShadow: "0 0 30px 6px hsl(var(--primary) / 0.12)",
-              }}
-            >
-              {/* Color layer 1 — primary violet */}
-              <motion.div
-                className="absolute inset-0"
+            {/* Sharp membrane — SVG with morphing path */}
+            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="fluid-clip">
+                  <motion.path
+                    animate={{
+                      d: [
+                        "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
+                        "M48,8 C68,2 92,22 96,45 C100,68 82,90 60,96 C38,102 12,88 5,65 C-2,42 18,14 40,8 C44,7 46,8 48,8Z",
+                        "M52,4 C78,8 95,28 94,52 C93,76 75,95 52,97 C29,99 8,82 4,58 C0,34 16,10 38,4 C44,2 48,3 52,4Z",
+                        "M45,6 C65,0 88,15 96,38 C104,61 90,88 65,95 C40,102 14,85 6,62 C-2,39 14,12 35,6 C38,5 42,6 45,6Z",
+                        "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
+                      ],
+                    }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </clipPath>
+                {/* Sharper edge glow filter */}
+                <filter id="fluid-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              {/* Outer membrane edge */}
+              <motion.path
                 animate={{
-                  opacity: [0.6, 0.3, 0.15, 0.4, 0.6],
-                  x: [0, 4, -2, 3, 0],
-                  y: [0, -3, 5, -2, 0],
+                  d: [
+                    "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
+                    "M48,8 C68,2 92,22 96,45 C100,68 82,90 60,96 C38,102 12,88 5,65 C-2,42 18,14 40,8 C44,7 46,8 48,8Z",
+                    "M52,4 C78,8 95,28 94,52 C93,76 75,95 52,97 C29,99 8,82 4,58 C0,34 16,10 38,4 C44,2 48,3 52,4Z",
+                    "M45,6 C65,0 88,15 96,38 C104,61 90,88 65,95 C40,102 14,85 6,62 C-2,39 14,12 35,6 C38,5 42,6 45,6Z",
+                    "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
+                  ],
                 }}
-                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.7), transparent 70%)" }}
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                fill="none"
+                stroke="hsl(var(--primary) / 0.25)"
+                strokeWidth="0.8"
+                filter="url(#fluid-glow)"
               />
-              {/* Color layer 2 — rose/pink */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.15, 0.5, 0.3, 0.15, 0.15],
-                  x: [0, -5, 3, -2, 0],
-                  y: [0, 4, -3, 5, 0],
-                }}
-                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(circle at 65% 60%, hsl(var(--secondary) / 0.6), transparent 65%)" }}
-              />
-              {/* Color layer 3 — warm amber */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.1, 0.2, 0.45, 0.2, 0.1],
-                  x: [0, 3, 0, -4, 0],
-                  y: [0, 2, -4, 1, 0],
-                }}
-                transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(circle at 50% 30%, hsl(35 90% 60% / 0.5), transparent 60%)" }}
-              />
-              {/* Color layer 4 — cool teal */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.2, 0.1, 0.15, 0.4, 0.2],
-                  x: [0, -3, 5, -1, 0],
-                  y: [0, -4, 2, -3, 0],
-                }}
-                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(circle at 40% 70%, hsl(180 50% 55% / 0.4), transparent 60%)" }}
-              />
-              {/* Inner light refraction */}
+            </svg>
+
+            {/* Inner fill clipped to morphing shape */}
+            <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "url(#fluid-clip)" }}>
+              {/* Base fill */}
               <div
                 className="absolute inset-0"
-                style={{ background: "radial-gradient(circle at 30% 25%, hsl(0 0% 100% / 0.15), transparent 50%)" }}
+                style={{ background: "hsl(var(--primary) / 0.06)" }}
               />
-            </motion.div>
+              {/* Color 1 — primary */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.7, 0.25, 0.5, 0.7],
+                  x: [0, 5, -3, 0],
+                  y: [0, -4, 3, 0],
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(ellipse at 30% 30%, hsl(var(--primary) / 0.65), transparent 65%)" }}
+              />
+              {/* Color 2 — secondary rose */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.15, 0.55, 0.2, 0.15],
+                  x: [0, -4, 3, 0],
+                  y: [0, 5, -2, 0],
+                }}
+                transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(ellipse at 70% 65%, hsl(var(--secondary) / 0.55), transparent 60%)" }}
+              />
+              {/* Color 3 — amber accent */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.08, 0.35, 0.12, 0.08],
+                  x: [0, 3, -5, 0],
+                  y: [0, 2, -3, 0],
+                }}
+                transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(ellipse at 55% 25%, hsl(35 90% 58% / 0.45), transparent 55%)" }}
+              />
+              {/* Color 4 — teal */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.2, 0.08, 0.38, 0.2],
+                  x: [0, -2, 4, 0],
+                  y: [0, -3, 2, 0],
+                }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(ellipse at 35% 75%, hsl(180 50% 52% / 0.35), transparent 55%)" }}
+              />
+              {/* Specular highlight */}
+              <div
+                className="absolute inset-0"
+                style={{ background: "radial-gradient(ellipse 40% 30% at 28% 22%, hsl(0 0% 100% / 0.22), transparent)" }}
+              />
+            </div>
+
+            {/* Outer soft haze contained close to shape */}
+            <motion.div
+              className="absolute -inset-2 blur-md"
+              animate={{ opacity: [0.15, 0.25, 0.15] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              style={{ clipPath: "url(#fluid-clip)", background: "hsl(var(--primary) / 0.15)" }}
+            />
           </motion.div>
         </motion.div>
 
