@@ -12,7 +12,7 @@ import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAutoTranslatePost } from "@/hooks/useAutoTranslatePost";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { CommentThread } from "@/components/CommentThread";
@@ -134,10 +134,8 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
   const [editContent, setEditContent] = useState(post.content || "");
   const [editTerritoryIds, setEditTerritoryIds] = useState<string[]>([]);
   const [editTopicIds, setEditTopicIds] = useState<string[]>([]);
-  const [translatedText, setTranslatedText] = useState<string | null>(null);
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const { i18n } = useTranslation();
+  const [showOriginal, setShowOriginal] = useState(false);
+  const { translatedText, isTranslating, isTranslated, needsTranslation } = useAutoTranslatePost(post.id, post.content);
 
   // Comment count
   const { data: commentCount = 0 } = useQuery({
@@ -195,32 +193,10 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
     setEditing(false);
   };
 
-  const handleTranslate = async () => {
-    if (!post.content) return;
-    if (translatedText) {
-      setShowTranslation(!showTranslation);
-      return;
-    }
-    setTranslating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("translate-content", {
-        body: {
-          entityType: "FEED_POST",
-          entityId: post.id,
-          fieldName: "content",
-          text: post.content,
-          targetLanguage: i18n.language,
-        },
-      });
-      if (error) throw error;
-      setTranslatedText(data.translatedText);
-      setShowTranslation(true);
-    } catch {
-      toast.error("Translation failed");
-    } finally {
-      setTranslating(false);
-    }
-  };
+  // Display logic: show translation by default, allow toggle to original
+  const displayContent = needsTranslation && isTranslated && !showOriginal
+    ? translatedText
+    : post.content;
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
@@ -297,10 +273,22 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
       ) : post.content ? (
         <div className="space-y-1">
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {renderMentions(showTranslation && translatedText ? translatedText : post.content)}
+            {renderMentions(displayContent || post.content)}
           </p>
-          {showTranslation && translatedText && (
-            <p className="text-[10px] text-muted-foreground italic">Translated automatically</p>
+          {isTranslating && (
+            <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+              <Loader2 className="h-2.5 w-2.5 animate-spin" /> Translating…
+            </p>
+          )}
+          {needsTranslation && isTranslated && !showOriginal && (
+            <button onClick={() => setShowOriginal(true)} className="text-[10px] text-muted-foreground italic hover:text-foreground transition-colors">
+              Translated automatically · Show original
+            </button>
+          )}
+          {needsTranslation && showOriginal && isTranslated && (
+            <button onClick={() => setShowOriginal(false)} className="text-[10px] text-muted-foreground italic hover:text-foreground transition-colors">
+              Showing original · Show translation
+            </button>
           )}
         </div>
       ) : null}
@@ -360,21 +348,21 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
               {hasUpvoted ? "Remove upvote" : "Upvote"}
             </TooltipContent>
           </Tooltip>
-          {allowComments && (
+          {allowComments && needsTranslation && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`h-8 px-2.5 gap-1.5 ${showTranslation ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
-                  onClick={handleTranslate}
-                  disabled={translating || !post.content}
+                  className={`h-8 px-2.5 gap-1.5 ${isTranslated && !showOriginal ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={() => setShowOriginal(!showOriginal)}
+                  disabled={isTranslating || !isTranslated}
                 >
-                  {translating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                  {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                {showTranslation ? "Show original" : "Translate"}
+                {showOriginal ? "Show translation" : "Show original"}
               </TooltipContent>
             </Tooltip>
           )}
