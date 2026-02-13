@@ -85,15 +85,16 @@ export function BauhausShape() {
     return () => cancelAnimationFrame(rafId.current);
   }, [isMobile, fleeX, fleeY]);
 
-  const wanderDuration = isMobile ? 55 : 35;
+  const wanderDuration = isMobile ? 55 : 50;
   // Mobile: smaller, repositioned to stay visible
   const sizeStyle = isMobile
     ? { width: "34vw", height: "34vw", maxWidth: 200, maxHeight: 200, minWidth: 90, minHeight: 90 }
     : { width: "20vw", height: "20vw", maxWidth: 380, maxHeight: 380, minWidth: 120, minHeight: 120 };
 
+  // Start on the right side; wandering will carry it across
   const positionStyle = isMobile
     ? { right: "4%", top: "8%" }
-    : { right: "6%", top: "12%" };
+    : { right: "6%", top: "10%" };
 
   return createPortal(
     <div
@@ -123,11 +124,11 @@ export function BauhausShape() {
       <motion.div
         animate={{
           x: isMobile
-            ? [0, 20, -15, 25, -10, 15, 0]
-            : [0, 60, -40, 80, -30, 50, -20, 40, 0],
+            ? [0, -30, 20, -50, 10, -20, 0]
+            : [0, -200, 50, -500, -300, -700, -400, -100, 0],
           y: isMobile
             ? [0, -20, 15, -25, 20, -10, 0]
-            : [0, -50, 30, -70, 60, -40, 20, -30, 0],
+            : [0, 80, -40, 120, -60, 50, -30, 60, 0],
         }}
         transition={{
           duration: wanderDuration,
@@ -135,7 +136,7 @@ export function BauhausShape() {
           ease: "easeInOut",
           times: isMobile
             ? [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
-            : [0, 0.12, 0.25, 0.38, 0.5, 0.62, 0.75, 0.88, 1],
+            : [0, 0.1, 0.22, 0.38, 0.52, 0.65, 0.78, 0.9, 1],
         }}
         className="w-full h-full"
       >
