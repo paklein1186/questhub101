@@ -348,7 +348,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
               {hasUpvoted ? "Remove upvote" : "Upvote"}
             </TooltipContent>
           </Tooltip>
-          {allowComments && needsTranslation && (
+          {needsTranslation && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
