@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
-import { Globe, Compass, X, ChevronDown, Search } from "lucide-react";
+import { Globe, Compass, X, ChevronDown, Search, Plus, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface OntologyPickerProps {
   selectedTerritoryIds: string[];
@@ -52,6 +53,8 @@ function MultiSelectPopover({
   selectedIds,
   onChange,
   getSlug,
+  allowCreate = false,
+  onCreateItem,
 }: {
   label: string;
   icon: React.ElementType;
@@ -59,9 +62,12 @@ function MultiSelectPopover({
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   getSlug?: (item: any) => string | null;
+  allowCreate?: boolean;
+  onCreateItem?: (name: string) => Promise<string | null>;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [creating, setCreating] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return items;
@@ -112,7 +118,7 @@ function MultiSelectPopover({
             />
           </div>
           <ScrollArea className="max-h-48">
-            {filtered.length === 0 ? (
+            {filtered.length === 0 && !allowCreate ? (
               <p className="text-xs text-muted-foreground text-center py-3">
                 No {label.toLowerCase()} found
               </p>
@@ -134,6 +140,25 @@ function MultiSelectPopover({
                     )}
                   </button>
                 ))}
+                {allowCreate && search.trim() && !items.some(i => i.name.toLowerCase() === search.trim().toLowerCase()) && (
+                  <button
+                    onClick={async () => {
+                      if (!onCreateItem || creating) return;
+                      setCreating(true);
+                      const newId = await onCreateItem(search.trim());
+                      setCreating(false);
+                      if (newId) {
+                        onChange([...selectedIds, newId]);
+                        setSearch("");
+                      }
+                    }}
+                    disabled={creating}
+                    className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-accent transition-colors flex items-center gap-2 text-primary"
+                  >
+                    {creating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                    <span>Create "{search.trim()}"</span>
+                  </button>
+                )}
               </div>
             )}
           </ScrollArea>
@@ -170,6 +195,7 @@ export function OntologyPicker({
 }: OntologyPickerProps) {
   const { data: territories = [] } = useAllTerritories();
   const { data: topics = [] } = useAllTopics();
+  const qc = useQueryClient();
 
   const hasSelections = selectedTerritoryIds.length > 0 || selectedTopicIds.length > 0;
   const [expanded, setExpanded] = useState(false);
@@ -178,6 +204,22 @@ export function OntologyPicker({
   useEffect(() => {
     if (hasSelections) setExpanded(true);
   }, [hasSelections]);
+
+  const handleCreateTerritory = async (name: string): Promise<string | null> => {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const { data, error } = await supabase
+      .from("territories")
+      .insert({ name, slug, level: "LOCAL" as any })
+      .select("id")
+      .single();
+    if (error) {
+      toast.error("Failed to create territory");
+      return null;
+    }
+    toast.success(`Territory "${name}" created`);
+    qc.invalidateQueries({ queryKey: ["all-territories"] });
+    return data.id;
+  };
 
   return (
     <div className="space-y-2">
@@ -205,6 +247,8 @@ export function OntologyPicker({
             items={territories}
             selectedIds={selectedTerritoryIds}
             onChange={onTerritoriesChange}
+            allowCreate
+            onCreateItem={handleCreateTerritory}
           />
           <MultiSelectPopover
             label="Topics"

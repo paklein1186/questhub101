@@ -33,10 +33,27 @@ async function fetchMemory(s: any, territoryId: string) {
   return data ?? [];
 }
 
+async function fetchPosts(s: any, territoryId: string) {
+  const { data: links } = await s
+    .from("post_territories")
+    .select("post_id")
+    .eq("territory_id", territoryId);
+  const postIds = (links ?? []).map((l: any) => l.post_id);
+  if (postIds.length === 0) return [];
+  const { data } = await s
+    .from("feed_posts")
+    .select("id, content, created_at, author_user_id")
+    .in("id", postIds)
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: false })
+    .limit(30);
+  return data ?? [];
+}
+
 async function territoryContext(territoryId: string) {
   const s = sb();
 
-  const [territory, quests, guilds, pods, users, companies, services, courses, children, memory] = await Promise.all([
+  const [territory, quests, guilds, pods, users, companies, services, courses, children, memory, posts] = await Promise.all([
     s.from("territories").select("id,name,level,slug,parent_id").eq("id", territoryId).single(),
     s.from("quest_territories").select("quest_id, quests(id,title,status,description,reward_xp,credit_budget,escrow_credits,quest_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
     s.from("guild_territories").select("guild_id, guilds(id,name,description,type,guild_topics(topics(name)))").eq("territory_id", territoryId).limit(30),
@@ -47,6 +64,7 @@ async function territoryContext(territoryId: string) {
     s.from("course_territories").select("course_id, courses(id,title,description,level)").eq("territory_id", territoryId).limit(20),
     s.from("territories").select("id,name,level").eq("parent_id", territoryId).eq("is_deleted", false).limit(20),
     fetchMemory(s, territoryId),
+    fetchPosts(s, territoryId),
   ]);
 
   // Fractal inference: if memory is sparse, pull from parent + siblings
@@ -108,6 +126,10 @@ async function territoryContext(territoryId: string) {
       tags: m.tags,
       ai_score: m.ai_score,
     })),
+    posts: posts.map((p: any) => ({
+      content: p.content,
+      created_at: p.created_at,
+    })),
     fractalContext,
   };
 }
@@ -116,7 +138,7 @@ const STRUCTURED_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence
 
 A territory is a geographic or thematic region. You analyze all activity within it to surface insights.
 
-You have access to the territory's AI Memory — structured knowledge entries contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and more. Use this memory as primary context for your analysis.
+You have access to the territory's AI Memory — structured knowledge entries contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and more. You also have access to community posts tagged to this territory, which reflect current discussions, updates, and sentiments from members. Use both memory and posts as primary context for your analysis.
 
 If fractalContext is provided, it means this territory has sparse data and you should use data from parent/neighboring territories as contextual hints. When you extrapolate from neighboring data, indicate uncertainty qualitatively, but still provide a coherent synthesis.
 
@@ -146,7 +168,9 @@ Guidelines:
 
 const FREEFORM_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst — an AI that provides deep strategic analysis of territories on a community platform.
 
-You have access to the territory's complete context: quests, guilds, users, companies, services, courses, and most importantly — the AI Memory, a structured knowledge base contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and raw notes.
+You have access to the territory's complete context: quests, guilds, users, companies, services, courses, community posts tagged to this territory, and most importantly — the AI Memory, a structured knowledge base contributed by community members covering economy, history, sociology, culture, infrastructure, risks, opportunities, and raw notes.
+
+Use community posts as a real-time pulse of what members are discussing, sharing, and signaling about this territory.
 
 If fractalContext is provided, it means this territory has sparse data and you should use data from parent/neighboring territories as contextual hints. When extrapolating, indicate uncertainty qualitatively but still provide a coherent synthesis.
 
@@ -156,7 +180,7 @@ Be insightful, concrete, and strategic. Avoid generic advice — ground everythi
 
 const SUMMARY_SYSTEM_PROMPT = `You are the Quest Hub Territorial Intelligence Analyst. Generate a comprehensive territory description/synthesis.
 
-You will be given a territory's complete context including AI Memory entries, units, and optionally fractal context from neighboring territories.
+You will be given a territory's complete context including AI Memory entries, community posts, units, and optionally fractal context from neighboring territories.
 
 Generate a rich, well-structured markdown synthesis covering:
 1. **Overview** — What this territory is about, its identity and dynamics

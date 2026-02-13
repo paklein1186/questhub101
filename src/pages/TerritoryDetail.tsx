@@ -1,12 +1,13 @@
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft } from "lucide-react";
+import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare } from "lucide-react";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { TerritoryOverviewTab } from "@/components/territory/TerritoryOverviewTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
+import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function TerritoryDetail() {
@@ -73,6 +74,7 @@ export default function TerritoryDetail() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="posts">Posts</TabsTrigger>
             <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
@@ -80,6 +82,10 @@ export default function TerritoryDetail() {
 
           <TabsContent value="overview" className="mt-6">
             <TerritoryOverviewTab territoryId={id!} territoryName={territory.name} />
+          </TabsContent>
+
+          <TabsContent value="posts" className="mt-6">
+            <TerritoryPostsTab territoryId={id!} territoryName={territory.name} />
           </TabsContent>
 
           <TabsContent value="ecosystem" className="mt-6">
