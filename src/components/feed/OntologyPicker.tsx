@@ -107,7 +107,7 @@ function MultiSelectPopover({
             <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 p-2" align="start">
+        <PopoverContent className="w-64 p-2 z-50" align="start" onWheel={(e) => e.stopPropagation()}>
           <div className="relative mb-2">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -117,7 +117,7 @@ function MultiSelectPopover({
               className="h-8 text-xs pl-7"
             />
           </div>
-          <ScrollArea className="max-h-48">
+          <ScrollArea className="h-48 overflow-y-auto">
             {filtered.length === 0 && !allowCreate ? (
               <p className="text-xs text-muted-foreground text-center py-3">
                 No {label.toLowerCase()} found
