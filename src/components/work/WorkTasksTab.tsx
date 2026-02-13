@@ -1,0 +1,760 @@
+import { useState, useRef, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
+  Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
+  Calendar, Flag, ExternalLink, Search,
+} from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow, format } from "date-fns";
+import { motion } from "framer-motion";
+
+const STATUS_COLORS: Record<string, string> = {
+  TODO: "bg-muted text-muted-foreground",
+  IN_PROGRESS: "bg-primary/10 text-primary",
+  DONE: "bg-emerald-500/10 text-emerald-600",
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  HIGH: "text-red-500",
+  MEDIUM: "text-amber-500",
+  LOW: "text-muted-foreground",
+  NONE: "text-muted-foreground/40",
+};
+
+type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+type Priority = "HIGH" | "MEDIUM" | "LOW" | "NONE";
+
+type UnifiedTask = {
+  id: string;
+  title: string;
+  status: string;
+  source: "personal" | "quest" | "subtask";
+  sourceLabel?: string;
+  sourceId?: string;
+  questId?: string;
+  convertedToQuestId?: string | null;
+  convertedToSubtaskId?: string | null;
+  createdAt?: string;
+  priority?: Priority;
+};
+
+type UnitOption = {
+  id: string;
+  name: string;
+  type: "USER" | "GUILD" | "COMPANY";
+  logo_url?: string | null;
+};
+
+export function WorkTasksTab() {
+  const currentUser = useCurrentUser();
+  const userId = currentUser.id;
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const [newTitle, setNewTitle] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "all" | "done">("active");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingSource, setEditingSource] = useState<string>("");
+
+  // Pending done with undo
+  const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: string }>>(new Map());
+  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // Unit picker state
+  const [unitPickerOpen, setUnitPickerOpen] = useState(false);
+  const [pendingConvertTask, setPendingConvertTask] = useState<UnifiedTask | null>(null);
+  const [converting, setConverting] = useState(false);
+
+  // Fetch personal tasks
+  const { data: personalTasks = [], isLoading: loadingPersonal } = useQuery({
+    queryKey: ["personal-tasks", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("personal_tasks" as any)
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    enabled: !!userId,
+  });
+
+  // Fetch quests where user is owner
+  const { data: myQuests = [], isLoading: loadingQuests } = useQuery({
+    queryKey: ["my-active-quests", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quests")
+        .select("id, title, status, created_at, reward_xp")
+        .eq("created_by_user_id", userId)
+        .eq("is_deleted", false)
+        .in("status", statusFilter === "done" ? ["COMPLETED"] : ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+  });
+
+  // Fetch subtasks
+  const { data: mySubtasks = [], isLoading: loadingSubtasks } = useQuery({
+    queryKey: ["my-subtasks", userId],
+    queryFn: async () => {
+      const { data: assigned, error: e1 } = await supabase
+        .from("quest_subtasks" as any)
+        .select("id, title, status, quest_id, assignee_user_id, created_at")
+        .eq("assignee_user_id", userId)
+        .in("status", ["TODO", "IN_PROGRESS"])
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (e1) throw e1;
+
+      const { data: ownedQuests } = await supabase
+        .from("quests")
+        .select("id")
+        .eq("created_by_user_id", userId)
+        .eq("is_deleted", false)
+        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"]);
+      const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
+
+      const { data: parts } = await supabase
+        .from("quest_participants")
+        .select("quest_id")
+        .eq("user_id", userId)
+        .eq("status", "APPROVED");
+      const partQuestIds = (parts || []).map((p: any) => p.quest_id);
+
+      const allQuestIds = [...new Set([...ownedQuestIds, ...partQuestIds])];
+      let fromQuests: any[] = [];
+      if (allQuestIds.length > 0) {
+        const { data: qSubtasks } = await supabase
+          .from("quest_subtasks" as any)
+          .select("id, title, status, quest_id, assignee_user_id, created_at")
+          .in("quest_id", allQuestIds)
+          .in("status", ["TODO", "IN_PROGRESS"])
+          .order("created_at", { ascending: false })
+          .limit(50);
+        fromQuests = qSubtasks || [];
+      }
+
+      const seen = new Set<string>();
+      const merged: any[] = [];
+      for (const s of [...(assigned || []), ...fromQuests]) {
+        if (!seen.has(s.id)) { seen.add(s.id); merged.push(s); }
+      }
+
+      const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
+      let questMap = new Map<string, string>();
+      if (questIds.length > 0) {
+        const { data: quests } = await supabase
+          .from("quests")
+          .select("id, title")
+          .in("id", questIds);
+        questMap = new Map((quests || []).map((q: any) => [q.id, q.title]));
+      }
+      return merged.map((s: any) => ({ ...s, questTitle: questMap.get(s.quest_id) || "Quest" }));
+    },
+    enabled: !!userId,
+  });
+
+  // Participant quests
+  const { data: participantQuests = [] } = useQuery({
+    queryKey: ["my-participant-quests", userId],
+    queryFn: async () => {
+      const { data: parts, error } = await supabase
+        .from("quest_participants")
+        .select("quest_id")
+        .eq("user_id", userId)
+        .eq("status", "APPROVED");
+      if (error) throw error;
+      if (!parts?.length) return [];
+      const questIds = parts.map((p: any) => p.quest_id);
+      const { data: quests } = await supabase
+        .from("quests")
+        .select("id, title, status, created_at")
+        .in("id", questIds)
+        .eq("is_deleted", false)
+        .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
+      return quests || [];
+    },
+    enabled: !!userId,
+  });
+
+  // User units for quest conversion
+  const { data: userUnits = [] } = useQuery<UnitOption[]>({
+    queryKey: ["my-units-for-quest", userId],
+    queryFn: async () => {
+      const units: UnitOption[] = [];
+      const { data: guildMemberships } = await supabase
+        .from("guild_members").select("guild_id, role").eq("user_id", userId);
+      if (guildMemberships && guildMemberships.length > 0) {
+        const guildIds = guildMemberships.map((gm) => gm.guild_id);
+        const { data: guilds } = await supabase
+          .from("guilds").select("id, name, logo_url").in("id", guildIds).eq("is_deleted", false);
+        for (const g of guilds || []) units.push({ id: g.id, name: g.name, type: "GUILD", logo_url: g.logo_url });
+      }
+      const { data: companyMemberships } = await supabase
+        .from("company_members").select("company_id").eq("user_id", userId);
+      if (companyMemberships && companyMemberships.length > 0) {
+        const companyIds = companyMemberships.map((cm) => cm.company_id);
+        const { data: companies } = await supabase
+          .from("companies").select("id, name, logo_url").in("id", companyIds).eq("is_deleted", false);
+        for (const c of companies || []) units.push({ id: c.id, name: c.name, type: "COMPANY", logo_url: c.logo_url });
+      }
+      return units;
+    },
+    enabled: !!userId,
+  });
+
+  // Build unified list
+  const unified: UnifiedTask[] = [];
+
+  for (const t of personalTasks) {
+    if (t.converted_to_quest_id || t.converted_to_subtask_id) continue;
+    unified.push({
+      id: t.id, title: t.title, status: t.status, source: "personal",
+      convertedToQuestId: t.converted_to_quest_id, convertedToSubtaskId: t.converted_to_subtask_id,
+      createdAt: t.created_at, priority: t.priority || "NONE",
+    });
+  }
+
+  for (const q of myQuests) {
+    unified.push({
+      id: q.id, title: q.title,
+      status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
+      source: "quest", sourceLabel: "My Quest", sourceId: q.id, createdAt: q.created_at,
+    });
+  }
+
+  for (const q of participantQuests) {
+    if (!myQuests.some((mq: any) => mq.id === q.id)) {
+      unified.push({
+        id: q.id, title: q.title,
+        status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
+        source: "quest", sourceLabel: "Collaborator", sourceId: q.id, createdAt: q.created_at,
+      });
+    }
+  }
+
+  for (const s of mySubtasks) {
+    unified.push({
+      id: s.id, title: s.title, status: s.status, source: "subtask",
+      sourceLabel: s.questTitle, questId: s.quest_id, createdAt: s.created_at,
+    });
+  }
+
+  // Apply filters
+  let filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
+  if (statusFilter === "active") filtered = filtered.filter((t) => t.status !== "DONE");
+  if (statusFilter === "done") filtered = filtered.filter((t) => t.status === "DONE");
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
+  }
+
+  const isLoading = loadingPersonal || loadingQuests || loadingSubtasks;
+
+  // ── Actions (same logic as MyTaskBoard) ──
+  const addTask = async () => {
+    if (!newTitle.trim()) return;
+    setAdding(true);
+    const { error } = await supabase.from("personal_tasks" as any).insert({
+      user_id: userId, title: newTitle.trim(), status: "TODO",
+    } as any);
+    if (error) toast({ title: "Failed to add task", variant: "destructive" });
+    else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["personal-tasks", userId] }); }
+    setAdding(false);
+  };
+
+  const updateTaskStatus = async (taskId: string, status: string) => {
+    await supabase.from("personal_tasks" as any).update({ status } as any).eq("id", taskId);
+    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  };
+
+  const updateQuestStatus = async (questId: string, uiStatus: string) => {
+    const questStatus = uiStatus === "DONE" ? "COMPLETED" : uiStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
+    await supabase.from("quests").update({ status: questStatus }).eq("id", questId);
+    qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+    qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
+  };
+
+  const updateSubtaskStatus = async (subtaskId: string, status: string) => {
+    await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+  };
+
+  const commitDone = useCallback((task: UnifiedTask) => {
+    const key = `${task.source}-${task.id}`;
+    if (task.source === "personal") updateTaskStatus(task.id, "DONE");
+    else if (task.source === "quest") updateQuestStatus(task.id, "DONE");
+    else if (task.source === "subtask") updateSubtaskStatus(task.id, "DONE");
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+    pendingTimers.current.delete(key);
+  }, [userId]);
+
+  const undoDone = useCallback((task: UnifiedTask) => {
+    const key = `${task.source}-${task.id}`;
+    const timer = pendingTimers.current.get(key);
+    if (timer) clearTimeout(timer);
+    pendingTimers.current.delete(key);
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+  }, []);
+
+  const handleStatusChange = (task: UnifiedTask, newStatus: string) => {
+    const key = `${task.source}-${task.id}`;
+    const wasPending = pendingDone.has(key);
+    if (wasPending) {
+      const timer = pendingTimers.current.get(key);
+      if (timer) clearTimeout(timer);
+      pendingTimers.current.delete(key);
+      setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+    }
+    if (newStatus === "DONE") {
+      const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.status) : task.status;
+      setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
+      const timer = setTimeout(() => commitDone(task), 5000);
+      pendingTimers.current.set(key, timer);
+      return;
+    }
+    if (task.source === "personal") updateTaskStatus(task.id, newStatus);
+    else if (task.source === "quest") updateQuestStatus(task.id, newStatus);
+    else if (task.source === "subtask") updateSubtaskStatus(task.id, newStatus);
+  };
+
+  const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
+    handleStatusChange(task, checked ? "DONE" : "TODO");
+  };
+
+  const deleteTask = async (taskId: string) => {
+    await supabase.from("personal_tasks" as any).delete().eq("id", taskId);
+    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  };
+
+  const startEditing = (task: UnifiedTask) => {
+    setEditingId(task.id);
+    setEditingTitle(task.title);
+    setEditingSource(task.source);
+  };
+
+  const saveTitle = async () => {
+    if (!editingId || !editingTitle.trim()) { setEditingId(null); return; }
+    const trimmed = editingTitle.trim();
+    if (editingSource === "personal") {
+      await supabase.from("personal_tasks" as any).update({ title: trimmed } as any).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (editingSource === "quest") {
+      await supabase.from("quests").update({ title: trimmed }).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+    } else if (editingSource === "subtask") {
+      await supabase.from("quest_subtasks" as any).update({ title: trimmed } as any).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    }
+    setEditingId(null);
+  };
+
+  const openUnitPicker = (task: UnifiedTask) => {
+    setPendingConvertTask(task);
+    setUnitPickerOpen(true);
+  };
+
+  const convertToQuest = async (unit: UnitOption | null) => {
+    if (!pendingConvertTask) return;
+    setConverting(true);
+    const insertPayload: any = {
+      title: pendingConvertTask.title,
+      created_by_user_id: userId,
+      is_draft: false,
+      status: "OPEN_FOR_PROPOSALS",
+    };
+    if (unit && unit.type === "GUILD") {
+      insertPayload.owner_type = "GUILD"; insertPayload.owner_id = unit.id; insertPayload.guild_id = unit.id;
+    } else if (unit && unit.type === "COMPANY") {
+      insertPayload.owner_type = "COMPANY"; insertPayload.owner_id = unit.id; insertPayload.company_id = unit.id;
+    } else {
+      insertPayload.owner_type = "USER"; insertPayload.owner_id = userId;
+    }
+    const { data, error } = await supabase.from("quests").insert(insertPayload).select("id").single();
+    if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); setConverting(false); return; }
+    const questId = (data as any).id;
+    await supabase.from("quest_participants").insert({ quest_id: questId, user_id: userId, role: "OWNER", status: "ACCEPTED" });
+    await supabase.from("personal_tasks" as any).update({ converted_to_quest_id: questId } as any).eq("id", pendingConvertTask.id);
+    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+    setConverting(false); setUnitPickerOpen(false); setPendingConvertTask(null);
+    toast({ title: "Task converted to quest!" });
+    navigate(`/quests/${questId}`);
+  };
+
+  const convertToSubtask = async (task: UnifiedTask, questId: string) => {
+    const { data, error } = await supabase.from("quest_subtasks" as any).insert({
+      quest_id: questId, title: task.title, assignee_user_id: userId, status: "TODO", order_index: 0,
+    } as any).select("id").single();
+    if (error) { toast({ title: "Failed to create subtask", variant: "destructive" }); return; }
+    await supabase.from("personal_tasks" as any).update({ converted_to_subtask_id: (data as any).id } as any).eq("id", task.id);
+    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    toast({ title: "Task attached as subtask!" });
+  };
+
+  const allQuestsForPicker = [
+    ...myQuests.map((q: any) => ({ id: q.id, title: q.title })),
+    ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title })),
+  ];
+
+  const todoCount = unified.filter((t) => t.status === "TODO").length;
+  const inProgressCount = unified.filter((t) => t.status === "IN_PROGRESS").length;
+  const doneCount = unified.filter((t) => t.status === "DONE").length;
+
+  const unitIcon = (type: string) => {
+    if (type === "GUILD") return <Users className="h-4 w-4 text-primary" />;
+    if (type === "COMPANY") return <Building2 className="h-4 w-4 text-primary" />;
+    return <User className="h-4 w-4 text-muted-foreground" />;
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Stats bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+          <ListTodo className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{todoCount}</span>
+          <span className="text-xs text-muted-foreground">To do</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+          <Loader2 className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-primary">{inProgressCount}</span>
+          <span className="text-xs text-primary/70">In progress</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
+          <ListChecks className="h-4 w-4 text-emerald-600" />
+          <span className="text-sm font-medium text-emerald-600">{doneCount}</span>
+          <span className="text-xs text-emerald-600/70">Done</span>
+        </div>
+      </div>
+
+      {/* Filters + search */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search tasks…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 text-sm pl-8"
+          />
+        </div>
+        <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <SelectTrigger className="w-[130px] h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All sources</SelectItem>
+            <SelectItem value="personal">Personal</SelectItem>
+            <SelectItem value="quest">Quests</SelectItem>
+            <SelectItem value="subtask">Subtasks</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+          <SelectTrigger className="w-[120px] h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="done">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Quick add */}
+      <div className="flex gap-2">
+        <Input
+          placeholder="Add a task…"
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addTask()}
+          className="h-9 text-sm"
+        />
+        <Button size="sm" onClick={addTask} disabled={!newTitle.trim() || adding} className="h-9 gap-1">
+          <Plus className="h-3.5 w-3.5" /> Add
+        </Button>
+      </div>
+
+      {/* Task table */}
+      {isLoading ? (
+        <div className="flex justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 rounded-xl border border-dashed border-border">
+          <ListTodo className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-3">No tasks match your filters</p>
+          <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("active"); setSearchQuery(""); }}>
+            Clear filters
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="w-10 px-3 py-2.5"></th>
+                  <th className="text-left px-3 py-2.5 font-medium">Task</th>
+                  <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">Source</th>
+                  <th className="text-left px-3 py-2.5 font-medium">Status</th>
+                  <th className="text-left px-3 py-2.5 font-medium hidden lg:table-cell">
+                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Created</span>
+                  </th>
+                  <th className="text-left px-3 py-2.5 font-medium hidden xl:table-cell">Link</th>
+                  <th className="w-12 px-3 py-2.5"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((task, i) => {
+                  const key = `${task.source}-${task.id}`;
+                  const isPendingDone = pendingDone.has(key);
+
+                  if (isPendingDone) {
+                    return (
+                      <motion.tr key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-t border-border bg-emerald-500/5">
+                        <td colSpan={7} className="px-3 py-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground line-through">{task.title}</span>
+                            <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => undoDone(task)}>
+                              <Undo2 className="h-3 w-3" /> Undo
+                            </Button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  }
+
+                  const questLink = task.source === "quest" ? `/quests/${task.sourceId || task.id}` :
+                    task.source === "subtask" ? `/quests/${task.questId}` : null;
+
+                  return (
+                    <motion.tr
+                      key={key}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.02 }}
+                      className="border-t border-border group hover:bg-accent/30 transition-colors"
+                    >
+                      <td className="px-3 py-2.5">
+                        <Checkbox
+                          checked={task.status === "DONE"}
+                          onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                        />
+                      </td>
+                      <td className="px-3 py-2.5 max-w-[300px]">
+                        {editingId === task.id ? (
+                          <Input
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onBlur={saveTitle}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") saveTitle();
+                              if (e.key === "Escape") setEditingId(null);
+                            }}
+                            autoFocus
+                            className="h-7 text-sm"
+                          />
+                        ) : (
+                          <div>
+                            <span
+                              className={cn(
+                                "text-sm cursor-pointer hover:text-primary transition-colors",
+                                task.status === "DONE" && "line-through text-muted-foreground",
+                              )}
+                              onDoubleClick={() => startEditing(task)}
+                            >
+                              {task.title}
+                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              {task.convertedToQuestId && <Badge variant="outline" className="text-[9px] h-4">→ Quest</Badge>}
+                              {task.convertedToSubtaskId && <Badge variant="outline" className="text-[9px] h-4">→ Subtask</Badge>}
+                              {/* Show source as a small tag on mobile */}
+                              <span className="md:hidden">
+                                <Badge variant="secondary" className="text-[9px] h-4 capitalize">
+                                  {task.source === "personal" ? "Personal" : (task.sourceLabel || task.source).slice(0, 16)}
+                                </Badge>
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 hidden md:table-cell">
+                        <Badge variant="secondary" className="text-[10px] capitalize truncate max-w-[140px] inline-block">
+                          {task.source === "subtask" && <Compass className="h-2.5 w-2.5 mr-0.5 inline" />}
+                          {(task.source === "personal" ? "Personal" : task.sourceLabel || task.source).slice(0, 20)}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
+                          <SelectTrigger className={cn(
+                            "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
+                            STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
+                          )}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="TODO">TODO</SelectItem>
+                            <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
+                            <SelectItem value="DONE">DONE</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-3 py-2.5 hidden lg:table-cell">
+                        {task.createdAt && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true })}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 hidden xl:table-cell">
+                        {questLink && (
+                          <Link to={questLink} className="text-xs text-primary hover:underline flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3" /> View quest
+                          </Link>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {task.source === "personal" && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                                <ArrowUpRight className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openUnitPicker(task)}>
+                                <Rocket className="h-3.5 w-3.5 mr-2" /> Convert to Quest
+                              </DropdownMenuItem>
+                              {allQuestsForPicker.length > 0 && (
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger>
+                                    <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
+                                  </DropdownMenuSubTrigger>
+                                  <DropdownMenuSubContent>
+                                    {allQuestsForPicker.map((q) => (
+                                      <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)}>
+                                        {q.title}
+                                      </DropdownMenuItem>
+                                    ))}
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+                              )}
+                              <DropdownMenuItem className="text-destructive" onClick={() => deleteTask(task.id)}>
+                                <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                        {(task.source === "quest" || task.source === "subtask") && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                            onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}?tab=subtasks`)}
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </td>
+                    </motion.tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Unit picker dialog */}
+      <Dialog open={unitPickerOpen} onOpenChange={(open) => { if (!converting) { setUnitPickerOpen(open); if (!open) setPendingConvertTask(null); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-primary" /> Convert to Quest
+            </DialogTitle>
+            <DialogDescription>
+              Choose which entity to attach this quest to, or create it as a personal quest.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <button
+              onClick={() => convertToQuest(null)}
+              disabled={converting}
+              className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                <User className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Personal Quest</p>
+                <p className="text-xs text-muted-foreground">Not attached to any entity</p>
+              </div>
+            </button>
+            {userUnits.length > 0 && (
+              <div className="pt-1">
+                <p className="text-xs font-medium text-muted-foreground px-1 pb-1.5">Your entities</p>
+                {userUnits.map((unit) => (
+                  <button
+                    key={unit.id}
+                    onClick={() => convertToQuest(unit)}
+                    disabled={converting}
+                    className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50 mb-1.5"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
+                      {unit.logo_url ? (
+                        <img src={unit.logo_url} alt="" className="h-9 w-9 object-cover rounded-full" />
+                      ) : unitIcon(unit.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{unit.name}</p>
+                      <p className="text-xs text-muted-foreground">{unit.type === "GUILD" ? "Guild" : "Organisation"}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {converting && (
+            <div className="flex items-center justify-center py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
+              <span className="text-sm text-muted-foreground">Creating quest…</span>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
