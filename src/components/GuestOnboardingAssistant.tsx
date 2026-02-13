@@ -127,52 +127,37 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     setLoadingTopics(true);
     setSelectedInterests([]);
 
-    const items: TopicItem[] = [];
+    // Fetch all DB topics (now includes both impact and creative universe_type)
+    supabase
+      .from("topics")
+      .select("id, name, slug, universe_type")
+      .eq("is_deleted", false)
+      .order("name")
+      .limit(50)
+      .then(({ data }) => {
+        const items: TopicItem[] = [];
+        if (data) {
+          data.forEach((t: any) => {
+            const isCreative = t.universe_type === "creative";
+            const showForUniverse =
+              universe === "both" ||
+              (universe === "creative" && isCreative) ||
+              (universe === "impact" && !isCreative);
+            if (!showForUniverse) return;
 
-    // Add Houses for creative/hybrid
-    if (universe === "creative" || universe === "both") {
-      Object.entries(HOUSE_DEFINITIONS).forEach(([slug, def]) => {
-        items.push({
-          id: `house:${slug}`,
-          label: getHouseLabel(slug, universe),
-          icon: def.icon,
-          type: "house",
-        });
-      });
-    }
-
-    // Fetch DB topics for impact/hybrid
-    if (universe === "impact" || universe === "both") {
-      supabase
-        .from("topics")
-        .select("id, name, slug")
-        .eq("is_deleted", false)
-        .order("name")
-        .limit(30)
-        .then(({ data }) => {
-          if (data) {
-            data.forEach((t: any) => {
-              // Avoid duplicates with houses that map to the same concept
-              const alreadyHas = items.some(
-                (i) => i.label.toLowerCase() === t.name.toLowerCase()
-              );
-              if (!alreadyHas) {
-                items.push({
-                  id: `topic:${t.id}`,
-                  label: t.name,
-                  icon: "📌",
-                  type: "topic",
-                });
-              }
+            const slug = t.slug;
+            const houseDef = slug ? HOUSE_DEFINITIONS[slug] : null;
+            items.push({
+              id: `topic:${t.id}`,
+              label: houseDef ? getHouseLabel(slug, universe) : t.name,
+              icon: houseDef ? houseDef.icon : "📌",
+              type: isCreative ? "house" : "topic",
             });
-          }
-          setTopicItems([...items]);
-          setLoadingTopics(false);
-        });
-    } else {
-      setTopicItems(items);
-      setLoadingTopics(false);
-    }
+          });
+        }
+        setTopicItems(items);
+        setLoadingTopics(false);
+      });
   }, [selectedPersona, universe]);
 
   const goNext = useCallback(() => {
@@ -325,21 +310,15 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         return item?.label ?? id;
       });
 
-      // Extract topic UUIDs (format "topic:<uuid>") for DB persistence
+      // All interests now use "topic:<uuid>" format (both Houses and Topics are DB rows)
       const topicIds = selectedInterests
         .filter((id) => id.startsWith("topic:"))
         .map((id) => id.replace("topic:", ""));
-
-      // Extract house slugs (format "house:<slug>") for DB persistence
-      const houseSlugs = selectedInterests
-        .filter((id) => id.startsWith("house:"))
-        .map((id) => id.replace("house:", ""));
 
       const ctx = {
         persona: selectedPersona,
         interests: interestLabels,
         interest_topic_ids: topicIds,
-        interest_house_slugs: houseSlugs,
         goals: selectedGoal ? [selectedGoal] : [],
         suggested_role: role,
         org: scrapedOrg ? { name: scrapedOrg.name, url: scrapedOrg.url, sector: scrapedOrg.sector, logo: scrapedOrg.logo } : null,
