@@ -224,21 +224,45 @@ export default function UserProfile() {
               </div>
               <XpProgressBar xp={profile.xp} level={profile.xpLevel} />
 
-              {/* Topics chips */}
-              {topics.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {topics.slice(0, 6).map((t: any) => (
-                    <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
-                      <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
-                        <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
-                      </Badge>
-                    </Link>
-                  ))}
-                  {topics.length > 6 && (
-                    <Badge variant="outline" className="text-[10px]">+{topics.length - 6}</Badge>
-                  )}
-                </div>
-              )}
+              {/* Topics & Houses chips — universe-aware */}
+              {(() => {
+                const impactTopics = topics.filter((t: any) => (t.universe_type ?? "impact") === "impact");
+                const creativeHouses = topics.filter((t: any) => (t.universe_type) === "creative");
+                const showImpact = persona !== "CREATIVE" || impactTopics.length > 0;
+                const showCreative = (persona === "CREATIVE" || persona === "HYBRID" || creativeHouses.length > 0);
+                return (
+                  <>
+                    {showCreative && creativeHouses.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {creativeHouses.slice(0, 4).map((t: any) => (
+                          <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
+                            <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20">
+                              <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                            </Badge>
+                          </Link>
+                        ))}
+                        {creativeHouses.length > 4 && (
+                          <Badge variant="outline" className="text-[10px]">+{creativeHouses.length - 4}</Badge>
+                        )}
+                      </div>
+                    )}
+                    {showImpact && impactTopics.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {impactTopics.slice(0, 6).map((t: any) => (
+                          <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
+                            <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
+                              <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                            </Badge>
+                          </Link>
+                        ))}
+                        {impactTopics.length > 6 && (
+                          <Badge variant="outline" className="text-[10px]">+{impactTopics.length - 6}</Badge>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div className="mt-2">
                 <TerritoryLine territories={territories} />

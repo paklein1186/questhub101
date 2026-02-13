@@ -53,13 +53,13 @@ export function useProfileData(userId: string | undefined) {
     enabled: !!userId,
   });
 
-  // Houses (topics)
+  // Topics & Houses (with universe_type)
   const topicsQuery = useQuery({
     queryKey: ["profile-topics", userId],
     queryFn: async () => {
       const { data } = await supabase
         .from("user_topics")
-        .select("topic_id, topics(id, name, slug)")
+        .select("topic_id, topics(id, name, slug, universe_type)")
         .eq("user_id", userId!);
       return (data ?? []).map((ut: any) => ut.topics).filter(Boolean);
     },

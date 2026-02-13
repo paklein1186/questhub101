@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -320,38 +320,75 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             )}
           </div>
 
-          {/* Topics multi-select */}
-          {config.showTopics && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Hash className="h-3 w-3" /> Topics
-                </p>
-                {filters.topicIds.length > 0 && (
-                  <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => set({ topicIds: [] })}>
-                    Clear
-                  </Button>
+          {/* Topics multi-select — universe-aware */}
+          {config.showTopics && (() => {
+            const allTopicsList = topics ?? [];
+            const impactTopics = allTopicsList.filter((t: any) => ((t as any).universe_type ?? "impact") === "impact");
+            const creativeHouses = allTopicsList.filter((t: any) => (t as any).universe_type === "creative");
+            const showImpact = effectiveUniverse === "impact" || effectiveUniverse === "both";
+            const showCreative = effectiveUniverse === "creative" || effectiveUniverse === "both";
+            return (
+              <div className="space-y-3">
+                {showCreative && creativeHouses.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> Houses
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {creativeHouses.map(t => {
+                        const icon = getTopicDisplayIcon(t);
+                        const label = getTopicDisplayLabel(t);
+                        return (
+                          <Badge
+                            key={t.id}
+                            variant={filters.topicIds.includes(t.id) ? "default" : "outline"}
+                            className="cursor-pointer text-xs gap-1"
+                            onClick={() => toggleTopic(t.id)}
+                          >
+                            {icon && <span>{icon}</span>}
+                            {label}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {showImpact && impactTopics.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <Hash className="h-3 w-3" /> Topics
+                      </p>
+                      {filters.topicIds.length > 0 && (
+                        <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => set({ topicIds: [] })}>
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {impactTopics.map(t => {
+                        const icon = getTopicDisplayIcon(t);
+                        const label = getTopicDisplayLabel(t);
+                        return (
+                          <Badge
+                            key={t.id}
+                            variant={filters.topicIds.includes(t.id) ? "default" : "outline"}
+                            className="cursor-pointer text-xs gap-1"
+                            onClick={() => toggleTopic(t.id)}
+                          >
+                            {icon && <span>{icon}</span>}
+                            {label}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {(topics ?? []).map(t => {
-                  const icon = getTopicDisplayIcon(t);
-                  const label = getTopicDisplayLabel(t);
-                  return (
-                    <Badge
-                      key={t.id}
-                      variant={filters.topicIds.includes(t.id) ? "default" : "outline"}
-                      className="cursor-pointer text-xs gap-1"
-                      onClick={() => toggleTopic(t.id)}
-                    >
-                      {icon && <span>{icon}</span>}
-                      {label}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Territories multi-select */}
           {config.showTerritories && (
