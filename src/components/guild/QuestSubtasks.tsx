@@ -31,6 +31,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
@@ -94,6 +96,18 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
+  const updateSubtaskTitle = async (subtaskId: string, title: string) => {
+    if (!title.trim()) return;
+    await supabase.from("quest_subtasks" as any).update({ title: title.trim() } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+    setEditingId(null);
+  };
+
+  const startEditing = (subtask: any) => {
+    setEditingId(subtask.id);
+    setEditingTitle(subtask.title);
+  };
+
   const doneCount = subtasks.filter((s: any) => s.status === "DONE").length;
   const totalCount = subtasks.length;
 
@@ -121,9 +135,26 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
               disabled={!canEditSubtask(subtask)}
               onCheckedChange={(checked) => updateStatus(subtask.id, checked ? "DONE" : "TODO")}
             />
-            <span className={`flex-1 text-sm ${subtask.status === "DONE" ? "line-through text-muted-foreground" : ""}`}>
-              {subtask.title}
-            </span>
+            {editingId === subtask.id && canEditSubtask(subtask) ? (
+              <Input
+                value={editingTitle}
+                onChange={(e) => setEditingTitle(e.target.value)}
+                onBlur={() => updateSubtaskTitle(subtask.id, editingTitle)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") updateSubtaskTitle(subtask.id, editingTitle);
+                  if (e.key === "Escape") setEditingId(null);
+                }}
+                autoFocus
+                className="flex-1 h-7 text-sm"
+              />
+            ) : (
+              <span
+                className={`flex-1 text-sm cursor-pointer ${subtask.status === "DONE" ? "line-through text-muted-foreground" : ""}`}
+                onDoubleClick={() => canEditSubtask(subtask) && startEditing(subtask)}
+              >
+                {subtask.title}
+              </span>
+            )}
             {canEditSubtask(subtask) && (
               <Select value={subtask.status} onValueChange={(v) => updateStatus(subtask.id, v)}>
                 <SelectTrigger className="w-[110px] h-7 text-xs">
