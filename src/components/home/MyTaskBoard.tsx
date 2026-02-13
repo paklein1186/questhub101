@@ -193,6 +193,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const unified: UnifiedTask[] = [];
 
   for (const t of personalTasks) {
+    // Skip tasks already converted to a quest or subtask — they appear in their respective sections
+    if (t.converted_to_quest_id || t.converted_to_subtask_id) continue;
     unified.push({
       id: t.id,
       title: t.title,
