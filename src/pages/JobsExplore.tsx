@@ -210,12 +210,23 @@ export default function JobsExplore({ bare }: Props) {
                 </div>
                 <div>
               {job.document_url && !isGuest && (
-                    <button
-                      onClick={() => window.open(job.document_url, "_blank", "noopener,noreferrer")}
-                      className="flex items-center gap-1 text-primary hover:underline cursor-pointer"
+                    <a
+                      href={job.document_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Try window.open first, fallback to same-tab navigation
+                        const w = window.open(job.document_url, "_blank");
+                        if (!w) {
+                          window.location.href = job.document_url;
+                        }
+                      }}
                     >
                       <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
-                    </button>
+                    </a>
                   )}
                   {job.document_url && isGuest && (
                     <button onClick={handleDocClick} className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
