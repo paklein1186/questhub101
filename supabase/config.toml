@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.scrape-entity]
 verify_jwt = false
+
+[functions.calendar-oauth]
+verify_jwt = false
+
+[functions.calendar-sync]
+verify_jwt = false
