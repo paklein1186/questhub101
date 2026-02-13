@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useCreateJobPosition } from "@/hooks/useJobPositions";
-import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { useTerritories } from "@/hooks/useSupabaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +36,6 @@ interface Props {
 
 export function AddJobDialog({ open, onOpenChange }: Props) {
   const currentUser = useCurrentUser();
-  const { data: allTopics = [] } = useTopics();
   const { data: allTerritories = [] } = useTerritories();
   const createJob = useCreateJobPosition();
   const { toast } = useToast();
@@ -364,22 +363,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
               </div>
             )}
 
-            {/* Topics */}
-            <div>
-              <label className="text-sm font-medium mb-1 block">Topics</label>
-              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-                {allTopics.map((t: any) => (
-                  <Badge
-                    key={t.id}
-                    variant={selectedTopics.includes(t.id) ? "default" : "outline"}
-                    className="cursor-pointer text-xs"
-                    onClick={() => toggleTopic(t.id)}
-                  >
-                    {t.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            {/* Topics removed — jobs only use Territories */}
 
             {/* Territories */}
             <div>

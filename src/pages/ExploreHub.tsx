@@ -25,14 +25,20 @@ import JobsExplore from "./JobsExplore";
 import { AddJobDialog } from "@/components/AddJobDialog";
 
 const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses", "jobs"];
+const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
 export default function ExploreHub() {
   const currentUser = useCurrentUser();
   const isGuest = !currentUser.id;
-  const validTabs = isGuest ? VALID_TABS_GUEST : VALID_TABS_AUTH;
+  const { persona, label } = usePersona();
+  const isCreative = persona === "CREATIVE";
+  const validTabs = isGuest
+    ? (isCreative ? VALID_TABS_GUEST_CREATIVE : VALID_TABS_GUEST)
+    : (isCreative ? VALID_TABS_AUTH_CREATIVE : VALID_TABS_AUTH);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get("tab") || "";
@@ -49,7 +55,7 @@ export default function ExploreHub() {
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const entityHf = useHouseFilter();
-  const { label } = usePersona();
+  // label from usePersona destructured above
 
   const handleTabChange = (value: string) => {
     setTab(value);
@@ -70,7 +76,7 @@ export default function ExploreHub() {
           <TabsTrigger value="entities" className="text-xs sm:text-sm"><Compass className="h-3.5 w-3.5 mr-1" /> Entities</TabsTrigger>
            {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm"><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</TabsTrigger>}
            {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm"><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</TabsTrigger>}
-           <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>
+           {!isCreative && <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>}
           <TabsTrigger value="houses" className="text-xs sm:text-sm"><Tag className="h-3.5 w-3.5 mr-1" /> Topics</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm"><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</TabsTrigger>
           {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm"><Users className="h-3.5 w-3.5 mr-1" /> Humans</TabsTrigger>}

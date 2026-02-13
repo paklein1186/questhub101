@@ -10,7 +10,6 @@ import { useAllJobPositions, useDeleteJobPosition } from "@/hooks/useJobPosition
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 
 const CONTRACT_OPTIONS = [
@@ -44,7 +43,6 @@ export default function JobsExplore({ bare }: Props) {
   const [search, setSearch] = useState("");
   const [contractFilter, setContractFilter] = useState("all");
   const [remoteFilter, setRemoteFilter] = useState("all");
-  const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [authOpen, setAuthOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -54,29 +52,22 @@ export default function JobsExplore({ bare }: Props) {
           !(job.companies?.name ?? "").toLowerCase().includes(search.toLowerCase())) return false;
       if (contractFilter !== "all" && job.contract_type !== contractFilter) return false;
       if (remoteFilter !== "all" && job.remote_policy !== remoteFilter) return false;
-      if (filters.topicIds.length > 0) {
-        const topicIds = (job.job_position_topics ?? []).map((jt: any) => jt.topic_id);
-        if (!filters.topicIds.some(id => topicIds.includes(id))) return false;
-      }
-      if (filters.territoryIds.length > 0) {
-        const terrIds = (job.job_position_territories ?? []).map((jt: any) => jt.territory_id);
-        if (!filters.territoryIds.some(id => terrIds.includes(id))) return false;
-      }
       return true;
     });
-  }, [jobs, search, contractFilter, remoteFilter, filters]);
+  }, [jobs, search, contractFilter, remoteFilter]);
 
   const handleDelete = async (jobId: string, companyId: string | null) => {
-    if (!confirm("Delete this job position?")) return;
+    if (!window.confirm("Delete this job position?")) return;
     try {
       await deleteJob.mutateAsync({ id: jobId, companyId: companyId || "" });
       toast({ title: "Job deleted" });
-    } catch {
-      toast({ title: "Error deleting job", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Delete job error:", err);
+      toast({ title: "Error deleting job", description: err?.message, variant: "destructive" });
     }
   };
 
-  const handleDocClick = (e: React.MouseEvent, url: string) => {
+  const handleDocClick = (e: React.MouseEvent) => {
     if (isGuest) {
       e.preventDefault();
       setAuthOpen(true);
@@ -114,16 +105,6 @@ export default function JobsExplore({ bare }: Props) {
         </Select>
       </div>
 
-      {/* Standard filters (topics & territories) */}
-      <ExploreFilters
-        filters={filters}
-        onChange={setFilters}
-        config={{
-          showTopics: true,
-          showTerritories: true,
-        }}
-      />
-
       {/* Results count */}
       <p className="text-xs text-muted-foreground">{filtered.length} position{filtered.length !== 1 ? "s" : ""} found</p>
 
@@ -137,42 +118,25 @@ export default function JobsExplore({ bare }: Props) {
           const topics = (job.job_position_topics ?? []).map((jt: any) => jt.topics).filter(Boolean);
           const territories = (job.job_position_territories ?? []).map((jt: any) => jt.territories).filter(Boolean);
           const isOwner = !isGuest && job.created_by_user_id === currentUser.id;
+          const contributorName = company?.name || creator?.name || "Individual posting";
 
           return (
             <div key={job.id} className="rounded-xl border border-border bg-card p-4 space-y-2 hover:border-primary/30 transition-all relative">
-              <div className="flex items-start gap-3">
-                {company ? (
-                  <Link to={`/companies/${company.id}`}>
-                    <Avatar className="h-10 w-10 rounded-lg">
-                      <AvatarImage src={company.logo_url ?? undefined} />
-                      <AvatarFallback className="rounded-lg text-xs"><Building2 className="h-4 w-4" /></AvatarFallback>
-                    </Avatar>
-                  </Link>
-                ) : creator ? (
-                  <Link to={`/profile/${creator.id}`}>
-                    <Avatar className="h-10 w-10 rounded-lg">
-                      <AvatarImage src={creator.avatar_url ?? undefined} />
-                      <AvatarFallback className="rounded-lg text-xs">{(creator.name ?? "U").charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                ) : (
-                  <Avatar className="h-10 w-10 rounded-lg">
-                    <AvatarFallback className="rounded-lg text-xs"><User className="h-4 w-4" /></AvatarFallback>
-                  </Avatar>
-                )}
+              {/* Title + org name + delete */}
+              <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-display font-semibold text-sm truncate">{job.title}</h4>
-                  {company ? (
-                    <Link to={`/companies/${company.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                      {company.name}
-                    </Link>
-                  ) : creator ? (
-                    <Link to={`/profile/${creator.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                      by {creator.name}
-                    </Link>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Individual posting</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-display font-semibold text-sm truncate">{job.title}</h4>
+                    {company ? (
+                      <Link to={`/companies/${company.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors shrink-0">
+                        — {company.name}
+                      </Link>
+                    ) : creator ? (
+                      <Link to={`/profile/${creator.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors shrink-0">
+                        — {creator.name}
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
                 {isOwner && (
                   <Button
@@ -205,18 +169,48 @@ export default function JobsExplore({ bare }: Props) {
                 {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
-                <span>Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
-                {job.document_url && !isGuest && (
-                  <a href={job.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
-                    <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
-                  </a>
-                )}
-                {job.document_url && isGuest && (
-                  <button onClick={(e) => handleDocClick(e, job.document_url)} className="flex items-center gap-1 text-primary hover:underline">
-                    <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
-                  </button>
-                )}
+              {/* Footer: avatar + name on left, doc link + date on right */}
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+                <div className="flex items-center gap-1.5">
+                  {company ? (
+                    <Link to={`/companies/${company.id}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      <Avatar className="h-5 w-5 rounded">
+                        <AvatarImage src={company.logo_url ?? undefined} />
+                        <AvatarFallback className="rounded text-[8px]"><Building2 className="h-2.5 w-2.5" /></AvatarFallback>
+                      </Avatar>
+                      <span>{company.name}</span>
+                    </Link>
+                  ) : creator ? (
+                    <Link to={`/profile/${creator.id}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      <Avatar className="h-5 w-5 rounded">
+                        <AvatarImage src={creator.avatar_url ?? undefined} />
+                        <AvatarFallback className="rounded text-[8px]">{(creator.name ?? "U").charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span>{creator.name}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <Avatar className="h-5 w-5 rounded">
+                        <AvatarFallback className="rounded text-[8px]"><User className="h-2.5 w-2.5" /></AvatarFallback>
+                      </Avatar>
+                      Individual
+                    </span>
+                  )}
+                  <span className="text-muted-foreground/60">·</span>
+                  <span>Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
+                </div>
+                <div>
+                  {job.document_url && !isGuest && (
+                    <a href={job.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+                      <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  )}
+                  {job.document_url && isGuest && (
+                    <button onClick={handleDocClick} className="flex items-center gap-1 text-primary hover:underline">
+                      <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
