@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Plus, Briefcase, MapPin, FileText, Upload, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Briefcase, MapPin, FileText, Upload, Trash2, ExternalLink, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -68,7 +68,11 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const path = `jobs/${companyId}/${Date.now()}_${file.name}`;
+    const safeName = file.name
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]/g, "-");
+    const userId = currentUser.id || "unknown";
+    const path = `${userId}/jobs/${Date.now()}_${safeName}`;
     const { error } = await supabase.storage.from("entity-images").upload(path, file);
     if (error) {
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
@@ -79,6 +83,13 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
     setDocUrl(pub.publicUrl);
     setDocName(file.name);
     setUploading(false);
+  };
+
+  const handleUrlPaste = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setDocUrl(trimmed);
+    setDocName(trimmed.split("/").pop() || "Link");
   };
 
   const handleCreate = async () => {
@@ -123,7 +134,7 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
             {/* Step 1: File upload */}
             {step === "file" && (
               <div className="space-y-4 mt-2">
-                <p className="text-sm text-muted-foreground">Upload the job description document first (optional). We'll use it to pre-fill details.</p>
+                <p className="text-sm text-muted-foreground">Upload a job description document or paste a URL (optional).</p>
                 <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
                 {docUrl ? (
                   <div className="flex items-center gap-2 text-sm bg-muted rounded-lg p-3">
@@ -134,10 +145,32 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-24 flex-col gap-2" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                    <Upload className="h-6 w-6 text-muted-foreground" />
-                    <span className="text-sm">{uploading ? "Uploading…" : "Upload document (PDF, DOC…)"}</span>
-                  </Button>
+                  <div className="space-y-3">
+                    <Button variant="outline" className="w-full h-20 flex-col gap-2" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                      <Upload className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm">{uploading ? "Uploading…" : "Upload document (PDF, DOC…)"}</span>
+                    </Button>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex-1 h-px bg-border" />
+                      <span>or</span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Paste a URL to the job description…"
+                        className="text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleUrlPaste((e.target as HTMLInputElement).value);
+                        }}
+                      />
+                      <Button variant="outline" size="icon" className="shrink-0" onClick={(e) => {
+                        const input = (e.currentTarget as HTMLElement).previousElementSibling as HTMLInputElement;
+                        if (input) handleUrlPaste(input.value);
+                      }}>
+                        <LinkIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
                 <Button size="sm" className="w-full" onClick={() => setStep("details")}>
                   {docUrl ? "Continue" : "Skip — fill manually"}
