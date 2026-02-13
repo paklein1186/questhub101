@@ -30,6 +30,35 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
+type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+
+type PersonalTask = {
+  id: string;
+  user_id: string;
+  title: string;
+  status: TaskStatus;
+  created_at: string;
+  converted_to_quest_id: string | null;
+  converted_to_subtask_id: string | null;
+};
+
+type Quest = {
+  id: string;
+  title: string;
+  status: "DRAFT" | "OPEN_FOR_PROPOSALS" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+  created_by_user_id: string;
+  is_deleted: boolean;
+};
+
+type QuestSubtask = {
+  id: string;
+  quest_id: string;
+  title: string;
+  status: TaskStatus;
+  assignee_user_id: string;
+  order_index: number;
+};
+
 type UnifiedTask = {
   id: string;
   title: string;
@@ -209,7 +238,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     unified.push({
       id: q.id,
       title: q.title,
-      status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "DRAFT" ? "TODO" : "TODO",
+      status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
       source: "quest",
       sourceLabel: "My Quest",
       sourceId: q.id,
@@ -260,6 +289,46 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const updateTaskStatus = async (taskId: string, status: string) => {
     await supabase.from("personal_tasks" as any).update({ status } as any).eq("id", taskId);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  };
+
+  const updateQuestStatus = async (questId: string, uiStatus: string) => {
+    // Map unified UI statuses to quest-specific statuses
+    const questStatus = uiStatus === "DONE" ? "COMPLETED" : uiStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
+    await supabase.from("quests").update({ status: questStatus }).eq("id", questId);
+    qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+    qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
+  };
+
+  const updateSubtaskStatus = async (subtaskId: string, status: string) => {
+    await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+  };
+
+  const handleStatusChange = (task: UnifiedTask, newStatus: string) => {
+    if (task.source === "personal") {
+      updateTaskStatus(task.id, newStatus);
+      // Also sync to converted quest/subtask if applicable
+      if (task.convertedToQuestId) {
+        const questStatus = newStatus === "DONE" ? "COMPLETED" : newStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
+        supabase.from("quests").update({ status: questStatus }).eq("id", task.convertedToQuestId).then(() => {
+          qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+        });
+      }
+      if (task.convertedToSubtaskId) {
+        supabase.from("quest_subtasks" as any).update({ status: newStatus } as any).eq("id", task.convertedToSubtaskId).then(() => {
+          qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+        });
+      }
+    } else if (task.source === "quest") {
+      updateQuestStatus(task.id, newStatus);
+    } else if (task.source === "subtask") {
+      updateSubtaskStatus(task.id, newStatus);
+    }
+  };
+
+  const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
+    const newStatus = checked ? "DONE" : "TODO";
+    handleStatusChange(task, newStatus);
   };
 
   const deleteTask = async (taskId: string) => {
@@ -471,24 +540,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               {filtered.map((task) => (
                 <tr key={`${task.source}-${task.id}`} className="border-t border-border group hover:bg-accent/30 transition-colors">
                   <td className="px-3 py-2.5">
-                    {task.source === "personal" && !task.convertedToQuestId && !task.convertedToSubtaskId && (
-                      <Checkbox
-                        checked={task.status === "DONE"}
-                        onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "DONE" : "TODO")}
-                      />
-                    )}
-                    {task.source === "personal" && (task.convertedToQuestId || task.convertedToSubtaskId) && (
-                      <Checkbox
-                        checked={task.status === "DONE"}
-                        onCheckedChange={(checked) => updateTaskStatus(task.id, checked ? "DONE" : "IN_PROGRESS")}
-                      />
-                    )}
-                    {task.source === "subtask" && (
-                      <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                    {task.source === "quest" && (
-                      <Compass className="h-3.5 w-3.5 text-primary" />
-                    )}
+                    <Checkbox
+                      checked={task.status === "DONE"}
+                      onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                    />
                   </td>
                   <td className="px-3 py-2.5">
                     <span className={cn(
@@ -510,28 +565,22 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     </Badge>
                   </td>
                   <td className="px-3 py-2.5">
-                    {task.source === "personal" && (task.convertedToQuestId || task.convertedToSubtaskId) ? (
-                      <Select
-                        value={task.status}
-                        onValueChange={(v) => updateTaskStatus(task.id, v)}
-                      >
-                        <SelectTrigger className={cn(
-                          "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
-                          STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
-                        )}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="TODO">TODO</SelectItem>
-                          <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
-                          <SelectItem value="DONE">DONE</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Badge className={cn("text-[10px]", STATUS_COLORS[task.status] || STATUS_COLORS.TODO)}>
-                        {task.status?.replace("_", " ")}
-                      </Badge>
-                    )}
+                    <Select
+                      value={task.status}
+                      onValueChange={(v) => handleStatusChange(task, v)}
+                    >
+                      <SelectTrigger className={cn(
+                        "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
+                        STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
+                      )}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TODO">TODO</SelectItem>
+                        <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
+                        <SelectItem value="DONE">DONE</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </td>
                   <td className="px-3 py-2.5">
                     {task.source === "personal" && (
