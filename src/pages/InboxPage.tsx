@@ -1,33 +1,57 @@
 import { useState, useRef, useEffect } from "react";
 import { PageShell } from "@/components/PageShell";
-import { useConversations, useConversationMessages, useSendMessage, useCreateConversation } from "@/hooks/useMessages";
+import { useConversations, useConversationMessages, useSendMessage, useCreateConversation, useDeleteMessage, useEditMessage, useAddParticipants } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
+import { useBlock } from "@/hooks/useBlock";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserSearchInput } from "@/components/UserSearchInput";
-import { Send, Plus, ArrowLeft, Users, MessageSquare } from "lucide-react";
+import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
+
+function BlockMenuItem({ targetUserId }: { targetUserId: string }) {
+  const { isBlocked, toggle } = useBlock(targetUserId);
+  return (
+    <DropdownMenuItem onClick={toggle} className="text-destructive focus:text-destructive">
+      <Ban className="h-4 w-4 mr-2" />
+      {isBlocked ? "Unblock user" : "Block user"}
+    </DropdownMenuItem>
+  );
+}
 
 export default function InboxPage() {
   const { session } = useAuth();
   const userId = session?.user?.id;
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<{ id: string; name: string }[]>([]);
   const [groupTitle, setGroupTitle] = useState("");
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [showAddPeopleDialog, setShowAddPeopleDialog] = useState(false);
+  const [newParticipants, setNewParticipants] = useState<{ id: string; name: string }[]>([]);
+  const [newGroupTitle, setNewGroupTitle] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: conversations = [], isLoading } = useConversations();
   const { data: messages = [] } = useConversationMessages(activeConvId);
   const sendMessage = useSendMessage();
   const createConversation = useCreateConversation();
+  const deleteMessage = useDeleteMessage();
+  const editMessage = useEditMessage();
+  const addParticipants = useAddParticipants();
+
+  const activeConv = conversations.find((c) => c.id === activeConvId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -50,6 +74,38 @@ export default function InboxPage() {
     setShowNewDialog(false);
     setSelectedUsers([]);
     setGroupTitle("");
+  };
+
+  const handleEditSave = () => {
+    if (!editingMsgId || !editText.trim() || !activeConvId) return;
+    editMessage.mutate({ messageId: editingMsgId, content: editText.trim(), conversationId: activeConvId });
+    setEditingMsgId(null);
+    setEditText("");
+  };
+
+  const handleDelete = (msgId: string) => {
+    if (!activeConvId) return;
+    deleteMessage.mutate({ messageId: msgId, conversationId: activeConvId });
+  };
+
+  const handleAddPeople = async () => {
+    if (!activeConvId || !newParticipants.length) return;
+    const existingIds = activeConv?.participants.map((p) => p.user_id) ?? [];
+    const toAdd = newParticipants.filter((p) => !existingIds.includes(p.id));
+    if (!toAdd.length) {
+      toast({ title: "Users already in conversation" });
+      return;
+    }
+    await addParticipants.mutateAsync({
+      conversationId: activeConvId,
+      userIds: toAdd.map((p) => p.id),
+      makeGroup: !activeConv?.is_group,
+      title: !activeConv?.is_group ? newGroupTitle || undefined : undefined,
+    });
+    setShowAddPeopleDialog(false);
+    setNewParticipants([]);
+    setNewGroupTitle("");
+    toast({ title: "Participants added" });
   };
 
   const getConversationName = (conv: typeof conversations[0]) => {
@@ -182,24 +238,88 @@ export default function InboxPage() {
                     </Button>
                   )}
                   {(() => {
-                    const conv = conversations.find((c) => c.id === activeConvId);
-                    if (!conv) return null;
-                    const avatar = getConversationAvatar(conv);
+                    if (!activeConv) return null;
+                    const avatar = getConversationAvatar(activeConv);
                     return (
                       <>
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={avatar?.avatar_url ?? undefined} />
-                          <AvatarFallback>{conv.is_group ? <Users className="h-4 w-4" /> : (avatar?.name?.[0] ?? "?")}</AvatarFallback>
+                          <AvatarFallback>{activeConv.is_group ? <Users className="h-4 w-4" /> : (avatar?.name?.[0] ?? "?")}</AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="text-sm font-semibold">{getConversationName(conv)}</p>
-                          {conv.is_group && (
-                            <p className="text-[11px] text-muted-foreground">{conv.participants.length} members</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{getConversationName(activeConv)}</p>
+                          {activeConv.is_group && (
+                            <p className="text-[11px] text-muted-foreground">{activeConv.participants.length} members</p>
                           )}
                         </div>
                       </>
                     );
                   })()}
+
+                  {/* Header actions */}
+                  <div className="flex items-center gap-1 ml-auto">
+                    {/* Add people / convert to group */}
+                    <Dialog open={showAddPeopleDialog} onOpenChange={setShowAddPeopleDialog}>
+                      <DialogTrigger asChild>
+                        <Button size="icon" variant="ghost" title="Add people">
+                          <UserPlus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{activeConv?.is_group ? "Add people" : "Create group from conversation"}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <UserSearchInput
+                            onSelect={(user) => {
+                              if (!newParticipants.find((u) => u.id === user.user_id)) {
+                                setNewParticipants((prev) => [...prev, { id: user.user_id, name: user.display_name ?? "User" }]);
+                              }
+                            }}
+                            placeholder="Search users to add..."
+                          />
+                          {newParticipants.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {newParticipants.map((u) => (
+                                <span key={u.id} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-sm">
+                                  {u.name}
+                                  <button onClick={() => setNewParticipants((prev) => prev.filter((p) => p.id !== u.id))} className="text-muted-foreground hover:text-foreground">×</button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {!activeConv?.is_group && (
+                            <Input
+                              placeholder="Group name (optional)"
+                              value={newGroupTitle}
+                              onChange={(e) => setNewGroupTitle(e.target.value)}
+                            />
+                          )}
+                          <Button onClick={handleAddPeople} disabled={!newParticipants.length || addParticipants.isPending} className="w-full">
+                            {addParticipants.isPending ? "Adding..." : "Add participants"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Block user (only in 1:1) */}
+                    {!activeConv?.is_group && activeConv && (() => {
+                      const other = activeConv.participants.find((p) => p.user_id !== userId);
+                      if (!other) return null;
+                      return (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <BlockMenuItem targetUserId={other.user_id} />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 {/* Messages */}
@@ -207,27 +327,88 @@ export default function InboxPage() {
                   <div className="space-y-3">
                     {messages.map((msg) => {
                       const isOwn = msg.sender_id === userId;
+                      const isEditing = editingMsgId === msg.id;
+
                       return (
-                        <div key={msg.id} className={cn("flex gap-2", isOwn ? "justify-end" : "justify-start")}>
+                        <div key={msg.id} className={cn("flex gap-2 group", isOwn ? "justify-end" : "justify-start")}>
                           {!isOwn && (
                             <Avatar className="h-7 w-7 shrink-0 mt-1">
                               <AvatarImage src={msg.sender?.avatar_url ?? undefined} />
                               <AvatarFallback className="text-[10px]">{msg.sender?.name?.[0] ?? "?"}</AvatarFallback>
                             </Avatar>
                           )}
-                          <div className={cn(
-                            "max-w-[75%] rounded-2xl px-3.5 py-2",
-                            isOwn
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-muted rounded-bl-md"
-                          )}>
-                            {!isOwn && conversations.find((c) => c.id === activeConvId)?.is_group && (
-                              <p className="text-[10px] font-medium opacity-70 mb-0.5">{msg.sender?.name}</p>
+                          <div className="flex items-start gap-1 max-w-[75%]">
+                            {/* Actions for own messages (left side) */}
+                            {isOwn && !msg.is_deleted && !isEditing && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => { setEditingMsgId(msg.id); setEditText(msg.content); }}>
+                                    <Pencil className="h-4 w-4 mr-2" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleDelete(msg.id)} className="text-destructive focus:text-destructive">
+                                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             )}
-                            <p className="text-sm whitespace-pre-wrap break-words">{msg.is_deleted ? "Message deleted" : msg.content}</p>
-                            <p className={cn("text-[10px] mt-1", isOwn ? "text-primary-foreground/60" : "text-muted-foreground")}>
-                              {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                            </p>
+
+                            <div className={cn(
+                              "rounded-2xl px-3.5 py-2",
+                              isOwn
+                                ? "bg-primary text-primary-foreground rounded-br-md"
+                                : "bg-muted rounded-bl-md"
+                            )}>
+                              {!isOwn && activeConv?.is_group && (
+                                <p className="text-[10px] font-medium opacity-70 mb-0.5">{msg.sender?.name}</p>
+                              )}
+                              {isEditing ? (
+                                <div className="flex items-center gap-1.5">
+                                  <Input
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                    className="h-7 text-sm bg-background text-foreground min-w-[120px]"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") handleEditSave();
+                                      if (e.key === "Escape") { setEditingMsgId(null); setEditText(""); }
+                                    }}
+                                  />
+                                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={handleEditSave}>
+                                    <Check className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingMsgId(null); setEditText(""); }}>
+                                    <X className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <p className="text-sm whitespace-pre-wrap break-words">
+                                  {msg.is_deleted ? <span className="italic opacity-60">Message deleted</span> : msg.content}
+                                </p>
+                              )}
+                              <p className={cn("text-[10px] mt-1", isOwn ? "text-primary-foreground/60" : "text-muted-foreground")}>
+                                {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
+                              </p>
+                            </div>
+
+                            {/* Actions for other's messages (right side) - block only */}
+                            {!isOwn && !msg.is_deleted && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  <BlockMenuItem targetUserId={msg.sender_id} />
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                           </div>
                         </div>
                       );

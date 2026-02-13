@@ -213,6 +213,68 @@ export function useSendMessage() {
   });
 }
 
+export function useDeleteMessage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
+      const { error } = await supabase
+        .from("direct_messages")
+        .update({ is_deleted: true })
+        .eq("id", messageId);
+      if (error) throw error;
+      return conversationId;
+    },
+    onSuccess: (conversationId) => {
+      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
+export function useEditMessage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ messageId, content, conversationId }: { messageId: string; content: string; conversationId: string }) => {
+      const { error } = await supabase
+        .from("direct_messages")
+        .update({ content })
+        .eq("id", messageId);
+      if (error) throw error;
+      return conversationId;
+    },
+    onSuccess: (conversationId) => {
+      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+    },
+  });
+}
+
+export function useAddParticipants() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ conversationId, userIds, makeGroup, title }: { conversationId: string; userIds: string[]; makeGroup?: boolean; title?: string }) => {
+      // Add participants
+      const { error } = await supabase
+        .from("conversation_participants")
+        .insert(userIds.map((uid) => ({ conversation_id: conversationId, user_id: uid })));
+      if (error) throw error;
+
+      // Convert to group if needed
+      if (makeGroup) {
+        await supabase
+          .from("conversations")
+          .update({ is_group: true, title: title || null })
+          .eq("id", conversationId);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+}
+
 export function useCreateConversation() {
   const queryClient = useQueryClient();
   const { session } = useAuth();
