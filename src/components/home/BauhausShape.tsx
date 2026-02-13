@@ -2,13 +2,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, useMotionValue, useSpring, useAnimationControls } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const SIZE_VW = 15;
 const FLEE_DISTANCE = 120;
 const FLEE_STRENGTH = 50;
 
 const COLORS = ["#2742C8", "#E63621", "#1B3AAF", "#D42B16"];
 
-// More organic, amoeba-like paths with greater variation
 const PATHS = [
   "M 50 -2 C 82 -8, 108 20, 102 50 C 108 82, 78 108, 50 102 C 18 108, -8 78, -2 50 C -8 18, 20 -8, 50 -2 Z",
   "M 62 -4 C 90 10, 106 38, 94 62 C 106 88, 64 108, 38 100 C 10 108, -6 64, 8 38 C -6 10, 34 -8, 62 -4 Z",
@@ -32,7 +30,6 @@ export function BauhausShape() {
   const smoothX = useSpring(fleeX, { stiffness: 30, damping: 25 });
   const smoothY = useSpring(fleeY, { stiffness: 30, damping: 25 });
 
-  // Click → halve abruptly, then slowly regrow
   const handleClick = useCallback(() => {
     if (clicked) return;
     setClicked(true);
@@ -47,6 +44,7 @@ export function BauhausShape() {
     ).then(() => setClicked(false));
   }, [clicked, scaleControls]);
 
+  // Track mouse (desktop only)
   useEffect(() => {
     if (isMobile) return;
     const onMove = (e: MouseEvent) => {
@@ -57,6 +55,7 @@ export function BauhausShape() {
     return () => window.removeEventListener("mousemove", onMove);
   }, [isMobile]);
 
+  // Gentle repulsion (desktop only)
   useEffect(() => {
     if (isMobile) return;
     const tick = () => {
@@ -85,6 +84,14 @@ export function BauhausShape() {
   }, [isMobile, fleeX, fleeY]);
 
   const wanderDuration = isMobile ? 55 : 35;
+  // Mobile: smaller, repositioned to stay visible
+  const sizeStyle = isMobile
+    ? { width: "28vw", height: "28vw", maxWidth: 160, maxHeight: 160, minWidth: 80, minHeight: 80 }
+    : { width: "15vw", height: "15vw", maxWidth: 280, maxHeight: 280, minWidth: 100, minHeight: 100 };
+
+  const positionStyle = isMobile
+    ? { right: "4%", top: "8%" }
+    : { right: "6%", top: "12%" };
 
   return (
     <motion.div
@@ -92,32 +99,32 @@ export function BauhausShape() {
       className="pointer-events-auto fixed z-0 cursor-pointer"
       onClick={handleClick}
       style={{
-        right: "6%",
-        top: "12%",
-        width: `${SIZE_VW}vw`,
-        height: `${SIZE_VW}vw`,
-        maxWidth: 280,
-        maxHeight: 280,
-        minWidth: 100,
-        minHeight: 100,
-        x: smoothX,
-        y: smoothY,
+        ...positionStyle,
+        ...sizeStyle,
+        x: isMobile ? 0 : smoothX,
+        y: isMobile ? 0 : smoothY,
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 2, ease: "easeOut" }}
     >
-      {/* Wide wandering orbit — travels more across the page */}
+      {/* Wide wandering orbit */}
       <motion.div
         animate={{
-          x: [0, 60, -40, 80, -30, 50, -20, 40, 0],
-          y: [0, -50, 30, -70, 60, -40, 20, -30, 0],
+          x: isMobile
+            ? [0, 20, -15, 25, -10, 15, 0]
+            : [0, 60, -40, 80, -30, 50, -20, 40, 0],
+          y: isMobile
+            ? [0, -20, 15, -25, 20, -10, 0]
+            : [0, -50, 30, -70, 60, -40, 20, -30, 0],
         }}
         transition={{
           duration: wanderDuration,
           repeat: Infinity,
           ease: "easeInOut",
-          times: [0, 0.12, 0.25, 0.38, 0.5, 0.62, 0.75, 0.88, 1],
+          times: isMobile
+            ? [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
+            : [0, 0.12, 0.25, 0.38, 0.5, 0.62, 0.75, 0.88, 1],
         }}
         className="w-full h-full"
       >
@@ -130,8 +137,8 @@ export function BauhausShape() {
             className="w-full h-full"
           >
             <svg
-              viewBox="0 0 100 100"
-              className="w-full h-full"
+              viewBox="-10 -10 120 120"
+              className="w-full h-full overflow-visible"
               style={{ willChange: "transform" }}
             >
               <defs>
@@ -147,10 +154,16 @@ export function BauhausShape() {
                     transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                   />
                 </linearGradient>
+                {/* Soft shadow filter — light from center of page (top-left of shape) */}
+                <filter id="bauhaus-shadow" x="-40%" y="-40%" width="180%" height="180%">
+                  <feDropShadow dx="-6" dy="4" stdDeviation="8" floodColor="#1E1E1E" floodOpacity="0.18" />
+                  <feDropShadow dx="-3" dy="2" stdDeviation="4" floodColor="#1E1E1E" floodOpacity="0.10" />
+                </filter>
               </defs>
               <motion.path
                 fill="url(#bauhaus-grad)"
                 opacity={0.45}
+                filter="url(#bauhaus-shadow)"
                 animate={{ d: PATHS }}
                 transition={{
                   duration: 8,
