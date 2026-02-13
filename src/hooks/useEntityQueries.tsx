@@ -141,7 +141,7 @@ export function usePodById(id: string | undefined) {
           .select("user_id, name, avatar_url")
           .in("user_id", userIds);
         const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-        data.pod_members = data.pod_members.map((m: any) => ({ ...m, user: profileMap.get(m.user_id) }));
+        data.pod_members = data.pod_members.map((m: any) => ({ ...m, user: profileMap.get(m.user_id) })).filter((m: any) => m.user);
       }
       return data;
     },
@@ -250,7 +250,7 @@ export function useCompanyMembersWithProfiles(companyId: string | undefined) {
         .from("profiles_public")
         .select("user_id, name, avatar_url, headline")
         .in("user_id", userIds);
-      return data.map((m) => ({ ...m, user: (profiles ?? []).find((p) => p.user_id === m.user_id) }));
+      return data.map((m) => ({ ...m, user: (profiles ?? []).find((p) => p.user_id === m.user_id) })).filter(m => m.user);
     },
     enabled: !!companyId,
   });
@@ -900,7 +900,7 @@ export function useGuildMembersWithProfiles(guildId: string | undefined) {
           .select("user_id, name, avatar_url")
           .in("user_id", userIds);
         const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-        return data.map(m => ({ ...m, user: profileMap.get(m.user_id) }));
+        return data.map(m => ({ ...m, user: profileMap.get(m.user_id) })).filter(m => m.user);
       }
       return data;
     },
