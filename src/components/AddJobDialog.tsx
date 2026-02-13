@@ -204,7 +204,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
                 <Building2 className="h-8 w-8 text-primary" />
                 <div className="text-center">
                   <p className="font-semibold text-sm">Organization</p>
-                  <p className="text-xs text-muted-foreground mt-1">Post for a company you manage</p>
+                  <p className="text-xs text-muted-foreground mt-1">Post for an organization you manage</p>
                 </div>
               </button>
             </div>
@@ -212,9 +212,9 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
             {/* Show company list if company was selected */}
             {source === "company" && (
               <div className="space-y-2">
-                {loadingCompanies && <p className="text-sm text-muted-foreground">Loading your organizations…</p>}
+                {loadingCompanies && <p className="text-sm text-muted-foreground">Loading your Traditional Organizations…</p>}
                 {!loadingCompanies && myCompanies.length === 0 && (
-                  <p className="text-sm text-muted-foreground">You don't manage any organization yet.</p>
+                  <p className="text-sm text-muted-foreground">You don't manage any Traditional Organization yet.</p>
                 )}
                 {myCompanies.map((c: any) => (
                   <button
