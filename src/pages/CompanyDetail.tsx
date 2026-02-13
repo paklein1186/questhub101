@@ -387,8 +387,7 @@ export default function CompanyDetail() {
 
         {/* Wall */}
         <TabsContent value="wall" className="mt-6 space-y-6">
-          <FeedSection contextType="COMPANY" contextId={company.id} canPost={isMember} />
-          <CommentThread targetType={CommentTargetType.COMPANY} targetId={company.id} />
+          <FeedSection contextType="COMPANY" contextId={company.id} canPost={isMember} showDisplayToggle />
         </TabsContent>
 
         {/* Chat & AI */}
