@@ -22,13 +22,33 @@ export function useAllJobPositions() {
   return useQuery({
     queryKey: ["job-positions", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch jobs with company + topic/territory joins (no FK to profiles for creator)
+      const { data: jobs, error } = await supabase
         .from("job_positions" as any)
-        .select("*, companies:company_id(id, name, logo_url), creator:created_by_user_id(id, name, avatar_url), job_position_topics(topic_id, topics:topic_id(id, name, slug)), job_position_territories(territory_id, territories:territory_id(id, name))")
+        .select("*, companies:company_id(id, name, logo_url), job_position_topics(topic_id, topics:topic_id(id, name, slug)), job_position_territories(territory_id, territories:territory_id(id, name))")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+
+      // Fetch creator profiles separately
+      const creatorIds = [...new Set((jobs as any[]).map((j: any) => j.created_by_user_id).filter(Boolean))];
+      let creatorsMap: Record<string, any> = {};
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, name, avatar_url")
+          .in("user_id", creatorIds);
+        if (profiles) {
+          for (const p of profiles) {
+            creatorsMap[p.user_id] = { id: p.user_id, name: p.name, avatar_url: p.avatar_url };
+          }
+        }
+      }
+
+      return (jobs as any[]).map((j: any) => ({
+        ...j,
+        creator: creatorsMap[j.created_by_user_id] || null,
+      }));
     },
   });
 }
