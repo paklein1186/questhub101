@@ -200,13 +200,16 @@ export default function JobsExplore({ bare }: Props) {
                   <span>Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
                 </div>
                 <div>
-                  {job.document_url && !isGuest && (
-                    <a href={job.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+              {job.document_url && !isGuest && (
+                    <button
+                      onClick={() => window.open(job.document_url, "_blank", "noopener,noreferrer")}
+                      className="flex items-center gap-1 text-primary hover:underline cursor-pointer"
+                    >
                       <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
-                    </a>
+                    </button>
                   )}
                   {job.document_url && isGuest && (
-                    <button onClick={handleDocClick} className="flex items-center gap-1 text-primary hover:underline">
+                    <button onClick={handleDocClick} className="flex items-center gap-1 text-primary hover:underline cursor-pointer">
                       <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
                     </button>
                   )}
