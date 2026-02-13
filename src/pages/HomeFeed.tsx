@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LivingLogo } from "@/components/home/LivingLogo";
+
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff } from "lucide-react";
@@ -482,8 +482,6 @@ export default function HomeFeed() {
     <PageShell>
       <MilestonePopup />
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
-
-        <LivingLogo />
 
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
