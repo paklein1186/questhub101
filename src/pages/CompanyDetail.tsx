@@ -246,15 +246,60 @@ export default function CompanyDetail() {
               </div>
             </div>
           )}
-          {contact && (
-            <div>
-              <h3 className="font-display font-semibold mb-2">Contact</h3>
-              <Link to={`/users/${contact.user_id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                <Avatar className="h-6 w-6"><AvatarImage src={contact.avatar_url ?? undefined} /><AvatarFallback>{contact.name?.[0]}</AvatarFallback></Avatar>
-                {contact.name}
-              </Link>
+
+          {/* Unit details */}
+          <div>
+            <h3 className="font-display font-semibold mb-2">Details</h3>
+            <div className="rounded-xl border border-border bg-card/50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Membership policy</span>
+                <Badge variant="secondary" className="capitalize text-xs">approval required</Badge>
+              </div>
+              {company.sector && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Sector</span>
+                  <span className="text-sm">{company.sector}</span>
+                </div>
+              )}
+              {company.size && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Size</span>
+                  <Badge variant="outline" className="text-xs">{company.size}</Badge>
+                </div>
+              )}
+              {contact && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Contact</span>
+                  <Link to={`/users/${contact.user_id}`} className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors">
+                    <Avatar className="h-5 w-5"><AvatarImage src={contact.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{contact.name?.[0]}</AvatarFallback></Avatar>
+                    {contact.name}
+                  </Link>
+                </div>
+              )}
+              {(() => {
+                const admins = members.filter((m: any) => ["admin", "owner", "ADMIN"].includes(m.role));
+                if (admins.length === 0) return null;
+                return (
+                  <div>
+                    <span className="text-sm text-muted-foreground block mb-1.5">Admins</span>
+                    <div className="flex flex-wrap gap-2">
+                      {admins.map((m: any) => (
+                        <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium hover:border-primary/30 transition-colors">
+                          <Avatar className="h-4 w-4"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback className="text-[8px]">{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                          {m.user?.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Created</span>
+                <span className="text-sm">{formatDistanceToNow(new Date(company.created_at), { addSuffix: true })}</span>
+              </div>
             </div>
-          )}
+          </div>
+
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>

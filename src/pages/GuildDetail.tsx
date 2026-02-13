@@ -317,6 +317,54 @@ export default function GuildDetail() {
               </div>
             </div>
           )}
+
+          {/* Unit details */}
+          <div>
+            <h3 className="font-display font-semibold mb-2">Details</h3>
+            <div className="rounded-xl border border-border bg-card/50 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Membership policy</span>
+                <Badge variant={guild.join_policy === "OPEN" ? "default" : guild.join_policy === "INVITE_ONLY" ? "destructive" : "secondary"} className="capitalize text-xs">
+                  {(guild.join_policy || "OPEN").replace(/_/g, " ").toLowerCase()}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Type</span>
+                <Badge variant="outline" className="capitalize text-xs">{guild.type.toLowerCase()}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Founder</span>
+                {creator ? (
+                  <Link to={`/users/${creator.user_id}`} className="flex items-center gap-1.5 text-sm font-medium hover:text-primary transition-colors">
+                    <Avatar className="h-5 w-5"><AvatarImage src={creator.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{creator.name?.[0]}</AvatarFallback></Avatar>
+                    {creator.name}
+                  </Link>
+                ) : <span className="text-sm text-muted-foreground">—</span>}
+              </div>
+              {(() => {
+                const admins = members.filter((m: any) => m.role === "ADMIN");
+                if (admins.length === 0) return null;
+                return (
+                  <div>
+                    <span className="text-sm text-muted-foreground block mb-1.5">Admins</span>
+                    <div className="flex flex-wrap gap-2">
+                      {admins.map((m: any) => (
+                        <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium hover:border-primary/30 transition-colors">
+                          <Avatar className="h-4 w-4"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback className="text-[8px]">{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                          {m.user?.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Created</span>
+                <span className="text-sm">{formatDistanceToNow(new Date(guild.created_at), { addSuffix: true })}</span>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
