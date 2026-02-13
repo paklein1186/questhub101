@@ -392,7 +392,7 @@ function PodsTab({ memberships, loading, label }: { memberships: any[]; loading:
             {memberships.map((m: any, i: number) => (
               <motion.div key={m.podId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Link to={`/pods/${m.podId}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                  <h4 className="font-display font-semibold">{m.podName}</h4>
+                   <h4 className="font-display font-semibold">{m.pod?.name ?? "Unnamed Pod"}</h4>
                   <Badge variant="secondary" className="text-[10px] capitalize mt-1">{m.role?.toLowerCase()}</Badge>
                 </Link>
               </motion.div>
