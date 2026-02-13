@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 
@@ -89,14 +89,14 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
     (q.quest_topics ?? []).map((qt: any) => qt.topic_id)
   );
 
-  const filtered = preFiltered.filter((q) => {
+  const filtered = applySortBy(preFiltered.filter((q) => {
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
     if (filters.status !== "all" && q.status !== filters.status) return false;
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     return true;
-  });
+  }), filters.sortBy);
 
   // In public mode, show only aggregated stats instead of full quest cards
   const publicQuestCount = filtered.length;

@@ -6,7 +6,7 @@ import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
 import { useCourses } from "@/hooks/useSupabaseData";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
@@ -24,13 +24,13 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
     ((c as any).course_topics ?? []).map((ct: any) => ct.topic_id)
   );
 
-  const filtered = preFiltered.filter((c) => {
+  const filtered = applySortBy(preFiltered.filter((c) => {
     if (filters.level !== "all" && c.level !== filters.level) return false;
     if (filters.price === "free" && !c.is_free) return false;
     if (filters.price === "paid" && c.is_free) return false;
     if (filters.topicIds.length > 0 && !(c as any).course_topics?.some((ct: any) => filters.topicIds.includes(ct.topic_id))) return false;
     return true;
-  });
+  }), filters.sortBy);
 
   return (
     <PageShell bare={bare}>

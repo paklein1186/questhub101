@@ -18,7 +18,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { PodType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { usePods, useCreatePod, useTopics, useQuests } from "@/hooks/useSupabaseData";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
@@ -71,6 +71,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
   });
   if (activeFilters.podType !== "all") filtered = filtered.filter((p) => p.type === activeFilters.podType);
   if (activeFilters.topicIds.length > 0) filtered = filtered.filter((p) => p.topic_id && activeFilters.topicIds.includes(p.topic_id));
+  filtered = applySortBy(filtered, activeFilters.sortBy);
 
   const handleCreate = async () => {
     if (!newName.trim()) return;

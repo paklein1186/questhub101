@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GuildType } from "@/types/enums";
 import { useGuilds, useCreateGuild } from "@/hooks/useSupabaseData";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
@@ -52,13 +52,13 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
     (g.guild_topics ?? []).map((gt: any) => gt.topic_id)
   );
 
-  const filtered = preFiltered.filter((g) => {
+  const filtered = applySortBy(preFiltered.filter((g) => {
     if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
     if (activeFilters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => activeFilters.topicIds.includes(gt.topic_id))) return false;
     if (activeFilters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => activeFilters.territoryIds.includes(gt.territory_id))) return false;
     if (activeFilters.guildType !== "all" && g.type !== activeFilters.guildType) return false;
     return true;
-  });
+  }), activeFilters.sortBy);
 
   const handleCreate = async () => {
     if (!gName.trim()) return;

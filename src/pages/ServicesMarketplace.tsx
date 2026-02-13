@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useServices } from "@/hooks/useSupabaseData";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
@@ -61,6 +61,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
   } else if (filters.price === "paid") {
     filtered = filtered.filter((s) => s.price_amount && s.price_amount > 0);
   }
+  filtered = applySortBy(filtered, filters.sortBy);
 
   return (
     <PageShell bare={bare}>
