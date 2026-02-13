@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PageShell } from "@/components/PageShell";
@@ -16,6 +16,7 @@ import MyBookings from "./MyBookings";
 import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
 import MyCourses from "./MyCourses";
+import { WorkTasksTab } from "@/components/work/WorkTasksTab";
 
 import questPattern from "@/assets/patterns/quest-pattern.jpg";
 import guildPattern from "@/assets/patterns/guild-pattern.jpg";
@@ -38,7 +39,7 @@ function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; 
 }
 
 export default function WorkHub() {
-  const [tab, setTab] = useState("quests");
+  const [tab, setTab] = useState("tasks");
   const [showMore, setShowMore] = useState(true);
   const tabsListRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
@@ -83,6 +84,7 @@ export default function WorkHub() {
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex items-center gap-1 mb-6">
           <TabsList ref={tabsListRef}>
+            <TabsTrigger value="tasks"><ListTodo className="h-3.5 w-3.5 mr-1" /> Tasks</TabsTrigger>
             <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
             <TabsTrigger value="teams">My Entities ({teamsList.length})</TabsTrigger>
             <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
@@ -108,6 +110,11 @@ export default function WorkHub() {
             </DropdownMenu>
           )}
         </div>
+
+        {/* ── Tasks ── */}
+        <TabsContent value="tasks">
+          <WorkTasksTab />
+        </TabsContent>
 
         {/* ── Quests ── */}
         <TabsContent value="quests">
