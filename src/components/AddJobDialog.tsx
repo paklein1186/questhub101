@@ -92,7 +92,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
       .from("company_members")
       .select("company_id, role, companies:company_id(id, name, logo_url)")
       .eq("user_id", currentUser.id)
-      .in("role", ["admin", "owner"]);
+      .in("role", ["admin", "owner", "ADMIN", "OWNER"]);
     setMyCompanies((data ?? []).map((d: any) => d.companies).filter(Boolean));
     setLoadingCompanies(false);
   };
