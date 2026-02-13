@@ -131,6 +131,37 @@ export default function PodDetail() {
           </div>
         )}
 
+        {/* Unit details */}
+        <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mt-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Membership policy</span>
+            <Badge variant={pod.join_policy === "OPEN" ? "default" : pod.join_policy === "INVITE_ONLY" ? "destructive" : "secondary"} className="capitalize text-xs">
+              {(pod.join_policy || "OPEN").replace(/_/g, " ").toLowerCase()}
+            </Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Members</span>
+            <span className="text-sm font-medium">{members.length} / {(pod as any).max_members || "∞"}</span>
+          </div>
+          {(() => {
+            const hosts = members.filter((m: any) => m.role === "HOST");
+            if (hosts.length === 0) return null;
+            return (
+              <div>
+                <span className="text-sm text-muted-foreground block mb-1.5">Hosts</span>
+                <div className="flex flex-wrap gap-2">
+                  {hosts.map((m: any) => (
+                    <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium hover:border-primary/30 transition-colors">
+                      <Avatar className="h-4 w-4"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback className="text-[8px]">{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                      {m.user?.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
         <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
           {quest && (
             <Link to={`/quests/${quest.id}`} className="hover:text-primary transition-colors">
