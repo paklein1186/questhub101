@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
@@ -44,6 +44,7 @@ export function AppNav() {
   const authedLinks = [
     { to: "/", label: t("nav.home"), icon: Home },
     { to: "/explore", label: label("nav.explore"), icon: Search },
+    { to: "/feed", label: "Feed", icon: Rss },
     { to: "/work", label: t("nav.work"), icon: Briefcase },
     ...(isFeatureEnabled(flags, "feature_network_section")
       ? [{ to: "/network", label: t("nav.network"), icon: Users }]

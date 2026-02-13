@@ -18,6 +18,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ExploreHub from "./pages/ExploreHub";
 import WorkHub from "./pages/WorkHub";
+import FeedHub from "./pages/FeedHub";
 import NetworkHub from "./pages/NetworkHub";
 import MeHub from "./pages/MeHub";
 import GuildDetail from "./pages/GuildDetail";
@@ -221,6 +222,7 @@ const App = () => (
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+                <Route path="/feed" element={<RequireAuth><FeedHub /></RequireAuth>} />
                 <Route path="/work" element={<RequireAuth><WorkHub /></RequireAuth>} />
                 <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
                 <Route path="/network" element={<RequireAuth><NetworkHub /></RequireAuth>} />
