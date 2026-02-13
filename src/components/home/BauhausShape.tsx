@@ -96,20 +96,25 @@ export function BauhausShape() {
     : { right: "6%", top: "12%" };
 
   return createPortal(
-    <motion.div
+    <div
       ref={containerRef}
       className="pointer-events-auto fixed z-0 cursor-pointer"
-      onClick={handleClick}
       style={{
         ...positionStyle,
         ...sizeStyle,
-        x: isMobile ? 0 : smoothX,
-        y: isMobile ? 0 : smoothY,
       }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 2, ease: "easeOut" }}
     >
+      <motion.div
+        className="w-full h-full"
+        style={{
+          x: isMobile ? 0 : smoothX,
+          y: isMobile ? 0 : smoothY,
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        onClick={handleClick}
+      >
       {/* Wide wandering orbit */}
       <motion.div
         animate={{
@@ -184,7 +189,8 @@ export function BauhausShape() {
           </motion.div>
         </motion.div>
       </motion.div>
-    </motion.div>,
+      </motion.div>
+    </div>,
     document.body
   );
 }
