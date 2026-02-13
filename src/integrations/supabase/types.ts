@@ -1764,7 +1764,7 @@ export type Database = {
       }
       job_positions: {
         Row: {
-          company_id: string
+          company_id: string | null
           contract_type: string
           created_at: string
           created_by_user_id: string
@@ -1782,7 +1782,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          company_id: string
+          company_id?: string | null
           contract_type?: string
           created_at?: string
           created_by_user_id: string
@@ -1800,7 +1800,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          company_id?: string
+          company_id?: string | null
           contract_type?: string
           created_at?: string
           created_by_user_id?: string

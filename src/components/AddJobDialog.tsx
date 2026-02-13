@@ -177,14 +177,9 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    if (!selectedCompanyId) {
-      toast({ title: "Please select an organization", description: "A job position must be linked to an organization.", variant: "destructive" });
-      return;
-    }
-
     try {
       await createJob.mutateAsync({
-        company_id: selectedCompanyId,
+        company_id: selectedCompanyId || undefined,
         created_by_user_id: currentUser.id,
         title: title.trim(),
         description: description.trim() || undefined,

@@ -37,7 +37,7 @@ export function useCreateJobPosition() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (params: {
-      company_id: string;
+      company_id?: string;
       created_by_user_id: string;
       title: string;
       description?: string;
