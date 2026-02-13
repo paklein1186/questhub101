@@ -602,15 +602,19 @@ export default function Onboarding() {
         </div>
 
         <div className="flex items-center gap-2 mb-2">
-          <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics(dbTopics.filter(t => CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).map(t => t.id))}>Select all</Button>
+          <Button variant="outline" size="sm" className="text-xs h-7" onClick={() => {
+            const creativeTopicIds = dbTopics.filter(t => (t as any).universe_type === "creative").map(t => t.id);
+            setSelectedTopics(creativeTopicIds);
+          }}>Select all</Button>
           <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear</Button>
         </div>
 
         <div className="space-y-2">
           {CREATIVE_HOUSE_KEYS.map((key) => {
             const house = HOUSES_OF_ART[key];
+            // Match by slug field (new creative topics have slug = house key)
             const matchingTopic = dbTopics.find(t =>
-              t.name?.toLowerCase().replace(/\s+/g, "-") === key
+              (t as any).slug === key || t.name?.toLowerCase().replace(/\s+/g, "-") === key
             );
             const topicId = matchingTopic?.id || key;
             const isSelected = selectedTopics.includes(topicId);
@@ -637,11 +641,11 @@ export default function Onboarding() {
           })}
         </div>
 
-        {dbTopics.filter(t => !CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).length > 0 && (
+        {dbTopics.filter(t => (t as any).universe_type !== "creative" && !CREATIVE_HOUSE_KEYS.includes((t as any).slug || "")).length > 0 && (
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Other Houses</p>
+            <p className="text-xs text-muted-foreground mb-2">Impact Topics</p>
             <div className="flex flex-wrap gap-1.5">
-              {dbTopics.filter(t => !CREATIVE_HOUSE_KEYS.includes(t.name?.toLowerCase().replace(/\s+/g, "-") || "")).map((t) => (
+              {dbTopics.filter(t => (t as any).universe_type !== "creative" && !CREATIVE_HOUSE_KEYS.includes((t as any).slug || "")).map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
