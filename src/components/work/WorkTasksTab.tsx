@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
-  Calendar, Flag, ExternalLink, Search,
+  Calendar, Flag, ExternalLink, Search, X,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -24,6 +25,8 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { UserSearchInput } from "@/components/UserSearchInput";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow, format } from "date-fns";
 import { motion } from "framer-motion";
@@ -56,6 +59,7 @@ type UnifiedTask = {
   convertedToSubtaskId?: string | null;
   createdAt?: string;
   priority?: Priority;
+  assignees?: { user_id: string; display_name: string | null; avatar_url: string | null }[];
 };
 
 type UnitOption = {
@@ -233,6 +237,40 @@ export function WorkTasksTab() {
     enabled: !!userId,
   });
 
+  // Fetch task assignees with profile info
+  const { data: taskAssignees = [] } = useQuery({
+    queryKey: ["task-assignees", userId],
+    queryFn: async () => {
+      const { data: assignees, error } = await supabase
+        .from("task_assignees" as any)
+        .select("task_id, user_id")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      if (!assignees?.length) return [];
+      const userIds = [...new Set((assignees as any[]).map((a: any) => a.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", userIds);
+      const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+      return (assignees as any[]).map((a: any) => ({
+        task_id: a.task_id,
+        user_id: a.user_id,
+        display_name: profileMap.get(a.user_id)?.name || null,
+        avatar_url: profileMap.get(a.user_id)?.avatar_url || null,
+      }));
+    },
+    enabled: !!userId,
+  });
+
+  // Build assignee map
+  const assigneeMap = new Map<string, { user_id: string; display_name: string | null; avatar_url: string | null }[]>();
+  for (const a of taskAssignees) {
+    const list = assigneeMap.get(a.task_id) || [];
+    list.push({ user_id: a.user_id, display_name: a.display_name, avatar_url: a.avatar_url });
+    assigneeMap.set(a.task_id, list);
+  }
+
   // Build unified list
   const unified: UnifiedTask[] = [];
 
@@ -242,6 +280,7 @@ export function WorkTasksTab() {
       id: t.id, title: t.title, status: t.status, source: "personal",
       convertedToQuestId: t.converted_to_quest_id, convertedToSubtaskId: t.converted_to_subtask_id,
       createdAt: t.created_at, priority: t.priority || "NONE",
+      assignees: assigneeMap.get(t.id) || [],
     });
   }
 
@@ -423,6 +462,16 @@ export function WorkTasksTab() {
     toast({ title: "Task attached as subtask!" });
   };
 
+  const addAssignee = async (taskId: string, assigneeUserId: string) => {
+    await supabase.from("task_assignees" as any).insert({ task_id: taskId, user_id: assigneeUserId } as any);
+    qc.invalidateQueries({ queryKey: ["task-assignees", userId] });
+  };
+
+  const removeAssignee = async (taskId: string, assigneeUserId: string) => {
+    await supabase.from("task_assignees" as any).delete().eq("task_id", taskId).eq("user_id", assigneeUserId);
+    qc.invalidateQueries({ queryKey: ["task-assignees", userId] });
+  };
+
   const allQuestsForPicker = [
     ...myQuests.map((q: any) => ({ id: q.id, title: q.title })),
     ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title })),
@@ -534,6 +583,9 @@ export function WorkTasksTab() {
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Created</span>
                   </th>
                   <th className="text-left px-3 py-2.5 font-medium hidden xl:table-cell">Link</th>
+                  <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">
+                    <span className="flex items-center gap-1"><Users className="h-3 w-3" /> Assigned to</span>
+                  </th>
                   <th className="w-12 px-3 py-2.5"></th>
                 </tr>
               </thead>
@@ -545,7 +597,7 @@ export function WorkTasksTab() {
                   if (isPendingDone) {
                     return (
                       <motion.tr key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-t border-border bg-emerald-500/5">
-                        <td colSpan={7} className="px-3 py-2.5">
+                        <td colSpan={8} className="px-3 py-2.5">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                             <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => undoDone(task)}>
@@ -644,6 +696,68 @@ export function WorkTasksTab() {
                           <Link to={questLink} className="text-xs text-primary hover:underline flex items-center gap-1">
                             <ExternalLink className="h-3 w-3" /> View quest
                           </Link>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 hidden md:table-cell">
+                        {task.source === "personal" ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="flex items-center gap-1 min-w-[60px] group/assign">
+                                {(task.assignees?.length ?? 0) > 0 ? (
+                                  <div className="flex -space-x-1.5">
+                                    {task.assignees!.slice(0, 3).map((a) => (
+                                      <Avatar key={a.user_id} className="h-5 w-5 border border-background">
+                                        <AvatarImage src={a.avatar_url ?? undefined} />
+                                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                                          {a.display_name?.[0]?.toUpperCase() || "?"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    ))}
+                                    {task.assignees!.length > 3 && (
+                                      <span className="text-[9px] text-muted-foreground ml-1">+{task.assignees!.length - 3}</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 group-hover/assign:opacity-100 transition-opacity">
+                                    <Plus className="h-3 w-3 inline" /> Assign
+                                  </span>
+                                )}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64 p-3" align="start">
+                              <p className="text-xs font-medium mb-2">Assigned users</p>
+                              {(task.assignees?.length ?? 0) > 0 && (
+                                <div className="space-y-1.5 mb-2">
+                                  {task.assignees!.map((a) => (
+                                    <div key={a.user_id} className="flex items-center gap-2">
+                                      <Avatar className="h-5 w-5">
+                                        <AvatarImage src={a.avatar_url ?? undefined} />
+                                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                                          {a.display_name?.[0]?.toUpperCase() || "?"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-xs flex-1 truncate">{a.display_name || "Unnamed"}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                                        onClick={() => removeAssignee(task.id, a.user_id)}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <UserSearchInput
+                                placeholder="Add user…"
+                                excludeUserIds={task.assignees?.map((a) => a.user_id) || []}
+                                onSelect={(user) => addAssignee(task.id, user.user_id)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
