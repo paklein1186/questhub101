@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { PostComposer } from "@/components/feed/PostComposer";
 import { PostCard } from "@/components/feed/PostCard";
+import { PostTile } from "@/components/feed/PostTile";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
+import { FeedDisplayToggle, type FeedDisplayMode } from "@/components/feed/FeedDisplayToggle";
 import { useProfileWallFeed, useProfileUnitCounts, type WallSourceFilter } from "@/hooks/useProfileWallFeed";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,20 +31,27 @@ const SOURCE_FILTERS: { key: WallSourceFilter; label: string; icon: React.ReactN
 ];
 
 const EMPTY_MESSAGES: Record<WallSourceFilter, string> = {
-  ALL: "No recent activity to show here yet.",
-  PROFILE: "No posts on this profile yet.",
-  GUILD: "No visible activity from guilds connected to this person yet.",
-  QUEST: "No visible activity from quests connected to this person yet.",
-  COMPANY: "No visible activity from companies connected to this person yet.",
-  POD: "No visible activity from pods connected to this person yet.",
-  COURSE_EVENT: "No visible activity from courses or events yet.",
+   ALL: "No recent activity to show here yet.",
+   PROFILE: "No posts on this profile yet.",
+   GUILD: "No visible activity from guilds connected to this person yet.",
+   QUEST: "No visible activity from quests connected to this person yet.",
+   COMPANY: "No visible activity from companies connected to this person yet.",
+   POD: "No visible activity from pods connected to this person yet.",
+   COURSE_EVENT: "No visible activity from courses or events yet.",
+};
+
+const gridClasses: Record<Exclude<FeedDisplayMode, "list">, string> = {
+  small: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3",
+  medium: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
+  large: "grid grid-cols-1 sm:grid-cols-2 gap-5",
 };
 
 export function ProfileWallSection({ profileUserId, isOwnProfile, allowComments = true, className }: ProfileWallSectionProps) {
-  const { session } = useAuth();
-  const [sourceFilter, setSourceFilter] = useState<WallSourceFilter>("ALL");
-  const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
-  const isLoggedIn = !!session;
+   const { session } = useAuth();
+   const [sourceFilter, setSourceFilter] = useState<WallSourceFilter>("ALL");
+   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
+   const [displayMode, setDisplayMode] = useState<FeedDisplayMode>("list");
+   const isLoggedIn = !!session;
 
   const { data: posts = [], isLoading } = useProfileWallFeed(profileUserId, sourceFilter);
   const { data: unitCounts } = useProfileUnitCounts(profileUserId);
@@ -90,45 +99,54 @@ export function ProfileWallSection({ profileUserId, isOwnProfile, allowComments 
         <PostComposer contextType="USER" contextId={profileUserId} />
       )}
 
-      {/* Sort control */}
-      {posts.length > 0 && (
-        <div className="mt-4 flex justify-end">
-          <FeedSortControl value={sortMode} onChange={setSortMode} />
-        </div>
-      )}
+      {/* Controls */}
+       {posts.length > 0 && (
+         <div className="mt-4 flex items-center justify-between gap-3">
+           <FeedDisplayToggle value={displayMode} onChange={setDisplayMode} />
+           <FeedSortControl value={sortMode} onChange={setSortMode} />
+         </div>
+       )}
 
-      {/* Feed */}
-      <div className="mt-3 space-y-4">
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : sortedPosts.length === 0 ? (
-          <div className="text-center py-8 space-y-3">
-            <p className="text-sm text-muted-foreground italic">
-              {EMPTY_MESSAGES[sourceFilter]}
-            </p>
-            {isOwnProfile && (
-              <div className="flex items-center justify-center gap-2">
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/quests/new">
-                    <Compass className="h-4 w-4 mr-1" /> Start a quest
-                  </Link>
-                </Button>
-              </div>
-            )}
-            {!isOwnProfile && (
-              <p className="text-xs text-muted-foreground">
-                Follow this person to see more of their activity in your network feed.
-              </p>
-            )}
-          </div>
-        ) : (
-          sortedPosts.map((post) => (
-            <PostCard key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} allowComments={allowComments} />
-          ))
-        )}
-      </div>
+       {/* Feed */}
+       <div className="mt-3">
+         {isLoading ? (
+           <div className="flex justify-center py-8">
+             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+           </div>
+         ) : sortedPosts.length === 0 ? (
+           <div className="text-center py-8 space-y-3">
+             <p className="text-sm text-muted-foreground italic">
+               {EMPTY_MESSAGES[sourceFilter]}
+             </p>
+             {isOwnProfile && (
+               <div className="flex items-center justify-center gap-2">
+                 <Button size="sm" variant="outline" asChild>
+                   <Link to="/quests/new">
+                     <Compass className="h-4 w-4 mr-1" /> Start a quest
+                   </Link>
+                 </Button>
+               </div>
+             )}
+             {!isOwnProfile && (
+               <p className="text-xs text-muted-foreground">
+                 Follow this person to see more of their activity in your network feed.
+               </p>
+             )}
+           </div>
+         ) : displayMode === "list" ? (
+           <div className="space-y-4">
+             {sortedPosts.map((post) => (
+               <PostCard key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} allowComments={allowComments} />
+             ))}
+           </div>
+         ) : (
+           <div className={gridClasses[displayMode]}>
+             {sortedPosts.map((post) => (
+               <PostTile key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} size={displayMode} />
+             ))}
+           </div>
+         )}
+       </div>
     </div>
   );
 }
