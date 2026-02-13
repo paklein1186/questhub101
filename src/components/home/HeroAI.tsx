@@ -227,7 +227,7 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
     }
   };
 
-  const toggleVoice = useCallback(() => {
+  const toggleVoice = useCallback(async () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setError("Voice input is not supported in this browser.");
@@ -237,6 +237,19 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
     if (isListening && recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
+      return;
+    }
+
+    // Request microphone permission first to ensure the browser grants access
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+    } catch (e: any) {
+      if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+        setError("Microphone permission denied. Please allow access in your browser settings.");
+      } else {
+        setError("Could not access microphone. Please try again or use a different browser.");
+      }
       return;
     }
 
@@ -268,7 +281,6 @@ export function HeroAI({ userName, userContext }: HeroAIProps) {
       recognitionRef.current = null;
       if (finalTranscript.trim()) {
         setQuery(finalTranscript.trim());
-        // Auto-submit after voice input completes
         handleSubmit(finalTranscript.trim());
       }
     };
