@@ -491,19 +491,25 @@ export default function HomeFeed() {
         >
           <motion.div
             animate={{
-              y: [0, -14, 0, -8, 0],
-              x: [0, 4, 0, -3, 0],
-              scale: [1, 1.06, 1, 1.03, 1],
+              y: [0, -20, 8, -12, 15, -6, 0],
+              x: [0, 6, -8, 5, -4, 3, 0],
+              scale: [1, 1.08, 0.98, 1.05, 0.99, 1.03, 1],
+              rotate: [0, 12, -8, 10, -6, 4, 0],
             }}
             transition={{
-              duration: 8,
+              duration: 13,
               repeat: Infinity,
               ease: "easeInOut",
+              times: [0, 0.15, 0.3, 0.5, 0.65, 0.85, 1],
             }}
             className="relative"
           >
-            {/* Outer glow */}
-            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28" />
+            {/* Outer glow — breathing effect */}
+            <motion.div 
+              className="absolute inset-0 rounded-full bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28"
+              animate={{ opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            />
             {/* Mid glow */}
             <div className="absolute inset-2 rounded-full bg-primary/15 blur-xl w-16 h-16 sm:w-24 sm:h-24" />
             {/* Core orb */}
