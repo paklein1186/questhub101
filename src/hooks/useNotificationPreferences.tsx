@@ -29,6 +29,7 @@ export interface NotificationPreferencesRow {
   notify_follower_activity: boolean;
   notify_xp_and_achievements: boolean;
   notify_mentions: boolean;
+  notify_direct_messages_email: boolean;
   // Digest
   notify_daily_digest_in_app: boolean;
   notify_daily_digest_email: boolean;
@@ -61,6 +62,7 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_follower_activity: true,
   notify_xp_and_achievements: true,
   notify_mentions: true,
+  notify_direct_messages_email: true,
   notify_daily_digest_in_app: true,
   notify_daily_digest_email: true,
   digest_frequency: "three_days",
