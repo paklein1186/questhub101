@@ -4762,6 +4762,67 @@ export type Database = {
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          amount: number
+          call_url: string
+          company_id: string
+          created_at: string
+          currency: string
+          end_date_time: string
+          id: string
+          is_deleted: boolean
+          notes: string
+          payment_status: string
+          provider_guild_id: string
+          provider_user_id: string
+          requested_date_time: string
+          requester_id: string
+          service_id: string
+          start_date_time: string
+          status: string
+          updated_at: string
+        }[]
+      }
+      get_my_calendar_connections: {
+        Args: never
+        Returns: {
+          calendar_id: string
+          created_at: string
+          id: string
+          last_synced_at: string
+          provider: string
+          sync_enabled: boolean
+          sync_error: string
+          token_expires_at: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      grant_user_credits: {
+        Args: {
+          _amount: number
+          _related_entity_id?: string
+          _related_entity_type?: string
+          _source?: string
+          _target_user_id: string
+          _type: string
+        }
+        Returns: undefined
+      }
+      grant_user_xp: {
+        Args: {
+          _amount: number
+          _related_entity_id?: string
+          _related_entity_type?: string
+          _target_user_id: string
+          _territory_id?: string
+          _topic_id?: string
+          _type: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4769,12 +4830,31 @@ export type Database = {
         }
         Returns: boolean
       }
-      set_user_role: {
+      set_user_role:
+        | {
+            Args: {
+              _actor_id: string
+              _grant: boolean
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _grant: boolean
+              _role: Database["public"]["Enums"]["app_role"]
+              _target_user_id: string
+            }
+            Returns: undefined
+          }
+      spend_user_credits: {
         Args: {
-          _actor_id: string
-          _grant: boolean
-          _role: Database["public"]["Enums"]["app_role"]
-          _target_user_id: string
+          _amount: number
+          _related_entity_id?: string
+          _related_entity_type?: string
+          _source?: string
+          _type: string
         }
         Returns: undefined
       }

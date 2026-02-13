@@ -16,7 +16,7 @@ import {
 
 interface GrantXpParams {
   type: XpEventType;
-  amount?: number; // override; if omitted uses XP_REWARDS[type]
+  amount?: number;
   topicId?: string;
   territoryId?: string;
   relatedEntityType?: string;
@@ -35,74 +35,26 @@ export function useXpCredits() {
   const { toast } = useToast();
   const { session } = useAuth();
 
-  // ── Grant XP ──────────────────────────────────────────────
+  // ── Grant XP (via secure RPC) ─────────────────────────────
   const grantXp = useCallback(
     async (userId: string, params: GrantXpParams, silent = false) => {
       const amount = params.amount ?? XP_REWARDS[params.type] ?? 0;
       if (amount <= 0) return;
 
-      // Daily cap check for COMMENT_UPVOTED
-      if (params.type === XP_EVENT_TYPES.COMMENT_UPVOTED) {
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-
-        const { data: todayEvents } = await supabase
-          .from("xp_events" as any)
-          .select("amount")
-          .eq("user_id", userId)
-          .eq("type", XP_EVENT_TYPES.COMMENT_UPVOTED)
-          .gte("created_at", todayStart.toISOString()) as any;
-
-        const todayTotal = (todayEvents ?? []).reduce(
-          (sum: number, e: any) => sum + (e.amount ?? 0),
-          0
-        );
-        if (todayTotal >= COMMENT_UPVOTE_DAILY_XP_CAP) return; // cap reached
-      }
-
-      // 1. Insert XP event
-      await (supabase.from("xp_events" as any) as any).insert({
-        user_id: userId,
-        type: params.type,
-        amount,
-        topic_id: params.topicId ?? null,
-        territory_id: params.territoryId ?? null,
-        related_entity_type: params.relatedEntityType ?? null,
-        related_entity_id: params.relatedEntityId ?? null,
+      const { error } = await supabase.rpc("grant_user_xp" as any, {
+        _target_user_id: userId,
+        _type: params.type,
+        _amount: amount,
+        _topic_id: params.topicId ?? null,
+        _territory_id: params.territoryId ?? null,
+        _related_entity_type: params.relatedEntityType ?? null,
+        _related_entity_id: params.relatedEntityId ?? null,
       });
 
-      // 2. Update profile totals
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("xp, xp_recent_12m")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (profile) {
-        const newXpTotal = (profile.xp ?? 0) + amount;
-        const newXpRecent = ((profile as any).xp_recent_12m ?? 0) + amount;
-        const newLevel = computeLevelFromXp(newXpTotal);
-
-        await supabase
-          .from("profiles")
-          .update({
-            xp: newXpTotal,
-            xp_recent_12m: newXpRecent,
-            xp_level: newLevel,
-            contribution_index: Math.floor(newXpTotal / 10),
-          } as any)
-          .eq("user_id", userId);
+      if (error) {
+        console.error("grant_user_xp error:", error.message);
+        return;
       }
-
-      // 3. Also log in legacy xp_transactions for backward compat
-      await (supabase.from("xp_transactions" as any) as any).insert({
-        user_id: userId,
-        type: "REWARD",
-        amount_xp: amount,
-        description: params.type,
-        related_entity_type: params.relatedEntityType ?? null,
-        related_entity_id: params.relatedEntityId ?? null,
-      });
 
       if (!silent) {
         toast({ title: `+${amount} XP`, description: formatXpType(params.type) });
@@ -111,33 +63,23 @@ export function useXpCredits() {
     [toast]
   );
 
-  // ── Grant Credits ─────────────────────────────────────────
+  // ── Grant Credits (via secure RPC) ────────────────────────
   const grantCredits = useCallback(
     async (userId: string, params: CreditParams, silent = false) => {
       if (params.amount <= 0) return;
 
-      await (supabase.from("credit_transactions" as any) as any).insert({
-        user_id: userId,
-        type: params.type,
-        amount: params.amount,
-        source: params.source ?? null,
-        related_entity_type: params.relatedEntityType ?? null,
-        related_entity_id: params.relatedEntityId ?? null,
+      const { error } = await supabase.rpc("grant_user_credits" as any, {
+        _target_user_id: userId,
+        _amount: params.amount,
+        _type: params.type,
+        _source: params.source ?? null,
+        _related_entity_type: params.relatedEntityType ?? null,
+        _related_entity_id: params.relatedEntityId ?? null,
       });
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits_balance")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (profile) {
-        await supabase
-          .from("profiles")
-          .update({
-            credits_balance: ((profile as any).credits_balance ?? 0) + params.amount,
-          } as any)
-          .eq("user_id", userId);
+      if (error) {
+        console.error("grant_user_credits error:", error.message);
+        return;
       }
 
       if (!silent) {
@@ -147,45 +89,31 @@ export function useXpCredits() {
     [toast]
   );
 
-  // ── Spend Credits ─────────────────────────────────────────
+  // ── Spend Credits (via secure RPC) ────────────────────────
   const spendCredits = useCallback(
     async (userId: string, params: CreditParams): Promise<boolean> => {
       const cost = Math.abs(params.amount);
 
-      // Check balance
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits_balance")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      const balance = (profile as any)?.credits_balance ?? 0;
-      if (balance < cost) {
-        toast({
-          title: "Not enough Credits",
-          description: `You need ${cost} Credits but only have ${balance}.`,
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Insert negative transaction
-      await (supabase.from("credit_transactions" as any) as any).insert({
-        user_id: userId,
-        type: params.type,
-        amount: -cost,
-        source: params.source ?? null,
-        related_entity_type: params.relatedEntityType ?? null,
-        related_entity_id: params.relatedEntityId ?? null,
+      const { error } = await supabase.rpc("spend_user_credits" as any, {
+        _amount: cost,
+        _type: params.type,
+        _source: params.source ?? null,
+        _related_entity_type: params.relatedEntityType ?? null,
+        _related_entity_id: params.relatedEntityId ?? null,
       });
 
-      // Decrement balance
-      await supabase
-        .from("profiles")
-        .update({
-          credits_balance: balance - cost,
-        } as any)
-        .eq("user_id", userId);
+      if (error) {
+        if (error.message?.includes("Insufficient credits")) {
+          toast({
+            title: "Not enough Credits",
+            description: `You don't have enough credits for this action.`,
+            variant: "destructive",
+          });
+        } else {
+          console.error("spend_user_credits error:", error.message);
+        }
+        return false;
+      }
 
       toast({ title: `−${cost} Credits`, description: params.source ?? "Credits spent" });
       return true;
