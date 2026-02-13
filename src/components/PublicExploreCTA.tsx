@@ -8,6 +8,8 @@ interface Props {
   /** Compact mode: inline, less padding */
   compact?: boolean;
   className?: string;
+  /** Optional callback to open guest onboarding */
+  onSignupClick?: () => void;
 }
 
 /**
@@ -18,6 +20,7 @@ export function PublicExploreCTA({
   message = "To see live content and participate, please log in or create an account.",
   compact = false,
   className = "",
+  onSignupClick,
 }: Props) {
   const location = useLocation();
   const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
@@ -30,8 +33,8 @@ export function PublicExploreCTA({
         <Button size="sm" variant="outline" asChild>
           <Link to={`/login${redirectParam}`}><LogIn className="h-3.5 w-3.5 mr-1" /> Log in</Link>
         </Button>
-        <Button size="sm" asChild>
-          <Link to={`/signup${redirectParam}`}><UserPlus className="h-3.5 w-3.5 mr-1" /> Sign up</Link>
+        <Button size="sm" onClick={onSignupClick}>
+          <UserPlus className="h-3.5 w-3.5 mr-1" /> Sign up
         </Button>
       </div>
     );
@@ -45,8 +48,8 @@ export function PublicExploreCTA({
         <Button variant="outline" asChild>
           <Link to={`/login${redirectParam}`}><LogIn className="h-4 w-4 mr-1" /> Log in</Link>
         </Button>
-        <Button asChild>
-          <Link to={`/signup${redirectParam}`}><UserPlus className="h-4 w-4 mr-1" /> Create an account</Link>
+        <Button onClick={onSignupClick}>
+          <UserPlus className="h-4 w-4 mr-1" /> Create an account
         </Button>
       </div>
     </div>
