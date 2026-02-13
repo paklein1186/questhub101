@@ -7,6 +7,38 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function sendEmailViaResend({ to, subject, html }: { to: string; subject: string; html: string }) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    console.warn("RESEND_API_KEY not set — skipping email");
+    return { sent: false, reason: "no_api_key" };
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "ChangeTheGame <onboarding@resend.dev>",
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`Resend error [${res.status}]: ${body}`);
+    return { sent: false, reason: body };
+  }
+
+  const data = await res.json();
+  console.log(`✅ Email sent to ${to} (id: ${data.id})`);
+  return { sent: true, id: data.id };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -63,22 +95,33 @@ serve(async (req) => {
 
     const senderName = senderProfile?.name || "Someone";
 
-    // For each recipient, check their preferences and send notification
-    const recipientIds = participants.map((p) => p.user_id);
+    // For each recipient, check their preferences and send notification + email
+    const recipientIds = participants.map((p: any) => p.user_id);
     const { data: prefs } = await supabase
       .from("notification_preferences")
       .select("user_id, notify_direct_messages_email, channel_email_enabled")
       .in("user_id", recipientIds);
 
+    // Also notify recipients who have no preferences row yet (default: enabled)
+    const prefsMap = new Map((prefs ?? []).map((p: any) => [p.user_id, p]));
+    const allRecipients = recipientIds.map((uid: string) => {
+      const pref = prefsMap.get(uid);
+      return {
+        user_id: uid,
+        notify_direct_messages_email: pref?.notify_direct_messages_email ?? true,
+        channel_email_enabled: pref?.channel_email_enabled ?? true,
+      };
+    });
+
     const notificationResults = [];
 
-    for (const pref of prefs ?? []) {
+    for (const recipient of allRecipients) {
       try {
         // Create in-app notification
         await supabase.from("notifications").insert({
-          user_id: pref.user_id,
+          user_id: recipient.user_id,
           type: "DIRECT_MESSAGE",
-          title: conv.is_group ? `New message in ${conv.title}` : `New message from ${senderName}`,
+          title: conv.is_group ? `New message in ${conv.title || "group"}` : `New message from ${senderName}`,
           body: content.length > 100 ? content.slice(0, 97) + "..." : content,
           deep_link_url: `/inbox?conv=${conversationId}`,
           is_read: false,
@@ -90,36 +133,42 @@ serve(async (req) => {
         });
 
         // Send email if enabled
-        if (pref.notify_direct_messages_email && pref.channel_email_enabled) {
+        if (recipient.notify_direct_messages_email && recipient.channel_email_enabled) {
           const { data: recipientProfile } = await supabase
             .from("profiles")
             .select("email, name")
-            .eq("user_id", pref.user_id)
+            .eq("user_id", recipient.user_id)
             .single();
 
           if (recipientProfile?.email) {
             const subject = conv.is_group
-              ? `New message in ${conv.title}`
+              ? `New message in ${conv.title || "group chat"}`
               : `New message from ${senderName}`;
 
             const emailHtml = buildDMEmailHtml({
-              recipientName: recipientProfile.name,
+              recipientName: recipientProfile.name || "there",
               senderName,
               conversationTitle: conv.title || `Chat with ${senderName}`,
               messagePreview: content.length > 150 ? content.slice(0, 147) + "..." : content,
-              deepLink: `https://changethegame.com/inbox?conv=${conversationId}`,
+              deepLink: `https://questhub101.lovable.app/inbox?conv=${conversationId}`,
             });
 
-            // Log email (actual sending would use Resend/Mailgun/etc.)
-            console.log(`📧 [DM email] To: ${recipientProfile.email} | Subject: ${subject}`);
-            console.log(`📧 [DM email] Preview:`, emailHtml.slice(0, 200));
-          }
-        }
+            const emailResult = await sendEmailViaResend({
+              to: recipientProfile.email,
+              subject,
+              html: emailHtml,
+            });
 
-        notificationResults.push({ userId: pref.user_id, status: "sent" });
+            notificationResults.push({ userId: recipient.user_id, status: "sent", email: emailResult.sent });
+          } else {
+            notificationResults.push({ userId: recipient.user_id, status: "sent", email: false });
+          }
+        } else {
+          notificationResults.push({ userId: recipient.user_id, status: "sent", email: false });
+        }
       } catch (err: any) {
-        console.error(`Failed to notify ${pref.user_id}:`, err.message);
-        notificationResults.push({ userId: pref.user_id, status: "error", error: err.message });
+        console.error(`Failed to notify ${recipient.user_id}:`, err.message);
+        notificationResults.push({ userId: recipient.user_id, status: "error", error: err.message });
       }
     }
 
