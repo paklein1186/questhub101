@@ -84,7 +84,7 @@ export default function WorkHub() {
         <div className="flex items-center gap-1 mb-6">
           <TabsList ref={tabsListRef}>
             <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
-            <TabsTrigger value="teams">My Pods ({teamsList.length})</TabsTrigger>
+            <TabsTrigger value="teams">My Entities ({teamsList.length})</TabsTrigger>
             <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
