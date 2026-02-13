@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
+  ChevronLeft,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -85,6 +86,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
@@ -321,6 +324,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   }
 
   const filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safeP = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(safeP * PAGE_SIZE, (safeP + 1) * PAGE_SIZE);
   const isLoading = loadingPersonal || loadingQuests || loadingSubtasks;
 
   // ── Actions ──
@@ -613,7 +619,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             </Badge>
           )}
         </h2>
-        <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+        <Select value={filter} onValueChange={(v) => { setFilter(v as any); setPage(0); }}>
           <SelectTrigger className="w-[130px] h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -662,7 +668,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((task) => {
+              {paginated.map((task) => {
                 const key = `${task.source}-${task.id}`;
                 const isPendingDone = pendingDone.has(key);
                 const displayStatus = isPendingDone ? "DONE" : task.status;
@@ -799,6 +805,23 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               })}
             </tbody>
           </table>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-muted/30">
+              <span className="text-xs text-muted-foreground">
+                {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
