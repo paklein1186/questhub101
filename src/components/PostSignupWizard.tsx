@@ -34,6 +34,7 @@ export function PostSignupWizard() {
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [prefilled, setPrefilled] = useState(false);
+  const [skipDetailsStep, setSkipDetailsStep] = useState(false);
 
   // Pre-fill from existing profile data
   useEffect(() => {
@@ -49,6 +50,10 @@ export function PostSignupWizard() {
         if (data.headline) setHeadline(data.headline);
         if ((data as any).bio) setBio((data as any).bio);
         if ((data as any).location) setLocation((data as any).location);
+        // Skip details step if headline, bio, and location are already filled
+        if (data.headline && (data as any).bio && (data as any).location) {
+          setSkipDetailsStep(true);
+        }
       }
       setPrefilled(true);
     })();
@@ -93,12 +98,28 @@ export function PostSignupWizard() {
 
   const goNext = () => {
     const idx = STEPS.indexOf(step);
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+    if (idx < STEPS.length - 1) {
+      const nextStep = STEPS[idx + 1];
+      // Skip details step if already filled
+      if (nextStep === "details" && skipDetailsStep) {
+        setStep(STEPS[idx + 2]);
+      } else {
+        setStep(nextStep);
+      }
+    }
   };
 
   const goBack = () => {
     const idx = STEPS.indexOf(step);
-    if (idx > 0) setStep(STEPS[idx - 1]);
+    if (idx > 0) {
+      const prevStep = STEPS[idx - 1];
+      // Skip details step if already filled
+      if (prevStep === "details" && skipDetailsStep) {
+        setStep(STEPS[idx - 2]);
+      } else {
+        setStep(prevStep);
+      }
+    }
   };
 
   const handleSave = async () => {
