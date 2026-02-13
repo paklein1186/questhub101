@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/components/PageShell";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
@@ -41,6 +41,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
       c.company_territories?.some((ct: any) => activeFilters.territoryIds.includes(ct.territory_id))
     );
   }
+  filtered = applySortBy(filtered, activeFilters.sortBy);
 
   return (
     <PageShell bare={bare}>

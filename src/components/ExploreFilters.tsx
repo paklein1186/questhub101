@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -15,17 +15,47 @@ import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "
 import { UniverseToggle } from "@/components/UniverseToggle";
 import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon } from "@/lib/universeMapping";
 
+// ─── Sort options ───────────────────────────────────────────
+export type ExploreSortBy = "most_recent" | "creation_date" | "most_active";
+
+export const SORT_LABELS: Record<ExploreSortBy, string> = {
+  most_recent: "Most recent interaction",
+  creation_date: "Creation date",
+  most_active: "Most active",
+};
+
+/** Generic sort utility — works with any object that has updated_at and created_at */
+export function applySortBy<T extends Record<string, any>>(items: T[], sortBy: ExploreSortBy): T[] {
+  const sorted = [...items];
+  switch (sortBy) {
+    case "most_recent":
+      return sorted.sort((a, b) => new Date(b.updated_at ?? b.created_at ?? 0).getTime() - new Date(a.updated_at ?? a.created_at ?? 0).getTime());
+    case "creation_date":
+      return sorted.sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
+    case "most_active":
+      return sorted.sort((a, b) => {
+        const aActivity = (a.guild_members?.length ?? a.company_members?.length ?? a.pod_members?.length ?? a.upvote_count ?? 0);
+        const bActivity = (b.guild_members?.length ?? b.company_members?.length ?? b.pod_members?.length ?? b.upvote_count ?? 0);
+        if (bActivity !== aActivity) return bActivity - aActivity;
+        return new Date(b.updated_at ?? b.created_at ?? 0).getTime() - new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+      });
+    default:
+      return sorted;
+  }
+}
+
 // ─── Filter shape ───────────────────────────────────────────
 export interface ExploreFilterValues {
   topicIds: string[];
   territoryIds: string[];
-  status: string;        // "all" | QuestStatus values
-  monetization: string;  // "all" | "FREE" | "PAID" | "MIXED"
-  level: string;         // "all" | CourseLevel values
-  podType: string;       // "all" | PodType values
-  guildType: string;     // "all" | GuildType values
-  price: string;         // "all" | "free" | "paid"
-  role: string;          // "all" | user role
+  status: string;
+  monetization: string;
+  level: string;
+  podType: string;
+  guildType: string;
+  price: string;
+  role: string;
+  sortBy: ExploreSortBy;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -38,6 +68,7 @@ export const defaultFilters: ExploreFilterValues = {
   guildType: "all",
   price: "all",
   role: "all",
+  sortBy: "most_recent",
 };
 
 // Which filter sections to show per page
@@ -173,6 +204,19 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             No Topics selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
           </Badge>
         )}
+
+        {/* Sort dropdown */}
+        <Select value={filters.sortBy} onValueChange={v => set({ sortBy: v as ExploreSortBy })}>
+          <SelectTrigger className="w-auto h-8 text-xs gap-1.5 border-border">
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.entries(SORT_LABELS) as [ExploreSortBy, string][]).map(([key, label]) => (
+              <SelectItem key={key} value={key} className="text-xs">{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Button
           variant="outline"

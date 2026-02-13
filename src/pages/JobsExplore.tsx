@@ -11,7 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
-import { ExploreFilters, defaultFilters, type ExploreFilterValues } from "@/components/ExploreFilters";
+import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { usePersona } from "@/hooks/usePersona";
 import { defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
@@ -55,7 +55,7 @@ export default function JobsExplore({ bare }: Props) {
   const houseFilter = useHouseFilter();
 
   const filtered = useMemo(() => {
-    return jobs.filter((job: any) => {
+    const result = jobs.filter((job: any) => {
       if (search && !job.title.toLowerCase().includes(search.toLowerCase()) &&
           !(job.description ?? "").toLowerCase().includes(search.toLowerCase()) &&
           !(job.companies?.name ?? "").toLowerCase().includes(search.toLowerCase())) return false;
@@ -76,7 +76,8 @@ export default function JobsExplore({ bare }: Props) {
 
       return true;
     });
-  }, [jobs, search, contractFilter, remoteFilter, exploreFilters.topicIds, exploreFilters.territoryIds]);
+    return applySortBy(result, exploreFilters.sortBy);
+  }, [jobs, search, contractFilter, remoteFilter, exploreFilters.topicIds, exploreFilters.territoryIds, exploreFilters.sortBy]);
 
   const handleDelete = async (jobId: string, companyId: string | null) => {
     if (!window.confirm("Delete this job position?")) return;
