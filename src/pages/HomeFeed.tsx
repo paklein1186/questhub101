@@ -504,37 +504,9 @@ export default function HomeFeed() {
             }}
             className="relative"
           >
-            {/* Outer glow — breathing blob */}
-            <motion.div 
-              className="absolute inset-0 bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28"
-              animate={{
-                opacity: [0.3, 0.5, 0.35, 0.45, 0.3],
-                borderRadius: [
-                  "40% 60% 55% 45% / 55% 40% 60% 45%",
-                  "55% 45% 40% 60% / 45% 55% 45% 55%",
-                  "45% 55% 60% 40% / 60% 45% 55% 40%",
-                  "60% 40% 45% 55% / 40% 60% 40% 60%",
-                  "40% 60% 55% 45% / 55% 40% 60% 45%",
-                ],
-              }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            />
-            {/* Mid glow — offset morph */}
+            {/* Core orb — fluid shape with contained color-shifting glow */}
             <motion.div
-              className="absolute inset-2 bg-primary/15 blur-xl w-16 h-16 sm:w-24 sm:h-24"
-              animate={{
-                borderRadius: [
-                  "55% 45% 50% 50% / 45% 55% 50% 50%",
-                  "45% 55% 45% 55% / 55% 45% 55% 45%",
-                  "50% 50% 55% 45% / 50% 50% 45% 55%",
-                  "55% 45% 50% 50% / 45% 55% 50% 50%",
-                ],
-              }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            />
-            {/* Core orb — fluid shape */}
-            <motion.div
-              className="relative w-14 h-14 sm:w-20 sm:h-20"
+              className="relative w-14 h-14 sm:w-20 sm:h-20 overflow-hidden"
               animate={{
                 borderRadius: [
                   "50% 50% 45% 55% / 55% 45% 55% 45%",
@@ -546,10 +518,59 @@ export default function HomeFeed() {
               }}
               transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
               style={{
-                background: "radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.5), hsl(var(--primary) / 0.15) 60%, transparent 80%)",
-                boxShadow: "0 0 40px 8px hsl(var(--primary) / 0.15), inset 0 0 20px 4px hsl(var(--primary) / 0.1)",
+                boxShadow: "0 0 30px 6px hsl(var(--primary) / 0.12)",
               }}
-            />
+            >
+              {/* Color layer 1 — primary violet */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.6, 0.3, 0.15, 0.4, 0.6],
+                  x: [0, 4, -2, 3, 0],
+                  y: [0, -3, 5, -2, 0],
+                }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.7), transparent 70%)" }}
+              />
+              {/* Color layer 2 — rose/pink */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.15, 0.5, 0.3, 0.15, 0.15],
+                  x: [0, -5, 3, -2, 0],
+                  y: [0, 4, -3, 5, 0],
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(circle at 65% 60%, hsl(var(--secondary) / 0.6), transparent 65%)" }}
+              />
+              {/* Color layer 3 — warm amber */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.1, 0.2, 0.45, 0.2, 0.1],
+                  x: [0, 3, 0, -4, 0],
+                  y: [0, 2, -4, 1, 0],
+                }}
+                transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(circle at 50% 30%, hsl(35 90% 60% / 0.5), transparent 60%)" }}
+              />
+              {/* Color layer 4 — cool teal */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  opacity: [0.2, 0.1, 0.15, 0.4, 0.2],
+                  x: [0, -3, 5, -1, 0],
+                  y: [0, -4, 2, -3, 0],
+                }}
+                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+                style={{ background: "radial-gradient(circle at 40% 70%, hsl(180 50% 55% / 0.4), transparent 60%)" }}
+              />
+              {/* Inner light refraction */}
+              <div
+                className="absolute inset-0"
+                style={{ background: "radial-gradient(circle at 30% 25%, hsl(0 0% 100% / 0.15), transparent 50%)" }}
+              />
+            </motion.div>
           </motion.div>
         </motion.div>
 
