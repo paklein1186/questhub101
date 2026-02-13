@@ -92,12 +92,9 @@ export function ProfileWallSection({ profileUserId, isOwnProfile, allowComments 
       </div>
 
       {/* Post composer for own profile wall */}
-      {isLoggedIn && isOwnProfile && sourceFilter === "PROFILE" && (
-        <PostComposer contextType="USER" contextId={profileUserId} />
-      )}
-      {isLoggedIn && isOwnProfile && sourceFilter === "ALL" && (
-        <PostComposer contextType="USER" contextId={profileUserId} />
-      )}
+       {isLoggedIn && isOwnProfile && (sourceFilter === "PROFILE" || sourceFilter === "ALL") && (
+         <PostComposer contextType="USER" contextId={profileUserId} />
+       )}
 
       {/* Controls */}
        {posts.length > 0 && (
