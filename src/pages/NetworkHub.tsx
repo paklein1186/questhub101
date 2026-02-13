@@ -655,7 +655,7 @@ function FollowingFeedTab() {
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-[50%]">
           {sortedPosts.map((post) => {
             const ctxName = (post as any).contextName;
             const route = contextRoute[post.context_type];
