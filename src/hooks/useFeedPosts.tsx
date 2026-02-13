@@ -162,6 +162,24 @@ export function useCreatePost() {
   });
 }
 
+export function useEditPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+      const { error } = await supabase
+        .from("feed_posts")
+        .update({ content: content || null, updated_at: new Date().toISOString() })
+        .eq("id", postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["feed-posts"] });
+      qc.invalidateQueries({ queryKey: ["profile-wall-feed"] });
+      qc.invalidateQueries({ queryKey: ["following-feed"] });
+    },
+  });
+}
+
 export function useDeletePost() {
   const qc = useQueryClient();
   return useMutation({
