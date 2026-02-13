@@ -480,7 +480,42 @@ export default function HomeFeed() {
   return (
     <PageShell>
       <MilestonePopup />
-      <div className="max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
+      <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
+
+        {/* Floating glowing orb — soft reassuring presence */}
+        <motion.div
+          className="pointer-events-none absolute -left-8 top-1/3 sm:-left-16 md:-left-24 z-0"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
+          <motion.div
+            animate={{
+              y: [0, -14, 0, -8, 0],
+              x: [0, 4, 0, -3, 0],
+              scale: [1, 1.06, 1, 1.03, 1],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="relative"
+          >
+            {/* Outer glow */}
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28" />
+            {/* Mid glow */}
+            <div className="absolute inset-2 rounded-full bg-primary/15 blur-xl w-16 h-16 sm:w-24 sm:h-24" />
+            {/* Core orb */}
+            <div
+              className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-full"
+              style={{
+                background: "radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.5), hsl(var(--primary) / 0.15) 60%, transparent 80%)",
+                boxShadow: "0 0 40px 8px hsl(var(--primary) / 0.15), inset 0 0 20px 4px hsl(var(--primary) / 0.1)",
+              }}
+            />
+          </motion.div>
+        </motion.div>
 
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
