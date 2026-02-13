@@ -19,6 +19,17 @@ export function useTopics() {
   });
 }
 
+/** Topics filtered by universe_type */
+export function useTopicsByUniverse(universeMode: "creative" | "impact" | "both") {
+  const { data: allTopics, ...rest } = useTopics();
+  const filtered = (allTopics ?? []).filter((t: any) => {
+    if (universeMode === "both") return true;
+    const ut = (t as any).universe_type ?? "impact";
+    return ut === universeMode;
+  });
+  return { data: filtered, ...rest };
+}
+
 // ─── Territories ─────────────────────────────────────────────
 export function useTerritories() {
   return useQuery({

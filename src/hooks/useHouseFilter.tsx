@@ -21,22 +21,27 @@ export function useHouseFilter() {
   const { data, isLoading } = useQuery({
     queryKey: ["house-filter-data", userId],
     queryFn: async () => {
-      if (!userId) return { topicIds: [] as string[], topicNames: {} as Record<string, string>, enabled: false };
+      if (!userId) return { topicIds: [] as string[], topicNames: {} as Record<string, string>, topicUniverseTypes: {} as Record<string, string>, enabled: false };
 
       const [topicsRes, profileRes] = await Promise.all([
-        supabase.from("user_topics").select("topic_id, topics(id, name)").eq("user_id", userId),
+        supabase.from("user_topics").select("topic_id, topics(id, name, universe_type)").eq("user_id", userId),
         supabase.from("profiles").select("filter_by_houses").eq("user_id", userId).single(),
       ]);
 
       const topicIds = (topicsRes.data ?? []).map((r: any) => r.topic_id);
       const topicNames: Record<string, string> = {};
+      const topicUniverseTypes: Record<string, string> = {};
       (topicsRes.data ?? []).forEach((r: any) => {
-        if (r.topics) topicNames[r.topic_id] = r.topics.name;
+        if (r.topics) {
+          topicNames[r.topic_id] = r.topics.name;
+          topicUniverseTypes[r.topic_id] = r.topics.universe_type ?? "impact";
+        }
       });
 
       return {
         topicIds,
         topicNames,
+        topicUniverseTypes,
         enabled: (profileRes.data as any)?.filter_by_houses ?? false,
       };
     },
@@ -56,7 +61,13 @@ export function useHouseFilter() {
 
   const myTopicIds = data?.topicIds ?? [];
   const topicNames = data?.topicNames ?? {};
+  const topicUniverseTypes = data?.topicUniverseTypes ?? {};
   const houseFilterEnabled = data?.enabled ?? false;
+
+  // Derived: does user have at least one creative House?
+  const hasCreativeHouse = useMemo(() => {
+    return myTopicIds.some(id => topicUniverseTypes[id] === "creative");
+  }, [myTopicIds, topicUniverseTypes]);
 
   // Persona-driven default: auto-enable for creative/impact/hybrid, disable for neutral/unset
   const personaDefault = useMemo(() => {
@@ -122,12 +133,14 @@ export function useHouseFilter() {
     myTopicIds,
     expandedTopicIds,
     topicNames,
+    topicUniverseTypes,
     houseFilterEnabled,
     houseFilterActive,
     setHouseFilterActive,
     isLoading,
     applyHouseFilter,
     hasHouses: myTopicIds.length > 0,
+    hasCreativeHouse,
     universeMode: effectiveUniverse,
     setUniverseMode,
   };
