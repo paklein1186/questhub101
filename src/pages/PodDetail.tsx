@@ -277,7 +277,7 @@ export default function PodDetail() {
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6 space-y-6">
-          <FeedSection contextType="POD" contextId={pod.id} canPost={isMember} />
+          <FeedSection contextType="POD" contextId={pod.id} canPost={isMember} showDisplayToggle />
           <CommentThread targetType={CommentTargetType.POD} targetId={pod.id} />
         </TabsContent>
 
