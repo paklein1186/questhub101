@@ -55,7 +55,7 @@ function SectionHeader({ icon: Icon, title, count, seeMoreTo }: { icon: any; tit
 // ─── Main ────────────────────────────────────────────────────
 export default function NetworkHub() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") || "overview";
+  const tab = searchParams.get("tab") || "following";
   const setTab = (t: string) => setSearchParams({ tab: t }, { replace: true });
   const currentUser = useCurrentUser();
   const { persona, label } = usePersona();
@@ -94,8 +94,8 @@ export default function NetworkHub() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
           <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 mr-1" /> Entities ({totalEntities})</TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Topics</TabsTrigger>
