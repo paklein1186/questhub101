@@ -199,7 +199,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
     : post.content;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+    <div id={`post-${post.id}`} className="rounded-xl border border-border bg-card p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start gap-3">
         <Link to={`/users/${post.author_user_id}`}>
