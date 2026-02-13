@@ -237,8 +237,13 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
             onMentionsChange={setPendingMentions}
             placeholder="Share an update, idea, or creation… (type @ to mention)"
             className="min-h-[80px] resize-none text-sm border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none"
-            maxLength={2000}
+            maxLength={5000}
           />
+          <div className="flex justify-end">
+            <span className={`text-xs ${content.length > 4500 ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {content.length} / 5,000
+            </span>
+          </div>
 
           {/* Image previews */}
           {files.filter((f) => f.type === "IMAGE").length > 0 && (
