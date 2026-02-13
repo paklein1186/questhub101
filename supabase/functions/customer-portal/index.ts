@@ -33,12 +33,22 @@ serve(async (req) => {
     });
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) throw new Error("No Stripe customer found");
+    let customerId: string;
+    if (customers.data.length === 0) {
+      // Create a Stripe customer on the fly so the portal can still open
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = newCustomer.id;
+    } else {
+      customerId = customers.data[0].id;
+    }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
     const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customers.data[0].id,
-      return_url: `${origin}/plans`,
+      customer: customerId,
+      return_url: `${origin}/me?tab=wallet`,
     });
 
     return new Response(JSON.stringify({ url: portalSession.url }), {
