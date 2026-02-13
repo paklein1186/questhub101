@@ -39,6 +39,8 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
+import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
 
 export default function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +48,7 @@ export default function CompanyDetail() {
   const { data: companyQuests } = useQuestsForCompany(id);
   const { data: companyBookings } = useBookingsForCompany(id);
   const { data: companyServices } = useServicesForCompany(id);
+  const { data: companyJobs } = useJobPositionsForCompany(id);
   const { data: membersData } = useCompanyMembersWithProfiles(id);
   const { data: allGuilds } = useGuilds();
   const currentUser = useCurrentUser();
@@ -227,6 +230,7 @@ export default function CompanyDetail() {
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
           <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
+          <TabsTrigger value="jobs"><Briefcase className="h-4 w-4 mr-1" /> Jobs ({(companyJobs ?? []).length})</TabsTrigger>
           <TabsTrigger value="partnerships"><Handshake className="h-4 w-4 mr-1" /> Partners</TabsTrigger>
           <TabsTrigger value="wall">Wall</TabsTrigger>
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
@@ -383,6 +387,11 @@ export default function CompanyDetail() {
             </div>
           ))}
           {services.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
+        </TabsContent>
+
+        {/* Jobs */}
+        <TabsContent value="jobs" className="mt-6">
+          <CompanyJobsTab companyId={company.id} isAdmin={isAdmin} />
         </TabsContent>
 
         {/* Wall */}

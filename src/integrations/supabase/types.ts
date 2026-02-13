@@ -1696,6 +1696,137 @@ export type Database = {
         }
         Relationships: []
       }
+      job_position_territories: {
+        Row: {
+          id: string
+          job_position_id: string
+          territory_id: string
+        }
+        Insert: {
+          id?: string
+          job_position_id: string
+          territory_id: string
+        }
+        Update: {
+          id?: string
+          job_position_id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_position_territories_job_position_id_fkey"
+            columns: ["job_position_id"]
+            isOneToOne: false
+            referencedRelation: "job_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_position_territories_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_position_topics: {
+        Row: {
+          id: string
+          job_position_id: string
+          topic_id: string
+        }
+        Insert: {
+          id?: string
+          job_position_id: string
+          topic_id: string
+        }
+        Update: {
+          id?: string
+          job_position_id?: string
+          topic_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_position_topics_job_position_id_fkey"
+            columns: ["job_position_id"]
+            isOneToOne: false
+            referencedRelation: "job_positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_position_topics_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_positions: {
+        Row: {
+          company_id: string
+          contract_type: string
+          created_at: string
+          created_by_user_id: string
+          description: string | null
+          document_name: string | null
+          document_url: string | null
+          id: string
+          is_active: boolean
+          location_text: string | null
+          remote_policy: string | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contract_type?: string
+          created_at?: string
+          created_by_user_id: string
+          description?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          location_text?: string | null
+          remote_policy?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contract_type?: string
+          created_at?: string
+          created_by_user_id?: string
+          description?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          id?: string
+          is_active?: boolean
+          location_text?: string | null
+          remote_policy?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_positions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       languages: {
         Row: {
           code: string
