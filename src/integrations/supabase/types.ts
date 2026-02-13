@@ -4897,6 +4897,16 @@ export type Database = {
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_conversation_participants: {
+        Args: { conv_ids: string[] }
+        Returns: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string
+          user_id: string
+        }[]
+      }
       get_my_bookings: {
         Args: never
         Returns: {
