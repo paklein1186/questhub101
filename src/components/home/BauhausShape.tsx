@@ -33,13 +33,14 @@ export function BauhausShape() {
   const handleClick = useCallback(() => {
     if (clicked) return;
     setClicked(true);
+    scaleControls.stop();
     scaleControls.start({
       scale: 0.5,
       transition: { duration: 0.12, ease: "easeOut" },
     }).then(() =>
       scaleControls.start({
         scale: 1,
-        transition: { duration: 2.5, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 5, ease: [0.22, 1, 0.36, 1] },
       })
     ).then(() => setClicked(false));
   }, [clicked, scaleControls]);
