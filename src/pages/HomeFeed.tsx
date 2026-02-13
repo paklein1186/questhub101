@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-
+import { BauhausShape } from "@/components/home/BauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff } from "lucide-react";
@@ -481,6 +481,7 @@ export default function HomeFeed() {
   return (
     <PageShell>
       <MilestonePopup />
+      <BauhausShape />
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
         {/* Greeting */}
