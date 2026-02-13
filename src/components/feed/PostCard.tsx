@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +12,7 @@ import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import { CommentThread } from "@/components/CommentThread";
@@ -133,6 +134,10 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
   const [editContent, setEditContent] = useState(post.content || "");
   const [editTerritoryIds, setEditTerritoryIds] = useState<string[]>([]);
   const [editTopicIds, setEditTopicIds] = useState<string[]>([]);
+  const [translatedText, setTranslatedText] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const { i18n } = useTranslation();
 
   // Comment count
   const { data: commentCount = 0 } = useQuery({
@@ -188,6 +193,33 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
   const handleCancelEdit = () => {
     setEditContent(post.content || "");
     setEditing(false);
+  };
+
+  const handleTranslate = async () => {
+    if (!post.content) return;
+    if (translatedText) {
+      setShowTranslation(!showTranslation);
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("translate-content", {
+        body: {
+          entityType: "FEED_POST",
+          entityId: post.id,
+          fieldName: "content",
+          text: post.content,
+          targetLanguage: i18n.language,
+        },
+      });
+      if (error) throw error;
+      setTranslatedText(data.translatedText);
+      setShowTranslation(true);
+    } catch {
+      toast.error("Translation failed");
+    } finally {
+      setTranslating(false);
+    }
   };
 
   return (
@@ -262,9 +294,16 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
             </Button>
           </div>
         </div>
-      ) : (
-        post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMentions(post.content)}</p>
-      )}
+      ) : post.content ? (
+        <div className="space-y-1">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {renderMentions(showTranslation && translatedText ? translatedText : post.content)}
+          </p>
+          {showTranslation && translatedText && (
+            <p className="text-[10px] text-muted-foreground italic">Translated automatically</p>
+          )}
+        </div>
+      ) : null}
 
       {/* Attachments */}
       {images.length > 0 && <ImageGrid images={images} />}
@@ -321,6 +360,24 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
               {hasUpvoted ? "Remove upvote" : "Upvote"}
             </TooltipContent>
           </Tooltip>
+          {allowComments && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-8 px-2.5 gap-1.5 ${showTranslation ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={handleTranslate}
+                  disabled={translating || !post.content}
+                >
+                  {translating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {showTranslation ? "Show original" : "Translate"}
+              </TooltipContent>
+            </Tooltip>
+          )}
           {allowComments && (
             <Tooltip>
               <TooltipTrigger asChild>
