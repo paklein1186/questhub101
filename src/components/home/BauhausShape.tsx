@@ -6,15 +6,16 @@ const SIZE_VW = 15; // ~15% viewport width
 const FLEE_DISTANCE = 120;
 const FLEE_STRENGTH = 50;
 
-// Muted ultramarine & vermillion
-const COLORS = ["#3B4B96", "#C0392B"];
+// Vivid ultramarine & vermillion
+const COLORS = ["#2742C8", "#E63621", "#1B3AAF", "#D42B16"];
 
-// SVG morph paths — controlled geometric forms
+// SVG morph paths — more fluid organic membrane forms
 const PATHS = [
-  "M 50 5 C 75 0, 100 25, 95 50 C 100 75, 75 100, 50 95 C 25 100, 0 75, 5 50 C 0 25, 25 0, 50 5 Z",
-  "M 55 2 C 80 5, 98 30, 93 55 C 98 78, 70 98, 48 93 C 22 98, 2 72, 7 48 C 2 22, 28 2, 55 2 Z",
-  "M 48 3 C 72 -2, 97 22, 96 47 C 102 70, 78 97, 52 96 C 28 102, 3 78, 4 52 C -2 28, 22 5, 48 3 Z",
-  "M 52 4 C 78 2, 99 28, 94 52 C 99 76, 74 99, 50 94 C 26 99, 1 74, 6 50 C 1 26, 26 4, 52 4 Z",
+  "M 50 2 C 78 -4, 104 22, 98 50 C 104 78, 78 104, 50 98 C 22 104, -4 78, 2 50 C -4 22, 22 -4, 50 2 Z",
+  "M 58 0 C 85 8, 100 35, 92 58 C 100 82, 68 102, 44 96 C 18 102, -2 68, 6 44 C -2 18, 30 -4, 58 0 Z",
+  "M 42 1 C 68 -6, 103 18, 99 44 C 106 72, 76 103, 48 99 C 20 106, -6 76, 1 48 C -6 20, 16 6, 42 1 Z",
+  "M 54 -1 C 82 4, 102 30, 96 54 C 102 80, 72 102, 46 97 C 20 102, -2 72, 4 46 C -2 20, 26 -4, 54 -1 Z",
+  "M 46 3 C 74 -3, 101 24, 97 50 C 103 76, 74 101, 50 96 C 24 101, -1 76, 3 50 C -1 24, 20 6, 46 3 Z",
 ];
 
 export function BauhausShape() {
@@ -119,25 +120,25 @@ export function BauhausShape() {
               <linearGradient id="bauhaus-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <motion.stop
                   offset="0%"
-                  animate={{ stopColor: [COLORS[0], COLORS[1], COLORS[0]] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  animate={{ stopColor: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[0]] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                 />
                 <motion.stop
                   offset="100%"
-                  animate={{ stopColor: [COLORS[1], COLORS[0], COLORS[1]] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  animate={{ stopColor: [COLORS[1], COLORS[3], COLORS[0], COLORS[2], COLORS[1]] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                 />
               </linearGradient>
             </defs>
             <motion.path
               fill="url(#bauhaus-grad)"
-              opacity={0.18}
+              opacity={0.45}
               animate={{ d: PATHS }}
               transition={{
-                duration: 16,
+                duration: 10,
                 repeat: Infinity,
                 ease: "easeInOut",
-                times: [0, 0.33, 0.66, 1],
+                times: [0, 0.2, 0.45, 0.7, 1],
               }}
             />
           </svg>
