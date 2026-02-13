@@ -109,8 +109,8 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
       if (error) throw error;
       const userIds = data.map((m: any) => m.user_id);
       const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, name, email, avatar_url")
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
         .in("user_id", userIds);
       return data.map((m: any) => ({
         ...m,

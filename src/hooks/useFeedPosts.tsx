@@ -59,8 +59,8 @@ export function useFeedPosts(contextType: string, contextId?: string) {
       const authorIds = [...new Set(posts.map((p) => p.author_user_id))];
       if (authorIds.length > 0) {
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, name, avatar_url, email")
+          .from("profiles_public")
+          .select("user_id, name, avatar_url")
           .in("user_id", authorIds);
         const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
         for (const post of posts) {

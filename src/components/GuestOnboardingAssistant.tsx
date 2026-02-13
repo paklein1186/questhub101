@@ -214,8 +214,8 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           : Promise.resolve({ data: [] }),
         scraped?.sector
           ? supabase
-              .from("profiles")
-              .select("user_id, display_name, avatar_url, headline")
+              .from("profiles_public")
+              .select("user_id, name, avatar_url, headline")
               .ilike("headline", `%${scraped.sector.split(/\s+/)[0]}%`)
               .eq("has_completed_onboarding", true)
               .limit(6)
@@ -245,7 +245,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
       setSuggestedUsers(
         (usersRes.data || []).map((u: any) => ({
-          id: u.user_id, display_name: u.display_name, avatar_url: u.avatar_url, headline: u.headline,
+          id: u.user_id, display_name: u.name, avatar_url: u.avatar_url, headline: u.headline,
         }))
       );
     } catch (err) {

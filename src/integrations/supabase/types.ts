@@ -4738,13 +4738,17 @@ export type Database = {
           has_completed_onboarding: boolean | null
           headline: string | null
           is_cooperative_member: boolean | null
+          location: string | null
           name: string | null
+          persona_type: string | null
           role: string | null
           total_shares_a: number | null
           total_shares_b: number | null
           updated_at: string | null
           user_id: string | null
           xp: number | null
+          xp_level: number | null
+          xp_recent_12m: number | null
         }
         Insert: {
           allow_wall_comments?: boolean | null
@@ -4758,13 +4762,17 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           headline?: string | null
           is_cooperative_member?: boolean | null
+          location?: string | null
           name?: string | null
+          persona_type?: string | null
           role?: string | null
           total_shares_a?: number | null
           total_shares_b?: number | null
           updated_at?: string | null
           user_id?: string | null
           xp?: number | null
+          xp_level?: number | null
+          xp_recent_12m?: number | null
         }
         Update: {
           allow_wall_comments?: boolean | null
@@ -4778,13 +4786,17 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           headline?: string | null
           is_cooperative_member?: boolean | null
+          location?: string | null
           name?: string | null
+          persona_type?: string | null
           role?: string | null
           total_shares_a?: number | null
           total_shares_b?: number | null
           updated_at?: string | null
           user_id?: string | null
           xp?: number | null
+          xp_level?: number | null
+          xp_recent_12m?: number | null
         }
         Relationships: []
       }

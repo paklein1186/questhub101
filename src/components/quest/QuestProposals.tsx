@@ -103,7 +103,7 @@ export function QuestProposals({
     queryKey: ["proposer-profiles", proposerIds.join(",")],
     queryFn: async () => {
       if (!proposerIds.length) return [];
-      const { data } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", proposerIds);
+      const { data } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", proposerIds);
       return data ?? [];
     },
     enabled: proposerIds.length > 0,
