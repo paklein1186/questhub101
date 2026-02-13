@@ -11,6 +11,10 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { ExploreFilters, defaultFilters, type ExploreFilterValues } from "@/components/ExploreFilters";
+import { useHouseFilter } from "@/hooks/useHouseFilter";
+import { usePersona } from "@/hooks/usePersona";
+import { defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
 
 const CONTRACT_OPTIONS = [
   { value: "all", label: "All types" },
@@ -44,6 +48,11 @@ export default function JobsExplore({ bare }: Props) {
   const [contractFilter, setContractFilter] = useState("all");
   const [remoteFilter, setRemoteFilter] = useState("all");
   const [authOpen, setAuthOpen] = useState(false);
+  const [exploreFilters, setExploreFilters] = useState<ExploreFilterValues>(defaultFilters);
+
+  const { persona } = usePersona();
+  const [universeMode, setUniverseMode] = useState<UniverseMode>(defaultUniverseForPersona(persona));
+  const houseFilter = useHouseFilter();
 
   const filtered = useMemo(() => {
     return jobs.filter((job: any) => {
@@ -52,9 +61,22 @@ export default function JobsExplore({ bare }: Props) {
           !(job.companies?.name ?? "").toLowerCase().includes(search.toLowerCase())) return false;
       if (contractFilter !== "all" && job.contract_type !== contractFilter) return false;
       if (remoteFilter !== "all" && job.remote_policy !== remoteFilter) return false;
+
+      // Topic filter
+      if (exploreFilters.topicIds.length > 0) {
+        const jobTopicIds = (job.job_position_topics ?? []).map((jt: any) => jt.topic_id);
+        if (!exploreFilters.topicIds.some((id: string) => jobTopicIds.includes(id))) return false;
+      }
+
+      // Territory filter
+      if (exploreFilters.territoryIds.length > 0) {
+        const jobTerritoryIds = (job.job_position_territories ?? []).map((jt: any) => jt.territory_id);
+        if (!exploreFilters.territoryIds.some((id: string) => jobTerritoryIds.includes(id))) return false;
+      }
+
       return true;
     });
-  }, [jobs, search, contractFilter, remoteFilter]);
+  }, [jobs, search, contractFilter, remoteFilter, exploreFilters.topicIds, exploreFilters.territoryIds]);
 
   const handleDelete = async (jobId: string, companyId: string | null) => {
     if (!window.confirm("Delete this job position?")) return;
@@ -76,6 +98,21 @@ export default function JobsExplore({ bare }: Props) {
 
   const content = (
     <div className="space-y-4">
+      {/* Topic & Territory filters */}
+      <ExploreFilters
+        filters={exploreFilters}
+        onChange={setExploreFilters}
+        config={{ showTopics: true, showTerritories: true }}
+        houseFilter={{
+          active: houseFilter.houseFilterActive,
+          onToggle: houseFilter.setHouseFilterActive,
+          hasHouses: houseFilter.myTopicIds.length > 0,
+          topicNames: houseFilter.topicNames,
+          myTopicIds: houseFilter.myTopicIds,
+        }}
+        universeMode={universeMode}
+        onUniverseModeChange={setUniverseMode}
+      />
       {/* Search & quick filters */}
       <div className="flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
