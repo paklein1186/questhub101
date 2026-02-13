@@ -49,10 +49,7 @@ export function CalendarSyncTab() {
   const { data: connections = [], isLoading } = useQuery({
     queryKey: ["calendar-connections", user?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("calendar_connections")
-        .select("id, provider, sync_enabled, last_synced_at, sync_error, created_at")
-        .eq("user_id", user!.id);
+      const { data, error } = await supabase.rpc("get_my_calendar_connections" as any);
       if (error) throw error;
       return (data || []) as CalendarConnection[];
     },

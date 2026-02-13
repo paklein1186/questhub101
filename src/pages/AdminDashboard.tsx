@@ -94,7 +94,7 @@ function UsersRolesTab() {
   const hasRole = (userId: string, role: string) => getRoles(userId).includes(role);
 
   const handleToggleRole = async (targetUserId: string, role: "admin" | "superadmin", currentlyHas: boolean) => {
-    const { error } = await setUserRole(currentUser.id, targetUserId, role, !currentlyHas);
+    const { error } = await setUserRole(targetUserId, role, !currentlyHas);
     if (error) {
       toast({ title: "Error", description: error, variant: "destructive" });
       return;

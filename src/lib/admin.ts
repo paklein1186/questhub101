@@ -38,13 +38,11 @@ export function isAdmin(_email: string): boolean {
 
 /** Call the DB function `set_user_role` which enforces superadmin-only + safety rules */
 export async function setUserRole(
-  actorId: string,
   targetUserId: string,
   role: "admin" | "superadmin",
   grant: boolean,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.rpc("set_user_role" as any, {
-    _actor_id: actorId,
     _target_user_id: targetUserId,
     _role: role,
     _grant: grant,
