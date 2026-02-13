@@ -56,11 +56,9 @@ export function useConversations() {
 
       if (!convs?.length) return [];
 
-      // Get all participants for these conversations
+      // Get all participants for these conversations via RPC (bypasses RLS safely)
       const { data: allParticipants } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id, user_id")
-        .in("conversation_id", convIds);
+        .rpc("get_conversation_participants", { conv_ids: convIds });
 
       // Get profile info for all participants
       const allUserIds = [...new Set(allParticipants?.map((p) => p.user_id) ?? [])];
