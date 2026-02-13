@@ -128,7 +128,7 @@ import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryDetail";
-
+import InboxPage from "./pages/InboxPage";
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
 import EventSettings from "./pages/EventSettings";
@@ -279,6 +279,7 @@ const App = () => (
                 <Route path="/me/starred-excerpts" element={<RequireAuth><MyStarredExcerpts /></RequireAuth>} />
                 <Route path="/me/following" element={<RequireAuth><MyFollowing /></RequireAuth>} />
                 <Route path="/me/milestones" element={<RequireAuth><MilestonesHub /></RequireAuth>} />
+                <Route path="/inbox" element={<RequireAuth><InboxPage /></RequireAuth>} />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
