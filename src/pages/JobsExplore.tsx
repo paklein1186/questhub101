@@ -1,13 +1,17 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search, User } from "lucide-react";
+import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search, User, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useAllJobPositions } from "@/hooks/useJobPositions";
+import { Button } from "@/components/ui/button";
+import { useAllJobPositions, useDeleteJobPosition } from "@/hooks/useJobPositions";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/components/ExploreFilters";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 
 const CONTRACT_OPTIONS = [
   { value: "all", label: "All types" },
@@ -32,11 +36,16 @@ interface Props {
 
 export default function JobsExplore({ bare }: Props) {
   const { data: jobs = [], isLoading } = useAllJobPositions();
+  const currentUser = useCurrentUser();
+  const isGuest = !currentUser?.id;
+  const deleteJob = useDeleteJobPosition();
+  const { toast } = useToast();
 
   const [search, setSearch] = useState("");
   const [contractFilter, setContractFilter] = useState("all");
   const [remoteFilter, setRemoteFilter] = useState("all");
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return jobs.filter((job: any) => {
@@ -56,6 +65,23 @@ export default function JobsExplore({ bare }: Props) {
       return true;
     });
   }, [jobs, search, contractFilter, remoteFilter, filters]);
+
+  const handleDelete = async (jobId: string, companyId: string | null) => {
+    if (!confirm("Delete this job position?")) return;
+    try {
+      await deleteJob.mutateAsync({ id: jobId, companyId: companyId || "" });
+      toast({ title: "Job deleted" });
+    } catch {
+      toast({ title: "Error deleting job", variant: "destructive" });
+    }
+  };
+
+  const handleDocClick = (e: React.MouseEvent, url: string) => {
+    if (isGuest) {
+      e.preventDefault();
+      setAuthOpen(true);
+    }
+  };
 
   const content = (
     <div className="space-y-4">
@@ -109,9 +135,10 @@ export default function JobsExplore({ bare }: Props) {
           const company = job.companies;
           const topics = (job.job_position_topics ?? []).map((jt: any) => jt.topics).filter(Boolean);
           const territories = (job.job_position_territories ?? []).map((jt: any) => jt.territories).filter(Boolean);
+          const isOwner = !isGuest && job.created_by_user_id === currentUser.id;
 
           return (
-            <div key={job.id} className="rounded-xl border border-border bg-card p-4 space-y-2 hover:border-primary/30 transition-all">
+            <div key={job.id} className="rounded-xl border border-border bg-card p-4 space-y-2 hover:border-primary/30 transition-all relative">
               <div className="flex items-start gap-3">
                 {company ? (
                   <Link to={`/companies/${company.id}`}>
@@ -136,6 +163,16 @@ export default function JobsExplore({ bare }: Props) {
                     <span className="text-xs text-muted-foreground">Individual posting</span>
                   )}
                 </div>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                    onClick={() => handleDelete(job.id, job.company_id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
@@ -159,10 +196,15 @@ export default function JobsExplore({ bare }: Props) {
 
               <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
                 <span>Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
-                {job.document_url && (
+                {job.document_url && !isGuest && (
                   <a href={job.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
                     <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
                   </a>
+                )}
+                {job.document_url && isGuest && (
+                  <button onClick={(e) => handleDocClick(e, job.document_url)} className="flex items-center gap-1 text-primary hover:underline">
+                    <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
+                  </button>
                 )}
               </div>
             </div>
@@ -176,6 +218,12 @@ export default function JobsExplore({ bare }: Props) {
           <p className="text-sm">No job positions match your filters.</p>
         </div>
       )}
+
+      <AuthPromptDialog
+        open={authOpen}
+        onOpenChange={setAuthOpen}
+        actionLabel="view this document"
+      />
     </div>
   );
 
