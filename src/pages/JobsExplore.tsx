@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search } from "lucide-react";
+import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -113,13 +113,17 @@ export default function JobsExplore({ bare }: Props) {
           return (
             <div key={job.id} className="rounded-xl border border-border bg-card p-4 space-y-2 hover:border-primary/30 transition-all">
               <div className="flex items-start gap-3">
-                {company && (
+                {company ? (
                   <Link to={`/companies/${company.id}`}>
                     <Avatar className="h-10 w-10 rounded-lg">
                       <AvatarImage src={company.logo_url ?? undefined} />
                       <AvatarFallback className="rounded-lg text-xs"><Building2 className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   </Link>
+                ) : (
+                  <Avatar className="h-10 w-10 rounded-lg">
+                    <AvatarFallback className="rounded-lg text-xs"><User className="h-4 w-4" /></AvatarFallback>
+                  </Avatar>
                 )}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-display font-semibold text-sm truncate">{job.title}</h4>
@@ -127,6 +131,9 @@ export default function JobsExplore({ bare }: Props) {
                     <Link to={`/companies/${company.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors">
                       {company.name}
                     </Link>
+                  )}
+                  {!company && (
+                    <span className="text-xs text-muted-foreground">Individual posting</span>
                   )}
                 </div>
               </div>
