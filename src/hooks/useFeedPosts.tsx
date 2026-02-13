@@ -156,6 +156,8 @@ export function useCreatePost() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
+      qc.invalidateQueries({ queryKey: ["profile-wall-feed"] });
+      qc.invalidateQueries({ queryKey: ["following-feed"] });
     },
   });
 }
