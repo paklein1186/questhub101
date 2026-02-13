@@ -61,6 +61,7 @@ export function useCreateJobPosition() {
       created_by_user_id: string;
       title: string;
       description?: string;
+      organization_name?: string;
       contract_type: string;
       location_text?: string;
       remote_policy?: string;

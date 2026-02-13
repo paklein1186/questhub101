@@ -118,7 +118,7 @@ export default function JobsExplore({ bare }: Props) {
           const topics = (job.job_position_topics ?? []).map((jt: any) => jt.topics).filter(Boolean);
           const territories = (job.job_position_territories ?? []).map((jt: any) => jt.territories).filter(Boolean);
           const isOwner = !isGuest && job.created_by_user_id === currentUser.id;
-          const contributorName = company?.name || creator?.name || "Individual posting";
+          const contributorName = company?.name || job.organization_name || creator?.name || "Individual posting";
 
           return (
             <div key={job.id} className="rounded-xl border border-border bg-card p-4 space-y-2 hover:border-primary/30 transition-all relative">
@@ -131,6 +131,8 @@ export default function JobsExplore({ bare }: Props) {
                       <Link to={`/companies/${company.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors shrink-0">
                         — {company.name}
                       </Link>
+                    ) : job.organization_name ? (
+                      <span className="text-xs text-muted-foreground shrink-0">— {job.organization_name}</span>
                     ) : creator ? (
                       <Link to={`/profile/${creator.id}`} className="text-xs text-muted-foreground hover:text-primary transition-colors shrink-0">
                         — {creator.name}
@@ -180,6 +182,13 @@ export default function JobsExplore({ bare }: Props) {
                       </Avatar>
                       <span>{company.name}</span>
                     </Link>
+                  ) : job.organization_name ? (
+                    <span className="flex items-center gap-1.5">
+                      <Avatar className="h-5 w-5 rounded">
+                        <AvatarFallback className="rounded text-[8px]"><Building2 className="h-2.5 w-2.5" /></AvatarFallback>
+                      </Avatar>
+                      <span>{job.organization_name}</span>
+                    </span>
                   ) : creator ? (
                     <Link to={`/profile/${creator.id}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
                       <Avatar className="h-5 w-5 rounded">

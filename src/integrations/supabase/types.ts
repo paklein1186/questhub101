@@ -1774,6 +1774,7 @@ export type Database = {
           id: string
           is_active: boolean
           location_text: string | null
+          organization_name: string | null
           remote_policy: string | null
           salary_currency: string | null
           salary_max: number | null
@@ -1792,6 +1793,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           location_text?: string | null
+          organization_name?: string | null
           remote_policy?: string | null
           salary_currency?: string | null
           salary_max?: number | null
@@ -1810,6 +1812,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           location_text?: string | null
+          organization_name?: string | null
           remote_policy?: string | null
           salary_currency?: string | null
           salary_max?: number | null
