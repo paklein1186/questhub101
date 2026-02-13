@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
+import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -145,6 +146,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
             <PostSignupWizard />
+            <GuestBauhausShape />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
