@@ -2180,7 +2180,9 @@ export type Database = {
           channel_email_enabled: boolean
           channel_in_app_enabled: boolean
           created_at: string
+          digest_frequency: string
           id: string
+          last_digest_sent_at: string | null
           notification_frequency: string
           notify_abuse_reports: boolean
           notify_ai_flagged_content: boolean
@@ -2212,7 +2214,9 @@ export type Database = {
           channel_email_enabled?: boolean
           channel_in_app_enabled?: boolean
           created_at?: string
+          digest_frequency?: string
           id?: string
+          last_digest_sent_at?: string | null
           notification_frequency?: string
           notify_abuse_reports?: boolean
           notify_ai_flagged_content?: boolean
@@ -2244,7 +2248,9 @@ export type Database = {
           channel_email_enabled?: boolean
           channel_in_app_enabled?: boolean
           created_at?: string
+          digest_frequency?: string
           id?: string
+          last_digest_sent_at?: string | null
           notification_frequency?: string
           notify_abuse_reports?: boolean
           notify_ai_flagged_content?: boolean

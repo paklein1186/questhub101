@@ -32,6 +32,7 @@ export interface NotificationPreferencesRow {
   // Digest
   notify_daily_digest_in_app: boolean;
   notify_daily_digest_email: boolean;
+  digest_frequency: string; // 'three_days' | 'weekly' | 'none'
   // Delivery
   notification_frequency: string;
   push_enabled: boolean;
@@ -60,8 +61,9 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_follower_activity: true,
   notify_xp_and_achievements: true,
   notify_mentions: true,
-  notify_daily_digest_in_app: false,
-  notify_daily_digest_email: false,
+  notify_daily_digest_in_app: true,
+  notify_daily_digest_email: true,
+  digest_frequency: "three_days",
   notification_frequency: "INSTANT",
   push_enabled: false,
 };

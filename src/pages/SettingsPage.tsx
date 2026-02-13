@@ -920,12 +920,32 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </div>
       </Section>
 
-      {/* Daily Digest */}
-      <Section title="Daily Digest" icon={<Rss className="h-5 w-5" />}>
-        <p className="text-xs text-muted-foreground mb-3">A compact summary of public updates from people and units you follow, delivered once per day.</p>
-        <div className="space-y-3">
-          {toggle("notify_daily_digest_in_app" as any, "Receive a daily summary in the app")}
-          {toggle("notify_daily_digest_email" as any, "Receive a daily summary by email")}
+      {/* AI Journey Digest */}
+      <Section title="AI Journey Digest" icon={<Rss className="h-5 w-5" />}>
+        <p className="text-xs text-muted-foreground mb-3">
+          A personalized AI-generated summary of your journey, activity highlights, and suggested next steps on the platform.
+        </p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium">Digest frequency</p>
+              <p className="text-xs text-muted-foreground">How often you receive your AI journey digest</p>
+            </div>
+            <Select value={prefs.digest_frequency ?? "three_days"} onValueChange={(v) => updatePrefs({ digest_frequency: v } as any)}>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="three_days">Every 3 days</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="none">Don't send</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {prefs.digest_frequency !== "none" && (
+            <div className="space-y-3">
+              {toggle("notify_daily_digest_in_app" as any, "Show digest in-app notifications")}
+              {toggle("notify_daily_digest_email" as any, "Receive digest by email")}
+            </div>
+          )}
         </div>
       </Section>
 
