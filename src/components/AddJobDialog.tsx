@@ -177,18 +177,14 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
 
   const handleCreate = async () => {
     if (!title.trim()) return;
-    if (!selectedCompanyId && source === "company") return;
-
-    // For individual posts, we still need a company_id in the DB schema
-    // We'll need a fallback — for now require company
-    if (source === "individual" && !selectedCompanyId) {
-      // Create without company — but DB requires company_id
-      // Let's just proceed, the hook handles it
+    if (!selectedCompanyId) {
+      toast({ title: "Please select an organization", description: "A job position must be linked to an organization.", variant: "destructive" });
+      return;
     }
 
     try {
       await createJob.mutateAsync({
-        company_id: selectedCompanyId || "",
+        company_id: selectedCompanyId,
         created_by_user_id: currentUser.id,
         title: title.trim(),
         description: description.trim() || undefined,
