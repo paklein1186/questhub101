@@ -17,6 +17,16 @@ const PATHS = [
   "M 52 -5 C 84 0, 108 26, 100 52 C 110 80, 70 110, 46 102 C 16 110, -8 72, 0 46 C -8 20, 22 -8, 52 -5 Z",
 ];
 
+// Z-index cycle durations (seconds at each depth level)
+const Z_CYCLE = [
+  { z: -1, duration: 8000 },
+  { z: 10, duration: 5000 },
+  { z: -1, duration: 12000 },
+  { z: 10, duration: 4000 },
+  { z: -1, duration: 6000 },
+  { z: 10, duration: 7000 },
+];
+
 export function BauhausShape() {
   const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,12 +34,27 @@ export function BauhausShape() {
   const mouseY = useRef(0);
   const rafId = useRef(0);
   const [clicked, setClicked] = useState(false);
+  const [zIndex, setZIndex] = useState(-1);
+  const zCycleIndex = useRef(0);
   const scaleControls = useAnimationControls();
 
   const fleeX = useMotionValue(0);
   const fleeY = useMotionValue(0);
   const smoothX = useSpring(fleeX, { stiffness: 30, damping: 25 });
   const smoothY = useSpring(fleeY, { stiffness: 30, damping: 25 });
+
+  // Cycle z-index for depth effect
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const cycle = () => {
+      const step = Z_CYCLE[zCycleIndex.current % Z_CYCLE.length];
+      setZIndex(step.z);
+      zCycleIndex.current++;
+      timeout = setTimeout(cycle, step.duration);
+    };
+    cycle();
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleClick = useCallback(() => {
     if (clicked) return;
@@ -101,7 +126,7 @@ export function BauhausShape() {
       ref={containerRef}
       style={{
         position: "fixed",
-        zIndex: 0,
+        zIndex: zIndex,
         cursor: "pointer",
         pointerEvents: "auto" as const,
         transform: "none",
