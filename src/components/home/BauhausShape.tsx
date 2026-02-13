@@ -36,7 +36,7 @@ export function BauhausShape() {
     setClicked(true);
     scaleControls.stop();
     scaleControls.start({
-      scale: 0.5,
+      scale: 0.25,
       transition: { duration: 0.12, ease: "easeOut" },
     }).then(() =>
       scaleControls.start({
