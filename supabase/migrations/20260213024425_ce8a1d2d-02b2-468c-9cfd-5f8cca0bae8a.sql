@@ -1,0 +1,1 @@
+ALTER TABLE public.job_positions ADD COLUMN organization_name TEXT;

@@ -151,6 +151,7 @@ serve(async (req) => {
               content: `You are a job posting information extractor. Given text from a job description document or webpage, extract the following fields. Return ONLY a valid JSON object with these keys:
 - "title": string (job title)
 - "description": string (job description, summarized to max 1500 chars)
+- "organization_name": string (name of the recruiting organization/company/association) or null
 - "contract_type": one of "full-time", "part-time", "contract", "freelance", "internship", "volunteer" or null
 - "remote_policy": one of "on-site", "remote", "hybrid" or null
 - "location": string (city, country) or null

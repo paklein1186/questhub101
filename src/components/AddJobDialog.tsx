@@ -55,6 +55,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
   const [contractType, setContractType] = useState("full-time");
   const [remotePolicy, setRemotePolicy] = useState("on-site");
   const [locationText, setLocationText] = useState("");
@@ -73,6 +74,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
     setDocName(undefined);
     setTitle("");
     setDescription("");
+    setOrganizationName("");
     setContractType("full-time");
     setRemotePolicy("on-site");
     setLocationText("");
@@ -152,6 +154,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
       if (ext) {
         if (ext.title) setTitle(ext.title);
         if (ext.description) setDescription(ext.description);
+        if (ext.organization_name) setOrganizationName(ext.organization_name);
         if (ext.contract_type) setContractType(ext.contract_type);
         if (ext.remote_policy) setRemotePolicy(ext.remote_policy);
         if (ext.location) setLocationText(ext.location);
@@ -182,6 +185,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
         created_by_user_id: currentUser.id,
         title: title.trim(),
         description: description.trim() || undefined,
+        organization_name: organizationName.trim() || undefined,
         contract_type: contractType,
         remote_policy: remotePolicy,
         location_text: locationText.trim() || undefined,
@@ -329,6 +333,10 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
             <div>
               <label className="text-sm font-medium mb-1 block">Title *</label>
               <Input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="e.g. Frontend Developer" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Recruiting organization</label>
+              <Input value={organizationName} onChange={e => setOrganizationName(e.target.value)} maxLength={120} placeholder="e.g. Fondation Terre de Liens" />
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Description</label>
