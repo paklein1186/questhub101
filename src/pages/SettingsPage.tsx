@@ -11,7 +11,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown, Rss, Languages, CalendarSync,
+  Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -886,18 +886,26 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </Section>
       )}
 
-      {/* Personal */}
-      <Section title="My Activity" icon={<Bell className="h-5 w-5" />}>
-        <div className="space-y-3">
-          {toggle("notify_booking_status_changes", "Booking status changes")}
-          {toggle("notify_quest_updates_from_followed", `Updates from ${label("quest.label")}s I follow`)}
-          {toggle("notify_invitations_to_units", "Invitations to join quests, guilds, pods & organizations")}
-          {toggle("notify_comments_and_upvotes", "Comments & upvotes")}
-          {toggle("notify_mentions" as any, "Mentions in comments and updates")}
-          {toggle("notify_follower_activity", "Follower activity")}
-          {toggle("notify_xp_and_achievements", "XP & achievements")}
-        </div>
-      </Section>
+       {/* Personal */}
+       <Section title="My Activity" icon={<Bell className="h-5 w-5" />}>
+         <div className="space-y-3">
+           {toggle("notify_booking_status_changes", "Booking status changes")}
+           {toggle("notify_quest_updates_from_followed", `Updates from ${label("quest.label")}s I follow`)}
+           {toggle("notify_invitations_to_units", "Invitations to join quests, guilds, pods & organizations")}
+           {toggle("notify_comments_and_upvotes", "Comments & upvotes")}
+           {toggle("notify_mentions" as any, "Mentions in comments and updates")}
+           {toggle("notify_follower_activity", "Follower activity")}
+           {toggle("notify_xp_and_achievements", "XP & achievements")}
+         </div>
+       </Section>
+
+       {/* Direct Messages */}
+       <Section title="Direct Messages" icon={<MessageSquare className="h-5 w-5" />}>
+         <p className="text-xs text-muted-foreground mb-3">Control how you're notified when you receive private messages.</p>
+         <div className="space-y-3">
+           {toggle("notify_direct_messages_email" as any, "Email notification when I receive a message")}
+         </div>
+       </Section>
 
       {/* Push */}
       <Section title="Push Notifications" icon={<Bell className="h-5 w-5" />}>

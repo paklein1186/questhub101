@@ -193,11 +193,13 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
-      const { error } = await supabase.from("direct_messages").insert({
+      // Insert message
+      const { data: msg, error } = await supabase.from("direct_messages").insert({
         conversation_id: conversationId,
         sender_id: session!.user.id,
         content,
-      });
+      }).select().single();
+      
       if (error) throw error;
 
       // Update conversation updated_at
@@ -205,6 +207,31 @@ export function useSendMessage() {
         .from("conversations")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
+
+      // Trigger email notification edge function
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messageId: msg?.id,
+              conversationId,
+              senderId: session!.user.id,
+              content,
+            }),
+          }
+        );
+        if (!response.ok) {
+          console.error("Failed to send DM notification:", response.statusText);
+        }
+      } catch (err) {
+        console.error("Error triggering DM notification:", err);
+      }
     },
     onSuccess: (_, { conversationId }) => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
