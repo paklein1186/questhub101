@@ -209,7 +209,7 @@ export function OntologyPicker({
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const { data, error } = await supabase
       .from("territories")
-      .insert({ name, slug, level: "LOCAL" as any })
+      .insert({ name, slug })
       .select("id")
       .single();
     if (error) {
