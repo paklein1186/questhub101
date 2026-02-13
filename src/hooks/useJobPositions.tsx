@@ -24,7 +24,7 @@ export function useAllJobPositions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("job_positions" as any)
-        .select("*, companies:company_id(id, name, logo_url), job_position_topics(topic_id, topics:topic_id(id, name, slug)), job_position_territories(territory_id, territories:territory_id(id, name))")
+        .select("*, companies:company_id(id, name, logo_url), creator:created_by_user_id(id, name, avatar_url), job_position_topics(topic_id, topics:topic_id(id, name, slug)), job_position_territories(territory_id, territories:territory_id(id, name))")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
