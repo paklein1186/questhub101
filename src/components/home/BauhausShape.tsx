@@ -98,8 +98,12 @@ export function BauhausShape() {
   return createPortal(
     <div
       ref={containerRef}
-      className="pointer-events-auto fixed z-0 cursor-pointer"
       style={{
+        position: "fixed",
+        zIndex: 0,
+        cursor: "pointer",
+        pointerEvents: "auto" as const,
+        transform: "none",
         ...positionStyle,
         ...sizeStyle,
       }}
