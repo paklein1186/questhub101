@@ -710,7 +710,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       userId: postAuthorId, type: NotificationType.POST_UPVOTED,
       title: "Your post was upvoted", body: `${upvoterName || "Someone"} upvoted your post`,
       relatedEntityType: "FEED_POST", relatedEntityId: postId,
-      deepLinkUrl: "/",
+      deepLinkUrl: `/feed?post=${postId}`,
     });
   }, [userId, addNotification]);
 

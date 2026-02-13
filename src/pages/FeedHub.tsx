@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { DestinationPostComposer } from "@/components/feed/DestinationPostComposer";
 import { PostCard } from "@/components/feed/PostCard";
@@ -49,6 +50,22 @@ export default function FeedHub() {
   const currentUser = useCurrentUser();
   const { label } = usePersona();
   const isLoggedIn = !!session;
+  const [searchParams] = useSearchParams();
+
+  // Scroll to a specific post when linked from notifications
+  useEffect(() => {
+    const postId = searchParams.get("post");
+    if (!postId) return;
+    const timeout = setTimeout(() => {
+      const el = document.getElementById(`post-${postId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-primary/50");
+        setTimeout(() => el.classList.remove("ring-2", "ring-primary/50"), 3000);
+      }
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchParams]);
 
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
   const [displayMode, setDisplayMode] = useState<FeedDisplayMode>("list");
