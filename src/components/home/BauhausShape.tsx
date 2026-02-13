@@ -33,9 +33,10 @@ export function BauhausShape() {
   const mouseX = useRef(0);
   const mouseY = useRef(0);
   const rafId = useRef(0);
-  const [clicked, setClicked] = useState(false);
   const [zIndex, setZIndex] = useState(-1);
   const zCycleIndex = useRef(0);
+  const currentScale = useRef(1);
+  const regrowing = useRef(false);
   const scaleControls = useAnimationControls();
 
   const fleeX = useMotionValue(0);
@@ -57,19 +58,31 @@ export function BauhausShape() {
   }, []);
 
   const handleClick = useCallback(() => {
-    if (clicked) return;
-    setClicked(true);
+    // Shrink to 25% of current scale
+    const newScale = currentScale.current * 0.25;
+    currentScale.current = newScale;
+    
+    // Cancel any ongoing regrow
     scaleControls.stop();
+    regrowing.current = false;
+
     scaleControls.start({
-      scale: 0.25,
+      scale: newScale,
       transition: { duration: 0.12, ease: "easeOut" },
-    }).then(() =>
-      scaleControls.start({
+    }).then(() => {
+      // Start regrowing only if no new click interrupted
+      regrowing.current = true;
+      return scaleControls.start({
         scale: 1,
         transition: { duration: 5, ease: [0.22, 1, 0.36, 1] },
-      })
-    ).then(() => setClicked(false));
-  }, [clicked, scaleControls]);
+      });
+    }).then(() => {
+      if (regrowing.current) {
+        currentScale.current = 1;
+        regrowing.current = false;
+      }
+    });
+  }, [scaleControls]);
 
   // Track mouse (desktop only)
   useEffect(() => {
