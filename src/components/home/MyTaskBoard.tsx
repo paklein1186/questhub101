@@ -85,6 +85,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingSource, setEditingSource] = useState<string>("");
 
   // Unit picker state
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
@@ -336,6 +339,29 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
   };
 
+  const startEditing = (task: UnifiedTask) => {
+    setEditingId(task.id);
+    setEditingTitle(task.title);
+    setEditingSource(task.source);
+  };
+
+  const saveTitle = async () => {
+    if (!editingId || !editingTitle.trim()) { setEditingId(null); return; }
+    const trimmed = editingTitle.trim();
+    if (editingSource === "personal") {
+      await supabase.from("personal_tasks" as any).update({ title: trimmed } as any).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (editingSource === "quest") {
+      await supabase.from("quests").update({ title: trimmed }).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
+    } else if (editingSource === "subtask") {
+      await supabase.from("quest_subtasks" as any).update({ title: trimmed } as any).eq("id", editingId);
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    }
+    setEditingId(null);
+  };
+
   const openUnitPicker = (task: UnifiedTask) => {
     setPendingConvertTask(task);
     setUnitPickerOpen(true);
@@ -546,17 +572,36 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     />
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className={cn(
-                      "text-sm",
-                      task.status === "DONE" && "line-through text-muted-foreground",
-                    )}>
-                      {task.title}
-                    </span>
-                    {task.convertedToQuestId && (
-                      <Badge variant="outline" className="ml-2 text-[10px]">→ Quest</Badge>
-                    )}
-                    {task.convertedToSubtaskId && (
-                      <Badge variant="outline" className="ml-2 text-[10px]">→ Subtask</Badge>
+                    {editingId === task.id ? (
+                      <Input
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={saveTitle}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveTitle();
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        autoFocus
+                        className="h-7 text-sm"
+                      />
+                    ) : (
+                      <>
+                        <span
+                          className={cn(
+                            "text-sm cursor-pointer",
+                            task.status === "DONE" && "line-through text-muted-foreground",
+                          )}
+                          onDoubleClick={() => startEditing(task)}
+                        >
+                          {task.title}
+                        </span>
+                        {task.convertedToQuestId && (
+                          <Badge variant="outline" className="ml-2 text-[10px]">→ Quest</Badge>
+                        )}
+                        {task.convertedToSubtaskId && (
+                          <Badge variant="outline" className="ml-2 text-[10px]">→ Subtask</Badge>
+                        )}
+                      </>
                     )}
                   </td>
                   <td className="px-3 py-2.5 hidden sm:table-cell max-w-[120px]">
