@@ -504,17 +504,47 @@ export default function HomeFeed() {
             }}
             className="relative"
           >
-            {/* Outer glow — breathing effect */}
+            {/* Outer glow — breathing blob */}
             <motion.div 
-              className="absolute inset-0 rounded-full bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28"
-              animate={{ opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 bg-primary/20 blur-2xl w-20 h-20 sm:w-28 sm:h-28"
+              animate={{
+                opacity: [0.3, 0.5, 0.35, 0.45, 0.3],
+                borderRadius: [
+                  "40% 60% 55% 45% / 55% 40% 60% 45%",
+                  "55% 45% 40% 60% / 45% 55% 45% 55%",
+                  "45% 55% 60% 40% / 60% 45% 55% 40%",
+                  "60% 40% 45% 55% / 40% 60% 40% 60%",
+                  "40% 60% 55% 45% / 55% 40% 60% 45%",
+                ],
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             />
-            {/* Mid glow */}
-            <div className="absolute inset-2 rounded-full bg-primary/15 blur-xl w-16 h-16 sm:w-24 sm:h-24" />
-            {/* Core orb */}
-            <div
-              className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-full"
+            {/* Mid glow — offset morph */}
+            <motion.div
+              className="absolute inset-2 bg-primary/15 blur-xl w-16 h-16 sm:w-24 sm:h-24"
+              animate={{
+                borderRadius: [
+                  "55% 45% 50% 50% / 45% 55% 50% 50%",
+                  "45% 55% 45% 55% / 55% 45% 55% 45%",
+                  "50% 50% 55% 45% / 50% 50% 45% 55%",
+                  "55% 45% 50% 50% / 45% 55% 50% 50%",
+                ],
+              }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {/* Core orb — fluid shape */}
+            <motion.div
+              className="relative w-14 h-14 sm:w-20 sm:h-20"
+              animate={{
+                borderRadius: [
+                  "50% 50% 45% 55% / 55% 45% 55% 45%",
+                  "45% 55% 55% 45% / 45% 55% 45% 55%",
+                  "55% 45% 45% 55% / 50% 50% 55% 45%",
+                  "50% 50% 50% 50% / 55% 45% 50% 50%",
+                  "50% 50% 45% 55% / 55% 45% 55% 45%",
+                ],
+              }}
+              transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
               style={{
                 background: "radial-gradient(circle at 35% 35%, hsl(var(--primary) / 0.5), hsl(var(--primary) / 0.15) 60%, transparent 80%)",
                 boxShadow: "0 0 40px 8px hsl(var(--primary) / 0.15), inset 0 0 20px 4px hsl(var(--primary) / 0.1)",
