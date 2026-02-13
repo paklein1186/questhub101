@@ -90,6 +90,7 @@ import ExploreHouses from "./pages/ExploreHouses";
 import QuestCreate from "./pages/QuestCreate";
 import ServiceCreate from "./pages/ServiceCreate";
 import MyStarredExcerpts from "./pages/MyStarredExcerpts";
+import JobsPage from "./pages/JobsPage";
 import MilestonesHub from "./pages/MilestonesHub";
 import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
@@ -160,6 +161,7 @@ const App = () => (
                 <Route path="/landing/browse" element={<BrowseLanding />} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
+                <Route path="/jobs" element={<JobsPage />} />
                 <Route path="/explore/users" element={<ExploreUsers />} />
                 <Route path="/explore/houses" element={<ExploreHouses />} />
                 <Route path="/guilds/:id" element={<GuildDetail />} />
