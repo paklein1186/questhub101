@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, useMotionValue, useSpring, useAnimationControls } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -94,7 +95,7 @@ export function BauhausShape() {
     ? { right: "4%", top: "8%" }
     : { right: "6%", top: "12%" };
 
-  return (
+  return createPortal(
     <motion.div
       ref={containerRef}
       className="pointer-events-auto fixed z-0 cursor-pointer"
@@ -183,6 +184,7 @@ export function BauhausShape() {
           </motion.div>
         </motion.div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
