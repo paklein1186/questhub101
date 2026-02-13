@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Plus, Briefcase, Building2, User, MapPin, FileText, Upload, Trash2, Link as LinkIcon } from "lucide-react";
+import { Plus, Briefcase, Building2, User, MapPin, FileText, Upload, Trash2, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +50,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
   const [docUrl, setDocUrl] = useState<string | undefined>();
   const [docName, setDocName] = useState<string | undefined>();
   const [uploading, setUploading] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -141,8 +142,37 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
     setDocName(trimmed.split("/").pop() || "Link");
   };
 
-  const handleContinueToDetails = () => {
+  const extractJobInfo = async (fileUrl?: string, webUrl?: string) => {
+    setExtracting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("extract-job-info", {
+        body: { file_url: fileUrl, web_url: webUrl },
+      });
+      if (error) throw error;
+      const ext = data?.extracted;
+      if (ext) {
+        if (ext.title) setTitle(ext.title);
+        if (ext.description) setDescription(ext.description);
+        if (ext.contract_type) setContractType(ext.contract_type);
+        if (ext.remote_policy) setRemotePolicy(ext.remote_policy);
+        if (ext.location) setLocationText(ext.location);
+        toast({ title: "Info extracted", description: "Review and edit the pre-filled fields." });
+      }
+    } catch (e) {
+      console.error("Extraction failed:", e);
+      toast({ title: "Extraction failed", description: "Fill the form manually.", variant: "destructive" });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleContinueToDetails = async () => {
     setStep("details");
+    if (docUrl) {
+      // Determine if it's a web URL or a file URL
+      const isWebUrl = !docUrl.includes("/storage/") && !docUrl.includes("entity-images");
+      await extractJobInfo(isWebUrl ? undefined : docUrl, isWebUrl ? docUrl : undefined);
+    }
   };
 
   const handleCreate = async () => {
@@ -288,8 +318,10 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
             )}
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setStep("source")}>Back</Button>
-              <Button size="sm" className="flex-1" onClick={handleContinueToDetails}>
-                {docUrl ? "Continue" : "Skip — fill manually"}
+              <Button size="sm" className="flex-1" onClick={handleContinueToDetails} disabled={extracting}>
+                {docUrl ? (
+                  <><Sparkles className="h-3.5 w-3.5 mr-1" /> Extract & continue</>
+                ) : "Skip — fill manually"}
               </Button>
             </div>
           </div>
@@ -298,6 +330,12 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
         {/* Step 3: Details form */}
         {step === "details" && (
           <div className="space-y-4 mt-2">
+            {extracting && (
+              <div className="flex items-center gap-2 text-sm text-primary bg-primary/10 rounded-lg p-3">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Extracting job info from document…</span>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-1 block">Title *</label>
               <Input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="e.g. Frontend Developer" />
