@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
-  Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
+  Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -88,6 +88,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
+
+  // Pending done with undo
+  const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: string }>>(new Map());
+  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Unit picker state
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
@@ -307,12 +311,63 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
   };
 
+  const commitDone = useCallback((task: UnifiedTask) => {
+    const key = `${task.source}-${task.id}`;
+    if (task.source === "personal") {
+      updateTaskStatus(task.id, "DONE");
+      if (task.convertedToQuestId) {
+        supabase.from("quests").update({ status: "COMPLETED" }).eq("id", task.convertedToQuestId).then(() => {
+          qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+        });
+      }
+      if (task.convertedToSubtaskId) {
+        supabase.from("quest_subtasks" as any).update({ status: "DONE" } as any).eq("id", task.convertedToSubtaskId).then(() => {
+          qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+        });
+      }
+    } else if (task.source === "quest") {
+      updateQuestStatus(task.id, "DONE");
+    } else if (task.source === "subtask") {
+      updateSubtaskStatus(task.id, "DONE");
+    }
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+    pendingTimers.current.delete(key);
+  }, [userId]);
+
+  const undoDone = useCallback((task: UnifiedTask) => {
+    const key = `${task.source}-${task.id}`;
+    const timer = pendingTimers.current.get(key);
+    if (timer) clearTimeout(timer);
+    pendingTimers.current.delete(key);
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+  }, []);
+
   const handleStatusChange = (task: UnifiedTask, newStatus: string) => {
+    const key = `${task.source}-${task.id}`;
+
+    // If undoing from pending done
+    const wasPending = pendingDone.has(key);
+    if (wasPending) {
+      const timer = pendingTimers.current.get(key);
+      if (timer) clearTimeout(timer);
+      pendingTimers.current.delete(key);
+      setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+    }
+
+    if (newStatus === "DONE") {
+      // Start 5s pending period
+      const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.status) : task.status;
+      setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
+      const timer = setTimeout(() => commitDone(task), 5000);
+      pendingTimers.current.set(key, timer);
+      return;
+    }
+
+    // Non-DONE status changes go through immediately
     if (task.source === "personal") {
       updateTaskStatus(task.id, newStatus);
-      // Also sync to converted quest/subtask if applicable
       if (task.convertedToQuestId) {
-        const questStatus = newStatus === "DONE" ? "COMPLETED" : newStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
+        const questStatus = newStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
         supabase.from("quests").update({ status: questStatus }).eq("id", task.convertedToQuestId).then(() => {
           qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
         });
@@ -563,11 +618,36 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((task) => (
-                <tr key={`${task.source}-${task.id}`} className="border-t border-border group hover:bg-accent/30 transition-colors">
+              {filtered.map((task) => {
+                const key = `${task.source}-${task.id}`;
+                const isPendingDone = pendingDone.has(key);
+                const displayStatus = isPendingDone ? "DONE" : task.status;
+
+                if (isPendingDone) {
+                  return (
+                    <tr key={key} className="border-t border-border bg-emerald-500/5">
+                      <td colSpan={5} className="px-3 py-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground line-through">{task.title}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 gap-1.5 text-xs"
+                            onClick={() => undoDone(task)}
+                          >
+                            <Undo2 className="h-3 w-3" /> Undo
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return (
+                <tr key={key} className="border-t border-border group hover:bg-accent/30 transition-colors">
                   <td className="px-3 py-2.5">
                     <Checkbox
-                      checked={task.status === "DONE"}
+                      checked={displayStatus === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
                     />
                   </td>
@@ -671,7 +751,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

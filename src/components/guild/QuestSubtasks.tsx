@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface QuestSubtasksProps {
@@ -33,6 +33,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
+  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
@@ -86,6 +88,38 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
+  const commitSubtaskDone = useCallback((subtaskId: string) => {
+    updateStatus(subtaskId, "DONE");
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
+    pendingTimers.current.delete(subtaskId);
+  }, [questId]);
+
+  const undoSubtaskDone = useCallback((subtaskId: string) => {
+    const timer = pendingTimers.current.get(subtaskId);
+    if (timer) clearTimeout(timer);
+    pendingTimers.current.delete(subtaskId);
+    setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
+  }, []);
+
+  const handleSubtaskStatusChange = (subtaskId: string, newStatus: string, currentStatus: string) => {
+    // Cancel any pending done
+    if (pendingDone.has(subtaskId)) {
+      const timer = pendingTimers.current.get(subtaskId);
+      if (timer) clearTimeout(timer);
+      pendingTimers.current.delete(subtaskId);
+      setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
+    }
+
+    if (newStatus === "DONE") {
+      setPendingDone((prev) => new Map(prev).set(subtaskId, currentStatus));
+      const timer = setTimeout(() => commitSubtaskDone(subtaskId), 5000);
+      pendingTimers.current.set(subtaskId, timer);
+      return;
+    }
+
+    updateStatus(subtaskId, newStatus);
+  };
+
   const assignUser = async (subtaskId: string, userId: string | null) => {
     await supabase.from("quest_subtasks" as any).update({ assignee_user_id: userId } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
@@ -128,12 +162,31 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
       </div>
 
       <div className="space-y-1.5">
-        {subtasks.map((subtask: any) => (
+        {subtasks.map((subtask: any) => {
+          const isPending = pendingDone.has(subtask.id);
+
+          if (isPending) {
+            return (
+              <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-emerald-500/5 p-2">
+                <span className="flex-1 text-sm text-muted-foreground line-through">{subtask.title}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={() => undoSubtaskDone(subtask.id)}
+                >
+                  <Undo2 className="h-3 w-3" /> Undo
+                </Button>
+              </div>
+            );
+          }
+
+          return (
           <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-card p-2 group">
             <Checkbox
               checked={subtask.status === "DONE"}
               disabled={!canEditSubtask(subtask)}
-              onCheckedChange={(checked) => updateStatus(subtask.id, checked ? "DONE" : "TODO")}
+              onCheckedChange={(checked) => handleSubtaskStatusChange(subtask.id, checked ? "DONE" : "TODO", subtask.status)}
             />
             {editingId === subtask.id && canEditSubtask(subtask) ? (
               <Input
@@ -156,7 +209,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
               </span>
             )}
             {canEditSubtask(subtask) && (
-              <Select value={subtask.status} onValueChange={(v) => updateStatus(subtask.id, v)}>
+              <Select value={subtask.status} onValueChange={(v) => handleSubtaskStatusChange(subtask.id, v, subtask.status)}>
                 <SelectTrigger className="w-[110px] h-7 text-xs">
                   <SelectValue />
                 </SelectTrigger>
@@ -195,7 +248,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
               </Button>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {canManage && (
