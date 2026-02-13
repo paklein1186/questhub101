@@ -123,7 +123,7 @@ export function BauhausShape() {
     return () => cancelAnimationFrame(rafId.current);
   }, [isMobile, fleeX, fleeY]);
 
-  const wanderDuration = isMobile ? 55 : 50;
+  const wanderDuration = isMobile ? 75 : 70;
   // Mobile: smaller, repositioned to stay visible
   const sizeStyle = isMobile
     ? { width: "34vw", height: "34vw", maxWidth: 200, maxHeight: 200, minWidth: 90, minHeight: 90 }
@@ -146,9 +146,10 @@ export function BauhausShape() {
         ...positionStyle,
         ...sizeStyle,
       }}
+      className="relative"
     >
       <motion.div
-        className="w-full h-full"
+        className="w-full h-full pointer-events-auto"
         style={{
           x: isMobile ? 0 : smoothX,
           y: isMobile ? 0 : smoothY,
@@ -181,14 +182,14 @@ export function BauhausShape() {
         {/* Click scale reaction */}
         <motion.div animate={scaleControls} className="w-full h-full">
           {/* Soft breathing scale */}
-          <motion.div
-            animate={{ scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
-            transition={{ duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.35, 0.5, 0.7, 0.85, 1] }}
+           <motion.div
+             animate={{ scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
+             transition={{ duration: 40, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.35, 0.5, 0.7, 0.85, 1] }}
             className="w-full h-full"
           >
           <motion.div
             animate={{ rotate: [0, 360] }}
-            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
             className="w-full h-full"
           >
             <svg
