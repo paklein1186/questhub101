@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Sparkles, Brain, Plus } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageShell } from "@/components/PageShell";
@@ -21,8 +21,9 @@ import CompaniesList from "./CompaniesList";
 import CoursesExplore from "./CoursesExplore";
 import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
+import JobsExplore from "./JobsExplore";
 
-const VALID_TABS_AUTH = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_GUEST = ["entities", "houses", "courses"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
@@ -67,6 +68,7 @@ export default function ExploreHub() {
           <TabsTrigger value="entities" className="text-xs sm:text-sm">Entities</TabsTrigger>
           {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm">{label("quest.label")}</TabsTrigger>}
           {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm">{label("service.label_plural")}</TabsTrigger>}
+          {!isGuest && <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>}
           <TabsTrigger value="houses" className="text-xs sm:text-sm">Topics</TabsTrigger>
           <TabsTrigger value="courses" className="text-xs sm:text-sm">{label("course.label")}</TabsTrigger>
           {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm">Humans</TabsTrigger>}
@@ -157,6 +159,9 @@ export default function ExploreHub() {
             <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> Create Service</Link></Button>
           </div>
           <ServicesMarketplace bare />
+        </TabsContent>
+        <TabsContent value="jobs">
+          <JobsExplore bare />
         </TabsContent>
         <TabsContent value="courses">
           <div className="flex justify-end mb-4">
