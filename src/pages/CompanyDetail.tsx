@@ -95,6 +95,7 @@ export default function CompanyDetail() {
   const services = companyServices || [];
   const bookings = companyBookings || [];
   const territories = ((company as any).company_territories || []).map((ct: any) => ct.territories).filter(Boolean);
+  const topics = ((company as any).company_topics || []).map((ct: any) => ct.topics).filter(Boolean);
 
   // Role-based permissions
   const isLoggedIn = !!currentUser.id;
@@ -204,6 +205,7 @@ export default function CompanyDetail() {
         {company.description && <p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
+          {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <SocialLinksDisplay data={{ websiteUrl: company.website_url, twitterUrl: company.twitter_url, linkedinUrl: company.linkedin_url, instagramUrl: company.instagram_url }} />
 
