@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, MapPin, Users, Loader2 } from "lucide-react";
@@ -11,7 +11,6 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/component
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
-import { sortEntities } from "@/lib/exploreSorting";
 
 function useCompaniesExplore() {
   return useQuery({
@@ -35,21 +34,13 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
   const { session } = useAuth();
   const isLoggedIn = !!session;
 
-  const filtered = useMemo(() => {
-    let base = companiesData ?? [];
-    if (activeFilters.territoryIds.length > 0) {
-      base = base.filter((c: any) =>
-        c.company_territories?.some((ct: any) => activeFilters.territoryIds.includes(ct.territory_id))
-      );
-    }
-    return sortEntities(
-      base,
-      activeFilters.sortMode,
-      (c: any) => c.company_members?.length ?? 0,
-      (c: any) => c.updated_at,
-      (c: any) => c.created_at,
+  let filtered = companiesData ?? [];
+
+  if (activeFilters.territoryIds.length > 0) {
+    filtered = filtered.filter((c: any) =>
+      c.company_territories?.some((ct: any) => activeFilters.territoryIds.includes(ct.territory_id))
     );
-  }, [companiesData, activeFilters]);
+  }
 
   return (
     <PageShell bare={bare}>

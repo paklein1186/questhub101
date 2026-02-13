@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -15,15 +15,6 @@ import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "
 import { UniverseToggle } from "@/components/UniverseToggle";
 import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon } from "@/lib/universeMapping";
 
-// ─── Sort modes ─────────────────────────────────────────────
-export type ExploreSortMode = "recent_activity" | "newest" | "most_members";
-
-export const SORT_LABELS: Record<ExploreSortMode, string> = {
-  recent_activity: "Last activity",
-  newest: "Newest first",
-  most_members: "Most members",
-};
-
 // ─── Filter shape ───────────────────────────────────────────
 export interface ExploreFilterValues {
   topicIds: string[];
@@ -35,7 +26,6 @@ export interface ExploreFilterValues {
   guildType: string;     // "all" | GuildType values
   price: string;         // "all" | "free" | "paid"
   role: string;          // "all" | user role
-  sortMode: ExploreSortMode;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -48,7 +38,6 @@ export const defaultFilters: ExploreFilterValues = {
   guildType: "all",
   price: "all",
   role: "all",
-  sortMode: "recent_activity",
 };
 
 // Which filter sections to show per page
@@ -197,20 +186,6 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 h-4">{activeCount}</Badge>
           )}
         </Button>
-
-        {/* Sort dropdown */}
-        <Select value={filters.sortMode} onValueChange={(v) => set({ sortMode: v as ExploreSortMode })}>
-          <SelectTrigger className="w-auto h-8 text-xs gap-1.5 border-border">
-            <ArrowUpDown className="h-3.5 w-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.entries(SORT_LABELS) as [ExploreSortMode, string][]).map(([key, label]) => (
-              <SelectItem key={key} value={key} className="text-xs">{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" className="text-xs h-7" onClick={clearAll}>
             Clear all

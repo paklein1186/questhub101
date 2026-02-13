@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -22,7 +22,6 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/component
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
-import { sortEntities } from "@/lib/exploreSorting";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -66,21 +65,12 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
     p.topic_id ? [p.topic_id] : []
   );
 
-  const filtered = useMemo(() => {
-    let base = preFiltered.filter((p) => {
-      if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
-      return true;
-    });
-    if (activeFilters.podType !== "all") base = base.filter((p) => p.type === activeFilters.podType);
-    if (activeFilters.topicIds.length > 0) base = base.filter((p) => p.topic_id && activeFilters.topicIds.includes(p.topic_id));
-    return sortEntities(
-      base,
-      activeFilters.sortMode,
-      (p) => (p as any).pod_members?.length ?? 0,
-      (p) => p.updated_at,
-      (p) => p.created_at,
-    );
-  }, [preFiltered, activeFilters, isAdm, currentUser.id]);
+  let filtered = preFiltered.filter((p) => {
+    if (p.is_draft && !isAdm && p.creator_id !== currentUser.id) return false;
+    return true;
+  });
+  if (activeFilters.podType !== "all") filtered = filtered.filter((p) => p.type === activeFilters.podType);
+  if (activeFilters.topicIds.length > 0) filtered = filtered.filter((p) => p.topic_id && activeFilters.topicIds.includes(p.topic_id));
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
