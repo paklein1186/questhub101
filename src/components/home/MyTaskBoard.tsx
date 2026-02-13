@@ -744,7 +744,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 opacity-0 group-hover:opacity-100"
-                        onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}`)}
+                        onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}?tab=subtasks`)}
                       >
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Button>
