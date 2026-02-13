@@ -455,7 +455,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   // ── Helper: resolve actor name ──
   const resolveActorName = useCallback(async (actorUserId: string): Promise<string> => {
     try {
-      const { data } = await supabase.from("profiles").select("name").eq("user_id", actorUserId).maybeSingle();
+      const { data } = await supabase.from("profiles_public").select("name").eq("user_id", actorUserId).maybeSingle();
       return data?.name || "Someone";
     } catch { return "Someone"; }
   }, []);

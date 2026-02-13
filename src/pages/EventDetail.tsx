@@ -62,7 +62,7 @@ export default function EventDetail() {
       // Fetch profile names
       const userIds = (data || []).map((r: any) => r.user_id).filter(Boolean);
       if (userIds.length === 0) return data || [];
-      const { data: profiles } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds);
+      const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", userIds);
       const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       return (data || []).map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) || null }));
     },

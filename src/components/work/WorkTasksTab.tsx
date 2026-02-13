@@ -249,7 +249,7 @@ export function WorkTasksTab() {
       if (!assignees?.length) return [];
       const userIds = [...new Set((assignees as any[]).map((a: any) => a.user_id))];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("user_id, name, avatar_url")
         .in("user_id", userIds);
       const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));

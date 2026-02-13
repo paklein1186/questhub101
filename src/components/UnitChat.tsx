@@ -115,7 +115,7 @@ function useUnitChatMessages(threadId: string | undefined) {
       const userIds = [...new Set(msgs.filter(m => m.sender_user_id).map(m => m.sender_user_id!))];
       let profileMap: Record<string, { name: string; avatar_url: string | null }> = {};
       if (userIds.length) {
-        const { data: profiles } = await supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds);
+        const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", userIds);
         for (const p of profiles ?? []) profileMap[p.user_id] = { name: p.name, avatar_url: p.avatar_url };
       }
       return msgs.map(m => ({
@@ -147,7 +147,7 @@ function useStarredExcerpts(threadId: string | undefined, userId: string) {
 
       // Fetch profiles, user's upvotes, and pending report counts in parallel
       const [profilesRes, upvotesRes, reportsRes] = await Promise.all([
-        userIds.length ? supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds) : { data: [] },
+        userIds.length ? supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", userIds) : { data: [] },
         userId ? supabase.from("starred_excerpt_upvotes").select("excerpt_id").eq("user_id", userId).in("excerpt_id", excerptIds) : { data: [] },
         supabase.from("starred_excerpt_reports").select("excerpt_id").eq("status", "PENDING").in("excerpt_id", excerptIds),
       ]);
