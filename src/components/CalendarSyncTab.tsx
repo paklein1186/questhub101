@@ -84,12 +84,7 @@ export function CalendarSyncTab() {
       }
 
       const redirectUri = `${window.location.origin}/me?tab=calendar`;
-      const res = await supabase.functions.invoke("calendar-oauth", {
-        body: null,
-        headers: {},
-      });
 
-      // Use GET with query params for auth-url
       const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-oauth?action=auth-url&provider=${provider}&redirect_uri=${encodeURIComponent(redirectUri)}`;
       const response = await fetch(funcUrl, {
         headers: {
