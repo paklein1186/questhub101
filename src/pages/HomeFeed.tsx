@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import logoImg from "@/assets/logo.png";
+import { LivingLogo } from "@/components/home/LivingLogo";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff } from "lucide-react";
@@ -483,75 +483,7 @@ export default function HomeFeed() {
       <MilestonePopup />
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
-        {/* Living logo companion — wanders in whitespace with heartbeat */}
-        <motion.div
-          className="pointer-events-none absolute z-0"
-          initial={{ opacity: 0, scale: 0.3 }}
-          animate={{
-            opacity: [0, 0.85, 0.85],
-            scale: 1,
-            x: [0, 60, -40, 80, -20, 50, 0],
-            y: [0, -80, 30, -120, 60, -40, 0],
-          }}
-          transition={{
-            opacity: { duration: 1.2, ease: "easeOut" },
-            scale: { duration: 1, ease: "easeOut" },
-            x: { duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1] },
-            y: { duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1] },
-          }}
-          style={{ left: "-2rem", top: "28%" }}
-        >
-          {/* Heartbeat pulse */}
-          <motion.div
-            animate={{ scale: [1, 1.08, 1, 1.04, 1, 1.1, 1.02, 1] }}
-            transition={{
-              duration: 2.4,
-              repeat: Infinity,
-              ease: [0.4, 0, 0.2, 1],
-              times: [0, 0.12, 0.22, 0.32, 0.5, 0.62, 0.72, 1],
-            }}
-            className="relative"
-          >
-            {/* Slow rotation drift */}
-            <motion.div
-              animate={{ rotate: [0, 12, -8, 15, -6, 4, 0] }}
-              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-              className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14"
-            >
-              {/* Fluid stretch deformation */}
-              <motion.div
-                animate={{
-                  scaleX: [1, 1.12, 0.94, 1.06, 0.97, 1.08, 1],
-                  scaleY: [1, 0.92, 1.1, 0.96, 1.05, 0.94, 1],
-                  skewX: [0, 3, -2, 4, -3, 1, 0],
-                  skewY: [0, -2, 3, -1, 2, -2, 0],
-                }}
-                transition={{
-                  duration: 14,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  times: [0, 0.14, 0.28, 0.42, 0.58, 0.78, 1],
-                }}
-                className="relative w-full h-full"
-              >
-                {/* Soft glow behind logo */}
-                <motion.div
-                  className="absolute inset-0 rounded-full blur-md"
-                  animate={{ opacity: [0.15, 0.3, 0.15] }}
-                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                  style={{ background: "hsl(var(--primary) / 0.25)" }}
-                />
-                {/* Logo image */}
-                <img
-                  src={logoImg}
-                  alt=""
-                  className="relative w-full h-full object-contain drop-shadow-sm"
-                  style={{ filter: "drop-shadow(0 0 6px hsl(var(--primary) / 0.2))" }}
-                />
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+        <LivingLogo />
 
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
