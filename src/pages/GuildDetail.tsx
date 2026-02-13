@@ -492,7 +492,7 @@ export default function GuildDetail() {
         )}
 
         <TabsContent value="wall" className="mt-6 space-y-6">
-          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} />
+          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} showDisplayToggle />
           <CommentThread targetType={CommentTargetType.GUILD} targetId={guild.id} />
         </TabsContent>
 
