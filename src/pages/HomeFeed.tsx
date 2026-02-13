@@ -355,7 +355,7 @@ export default function HomeFeed() {
 
   const isListeningRef = useRef(false);
 
-  const toggleVoice = () => {
+  const toggleVoice = async () => {
     // Stop if already listening
     if (isListeningRef.current && recognitionRef.current) {
       isListeningRef.current = false;
@@ -367,6 +367,23 @@ export default function HomeFeed() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error("Voice input is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+
+    // CRITICAL: Request microphone permission first to ensure the browser
+    // grants access before SpeechRecognition tries to use it.
+    // This must happen in the same user-gesture call stack.
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Release the stream immediately — we only needed the permission grant
+      stream.getTracks().forEach((t) => t.stop());
+    } catch (e: any) {
+      console.error("[STT] Microphone permission denied:", e);
+      if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+        toast.error("Microphone permission denied. Please allow access in your browser settings, or open the app in a new tab.");
+      } else {
+        toast.error("Could not access microphone. Please try again or use a different browser.");
+      }
       return;
     }
 
@@ -429,7 +446,6 @@ export default function HomeFeed() {
       }
     };
 
-    // CRITICAL: must be called synchronously from click handler
     try {
       recognition.start();
     } catch (e: any) {
