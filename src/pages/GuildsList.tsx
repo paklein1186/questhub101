@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -21,6 +21,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters } from "@/component
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { sortEntities } from "@/lib/exploreSorting";
 
 export default function GuildsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
   const currentUser = useCurrentUser();
@@ -52,13 +53,22 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
     (g.guild_topics ?? []).map((gt: any) => gt.topic_id)
   );
 
-  const filtered = preFiltered.filter((g) => {
-    if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
-    if (activeFilters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => activeFilters.topicIds.includes(gt.topic_id))) return false;
-    if (activeFilters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => activeFilters.territoryIds.includes(gt.territory_id))) return false;
-    if (activeFilters.guildType !== "all" && g.type !== activeFilters.guildType) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    const base = preFiltered.filter((g) => {
+      if (g.is_draft && !isAdm && g.created_by_user_id !== currentUser.id) return false;
+      if (activeFilters.topicIds.length > 0 && !g.guild_topics?.some((gt: any) => activeFilters.topicIds.includes(gt.topic_id))) return false;
+      if (activeFilters.territoryIds.length > 0 && !g.guild_territories?.some((gt: any) => activeFilters.territoryIds.includes(gt.territory_id))) return false;
+      if (activeFilters.guildType !== "all" && g.type !== activeFilters.guildType) return false;
+      return true;
+    });
+    return sortEntities(
+      base,
+      activeFilters.sortMode,
+      (g) => g.guild_members?.length ?? 0,
+      (g) => g.updated_at,
+      (g) => g.created_at,
+    );
+  }, [preFiltered, activeFilters, isAdm, currentUser.id]);
 
   const handleCreate = async () => {
     if (!gName.trim()) return;
