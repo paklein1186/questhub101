@@ -60,22 +60,33 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
   return (
     <>
       <div className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20">
-        {/* Image area */}
-        {firstImage && (
-          <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-56"}`}>
-            <img
-              src={firstImage.thumbnail_url || firstImage.url}
-              alt=""
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-            />
-            {images.length > 1 && (
-              <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md">
-                +{images.length - 1}
-              </span>
-            )}
-          </div>
-        )}
+        {/* Thumbnail area */}
+        <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-56"}`}>
+          {firstImage ? (
+            <>
+              <img
+                src={firstImage.thumbnail_url || firstImage.url}
+                alt=""
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+              />
+              {images.length > 1 && (
+                <span className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-md">
+                  +{images.length - 1}
+                </span>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-muted group-hover:scale-105 transition-transform duration-300">
+              <Avatar className={size === "small" ? "h-10 w-10" : size === "medium" ? "h-14 w-14" : "h-20 w-20"}>
+                <AvatarImage src={post.author?.avatar_url ?? undefined} />
+                <AvatarFallback className="text-lg font-semibold bg-primary/20 text-primary">
+                  {post.author?.name?.[0] || "?"}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </div>
 
         {/* Content */}
         <div className={`p-3 ${size === "small" ? "space-y-1" : "space-y-2"}`}>
