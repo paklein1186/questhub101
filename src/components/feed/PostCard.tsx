@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useDeletePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
+import { useDeletePost, useEditPost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
 import { renderMentions } from "@/components/MentionTextarea";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
@@ -18,6 +18,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 
 function ImageGrid({ images }: { images: PostAttachment[] }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -121,11 +122,14 @@ interface PostCardProps {
 export function PostCard({ post, hasUpvoted = false, allowComments = true }: PostCardProps) {
   const currentUser = useCurrentUser();
   const deletePost = useDeletePost();
+  const editPost = useEditPost();
   const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
   const upvoteCount = post.upvote_count ?? 0;
   const isDeleting = deletePost.isPending;
   const [showComments, setShowComments] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || "");
 
   // Comment count
   const { data: commentCount = 0 } = useQuery({
@@ -160,6 +164,24 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
     );
   };
 
+  const handleSaveEdit = () => {
+    editPost.mutate(
+      { postId: post.id, content: editContent.trim() },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          toast.success("Post updated");
+        },
+        onError: () => toast.error("Failed to update post"),
+      }
+    );
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(post.content || "");
+    setEditing(false);
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       {/* Header */}
@@ -178,6 +200,9 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </span>
+            {post.updated_at !== post.created_at && !editing && (
+              <span className="text-[10px] text-muted-foreground italic">(edited)</span>
+            )}
           </div>
           {(post as any).contextName && (
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -192,15 +217,40 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
             </p>
           )}
         </div>
-        {isOwn && (
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete} disabled={isDeleting}>
-            {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-          </Button>
+        {isOwn && !editing && (
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => { setEditContent(post.content || ""); setEditing(true); }}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
         )}
       </div>
 
       {/* Content */}
-      {post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMentions(post.content)}</p>}
+      {editing ? (
+        <div className="space-y-2">
+          <Textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="min-h-[80px] text-sm"
+            maxLength={2000}
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={editPost.isPending}>
+              <XIcon className="h-3.5 w-3.5 mr-1" /> Cancel
+            </Button>
+            <Button size="sm" onClick={handleSaveEdit} disabled={editPost.isPending || !editContent.trim()}>
+              {editPost.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+              Save
+            </Button>
+          </div>
+        </div>
+      ) : (
+        post.content && <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMentions(post.content)}</p>
+      )}
 
       {/* Attachments */}
       {images.length > 0 && <ImageGrid images={images} />}
