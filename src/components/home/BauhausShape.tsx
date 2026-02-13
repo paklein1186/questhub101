@@ -87,8 +87,8 @@ export function BauhausShape() {
   const wanderDuration = isMobile ? 55 : 35;
   // Mobile: smaller, repositioned to stay visible
   const sizeStyle = isMobile
-    ? { width: "28vw", height: "28vw", maxWidth: 160, maxHeight: 160, minWidth: 80, minHeight: 80 }
-    : { width: "15vw", height: "15vw", maxWidth: 280, maxHeight: 280, minWidth: 100, minHeight: 100 };
+    ? { width: "34vw", height: "34vw", maxWidth: 200, maxHeight: 200, minWidth: 90, minHeight: 90 }
+    : { width: "20vw", height: "20vw", maxWidth: 380, maxHeight: 380, minWidth: 120, minHeight: 120 };
 
   const positionStyle = isMobile
     ? { right: "4%", top: "8%" }
@@ -131,7 +131,12 @@ export function BauhausShape() {
       >
         {/* Click scale reaction */}
         <motion.div animate={scaleControls} className="w-full h-full">
-          {/* Slow rotation */}
+          {/* Soft breathing scale */}
+          <motion.div
+            animate={{ scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
+            transition={{ duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.35, 0.5, 0.7, 0.85, 1] }}
+            className="w-full h-full"
+          >
           <motion.div
             animate={{ rotate: [0, 360] }}
             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
@@ -174,6 +179,7 @@ export function BauhausShape() {
                 }}
               />
             </svg>
+           </motion.div>
           </motion.div>
         </motion.div>
       </motion.div>
