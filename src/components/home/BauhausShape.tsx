@@ -216,18 +216,20 @@ export function BauhausShape() {
                   <feDropShadow dx="-3" dy="2" stdDeviation="2" floodColor="#1E1E1E" floodOpacity="0.18" />
                 </filter>
               </defs>
-              <motion.path
-                fill="url(#bauhaus-grad)"
-                opacity={0.45}
-                filter="url(#bauhaus-shadow)"
-                animate={{ d: PATHS }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  times: [0, 0.18, 0.36, 0.54, 0.72, 1],
-                }}
-              />
+               <motion.path
+                 fill="url(#bauhaus-grad)"
+                 opacity={0.45}
+                 filter="url(#bauhaus-shadow)"
+                 animate={{
+                   d: [PATHS[0], PATHS[1], PATHS[2], PATHS[3], PATHS[4], PATHS[0]],
+                 }}
+                 transition={{
+                   duration: 8,
+                   repeat: Infinity,
+                   ease: "easeInOut",
+                   times: [0, 0.18, 0.36, 0.54, 0.72, 1],
+                 }}
+               />
             </svg>
            </motion.div>
           </motion.div>
