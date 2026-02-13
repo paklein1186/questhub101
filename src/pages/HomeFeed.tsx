@@ -250,9 +250,15 @@ function TerritoryFlow({
             <button
               key={i}
               onClick={() => {
-                const route = s.route || "/explore";
-                const target = route.startsWith("/") && !route.includes("://") ? route : "/explore";
-                navigate(target);
+                let route = s.route || "/explore";
+                if (!route.startsWith("/") || route.includes("://")) route = "/explore";
+                // Append queryParams if present
+                if (s.queryParams && Object.keys(s.queryParams).length > 0) {
+                  const url = new URL(route, window.location.origin);
+                  Object.entries(s.queryParams).forEach(([k, v]) => url.searchParams.set(k, v as string));
+                  route = url.pathname + url.search + url.hash;
+                }
+                navigate(route);
               }}
               className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
             >
