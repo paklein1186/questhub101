@@ -21,7 +21,7 @@ async function sendEmailViaResend({ to, subject, html }: { to: string; subject: 
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "ChangeTheGame <onboarding@resend.dev>",
+      from: "Mirror from changethegame <hello@changethegame.xyz>",
       to: [to],
       subject,
       html,
