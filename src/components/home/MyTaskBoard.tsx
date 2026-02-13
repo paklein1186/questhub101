@@ -131,19 +131,63 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     enabled: !!userId,
   });
 
-  // Fetch subtasks assigned to user
+  // Fetch subtasks: assigned to user OR from quests user owns/participates in
   const { data: mySubtasks = [], isLoading: loadingSubtasks } = useQuery({
     queryKey: ["my-subtasks", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Subtasks explicitly assigned to user
+      const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id")
+        .select("id, title, status, quest_id, assignee_user_id")
         .eq("assignee_user_id", userId)
         .in("status", ["TODO", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      const questIds = [...new Set((data || []).map((s: any) => s.quest_id))];
+        .limit(50);
+      if (e1) throw e1;
+
+      // 2. Get quest IDs user owns
+      const { data: ownedQuests } = await supabase
+        .from("quests")
+        .select("id")
+        .eq("created_by_user_id", userId)
+        .eq("is_deleted", false)
+        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"]);
+      const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
+
+      // 3. Get quest IDs user participates in
+      const { data: parts } = await supabase
+        .from("quest_participants")
+        .select("quest_id")
+        .eq("user_id", userId)
+        .eq("status", "APPROVED");
+      const partQuestIds = (parts || []).map((p: any) => p.quest_id);
+
+      // 4. Combine and fetch unassigned/user subtasks from those quests
+      const allQuestIds = [...new Set([...ownedQuestIds, ...partQuestIds])];
+      let fromQuests: any[] = [];
+      if (allQuestIds.length > 0) {
+        const { data: qSubtasks } = await supabase
+          .from("quest_subtasks" as any)
+          .select("id, title, status, quest_id, assignee_user_id")
+          .in("quest_id", allQuestIds)
+          .in("status", ["TODO", "IN_PROGRESS"])
+          .order("created_at", { ascending: false })
+          .limit(50);
+        fromQuests = qSubtasks || [];
+      }
+
+      // 5. Merge & deduplicate
+      const seen = new Set<string>();
+      const merged: any[] = [];
+      for (const s of [...(assigned || []), ...fromQuests]) {
+        if (!seen.has(s.id)) {
+          seen.add(s.id);
+          merged.push(s);
+        }
+      }
+
+      // 6. Resolve quest titles
+      const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
       let questMap = new Map<string, string>();
       if (questIds.length > 0) {
         const { data: quests } = await supabase
@@ -152,7 +196,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           .in("id", questIds);
         questMap = new Map((quests || []).map((q: any) => [q.id, q.title]));
       }
-      return (data || []).map((s: any) => ({ ...s, questTitle: questMap.get(s.quest_id) || "Quest" }));
+      return merged.map((s: any) => ({ ...s, questTitle: questMap.get(s.quest_id) || "Quest" }));
     },
     enabled: !!userId,
   });
