@@ -55,41 +55,54 @@ serve(async (req) => {
 
     console.log(`[WEBHOOK] Event: ${event.type}`);
 
-    if (event.type === "checkout.session.completed") {
+     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata || {};
 
-      if (metadata.type === "xp_bundle") {
-        // XP Bundle purchase
+      if (metadata.type === "credit_bundle" || metadata.type === "xp_bundle") {
+        // Credit bundle purchase (also handles legacy xp_bundle type)
         const userId = metadata.user_id;
         const bundleCode = metadata.bundle_code;
-        const xpAmount = parseInt(metadata.xp_amount, 10);
+        const creditsAmount = parseInt(metadata.credits_amount || metadata.xp_amount || "0", 10);
 
-        console.log(`[WEBHOOK] XP bundle purchase: user=${userId}, bundle=${bundleCode}, xp=${xpAmount}`);
+        console.log(`[WEBHOOK] Credit bundle purchase: user=${userId}, bundle=${bundleCode}, credits=${creditsAmount}`);
 
-        // Add XP to profile
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("xp")
-          .eq("user_id", userId)
-          .single();
-
-        if (profile) {
-          await supabase
+        if (creditsAmount > 0) {
+          // Get current credits balance
+          const { data: profile } = await supabase
             .from("profiles")
-            .update({ xp: (profile.xp || 0) + xpAmount })
-            .eq("user_id", userId);
+            .select("credits_balance")
+            .eq("user_id", userId)
+            .single();
+
+          if (profile) {
+            const currentBalance = (profile as any).credits_balance ?? 0;
+
+            // Update credits balance
+            await supabase
+              .from("profiles")
+              .update({ credits_balance: currentBalance + creditsAmount })
+              .eq("user_id", userId);
+          }
+
+          // Log credit transaction
+          await supabase.from("credit_transactions").insert({
+            user_id: userId,
+            type: "PURCHASE",
+            amount: creditsAmount,
+            source: `Bought credit bundle: ${bundleCode}`,
+          });
+
+          // Also log to xp_transactions for backward compatibility
+          await supabase.from("xp_transactions").insert({
+            user_id: userId,
+            type: "PURCHASE",
+            amount_xp: creditsAmount,
+            description: `Bought credit bundle: ${bundleCode}`,
+          });
+
+          console.log(`[WEBHOOK] Credits granted: ${creditsAmount} credits to user ${userId}`);
         }
-
-        // Log XP transaction
-        await supabase.from("xp_transactions").insert({
-          user_id: userId,
-          type: "PURCHASE",
-          amount_xp: xpAmount,
-          description: `Bought XP bundle: ${bundleCode}`,
-        });
-
-        console.log(`[WEBHOOK] XP credited: ${xpAmount} XP to user ${userId}`);
       } else if (metadata.type === "plan_subscription") {
         const userId = metadata.user_id;
         const subscriptionId = session.subscription as string;
