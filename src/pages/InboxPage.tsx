@@ -139,14 +139,6 @@ export default function InboxPage() {
                     <DialogTitle>New conversation</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <UserSearchInput
-                      onSelect={(user) => {
-                        if (!selectedUsers.find((u) => u.id === user.user_id)) {
-                          setSelectedUsers((prev) => [...prev, { id: user.user_id, name: user.display_name ?? "User" }]);
-                        }
-                      }}
-                      placeholder="Search users..."
-                    />
                     {selectedUsers.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {selectedUsers.map((u) => (
@@ -157,6 +149,14 @@ export default function InboxPage() {
                         ))}
                       </div>
                     )}
+                    <UserSearchInput
+                      onSelect={(user) => {
+                        if (!selectedUsers.find((u) => u.id === user.user_id)) {
+                          setSelectedUsers((prev) => [...prev, { id: user.user_id, name: user.display_name ?? "User" }]);
+                        }
+                      }}
+                      placeholder="Search users..."
+                    />
                     {selectedUsers.length > 1 && (
                       <Input
                         placeholder="Group name (optional)"
@@ -270,14 +270,6 @@ export default function InboxPage() {
                           <DialogTitle>{activeConv?.is_group ? "Add people" : "Create group from conversation"}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <UserSearchInput
-                            onSelect={(user) => {
-                              if (!newParticipants.find((u) => u.id === user.user_id)) {
-                                setNewParticipants((prev) => [...prev, { id: user.user_id, name: user.display_name ?? "User" }]);
-                              }
-                            }}
-                            placeholder="Search users to add..."
-                          />
                           {newParticipants.length > 0 && (
                             <div className="flex flex-wrap gap-2">
                               {newParticipants.map((u) => (
@@ -288,6 +280,14 @@ export default function InboxPage() {
                               ))}
                             </div>
                           )}
+                          <UserSearchInput
+                            onSelect={(user) => {
+                              if (!newParticipants.find((u) => u.id === user.user_id)) {
+                                setNewParticipants((prev) => [...prev, { id: user.user_id, name: user.display_name ?? "User" }]);
+                              }
+                            }}
+                            placeholder="Search users to add..."
+                          />
                           {!activeConv?.is_group && (
                             <Input
                               placeholder="Group name (optional)"
