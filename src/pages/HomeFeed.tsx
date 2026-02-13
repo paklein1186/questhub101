@@ -482,137 +482,148 @@ export default function HomeFeed() {
       <MilestonePopup />
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
-        {/* Floating fluid orb — sharp & alive */}
+        {/* Living fluid companion — wanders in whitespace with heartbeat */}
         <motion.div
-          className="pointer-events-none absolute -left-6 top-1/3 sm:-left-14 md:-left-20 z-0"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="pointer-events-none absolute z-0"
+          initial={{ opacity: 0, scale: 0.3 }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            // Wander path through whitespace around the page elements
+            x: [0, 60, -40, 80, -20, 50, 0],
+            y: [0, -80, 30, -120, 60, -40, 0],
+          }}
+          transition={{
+            opacity: { duration: 1, ease: "easeOut" },
+            scale: { duration: 1, ease: "easeOut" },
+            x: { duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1] },
+            y: { duration: 28, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.3, 0.5, 0.7, 0.85, 1] },
+          }}
+          style={{ left: "-2rem", top: "28%" }}
         >
+          {/* Heartbeat pulse layer */}
           <motion.div
             animate={{
-              y: [0, -18, 6, -10, 12, -5, 0],
-              x: [0, 5, -6, 4, -3, 2, 0],
-              rotate: [0, 8, -5, 6, -4, 3, 0],
+              scale: [1, 1.06, 1, 1.03, 1, 1.08, 1.01, 1],
             }}
             transition={{
-              duration: 11,
+              duration: 2.4,
               repeat: Infinity,
-              ease: "easeInOut",
-              times: [0, 0.14, 0.28, 0.48, 0.64, 0.84, 1],
+              ease: [0.4, 0, 0.2, 1],
+              times: [0, 0.12, 0.22, 0.32, 0.5, 0.62, 0.72, 1],
             }}
-            className="relative w-16 h-16 sm:w-22 sm:h-22 md:w-24 md:h-24"
+            className="relative"
           >
-            {/* Sharp membrane — SVG with morphing path */}
-            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <clipPath id="fluid-clip">
-                  <motion.path
-                    animate={{
-                      d: [
-                        "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
-                        "M48,8 C68,2 92,22 96,45 C100,68 82,90 60,96 C38,102 12,88 5,65 C-2,42 18,14 40,8 C44,7 46,8 48,8Z",
-                        "M52,4 C78,8 95,28 94,52 C93,76 75,95 52,97 C29,99 8,82 4,58 C0,34 16,10 38,4 C44,2 48,3 52,4Z",
-                        "M45,6 C65,0 88,15 96,38 C104,61 90,88 65,95 C40,102 14,85 6,62 C-2,39 14,12 35,6 C38,5 42,6 45,6Z",
-                        "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
-                      ],
-                    }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </clipPath>
-                {/* Sharper edge glow filter */}
-                <filter id="fluid-glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              {/* Outer membrane edge */}
-              <motion.path
-                animate={{
-                  d: [
-                    "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
-                    "M48,8 C68,2 92,22 96,45 C100,68 82,90 60,96 C38,102 12,88 5,65 C-2,42 18,14 40,8 C44,7 46,8 48,8Z",
-                    "M52,4 C78,8 95,28 94,52 C93,76 75,95 52,97 C29,99 8,82 4,58 C0,34 16,10 38,4 C44,2 48,3 52,4Z",
-                    "M45,6 C65,0 88,15 96,38 C104,61 90,88 65,95 C40,102 14,85 6,62 C-2,39 14,12 35,6 C38,5 42,6 45,6Z",
-                    "M50,5 C72,5 90,18 95,40 C100,62 88,85 68,93 C48,101 22,92 10,72 C-2,52 8,20 28,10 C38,5 45,5 50,5Z",
-                  ],
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                fill="none"
-                stroke="hsl(var(--primary) / 0.25)"
-                strokeWidth="0.8"
-                filter="url(#fluid-glow)"
-              />
-            </svg>
-
-            {/* Inner fill clipped to morphing shape */}
-            <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "url(#fluid-clip)" }}>
-              {/* Base fill */}
-              <div
-                className="absolute inset-0"
-                style={{ background: "hsl(var(--primary) / 0.06)" }}
-              />
-              {/* Color 1 — primary */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.7, 0.25, 0.5, 0.7],
-                  x: [0, 5, -3, 0],
-                  y: [0, -4, 3, 0],
-                }}
-                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(ellipse at 30% 30%, hsl(var(--primary) / 0.65), transparent 65%)" }}
-              />
-              {/* Color 2 — secondary rose */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.15, 0.55, 0.2, 0.15],
-                  x: [0, -4, 3, 0],
-                  y: [0, 5, -2, 0],
-                }}
-                transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(ellipse at 70% 65%, hsl(var(--secondary) / 0.55), transparent 60%)" }}
-              />
-              {/* Color 3 — amber accent */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.08, 0.35, 0.12, 0.08],
-                  x: [0, 3, -5, 0],
-                  y: [0, 2, -3, 0],
-                }}
-                transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(ellipse at 55% 25%, hsl(35 90% 58% / 0.45), transparent 55%)" }}
-              />
-              {/* Color 4 — teal */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  opacity: [0.2, 0.08, 0.38, 0.2],
-                  x: [0, -2, 4, 0],
-                  y: [0, -3, 2, 0],
-                }}
-                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                style={{ background: "radial-gradient(ellipse at 35% 75%, hsl(180 50% 52% / 0.35), transparent 55%)" }}
-              />
-              {/* Specular highlight */}
-              <div
-                className="absolute inset-0"
-                style={{ background: "radial-gradient(ellipse 40% 30% at 28% 22%, hsl(0 0% 100% / 0.22), transparent)" }}
-              />
-            </div>
-
-            {/* Outer soft haze contained close to shape */}
+            {/* Gentle rotation drift */}
             <motion.div
-              className="absolute -inset-2 blur-md"
-              animate={{ opacity: [0.15, 0.25, 0.15] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              style={{ clipPath: "url(#fluid-clip)", background: "hsl(var(--primary) / 0.15)" }}
-            />
+              animate={{ rotate: [0, 15, -10, 20, -8, 5, 0] }}
+              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+              className="relative w-11 h-11 sm:w-14 sm:h-14 md:w-16 md:h-16"
+            >
+              {/* SVG morphing membrane */}
+              <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <clipPath id="fluid-clip">
+                    <motion.path
+                      animate={{
+                        d: [
+                          // Circle-ish (default)
+                          "M50,6 C70,4 92,20 96,44 C100,68 84,92 58,96 C32,100 8,80 4,56 C0,32 22,8 50,6Z",
+                          // Slight blob
+                          "M52,5 C74,8 94,26 95,50 C96,74 78,94 54,96 C30,98 6,78 5,54 C4,30 28,2 52,5Z",
+                          // Organic stretch
+                          "M46,3 C72,0 96,18 98,46 C100,74 80,98 52,99 C24,100 2,76 3,48 C4,20 20,6 46,3Z",
+                          // Teardrop lean
+                          "M55,4 C80,10 97,32 94,56 C91,80 68,97 44,96 C20,95 2,72 5,48 C8,24 30,-2 55,4Z",
+                          // Amoeba
+                          "M48,2 C68,-2 95,14 98,42 C101,70 86,96 60,99 C34,102 4,84 2,58 C0,32 28,6 48,2Z",
+                          // Petal
+                          "M53,5 C76,6 93,24 96,48 C99,72 82,93 56,97 C30,101 6,82 4,56 C2,30 26,4 53,5Z",
+                          // Back to circle-ish
+                          "M50,6 C70,4 92,20 96,44 C100,68 84,92 58,96 C32,100 8,80 4,56 C0,32 22,8 50,6Z",
+                        ],
+                      }}
+                      transition={{
+                        duration: 14,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        times: [0, 0.14, 0.28, 0.42, 0.58, 0.78, 1],
+                      }}
+                    />
+                  </clipPath>
+                  <filter id="fluid-glow" x="-25%" y="-25%" width="150%" height="150%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                {/* Membrane stroke */}
+                <motion.path
+                  animate={{
+                    d: [
+                      "M50,6 C70,4 92,20 96,44 C100,68 84,92 58,96 C32,100 8,80 4,56 C0,32 22,8 50,6Z",
+                      "M52,5 C74,8 94,26 95,50 C96,74 78,94 54,96 C30,98 6,78 5,54 C4,30 28,2 52,5Z",
+                      "M46,3 C72,0 96,18 98,46 C100,74 80,98 52,99 C24,100 2,76 3,48 C4,20 20,6 46,3Z",
+                      "M55,4 C80,10 97,32 94,56 C91,80 68,97 44,96 C20,95 2,72 5,48 C8,24 30,-2 55,4Z",
+                      "M48,2 C68,-2 95,14 98,42 C101,70 86,96 60,99 C34,102 4,84 2,58 C0,32 28,6 48,2Z",
+                      "M53,5 C76,6 93,24 96,48 C99,72 82,93 56,97 C30,101 6,82 4,56 C2,30 26,4 53,5Z",
+                      "M50,6 C70,4 92,20 96,44 C100,68 84,92 58,96 C32,100 8,80 4,56 C0,32 22,8 50,6Z",
+                    ],
+                  }}
+                  transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", times: [0, 0.14, 0.28, 0.42, 0.58, 0.78, 1] }}
+                  fill="none"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.6"
+                  filter="url(#fluid-glow)"
+                />
+              </svg>
+
+              {/* Inner fill clipped to morphing shape */}
+              <div className="absolute inset-0" style={{ clipPath: "url(#fluid-clip)" }}>
+                {/* Base */}
+                <div className="absolute inset-0" style={{ background: "hsl(var(--primary) / 0.05)" }} />
+                {/* Color 1 — primary */}
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ opacity: [0.65, 0.2, 0.45, 0.65], x: [0, 4, -2, 0], y: [0, -3, 4, 0] }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ background: "radial-gradient(ellipse at 30% 30%, hsl(var(--primary) / 0.6), transparent 60%)" }}
+                />
+                {/* Color 2 — rose */}
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ opacity: [0.12, 0.5, 0.18, 0.12], x: [0, -3, 2, 0], y: [0, 4, -2, 0] }}
+                  transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ background: "radial-gradient(ellipse at 68% 62%, hsl(var(--secondary) / 0.5), transparent 55%)" }}
+                />
+                {/* Color 3 — amber */}
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ opacity: [0.06, 0.3, 0.1, 0.06], x: [0, 2, -4, 0], y: [0, 1, -2, 0] }}
+                  transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ background: "radial-gradient(ellipse at 52% 24%, hsl(35 90% 58% / 0.4), transparent 50%)" }}
+                />
+                {/* Color 4 — teal */}
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ opacity: [0.18, 0.06, 0.32, 0.18], x: [0, -2, 3, 0], y: [0, -3, 1, 0] }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ background: "radial-gradient(ellipse at 38% 72%, hsl(180 50% 52% / 0.3), transparent 50%)" }}
+                />
+                {/* Specular */}
+                <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 35% 25% at 26% 20%, hsl(0 0% 100% / 0.2), transparent)" }} />
+              </div>
+
+              {/* Breathing haze */}
+              <motion.div
+                className="absolute -inset-1 blur-sm"
+                animate={{ opacity: [0.1, 0.2, 0.1] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ clipPath: "url(#fluid-clip)", background: "hsl(var(--primary) / 0.12)" }}
+              />
+            </motion.div>
           </motion.div>
         </motion.div>
 
