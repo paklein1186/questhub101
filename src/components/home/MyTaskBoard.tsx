@@ -306,15 +306,61 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     }
 
     // Add creator as OWNER participant with ACCEPTED status
+    const questId = (data as any).id;
     await supabase.from("quest_participants").insert({
-      quest_id: (data as any).id,
+      quest_id: questId,
       user_id: userId,
       role: "OWNER",
       status: "ACCEPTED",
     });
 
+    // Auto-tag quest with topics & territories from the owning unit or user
+    try {
+      let topicIds: string[] = [];
+      let territoryIds: string[] = [];
+
+      if (unit && unit.type === "GUILD") {
+        const [t, te] = await Promise.all([
+          supabase.from("guild_topics").select("topic_id").eq("guild_id", unit.id),
+          supabase.from("guild_territories").select("territory_id").eq("guild_id", unit.id),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      } else if (unit && unit.type === "COMPANY") {
+        const [t, te] = await Promise.all([
+          supabase.from("company_topics").select("topic_id").eq("company_id", unit.id),
+          supabase.from("company_territories").select("territory_id").eq("company_id", unit.id),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      } else {
+        // Individual user — use their topics & territories
+        const [t, te] = await Promise.all([
+          supabase.from("user_topics").select("topic_id").eq("user_id", userId),
+          supabase.from("user_territories").select("territory_id").eq("user_id", userId),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      }
+
+      // Insert quest_topics
+      if (topicIds.length > 0) {
+        await supabase.from("quest_topics").insert(
+          topicIds.map((topic_id) => ({ quest_id: questId, topic_id }))
+        );
+      }
+      // Insert quest_territories
+      if (territoryIds.length > 0) {
+        await supabase.from("quest_territories" as any).insert(
+          territoryIds.map((territory_id) => ({ quest_id: questId, territory_id }))
+        );
+      }
+    } catch (e) {
+      console.warn("Auto-tagging quest failed (non-blocking):", e);
+    }
+
     await supabase.from("personal_tasks" as any).update({
-      converted_to_quest_id: (data as any).id,
+      converted_to_quest_id: questId,
     } as any).eq("id", pendingConvertTask.id);
 
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
@@ -323,7 +369,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setUnitPickerOpen(false);
     setPendingConvertTask(null);
     toast({ title: "Task converted to quest!" });
-    navigate(`/quests/${(data as any).id}`);
+    navigate(`/quests/${questId}`);
   };
 
   const convertToSubtask = async (task: UnifiedTask, questId: string) => {
