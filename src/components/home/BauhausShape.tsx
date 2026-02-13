@@ -156,8 +156,8 @@ export function BauhausShape() {
                 </linearGradient>
                 {/* Soft shadow filter — light from center of page (top-left of shape) */}
                 <filter id="bauhaus-shadow" x="-40%" y="-40%" width="180%" height="180%">
-                  <feDropShadow dx="-6" dy="4" stdDeviation="8" floodColor="#1E1E1E" floodOpacity="0.18" />
-                  <feDropShadow dx="-3" dy="2" stdDeviation="4" floodColor="#1E1E1E" floodOpacity="0.10" />
+                  <feDropShadow dx="-6" dy="4" stdDeviation="5" floodColor="#1E1E1E" floodOpacity="0.32" />
+                  <feDropShadow dx="-3" dy="2" stdDeviation="2" floodColor="#1E1E1E" floodOpacity="0.18" />
                 </filter>
               </defs>
               <motion.path
