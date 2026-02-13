@@ -77,13 +77,14 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
               )}
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-muted group-hover:scale-105 transition-transform duration-300">
-              <Avatar className={size === "small" ? "h-10 w-10" : size === "medium" ? "h-14 w-14" : "h-20 w-20"}>
-                <AvatarImage src={post.author?.avatar_url ?? undefined} />
-                <AvatarFallback className="text-lg font-semibold bg-primary/20 text-primary">
-                  {post.author?.name?.[0] || "?"}
-                </AvatarFallback>
-              </Avatar>
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-muted group-hover:scale-105 transition-transform duration-300 p-4">
+              {post.content ? (
+                <p className={`text-foreground/70 text-center leading-relaxed ${size === "small" ? "text-xs line-clamp-3" : size === "medium" ? "text-sm line-clamp-4" : "text-sm line-clamp-6"}`}>
+                  {post.content.slice(0, 200)}
+                </p>
+              ) : (
+                <span className="text-muted-foreground text-xs italic">No content</span>
+              )}
             </div>
           )}
         </div>
