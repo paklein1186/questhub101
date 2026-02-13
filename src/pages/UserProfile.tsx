@@ -319,7 +319,7 @@ export default function UserProfile() {
               <section>
                 <h2 className="font-display text-lg font-semibold mb-2">About</h2>
                 <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
-                  {profile.bio.length > 500 ? profile.bio.slice(0, 500) + "…" : profile.bio}
+                  {profile.bio}
                 </p>
               </section>
             )}

@@ -740,8 +740,8 @@ export default function Onboarding() {
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           placeholder="I follow curiosity until it becomes form…"
-          className="min-h-[80px] resize-none text-sm"
-          maxLength={300}
+          className="min-h-[120px] resize-none text-sm"
+          maxLength={1000}
         />
         <div className="flex items-center justify-between">
           <AIWriterButton
@@ -751,7 +751,7 @@ export default function Onboarding() {
             onAccept={(text) => setBio(text)}
             label="✨ Write it with me"
           />
-          <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+           <span className="text-xs text-muted-foreground">{bio.length}/1000</span>
         </div>
 
         <div>
@@ -861,8 +861,8 @@ export default function Onboarding() {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             placeholder="I'm passionate about…"
-            className="min-h-[80px] resize-none text-sm"
-            maxLength={300}
+            className="min-h-[120px] resize-none text-sm"
+            maxLength={1000}
           />
           <div className="flex items-center justify-between mt-1.5">
             <AIWriterButton
@@ -871,7 +871,7 @@ export default function Onboarding() {
               currentText={bio}
               onAccept={(text) => setBio(text)}
             />
-            <span className="text-xs text-muted-foreground">{bio.length}/300</span>
+            <span className="text-xs text-muted-foreground">{bio.length}/1000</span>
           </div>
         </div>
       </div>
