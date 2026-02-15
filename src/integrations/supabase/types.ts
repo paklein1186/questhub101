@@ -1366,6 +1366,7 @@ export type Database = {
           is_deleted: boolean
           updated_at: string
           upvote_count: number
+          visibility: string
         }
         Insert: {
           author_user_id: string
@@ -1378,6 +1379,7 @@ export type Database = {
           is_deleted?: boolean
           updated_at?: string
           upvote_count?: number
+          visibility?: string
         }
         Update: {
           author_user_id?: string
@@ -1390,6 +1392,7 @@ export type Database = {
           is_deleted?: boolean
           updated_at?: string
           upvote_count?: number
+          visibility?: string
         }
         Relationships: []
       }

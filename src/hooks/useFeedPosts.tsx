@@ -84,6 +84,7 @@ export function useCreatePost() {
       attachments,
       territoryIds = [],
       topicIds = [],
+      visibility = "public",
     }: {
       authorUserId: string;
       contextType: string;
@@ -92,6 +93,7 @@ export function useCreatePost() {
       attachments: Omit<PostAttachment, "id" | "post_id" | "created_at">[];
       territoryIds?: string[];
       topicIds?: string[];
+      visibility?: string;
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
@@ -101,7 +103,8 @@ export function useCreatePost() {
           context_type: contextType,
           context_id: contextId || null,
           content: content || null,
-        })
+          visibility,
+        } as any)
         .select("id")
         .single();
 
