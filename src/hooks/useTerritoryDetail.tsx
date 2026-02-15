@@ -7,14 +7,27 @@ import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 /* ───── Territory detail ───── */
 
 export function useTerritoryDetail(id: string | undefined) {
+  const isUuid = !!id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   return useQuery({
     queryKey: ["territory-detail", id],
     queryFn: async () => {
+      if (isUuid) {
+        const { data, error } = await supabase
+          .from("territories")
+          .select("*")
+          .eq("id", id!)
+          .single();
+        if (error) throw error;
+        return data;
+      }
+      // Fallback: lookup by name (supports AI-generated routes like /territories/Toulouse)
+      const decoded = decodeURIComponent(id!);
       const { data, error } = await supabase
         .from("territories")
         .select("*")
-        .eq("id", id!)
-        .single();
+        .ilike("name", decoded)
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
