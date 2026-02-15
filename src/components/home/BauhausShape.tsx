@@ -154,9 +154,11 @@ export function BauhausShape() {
         transition={{ duration: 2, ease: "easeOut" }}
         onClick={handleClick}
       >
+      {/* Key changes on pause to force remount & freeze/restart animations */}
+      <div key={paused ? "paused" : "playing"}>
       {/* Wide wandering orbit */}
       <motion.div
-        animate={paused ? false : {
+        animate={paused ? undefined : {
           x: isMobile
             ? [0, 40, -60, 80, -40, 60, -80, 30, 0]
             : [0, -150, -800, -900, -1100, -950, -400, 100, 150, 80, 0],
@@ -178,12 +180,12 @@ export function BauhausShape() {
         <motion.div animate={scaleControls} className="w-full h-full">
           {/* Soft breathing scale */}
            <motion.div
-             animate={paused ? false : { scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
+             animate={paused ? undefined : { scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
              transition={{ duration: 40, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.35, 0.5, 0.7, 0.85, 1] }}
             className="w-full h-full"
           >
           <motion.div
-            animate={paused ? false : { rotate: [0, 360] }}
+            animate={paused ? undefined : { rotate: [0, 360] }}
             transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
             className="w-full h-full"
           >
@@ -196,12 +198,12 @@ export function BauhausShape() {
                 <linearGradient id="bauhaus-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <motion.stop
                     offset="0%"
-                    animate={paused ? false : { stopColor: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[0]] }}
+                    animate={paused ? undefined : { stopColor: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[0]] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                   />
                   <motion.stop
                     offset="100%"
-                    animate={paused ? false : { stopColor: [COLORS[1], COLORS[3], COLORS[0], COLORS[2], COLORS[1]] }}
+                    animate={paused ? undefined : { stopColor: [COLORS[1], COLORS[3], COLORS[0], COLORS[2], COLORS[1]] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                   />
                 </linearGradient>
@@ -214,7 +216,7 @@ export function BauhausShape() {
                  fill="url(#bauhaus-grad)"
                  opacity={0.09}
                  filter="url(#bauhaus-shadow)"
-                 animate={paused ? false : {
+                 animate={paused ? undefined : {
                    d: [PATHS[0], PATHS[1], PATHS[2], PATHS[3], PATHS[4], PATHS[0]],
                  }}
                  transition={{
@@ -229,6 +231,7 @@ export function BauhausShape() {
           </motion.div>
         </motion.div>
       </motion.div>
+      </div>
       </motion.div>
     </div>,
     document.body
