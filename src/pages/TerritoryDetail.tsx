@@ -15,7 +15,8 @@ export default function TerritoryDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
   const { data: territory, isLoading } = useTerritoryDetail(id);
-  const { data: stats } = useTerritoryStats(id);
+  const resolvedId = territory?.id;
+  const { data: stats } = useTerritoryStats(resolvedId);
   const currentUser = useCurrentUser();
 
   if (isLoading) {
@@ -81,23 +82,23 @@ export default function TerritoryDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <TerritoryOverviewTab territoryId={id!} territoryName={territory.name} />
+            <TerritoryOverviewTab territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
           <TabsContent value="posts" className="mt-6">
-            <TerritoryPostsTab territoryId={id!} territoryName={territory.name} />
+            <TerritoryPostsTab territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
           <TabsContent value="ecosystem" className="mt-6">
-            <TerritoryEcosystemTab territoryId={id!} />
+            <TerritoryEcosystemTab territoryId={resolvedId!} />
           </TabsContent>
 
           <TabsContent value="library" className="mt-6">
-            <TerritoryLibraryTab territoryId={id!} territoryName={territory.name} userId={currentUser.id} />
+            <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
 
           <TabsContent value="contribute" className="mt-6">
-            <TerritoryChatTab territoryId={id!} territoryName={territory.name} userId={currentUser.id} />
+            <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
         </Tabs>
       </div>
