@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -614,6 +615,30 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
     if (checked) {
       setShowConfetti(true);
+      const key = `${task.source}-${task.id}`;
+      toast({
+        title: "Task completed ✓",
+        description: task.title,
+        action: (
+          <ToastAction
+            altText="Undo"
+            onClick={() => {
+              setSessionDone((prev) => {
+                const next = new Set(prev);
+                next.delete(key);
+                return next;
+              });
+              const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
+              upsertWorkState(entityType, task.id, task.workState || "TODO");
+              qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+              qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+              qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+            }}
+          >
+            Undo
+          </ToastAction>
+        ),
+      });
     }
     handleStatusChange(task, checked ? "DONE" : "TODO");
   };
