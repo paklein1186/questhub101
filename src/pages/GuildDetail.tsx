@@ -54,6 +54,7 @@ import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -378,7 +379,10 @@ export default function GuildDetail() {
           <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
         </TabsContent>
 
-        <TabsContent value="members" className="mt-6">
+        <TabsContent value="members" className="mt-6 space-y-4">
+          {isAdmin && (
+            <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {members.map((m: any) => (
               <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
