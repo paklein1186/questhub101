@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -83,6 +84,36 @@ function SocialRow({ profile }: { profile: ProfileData }) {
         </a>
       ))}
     </div>
+  );
+}
+
+// ─── About section with read more ──────────────────────────
+const BIO_CLAMP_LINES = 4;
+
+function AboutSection({ bio }: { bio: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = bio.length > 200;
+
+  return (
+    <section>
+      <h2 className="font-display text-lg font-semibold mb-2">About</h2>
+      <p
+        className={cn(
+          "text-sm text-foreground/80 leading-relaxed whitespace-pre-line",
+          !expanded && isLong && "line-clamp-4"
+        )}
+      >
+        {bio}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-primary hover:underline mt-1 font-medium"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </section>
   );
 }
 
@@ -327,14 +358,7 @@ export default function UserProfile() {
         <TabsContent value="overview">
           <div className="space-y-8">
             {/* Bio */}
-            {profile.bio && (
-              <section>
-                <h2 className="font-display text-lg font-semibold mb-2">About</h2>
-                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
-                  {profile.bio}
-                </p>
-              </section>
-            )}
+            {profile.bio && <AboutSection bio={profile.bio} />}
 
             {/* Activity summary */}
             <ActivitySummary
