@@ -50,7 +50,7 @@ export function ProfileWallSection({ profileUserId, isOwnProfile, allowComments 
    const { session } = useAuth();
    const [sourceFilter, setSourceFilter] = useState<WallSourceFilter>("ALL");
    const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
-   const [displayMode, setDisplayMode] = useState<FeedDisplayMode>("list");
+   const [displayMode, setDisplayMode] = useState<FeedDisplayMode>("large");
    const isLoggedIn = !!session;
 
   const { data: posts = [], isLoading } = useProfileWallFeed(profileUserId, sourceFilter);
