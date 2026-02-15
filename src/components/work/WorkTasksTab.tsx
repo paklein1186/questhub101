@@ -827,47 +827,56 @@ export function WorkTasksTab() {
                         )}
                       </td>
                       <td className="px-3 py-2.5">
-                        {task.source === "personal" && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
-                                <ArrowUpRight className="h-3.5 w-3.5" />
+                        <div className="flex items-center gap-0.5">
+                          {task.source === "personal" && (
+                            <>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                                    <ArrowUpRight className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => openUnitPicker(task)}>
+                                    <Rocket className="h-3.5 w-3.5 mr-2" /> Convert to Quest
+                                  </DropdownMenuItem>
+                                  {allQuestsForPicker.length > 0 && (
+                                    <DropdownMenuSub>
+                                      <DropdownMenuSubTrigger>
+                                        <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
+                                      </DropdownMenuSubTrigger>
+                                      <DropdownMenuSubContent>
+                                        {allQuestsForPicker.map((q) => (
+                                          <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)}>
+                                            {q.title}
+                                          </DropdownMenuItem>
+                                        ))}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuSub>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                onClick={() => deleteTask(task.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openUnitPicker(task)}>
-                                <Rocket className="h-3.5 w-3.5 mr-2" /> Convert to Quest
-                              </DropdownMenuItem>
-                              {allQuestsForPicker.length > 0 && (
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger>
-                                    <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
-                                  </DropdownMenuSubTrigger>
-                                  <DropdownMenuSubContent>
-                                    {allQuestsForPicker.map((q) => (
-                                      <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)}>
-                                        {q.title}
-                                      </DropdownMenuItem>
-                                    ))}
-                                  </DropdownMenuSubContent>
-                                </DropdownMenuSub>
-                              )}
-                              <DropdownMenuItem className="text-destructive" onClick={() => deleteTask(task.id)}>
-                                <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                        {(task.source === "quest" || task.source === "subtask") && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 opacity-0 group-hover:opacity-100"
-                            onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}?tab=subtasks`)}
-                          >
-                            <ChevronRight className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                            </>
+                          )}
+                          {(task.source === "quest" || task.source === "subtask") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                              onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}?tab=subtasks`)}
+                            >
+                              <ChevronRight className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </motion.tr>
                   );
