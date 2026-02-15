@@ -490,20 +490,20 @@ export default function HomeFeed() {
       {/* Discrete pause/play toggle — bottom-left */}
       <button
         onClick={() => setBauhausPaused((p) => !p)}
-        className="fixed bottom-4 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
+        className="fixed bottom-20 sm:bottom-4 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
         aria-label={bauhausPaused ? "Resume animation" : "Pause animation"}
         title={bauhausPaused ? "Resume animation" : "Pause animation"}
       >
         {bauhausPaused ? <Play size={14} /> : <Pause size={14} />}
       </button>
-      <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
+      <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
 
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
         <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
           {PERSONA_GREETING[persona] || PERSONA_GREETING.UNSET}
         </h1>
-        <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-6">
+        <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-4 sm:mb-6 px-2">
           {PERSONA_DESCRIPTION[persona] || PERSONA_DESCRIPTION.UNSET}
         </p>
 
@@ -520,7 +520,7 @@ export default function HomeFeed() {
         </button>
 
         {/* Free / Guided toggle */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <span className={cn("text-sm font-medium transition-colors", mode === "free" ? "text-foreground" : "text-muted-foreground")}>
             Free
           </span>
@@ -684,7 +684,7 @@ export default function HomeFeed() {
 
       {/* Task Board — below the AI section */}
       {currentUser.id && (
-        <div className="max-w-[960px] mx-auto px-4 pb-12 space-y-10">
+        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
           <MyTaskBoard userId={currentUser.id} />
           <FollowingActivity />
         </div>

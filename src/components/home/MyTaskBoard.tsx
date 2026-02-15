@@ -857,10 +857,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3 sm:space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h2 className="font-display text-base sm:text-lg font-semibold flex items-center gap-2">
           <ListTodo className="h-5 w-5 text-primary" />
           My Tasks
           {(todoCount > 0 || inProgressCount > 0) && (
@@ -879,7 +879,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             {searchOpen ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
           </Button>
           <Select value={filter} onValueChange={(v) => { setFilter(v as any); setPage(0); }}>
-            <SelectTrigger className="w-[130px] h-8 text-xs">
+            <SelectTrigger className="w-[100px] sm:w-[130px] h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -896,7 +896,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
           >
             <ArrowDownUp className="h-3.5 w-3.5" />
-            {sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}
+            <span className="hidden xs:inline">{sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}</span>
           </Button>
         </div>
       </div>
@@ -982,16 +982,16 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           No active tasks. Add one above or create a quest!
         </p>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border overflow-x-auto">
+          <table className="w-full text-sm min-w-0">
             <thead className="bg-muted/50">
               <tr>
-                <th className="w-8 px-3 py-2"></th>
-                <th className="w-8 px-3 py-2"></th>
-                <th className="text-left px-3 py-2 font-medium">Task</th>
-                <th className="text-left px-3 py-2 font-medium hidden sm:table-cell">Source</th>
-                <th className="text-left px-3 py-2 font-medium">Status</th>
-                <th className="w-10 px-3 py-2"></th>
+                <th className="w-8 px-2 sm:px-3 py-2"></th>
+                <th className="w-8 px-1 sm:px-3 py-2"></th>
+                <th className="text-left px-2 sm:px-3 py-2 font-medium">Task</th>
+                <th className="text-left px-2 sm:px-3 py-2 font-medium hidden sm:table-cell">Source</th>
+                <th className="text-left px-2 sm:px-3 py-2 font-medium">Status</th>
+                <th className="w-8 sm:w-10 px-1 sm:px-3 py-2"></th>
               </tr>
             </thead>
             <tbody>
@@ -1011,7 +1011,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
                 return (
                 <tr key={key} className="border-t border-border group hover:bg-accent/30 transition-colors">
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 sm:px-3 py-2.5">
                     <Checkbox
                       checked={task.workState === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
@@ -1023,7 +1023,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       onChange={(p) => updatePriority(task, p)}
                     />
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 sm:px-3 py-2.5">
                     {editingId === task.id ? (
                       <Input
                         value={editingTitle}
@@ -1098,14 +1098,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       )}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 sm:px-3 py-2.5">
                     {/* Task Perspective status only - NO quest lifecycle status */}
                     <Select
                       value={task.workState}
                       onValueChange={(v) => handleStatusChange(task, v)}
                     >
                       <SelectTrigger className={cn(
-                        "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
+                        "h-6 w-[90px] sm:w-[110px] text-[10px] font-medium px-1.5 sm:px-2 py-0 border-none shadow-none rounded-full",
                         STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
                       )}>
                         <SelectValue />
@@ -1118,12 +1118,12 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-1 sm:px-3 py-2.5">
                     <div className="flex items-center gap-0.5">
                       {task.source === "personal" && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100">
                               <ArrowUpRight className="h-3.5 w-3.5" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -1155,7 +1155,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                          className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100"
                           onClick={() => navigate(task.source === "quest" ? `/quests/${task.sourceId || task.id}` : `/quests/${task.questId}?tab=subtasks`)}
                         >
                           <ChevronRight className="h-3.5 w-3.5" />
@@ -1164,7 +1164,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                        className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                         onClick={() => setTaskToDelete(task)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
