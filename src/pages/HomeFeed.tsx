@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { BauhausShape } from "@/components/home/BauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
@@ -492,6 +492,18 @@ export default function HomeFeed() {
         <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-6">
           {PERSONA_DESCRIPTION[persona] || PERSONA_DESCRIPTION.UNSET}
         </p>
+
+        {/* Search shortcut */}
+        <button
+          onClick={() => navigate("/search")}
+          className="flex items-center gap-2 h-9 px-4 mb-4 rounded-full border border-input bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
+        >
+          <Search className="h-4 w-4" />
+          <span>Search…</span>
+          <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            ⌘K
+          </kbd>
+        </button>
 
         {/* Free / Guided toggle */}
         <div className="flex items-center gap-3 mb-8">
