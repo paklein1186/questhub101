@@ -11,6 +11,7 @@ export interface FeedPost {
   updated_at: string;
   is_deleted: boolean;
   upvote_count: number;
+  reshared_post_id: string | null;
 }
 
 export interface PostAttachment {
@@ -33,6 +34,7 @@ export interface FeedPostWithAttachments extends FeedPost {
   post_territories?: { territory_id: string; territories: { id: string; name: string; slug: string | null } }[];
   post_topics?: { topic_id: string; topics: { id: string; name: string; slug: string } }[];
   author?: { user_id: string; name: string; avatar_url: string | null; email: string };
+  reshared_post?: FeedPostWithAttachments | null;
 }
 
 export function useFeedPosts(contextType: string, contextId?: string) {
@@ -68,6 +70,36 @@ export function useFeedPosts(contextType: string, contextId?: string) {
         }
       }
 
+      // Fetch reshared posts
+      const resharedIds = posts.map((p) => p.reshared_post_id).filter(Boolean) as string[];
+      if (resharedIds.length > 0) {
+        const { data: resharedPosts } = await supabase
+          .from("feed_posts")
+          .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
+          .in("id", resharedIds);
+        if (resharedPosts) {
+          const resharedTyped = resharedPosts as unknown as FeedPostWithAttachments[];
+          // Fetch authors for reshared posts
+          const resharedAuthorIds = [...new Set(resharedTyped.map((p) => p.author_user_id))];
+          if (resharedAuthorIds.length > 0) {
+            const { data: rProfiles } = await supabase
+              .from("profiles_public")
+              .select("user_id, name, avatar_url")
+              .in("user_id", resharedAuthorIds);
+            const rProfileMap = new Map((rProfiles ?? []).map((p) => [p.user_id, p]));
+            for (const rp of resharedTyped) {
+              rp.author = rProfileMap.get(rp.author_user_id) as any;
+            }
+          }
+          const resharedMap = new Map(resharedTyped.map((p) => [p.id, p]));
+          for (const post of posts) {
+            if (post.reshared_post_id) {
+              post.reshared_post = resharedMap.get(post.reshared_post_id) || null;
+            }
+          }
+        }
+      }
+
       return posts;
     },
   });
@@ -85,6 +117,7 @@ export function useCreatePost() {
       territoryIds = [],
       topicIds = [],
       visibility = "public",
+      resharedPostId,
     }: {
       authorUserId: string;
       contextType: string;
@@ -94,6 +127,7 @@ export function useCreatePost() {
       territoryIds?: string[];
       topicIds?: string[];
       visibility?: string;
+      resharedPostId?: string;
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
@@ -104,6 +138,7 @@ export function useCreatePost() {
           context_id: contextId || null,
           content: content || null,
           visibility,
+          reshared_post_id: resharedPostId || null,
         } as any)
         .select("id")
         .single();
