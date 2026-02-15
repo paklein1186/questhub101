@@ -26,6 +26,7 @@ import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
 } from "@/hooks/useNetworkData";
+import { FollowOnHoverButton, useFollowedUserIds } from "@/components/FollowOnHoverButton";
 
 function EmptyState({ icon: Icon, message, cta, to }: { icon: any; message: string; cta: string; to: string }) {
   return (
@@ -195,6 +196,9 @@ export default function NetworkHub() {
 // ─── Overview sections ──────────────────────────────────────
 function OverviewPeople({ people }: { people: any[] }) {
   const top = people.slice(0, 6);
+  const userIds = useMemo(() => top.map((p: any) => p.user_id), [top]);
+  const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
+
   return (
     <div>
       <SectionHeader icon={Users} title="People in your orbit" count={people.length} seeMoreTo="/network?tab=people" />
@@ -202,7 +206,7 @@ function OverviewPeople({ people }: { people: any[] }) {
         <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore guilds" to="/explore?tab=entities" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {top.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
+          {top.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} isFollowed={followedIds.has(p.user_id)} />)}
         </div>
       )}
     </div>
@@ -287,6 +291,9 @@ function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
     return arr;
   }, [people, sort]);
 
+  const userIds = useMemo(() => sorted.map((p: any) => p.user_id), [sorted]);
+  const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
+
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -302,7 +309,7 @@ function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
         <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore" to="/explore" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} />)}
+          {sorted.map((p, i) => <PersonCard key={p.user_id} person={p} index={i} isFollowed={followedIds.has(p.user_id)} />)}
         </div>
       )}
     </div>
@@ -484,11 +491,12 @@ function TerritoriesTab({ territories, topics, activity, loadingT, loadingH }: {
 }
 
 // ─── Shared card components ──────────────────────────────────
-function PersonCard({ person, index }: { person: any; index: number }) {
+function PersonCard({ person, index, isFollowed = false }: { person: any; index: number; isFollowed?: boolean }) {
   const { sharedGuilds, sharedCompanies, sharedPods, sharedQuests } = person.shared;
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.03 }}>
-      <Link to={`/users/${person.user_id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 transition-all">
+      <Link to={`/users/${person.user_id}`} className="relative group flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 transition-all">
+        <FollowOnHoverButton targetUserId={person.user_id} isFollowed={isFollowed} />
         <Avatar className="h-10 w-10">
           <AvatarImage src={person.avatar_url} />
           <AvatarFallback>{person.name?.[0]}</AvatarFallback>
