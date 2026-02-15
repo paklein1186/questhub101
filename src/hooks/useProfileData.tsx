@@ -145,7 +145,7 @@ export function useProfileData(userId: string | undefined) {
     queryFn: async () => {
       const { data } = await supabase
         .from("quests")
-        .select("id, title, status, is_draft, credit_budget, escrow_credits, monetization_type, cover_image_url")
+        .select("id, title, status, is_draft, credit_budget, escrow_credits, monetization_type, cover_image_url, guild_id, guilds(id, name, logo_url)")
         .eq("created_by_user_id", userId!)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
@@ -160,7 +160,7 @@ export function useProfileData(userId: string | undefined) {
     queryFn: async () => {
       const { data } = await supabase
         .from("quest_participants")
-        .select("id, role, status, quest_id, quests(id, title, status, cover_image_url, created_by_user_id)")
+        .select("id, role, status, quest_id, quests(id, title, status, cover_image_url, created_by_user_id, guild_id, guilds(id, name, logo_url))")
         .eq("user_id", userId!);
       return (data ?? []).filter((qp: any) => qp.quests && qp.quests.created_by_user_id !== userId).map((qp: any) => ({
         id: qp.id,

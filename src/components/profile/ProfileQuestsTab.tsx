@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Star, Search, Coins, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +24,8 @@ type Quest = {
   cover_image_url?: string | null;
   source: "created" | "joined" | "proposal" | "funded";
   role?: string;
-  quest_id?: string; // for joined/funded/proposals
+  quest_id?: string;
+  guild?: { id: string; name: string; logo_url: string | null } | null;
 };
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -81,7 +83,7 @@ export function ProfileQuestsTab({
 
   for (const q of questsCreated) {
     seen.add(q.id);
-    allQuests.push({ ...q, source: "created" });
+    allQuests.push({ ...q, source: "created", guild: q.guilds || null });
   }
   for (const qp of questsJoined) {
     const qId = qp.quest?.id;
@@ -90,6 +92,7 @@ export function ProfileQuestsTab({
       allQuests.push({
         id: qId, title: qp.quest?.title, status: qp.quest?.status || "ACTIVE",
         cover_image_url: qp.quest?.cover_image_url, source: "joined", role: qp.role,
+        guild: qp.quest?.guilds || null,
       });
     }
   }
@@ -192,10 +195,11 @@ export function ProfileQuestsTab({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  {isOwnProfile && <th className="py-2 px-3 text-left w-10"></th>}
-                  <th className="py-2 px-3 text-left font-medium text-muted-foreground">Quest</th>
-                  <th className="py-2 px-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Status</th>
-                  <th className="py-2 px-3 text-left font-medium text-muted-foreground hidden md:table-cell">Role</th>
+                   {isOwnProfile && <th className="py-2 px-3 text-left w-10"></th>}
+                   <th className="py-2 px-3 text-left font-medium text-muted-foreground">Quest</th>
+                   <th className="py-2 px-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Guild</th>
+                   <th className="py-2 px-3 text-left font-medium text-muted-foreground hidden sm:table-cell">Status</th>
+                   <th className="py-2 px-3 text-left font-medium text-muted-foreground hidden md:table-cell">Role</th>
                 </tr>
               </thead>
               <tbody>
@@ -228,11 +232,24 @@ export function ProfileQuestsTab({
                           </Badge>
                         </div>
                       </td>
-                      <td className="py-2.5 px-3 hidden sm:table-cell">
-                        <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
-                          {st?.label || q.status}
-                        </Badge>
-                      </td>
+                       <td className="py-2.5 px-3 hidden sm:table-cell">
+                         {q.guild ? (
+                           <Link to={`/guilds/${q.guild.id}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                             <Avatar className="h-5 w-5">
+                               {q.guild.logo_url ? <AvatarImage src={q.guild.logo_url} alt={q.guild.name} /> : null}
+                               <AvatarFallback className="text-[8px]">{q.guild.name?.[0]}</AvatarFallback>
+                             </Avatar>
+                             <span className="truncate max-w-[120px]">{q.guild.name}</span>
+                           </Link>
+                         ) : (
+                           <span className="text-muted-foreground/40">—</span>
+                         )}
+                       </td>
+                       <td className="py-2.5 px-3 hidden sm:table-cell">
+                         <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
+                           {st?.label || q.status}
+                         </Badge>
+                       </td>
                       <td className="py-2.5 px-3 hidden md:table-cell">
                         <Badge variant="secondary" className="text-[10px] capitalize">
                           {q.source === "created" ? "Creator" : q.role || "Participant"}
@@ -312,6 +329,15 @@ function QuestCard({ quest, isOwnProfile, isHighlighted, toggleHighlight }: {
         <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} height="h-24" />
         <div className="p-4">
           <h4 className="font-display font-semibold truncate">{quest.title}</h4>
+          {quest.guild && (
+            <Link to={`/guilds/${quest.guild.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <Avatar className="h-4 w-4">
+                {quest.guild.logo_url ? <AvatarImage src={quest.guild.logo_url} alt={quest.guild.name} /> : null}
+                <AvatarFallback className="text-[8px]">{quest.guild.name?.[0]}</AvatarFallback>
+              </Avatar>
+              <span className="truncate">{quest.guild.name}</span>
+            </Link>
+          )}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
               {st?.label || quest.status}
