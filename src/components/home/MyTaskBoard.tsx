@@ -560,9 +560,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const upsertWorkState = async (entityType: string, entityId: string, workState: TaskStatus) => {
     // Also update the underlying entity status for personal_tasks and quest_subtasks
     if (entityType === "personal_task") {
-      await supabase.from("personal_tasks" as any).update({ status: workState } as any).eq("id", entityId);
+      const { error: ptErr } = await supabase.from("personal_tasks" as any).update({ status: workState } as any).eq("id", entityId);
+      if (ptErr) console.error("[upsertWorkState] personal_tasks update failed:", ptErr);
+      else console.log("[upsertWorkState] personal_tasks updated to", workState, "for", entityId);
     } else if (entityType === "quest_subtask") {
-      await supabase.from("quest_subtasks" as any).update({ status: workState } as any).eq("id", entityId);
+      const { error: stErr } = await supabase.from("quest_subtasks" as any).update({ status: workState } as any).eq("id", entityId);
+      if (stErr) console.error("[upsertWorkState] quest_subtasks update failed:", stErr);
+      else console.log("[upsertWorkState] quest_subtasks updated to", workState, "for", entityId);
     }
     // Do NOT update quests.status — quest lifecycle is decoupled
 
@@ -573,7 +577,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       entity_id: entityId,
       work_state: workState,
     } as any, { onConflict: "user_id,entity_type,entity_id" });
-    if (error) console.error("Failed to upsert work state:", error);
+    if (error) console.error("[upsertWorkState] user_work_items upsert failed:", error);
+    else console.log("[upsertWorkState] user_work_items upserted to", workState, "for", entityId);
   };
 
   // ── Actions ──
