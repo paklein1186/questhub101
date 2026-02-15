@@ -314,7 +314,7 @@ export default function UserProfile() {
                   <Link to="/me"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowCreateUnit(true)}>
-                  <Plus className="h-4 w-4 mr-1" /> Add unit
+                  <Plus className="h-4 w-4 mr-1" /> Add entity
                 </Button>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to="/me"><Settings className="h-4 w-4" /></Link>
