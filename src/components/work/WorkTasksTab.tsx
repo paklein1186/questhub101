@@ -119,7 +119,7 @@ export function WorkTasksTab() {
     enabled: !!userId,
   });
 
-  // Fetch quests where user is owner
+  // Fetch quests where user is owner (all statuses, filter client-side)
   const { data: myQuests = [], isLoading: loadingQuests } = useQuery({
     queryKey: ["my-active-quests", userId],
     queryFn: async () => {
@@ -128,7 +128,7 @@ export function WorkTasksTab() {
         .select("id, title, status, created_at, reward_xp, guild_id, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
-        .in("status", statusFilter === "DONE" ? ["COMPLETED"] : ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
+        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE", "COMPLETED"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
