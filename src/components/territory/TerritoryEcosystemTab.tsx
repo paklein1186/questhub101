@@ -82,12 +82,20 @@ function useTerritoryPeople(territoryId: string) {
   return useQuery({
     queryKey: ["territory-people", territoryId],
     queryFn: async () => {
-      const { data } = await supabase
+      // First get user IDs connected to this territory
+      const { data: utData } = await supabase
         .from("user_territories")
-        .select("user_id, profiles(user_id, name, avatar_url, headline, persona_type, location)")
+        .select("user_id")
         .eq("territory_id", territoryId);
-      return (data ?? [])
-        .map((d: any) => d.profiles)
+      const userIds = (utData ?? []).map((d: any) => d.user_id);
+      if (userIds.length === 0) return [] as TerritoryPerson[];
+
+      // Then fetch their profiles separately (no FK between user_territories and profiles)
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, headline, persona_type, location")
+        .in("user_id", userIds);
+      return (profiles ?? [])
         .filter((p: any) => p && p.name)
         .map((p: any) => ({
           user_id: p.user_id,
