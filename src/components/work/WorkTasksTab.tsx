@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { GuildColorLabel } from "@/components/GuildColorLabel";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
@@ -116,7 +117,7 @@ export function WorkTasksTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("id, title, status, created_at, reward_xp")
+        .select("id, title, status, created_at, reward_xp, guild_id, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
         .in("status", statusFilter === "done" ? ["COMPLETED"] : ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
@@ -203,7 +204,7 @@ export function WorkTasksTab() {
       const questIds = parts.map((p: any) => p.quest_id);
       const { data: quests } = await supabase
         .from("quests")
-        .select("id, title, status, created_at")
+        .select("id, title, status, created_at, guild_id, guilds(name, logo_url)")
         .in("id", questIds)
         .eq("is_deleted", false)
         .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
@@ -531,8 +532,8 @@ export function WorkTasksTab() {
   };
 
   const allQuestsForPicker = [
-    ...myQuests.map((q: any) => ({ id: q.id, title: q.title })),
-    ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title })),
+    ...myQuests.map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
+    ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
   ];
 
   const todoCount = unified.filter((t) => t.status === "TODO").length;
@@ -847,8 +848,11 @@ export function WorkTasksTab() {
                                       </DropdownMenuSubTrigger>
                                       <DropdownMenuSubContent>
                                         {allQuestsForPicker.map((q) => (
-                                          <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)}>
-                                            {q.title}
+                                          <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)} className="flex flex-col items-start gap-0.5">
+                                            <span className="text-sm">{q.title}</span>
+                                            {q.guildName && (
+                                              <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-muted-foreground" />
+                                            )}
                                           </DropdownMenuItem>
                                         ))}
                                       </DropdownMenuSubContent>
