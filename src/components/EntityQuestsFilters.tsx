@@ -9,15 +9,19 @@ import { UnitCoverImage } from "@/components/UnitCoverImage";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   DRAFT: { label: "Draft", color: "bg-muted text-muted-foreground" },
-  OPEN_FOR_PROPOSALS: { label: "Open", color: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
+  OPEN: { label: "Open", color: "bg-sky-500/10 text-sky-700 border-sky-500/30" },
+  OPEN_FOR_PROPOSALS: { label: "Proposals", color: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
+  IN_PROGRESS: { label: "In Progress", color: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
   ACTIVE: { label: "Active", color: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
   COMPLETED: { label: "Completed", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+  CANCELLED: { label: "Cancelled", color: "bg-destructive/10 text-destructive border-destructive/30" },
 };
 
 const KANBAN_COLUMNS = [
   { key: "DRAFT", label: "Draft" },
-  { key: "OPEN_FOR_PROPOSALS", label: "Open" },
+  { key: "OPEN_FOR_PROPOSALS", label: "Proposals" },
   { key: "ACTIVE", label: "Active" },
+  { key: "IN_PROGRESS", label: "In Progress" },
   { key: "COMPLETED", label: "Completed" },
 ];
 
@@ -65,12 +69,12 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
       );
     }
     if (sortBy === "status") {
-      const ORDER: Record<string, number> = { ACTIVE: 0, OPEN_FOR_PROPOSALS: 1, DRAFT: 2, COMPLETED: 3 };
+      const ORDER: Record<string, number> = { ACTIVE: 0, IN_PROGRESS: 1, OPEN_FOR_PROPOSALS: 2, OPEN: 3, DRAFT: 4, COMPLETED: 5, CANCELLED: 6 };
       result.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
     } else if (sortBy === "recent") {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === "budget") {
-      result.sort((a, b) => (b.budget_amount ?? b.reward_xp ?? 0) - (a.budget_amount ?? a.reward_xp ?? 0));
+      result.sort((a, b) => (b.mission_budget_max ?? b.price_fiat ?? b.reward_xp ?? 0) - (a.mission_budget_max ?? a.price_fiat ?? a.reward_xp ?? 0));
     }
     return result;
   }, [quests, statusFilter, search, sortBy]);
@@ -193,15 +197,17 @@ function KanbanView({ quests }: { quests: any[] }) {
   const columns = useMemo(() => {
     const map: Record<string, any[]> = {};
     for (const col of KANBAN_COLUMNS) map[col.key] = [];
+    // Map statuses not in columns to nearest logical column
+    const FALLBACK: Record<string, string> = { OPEN: "OPEN_FOR_PROPOSALS", CANCELLED: "COMPLETED" };
     for (const q of quests) {
-      if (map[q.status]) map[q.status].push(q);
-      else if (map.ACTIVE) map.ACTIVE.push(q); // fallback
+      const target = map[q.status] ? q.status : (FALLBACK[q.status] || "ACTIVE");
+      (map[target] || (map[target] = [])).push(q);
     }
     return map;
   }, [quests]);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
       {KANBAN_COLUMNS.map((col) => {
         const items = columns[col.key] || [];
         const cfg = STATUS_CONFIG[col.key];
