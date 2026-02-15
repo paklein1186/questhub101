@@ -545,13 +545,30 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     handleStatusChange(task, checked ? "DONE" : "TODO");
   };
 
-  const deleteTask = async (taskId: string) => {
-    await supabase.from("personal_tasks" as any).delete().eq("id", taskId);
-    await supabase.from("user_work_items" as any).delete()
-      .eq("user_id", userId)
-      .eq("entity_type", "personal_task")
-      .eq("entity_id", taskId);
-    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  const deleteTask = async (task: UnifiedTask) => {
+    if (task.source === "personal") {
+      await supabase.from("personal_tasks" as any).delete().eq("id", task.id);
+      await supabase.from("user_work_items" as any).delete()
+        .eq("user_id", userId)
+        .eq("entity_type", "personal_task")
+        .eq("entity_id", task.id);
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (task.source === "subtask") {
+      await supabase.from("quest_subtasks" as any).delete().eq("id", task.id);
+      await supabase.from("user_work_items" as any).delete()
+        .eq("user_id", userId)
+        .eq("entity_type", "quest_subtask")
+        .eq("entity_id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+    } else if (task.source === "quest") {
+      await supabase.from("quests").update({ is_deleted: true }).eq("id", task.id);
+      await supabase.from("user_work_items" as any).delete()
+        .eq("user_id", userId)
+        .eq("entity_type", "quest")
+        .eq("entity_id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
+    }
     qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
   };
 
@@ -1042,45 +1059,35 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-0.5">
                       {task.source === "personal" && (
-                        <>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
-                                <ArrowUpRight className="h-3.5 w-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openUnitPicker(task)}>
-                                <Rocket className="h-3.5 w-3.5 mr-2" /> {task.convertedToQuestId ? "Reattach Quest to Guild" : "Convert to Quest"}
-                              </DropdownMenuItem>
-                              {allQuestsForPicker.length > 0 && (
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger>
-                                    <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
-                                  </DropdownMenuSubTrigger>
-                                  <DropdownMenuSubContent>
-                                    {allQuestsForPicker.map((q) => (
-                                      <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)} className="flex flex-col items-start gap-0.5">
-                                        <span className="text-sm">{q.title}</span>
-                                        {q.guildName && (
-                                          <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-muted-foreground" />
-                                        )}
-                                      </DropdownMenuItem>
-                                    ))}
-                                  </DropdownMenuSubContent>
-                                </DropdownMenuSub>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                            onClick={() => deleteTask(task.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openUnitPicker(task)}>
+                              <Rocket className="h-3.5 w-3.5 mr-2" /> {task.convertedToQuestId ? "Reattach Quest to Guild" : "Convert to Quest"}
+                            </DropdownMenuItem>
+                            {allQuestsForPicker.length > 0 && (
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                  <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                  {allQuestsForPicker.map((q) => (
+                                    <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)} className="flex flex-col items-start gap-0.5">
+                                      <span className="text-sm">{q.title}</span>
+                                      {q.guildName && (
+                                        <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-muted-foreground" />
+                                      )}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuSubContent>
+                              </DropdownMenuSub>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                       {(task.source === "quest" || task.source === "subtask") && (
                         <Button
@@ -1092,6 +1099,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                           <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
                       )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => deleteTask(task)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
