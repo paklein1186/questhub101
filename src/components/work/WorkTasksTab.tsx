@@ -35,12 +35,13 @@ import { formatDistanceToNow, format } from "date-fns";
 import { motion } from "framer-motion";
 
 const STATUS_COLORS: Record<string, string> = {
+  BACKLOG: "bg-muted/60 text-muted-foreground/70",
   TODO: "bg-muted text-muted-foreground",
   IN_PROGRESS: "bg-primary/10 text-primary",
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+type TaskStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE";
 
 type UnifiedTask = {
   id: string;
@@ -74,7 +75,7 @@ export function WorkTasksTab() {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
-  const [statusFilter, setStatusFilter] = useState<"active" | "all" | "done">("active");
+  const [statusFilter, setStatusFilter] = useState<"all" | "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -120,7 +121,7 @@ export function WorkTasksTab() {
         .select("id, title, status, created_at, reward_xp, guild_id, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
-        .in("status", statusFilter === "done" ? ["COMPLETED"] : ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
+        .in("status", statusFilter === "DONE" ? ["COMPLETED"] : ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -314,8 +315,7 @@ export function WorkTasksTab() {
 
   // Apply filters
   let filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
-  if (statusFilter === "active") filtered = filtered.filter((t) => t.status !== "DONE");
-  if (statusFilter === "done") filtered = filtered.filter((t) => t.status === "DONE");
+  if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
@@ -328,7 +328,7 @@ export function WorkTasksTab() {
     if (!newTitle.trim()) return;
     setAdding(true);
     const { error } = await supabase.from("personal_tasks" as any).insert({
-      user_id: userId, title: newTitle.trim(), status: "TODO",
+      user_id: userId, title: newTitle.trim(), status: "BACKLOG",
     } as any);
     if (error) toast({ title: "Failed to add task", variant: "destructive" });
     else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["personal-tasks", userId] }); }
@@ -536,6 +536,7 @@ export function WorkTasksTab() {
     ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
   ];
 
+  const backlogCount = unified.filter((t) => t.status === "BACKLOG").length;
   const todoCount = unified.filter((t) => t.status === "TODO").length;
   const inProgressCount = unified.filter((t) => t.status === "IN_PROGRESS").length;
   const doneCount = unified.filter((t) => t.status === "DONE").length;
@@ -548,23 +549,53 @@ export function WorkTasksTab() {
 
   return (
     <div className="space-y-5">
-      {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-          <ListTodo className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{todoCount}</span>
-          <span className="text-xs text-muted-foreground">To do</span>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
-          <Loader2 className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">{inProgressCount}</span>
-          <span className="text-xs text-primary/70">In progress</span>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
-          <ListChecks className="h-4 w-4 text-emerald-600" />
-          <span className="text-sm font-medium text-emerald-600">{doneCount}</span>
-          <span className="text-xs text-emerald-600/70">Done</span>
-        </div>
+      {/* Status filter buttons */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={statusFilter === "all" ? "default" : "outline"}
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => setStatusFilter("all")}
+        >
+          All
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">{unified.length}</Badge>
+        </Button>
+        <Button
+          variant={statusFilter === "BACKLOG" ? "default" : "outline"}
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => setStatusFilter("BACKLOG")}
+        >
+          Backlog
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">{backlogCount}</Badge>
+        </Button>
+        <Button
+          variant={statusFilter === "TODO" ? "default" : "outline"}
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => setStatusFilter("TODO")}
+        >
+          To do next
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">{todoCount}</Badge>
+        </Button>
+        <Button
+          variant={statusFilter === "IN_PROGRESS" ? "default" : "outline"}
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => setStatusFilter("IN_PROGRESS")}
+        >
+          In Progress
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">{inProgressCount}</Badge>
+        </Button>
+        <Button
+          variant={statusFilter === "DONE" ? "default" : "outline"}
+          size="sm"
+          className="h-8 text-xs gap-1.5"
+          onClick={() => setStatusFilter("DONE")}
+        >
+          Done
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 ml-0.5">{doneCount}</Badge>
+        </Button>
       </div>
 
       {/* Filters + search */}
@@ -587,16 +618,6 @@ export function WorkTasksTab() {
             <SelectItem value="personal">Personal</SelectItem>
             <SelectItem value="quest">Quests</SelectItem>
             <SelectItem value="subtask">Subtasks</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-          <SelectTrigger className="w-[120px] h-9 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="done">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -624,7 +645,7 @@ export function WorkTasksTab() {
         <div className="text-center py-12 rounded-xl border border-dashed border-border">
           <ListTodo className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-muted-foreground mb-3">No tasks match your filters</p>
-          <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("active"); setSearchQuery(""); }}>
+        <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("all"); setSearchQuery(""); }}>
             Clear filters
           </Button>
         </div>
@@ -745,7 +766,8 @@ export function WorkTasksTab() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="TODO">TODO</SelectItem>
+                            <SelectItem value="BACKLOG">BACKLOG</SelectItem>
+                            <SelectItem value="TODO">TO DO NEXT</SelectItem>
                             <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
                             <SelectItem value="DONE">DONE</SelectItem>
                           </SelectContent>
