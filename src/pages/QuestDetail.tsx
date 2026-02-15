@@ -608,6 +608,20 @@ export default function QuestDetail() {
               </Link>
             ))}
           </div>
+
+          {/* Guild attachment */}
+          {quest.guild_id && (quest as any).guilds && (
+            <div className="mt-6">
+              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Guild</h3>
+              <Link to={`/guilds/${quest.guild_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all w-fit">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={(quest as any).guilds.logo_url} />
+                  <AvatarFallback>{(quest as any).guilds.name?.[0]}</AvatarFallback>
+                </Avatar>
+                <p className="text-sm font-medium">{(quest as any).guilds.name}</p>
+              </Link>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="proposals" className="mt-6">
