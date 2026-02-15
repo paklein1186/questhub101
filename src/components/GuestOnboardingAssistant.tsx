@@ -87,6 +87,14 @@ function getUniverseForPersona(persona: string | null): UniverseMode {
 export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action" }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Track dismissal so auto-trigger doesn't fire again in the same session
+  const handleOpenChange = useCallback((newOpen: boolean) => {
+    if (!newOpen) {
+      localStorage.setItem("guestAssistantDismissed", Date.now().toString());
+    }
+    onOpenChange(newOpen);
+  }, [onOpenChange]);
   const { signUp } = useAuth();
   const { toast } = useToast();
 
@@ -326,8 +334,10 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         preselected_follow_user_ids: selectedUserIds,
         show_post_signup_wizard: true,
       };
-      sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
-      onOpenChange(false);
+      localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+      // Clear dismissal flag so post-signup flows work
+      localStorage.removeItem("guestAssistantDismissed");
+      handleOpenChange(false);
     }
   };
 
@@ -354,7 +364,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         : "Pick your topics & houses";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden max-h-[85vh]">
         {/* Header */}
         <div className="p-4 pb-3 border-b bg-gradient-to-r from-primary/5 to-accent/5">
@@ -744,7 +754,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
                 <p className="text-center text-xs text-muted-foreground mt-4">
                   Already have an account?{" "}
-                  <button onClick={() => { onOpenChange(false); navigate(`/login${redirectParam}`); }} className="text-primary font-medium hover:underline">
+                  <button onClick={() => { handleOpenChange(false); navigate(`/login${redirectParam}`); }} className="text-primary font-medium hover:underline">
                     Log in
                   </button>
                 </p>

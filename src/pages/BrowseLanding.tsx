@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -63,6 +65,19 @@ export default function BrowseLanding() {
   const { data: quests = [], isLoading: loadingQuests } = useFeaturedQuests();
   const { data: groups = [], isLoading: loadingGroups } = useFeaturedGroups();
   const { data: topics = [], isLoading: loadingTopics } = useTopics();
+  const [guestOpen, setGuestOpen] = useState(false);
+  const [guestAction, setGuestAction] = useState("");
+
+  // Auto-trigger onboarding assistant for unlogged users after a brief delay
+  useEffect(() => {
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const timer = setTimeout(() => {
+      setGuestAction("get started");
+      setGuestOpen(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -303,6 +318,7 @@ export default function BrowseLanding() {
 
       <SiteFooter />
       <CookieConsentBanner />
+      <GuestOnboardingAssistant open={guestOpen} onOpenChange={setGuestOpen} actionLabel={guestAction} />
     </div>
   );
 }

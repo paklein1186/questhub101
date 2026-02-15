@@ -63,7 +63,7 @@ export function PostSignupWizard() {
   useEffect(() => {
     if (!user) return;
     try {
-      const raw = sessionStorage.getItem("guestOnboardingContext");
+      const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
       if (!raw) return;
       const ctx = JSON.parse(raw);
 
@@ -81,7 +81,8 @@ export function PostSignupWizard() {
           });
         // Clear so we don't re-insert on re-render
         delete ctx.interest_topic_ids;
-        sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        sessionStorage.removeItem("guestOnboardingContext");
       }
 
       if (ctx.show_post_signup_wizard) {
@@ -93,6 +94,10 @@ export function PostSignupWizard() {
   }, [user]);
 
   if (!user) return null;
+
+  // Don't show this wizard if the user hasn't completed onboarding yet —
+  // the full /onboarding page will handle profile completion instead
+  if (!user.hasCompletedOnboarding) return null;
 
   const stepIndex = STEPS.indexOf(step);
 
@@ -148,11 +153,12 @@ export function PostSignupWizard() {
 
     // Clean up session flag
     try {
-      const raw = sessionStorage.getItem("guestOnboardingContext");
+      const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
       if (raw) {
         const ctx = JSON.parse(raw);
         delete ctx.show_post_signup_wizard;
-        sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        sessionStorage.removeItem("guestOnboardingContext");
       }
     } catch { /* ignore */ }
 
@@ -163,11 +169,12 @@ export function PostSignupWizard() {
   const handleClose = () => {
     // Clean up session flag
     try {
-      const raw = sessionStorage.getItem("guestOnboardingContext");
+      const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
       if (raw) {
         const ctx = JSON.parse(raw);
         delete ctx.show_post_signup_wizard;
-        sessionStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        sessionStorage.removeItem("guestOnboardingContext");
       }
     } catch { /* ignore */ }
     setOpen(false);
