@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -84,6 +84,18 @@ export default function ImpactLanding() {
   const { data: userHouses = [] } = useUserHouses(user?.id);
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
+
+  // Auto-trigger onboarding assistant for unlogged users after a brief delay
+  useEffect(() => {
+    if (user) return;
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const timer = setTimeout(() => {
+      setGuestAction("get started");
+      setGuestOpen(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
     if (user) {

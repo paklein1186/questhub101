@@ -90,6 +90,18 @@ export default function CreativeLanding() {
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
 
+  // Auto-trigger onboarding assistant for unlogged users after a brief delay
+  useEffect(() => {
+    if (user) return;
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const timer = setTimeout(() => {
+      setGuestAction("get started");
+      setGuestOpen(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [user]);
+
   // Force creative theme on this page regardless of persona
   useEffect(() => {
     document.body.classList.add("creative-universe");
