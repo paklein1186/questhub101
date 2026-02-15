@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
@@ -51,7 +51,7 @@ type PersonalTask = {
 type Quest = {
   id: string;
   title: string;
-  status: "DRAFT" | "OPEN_FOR_PROPOSALS" | "ACTIVE" | "COMPLETED" | "ARCHIVED";
+  status: string;
   created_by_user_id: string;
   is_deleted: boolean;
 };
@@ -66,10 +66,18 @@ type QuestSubtask = {
   order_index: number;
 };
 
+type WorkItem = {
+  id: string;
+  user_id: string;
+  entity_type: string;
+  entity_id: string;
+  work_state: TaskStatus;
+};
+
 type UnifiedTask = {
   id: string;
   title: string;
-  status: string;
+  workState: TaskStatus; // Task Perspective state (from user_work_items or fallback)
   source: "personal" | "quest" | "subtask";
   sourceLabel?: string;
   sourceId?: string;
@@ -91,6 +99,30 @@ type UnitOption = {
   logo_url?: string | null;
 };
 
+/**
+ * Resolve work state for an entity:
+ * - If user_work_items record exists, use work_state
+ * - Otherwise fallback to entity's own status (personal_tasks, quest_subtasks)
+ * - For quests, default to BACKLOG if no work item
+ */
+function resolveWorkState(
+  workItems: Map<string, TaskStatus>,
+  entityType: string,
+  entityId: string,
+  fallbackStatus?: string
+): TaskStatus {
+  const key = `${entityType}:${entityId}`;
+  if (workItems.has(key)) return workItems.get(key)!;
+  // For quests, default to BACKLOG when no work item exists
+  if (entityType === "quest") return "BACKLOG";
+  // For personal_tasks and quest_subtasks, fallback to their own status
+  const validStates: TaskStatus[] = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"];
+  if (fallbackStatus && validStates.includes(fallbackStatus as TaskStatus)) {
+    return fallbackStatus as TaskStatus;
+  }
+  return "BACKLOG";
+}
+
 export function MyTaskBoard({ userId }: { userId: string }) {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -108,7 +140,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   // Pending done with undo
-  const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: string }>>(new Map());
+  const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: TaskStatus }>>(new Map());
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Unit picker state
@@ -122,6 +154,26 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   const { data: allTopics } = useTopics();
   const { data: allTerritories } = useTerritories();
+
+  // Fetch user_work_items for this user
+  const { data: workItemsRaw = [] } = useQuery({
+    queryKey: ["user-work-items", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_work_items" as any)
+        .select("*")
+        .eq("user_id", userId);
+      if (error) throw error;
+      return (data || []) as unknown as WorkItem[];
+    },
+    enabled: !!userId,
+  });
+
+  // Build work items lookup map: "entity_type:entity_id" -> work_state
+  const workItemsMap = new Map<string, TaskStatus>();
+  for (const wi of workItemsRaw) {
+    workItemsMap.set(`${wi.entity_type}:${wi.entity_id}`, wi.work_state as TaskStatus);
+  }
 
   // Fetch personal tasks
   const { data: personalTasks = [], isLoading: loadingPersonal } = useQuery({
@@ -138,18 +190,17 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     enabled: !!userId,
   });
 
-  // Fetch quests where user is owner (active/open)
+  // Fetch quests where user is owner (ALL non-deleted, not just by lifecycle status)
   const { data: myQuests = [], isLoading: loadingQuests } = useQuery({
-    queryKey: ["my-active-quests", userId],
+    queryKey: ["my-active-quests-home", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
         .select("id, title, status, guild_id, priority, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
-        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
       if (error) throw error;
       return data || [];
     },
@@ -157,17 +208,17 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   });
 
   // Fetch subtasks: assigned to user OR from quests user owns/participates in
+  // Now fetch ALL statuses (including BACKLOG) since we use work_state
   const { data: mySubtasks = [], isLoading: loadingSubtasks } = useQuery({
-    queryKey: ["my-subtasks", userId],
+    queryKey: ["my-subtasks-home", userId],
     queryFn: async () => {
       // 1. Subtasks explicitly assigned to user
       const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id, assignee_user_id")
+        .select("id, title, status, quest_id, assignee_user_id, priority")
         .eq("assignee_user_id", userId)
-        .in("status", ["TODO", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
       if (e1) throw e1;
 
       // 2. Get quest IDs user owns
@@ -175,8 +226,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         .from("quests")
         .select("id")
         .eq("created_by_user_id", userId)
-        .eq("is_deleted", false)
-        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"]);
+        .eq("is_deleted", false);
       const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
 
       // 3. Get quest IDs user participates in
@@ -187,17 +237,16 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         .eq("status", "APPROVED");
       const partQuestIds = (parts || []).map((p: any) => p.quest_id);
 
-      // 4. Combine and fetch unassigned/user subtasks from those quests
+      // 4. Combine and fetch subtasks from those quests
       const allQuestIds = [...new Set([...ownedQuestIds, ...partQuestIds])];
       let fromQuests: any[] = [];
       if (allQuestIds.length > 0) {
         const { data: qSubtasks } = await supabase
           .from("quest_subtasks" as any)
-          .select("id, title, status, quest_id, assignee_user_id")
+          .select("id, title, status, quest_id, assignee_user_id, priority")
           .in("quest_id", allQuestIds)
-          .in("status", ["TODO", "IN_PROGRESS"])
           .order("created_at", { ascending: false })
-          .limit(50);
+          .limit(100);
         fromQuests = qSubtasks || [];
       }
 
@@ -239,7 +288,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   // Also fetch quests where user is a participant
   const { data: participantQuests = [] } = useQuery({
-    queryKey: ["my-participant-quests", userId],
+    queryKey: ["my-participant-quests-home", userId],
     queryFn: async () => {
       const { data: parts, error } = await supabase
         .from("quest_participants")
@@ -253,8 +302,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         .from("quests")
         .select("id, title, status, guild_id, priority, guilds(name, logo_url)")
         .in("id", questIds)
-        .eq("is_deleted", false)
-        .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
+        .eq("is_deleted", false);
       return quests || [];
     },
     enabled: !!userId,
@@ -265,8 +313,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     queryKey: ["my-units-for-quest", userId],
     queryFn: async () => {
       const units: UnitOption[] = [];
-
-      // Guilds where user is admin or member
       const { data: guildMemberships } = await supabase
         .from("guild_members")
         .select("guild_id, role")
@@ -282,8 +328,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           units.push({ id: g.id, name: g.name, type: "GUILD", logo_url: g.logo_url });
         }
       }
-
-      // Companies where user is member
       const { data: companyMemberships } = await supabase
         .from("company_members")
         .select("company_id")
@@ -299,21 +343,23 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           units.push({ id: c.id, name: c.name, type: "COMPANY", logo_url: c.logo_url });
         }
       }
-
       return units;
     },
     enabled: !!userId,
   });
 
-  // Build unified list
+  // ── Build unified list with Option B suppression ──
   const unified: UnifiedTask[] = [];
 
+  // Personal tasks
   for (const t of personalTasks) {
     if (t.converted_to_quest_id || t.converted_to_subtask_id) continue;
+    const ws = resolveWorkState(workItemsMap, "personal_task", t.id, t.status);
+    if (ws === "DONE") continue; // Don't show DONE on homepage
     unified.push({
       id: t.id,
       title: t.title,
-      status: t.status,
+      workState: ws,
       source: "personal",
       priority: t.priority || "NONE",
       createdAt: t.created_at,
@@ -322,49 +368,53 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     });
   }
 
-  // Build a set of quest IDs that have active subtasks (TODO or IN_PROGRESS)
-  const questIdsWithActiveSubtasks = new Set(
-    mySubtasks.filter((s: any) => s.status === "TODO" || s.status === "IN_PROGRESS").map((s: any) => s.quest_id)
-  );
-
-  for (const q of myQuests) {
-    if (questIdsWithActiveSubtasks.has(q.id)) continue;
-    unified.push({
-      id: q.id,
-      title: q.title,
-      status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
-      source: "quest",
-      sourceLabel: "My Quest",
-      sourceId: q.id,
-      priority: (q as any).priority || "NONE",
-      guildId: (q as any).guild_id || null,
-      guildName: (q as any).guilds?.name || null,
-      guildLogo: (q as any).guilds?.logo_url || null,
-    });
-  }
-
-  for (const q of participantQuests) {
-    if (myQuests.some((mq: any) => mq.id === q.id)) continue;
-    if (questIdsWithActiveSubtasks.has(q.id)) continue;
-    unified.push({
-      id: q.id,
-      title: q.title,
-      status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
-      source: "quest",
-      sourceLabel: "Collaborator",
-      sourceId: q.id,
-      priority: (q as any).priority || "NONE",
-      guildId: (q as any).guild_id || null,
-      guildName: (q as any).guilds?.name || null,
-      guildLogo: (q as any).guilds?.logo_url || null,
-    });
-  }
-
+  // Determine which quests have non-DONE subtasks (for Option B suppression)
+  // A quest is hidden if ANY of its subtasks have work_state in {BACKLOG, TODO, IN_PROGRESS}
+  const questSubtaskMap = new Map<string, { hasActiveSubtasks: boolean }>();
   for (const s of mySubtasks) {
+    const ws = resolveWorkState(workItemsMap, "quest_subtask", s.id, s.status);
+    if (ws !== "DONE") {
+      questSubtaskMap.set(s.quest_id, { hasActiveSubtasks: true });
+    }
+  }
+
+  // All quests (owned + participating, deduplicated)
+  const allQuestsList = [
+    ...myQuests.map((q: any) => ({ ...q, sourceLabel: "My Quest" })),
+    ...participantQuests
+      .filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id))
+      .map((q: any) => ({ ...q, sourceLabel: "Collaborator" })),
+  ];
+
+  for (const q of allQuestsList) {
+    const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
+    if (hasActive) continue; // Option B: hide parent quest, show subtasks instead
+
+    const ws = resolveWorkState(workItemsMap, "quest", q.id);
+    if (ws === "DONE") continue; // Don't show DONE on homepage
+
+    unified.push({
+      id: q.id,
+      title: q.title,
+      workState: ws,
+      source: "quest",
+      sourceLabel: q.sourceLabel,
+      sourceId: q.id,
+      priority: (q as any).priority || "NONE",
+      guildId: (q as any).guild_id || null,
+      guildName: (q as any).guilds?.name || null,
+      guildLogo: (q as any).guilds?.logo_url || null,
+    });
+  }
+
+  // Quest subtasks
+  for (const s of mySubtasks) {
+    const ws = resolveWorkState(workItemsMap, "quest_subtask", s.id, s.status);
+    if (ws === "DONE") continue; // Don't show DONE on homepage
     unified.push({
       id: s.id,
       title: s.title,
-      status: s.status,
+      workState: ws,
       source: "subtask",
       sourceLabel: s.questTitle,
       questId: s.quest_id,
@@ -383,72 +433,102 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
   }
 
-  // Sort
+  // Sort by Task Perspective columns: IN_PROGRESS → TODO → BACKLOG
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, TODO: 1, BACKLOG: 2, DONE: 3 };
   if (sortBy === "status") {
-    filtered.sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9));
+    filtered.sort((a, b) => (STATUS_ORDER[a.workState] ?? 9) - (STATUS_ORDER[b.workState] ?? 9));
   } else if (sortBy === "priority") {
     const PRIO_ORDER: Record<string, number> = { NONE: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
     filtered.sort((a, b) => (PRIO_ORDER[a.priority || "NONE"] ?? 9) - (PRIO_ORDER[b.priority || "NONE"] ?? 9));
   }
-  // "recent" keeps the default created_at desc order from queries
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeP = Math.min(page, totalPages - 1);
   const paginated = filtered.slice(safeP * PAGE_SIZE, (safeP + 1) * PAGE_SIZE);
   const isLoading = loadingPersonal || loadingQuests || loadingSubtasks;
 
+  // ── Upsert work state ──
+  const upsertWorkState = async (entityType: string, entityId: string, workState: TaskStatus) => {
+    // Also update the underlying entity status for personal_tasks and quest_subtasks
+    if (entityType === "personal_task") {
+      await supabase.from("personal_tasks" as any).update({ status: workState } as any).eq("id", entityId);
+    } else if (entityType === "quest_subtask") {
+      await supabase.from("quest_subtasks" as any).update({ status: workState } as any).eq("id", entityId);
+    }
+    // Do NOT update quests.status — quest lifecycle is decoupled
+
+    // Upsert the user_work_items record
+    const { error } = await supabase.from("user_work_items" as any).upsert({
+      user_id: userId,
+      entity_type: entityType,
+      entity_id: entityId,
+      work_state: workState,
+    } as any, { onConflict: "user_id,entity_type,entity_id" });
+    if (error) console.error("Failed to upsert work state:", error);
+  };
+
   // ── Actions ──
   const addTask = async () => {
     if (!newTitle.trim()) return;
     setAdding(true);
-    const { error } = await supabase.from("personal_tasks" as any).insert({
+    const { data, error } = await supabase.from("personal_tasks" as any).insert({
       user_id: userId,
       title: newTitle.trim(),
       status: "BACKLOG",
-    } as any);
+    } as any).select("id").single();
     if (error) { toast({ title: "Failed to add task", variant: "destructive" }); }
-    else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["personal-tasks", userId] }); }
+    else {
+      setNewTitle("");
+      // Also create work item
+      if (data) {
+        await supabase.from("user_work_items" as any).insert({
+          user_id: userId,
+          entity_type: "personal_task",
+          entity_id: (data as any).id,
+          work_state: "BACKLOG",
+        } as any);
+      }
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+      qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+    }
     setAdding(false);
   };
 
-  const updateTaskStatus = async (taskId: string, status: string) => {
-    await supabase.from("personal_tasks" as any).update({ status } as any).eq("id", taskId);
+  const handleStatusChange = (task: UnifiedTask, newWorkState: string) => {
+    const key = `${task.source}-${task.id}`;
+
+    // If undoing from pending done
+    const wasPending = pendingDone.has(key);
+    if (wasPending) {
+      const timer = pendingTimers.current.get(key);
+      if (timer) clearTimeout(timer);
+      pendingTimers.current.delete(key);
+      setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
+    }
+
+    if (newWorkState === "DONE") {
+      const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.workState) : task.workState;
+      setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
+      const timer = setTimeout(() => commitDone(task), 5000);
+      pendingTimers.current.set(key, timer);
+      return;
+    }
+
+    // Update work state (does NOT change quest lifecycle)
+    const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
+    upsertWorkState(entityType, task.id, newWorkState as TaskStatus);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
-  };
-
-  const updateQuestStatus = async (questId: string, uiStatus: string) => {
-    // Map unified UI statuses to quest-specific statuses
-    const questStatus = uiStatus === "DONE" ? "COMPLETED" : uiStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
-    await supabase.from("quests").update({ status: questStatus }).eq("id", questId);
-    qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
-    qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
-  };
-
-  const updateSubtaskStatus = async (subtaskId: string, status: string) => {
-    await supabase.from("quest_subtasks" as any).update({ status } as any).eq("id", subtaskId);
-    qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
   };
 
   const commitDone = useCallback((task: UnifiedTask) => {
     const key = `${task.source}-${task.id}`;
-    if (task.source === "personal") {
-      updateTaskStatus(task.id, "DONE");
-      if (task.convertedToQuestId) {
-        supabase.from("quests").update({ status: "COMPLETED" }).eq("id", task.convertedToQuestId).then(() => {
-          qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
-        });
-      }
-      if (task.convertedToSubtaskId) {
-        supabase.from("quest_subtasks" as any).update({ status: "DONE" } as any).eq("id", task.convertedToSubtaskId).then(() => {
-          qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
-        });
-      }
-    } else if (task.source === "quest") {
-      updateQuestStatus(task.id, "DONE");
-    } else if (task.source === "subtask") {
-      updateSubtaskStatus(task.id, "DONE");
-    }
+    const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
+    upsertWorkState(entityType, task.id, "DONE");
+    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
     setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
     pendingTimers.current.delete(key);
   }, [userId]);
@@ -461,56 +541,18 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
   }, []);
 
-  const handleStatusChange = (task: UnifiedTask, newStatus: string) => {
-    const key = `${task.source}-${task.id}`;
-
-    // If undoing from pending done
-    const wasPending = pendingDone.has(key);
-    if (wasPending) {
-      const timer = pendingTimers.current.get(key);
-      if (timer) clearTimeout(timer);
-      pendingTimers.current.delete(key);
-      setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
-    }
-
-    if (newStatus === "DONE") {
-      // Start 5s pending period
-      const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.status) : task.status;
-      setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
-      const timer = setTimeout(() => commitDone(task), 5000);
-      pendingTimers.current.set(key, timer);
-      return;
-    }
-
-    // Non-DONE status changes go through immediately
-    if (task.source === "personal") {
-      updateTaskStatus(task.id, newStatus);
-      if (task.convertedToQuestId) {
-        const questStatus = newStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
-        supabase.from("quests").update({ status: questStatus }).eq("id", task.convertedToQuestId).then(() => {
-          qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
-        });
-      }
-      if (task.convertedToSubtaskId) {
-        supabase.from("quest_subtasks" as any).update({ status: newStatus } as any).eq("id", task.convertedToSubtaskId).then(() => {
-          qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
-        });
-      }
-    } else if (task.source === "quest") {
-      updateQuestStatus(task.id, newStatus);
-    } else if (task.source === "subtask") {
-      updateSubtaskStatus(task.id, newStatus);
-    }
-  };
-
   const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
-    const newStatus = checked ? "DONE" : "TODO";
-    handleStatusChange(task, newStatus);
+    handleStatusChange(task, checked ? "DONE" : "TODO");
   };
 
   const deleteTask = async (taskId: string) => {
     await supabase.from("personal_tasks" as any).delete().eq("id", taskId);
+    await supabase.from("user_work_items" as any).delete()
+      .eq("user_id", userId)
+      .eq("entity_type", "personal_task")
+      .eq("entity_id", taskId);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
   };
 
   const updatePriority = async (task: UnifiedTask, priority: Priority) => {
@@ -519,11 +561,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     } else if (task.source === "quest") {
       await supabase.from("quests").update({ priority } as any).eq("id", task.id);
-      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
-      qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
     } else if (task.source === "subtask") {
       await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
-      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
     }
   };
 
@@ -541,11 +583,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     } else if (editingSource === "quest") {
       await supabase.from("quests").update({ title: trimmed }).eq("id", editingId);
-      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
-      qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
     } else if (editingSource === "subtask") {
       await supabase.from("quest_subtasks" as any).update({ title: trimmed } as any).eq("id", editingId);
-      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
     }
     setEditingId(null);
   };
@@ -561,7 +603,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   const selectUnitForConvert = async (unit: UnitOption | null) => {
     setConvertSelectedUnit(unit);
-    // Pre-populate topics/territories from the unit or user
     try {
       let topicIds: string[] = [];
       let territoryIds: string[] = [];
@@ -601,7 +642,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const existingQuestId = pendingConvertTask.convertedToQuestId;
 
     if (existingQuestId) {
-      // Re-attach: update the existing quest's guild/owner
       const updatePayload: any = {};
       if (unit && unit.type === "GUILD") {
         updatePayload.owner_type = "GUILD";
@@ -627,7 +667,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         return;
       }
 
-      // Replace topics & territories
       await supabase.from("quest_topics").delete().eq("quest_id", existingQuestId);
       await supabase.from("quest_territories" as any).delete().eq("quest_id", existingQuestId);
       if (convertTopics.length > 0) {
@@ -641,7 +680,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         );
       }
 
-      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
       setConverting(false);
       setUnitPickerOpen(false);
       setPendingConvertTask(null);
@@ -650,7 +689,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       return;
     }
 
-    // New conversion: create quest
+    // New conversion: create quest with lifecycle status OPEN_FOR_PROPOSALS
     const insertPayload: any = {
       title: pendingConvertTask.title,
       created_by_user_id: userId,
@@ -690,6 +729,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       status: "ACCEPTED",
     });
 
+    // Create work item for new quest with BACKLOG
+    await supabase.from("user_work_items" as any).insert({
+      user_id: userId,
+      entity_type: "quest",
+      entity_id: questId,
+      work_state: "BACKLOG",
+    } as any);
+
     if (convertTopics.length > 0) {
       await supabase.from("quest_topics").insert(
         convertTopics.map((topic_id) => ({ quest_id: questId, topic_id }))
@@ -706,7 +753,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     } as any).eq("id", pendingConvertTask.id);
 
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
-    qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+    qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
     setConverting(false);
     setUnitPickerOpen(false);
     setPendingConvertTask(null);
@@ -719,26 +767,36 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       quest_id: questId,
       title: task.title,
       assignee_user_id: userId,
-      status: "TODO",
+      status: "BACKLOG",
       order_index: 0,
     } as any).select("id").single();
     if (error) { toast({ title: "Failed to create subtask", variant: "destructive" }); return; }
+    // Create work item for new subtask
+    if (data) {
+      await supabase.from("user_work_items" as any).insert({
+        user_id: userId,
+        entity_type: "quest_subtask",
+        entity_id: (data as any).id,
+        work_state: "BACKLOG",
+      } as any);
+    }
     await supabase.from("personal_tasks" as any).update({
       converted_to_subtask_id: (data as any).id,
     } as any).eq("id", task.id);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
-    qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
     toast({ title: "Task attached as subtask!" });
   };
 
-  // All quests (owned + participating) for the subtask picker
+  // All quests for subtask picker
   const allQuestsForPicker = [
     ...myQuests.map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
     ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
   ];
 
-  const todoCount = unified.filter((t) => t.status === "TODO").length;
-  const inProgressCount = unified.filter((t) => t.status === "IN_PROGRESS").length;
+  const todoCount = unified.filter((t) => t.workState === "TODO").length;
+  const inProgressCount = unified.filter((t) => t.workState === "IN_PROGRESS").length;
 
   const unitIcon = (type: string) => {
     if (type === "GUILD") return <Users className="h-4 w-4 text-primary" />;
@@ -850,7 +908,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               {paginated.map((task) => {
                 const key = `${task.source}-${task.id}`;
                 const isPendingDone = pendingDone.has(key);
-                const displayStatus = isPendingDone ? "DONE" : task.status;
+                const displayWorkState = isPendingDone ? "DONE" : task.workState;
 
                 if (isPendingDone) {
                   return (
@@ -876,7 +934,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 <tr key={key} className="border-t border-border group hover:bg-accent/30 transition-colors">
                   <td className="px-3 py-2.5">
                     <Checkbox
-                      checked={displayStatus === "DONE"}
+                      checked={displayWorkState === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
                     />
                   </td>
@@ -884,7 +942,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     <PriorityPicker
                       value={task.priority || "NONE"}
                       onChange={(p) => updatePriority(task, p)}
-                      
                     />
                   </td>
                   <td className="px-3 py-2.5">
@@ -905,7 +962,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         <span
                           className={cn(
                             "text-sm cursor-pointer",
-                            task.status === "DONE" && "line-through text-muted-foreground",
+                            task.workState === "DONE" && "line-through text-muted-foreground",
                           )}
                           onDoubleClick={() => startEditing(task)}
                         >
@@ -963,13 +1020,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
+                    {/* Task Perspective status only - NO quest lifecycle status */}
                     <Select
-                      value={task.status}
+                      value={task.workState}
                       onValueChange={(v) => handleStatusChange(task, v)}
                     >
                       <SelectTrigger className={cn(
                         "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
-                        STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
+                        STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
                       )}>
                         <SelectValue />
                       </SelectTrigger>
