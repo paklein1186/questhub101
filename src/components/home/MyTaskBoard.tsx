@@ -517,30 +517,39 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   const deleteTask = async (task: UnifiedTask) => {
-    if (task.source === "personal") {
-      await supabase.from("personal_tasks" as any).delete().eq("id", task.id);
-      await supabase.from("user_work_items" as any).delete()
-        .eq("user_id", userId)
-        .eq("entity_type", "personal_task")
-        .eq("entity_id", task.id);
-      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
-    } else if (task.source === "subtask") {
-      await supabase.from("quest_subtasks" as any).delete().eq("id", task.id);
-      await supabase.from("user_work_items" as any).delete()
-        .eq("user_id", userId)
-        .eq("entity_type", "quest_subtask")
-        .eq("entity_id", task.id);
-      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
-    } else if (task.source === "quest") {
-      await supabase.from("quests").update({ is_deleted: true }).eq("id", task.id);
-      await supabase.from("user_work_items" as any).delete()
-        .eq("user_id", userId)
-        .eq("entity_type", "quest")
-        .eq("entity_id", task.id);
-      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
-      qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
+    try {
+      if (task.source === "personal") {
+        const { error } = await supabase.from("personal_tasks" as any).delete().eq("id", task.id);
+        if (error) throw error;
+        await supabase.from("user_work_items" as any).delete()
+          .eq("user_id", userId)
+          .eq("entity_type", "personal_task")
+          .eq("entity_id", task.id);
+        qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+      } else if (task.source === "subtask") {
+        const { error } = await supabase.from("quest_subtasks" as any).delete().eq("id", task.id);
+        if (error) throw error;
+        await supabase.from("user_work_items" as any).delete()
+          .eq("user_id", userId)
+          .eq("entity_type", "quest_subtask")
+          .eq("entity_id", task.id);
+        qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+      } else if (task.source === "quest") {
+        const { error } = await supabase.from("quests").update({ is_deleted: true } as any).eq("id", task.id);
+        if (error) throw error;
+        await supabase.from("user_work_items" as any).delete()
+          .eq("user_id", userId)
+          .eq("entity_type", "quest")
+          .eq("entity_id", task.id);
+        qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+        qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
+      }
+      qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+      toast({ title: "Task deleted" });
+    } catch (err: any) {
+      console.error("Delete task error:", err);
+      toast({ title: "Failed to delete task", description: err?.message || "Unknown error", variant: "destructive" });
     }
-    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
   };
 
   const updatePriority = async (task: UnifiedTask, priority: Priority) => {
