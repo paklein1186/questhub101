@@ -340,7 +340,6 @@ export function WorkTasksTab() {
   }
 
   for (const s of mySubtasks) {
-    if (s.status === "DONE") continue; // Don't show DONE subtasks
     unified.push({
       id: s.id, title: s.title, status: s.status, source: "subtask",
       sourceLabel: s.questTitle, questId: s.quest_id, createdAt: s.created_at,
