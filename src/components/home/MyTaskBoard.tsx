@@ -29,12 +29,13 @@ import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/Prio
 import { GuildColorLabel } from "@/components/GuildColorLabel";
 
 const STATUS_COLORS: Record<string, string> = {
+  BACKLOG: "bg-muted/60 text-muted-foreground/70",
   TODO: "bg-muted text-muted-foreground",
   IN_PROGRESS: "bg-primary/10 text-primary",
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+type TaskStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE";
 
 type PersonalTask = {
   id: string;
@@ -362,7 +363,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const { error } = await supabase.from("personal_tasks" as any).insert({
       user_id: userId,
       title: newTitle.trim(),
-      status: "TODO",
+      status: "BACKLOG",
     } as any);
     if (error) { toast({ title: "Failed to add task", variant: "destructive" }); }
     else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["personal-tasks", userId] }); }
@@ -809,7 +810,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="TODO">TODO</SelectItem>
+                        <SelectItem value="BACKLOG">BACKLOG</SelectItem>
+                        <SelectItem value="TODO">TO DO NEXT</SelectItem>
                         <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
                         <SelectItem value="DONE">DONE</SelectItem>
                       </SelectContent>
