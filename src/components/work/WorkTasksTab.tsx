@@ -145,17 +145,15 @@ export function WorkTasksTab() {
         .from("quest_subtasks" as any)
         .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
         .eq("assignee_user_id", userId)
-        .in("status", ["TODO", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
       if (e1) throw e1;
 
       const { data: ownedQuests } = await supabase
         .from("quests")
         .select("id")
         .eq("created_by_user_id", userId)
-        .eq("is_deleted", false)
-        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"]);
+        .eq("is_deleted", false);
       const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
 
       const { data: parts } = await supabase
@@ -172,9 +170,8 @@ export function WorkTasksTab() {
           .from("quest_subtasks" as any)
           .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
           .in("quest_id", allQuestIds)
-          .in("status", ["TODO", "IN_PROGRESS"])
           .order("created_at", { ascending: false })
-          .limit(50);
+          .limit(100);
         fromQuests = qSubtasks || [];
       }
 
@@ -225,8 +222,7 @@ export function WorkTasksTab() {
         .from("quests")
         .select("id, title, status, created_at, guild_id, guilds(name, logo_url)")
         .in("id", questIds)
-        .eq("is_deleted", false)
-        .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
+        .eq("is_deleted", false);
       return quests || [];
     },
     enabled: !!userId,
