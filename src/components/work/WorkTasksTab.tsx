@@ -14,7 +14,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
   Calendar, ExternalLink, Search, X, Hash, MapPin, ChevronLeft,
-  LayoutList, Columns3, Filter,
+  LayoutList, Columns3, Filter, ArrowDownUp,
 } from "lucide-react";
 import { WorkTasksKanban } from "@/components/work/WorkTasksKanban";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
@@ -86,6 +86,7 @@ export function WorkTasksTab() {
   const [statusFilter, setStatusFilter] = useState<"all" | "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE">("all");
   const [hideDone, setHideDone] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
@@ -366,6 +367,21 @@ export function WorkTasksTab() {
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
+  }
+
+  // Sort
+  const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, TODO: 1, BACKLOG: 2, DONE: 3 };
+  if (sortBy === "status") {
+    filtered.sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9));
+  } else if (sortBy === "priority") {
+    const PRIO_ORDER: Record<string, number> = { NONE: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    filtered.sort((a, b) => (PRIO_ORDER[a.priority || "NONE"] ?? 9) - (PRIO_ORDER[b.priority || "NONE"] ?? 9));
+  } else if (sortBy === "recent") {
+    filtered.sort((a, b) => {
+      const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return db - da;
+    });
   }
 
   const isLoading = loadingPersonal || loadingQuests || loadingSubtasks;
@@ -708,6 +724,17 @@ export function WorkTasksTab() {
         >
           <ListChecks className="h-3.5 w-3.5" />
           {hideDone ? "Done hidden" : "Hide done"}
+        </Button>
+
+        {/* Sort toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 gap-1 text-xs"
+          onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
+        >
+          <ArrowDownUp className="h-3.5 w-3.5" />
+          {sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}
         </Button>
 
         {/* View mode toggle */}
