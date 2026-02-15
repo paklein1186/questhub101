@@ -4050,6 +4050,39 @@ export type Database = {
           },
         ]
       }
+      territory_closure: {
+        Row: {
+          ancestor_id: string
+          depth: number
+          descendant_id: string
+        }
+        Insert: {
+          ancestor_id: string
+          depth?: number
+          descendant_id: string
+        }
+        Update: {
+          ancestor_id?: string
+          depth?: number
+          descendant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_closure_ancestor_id_fkey"
+            columns: ["ancestor_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_closure_descendant_id_fkey"
+            columns: ["descendant_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       territory_excerpt_reports: {
         Row: {
           created_at: string
@@ -5055,6 +5088,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      rebuild_territory_closure: { Args: never; Returns: undefined }
       set_user_role:
         | {
             Args: {
@@ -5102,7 +5136,15 @@ export type Database = {
         | "CANCELLED"
         | "DRAFT"
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
-      territory_level: "TOWN" | "REGION" | "NATIONAL" | "OTHER"
+      territory_level:
+        | "TOWN"
+        | "REGION"
+        | "NATIONAL"
+        | "OTHER"
+        | "LOCALITY"
+        | "PROVINCE"
+        | "CONTINENT"
+        | "GLOBAL"
       xp_transaction_type:
         | "PURCHASE"
         | "ACTION_SPEND"
@@ -5254,7 +5296,16 @@ export const Constants = {
         "DRAFT",
       ],
       subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
-      territory_level: ["TOWN", "REGION", "NATIONAL", "OTHER"],
+      territory_level: [
+        "TOWN",
+        "REGION",
+        "NATIONAL",
+        "OTHER",
+        "LOCALITY",
+        "PROVINCE",
+        "CONTINENT",
+        "GLOBAL",
+      ],
       xp_transaction_type: [
         "PURCHASE",
         "ACTION_SPEND",
