@@ -1364,6 +1364,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           is_deleted: boolean
+          reshared_post_id: string | null
           updated_at: string
           upvote_count: number
           visibility: string
@@ -1377,6 +1378,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          reshared_post_id?: string | null
           updated_at?: string
           upvote_count?: number
           visibility?: string
@@ -1390,11 +1392,20 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           is_deleted?: boolean
+          reshared_post_id?: string | null
           updated_at?: string
           upvote_count?: number
           visibility?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_reshared_post_id_fkey"
+            columns: ["reshared_post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follows: {
         Row: {

@@ -1,19 +1,21 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useDeletePost, useEditPost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
+import { useDeletePost, useEditPost, useCreatePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
 import { renderMentions } from "@/components/MentionTextarea";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useAutoTranslatePost } from "@/hooks/useAutoTranslatePost";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
@@ -114,6 +116,48 @@ function DocumentChip({ attachment }: { attachment: PostAttachment }) {
   );
 }
 
+/** Compact embedded view of a reshared/quoted original post */
+function EmbeddedPost({ post }: { post: FeedPostWithAttachments }) {
+  const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
+
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <Link to={`/users/${post.author_user_id}`}>
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={post.author?.avatar_url ?? undefined} />
+            <AvatarFallback className="text-[10px]">{post.author?.name?.[0] || "?"}</AvatarFallback>
+          </Avatar>
+        </Link>
+        <Link to={`/users/${post.author_user_id}`} className="text-xs font-medium hover:underline">
+          {post.author?.name || "Unknown"}
+        </Link>
+        <span className="text-[10px] text-muted-foreground">
+          {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+        </span>
+      </div>
+      {post.content && (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">
+          {renderMentions(post.content)}
+        </p>
+      )}
+      {images.length > 0 && (
+        <div className="flex gap-1.5 overflow-hidden rounded-md">
+          {images.slice(0, 3).map((img) => (
+            <img key={img.id} src={img.thumbnail_url || img.url} alt="" className="h-20 w-20 object-cover rounded" loading="lazy" />
+          ))}
+          {images.length > 3 && (
+            <div className="h-20 w-20 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground font-medium">+{images.length - 3}</div>
+          )}
+        </div>
+      )}
+      {post.is_deleted && (
+        <p className="text-xs text-muted-foreground italic">This post has been deleted</p>
+      )}
+    </div>
+  );
+}
+
 interface PostCardProps {
   post: FeedPostWithAttachments;
   hasUpvoted?: boolean;
@@ -123,10 +167,13 @@ interface PostCardProps {
 
 export function PostCard({ post, hasUpvoted = false, allowComments = true }: PostCardProps) {
   const currentUser = useCurrentUser();
+  const { session } = useAuth();
   const deletePost = useDeletePost();
   const editPost = useEditPost();
+  const createPost = useCreatePost();
   const toggleUpvote = useTogglePostUpvote();
   const isOwn = post.author_user_id === currentUser.id;
+  const isLoggedIn = !!session;
   const upvoteCount = post.upvote_count ?? 0;
   const isDeleting = deletePost.isPending;
   const [showComments, setShowComments] = useState(false);
@@ -135,6 +182,9 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
   const [editTerritoryIds, setEditTerritoryIds] = useState<string[]>([]);
   const [editTopicIds, setEditTopicIds] = useState<string[]>([]);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [quoteDialogOpen, setQuoteDialogOpen] = useState(false);
+  const [quoteContent, setQuoteContent] = useState("");
+  const [isResharing, setIsResharing] = useState(false);
   const { translatedText, isTranslating, isTranslated, needsTranslation } = useAutoTranslatePost(post.id, post.content);
 
   // Comment count
@@ -193,6 +243,62 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
     setEditing(false);
   };
 
+  // The original post to reshare — skip resharing a reshare, go to the root
+  const reshareTargetId = post.reshared_post_id ? post.reshared_post_id : post.id;
+
+  // Reshare count
+  const { data: reshareCount = 0 } = useQuery({
+    queryKey: ["post-reshare-count", post.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("feed_posts")
+        .select("id", { count: "exact", head: true })
+        .eq("reshared_post_id", post.id)
+        .eq("is_deleted", false);
+      return count ?? 0;
+    },
+  });
+
+  const handleInstantReshare = async () => {
+    if (!currentUser.id || isResharing) return;
+    setIsResharing(true);
+    try {
+      await createPost.mutateAsync({
+        authorUserId: currentUser.id,
+        contextType: "GLOBAL",
+        content: "",
+        attachments: [],
+        resharedPostId: reshareTargetId,
+      });
+      toast.success("Reshared!");
+    } catch {
+      toast.error("Failed to reshare");
+    } finally {
+      setIsResharing(false);
+    }
+  };
+
+  const handleQuotePost = async () => {
+    if (!currentUser.id || isResharing) return;
+    setIsResharing(true);
+    try {
+      await createPost.mutateAsync({
+        authorUserId: currentUser.id,
+        contextType: "GLOBAL",
+        content: quoteContent.trim(),
+        attachments: [],
+        resharedPostId: reshareTargetId,
+      });
+      setQuoteContent("");
+      setQuoteDialogOpen(false);
+      toast.success("Quote posted!");
+    } catch {
+      toast.error("Failed to post quote");
+    } finally {
+      setIsResharing(false);
+    }
+  };
+
   // Display logic: show translation by default, allow toggle to original
   const displayContent = needsTranslation && isTranslated && !showOriginal
     ? translatedText
@@ -200,6 +306,13 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
 
   return (
     <div id={`post-${post.id}`} className="rounded-xl border border-border bg-card p-4 space-y-3">
+      {/* Reshare indicator */}
+      {post.reshared_post_id && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground -mt-1 mb-1">
+          <Repeat2 className="h-3.5 w-3.5" />
+          <span>{isOwn ? "You" : post.author?.name || "Someone"} reshared</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start gap-3">
         <Link to={`/users/${post.author_user_id}`}>
@@ -299,7 +412,9 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
       {links.map((l) => <LinkPreview key={l.id} attachment={l} />)}
       {docs.length > 0 && <div className="space-y-1">{docs.map((d) => <DocumentChip key={d.id} attachment={d} />)}</div>}
 
-      {/* Ontology chips */}
+      {/* Embedded reshared post */}
+      {post.reshared_post && <EmbeddedPost post={post.reshared_post} />}
+
       {((post.post_territories && post.post_territories.length > 0) || (post.post_topics && post.post_topics.length > 0)) && (
         <div className="flex flex-wrap gap-1.5">
           {(post.post_territories ?? []).map((pt) => (
@@ -384,8 +499,65 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
               </TooltipContent>
             </Tooltip>
           )}
+          {isLoggedIn && (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2.5 gap-1.5 text-muted-foreground hover:text-primary"
+                      disabled={isResharing}
+                    >
+                      {isResharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Repeat2 className="h-4 w-4" />}
+                      {reshareCount > 0 && <span className="text-xs font-medium">{reshareCount}</span>}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Reshare</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={handleInstantReshare}>
+                  <Repeat2 className="h-4 w-4 mr-2" /> Reshare now
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setQuoteDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" /> Quote post
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </TooltipProvider>
       </div>
+
+      {/* Quote post dialog */}
+      <Dialog open={quoteDialogOpen} onOpenChange={setQuoteDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Quote Post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Textarea
+              value={quoteContent}
+              onChange={(e) => setQuoteContent(e.target.value)}
+              placeholder="Add your thoughts…"
+              className="min-h-[80px] text-sm"
+              maxLength={2000}
+            />
+            <EmbeddedPost post={post.reshared_post || post} />
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                onClick={handleQuotePost}
+                disabled={isResharing || !quoteContent.trim()}
+              >
+                {isResharing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+                Post Quote
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Comments */}
       {allowComments && showComments && (
