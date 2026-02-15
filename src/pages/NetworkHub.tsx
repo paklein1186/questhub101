@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
-  ArrowRight, Hash, Rss, Trophy,
+  ArrowRight, Hash, Rss, Trophy, Activity,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
 import LeaderboardTab from "@/components/LeaderboardTab";
 import TerritoryTopicLeaderboard from "@/components/network/TerritoryTopicLeaderboard";
+import NetworkActivityTab from "@/components/network/NetworkActivityTab";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
@@ -99,6 +100,7 @@ export default function NetworkHub() {
           <TabsTrigger value="people"><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">People ({people.length})</span><span className="sm:hidden">{people.length}</span></TabsTrigger>
           <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Entities ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></TabsTrigger>
           <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories & Topics</span><span className="sm:hidden">Areas</span></TabsTrigger>
+          <TabsTrigger value="activity"><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Activity</span></TabsTrigger>
           <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Leaderboard</span></TabsTrigger>
         </TabsList>
 
@@ -174,6 +176,11 @@ export default function NetworkHub() {
         {/* ═══════════════ TERRITORIES & TOPICS LEADERBOARD ═══════════════ */}
         <TabsContent value="territories" className="mt-0">
           <TerritoryTopicLeaderboard />
+        </TabsContent>
+
+        {/* ═══════════════ ACTIVITY ═══════════════ */}
+        <TabsContent value="activity" className="mt-0">
+          <NetworkActivityTab />
         </TabsContent>
 
         {/* ═══════════════ LEADERBOARD ═══════════════ */}

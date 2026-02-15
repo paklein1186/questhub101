@@ -52,6 +52,39 @@ export type Database = {
           },
         ]
       }
+      activity_log: {
+        Row: {
+          action_type: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_name: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_name?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       attachments: {
         Row: {
           created_at: string
