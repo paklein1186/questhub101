@@ -218,7 +218,7 @@ export function BauhausShape() {
               </defs>
                <motion.path
                  fill="url(#bauhaus-grad)"
-                 opacity={0.45}
+                 opacity={0.3}
                  filter="url(#bauhaus-shadow)"
                  animate={{
                    d: [PATHS[0], PATHS[1], PATHS[2], PATHS[3], PATHS[4], PATHS[0]],
