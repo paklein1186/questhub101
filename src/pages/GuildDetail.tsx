@@ -205,12 +205,12 @@ export default function GuildDetail() {
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <div className="flex items-center gap-4 mb-3">
-          {guild.logo_url && <img src={guild.logo_url} className="h-16 w-16 rounded-xl" alt="" />}
-          <div className="flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
+          {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt="" />}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl font-bold">{guild.name}</h1>
-              {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary" /> : isAdmin && <Badge variant="outline" className="text-xs"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
+              <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{guild.name}</h1>
+              {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <Badge variant="secondary" className="capitalize">{guild.type.toLowerCase()}</Badge>
@@ -218,7 +218,7 @@ export default function GuildDetail() {
             </div>
             <p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{guild.description}</p>
           </div>
-          <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex flex-row sm:flex-col gap-2 shrink-0 flex-wrap">
               <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth("follow this guild", toggleFollow)}>
                 <Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} /> {isFollowing ? "Unfollow" : "Follow"}
               </Button>
@@ -252,13 +252,13 @@ export default function GuildDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center gap-1">
           <TabsList>
-            <TabsTrigger value="overview"><Shield className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
-            <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
-            <TabsTrigger value="quests"><Compass className="h-4 w-4 mr-1" /> Quests ({quests.length})</TabsTrigger>
-            <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
-            {isMember && <TabsTrigger value="decisions"><Vote className="h-4 w-4 mr-1" /> Decisions</TabsTrigger>}
+            <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Overview</span></TabsTrigger>
+            <TabsTrigger value="members"><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Members</span> ({members.length})</TabsTrigger>
+            <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Quests</span> ({quests.length})</TabsTrigger>
+            <TabsTrigger value="services"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Services</span> ({services.length})</TabsTrigger>
+            {isMember && <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Decisions</span></TabsTrigger>}
             <TabsTrigger value="wall">Wall</TabsTrigger>
-            {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
+            {isMember && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Chat & AI</span></TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

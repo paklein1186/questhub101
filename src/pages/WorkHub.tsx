@@ -84,10 +84,10 @@ export default function WorkHub() {
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex items-center gap-1 mb-6">
           <TabsList ref={tabsListRef}>
-            <TabsTrigger value="tasks"><ListTodo className="h-3.5 w-3.5 mr-1" /> Tasks</TabsTrigger>
-            <TabsTrigger value="quests">My {label("quest.label")} ({questsList.length})</TabsTrigger>
-            <TabsTrigger value="teams">My Entities ({teamsList.length})</TabsTrigger>
-            <TabsTrigger value="services">{label("service.my_label")} ({servicesList.length})</TabsTrigger>
+            <TabsTrigger value="tasks"><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Tasks</span></TabsTrigger>
+            <TabsTrigger value="quests"><span className="hidden sm:inline">My {label("quest.label")}</span><span className="sm:hidden">Quests</span> ({questsList.length})</TabsTrigger>
+            <TabsTrigger value="teams"><span className="hidden sm:inline">My Entities</span><span className="sm:hidden">Teams</span> ({teamsList.length})</TabsTrigger>
+            <TabsTrigger value="services"><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">Svc</span> ({servicesList.length})</TabsTrigger>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
           </TabsList>

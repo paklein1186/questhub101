@@ -94,12 +94,12 @@ export default function NetworkHub() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mb-6">
-          <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 mr-1" /> Following</TabsTrigger>
+          <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Following</span><span className="sm:hidden">Feed</span></TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="people"><Users className="h-3.5 w-3.5 mr-1" /> People ({people.length})</TabsTrigger>
-          <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 mr-1" /> Entities ({totalEntities})</TabsTrigger>
-          <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 mr-1" /> Territories & Topics</TabsTrigger>
-          <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 mr-1" /> Leaderboard</TabsTrigger>
+          <TabsTrigger value="people"><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">People ({people.length})</span><span className="sm:hidden">{people.length}</span></TabsTrigger>
+          <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Entities ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></TabsTrigger>
+          <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories & Topics</span><span className="sm:hidden">Areas</span></TabsTrigger>
+          <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Leaderboard</span></TabsTrigger>
         </TabsList>
 
         {/* ═══════════════ OVERVIEW ═══════════════ */}
