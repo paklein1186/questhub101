@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Users, Search, ArrowUpDown, Sparkles } from "lucide-react";
@@ -19,6 +19,7 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { redactName } from "@/lib/publicMode";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { FollowOnHoverButton, useFollowedUserIds } from "@/components/FollowOnHoverButton";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ExploreUser {
@@ -260,11 +261,7 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
           <p className="text-sm mt-1">Try adjusting your filters or search query.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {users.map((u) => (
-            <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} />
-          ))}
-        </div>
+        <UserCardGrid users={users} isLoggedIn={isLoggedIn} />
       )}
 
       {totalPages > 1 && (
@@ -292,17 +289,33 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
   );
 }
 
+// ─── User Card Grid (with bulk follow check) ────────────────
+
+function UserCardGrid({ users, isLoggedIn }: { users: ExploreUser[]; isLoggedIn: boolean }) {
+  const userIds = useMemo(() => users.map(u => u.user_id), [users]);
+  const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {users.map((u) => (
+        <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} isFollowed={followedIds.has(u.user_id)} />
+      ))}
+    </div>
+  );
+}
+
 // ─── User Card ───────────────────────────────────────────────
 
-function UserCard({ user, isLoggedIn }: { user: ExploreUser; isLoggedIn: boolean }) {
+function UserCard({ user, isLoggedIn, isFollowed = false }: { user: ExploreUser; isLoggedIn: boolean; isFollowed?: boolean }) {
   const displayName = isLoggedIn ? user.name : redactName(user.name);
   const personaLabel = PERSONA_LABELS[user.persona_type];
 
   return (
     <Link
       to={isLoggedIn ? `/users/${user.user_id}` : "/login"}
-      className="group block rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/30"
+      className="relative group block rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/30"
     >
+      {isLoggedIn && <FollowOnHoverButton targetUserId={user.user_id} isFollowed={isFollowed} />}
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12 shrink-0">
           {isLoggedIn ? (

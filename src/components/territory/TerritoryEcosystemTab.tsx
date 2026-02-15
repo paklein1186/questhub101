@@ -11,6 +11,7 @@ import {
   Loader2, Compass, Shield, CircleDot, Building2, GraduationCap, Briefcase,
   Users, Search, User, MapPin, Tag, ChevronDown, ChevronUp, Network,
 } from "lucide-react";
+import { FollowOnHoverButton, useFollowedUserIds } from "@/components/FollowOnHoverButton";
 
 interface Props {
   territoryId: string;
@@ -469,6 +470,9 @@ function PeopleSection({
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set());
   const [clusterByTopic, setClusterByTopic] = useState(false);
 
+  const peopleUserIds = useMemo(() => people.map(p => p.user_id), [people]);
+  const { data: followedIds = new Set<string>() } = useFollowedUserIds(peopleUserIds);
+
   const toggleTopic = (id: string) => {
     setSelectedTopicIds(prev => {
       const next = new Set(prev);
@@ -614,7 +618,7 @@ function PeopleSection({
               </div>
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {members.map(person => (
-                  <PersonCard key={person.user_id} person={person} />
+                  <PersonCard key={person.user_id} person={person} isFollowed={followedIds.has(person.user_id)} />
                 ))}
               </div>
             </div>
@@ -623,7 +627,7 @@ function PeopleSection({
       ) : (
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((person) => (
-            <PersonCard key={person.user_id} person={person} />
+            <PersonCard key={person.user_id} person={person} isFollowed={followedIds.has(person.user_id)} />
           ))}
         </div>
       )}
@@ -631,10 +635,11 @@ function PeopleSection({
   );
 }
 
-function PersonCard({ person }: { person: TerritoryPerson }) {
+function PersonCard({ person, isFollowed = false }: { person: TerritoryPerson; isFollowed?: boolean }) {
   return (
     <Link to={`/profile/${person.user_id}`}>
-      <Card className="p-3 hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-3">
+      <Card className="relative group p-3 hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-3">
+        <FollowOnHoverButton targetUserId={person.user_id} isFollowed={isFollowed} />
         <Avatar className="h-9 w-9 shrink-0">
           <AvatarImage src={person.avatar_url || undefined} />
           <AvatarFallback className="text-xs bg-primary/10 text-primary">
