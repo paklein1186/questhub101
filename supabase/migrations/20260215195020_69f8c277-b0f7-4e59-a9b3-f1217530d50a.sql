@@ -1,0 +1,1 @@
+ALTER TABLE public.quests ADD COLUMN priority text NOT NULL DEFAULT 'NONE';
