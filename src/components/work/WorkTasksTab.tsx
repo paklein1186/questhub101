@@ -289,7 +289,7 @@ export function WorkTasksTab() {
     assigneeMap.set(a.task_id, list);
   }
 
-  // Build unified list
+  // Build unified list with Option B suppression (same as homepage)
   const unified: UnifiedTask[] = [];
 
   for (const t of personalTasks) {
@@ -302,7 +302,17 @@ export function WorkTasksTab() {
     });
   }
 
+  // Determine which quests have non-DONE subtasks (for Option B suppression)
+  const questSubtaskMap = new Map<string, { hasActiveSubtasks: boolean }>();
+  for (const s of mySubtasks) {
+    if (s.status !== "DONE") {
+      questSubtaskMap.set(s.quest_id, { hasActiveSubtasks: true });
+    }
+  }
+
   for (const q of myQuests) {
+    const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
+    if (hasActive) continue; // Option B: hide parent quest when subtasks are active
     unified.push({
       id: q.id, title: q.title,
       status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
@@ -315,6 +325,8 @@ export function WorkTasksTab() {
 
   for (const q of participantQuests) {
     if (!myQuests.some((mq: any) => mq.id === q.id)) {
+      const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
+      if (hasActive) continue; // Option B for participant quests too
       unified.push({
         id: q.id, title: q.title,
         status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
@@ -327,6 +339,7 @@ export function WorkTasksTab() {
   }
 
   for (const s of mySubtasks) {
+    if (s.status === "DONE") continue; // Don't show DONE subtasks
     unified.push({
       id: s.id, title: s.title, status: s.status, source: "subtask",
       sourceLabel: s.questTitle, questId: s.quest_id, createdAt: s.created_at,
