@@ -57,6 +57,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
+import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -314,12 +315,12 @@ export default function GuildDetail() {
         {(() => {
           const allTabs: TabDefinition[] = [
             { value: "overview", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Overview</span></> },
+            { value: "discussion", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Posts</span></>, visible: !!(fc as any).discussionTab && ((fc as any).discussionAccess === "public" || isMember) },
             { value: "members", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Members</span> ({members.length})</> },
             { value: "quests", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Quests</span> ({quests.length})</> },
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "decisions", label: <><Vote className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Decisions</span></>, visible: isMember },
-            { value: "discussion", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Discussion</span></>, visible: !!(fc as any).discussionTab && ((fc as any).discussionAccess === "public" || isMember) },
-            { value: "wall", label: <>Wall</> },
+            { value: "wall", label: <>Agora</> },
             { value: "ai-chat", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Chat & AI</span></>, visible: isMember },
             { value: "board", label: <><LayoutGrid className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Board</span></>, visible: isMember && !!(fc as any).kanbanBoard },
             { value: "docs", label: <><FileText className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Docs</span></>, visible: isMember && !!(fc as any).docsSpace },
@@ -392,10 +393,13 @@ export default function GuildDetail() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
-            <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
-            <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></div>
+            <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
+            <button onClick={() => setActiveTab("quests")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
+            <button onClick={() => setActiveTab("services")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></button>
           </div>
+
+          {/* Highlighted posts from Discussion/Posts tab */}
+          <HighlightedPostsTiles guildId={guild.id} onViewAll={() => setActiveTab("discussion")} />
           <PartnersBlock entityType="GUILD" entityId={guild.id} />
         </TabsContent>
 

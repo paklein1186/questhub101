@@ -1,13 +1,15 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostComposer } from "@/components/feed/PostComposer";
 import { PostCard } from "@/components/feed/PostCard";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, MessageSquare, Lock, Globe, Shield } from "lucide-react";
+import { Loader2, MessageSquare, Lock, Globe, Shield, Pin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { sortPosts } from "@/lib/feedSort";
 import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
 
@@ -29,6 +31,31 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
   const { session } = useAuth();
   const isLoggedIn = !!session;
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch guild features_config for highlighted posts
+  const { data: guildConfig } = useQuery({
+    queryKey: ["guild-config-highlights", guildId],
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("features_config").eq("id", guildId).single();
+      return data;
+    },
+  });
+  const highlightedPosts: string[] = (guildConfig?.features_config as any)?.highlightedPosts || [];
+
+  const toggleHighlight = async (postId: string) => {
+    const currentConfig = (guildConfig?.features_config as any) || {};
+    const current: string[] = currentConfig.highlightedPosts || [];
+    const updated = current.includes(postId)
+      ? current.filter((id: string) => id !== postId)
+      : [...current, postId];
+    await supabase.from("guilds").update({ features_config: { ...currentConfig, highlightedPosts: updated } }).eq("id", guildId);
+    qc.invalidateQueries({ queryKey: ["guild-config-highlights", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+    qc.invalidateQueries({ queryKey: ["highlighted-posts", guildId] });
+    toast({ title: current.includes(postId) ? "Post unhighlighted" : "Post highlighted in Overview" });
+  };
 
   const { data: posts = [], isLoading } = useQuery<FeedPostWithAttachments[]>({
     queryKey: ["guild-discussion", guildId],
@@ -109,14 +136,28 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
           {sortedPosts.map((post) => {
             const vis = (post as any).visibility || "public";
             const visInfo = VISIBILITY_LABELS[vis];
+            const isHighlighted = highlightedPosts.includes(post.id);
             return (
               <div key={post.id} className="relative">
-                {vis !== "public" && (
-                  <Badge variant="outline" className="absolute top-2 right-2 z-10 text-[10px] gap-1 bg-background/80 backdrop-blur-sm">
-                    {visInfo && <visInfo.icon className="h-3 w-3" />}
-                    {visInfo?.label}
-                  </Badge>
-                )}
+                <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+                  {isAdmin && (
+                    <Button
+                      variant={isHighlighted ? "default" : "outline"}
+                      size="icon"
+                      className="h-7 w-7 bg-background/80 backdrop-blur-sm"
+                      onClick={() => toggleHighlight(post.id)}
+                      title={isHighlighted ? "Remove from Overview" : "Highlight in Overview"}
+                    >
+                      <Pin className={`h-3.5 w-3.5 ${isHighlighted ? "fill-current" : ""}`} />
+                    </Button>
+                  )}
+                  {vis !== "public" && (
+                    <Badge variant="outline" className="text-[10px] gap-1 bg-background/80 backdrop-blur-sm">
+                      {visInfo && <visInfo.icon className="h-3 w-3" />}
+                      {visInfo?.label}
+                    </Badge>
+                  )}
+                </div>
                 <PostCard post={post} hasUpvoted={upvotedSet.has(post.id)} />
               </div>
             );
