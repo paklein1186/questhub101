@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { MentionTextarea, extractMentionIds, extractAllMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
-import { ImagePlus, Paperclip, Link2, Send, X, Loader2, Film } from "lucide-react";
+import { ImagePlus, Paperclip, Link2, Send, X, Loader2, Film, Globe, Lock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -46,9 +47,10 @@ interface PendingLink {
 interface PostComposerProps {
   contextType: string;
   contextId?: string;
+  showVisibilityPicker?: boolean;
 }
 
-export function PostComposer({ contextType, contextId }: PostComposerProps) {
+export function PostComposer({ contextType, contextId, showVisibilityPicker = false }: PostComposerProps) {
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const createPost = useCreatePost();
@@ -62,6 +64,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
   const [uploading, setUploading] = useState(false);
   const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>([]);
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<string>("public");
 
   const imgRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
@@ -206,6 +209,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
         attachments,
         territoryIds: selectedTerritoryIds,
         topicIds: selectedTopicIds,
+        visibility: showVisibilityPicker ? visibility : "public",
       });
 
       // Reset
@@ -215,6 +219,7 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
       setLink(null);
       setSelectedTerritoryIds([]);
       setSelectedTopicIds([]);
+      setVisibility("public");
       toast.success("Post published!");
     } catch (err: any) {
       toast.error(err.message || "Failed to publish post");
@@ -385,14 +390,28 @@ export function PostComposer({ contextType, contextId }: PostComposerProps) {
             <Link2 className="h-4 w-4 mr-1" /> Link
           </Button>
         </div>
-        <Button
-          size="sm"
-          disabled={!canSubmit || uploading || createPost.isPending}
-          onClick={handleSubmit}
-        >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-          Post
-        </Button>
+        <div className="flex items-center gap-2">
+          {showVisibilityPicker && (
+            <Select value={visibility} onValueChange={setVisibility}>
+              <SelectTrigger className="h-8 w-[140px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public"><span className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Public</span></SelectItem>
+                <SelectItem value="members"><span className="flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Members</span></SelectItem>
+                <SelectItem value="admins"><span className="flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Admins</span></SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          <Button
+            size="sm"
+            disabled={!canSubmit || uploading || createPost.isPending}
+            onClick={handleSubmit}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+            Post
+          </Button>
+        </div>
       </div>
 
       <input

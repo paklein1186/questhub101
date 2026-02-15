@@ -7,7 +7,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2, Vote,
+  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,7 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FeedSection } from "@/components/feed/FeedSection";
+import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
@@ -118,7 +119,7 @@ export default function GuildDetail() {
   };
 
   // Feature flags
-  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER" };
   const fc = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
 
   const doJoinGuild = async () => {
@@ -257,6 +258,11 @@ export default function GuildDetail() {
             <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Quests</span> ({quests.length})</TabsTrigger>
             <TabsTrigger value="services"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Services</span> ({services.length})</TabsTrigger>
             {isMember && <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Decisions</span></TabsTrigger>}
+            {(fc as any).discussionTab && (
+              (fc as any).discussionAccess === "public" || isMember
+            ) && (
+              <TabsTrigger value="discussion"><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Discussion</span></TabsTrigger>
+            )}
             <TabsTrigger value="wall">Wall</TabsTrigger>
             {isMember && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Chat & AI</span></TabsTrigger>}
           </TabsList>
@@ -548,6 +554,21 @@ export default function GuildDetail() {
               memberCount={members.length}
               currentUserRole={currentMembership?.role}
               featuresConfig={fc}
+            />
+          </TabsContent>
+        )}
+
+        {(fc as any).discussionTab && (
+          <TabsContent value="discussion" className="mt-6">
+            <GuildDiscussionTab
+              guildId={guild.id}
+              guildName={guild.name}
+              isAdmin={isAdmin}
+              isMember={isMember}
+              canPost={
+                isAdmin ||
+                (isMember && (fc as any).discussionPostPermission !== "ADMIN")
+              }
             />
           </TabsContent>
         )}

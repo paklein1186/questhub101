@@ -187,7 +187,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const [defaultQuestTerritories, setDefaultQuestTerritories] = useState<string[]>([]);
 
   // ── Features config state ──
-  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true };
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER" };
   const parsedFeatures = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
   const [featuresConfig, setFeaturesConfig] = useState(parsedFeatures);
 
@@ -487,6 +487,63 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       ))}
                     </div>
                     <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save features</Button>
+                  </Section>
+
+                  {/* Discussion settings */}
+                  <Section title="Discussion Tab" icon={<CalendarDays className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Configure the guild's discussion board where members can post and discuss.
+                    </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+                        <div className="flex items-center gap-3">
+                          <CalendarDays className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <Label className="text-sm font-medium">Enable Discussion Tab</Label>
+                            <p className="text-xs text-muted-foreground">Show a dedicated discussion feed on the guild page</p>
+                          </div>
+                        </div>
+                        <Switch checked={(featuresConfig as any).discussionTab} onCheckedChange={() => toggleFeature("discussionTab")} />
+                      </div>
+
+                      {(featuresConfig as any).discussionTab && (
+                        <>
+                          <div>
+                            <Label className="text-sm font-medium mb-1 block">Who can access the Discussion tab?</Label>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Control whether the tab is visible only to validated members or to the wider public.
+                            </p>
+                            <Select
+                              value={(featuresConfig as any).discussionAccess || "members"}
+                              onValueChange={(v) => setFeaturesConfig((prev: any) => ({ ...prev, discussionAccess: v }))}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="members">Members only (validated)</SelectItem>
+                                <SelectItem value="public">Public (anyone can view)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium mb-1 block">Who can create posts?</Label>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Choose whether all members or only admins can publish posts in the discussion tab.
+                            </p>
+                            <Select
+                              value={(featuresConfig as any).discussionPostPermission || "MEMBER"}
+                              onValueChange={(v) => setFeaturesConfig((prev: any) => ({ ...prev, discussionPostPermission: v }))}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ADMIN">Admins only</SelectItem>
+                                <SelectItem value="MEMBER">All members</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <Button onClick={handleSaveFeatures} className="w-full mt-4"><Save className="h-4 w-4 mr-2" /> Save discussion settings</Button>
                   </Section>
 
                   <GuildFeatureSuggestionBox guildId={guildId} userId={currentUser.id} />
