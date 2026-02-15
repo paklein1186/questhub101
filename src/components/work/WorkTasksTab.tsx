@@ -14,7 +14,9 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
   Calendar, ExternalLink, Search, X, Hash, MapPin, ChevronLeft,
+  LayoutList, Columns3,
 } from "lucide-react";
+import { WorkTasksKanban } from "@/components/work/WorkTasksKanban";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
@@ -76,6 +78,7 @@ export function WorkTasksTab() {
   const qc = useQueryClient();
   const navigate = useNavigate();
 
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
@@ -623,7 +626,7 @@ export function WorkTasksTab() {
         </Button>
       </div>
 
-      {/* Filters + search */}
+      {/* Filters + search + view toggle */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -645,6 +648,24 @@ export function WorkTasksTab() {
             <SelectItem value="subtask">Subtasks</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex border border-border rounded-md overflow-hidden">
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
+            className="h-9 rounded-none px-2.5"
+            onClick={() => setViewMode("list")}
+          >
+            <LayoutList className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "kanban" ? "default" : "ghost"}
+            size="sm"
+            className="h-9 rounded-none px-2.5"
+            onClick={() => setViewMode("kanban")}
+          >
+            <Columns3 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Quick add */}
@@ -661,7 +682,7 @@ export function WorkTasksTab() {
         </Button>
       </div>
 
-      {/* Task table */}
+      {/* Task view */}
       {isLoading ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -670,10 +691,17 @@ export function WorkTasksTab() {
         <div className="text-center py-12 rounded-xl border border-dashed border-border">
           <ListTodo className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-muted-foreground mb-3">No tasks match your filters</p>
-        <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("all"); setSearchQuery(""); }}>
+          <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("all"); setSearchQuery(""); }}>
             Clear filters
           </Button>
         </div>
+      ) : viewMode === "kanban" ? (
+        <WorkTasksKanban
+          tasks={filtered}
+          onStatusChange={handleStatusChange}
+          pendingDone={pendingDone}
+          undoDone={undoDone}
+        />
       ) : (
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
@@ -766,7 +794,6 @@ export function WorkTasksTab() {
                             <div className="flex items-center gap-1.5 mt-0.5">
                               {task.convertedToQuestId && <Badge variant="outline" className="text-[9px] h-4">→ Quest</Badge>}
                               {task.convertedToSubtaskId && <Badge variant="outline" className="text-[9px] h-4">→ Subtask</Badge>}
-                              {/* Show source as a small tag on mobile */}
                               <span className="md:hidden">
                                 <Badge variant="secondary" className="text-[9px] h-4 capitalize">
                                   {task.source === "personal" ? "Personal" : (task.sourceLabel || task.source).slice(0, 16)}
