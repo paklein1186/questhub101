@@ -3302,6 +3302,7 @@ export type Database = {
           allow_fundraising: boolean
           boost_expires_at: string | null
           company_id: string | null
+          cover_focal_y: number
           cover_image_url: string | null
           created_at: string
           created_by_user_id: string
@@ -3338,6 +3339,7 @@ export type Database = {
           allow_fundraising?: boolean
           boost_expires_at?: string | null
           company_id?: string | null
+          cover_focal_y?: number
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id: string
@@ -3374,6 +3376,7 @@ export type Database = {
           allow_fundraising?: boolean
           boost_expires_at?: string | null
           company_id?: string | null
+          cover_focal_y?: number
           cover_image_url?: string | null
           created_at?: string
           created_by_user_id?: string
