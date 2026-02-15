@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTabOrder } from "@/hooks/useTabOrder";
+import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
@@ -82,34 +84,17 @@ export default function WorkHub() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="flex items-center gap-1 mb-6">
-          <TabsList ref={tabsListRef}>
-            <TabsTrigger value="tasks"><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Tasks</span></TabsTrigger>
-            <TabsTrigger value="quests"><span className="hidden sm:inline">My {label("quest.label")}</span><span className="sm:hidden">Quests</span> ({questsList.length})</TabsTrigger>
-            <TabsTrigger value="teams"><span className="hidden sm:inline">My Entities</span><span className="sm:hidden">Teams</span> ({teamsList.length})</TabsTrigger>
-            <TabsTrigger value="services"><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">Svc</span> ({servicesList.length})</TabsTrigger>
-            <TabsTrigger value="bookings">Bookings</TabsTrigger>
-            <TabsTrigger value="drafts">Drafts ({totalDrafts})</TabsTrigger>
-          </TabsList>
-          {showMore && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 px-2.5 shrink-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="ml-1 text-sm hidden sm:inline">More</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTab("courses")}>Courses</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTab("availability")}>Availability</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTab("requests")}>Requests</DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/calendar" className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> Calendar</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+        {(() => {
+          const workTabs: TabDefinition[] = [
+            { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Tasks</span></> },
+            { value: "quests", label: <><span className="hidden sm:inline">My {label("quest.label")}</span><span className="sm:hidden">Quests</span> ({questsList.length})</> },
+            { value: "teams", label: <><span className="hidden sm:inline">My Entities</span><span className="sm:hidden">Teams</span> ({teamsList.length})</> },
+            { value: "services", label: <><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">Svc</span> ({servicesList.length})</> },
+            { value: "bookings", label: "Bookings" },
+            { value: "drafts", label: <>Drafts ({totalDrafts})</> },
+          ];
+          return <WorkTabsListInner tabs={workTabs} />;
+        })()}
 
         {/* ── Tasks ── */}
         <TabsContent value="tasks">
@@ -312,5 +297,16 @@ export default function WorkHub() {
         <TabsContent value="requests"><MyRequests bare /></TabsContent>
       </Tabs>
     </PageShell>
+  );
+}
+
+const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "drafts"];
+
+function WorkTabsListInner({ tabs }: { tabs: TabDefinition[] }) {
+  const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("work_hub", WORK_DEFAULT_TABS);
+  return (
+    <div className="group/tabs mb-6">
+      <SortableTabsList tabs={tabs} orderedKeys={orderedTabs} onReorder={saveOrder} onReset={resetOrder} isCustomized={isCustomized} />
+    </div>
   );
 }

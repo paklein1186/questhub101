@@ -5,6 +5,8 @@ import {
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
   ArrowRight, Hash, Rss, Trophy, Activity,
 } from "lucide-react";
+import { useTabOrder } from "@/hooks/useTabOrder";
+import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
@@ -54,6 +56,96 @@ function SectionHeader({ icon: Icon, title, count, seeMoreTo }: { icon: any; tit
   );
 }
 
+const NETWORK_DEFAULT_TABS = ["following", "activity", "overview", "people", "entities", "territories", "leaderboard"];
+
+function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser }: any) {
+  const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("network_hub", NETWORK_DEFAULT_TABS);
+
+  const tabDefs: TabDefinition[] = [
+    { value: "following", label: <><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Following</span><span className="sm:hidden">Feed</span></> },
+    { value: "activity", label: <><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Activity</span></> },
+    { value: "overview", label: "Overview" },
+    { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">People ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
+    { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Entities ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
+    { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories & Topics</span><span className="sm:hidden">Areas</span></> },
+    { value: "leaderboard", label: <><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Leaderboard</span></> },
+  ];
+
+  return (
+    <Tabs value={tab} onValueChange={setTab}>
+      <div className="group/tabs mb-6">
+        <SortableTabsList
+          tabs={tabDefs}
+          orderedKeys={orderedTabs}
+          onReorder={saveOrder}
+          onReset={resetOrder}
+          isCustomized={isCustomized}
+        />
+      </div>
+
+      <TabsContent value="overview" className="mt-0 space-y-8">
+        {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
+        {!isLoading && overviewSections.map((section: string) => {
+          if (section === "people") return <OverviewPeople key="people" people={people} />;
+          if (section === "guilds") return <OverviewGuilds key="guilds" memberships={guildMemberships} label={label} />;
+          if (section === "companies") return <OverviewCompanies key="companies" memberships={companyMemberships} />;
+          if (section === "territories") return <OverviewTerritories key="territories" territories={myTerritories} topics={myTopics} activity={territoryActivity} />;
+          if (section === "ai") return (
+            <div key="ai">
+              <SectionHeader icon={Sparkles} title="AI Suggestions" />
+              <MatchmakerPanel matchType="user" userId={currentUser.id} />
+            </div>
+          );
+          return null;
+        })}
+      </TabsContent>
+
+      <TabsContent value="following" className="mt-0">
+        <FollowingFeedTab />
+      </TabsContent>
+
+      <TabsContent value="people" className="mt-0">
+        <PeopleTab people={people} loading={loadingPeople} />
+      </TabsContent>
+
+      <TabsContent value="entities" className="mt-0">
+        <div className="flex items-center gap-2 mb-5 flex-wrap">
+          {([
+            ["all", "All", totalEntities],
+            ["guilds", label("guild.label"), guildMemberships.length],
+            ["pods", label("pod.label"), podMemberships.length],
+            ["companies", "Traditional Organizations", companyMemberships.length],
+          ] as [string, string, number][]).map(([key, lbl, count]) => (
+            <Button key={key} variant={entitySub === key ? "default" : "outline"} size="sm" onClick={() => setEntitySub(key)} className="text-xs">{lbl} ({count})</Button>
+          ))}
+        </div>
+        {(loadingGuilds || loadingPods || loadingCompanies) && (
+          <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        )}
+        {!(loadingGuilds || loadingPods || loadingCompanies) && (
+          <div className="space-y-8">
+            {(entitySub === "all" || entitySub === "guilds") && <GuildsTab memberships={guildMemberships} loading={false} label={label} />}
+            {(entitySub === "all" || entitySub === "pods") && <PodsTab memberships={podMemberships} loading={false} label={label} />}
+            {(entitySub === "all" || entitySub === "companies") && <CompaniesTab memberships={companyMemberships} loading={false} />}
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="territories" className="mt-0">
+        <TerritoryTopicLeaderboard />
+      </TabsContent>
+
+      <TabsContent value="activity" className="mt-0">
+        <NetworkActivityTab />
+      </TabsContent>
+
+      <TabsContent value="leaderboard" className="mt-0">
+        <LeaderboardTab />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 // ─── Main ────────────────────────────────────────────────────
 export default function NetworkHub() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -94,101 +186,28 @@ export default function NetworkHub() {
         <p className="text-muted-foreground mt-1">Your ecosystem at a glance — people, organizations, and territories connected to you.</p>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="following"><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Following</span><span className="sm:hidden">Feed</span></TabsTrigger>
-          <TabsTrigger value="activity"><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Activity</span></TabsTrigger>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="people"><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">People ({people.length})</span><span className="sm:hidden">{people.length}</span></TabsTrigger>
-          <TabsTrigger value="entities"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Entities ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></TabsTrigger>
-          <TabsTrigger value="territories"><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories & Topics</span><span className="sm:hidden">Areas</span></TabsTrigger>
-          <TabsTrigger value="leaderboard"><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Leaderboard</span></TabsTrigger>
-        </TabsList>
-
-        {/* ═══════════════ OVERVIEW ═══════════════ */}
-        <TabsContent value="overview" className="mt-0 space-y-8">
-          {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
-
-          {!isLoading && overviewSections.map((section) => {
-            if (section === "people") return <OverviewPeople key="people" people={people} />;
-            if (section === "guilds") return <OverviewGuilds key="guilds" memberships={guildMemberships} label={label} />;
-            if (section === "companies") return <OverviewCompanies key="companies" memberships={companyMemberships} />;
-            if (section === "territories") return <OverviewTerritories key="territories" territories={myTerritories} topics={myTopics} activity={territoryActivity} />;
-            if (section === "ai") return (
-              <div key="ai">
-                <SectionHeader icon={Sparkles} title="AI Suggestions" />
-                <MatchmakerPanel matchType="user" userId={currentUser.id} />
-              </div>
-            );
-            return null;
-          })}
-        </TabsContent>
-
-        {/* ═══════════════ FOLLOWING FEED ═══════════════ */}
-        <TabsContent value="following" className="mt-0">
-          <FollowingFeedTab />
-        </TabsContent>
-
-        {/* ═══════════════ PEOPLE ═══════════════ */}
-        <TabsContent value="people" className="mt-0">
-          <PeopleTab people={people} loading={loadingPeople} />
-        </TabsContent>
-
-        {/* ═══════════════ ENTITIES (clustered) ═══════════════ */}
-        <TabsContent value="entities" className="mt-0">
-          <div className="flex items-center gap-2 mb-5 flex-wrap">
-            {([
-              ["all", "All", totalEntities],
-              ["guilds", label("guild.label"), guildMemberships.length],
-              ["pods", label("pod.label"), podMemberships.length],
-              ["companies", "Traditional Organizations", companyMemberships.length],
-            ] as [typeof entitySub, string, number][]).map(([key, lbl, count]) => (
-              <Button
-                key={key}
-                variant={entitySub === key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setEntitySub(key)}
-                className="text-xs"
-              >
-                {lbl} ({count})
-              </Button>
-            ))}
-          </div>
-
-          {(loadingGuilds || loadingPods || loadingCompanies) && (
-            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-          )}
-
-          {!(loadingGuilds || loadingPods || loadingCompanies) && (
-            <div className="space-y-8">
-              {(entitySub === "all" || entitySub === "guilds") && (
-                <GuildsTab memberships={guildMemberships} loading={false} label={label} />
-              )}
-              {(entitySub === "all" || entitySub === "pods") && (
-                <PodsTab memberships={podMemberships} loading={false} label={label} />
-              )}
-              {(entitySub === "all" || entitySub === "companies") && (
-                <CompaniesTab memberships={companyMemberships} loading={false} />
-              )}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ═══════════════ TERRITORIES & TOPICS LEADERBOARD ═══════════════ */}
-        <TabsContent value="territories" className="mt-0">
-          <TerritoryTopicLeaderboard />
-        </TabsContent>
-
-        {/* ═══════════════ ACTIVITY ═══════════════ */}
-        <TabsContent value="activity" className="mt-0">
-          <NetworkActivityTab />
-        </TabsContent>
-
-        {/* ═══════════════ LEADERBOARD ═══════════════ */}
-        <TabsContent value="leaderboard" className="mt-0">
-          <LeaderboardTab />
-        </TabsContent>
-      </Tabs>
+      <NetworkTabs
+        tab={tab}
+        setTab={setTab}
+        people={people}
+        totalEntities={totalEntities}
+        isLoading={isLoading}
+        loadingPeople={loadingPeople}
+        loadingGuilds={loadingGuilds}
+        loadingPods={loadingPods}
+        loadingCompanies={loadingCompanies}
+        overviewSections={overviewSections}
+        guildMemberships={guildMemberships}
+        companyMemberships={companyMemberships}
+        podMemberships={podMemberships}
+        myTerritories={myTerritories}
+        myTopics={myTopics}
+        territoryActivity={territoryActivity}
+        label={label}
+        entitySub={entitySub}
+        setEntitySub={setEntitySub}
+        currentUser={currentUser}
+      />
     </PageShell>
   );
 }
