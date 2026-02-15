@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "@/types/enums";
+import { QUEST_TYPES, QUEST_TYPE_LABELS, type QuestType } from "@/lib/questTypes";
 import { UniverseToggle } from "@/components/UniverseToggle";
 import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon } from "@/lib/universeMapping";
 
@@ -56,6 +57,7 @@ export interface ExploreFilterValues {
   price: string;
   role: string;
   sortBy: ExploreSortBy;
+  questType: string;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -69,6 +71,7 @@ export const defaultFilters: ExploreFilterValues = {
   price: "all",
   role: "all",
   sortBy: "most_recent",
+  questType: "all",
 };
 
 // Which filter sections to show per page
@@ -82,6 +85,7 @@ export interface ExploreFilterConfig {
   showGuildType?: boolean;
   showPrice?: boolean;          // free/paid for services & courses
   showRole?: boolean;           // user role
+  showQuestType?: boolean;      // quest type (Level 1)
 }
 
 interface Props {
@@ -174,7 +178,8 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
     (filters.podType !== "all" ? 1 : 0) +
     (filters.guildType !== "all" ? 1 : 0) +
     (filters.price !== "all" ? 1 : 0) +
-    (filters.role !== "all" ? 1 : 0);
+    (filters.role !== "all" ? 1 : 0) +
+    (filters.questType !== "all" ? 1 : 0);
 
   const clearAll = () => onChange({ ...defaultFilters });
 
@@ -269,6 +274,21 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                     <SelectItem value="all">All statuses</SelectItem>
                     {Object.values(QuestStatus).map(s => (
                       <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {config.showQuestType && (
+              <div>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Type de quête</p>
+                <Select value={filters.questType} onValueChange={v => set({ questType: v })}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All types</SelectItem>
+                    {QUEST_TYPES.map(qt => (
+                      <SelectItem key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
