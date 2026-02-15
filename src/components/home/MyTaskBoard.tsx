@@ -614,7 +614,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       setSessionDone((prev) => new Set(prev).add(key));
       const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
       upsertWorkState(entityType, task.id, "DONE");
-      // Don't invalidate queries — keep item visible (crossed-out) until refresh
+      // Invalidate Work hub queries so status is reflected there too
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+      qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
       return;
     }
 
