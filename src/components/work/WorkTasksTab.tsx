@@ -1155,9 +1155,15 @@ export function WorkTasksTab() {
           {convertStep === "tags" && (
             <div className="space-y-4 py-2">
               <div>
-                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
-                  <Hash className="h-3.5 w-3.5" /> Topics
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium flex items-center gap-1.5">
+                    <Hash className="h-3.5 w-3.5" /> Topics
+                  </label>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => setConvertTopics((allTopics ?? []).map((t: any) => t.id))}>Select all</Button>
+                    <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => setConvertTopics([])}>Clear</Button>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
                   {(allTopics ?? []).map((t: any) => (
                     <Badge
@@ -1172,9 +1178,15 @@ export function WorkTasksTab() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
-                  <MapPin className="h-3.5 w-3.5" /> Territories
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5" /> Territories
+                  </label>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => setConvertTerritories((allTerritories ?? []).map((t: any) => t.id))}>Select all</Button>
+                    <Button variant="ghost" size="sm" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => setConvertTerritories([])}>Clear</Button>
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
                   {(allTerritories ?? []).map((t: any) => (
                     <Badge
