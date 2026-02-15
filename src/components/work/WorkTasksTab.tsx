@@ -84,7 +84,7 @@ export function WorkTasksTab() {
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
   const [entityFilter, setEntityFilter] = useState<string>("all"); // "all" or entity id
   const [statusFilter, setStatusFilter] = useState<"all" | "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE">("all");
-  const [hideDone, setHideDone] = useState(false);
+  const [hideDone, setHideDone] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
   const [editingId, setEditingId] = useState<string | null>(null);
