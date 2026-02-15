@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
@@ -56,6 +56,66 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
+import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
+
+/** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
+function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
+  allTabs: TabDefinition[]; defaultOrder: string[];
+  isAdmin: boolean; guildId: string; featuresConfig: any;
+}) {
+  const qc = useQueryClient();
+  const savedOrder: string[] = featuresConfig?.tabOrder || [];
+
+  // Merge saved order with defaults
+  const orderedTabs = useMemo(() => {
+    if (!savedOrder.length) return defaultOrder;
+    const valid = savedOrder.filter((t: string) => defaultOrder.includes(t));
+    const remaining = defaultOrder.filter((t) => !valid.includes(t));
+    return [...valid, ...remaining];
+  }, [savedOrder, defaultOrder]);
+
+  const saveOrder = async (newOrder: string[]) => {
+    const updated = { ...featuresConfig, tabOrder: newOrder };
+    await supabase.from("guilds").update({ features_config: updated }).eq("id", guildId);
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+  };
+
+  const resetOrder = async () => {
+    const { tabOrder, ...rest } = featuresConfig || {};
+    await supabase.from("guilds").update({ features_config: rest }).eq("id", guildId);
+    qc.invalidateQueries({ queryKey: ["guild", guildId] });
+  };
+
+  if (isAdmin) {
+    return (
+      <div className="group/tabs flex items-center gap-1">
+        <SortableTabsList
+          tabs={allTabs}
+          orderedKeys={orderedTabs}
+          onReorder={saveOrder}
+          onReset={resetOrder}
+          isCustomized={savedOrder.length > 0}
+        />
+      </div>
+    );
+  }
+
+  const sorted = allTabs
+    .filter((t) => t.visible !== false)
+    .sort((a, b) => {
+      const ai = orderedTabs.indexOf(a.value);
+      const bi = orderedTabs.indexOf(b.value);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+
+  return (
+    <TabsList>
+      {sorted.map((t) => (
+        <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+      ))}
+    </TabsList>
+  );
+}
 
 export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
@@ -251,70 +311,28 @@ export default function GuildDetail() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center gap-1">
-          <TabsList>
-            <TabsTrigger value="overview"><Shield className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Overview</span></TabsTrigger>
-            <TabsTrigger value="members"><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Members</span> ({members.length})</TabsTrigger>
-            <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Quests</span> ({quests.length})</TabsTrigger>
-            <TabsTrigger value="services"><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Services</span> ({services.length})</TabsTrigger>
-            {isMember && <TabsTrigger value="decisions"><Vote className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Decisions</span></TabsTrigger>}
-            {(fc as any).discussionTab && (
-              (fc as any).discussionAccess === "public" || isMember
-            ) && (
-              <TabsTrigger value="discussion"><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Discussion</span></TabsTrigger>
-            )}
-            <TabsTrigger value="wall">Wall</TabsTrigger>
-            {isMember && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Chat & AI</span></TabsTrigger>}
-          </TabsList>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 px-2.5">
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="ml-1 text-sm">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isMember && (fc as any).kanbanBoard && (
-                <DropdownMenuItem onClick={() => setActiveTab("board")}>
-                  <LayoutGrid className="h-4 w-4 mr-2" /> Board
-                </DropdownMenuItem>
-              )}
-              {isMember && (fc as any).docsSpace && (
-                <DropdownMenuItem onClick={() => setActiveTab("docs")}>
-                  <FileText className="h-4 w-4 mr-2" /> Docs
-                </DropdownMenuItem>
-              )}
-              {(fc as any).events && (
-                <DropdownMenuItem onClick={() => setActiveTab("events")}>
-                  <CalendarDays className="h-4 w-4 mr-2" /> Events
-                </DropdownMenuItem>
-              )}
-              {achievements.length > 0 && (
-                <DropdownMenuItem onClick={() => setActiveTab("achievements")}>
-                  <Star className="h-4 w-4 mr-2" /> Achievements
-                </DropdownMenuItem>
-              )}
-              {isAdmin && (
-                <DropdownMenuItem onClick={() => setActiveTab("matchmaker")}>
-                  <Sparkles className="h-4 w-4 mr-2" /> Matchmaker
-                </DropdownMenuItem>
-              )}
-              {isMember && (
-                <DropdownMenuItem onClick={() => setActiveTab("facilitator")}>
-                  <Sparkles className="h-4 w-4 mr-2" /> Facilitator
-                </DropdownMenuItem>
-              )}
-              {isMember && (
-                <DropdownMenuItem onClick={() => setActiveTab("memory")}>
-                  <Brain className="h-4 w-4 mr-2" /> Memory
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => setActiveTab("partnerships")}>
-                <Handshake className="h-4 w-4 mr-2" /> Partnerships
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {(() => {
+          const allTabs: TabDefinition[] = [
+            { value: "overview", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Overview</span></> },
+            { value: "members", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Members</span> ({members.length})</> },
+            { value: "quests", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Quests</span> ({quests.length})</> },
+            { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
+            { value: "decisions", label: <><Vote className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Decisions</span></>, visible: isMember },
+            { value: "discussion", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Discussion</span></>, visible: !!(fc as any).discussionTab && ((fc as any).discussionAccess === "public" || isMember) },
+            { value: "wall", label: <>Wall</> },
+            { value: "ai-chat", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Chat & AI</span></>, visible: isMember },
+            { value: "board", label: <><LayoutGrid className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Board</span></>, visible: isMember && !!(fc as any).kanbanBoard },
+            { value: "docs", label: <><FileText className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Docs</span></>, visible: isMember && !!(fc as any).docsSpace },
+            { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
+            { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
+            { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Matchmaker</span></>, visible: isAdmin },
+            { value: "facilitator", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Facilitator</span></>, visible: isMember },
+            { value: "memory", label: <><Brain className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Memory</span></>, visible: isMember },
+            { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
+          ];
+          const defaultOrder = allTabs.map((t) => t.value);
+          return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
+        })()}
 
         <TabsContent value="overview" className="mt-6 space-y-6">
           {guild.description && (
