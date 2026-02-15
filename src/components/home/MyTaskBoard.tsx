@@ -166,6 +166,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
+  const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
   const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
   const [page, setPage] = useState(0);
@@ -541,6 +542,15 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     filtered.sort((a, b) => (PRIO_ORDER[a.priority || "NONE"] ?? 9) - (PRIO_ORDER[b.priority || "NONE"] ?? 9));
   }
 
+  // Always float recently-added tasks to the top so user can configure them
+  if (recentlyAddedIds.size > 0) {
+    filtered.sort((a, b) => {
+      const aRecent = recentlyAddedIds.has(a.id) ? 0 : 1;
+      const bRecent = recentlyAddedIds.has(b.id) ? 0 : 1;
+      return aRecent - bRecent;
+    });
+  }
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeP = Math.min(page, totalPages - 1);
   const paginated = filtered.slice(safeP * PAGE_SIZE, (safeP + 1) * PAGE_SIZE);
@@ -578,12 +588,16 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     if (error) { toast({ title: "Failed to add task", variant: "destructive" }); }
     else {
       setNewTitle("");
-      // Also create work item
+      // Track newly added task so it appears first
       if (data) {
+        const newId = (data as any).id;
+        setRecentlyAddedIds((prev) => new Set(prev).add(newId));
+        // Clear "recently added" flag after 30s so normal sort resumes
+        setTimeout(() => setRecentlyAddedIds((prev) => { const next = new Set(prev); next.delete(newId); return next; }), 30000);
         await supabase.from("user_work_items" as any).insert({
           user_id: userId,
           entity_type: "personal_task",
-          entity_id: (data as any).id,
+          entity_id: newId,
           work_state: "BACKLOG",
         } as any);
       }
