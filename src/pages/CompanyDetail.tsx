@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { EntityQuestsFilters } from "@/components/EntityQuestsFilters";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -357,16 +358,22 @@ export default function CompanyDetail() {
               </DialogContent>
             </Dialog>
           )}
-          {quests.map((quest: any) => (
-            <Link key={quest.id} to={`/quests/${quest.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-1"><h4 className="font-display font-semibold">{quest.title}</h4><span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span></div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>
-                <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace("_", " ")}</Badge></div>
-              </div>
-            </Link>
-          ))}
-          {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
+          <EntityQuestsFilters quests={quests}>
+            {(filtered) => (
+              <>
+                {filtered.map((quest: any) => (
+                  <Link key={quest.id} to={`/quests/${quest.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1"><h4 className="font-display font-semibold">{quest.title}</h4><span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span></div>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>
+                      <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace("_", " ")}</Badge></div>
+                    </div>
+                  </Link>
+                ))}
+                {filtered.length === 0 && <p className="text-muted-foreground">No quests match filters.</p>}
+              </>
+            )}
+          </EntityQuestsFilters>
         </TabsContent>
 
         {/* Services */}
