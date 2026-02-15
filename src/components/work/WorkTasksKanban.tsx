@@ -74,7 +74,7 @@ export function WorkTasksKanban({ tasks, onStatusChange, pendingDone, undoDone }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {COLUMNS.map((col) => {
         const colTasks = tasks.filter((t) => {
           const key = `${t.source}-${t.id}`;
