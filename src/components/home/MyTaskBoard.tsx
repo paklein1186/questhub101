@@ -94,7 +94,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
-  const [sortBy, setSortBy] = useState<"recent" | "priority">("recent");
+  const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -356,10 +356,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
 
   // Sort
-  if (sortBy === "priority") {
-    filtered.sort((a, b) => (PRIORITY_ORDER[a.priority || "NONE"] ?? 3) - (PRIORITY_ORDER[b.priority || "NONE"] ?? 3));
+  const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, TODO: 1, BACKLOG: 2, DONE: 3 };
+  if (sortBy === "status") {
+    filtered.sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9));
+  } else if (sortBy === "priority") {
+    const PRIO_ORDER: Record<string, number> = { NONE: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    filtered.sort((a, b) => (PRIO_ORDER[a.priority || "NONE"] ?? 9) - (PRIO_ORDER[b.priority || "NONE"] ?? 9));
   }
-  // "recent" is default order (already sorted by created_at desc from queries)
+  // "recent" keeps the default created_at desc order from queries
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeP = Math.min(page, totalPages - 1);
@@ -690,10 +694,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           variant="ghost"
           size="sm"
           className="h-8 gap-1 text-xs"
-          onClick={() => setSortBy(sortBy === "recent" ? "priority" : "recent")}
+          onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
         >
           <ArrowDownUp className="h-3.5 w-3.5" />
-          {sortBy === "recent" ? "Recent" : "Priority"}
+          {sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}
         </Button>
       </div>
 
