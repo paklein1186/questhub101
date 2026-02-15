@@ -57,6 +57,9 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
 
   const contentLines = size === "small" ? 2 : size === "medium" ? 3 : 5;
 
+  // Strip mention markup @[Name](type:id) → Name for preview
+  const stripMentions = (text: string) => text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "$1");
+
   return (
     <>
       <div className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20">
@@ -80,7 +83,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-muted group-hover:scale-105 transition-transform duration-300 p-4">
               {post.content ? (
                 <p className={`text-foreground/70 text-center leading-relaxed ${size === "small" ? "text-xs line-clamp-3" : size === "medium" ? "text-sm line-clamp-4" : "text-sm line-clamp-6"}`}>
-                  {post.content.slice(0, 200)}
+                  {stripMentions(post.content.slice(0, 200))}
                 </p>
               ) : (
                 <span className="text-muted-foreground text-xs italic">No content</span>
@@ -114,7 +117,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
           {/* Post text */}
           {post.content && (
             <p className={`text-sm leading-relaxed text-foreground/90 line-clamp-${contentLines}`}>
-              {renderMentions(post.content)}
+              {stripMentions(post.content)}
             </p>
           )}
         </div>
