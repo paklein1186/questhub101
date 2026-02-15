@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useContext } from "react";
 import { createPortal } from "react-dom";
 import { motion, useMotionValue, useSpring, useAnimationControls } from "framer-motion";
+import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const FLEE_DISTANCE = 120;
@@ -17,7 +18,6 @@ const PATHS = [
   "M 52 -5 C 84 0, 108 26, 100 52 C 110 80, 70 110, 46 102 C 16 110, -8 72, 0 46 C -8 20, 22 -8, 52 -5 Z",
 ];
 
-// Z-index cycle durations (seconds at each depth level)
 const Z_CYCLE = [
   { z: -1, duration: 8000 },
   { z: 10, duration: 5000 },
@@ -29,6 +29,7 @@ const Z_CYCLE = [
 
 export function BauhausShape() {
   const isMobile = useIsMobile();
+  const paused = useContext(BauhausPausedContext);
   const containerRef = useRef<HTMLDivElement>(null);
   const mouseX = useRef(0);
   const mouseY = useRef(0);
@@ -58,11 +59,8 @@ export function BauhausShape() {
   }, []);
 
   const handleClick = useCallback(() => {
-    // Shrink to 25% of current scale
     const newScale = currentScale.current * 0.25;
     currentScale.current = newScale;
-    
-    // Cancel any ongoing regrow
     scaleControls.stop();
     regrowing.current = false;
 
@@ -70,7 +68,6 @@ export function BauhausShape() {
       scale: newScale,
       transition: { duration: 0.12, ease: "easeOut" },
     }).then(() => {
-      // Start regrowing only if no new click interrupted
       regrowing.current = true;
       return scaleControls.start({
         scale: 1,
@@ -124,12 +121,10 @@ export function BauhausShape() {
   }, [isMobile, fleeX, fleeY]);
 
   const wanderDuration = isMobile ? 90 : 85;
-  // Mobile: smaller, repositioned to stay visible
   const sizeStyle = isMobile
     ? { width: "34vw", height: "34vw", maxWidth: 200, maxHeight: 200, minWidth: 90, minHeight: 90 }
     : { width: "18vw", height: "18vw", maxWidth: 340, maxHeight: 340, minWidth: 120, minHeight: 120 };
 
-  // Start off to the right edge
   const positionStyle = isMobile
     ? { right: "-8%", top: "6%" }
     : { right: "-4%", top: "8%" };
@@ -161,7 +156,7 @@ export function BauhausShape() {
       >
       {/* Wide wandering orbit */}
       <motion.div
-        animate={{
+        animate={paused ? false : {
           x: isMobile
             ? [0, 40, -60, 80, -40, 60, -80, 30, 0]
             : [0, -150, -800, -900, -1100, -950, -400, 100, 150, 80, 0],
@@ -183,12 +178,12 @@ export function BauhausShape() {
         <motion.div animate={scaleControls} className="w-full h-full">
           {/* Soft breathing scale */}
            <motion.div
-             animate={{ scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
+             animate={paused ? false : { scale: [1, 1.3, 0.45, 0.9, 1.15, 0.6, 1] }}
              transition={{ duration: 40, repeat: Infinity, ease: "easeInOut", times: [0, 0.15, 0.35, 0.5, 0.7, 0.85, 1] }}
             className="w-full h-full"
           >
           <motion.div
-            animate={{ rotate: [0, 360] }}
+            animate={paused ? false : { rotate: [0, 360] }}
             transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
             className="w-full h-full"
           >
@@ -201,16 +196,15 @@ export function BauhausShape() {
                 <linearGradient id="bauhaus-grad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <motion.stop
                     offset="0%"
-                    animate={{ stopColor: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[0]] }}
+                    animate={paused ? false : { stopColor: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[0]] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                   />
                   <motion.stop
                     offset="100%"
-                    animate={{ stopColor: [COLORS[1], COLORS[3], COLORS[0], COLORS[2], COLORS[1]] }}
+                    animate={paused ? false : { stopColor: [COLORS[1], COLORS[3], COLORS[0], COLORS[2], COLORS[1]] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
                   />
                 </linearGradient>
-                {/* Soft shadow filter — light from center of page (top-left of shape) */}
                 <filter id="bauhaus-shadow" x="-40%" y="-40%" width="180%" height="180%">
                   <feDropShadow dx="-6" dy="4" stdDeviation="5" floodColor="#1E1E1E" floodOpacity="0.32" />
                   <feDropShadow dx="-3" dy="2" stdDeviation="2" floodColor="#1E1E1E" floodOpacity="0.18" />
@@ -220,7 +214,7 @@ export function BauhausShape() {
                  fill="url(#bauhaus-grad)"
                  opacity={0.09}
                  filter="url(#bauhaus-shadow)"
-                 animate={{
+                 animate={paused ? false : {
                    d: [PATHS[0], PATHS[1], PATHS[2], PATHS[3], PATHS[4], PATHS[0]],
                  }}
                  transition={{
