@@ -13,9 +13,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
-  Calendar, ExternalLink, Search, X,
+  Calendar, ExternalLink, Search, X, Hash, MapPin, ChevronLeft,
 } from "lucide-react";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
@@ -86,6 +87,13 @@ export function WorkTasksTab() {
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [pendingConvertTask, setPendingConvertTask] = useState<UnifiedTask | null>(null);
   const [converting, setConverting] = useState(false);
+  const [convertStep, setConvertStep] = useState<"unit" | "tags">("unit");
+  const [convertSelectedUnit, setConvertSelectedUnit] = useState<UnitOption | null>(null);
+  const [convertTopics, setConvertTopics] = useState<string[]>([]);
+  const [convertTerritories, setConvertTerritories] = useState<string[]>([]);
+
+  const { data: allTopics } = useTopics();
+  const { data: allTerritories } = useTerritories();
 
   // Fetch personal tasks
   const { data: personalTasks = [], isLoading: loadingPersonal } = useQuery({
@@ -424,11 +432,49 @@ export function WorkTasksTab() {
 
   const openUnitPicker = (task: UnifiedTask) => {
     setPendingConvertTask(task);
+    setConvertStep("unit");
+    setConvertSelectedUnit(null);
+    setConvertTopics([]);
+    setConvertTerritories([]);
     setUnitPickerOpen(true);
   };
 
-  const convertToQuest = async (unit: UnitOption | null) => {
+  const selectUnitForConvert = async (unit: UnitOption | null) => {
+    setConvertSelectedUnit(unit);
+    try {
+      let topicIds: string[] = [];
+      let territoryIds: string[] = [];
+      if (unit && unit.type === "GUILD") {
+        const [t, te] = await Promise.all([
+          supabase.from("guild_topics").select("topic_id").eq("guild_id", unit.id),
+          supabase.from("guild_territories").select("territory_id").eq("guild_id", unit.id),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      } else if (unit && unit.type === "COMPANY") {
+        const [t, te] = await Promise.all([
+          supabase.from("company_topics").select("topic_id").eq("company_id", unit.id),
+          supabase.from("company_territories").select("territory_id").eq("company_id", unit.id),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      } else {
+        const [t, te] = await Promise.all([
+          supabase.from("user_topics").select("topic_id").eq("user_id", userId),
+          supabase.from("user_territories").select("territory_id").eq("user_id", userId),
+        ]);
+        topicIds = (t.data ?? []).map((r: any) => r.topic_id);
+        territoryIds = (te.data ?? []).map((r: any) => r.territory_id);
+      }
+      setConvertTopics(topicIds);
+      setConvertTerritories(territoryIds);
+    } catch { /* non-blocking */ }
+    setConvertStep("tags");
+  };
+
+  const finalizeConvertToQuest = async () => {
     if (!pendingConvertTask) return;
+    const unit = convertSelectedUnit;
     setConverting(true);
     const insertPayload: any = {
       title: pendingConvertTask.title,
@@ -447,6 +493,14 @@ export function WorkTasksTab() {
     if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); setConverting(false); return; }
     const questId = (data as any).id;
     await supabase.from("quest_participants").insert({ quest_id: questId, user_id: userId, role: "OWNER", status: "ACCEPTED" });
+
+    if (convertTopics.length > 0) {
+      await supabase.from("quest_topics").insert(convertTopics.map((topic_id) => ({ quest_id: questId, topic_id })));
+    }
+    if (convertTerritories.length > 0) {
+      await supabase.from("quest_territories" as any).insert(convertTerritories.map((territory_id) => ({ quest_id: questId, territory_id })));
+    }
+
     await supabase.from("personal_tasks" as any).update({ converted_to_quest_id: questId } as any).eq("id", pendingConvertTask.id);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
@@ -825,54 +879,108 @@ export function WorkTasksTab() {
       )}
 
       {/* Unit picker dialog */}
-      <Dialog open={unitPickerOpen} onOpenChange={(open) => { if (!converting) { setUnitPickerOpen(open); if (!open) setPendingConvertTask(null); } }}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={unitPickerOpen} onOpenChange={(open) => { if (!converting) { setUnitPickerOpen(open); if (!open) { setPendingConvertTask(null); setConvertStep("unit"); } } }}>
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Rocket className="h-5 w-5 text-primary" /> Convert to Quest
             </DialogTitle>
             <DialogDescription>
-              Choose which entity to attach this quest to, or create it as a personal quest.
+              {convertStep === "unit"
+                ? "Choose which entity to attach this quest to, or create it as a personal quest."
+                : "Select topics and territories for this quest."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 py-2">
-            <button
-              onClick={() => convertToQuest(null)}
-              disabled={converting}
-              className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50"
-            >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                <User className="h-4 w-4 text-muted-foreground" />
+
+          {convertStep === "unit" && (
+            <div className="space-y-2 py-2">
+              <button
+                onClick={() => selectUnitForConvert(null)}
+                disabled={converting}
+                className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Personal Quest</p>
+                  <p className="text-xs text-muted-foreground">Not attached to any entity</p>
+                </div>
+              </button>
+              {userUnits.length > 0 && (
+                <div className="pt-1">
+                  <p className="text-xs font-medium text-muted-foreground px-1 pb-1.5">Your entities</p>
+                  {userUnits.map((unit) => (
+                    <button
+                      key={unit.id}
+                      onClick={() => selectUnitForConvert(unit)}
+                      disabled={converting}
+                      className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50 mb-1.5"
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
+                        {unit.logo_url ? (
+                          <img src={unit.logo_url} alt="" className="h-9 w-9 object-cover rounded-full" />
+                        ) : unitIcon(unit.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{unit.name}</p>
+                        <p className="text-xs text-muted-foreground">{unit.type === "GUILD" ? "Guild" : "Organisation"}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {convertStep === "tags" && (
+            <div className="space-y-4 py-2">
+              <div>
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                  <Hash className="h-3.5 w-3.5" /> Topics
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                  {(allTopics ?? []).map((t: any) => (
+                    <Badge
+                      key={t.id}
+                      variant={convertTopics.includes(t.id) ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setConvertTopics(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                    >
+                      {t.name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Personal Quest</p>
-                <p className="text-xs text-muted-foreground">Not attached to any entity</p>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                  <MapPin className="h-3.5 w-3.5" /> Territories
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                  {(allTerritories ?? []).map((t: any) => (
+                    <Badge
+                      key={t.id}
+                      variant={convertTerritories.includes(t.id) ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setConvertTerritories(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                    >
+                      {t.name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </button>
-            {userUnits.length > 0 && (
-              <div className="pt-1">
-                <p className="text-xs font-medium text-muted-foreground px-1 pb-1.5">Your entities</p>
-                {userUnits.map((unit) => (
-                  <button
-                    key={unit.id}
-                    onClick={() => convertToQuest(unit)}
-                    disabled={converting}
-                    className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-accent/50 transition-colors disabled:opacity-50 mb-1.5"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
-                      {unit.logo_url ? (
-                        <img src={unit.logo_url} alt="" className="h-9 w-9 object-cover rounded-full" />
-                      ) : unitIcon(unit.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{unit.name}</p>
-                      <p className="text-xs text-muted-foreground">{unit.type === "GUILD" ? "Guild" : "Organisation"}</p>
-                    </div>
-                  </button>
-                ))}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setConvertStep("unit")} className="flex-1">
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
+                </Button>
+                <Button size="sm" onClick={finalizeConvertToQuest} disabled={converting} className="flex-1">
+                  {converting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Rocket className="h-3.5 w-3.5 mr-1" />}
+                  Create Quest
+                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
           {converting && (
             <div className="flex items-center justify-center py-2">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />

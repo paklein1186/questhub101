@@ -1,9 +1,9 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2 } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -47,6 +47,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -70,6 +71,8 @@ export default function QuestDetail() {
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
   const { data: resolvedHosts } = useResolvedQuestHosts(id);
+  const { data: allTopicsList } = useTopics();
+  const { data: allTerritoriesList } = useTerritories();
 
   // Subtask counts for tab label
   const { data: subtaskCounts } = useQuery({
@@ -114,6 +117,8 @@ export default function QuestDetail() {
   const [editCreditBudget, setEditCreditBudget] = useState("0");
   const [editAllowFundraising, setEditAllowFundraising] = useState(false);
   const [editFundingGoal, setEditFundingGoal] = useState("");
+  const [editTopics, setEditTopics] = useState<string[]>([]);
+  const [editTerritories, setEditTerritories] = useState<string[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
@@ -205,7 +210,20 @@ export default function QuestDetail() {
     toast({ title: "Pod created!" });
   };
 
-  const openEditQuest = () => { setEditTitle(quest.title); setEditDesc(quest.description || ""); setEditStatus(quest.status as QuestStatus); setEditCoverImageUrl(quest.cover_image_url ?? undefined); setEditCreditReward(String(quest.credit_reward ?? 0)); setEditPriceFiat(String(quest.price_fiat ?? 0)); setEditCreditBudget(String((quest as any).credit_budget ?? 0)); setEditAllowFundraising((quest as any).allow_fundraising ?? false); setEditFundingGoal(String((quest as any).funding_goal_credits ?? "")); setEditOpen(true); };
+  const openEditQuest = () => {
+    setEditTitle(quest.title);
+    setEditDesc(quest.description || "");
+    setEditStatus(quest.status as QuestStatus);
+    setEditCoverImageUrl(quest.cover_image_url ?? undefined);
+    setEditCreditReward(String(quest.credit_reward ?? 0));
+    setEditPriceFiat(String(quest.price_fiat ?? 0));
+    setEditCreditBudget(String((quest as any).credit_budget ?? 0));
+    setEditAllowFundraising((quest as any).allow_fundraising ?? false);
+    setEditFundingGoal(String((quest as any).funding_goal_credits ?? ""));
+    setEditTopics(topics.map((t: any) => t.id));
+    setEditTerritories(territories.map((t: any) => t.id));
+    setEditOpen(true);
+  };
 
   const saveEditQuest = async () => {
     const fiat = Number(editPriceFiat) || 0;
@@ -225,6 +243,18 @@ export default function QuestDetail() {
       allow_fundraising: editAllowFundraising,
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
     } as any).eq("id", quest.id);
+
+    // Update topics: delete old, insert new
+    await supabase.from("quest_topics").delete().eq("quest_id", quest.id);
+    if (editTopics.length > 0) {
+      await supabase.from("quest_topics").insert(editTopics.map((topic_id) => ({ quest_id: quest.id, topic_id })));
+    }
+    // Update territories: delete old, insert new
+    await supabase.from("quest_territories").delete().eq("quest_id", quest.id);
+    if (editTerritories.length > 0) {
+      await supabase.from("quest_territories" as any).insert(editTerritories.map((territory_id) => ({ quest_id: quest.id, territory_id })));
+    }
+
     qc.invalidateQueries({ queryKey: ["quest", id] });
     setEditOpen(false); toast({ title: "Quest updated" });
   };
@@ -433,6 +463,40 @@ export default function QuestDetail() {
                 <div className="flex items-center gap-2">
                   <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
                   <label htmlFor="editFundraising" className="text-sm font-medium">Allow community fundraising</label>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                  <Hash className="h-3.5 w-3.5" /> Topics
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                  {(allTopicsList ?? []).map((t: any) => (
+                    <Badge
+                      key={t.id}
+                      variant={editTopics.includes(t.id) ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setEditTopics(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                    >
+                      {t.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                  <MapPin className="h-3.5 w-3.5" /> Territories
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                  {(allTerritoriesList ?? []).map((t: any) => (
+                    <Badge
+                      key={t.id}
+                      variant={editTerritories.includes(t.id) ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setEditTerritories(prev => prev.includes(t.id) ? prev.filter(x => x !== t.id) : [...prev, t.id])}
+                    >
+                      {t.name}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
