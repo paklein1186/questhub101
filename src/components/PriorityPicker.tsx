@@ -44,15 +44,19 @@ export function PriorityPicker({ value, onChange, size = "sm", disabled }: Prior
             "hover:bg-accent/50"
           )}
           title={`Priority: ${config.label}`}
+          onClick={(e) => e.stopPropagation()}
         >
           <Flag className={cn(size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5", value !== "NONE" && "fill-current")} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-32">
+      <DropdownMenuContent align="start" className="w-32" onClick={(e) => e.stopPropagation()}>
         {(Object.keys(PRIORITY_CONFIG) as Priority[]).map((p) => (
           <DropdownMenuItem
             key={p}
-            onClick={() => onChange(p)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(p);
+            }}
             className={cn("text-xs gap-2", value === p && "bg-accent")}
           >
             <Flag className={cn("h-3 w-3", PRIORITY_CONFIG[p].iconColor, p !== "NONE" && "fill-current")} />
