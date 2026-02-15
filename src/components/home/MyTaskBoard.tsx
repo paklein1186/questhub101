@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
-  ChevronLeft, ArrowDownUp, Hash, MapPin,
+  ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -104,6 +104,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Pending done with undo
   const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: string }>>(new Map());
@@ -375,6 +377,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   }
 
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
+  }
 
   // Sort
   const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, TODO: 1, BACKLOG: 2, DONE: 3 };
@@ -752,27 +758,56 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             </Badge>
           )}
         </h2>
-        <Select value={filter} onValueChange={(v) => { setFilter(v as any); setPage(0); }}>
-          <SelectTrigger className="w-[130px] h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="personal">Personal</SelectItem>
-            <SelectItem value="quest">Quests</SelectItem>
-            <SelectItem value="subtask">Subtasks</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1 text-xs"
-          onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
-        >
-          <ArrowDownUp className="h-3.5 w-3.5" />
-          {sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => { setSearchOpen(!searchOpen); if (searchOpen) setSearchQuery(""); }}
+          >
+            {searchOpen ? <X className="h-3.5 w-3.5" /> : <Search className="h-3.5 w-3.5" />}
+          </Button>
+          <Select value={filter} onValueChange={(v) => { setFilter(v as any); setPage(0); }}>
+            <SelectTrigger className="w-[130px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+              <SelectItem value="quest">Quests</SelectItem>
+              <SelectItem value="subtask">Subtasks</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 text-xs"
+            onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
+          >
+            <ArrowDownUp className="h-3.5 w-3.5" />
+            {sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}
+          </Button>
+        </div>
       </div>
+
+      {/* Search bar */}
+      {searchOpen && (
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search tasks…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 text-sm pl-8 pr-8"
+            autoFocus
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
+              <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Quick add */}
       <div className="flex gap-2">
