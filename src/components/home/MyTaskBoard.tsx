@@ -309,6 +309,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const unified: UnifiedTask[] = [];
 
   for (const t of personalTasks) {
+    if (t.converted_to_quest_id || t.converted_to_subtask_id) continue;
     unified.push({
       id: t.id,
       title: t.title,
