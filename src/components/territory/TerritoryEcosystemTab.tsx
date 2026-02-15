@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, Compass, Shield, CircleDot, Building2, GraduationCap, Briefcase } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, Compass, Shield, CircleDot, Building2, GraduationCap, Briefcase, Users, Search, User } from "lucide-react";
 
 interface Props {
   territoryId: string;
@@ -16,6 +19,22 @@ type EntitySection = {
   linkPrefix: string;
   items: { id: string; name: string; description?: string | null }[];
 };
+
+type TerritoryPerson = {
+  user_id: string;
+  name: string;
+  avatar_url: string | null;
+  headline: string | null;
+  persona_type: string;
+  location: string | null;
+};
+
+const PERSONA_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "creative", label: "Creative" },
+  { value: "impact", label: "Impact" },
+  { value: "hybrid", label: "Hybrid" },
+];
 
 function useTerritoryEcosystem(territoryId: string) {
   return useQuery({
@@ -57,6 +76,129 @@ function useTerritoryEcosystem(territoryId: string) {
       return { quests, guilds, pods, companies, courses, services };
     },
   });
+}
+
+function useTerritoryPeople(territoryId: string) {
+  return useQuery({
+    queryKey: ["territory-people", territoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_territories")
+        .select("user_id, profiles(user_id, name, avatar_url, headline, persona_type, location)")
+        .eq("territory_id", territoryId);
+      return (data ?? [])
+        .map((d: any) => d.profiles)
+        .filter((p: any) => p && p.name)
+        .map((p: any) => ({
+          user_id: p.user_id,
+          name: p.name,
+          avatar_url: p.avatar_url,
+          headline: p.headline,
+          persona_type: p.persona_type,
+          location: p.location,
+        })) as TerritoryPerson[];
+    },
+  });
+}
+
+function PeopleSection({ territoryId }: { territoryId: string }) {
+  const { data: people = [], isLoading } = useTerritoryPeople(territoryId);
+  const [search, setSearch] = useState("");
+  const [personaFilter, setPersonaFilter] = useState("all");
+
+  const filtered = people.filter((p) => {
+    if (personaFilter !== "all" && p.persona_type !== personaFilter) return false;
+    if (search.trim().length >= 2) {
+      const q = search.trim().toLowerCase();
+      const matchName = p.name.toLowerCase().includes(q);
+      const matchHeadline = p.headline?.toLowerCase().includes(q);
+      const matchLocation = p.location?.toLowerCase().includes(q);
+      if (!matchName && !matchHeadline && !matchLocation) return false;
+    }
+    return true;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">People</h3>
+        <Badge variant="secondary" className="text-xs">{people.length}</Badge>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, headline, location…"
+            className="pl-8 h-8 text-xs"
+          />
+        </div>
+        <div className="flex gap-1">
+          {PERSONA_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPersonaFilter(opt.value)}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                personaFilter === opt.value
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results */}
+      {filtered.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-6">
+          {people.length === 0 ? "No individuals connected to this territory yet." : "No matches found."}
+        </p>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((person) => (
+            <Link key={person.user_id} to={`/profile/${person.user_id}`}>
+              <Card className="p-3 hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-3">
+                <Avatar className="h-9 w-9 shrink-0">
+                  <AvatarImage src={person.avatar_url || undefined} />
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {person.name[0]?.toUpperCase() || <User className="h-3.5 w-3.5" />}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground truncate">{person.name}</p>
+                  {person.headline && (
+                    <p className="text-xs text-muted-foreground truncate">{person.headline}</p>
+                  )}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                      {person.persona_type}
+                    </Badge>
+                    {person.location && (
+                      <span className="text-[10px] text-muted-foreground truncate">{person.location}</span>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function TerritoryEcosystemTab({ territoryId }: Props) {
@@ -117,16 +259,12 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
     },
   ].filter(s => s.items.length > 0);
 
-  if (sections.length === 0) {
-    return (
-      <div className="text-center py-16 text-muted-foreground text-sm">
-        No entities connected to this territory yet.
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
+      {/* People section — always shown first */}
+      <PeopleSection territoryId={territoryId} />
+
+      {/* Entity sections */}
       {sections.map(section => {
         const Icon = section.icon;
         return (
@@ -151,6 +289,12 @@ export function TerritoryEcosystemTab({ territoryId }: Props) {
           </div>
         );
       })}
+
+      {sections.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground text-sm">
+          No entities connected to this territory yet.
+        </div>
+      )}
     </div>
   );
 }
