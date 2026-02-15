@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
-  Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
+  Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
   ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X,
 } from "lucide-react";
 import {
@@ -139,9 +139,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Pending done with undo
-  const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: TaskStatus }>>(new Map());
-  const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  // Track items marked as done this session (shown crossed-out until refresh)
+  const [sessionDone, setSessionDone] = useState<Set<string>>(new Set());
 
   // Unit picker state
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
@@ -495,22 +494,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   const handleStatusChange = (task: UnifiedTask, newWorkState: string) => {
-    const key = `${task.source}-${task.id}`;
-
-    // If undoing from pending done
-    const wasPending = pendingDone.has(key);
-    if (wasPending) {
-      const timer = pendingTimers.current.get(key);
-      if (timer) clearTimeout(timer);
-      pendingTimers.current.delete(key);
-      setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
-    }
-
     if (newWorkState === "DONE") {
-      const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.workState) : task.workState;
-      setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
-      const timer = setTimeout(() => commitDone(task), 5000);
-      pendingTimers.current.set(key, timer);
+      // Immediately commit DONE and mark in session for crossed-out display
+      const key = `${task.source}-${task.id}`;
+      setSessionDone((prev) => new Set(prev).add(key));
+      const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
+      upsertWorkState(entityType, task.id, "DONE");
+      // Don't invalidate queries — keep item visible (crossed-out) until refresh
       return;
     }
 
@@ -521,25 +511,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
     qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
   };
-
-  const commitDone = useCallback((task: UnifiedTask) => {
-    const key = `${task.source}-${task.id}`;
-    const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
-    upsertWorkState(entityType, task.id, "DONE");
-    qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
-    qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
-    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
-    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
-    pendingTimers.current.delete(key);
-  }, [userId]);
-
-  const undoDone = useCallback((task: UnifiedTask) => {
-    const key = `${task.source}-${task.id}`;
-    const timer = pendingTimers.current.get(key);
-    if (timer) clearTimeout(timer);
-    pendingTimers.current.delete(key);
-    setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
-  }, []);
 
   const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
     handleStatusChange(task, checked ? "DONE" : "TODO");
@@ -924,24 +895,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <tbody>
               {paginated.map((task) => {
                 const key = `${task.source}-${task.id}`;
-                const isPendingDone = pendingDone.has(key);
-                const displayWorkState = isPendingDone ? "DONE" : task.workState;
+                const isDoneThisSession = sessionDone.has(key);
 
-                if (isPendingDone) {
+                if (isDoneThisSession) {
                   return (
-                    <tr key={key} className="border-t border-border bg-emerald-500/5">
+                    <tr key={key} className="border-t border-border bg-muted/30">
                       <td colSpan={6} className="px-3 py-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground line-through">{task.title}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs"
-                            onClick={() => undoDone(task)}
-                          >
-                            <Undo2 className="h-3 w-3" /> Undo
-                          </Button>
-                        </div>
+                        <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                       </td>
                     </tr>
                   );
@@ -951,7 +911,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 <tr key={key} className="border-t border-border group hover:bg-accent/30 transition-colors">
                   <td className="px-3 py-2.5">
                     <Checkbox
-                      checked={displayWorkState === "DONE"}
+                      checked={task.workState === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
                     />
                   </td>
