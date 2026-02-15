@@ -453,9 +453,17 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   const toggleEntityFilter = (id: string) => {
     setEntityFilter((prev) => {
+      // If currently showing all (empty set), switching means "select all except this one"
+      if (prev.size === 0) {
+        const allIds = entityOptions.map((e) => e.id);
+        const next = new Set(allIds.filter((eid) => eid !== id));
+        return next;
+      }
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      // If all are selected again, reset to empty (show all)
+      if (next.size === entityOptions.length) return new Set<string>();
       return next;
     });
     setPage(0);
@@ -914,7 +922,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       {entityOptions.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
           {entityOptions.map((ent) => {
-            const active = entityFilter.has(ent.id);
+            const active = entityFilter.size === 0 || entityFilter.has(ent.id);
             return (
               <button
                 key={ent.id}
