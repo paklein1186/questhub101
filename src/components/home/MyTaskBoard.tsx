@@ -613,9 +613,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       await supabase.from("quests").update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
       qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
     } else if (task.source === "subtask") {
       await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
     }
   };
 

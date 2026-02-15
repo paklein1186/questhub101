@@ -466,9 +466,15 @@ export function WorkTasksTab() {
     if (task.source === "personal") {
       await supabase.from("personal_tasks" as any).update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (task.source === "quest") {
+      await supabase.from("quests").update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests-home", userId] });
     } else if (task.source === "subtask") {
       await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+      qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
     }
   };
 
