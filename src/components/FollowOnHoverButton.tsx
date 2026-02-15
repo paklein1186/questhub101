@@ -72,17 +72,29 @@ export function FollowOnHoverButton({
   if (!userId || userId === targetUserId || isFollowed || followMut.isSuccess) return null;
 
   return (
-    <button
+    <div
+      className="absolute top-2 right-2 z-20"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        followMut.mutate();
       }}
-      disabled={followMut.isPending}
-      className="absolute top-2 right-2 z-10 rounded-full p-1.5 bg-primary text-primary-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-110 active:scale-95"
-      title="Follow"
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
     >
-      <UserPlus className="h-3.5 w-3.5" />
-    </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          followMut.mutate();
+        }}
+        disabled={followMut.isPending}
+        className="rounded-full p-1.5 bg-primary text-primary-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-110 active:scale-95"
+        title="Follow"
+      >
+        <UserPlus className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }
