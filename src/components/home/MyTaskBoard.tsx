@@ -138,7 +138,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("id, title, status, guild_id, guilds(name, logo_url)")
+        .select("id, title, status, guild_id, priority, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
         .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
@@ -234,7 +234,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       const questIds = parts.map((p: any) => p.quest_id);
       const { data: quests } = await supabase
         .from("quests")
-        .select("id, title, status, guild_id, guilds(name, logo_url)")
+        .select("id, title, status, guild_id, priority, guilds(name, logo_url)")
         .in("id", questIds)
         .eq("is_deleted", false)
         .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
@@ -321,6 +321,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       source: "quest",
       sourceLabel: "My Quest",
       sourceId: q.id,
+      priority: (q as any).priority || "NONE",
     });
   }
 
@@ -335,6 +336,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       source: "quest",
       sourceLabel: "Collaborator",
       sourceId: q.id,
+      priority: (q as any).priority || "NONE",
     });
   }
 
@@ -483,6 +485,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     if (task.source === "personal") {
       await supabase.from("personal_tasks" as any).update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (task.source === "quest") {
+      await supabase.from("quests").update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+      qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
     } else if (task.source === "subtask") {
       await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
       qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
@@ -765,7 +771,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     <PriorityPicker
                       value={task.priority || "NONE"}
                       onChange={(p) => updatePriority(task, p)}
-                      disabled={task.source === "quest"}
+                      
                     />
                   </td>
                   <td className="px-3 py-2.5">
