@@ -14,7 +14,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
   Calendar, ExternalLink, Search, X, Hash, MapPin, ChevronLeft,
-  LayoutList, Columns3,
+  LayoutList, Columns3, Filter,
 } from "lucide-react";
 import { WorkTasksKanban } from "@/components/work/WorkTasksKanban";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
@@ -82,6 +82,7 @@ export function WorkTasksTab() {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
+  const [entityFilter, setEntityFilter] = useState<string>("all"); // "all" or entity id
   const [statusFilter, setStatusFilter] = useState<"all" | "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -337,9 +338,17 @@ export function WorkTasksTab() {
     });
   }
 
+  // Collect unique entities for filter
+  const entityOptions = new Map<string, { id: string; name: string; type: "guild" | "company"; logo?: string | null }>();
+  for (const t of unified) {
+    if (t.guildId && t.guildName) entityOptions.set(t.guildId, { id: t.guildId, name: t.guildName, type: "guild", logo: t.guildLogo });
+  }
+  const sortedEntities = [...entityOptions.values()].sort((a, b) => a.name.localeCompare(b.name));
+
   // Apply filters
   let filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
   if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
+  if (entityFilter !== "all") filtered = filtered.filter((t) => t.guildId === entityFilter);
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
@@ -633,17 +642,50 @@ export function WorkTasksTab() {
             className="h-9 text-sm pl-8"
           />
         </div>
-        <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
-          <SelectTrigger className="w-[130px] h-9 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All sources</SelectItem>
-            <SelectItem value="personal">Personal</SelectItem>
-            <SelectItem value="quest">Quests</SelectItem>
-            <SelectItem value="subtask">Subtasks</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Source type quick-filter buttons */}
+        <div className="flex border border-border rounded-md overflow-hidden">
+          {([
+            { key: "all", label: "All", icon: null as React.ReactNode },
+            { key: "personal", label: "Task", icon: <ListTodo className="h-3 w-3" /> },
+            { key: "quest", label: "Quest", icon: <Compass className="h-3 w-3" /> },
+            { key: "subtask", label: "Subtask", icon: <ListChecks className="h-3 w-3" /> },
+          ] as const).map(({ key, label, icon }) => (
+            <Button
+              key={key}
+              variant={filter === key ? "default" : "ghost"}
+              size="sm"
+              className="h-9 rounded-none px-2.5 text-xs gap-1"
+              onClick={() => setFilter(key)}
+            >
+              {icon}
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Entity filter */}
+        {sortedEntities.length > 0 && (
+          <Select value={entityFilter} onValueChange={(v) => setEntityFilter(v)}>
+            <SelectTrigger className="w-[160px] h-9 text-xs gap-1">
+              <Filter className="h-3 w-3 shrink-0" />
+              <SelectValue placeholder="All entities" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All entities</SelectItem>
+              {sortedEntities.map((e) => (
+                <SelectItem key={e.id} value={e.id}>
+                  <span className="flex items-center gap-1.5">
+                    {e.type === "guild" ? <Users className="h-3 w-3 text-primary shrink-0" /> : <Building2 className="h-3 w-3 text-primary shrink-0" />}
+                    <span className="truncate">{e.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {/* View mode toggle */}
         <div className="flex border border-border rounded-md overflow-hidden">
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
@@ -687,7 +729,7 @@ export function WorkTasksTab() {
         <div className="text-center py-12 rounded-xl border border-dashed border-border">
           <ListTodo className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
           <p className="text-muted-foreground mb-3">No tasks match your filters</p>
-          <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("all"); setSearchQuery(""); }}>
+          <Button size="sm" variant="outline" onClick={() => { setFilter("all"); setStatusFilter("all"); setEntityFilter("all"); setSearchQuery(""); }}>
             Clear filters
           </Button>
         </div>
