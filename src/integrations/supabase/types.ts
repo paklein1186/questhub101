@@ -4767,6 +4767,33 @@ export type Database = {
           },
         ]
       }
+      user_tab_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          tab_order: string[]
+          updated_at: string
+          user_id: string
+          view_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tab_order?: string[]
+          updated_at?: string
+          user_id: string
+          view_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tab_order?: string[]
+          updated_at?: string
+          user_id?: string
+          view_key?: string
+        }
+        Relationships: []
+      }
       user_territories: {
         Row: {
           attachment_type: string

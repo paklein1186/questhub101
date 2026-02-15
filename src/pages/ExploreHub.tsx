@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTabOrder } from "@/hooks/useTabOrder";
+import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { PageShell } from "@/components/PageShell";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { TerritoryExplorer } from "@/components/explore/TerritoryExplorer";
@@ -71,18 +73,7 @@ export default function ExploreHub() {
         <p className="text-muted-foreground mt-1">Discover {label("quest.label").toLowerCase()}, entities, {label("service.label_plural").toLowerCase()}, and people.</p>
       </div>
 
-      <Tabs value={tab} onValueChange={handleTabChange}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="entities" className="text-xs sm:text-sm"><Compass className="h-3.5 w-3.5 mr-1" /> Entities</TabsTrigger>
-           {!isGuest && <TabsTrigger value="quests" className="text-xs sm:text-sm"><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</TabsTrigger>}
-           {!isGuest && <TabsTrigger value="services" className="text-xs sm:text-sm"><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</TabsTrigger>}
-           {!isCreative && <TabsTrigger value="jobs" className="text-xs sm:text-sm"><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</TabsTrigger>}
-          <TabsTrigger value="houses" className="text-xs sm:text-sm"><Tag className="h-3.5 w-3.5 mr-1" /> Topics</TabsTrigger>
-          <TabsTrigger value="courses" className="text-xs sm:text-sm"><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</TabsTrigger>
-          {!isGuest && <TabsTrigger value="users" className="text-xs sm:text-sm"><Users className="h-3.5 w-3.5 mr-1" /> Humans</TabsTrigger>}
-          {!isGuest && <TabsTrigger value="territories" className="text-xs sm:text-sm"><Map className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>}
-          {currentUser.id && <TabsTrigger value="matchmaker" className="text-xs sm:text-sm"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
-        </TabsList>
+      <ExploreTabsInner tab={tab} onTabChange={handleTabChange} isGuest={isGuest} isCreative={isCreative} currentUserId={currentUser.id} label={label}>
 
         <TabsContent value="entities">
           {/* Entity type chips + create */}
@@ -198,7 +189,33 @@ export default function ExploreHub() {
             <MatchmakerPanel matchType="user" userId={currentUser.id} />
           </TabsContent>
         )}
-      </Tabs>
+      </ExploreTabsInner>
     </PageShell>
+  );
+}
+
+function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId, label, children }: any) {
+  const exploreTabs: TabDefinition[] = useMemo(() => [
+    { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> Entities</> },
+    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</>, visible: !isGuest },
+    { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</>, visible: !isGuest },
+    { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</>, visible: !isCreative },
+    { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> Topics</> },
+    { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</> },
+    { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> Humans</>, visible: !isGuest },
+    { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> Territories</>, visible: !isGuest },
+    { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</>, visible: !!currentUserId },
+  ], [isGuest, isCreative, currentUserId, label]);
+
+  const defaultOrder = useMemo(() => exploreTabs.filter(t => t.visible !== false).map(t => t.value), [exploreTabs]);
+  const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("explore_hub", defaultOrder);
+
+  return (
+    <Tabs value={tab} onValueChange={onTabChange}>
+      <div className="group/tabs mb-6">
+        <SortableTabsList tabs={exploreTabs} orderedKeys={orderedTabs} onReorder={saveOrder} onReset={resetOrder} isCustomized={isCustomized} />
+      </div>
+      {children}
+    </Tabs>
   );
 }
