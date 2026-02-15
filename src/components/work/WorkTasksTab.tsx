@@ -56,6 +56,7 @@ type UnifiedTask = {
   createdAt?: string;
   priority?: Priority;
   assignees?: { user_id: string; display_name: string | null; avatar_url: string | null }[];
+  guildId?: string | null;
   guildName?: string | null;
   guildLogo?: string | null;
   questTitle?: string | null;
@@ -181,7 +182,7 @@ export function WorkTasksTab() {
       }
 
       const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
-      let questMap = new Map<string, { title: string; guildName: string | null; guildLogo: string | null }>();
+      let questMap = new Map<string, { title: string; guildId: string | null; guildName: string | null; guildLogo: string | null }>();
       if (questIds.length > 0) {
         const { data: quests } = await supabase
           .from("quests")
@@ -189,6 +190,7 @@ export function WorkTasksTab() {
           .in("id", questIds);
         questMap = new Map((quests || []).map((q: any) => [q.id, {
           title: q.title,
+          guildId: q.guild_id || null,
           guildName: q.guilds?.name || null,
           guildLogo: q.guilds?.logo_url || null,
         }]));
@@ -196,6 +198,7 @@ export function WorkTasksTab() {
       return merged.map((s: any) => ({
         ...s,
         questTitle: questMap.get(s.quest_id)?.title || "Quest",
+        questGuildId: questMap.get(s.quest_id)?.guildId || null,
         questGuildName: questMap.get(s.quest_id)?.guildName || null,
         questGuildLogo: questMap.get(s.quest_id)?.guildLogo || null,
       }));
@@ -304,6 +307,7 @@ export function WorkTasksTab() {
       id: q.id, title: q.title,
       status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
       source: "quest", sourceLabel: "My Quest", sourceId: q.id, createdAt: q.created_at,
+      guildId: (q as any).guild_id || null,
       guildName: (q as any).guilds?.name || null,
       guildLogo: (q as any).guilds?.logo_url || null,
     });
@@ -315,6 +319,7 @@ export function WorkTasksTab() {
         id: q.id, title: q.title,
         status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
         source: "quest", sourceLabel: "Collaborator", sourceId: q.id, createdAt: q.created_at,
+        guildId: (q as any).guild_id || null,
         guildName: (q as any).guilds?.name || null,
         guildLogo: (q as any).guilds?.logo_url || null,
       });
@@ -327,6 +332,7 @@ export function WorkTasksTab() {
       sourceLabel: s.questTitle, questId: s.quest_id, createdAt: s.created_at,
       priority: s.priority || "NONE",
       questTitle: s.questTitle,
+      guildId: s.questGuildId || null,
       guildName: s.questGuildName || null,
       guildLogo: s.questGuildLogo || null,
     });
@@ -777,21 +783,35 @@ export function WorkTasksTab() {
                           )}
                           {task.source === "quest" && (
                             <>
-                              <Badge variant="secondary" className="text-[10px] truncate max-w-full inline-block">
-                                {(task.sourceLabel || "Quest").slice(0, 18)}
-                              </Badge>
-                              {task.guildName && (
+                              <Link to={`/quests/${task.sourceId || task.id}`} className="hover:underline">
+                                <Badge variant="secondary" className="text-[10px] truncate max-w-full inline-block cursor-pointer">
+                                  {(task.sourceLabel || "Quest").slice(0, 18)}
+                                </Badge>
+                              </Link>
+                              {task.guildName && task.guildId && (
+                                <Link to={`/guilds/${task.guildId}`} className="hover:underline">
+                                  <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px] cursor-pointer" />
+                                </Link>
+                              )}
+                              {task.guildName && !task.guildId && (
                                 <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px]" />
                               )}
                             </>
                           )}
                           {task.source === "subtask" && (
                             <>
-                              <span className="text-[10px] text-muted-foreground truncate max-w-full" title={task.questTitle || undefined}>
-                                <Compass className="h-2.5 w-2.5 mr-0.5 inline" />
-                                {(task.questTitle || task.sourceLabel || "Quest").slice(0, 18)}
-                              </span>
-                              {task.guildName && (
+                              <Link to={`/quests/${task.questId}`} className="hover:underline" title={task.questTitle || undefined}>
+                                <span className="text-[10px] text-muted-foreground truncate max-w-full cursor-pointer">
+                                  <Compass className="h-2.5 w-2.5 mr-0.5 inline" />
+                                  {(task.questTitle || task.sourceLabel || "Quest").slice(0, 18)}
+                                </span>
+                              </Link>
+                              {task.guildName && task.guildId && (
+                                <Link to={`/guilds/${task.guildId}`} className="hover:underline">
+                                  <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px] cursor-pointer" />
+                                </Link>
+                              )}
+                              {task.guildName && !task.guildId && (
                                 <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px]" />
                               )}
                             </>
