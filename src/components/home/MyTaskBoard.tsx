@@ -355,16 +355,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
 
-  // Sort: Status → Priority → Recency
-  const STATUS_ORDER: Record<string, number> = { IN_PROGRESS: 0, TODO: 1, BACKLOG: 2, DONE: 3 };
-  const PRIO_ORDER: Record<string, number> = { NONE: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
-  filtered.sort((a, b) => {
-    const s = (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9);
-    if (s !== 0) return s;
-    const p = (PRIO_ORDER[a.priority || "NONE"] ?? 9) - (PRIO_ORDER[b.priority || "NONE"] ?? 9);
-    if (p !== 0) return p;
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-  });
+  // Sort
+  if (sortBy === "priority") {
+    filtered.sort((a, b) => (PRIORITY_ORDER[a.priority || "NONE"] ?? 3) - (PRIORITY_ORDER[b.priority || "NONE"] ?? 3));
+  }
+  // "recent" is default order (already sorted by created_at desc from queries)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeP = Math.min(page, totalPages - 1);
