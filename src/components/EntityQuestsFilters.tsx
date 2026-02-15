@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, ArrowDownUp } from "lucide-react";
+import { Search, X, ArrowDownUp, LayoutGrid, LayoutList, Columns3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UnitCoverImage } from "@/components/UnitCoverImage";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   DRAFT: { label: "Draft", color: "bg-muted text-muted-foreground" },
@@ -13,11 +14,19 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   COMPLETED: { label: "Completed", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
 };
 
+const KANBAN_COLUMNS = [
+  { key: "DRAFT", label: "Draft" },
+  { key: "OPEN_FOR_PROPOSALS", label: "Open" },
+  { key: "ACTIVE", label: "Active" },
+  { key: "COMPLETED", label: "Completed" },
+];
+
 type SortMode = "status" | "recent" | "budget";
+type ViewMode = "list" | "grid" | "kanban";
 
 interface EntityQuestsFiltersProps {
   quests: any[];
-  children: (filtered: any[]) => React.ReactNode;
+  children: (filtered: any[], viewMode: ViewMode) => React.ReactNode;
 }
 
 export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersProps) {
@@ -25,8 +34,8 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortMode>("status");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-  // Available statuses from data
   const availableStatuses = useMemo(() => {
     const s = new Set<string>();
     quests.forEach((q) => { if (q.status) s.add(q.status); });
@@ -44,13 +53,9 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
 
   const filtered = useMemo(() => {
     let result = [...quests];
-
-    // Status filter (multi-select, empty = all)
     if (statusFilter.size > 0) {
       result = result.filter((q) => statusFilter.has(q.status));
     }
-
-    // Search
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(
@@ -59,8 +64,6 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
           q.description?.toLowerCase().includes(s)
       );
     }
-
-    // Sort
     if (sortBy === "status") {
       const ORDER: Record<string, number> = { ACTIVE: 0, OPEN_FOR_PROPOSALS: 1, DRAFT: 2, COMPLETED: 3 };
       result.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
@@ -69,11 +72,10 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
     } else if (sortBy === "budget") {
       result.sort((a, b) => (b.budget_amount ?? b.reward_xp ?? 0) - (a.budget_amount ?? a.reward_xp ?? 0));
     }
-
     return result;
   }, [quests, statusFilter, search, sortBy]);
 
-  if (quests.length === 0) return <>{children(quests)}</>;
+  if (quests.length === 0) return <>{children(quests, viewMode)}</>;
 
   return (
     <div className="space-y-3">
@@ -122,6 +124,34 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
             {sortBy === "status" ? "Status" : sortBy === "recent" ? "Recent" : "Budget"}
           </Button>
 
+          {/* View mode toggle */}
+          <div className="flex border border-border rounded-md overflow-hidden">
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              className="h-8 rounded-none px-2"
+              onClick={() => setViewMode("list")}
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              className="h-8 rounded-none px-2"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              className="h-8 rounded-none px-2"
+              onClick={() => setViewMode("kanban")}
+            >
+              <Columns3 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
           {/* Search toggle */}
           <Button
             variant="ghost"
@@ -148,8 +178,72 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
         </div>
       )}
 
-      {/* Render filtered quests */}
-      {children(filtered)}
+      {/* Render based on view mode */}
+      {viewMode === "kanban" ? (
+        <KanbanView quests={filtered} />
+      ) : (
+        children(filtered, viewMode)
+      )}
+    </div>
+  );
+}
+
+/* ─── Kanban View ─── */
+function KanbanView({ quests }: { quests: any[] }) {
+  const columns = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    for (const col of KANBAN_COLUMNS) map[col.key] = [];
+    for (const q of quests) {
+      if (map[q.status]) map[q.status].push(q);
+      else if (map.ACTIVE) map.ACTIVE.push(q); // fallback
+    }
+    return map;
+  }, [quests]);
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {KANBAN_COLUMNS.map((col) => {
+        const items = columns[col.key] || [];
+        const cfg = STATUS_CONFIG[col.key];
+        return (
+          <div key={col.key} className="space-y-2">
+            <div className="flex items-center gap-2 px-1">
+              <span className={cn("inline-block w-2 h-2 rounded-full", cfg?.color?.split(" ")[0] || "bg-muted")} />
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                {col.label}
+              </span>
+              <Badge variant="secondary" className="text-[10px] ml-auto h-4 min-w-[1.25rem] justify-center">
+                {items.length}
+              </Badge>
+            </div>
+            <div className="space-y-2 min-h-[60px] rounded-lg bg-muted/20 p-2">
+              {items.length === 0 && (
+                <p className="text-[11px] text-muted-foreground/50 text-center py-4">No quests</p>
+              )}
+              {items.map((q) => (
+                <Link
+                  key={q.id}
+                  to={`/quests/${q.id}`}
+                  className="block rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all"
+                >
+                  <h4 className="font-display font-semibold text-sm truncate">{q.title}</h4>
+                  {q.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
+                  )}
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    {q.reward_xp != null && (
+                      <Badge className="bg-primary/10 text-primary border-0 text-[10px]">{q.reward_xp} XP</Badge>
+                    )}
+                    {q.monetization_type && (
+                      <Badge variant="secondary" className="text-[10px] capitalize">{q.monetization_type.toLowerCase()}</Badge>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
