@@ -33,7 +33,7 @@ export function ShareholderCTA() {
     const hasB = (profile.total_shares_b || 0) > 0;
 
     return (
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 0.3, y: 0 }}
         className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <Shield className="h-5 w-5 text-primary" />
@@ -72,7 +72,7 @@ export function ShareholderCTA() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 0.3, y: 0 }}
       className="rounded-xl border border-border bg-card p-5 text-center space-y-3">
       <Crown className="h-8 w-8 text-primary mx-auto" />
       <h3 className="font-display font-semibold">Become a member of changethegame</h3>
