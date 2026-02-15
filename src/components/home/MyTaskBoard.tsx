@@ -306,7 +306,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     });
   }
 
+  // Build a set of quest IDs that have active subtasks (TODO or IN_PROGRESS)
+  const questIdsWithActiveSubtasks = new Set(
+    mySubtasks.filter((s: any) => s.status === "TODO" || s.status === "IN_PROGRESS").map((s: any) => s.quest_id)
+  );
+
   for (const q of myQuests) {
+    // Only show quests that have no active subtasks
+    if (questIdsWithActiveSubtasks.has(q.id)) continue;
     unified.push({
       id: q.id,
       title: q.title,
@@ -318,16 +325,17 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   }
 
   for (const q of participantQuests) {
-    if (!myQuests.some((mq: any) => mq.id === q.id)) {
-      unified.push({
-        id: q.id,
-        title: q.title,
-        status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
-        source: "quest",
-        sourceLabel: "Collaborator",
-        sourceId: q.id,
-      });
-    }
+    if (myQuests.some((mq: any) => mq.id === q.id)) continue;
+    // Only show quests that have no active subtasks
+    if (questIdsWithActiveSubtasks.has(q.id)) continue;
+    unified.push({
+      id: q.id,
+      title: q.title,
+      status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
+      source: "quest",
+      sourceLabel: "Collaborator",
+      sourceId: q.id,
+    });
   }
 
   for (const s of mySubtasks) {
