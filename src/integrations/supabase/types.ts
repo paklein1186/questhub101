@@ -4724,6 +4724,36 @@ export type Database = {
           },
         ]
       }
+      user_work_items: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          updated_at: string
+          user_id: string
+          work_state: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          work_state?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          work_state?: string
+        }
+        Relationships: []
+      }
       weekly_usage: {
         Row: {
           created_at: string

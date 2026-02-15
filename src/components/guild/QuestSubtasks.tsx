@@ -19,8 +19,9 @@ interface QuestSubtasksProps {
   canManage: boolean;
 }
 
-const STATUS_OPTIONS = ["TODO", "IN_PROGRESS", "DONE"] as const;
+const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
 const STATUS_COLORS: Record<string, string> = {
+  BACKLOG: "bg-muted/60 text-muted-foreground/70",
   TODO: "bg-muted text-muted-foreground",
   IN_PROGRESS: "bg-primary/10 text-primary",
   DONE: "bg-emerald-500/10 text-emerald-600",
