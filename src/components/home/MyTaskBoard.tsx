@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
-  ChevronLeft,
+  ChevronLeft, ArrowDownUp,
 } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -24,6 +24,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 
 const STATUS_COLORS: Record<string, string> = {
   TODO: "bg-muted text-muted-foreground",
@@ -39,6 +40,7 @@ type PersonalTask = {
   title: string;
   status: TaskStatus;
   created_at: string;
+  priority: Priority;
   converted_to_quest_id: string | null;
   converted_to_subtask_id: string | null;
 };
@@ -56,6 +58,7 @@ type QuestSubtask = {
   quest_id: string;
   title: string;
   status: TaskStatus;
+  priority: Priority;
   assignee_user_id: string;
   order_index: number;
 };
@@ -68,6 +71,8 @@ type UnifiedTask = {
   sourceLabel?: string;
   sourceId?: string;
   questId?: string;
+  priority?: Priority;
+  createdAt?: string;
   convertedToQuestId?: string | null;
   convertedToSubtaskId?: string | null;
 };
@@ -86,6 +91,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [newTitle, setNewTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
+  const [sortBy, setSortBy] = useState<"recent" | "priority">("recent");
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -283,6 +289,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       title: t.title,
       status: t.status,
       source: "personal",
+      priority: t.priority || "NONE",
+      createdAt: t.created_at,
       convertedToQuestId: t.converted_to_quest_id,
       convertedToSubtaskId: t.converted_to_subtask_id,
     });
@@ -320,10 +328,19 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       source: "subtask",
       sourceLabel: s.questTitle,
       questId: s.quest_id,
+      priority: s.priority || "NONE",
+      createdAt: s.created_at,
     });
   }
 
-  const filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
+  let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
+
+  // Sort
+  if (sortBy === "priority") {
+    filtered.sort((a, b) => (PRIORITY_ORDER[a.priority || "NONE"] ?? 3) - (PRIORITY_ORDER[b.priority || "NONE"] ?? 3));
+  }
+  // "recent" is default order (already sorted by created_at desc from queries)
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeP = Math.min(page, totalPages - 1);
   const paginated = filtered.slice(safeP * PAGE_SIZE, (safeP + 1) * PAGE_SIZE);
@@ -442,6 +459,16 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const deleteTask = async (taskId: string) => {
     await supabase.from("personal_tasks" as any).delete().eq("id", taskId);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  };
+
+  const updatePriority = async (task: UnifiedTask, priority: Priority) => {
+    if (task.source === "personal") {
+      await supabase.from("personal_tasks" as any).update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (task.source === "subtask") {
+      await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    }
   };
 
   const startEditing = (task: UnifiedTask) => {
@@ -630,6 +657,15 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <SelectItem value="subtask">Subtasks</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 gap-1 text-xs"
+          onClick={() => setSortBy(sortBy === "recent" ? "priority" : "recent")}
+        >
+          <ArrowDownUp className="h-3.5 w-3.5" />
+          {sortBy === "recent" ? "Recent" : "Priority"}
+        </Button>
       </div>
 
       {/* Quick add */}
@@ -661,6 +697,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <thead className="bg-muted/50">
               <tr>
                 <th className="w-8 px-3 py-2"></th>
+                <th className="w-8 px-3 py-2"></th>
                 <th className="text-left px-3 py-2 font-medium">Task</th>
                 <th className="text-left px-3 py-2 font-medium hidden sm:table-cell">Source</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
@@ -676,7 +713,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 if (isPendingDone) {
                   return (
                     <tr key={key} className="border-t border-border bg-emerald-500/5">
-                      <td colSpan={5} className="px-3 py-2.5">
+                      <td colSpan={6} className="px-3 py-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                           <Button
@@ -699,6 +736,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                     <Checkbox
                       checked={displayStatus === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                    />
+                  </td>
+                  <td className="px-1 py-2.5">
+                    <PriorityPicker
+                      value={task.priority || "NONE"}
+                      onChange={(p) => updatePriority(task, p)}
+                      disabled={task.source === "quest"}
                     />
                   </td>
                   <td className="px-3 py-2.5">

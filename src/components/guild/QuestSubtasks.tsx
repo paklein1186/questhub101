@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 
 interface QuestSubtasksProps {
   questId: string;
@@ -41,7 +42,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_subtasks" as any)
-        .select("*")
+        .select("*, priority")
         .eq("quest_id", questId)
         .order("order_index");
       if (error) throw error;
@@ -126,6 +127,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
+  const updateSubtaskPriority = async (subtaskId: string, priority: Priority) => {
+    await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+  };
+
   const deleteSubtask = async (subtaskId: string) => {
     await supabase.from("quest_subtasks" as any).delete().eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
@@ -184,6 +190,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
 
           return (
           <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-card p-2 group">
+            <PriorityPicker
+              value={subtask.priority || "NONE"}
+              onChange={(p) => updateSubtaskPriority(subtask.id, p)}
+              disabled={!canEditSubtask(subtask)}
+            />
             <Checkbox
               checked={subtask.status === "DONE"}
               disabled={!canEditSubtask(subtask)}
