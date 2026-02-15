@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { EntityQuestsFilters } from "@/components/EntityQuestsFilters";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CommentThread } from "@/components/CommentThread";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
@@ -404,17 +405,23 @@ export default function GuildDetail() {
               <PlanLimitBadge freeRemaining={limits.freeQuestsRemaining} limitReached={limits.questLimitReached} xpCost={EXTRA_QUEST_CREDIT_COST} itemLabel="quest" />
             </div>
           )}
-          {quests.map((q: any) => (
-            <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              {q.cover_image_url && <div className="h-32 w-full"><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
-              <div className="p-4">
-                <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0">{q.reward_xp} XP</Badge></div>
-                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>
-                <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{q.status.toLowerCase().replace("_", " ")}</Badge><Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge></div>
-              </div>
-            </Link>
-          ))}
-          {quests.length === 0 && <p className="text-muted-foreground">No quests yet.</p>}
+          <EntityQuestsFilters quests={quests}>
+            {(filtered) => (
+              <>
+                {filtered.map((q: any) => (
+                  <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
+                    {q.cover_image_url && <div className="h-32 w-full"><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
+                    <div className="p-4">
+                      <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0">{q.reward_xp} XP</Badge></div>
+                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>
+                      <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{q.status.toLowerCase().replace("_", " ")}</Badge><Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge></div>
+                    </div>
+                  </Link>
+                ))}
+                {filtered.length === 0 && <p className="text-muted-foreground">No quests match filters.</p>}
+              </>
+            )}
+          </EntityQuestsFilters>
         </TabsContent>
 
         {isMember && (fc as any).kanbanBoard && (
