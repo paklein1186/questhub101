@@ -31,6 +31,7 @@ import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
 import { MessageSquare } from "lucide-react";
+import { ProfileQuestsTab } from "@/components/profile/ProfileQuestsTab";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -501,87 +502,15 @@ export default function UserProfile() {
 
         {/* ─── Quests ─── */}
         <TabsContent value="quests">
-          <div className="space-y-8">
-            {/* Created */}
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display font-semibold">Quests created ({questsCreated.length})</h3>
-                {isOwnProfile && (
-                  <Button size="sm" asChild>
-                    <Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create quest</Link>
-                  </Button>
-                )}
-              </div>
-              <EntityGrid items={questsCreated} emptyMsg="No quests created yet." renderItem={(q: any) => (
-                <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all block">
-                  <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
-                  <div className="p-4">
-                    <h4 className="font-display font-semibold truncate">{q.title}</h4>
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <Badge variant="outline" className="text-[10px] capitalize">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
-                      {q.credit_budget > 0 && (
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <Coins className="h-3 w-3" /> {q.escrow_credits}/{q.credit_budget}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              )} />
-            </section>
-
-            {/* Joined */}
-            <section>
-              <h3 className="font-display font-semibold mb-3">Quests joined ({questsJoined.length})</h3>
-              <EntityGrid items={questsJoined} emptyMsg="Not participating in any quests." renderItem={(qp: any) => (
-                <Link key={qp.id} to={`/quests/${qp.quest?.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all block">
-                  <UnitCoverImage type="QUEST" imageUrl={qp.quest?.cover_image_url} height="h-24" />
-                  <div className="p-4">
-                    <h4 className="font-display font-semibold truncate">{qp.quest?.title}</h4>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="text-[10px] capitalize">{qp.role?.toLowerCase()}</Badge>
-                      <Badge variant="outline" className="text-[10px] capitalize">{qp.status?.toLowerCase()}</Badge>
-                    </div>
-                  </div>
-                </Link>
-              )} />
-            </section>
-
-            {/* Proposals */}
-            {(isOwnProfile || proposals.length > 0) && (
-              <section>
-                <h3 className="font-display font-semibold mb-3">Proposals ({proposals.length})</h3>
-                <EntityGrid items={proposals} emptyMsg="No proposals submitted." renderItem={(p: any) => (
-                  <Link key={p.id} to={`/quests/${p.quest_id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-                    <h4 className="font-display font-semibold truncate">{p.title}</h4>
-                    <p className="text-xs text-muted-foreground truncate mt-0.5">→ {p.quests?.title}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant={p.status === "ACCEPTED" ? "default" : p.status === "REJECTED" ? "destructive" : "outline"} className="text-[10px] capitalize">
-                        {p.status?.toLowerCase()}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground">{p.requested_credits} Credits · {p.upvotes_count} votes</span>
-                    </div>
-                  </Link>
-                )} />
-              </section>
-            )}
-
-            {/* Funded */}
-            {canSeePrivate && fundedQuests.length > 0 && (
-              <section>
-                <h3 className="font-display font-semibold mb-3">Quests funded ({fundedQuests.length})</h3>
-                <EntityGrid items={fundedQuests} emptyMsg="" renderItem={(f: any) => (
-                  <Link key={f.id} to={`/quests/${f.quest_id}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all block">
-                    <h4 className="font-display font-semibold truncate">{f.quests?.title}</h4>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="text-[10px]">{f.type}</Badge>
-                      <span className="text-[10px] text-muted-foreground">{f.amount} {f.type === "CREDITS" ? "Credits" : f.currency}</span>
-                    </div>
-                  </Link>
-                )} />
-              </section>
-            )}
-          </div>
+          <ProfileQuestsTab
+            userId={id!}
+            isOwnProfile={isOwnProfile}
+            questsCreated={questsCreated}
+            questsJoined={questsJoined}
+            proposals={proposals}
+            fundedQuests={fundedQuests}
+            canSeePrivate={canSeePrivate}
+          />
         </TabsContent>
 
         {/* ─── Services ─── */}
