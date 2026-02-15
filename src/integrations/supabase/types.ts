@@ -1790,6 +1790,35 @@ export type Database = {
         }
         Relationships: []
       }
+      highlighted_quests: {
+        Row: {
+          created_at: string
+          id: string
+          quest_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quest_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quest_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "highlighted_quests_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_position_territories: {
         Row: {
           id: string
