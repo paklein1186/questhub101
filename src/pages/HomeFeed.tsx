@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BauhausShape } from "@/components/home/BauhausShape";
+import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search, Pause, Play } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
@@ -301,6 +302,7 @@ export default function HomeFeed() {
   const [guidedTile, setGuidedTile] = useState<string | null>(null);
   const [lastInput, setLastInput] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [bauhausPaused, setBauhausPaused] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
@@ -481,7 +483,19 @@ export default function HomeFeed() {
   return (
     <PageShell>
       <MilestonePopup />
-      <BauhausShape />
+      <BauhausPausedContext.Provider value={bauhausPaused}>
+        <BauhausShape />
+      </BauhausPausedContext.Provider>
+
+      {/* Discrete pause/play toggle — bottom-left */}
+      <button
+        onClick={() => setBauhausPaused((p) => !p)}
+        className="fixed bottom-4 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
+        aria-label={bauhausPaused ? "Resume animation" : "Pause animation"}
+        title={bauhausPaused ? "Resume animation" : "Pause animation"}
+      >
+        {bauhausPaused ? <Play size={14} /> : <Pause size={14} />}
+      </button>
       <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
         {/* Greeting */}
