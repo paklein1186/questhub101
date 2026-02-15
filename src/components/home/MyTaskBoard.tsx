@@ -78,6 +78,9 @@ type UnifiedTask = {
   createdAt?: string;
   convertedToQuestId?: string | null;
   convertedToSubtaskId?: string | null;
+  guildName?: string | null;
+  guildLogo?: string | null;
+  questTitle?: string | null;
 };
 
 type UnitOption = {
@@ -207,15 +210,24 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
       // 6. Resolve quest titles
       const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
-      let questMap = new Map<string, string>();
+      let questMap = new Map<string, { title: string; guildName: string | null; guildLogo: string | null }>();
       if (questIds.length > 0) {
         const { data: quests } = await supabase
           .from("quests")
-          .select("id, title")
+          .select("id, title, guild_id, guilds(name, logo_url)")
           .in("id", questIds);
-        questMap = new Map((quests || []).map((q: any) => [q.id, q.title]));
+        questMap = new Map((quests || []).map((q: any) => [q.id, {
+          title: q.title,
+          guildName: q.guilds?.name || null,
+          guildLogo: q.guilds?.logo_url || null,
+        }]));
       }
-      return merged.map((s: any) => ({ ...s, questTitle: questMap.get(s.quest_id) || "Quest" }));
+      return merged.map((s: any) => ({
+        ...s,
+        questTitle: questMap.get(s.quest_id)?.title || "Quest",
+        questGuildName: questMap.get(s.quest_id)?.guildName || null,
+        questGuildLogo: questMap.get(s.quest_id)?.guildLogo || null,
+      }));
     },
     enabled: !!userId,
   });
@@ -310,7 +322,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   );
 
   for (const q of myQuests) {
-    // Only show quests that have no active subtasks
     if (questIdsWithActiveSubtasks.has(q.id)) continue;
     unified.push({
       id: q.id,
@@ -320,12 +331,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       sourceLabel: "My Quest",
       sourceId: q.id,
       priority: (q as any).priority || "NONE",
+      guildName: (q as any).guilds?.name || null,
+      guildLogo: (q as any).guilds?.logo_url || null,
     });
   }
 
   for (const q of participantQuests) {
     if (myQuests.some((mq: any) => mq.id === q.id)) continue;
-    // Only show quests that have no active subtasks
     if (questIdsWithActiveSubtasks.has(q.id)) continue;
     unified.push({
       id: q.id,
@@ -335,6 +347,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       sourceLabel: "Collaborator",
       sourceId: q.id,
       priority: (q as any).priority || "NONE",
+      guildName: (q as any).guilds?.name || null,
+      guildLogo: (q as any).guilds?.logo_url || null,
     });
   }
 
@@ -348,6 +362,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       questId: s.quest_id,
       priority: s.priority || "NONE",
       createdAt: s.created_at,
+      questTitle: s.questTitle,
+      guildName: s.questGuildName || null,
+      guildLogo: s.questGuildLogo || null,
     });
   }
 
@@ -861,10 +878,33 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       </>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 hidden sm:table-cell max-w-[120px]">
-                    <Badge variant="secondary" className="text-[10px] capitalize truncate max-w-full inline-block">
-                      {(task.source === "personal" ? "Personal" : task.sourceLabel || task.source).slice(0, 16)}
-                    </Badge>
+                  <td className="px-3 py-2.5 hidden sm:table-cell max-w-[160px]">
+                    <div className="flex flex-col gap-0.5">
+                      {task.source === "personal" && (
+                        <Badge variant="secondary" className="text-[10px] truncate max-w-full inline-block">Personal</Badge>
+                      )}
+                      {task.source === "quest" && (
+                        <>
+                          <Badge variant="secondary" className="text-[10px] truncate max-w-full inline-block">
+                            {(task.sourceLabel || "Quest").slice(0, 16)}
+                          </Badge>
+                          {task.guildName && (
+                            <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px]" />
+                          )}
+                        </>
+                      )}
+                      {task.source === "subtask" && (
+                        <>
+                          <span className="text-[10px] text-muted-foreground truncate max-w-full" title={task.questTitle || undefined}>
+                            <Compass className="h-2.5 w-2.5 mr-0.5 inline" />
+                            {(task.questTitle || task.sourceLabel || "Quest").slice(0, 18)}
+                          </span>
+                          {task.guildName && (
+                            <GuildColorLabel name={task.guildName} logoUrl={task.guildLogo} className="text-[10px]" />
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2.5">
                     <Select
