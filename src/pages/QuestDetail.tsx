@@ -469,9 +469,13 @@ export default function QuestDetail() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
                   <Hash className="h-3.5 w-3.5" /> Topics
                 </label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics((allTopicsList ?? []).map((t: any) => t.id))}>Select all</Button>
+                  <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTopics([])} disabled={editTopics.length === 0}>Clear all</Button>
+                </div>
                 <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
                   {(allTopicsList ?? []).map((t: any) => (
                     <Badge
@@ -486,9 +490,13 @@ export default function QuestDetail() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium flex items-center gap-1.5 mb-2">
+                <label className="text-sm font-medium flex items-center gap-1.5 mb-1">
                   <MapPin className="h-3.5 w-3.5" /> Territories
                 </label>
+                <div className="flex items-center gap-2 mb-2">
+                  <Button variant="outline" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories((allTerritoriesList ?? []).map((t: any) => t.id))}>Select all</Button>
+                  <Button variant="ghost" size="sm" type="button" className="h-6 text-xs" onClick={() => setEditTerritories([])} disabled={editTerritories.length === 0}>Clear all</Button>
+                </div>
                 <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
                   {(allTerritoriesList ?? []).map((t: any) => (
                     <Badge
