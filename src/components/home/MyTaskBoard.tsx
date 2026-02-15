@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
+import { GuildColorLabel } from "@/components/GuildColorLabel";
 
 const STATUS_COLORS: Record<string, string> = {
   TODO: "bg-muted text-muted-foreground",
@@ -136,7 +137,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("id, title, status")
+        .select("id, title, status, guild_id, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
         .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
@@ -232,7 +233,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       const questIds = parts.map((p: any) => p.quest_id);
       const { data: quests } = await supabase
         .from("quests")
-        .select("id, title, status")
+        .select("id, title, status, guild_id, guilds(name, logo_url)")
         .in("id", questIds)
         .eq("is_deleted", false)
         .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"]);
@@ -633,8 +634,8 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   // All quests (owned + participating) for the subtask picker
   const allQuestsForPicker = [
-    ...myQuests.map((q: any) => ({ id: q.id, title: q.title })),
-    ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title })),
+    ...myQuests.map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
+    ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
   ];
 
   const todoCount = unified.filter((t) => t.status === "TODO").length;
@@ -835,8 +836,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                                   </DropdownMenuSubTrigger>
                                   <DropdownMenuSubContent>
                                     {allQuestsForPicker.map((q) => (
-                                      <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)}>
-                                        {q.title}
+                                      <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)} className="flex flex-col items-start gap-0.5">
+                                        <span className="text-sm">{q.title}</span>
+                                        {q.guildName && (
+                                          <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-muted-foreground" />
+                                        )}
                                       </DropdownMenuItem>
                                     ))}
                                   </DropdownMenuSubContent>
