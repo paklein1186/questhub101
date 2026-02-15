@@ -13,8 +13,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
-  Calendar, Flag, ExternalLink, Search, X,
+  Calendar, ExternalLink, Search, X,
 } from "lucide-react";
+import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
@@ -37,15 +38,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
-  HIGH: "text-red-500",
-  MEDIUM: "text-amber-500",
-  LOW: "text-muted-foreground",
-  NONE: "text-muted-foreground/40",
-};
-
 type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
-type Priority = "HIGH" | "MEDIUM" | "LOW" | "NONE";
 
 type UnifiedTask = {
   id: string;
@@ -133,7 +126,7 @@ export function WorkTasksTab() {
     queryFn: async () => {
       const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id, assignee_user_id, created_at")
+        .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
         .eq("assignee_user_id", userId)
         .in("status", ["TODO", "IN_PROGRESS"])
         .order("created_at", { ascending: false })
@@ -160,7 +153,7 @@ export function WorkTasksTab() {
       if (allQuestIds.length > 0) {
         const { data: qSubtasks } = await supabase
           .from("quest_subtasks" as any)
-          .select("id, title, status, quest_id, assignee_user_id, created_at")
+          .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
           .in("quest_id", allQuestIds)
           .in("status", ["TODO", "IN_PROGRESS"])
           .order("created_at", { ascending: false })
@@ -306,6 +299,7 @@ export function WorkTasksTab() {
     unified.push({
       id: s.id, title: s.title, status: s.status, source: "subtask",
       sourceLabel: s.questTitle, questId: s.quest_id, createdAt: s.created_at,
+      priority: s.priority || "NONE",
     });
   }
 
@@ -394,6 +388,16 @@ export function WorkTasksTab() {
   const deleteTask = async (taskId: string) => {
     await supabase.from("personal_tasks" as any).delete().eq("id", taskId);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+  };
+
+  const updatePriority = async (task: UnifiedTask, priority: Priority) => {
+    if (task.source === "personal") {
+      await supabase.from("personal_tasks" as any).update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    } else if (task.source === "subtask") {
+      await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", task.id);
+      qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
+    }
   };
 
   const startEditing = (task: UnifiedTask) => {
@@ -576,6 +580,7 @@ export function WorkTasksTab() {
               <thead className="bg-muted/50">
                 <tr>
                   <th className="w-10 px-3 py-2.5"></th>
+                  <th className="w-8 px-1 py-2.5"></th>
                   <th className="text-left px-3 py-2.5 font-medium">Task</th>
                   <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">Source</th>
                   <th className="text-left px-3 py-2.5 font-medium">Status</th>
@@ -597,7 +602,7 @@ export function WorkTasksTab() {
                   if (isPendingDone) {
                     return (
                       <motion.tr key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="border-t border-border bg-emerald-500/5">
-                        <td colSpan={8} className="px-3 py-2.5">
+                        <td colSpan={9} className="px-3 py-2.5">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                             <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => undoDone(task)}>
@@ -624,6 +629,13 @@ export function WorkTasksTab() {
                         <Checkbox
                           checked={task.status === "DONE"}
                           onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                        />
+                      </td>
+                      <td className="px-1 py-2.5">
+                        <PriorityPicker
+                          value={task.priority || "NONE"}
+                          onChange={(p) => updatePriority(task, p)}
+                          disabled={task.source === "quest"}
                         />
                       </td>
                       <td className="px-3 py-2.5 max-w-[300px]">

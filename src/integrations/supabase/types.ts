@@ -2375,6 +2375,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          priority: string
           status: string
           title: string
           updated_at: string
@@ -2387,6 +2388,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          priority?: string
           status?: string
           title: string
           updated_at?: string
@@ -2399,6 +2401,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          priority?: string
           status?: string
           title?: string
           updated_at?: string
@@ -3089,6 +3092,7 @@ export type Database = {
           due_date: string | null
           id: string
           order_index: number
+          priority: string
           quest_id: string
           status: string
           title: string
@@ -3101,6 +3105,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           order_index?: number
+          priority?: string
           quest_id: string
           status?: string
           title: string
@@ -3113,6 +3118,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           order_index?: number
+          priority?: string
           quest_id?: string
           status?: string
           title?: string
