@@ -142,6 +142,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [editingSource, setEditingSource] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [entityFilter, setEntityFilter] = useState<Set<string>>(new Set()); // empty = show all
 
   // Track items marked as done this session (shown crossed-out until refresh)
   const [sessionDone, setSessionDone] = useState<Set<string>>(new Set());
@@ -433,7 +434,44 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     });
   }
 
+  // Collect unique entities for entity filter chips
+  const entityOptions = (() => {
+    const map = new Map<string, { id: string; name: string; logo?: string | null }>();
+    let hasPersonal = false;
+    for (const t of unified) {
+      if (t.guildId && t.guildName) {
+        if (!map.has(t.guildId)) map.set(t.guildId, { id: t.guildId, name: t.guildName, logo: t.guildLogo });
+      } else if (t.source === "personal") {
+        hasPersonal = true;
+      }
+    }
+    const opts: { id: string; name: string; logo?: string | null }[] = [];
+    if (hasPersonal) opts.push({ id: "__personal__", name: "Personal" });
+    for (const v of map.values()) opts.push(v);
+    return opts;
+  })();
+
+  const toggleEntityFilter = (id: string) => {
+    setEntityFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setPage(0);
+  };
+
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
+  // Apply entity filter (multi-select, empty = show all)
+  if (entityFilter.size > 0) {
+    filtered = filtered.filter((t) => {
+      if (t.guildId && entityFilter.has(t.guildId)) return true;
+      if (!t.guildId && t.source === "personal" && entityFilter.has("__personal__")) return true;
+      // For quests/subtasks without guild that aren't personal
+      if (!t.guildId && t.source !== "personal" && entityFilter.has("__personal__")) return true;
+      return false;
+    });
+  }
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
     filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
@@ -867,6 +905,44 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           {searchQuery && (
             <button onClick={() => setSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
               <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Entity filter chips */}
+      {entityOptions.length > 1 && (
+        <div className="flex flex-wrap gap-1.5">
+          {entityOptions.map((ent) => {
+            const active = entityFilter.has(ent.id);
+            return (
+              <button
+                key={ent.id}
+                onClick={() => toggleEntityFilter(ent.id)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border transition-all",
+                  active
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
+                )}
+              >
+                {ent.id === "__personal__" ? (
+                  <User className="h-3 w-3" />
+                ) : ent.logo ? (
+                  <img src={ent.logo} alt="" className="h-3.5 w-3.5 rounded-full object-cover" />
+                ) : (
+                  <Users className="h-3 w-3" />
+                )}
+                {ent.name}
+              </button>
+            );
+          })}
+          {entityFilter.size > 0 && (
+            <button
+              onClick={() => setEntityFilter(new Set())}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-3 w-3" /> Clear
             </button>
           )}
         </div>
