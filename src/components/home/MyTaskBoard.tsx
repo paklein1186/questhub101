@@ -292,8 +292,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const unified: UnifiedTask[] = [];
 
   for (const t of personalTasks) {
-    // Skip tasks already converted to a quest or subtask — they appear in their respective sections
-    if (t.converted_to_quest_id || t.converted_to_subtask_id) continue;
     unified.push({
       id: t.id,
       title: t.title,
@@ -570,6 +568,59 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const unit = convertSelectedUnit;
     setConverting(true);
 
+    const existingQuestId = pendingConvertTask.convertedToQuestId;
+
+    if (existingQuestId) {
+      // Re-attach: update the existing quest's guild/owner
+      const updatePayload: any = {};
+      if (unit && unit.type === "GUILD") {
+        updatePayload.owner_type = "GUILD";
+        updatePayload.owner_id = unit.id;
+        updatePayload.guild_id = unit.id;
+        updatePayload.company_id = null;
+      } else if (unit && unit.type === "COMPANY") {
+        updatePayload.owner_type = "COMPANY";
+        updatePayload.owner_id = unit.id;
+        updatePayload.company_id = unit.id;
+        updatePayload.guild_id = null;
+      } else {
+        updatePayload.owner_type = "USER";
+        updatePayload.owner_id = userId;
+        updatePayload.guild_id = null;
+        updatePayload.company_id = null;
+      }
+
+      const { error } = await supabase.from("quests").update(updatePayload).eq("id", existingQuestId);
+      if (error) {
+        toast({ title: "Failed to reattach quest", variant: "destructive" });
+        setConverting(false);
+        return;
+      }
+
+      // Replace topics & territories
+      await supabase.from("quest_topics").delete().eq("quest_id", existingQuestId);
+      await supabase.from("quest_territories" as any).delete().eq("quest_id", existingQuestId);
+      if (convertTopics.length > 0) {
+        await supabase.from("quest_topics").insert(
+          convertTopics.map((topic_id) => ({ quest_id: existingQuestId, topic_id }))
+        );
+      }
+      if (convertTerritories.length > 0) {
+        await supabase.from("quest_territories" as any).insert(
+          convertTerritories.map((territory_id) => ({ quest_id: existingQuestId, territory_id }))
+        );
+      }
+
+      qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
+      setConverting(false);
+      setUnitPickerOpen(false);
+      setPendingConvertTask(null);
+      toast({ title: "Quest reattached!" });
+      navigate(`/quests/${existingQuestId}`);
+      return;
+    }
+
+    // New conversion: create quest
     const insertPayload: any = {
       title: pendingConvertTask.title,
       created_by_user_id: userId,
@@ -609,7 +660,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       status: "ACCEPTED",
     });
 
-    // Insert user-selected topics & territories
     if (convertTopics.length > 0) {
       await supabase.from("quest_topics").insert(
         convertTopics.map((topic_id) => ({ quest_id: questId, topic_id }))
@@ -847,7 +897,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openUnitPicker(task)}>
-                                <Rocket className="h-3.5 w-3.5 mr-2" /> Convert to Quest
+                                <Rocket className="h-3.5 w-3.5 mr-2" /> {task.convertedToQuestId ? "Reattach Quest to Guild" : "Convert to Quest"}
                               </DropdownMenuItem>
                               {allQuestsForPicker.length > 0 && (
                                 <DropdownMenuSub>
