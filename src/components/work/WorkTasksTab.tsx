@@ -84,6 +84,7 @@ export function WorkTasksTab() {
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
   const [entityFilter, setEntityFilter] = useState<string>("all"); // "all" or entity id
   const [statusFilter, setStatusFilter] = useState<"all" | "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE">("all");
+  const [hideDone, setHideDone] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -361,6 +362,7 @@ export function WorkTasksTab() {
   // Apply filters
   let filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
   if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
+  if (hideDone) filtered = filtered.filter((t) => t.status !== "DONE");
   if (entityFilter !== "all") filtered = filtered.filter((t) => t.guildId === entityFilter);
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
@@ -697,6 +699,17 @@ export function WorkTasksTab() {
             </SelectContent>
           </Select>
         )}
+
+        {/* Hide done toggle */}
+        <Button
+          variant={hideDone ? "default" : "outline"}
+          size="sm"
+          className="h-9 text-xs gap-1.5"
+          onClick={() => setHideDone((v) => !v)}
+        >
+          <ListChecks className="h-3.5 w-3.5" />
+          {hideDone ? "Done hidden" : "Hide done"}
+        </Button>
 
         {/* View mode toggle */}
         <div className="flex border border-border rounded-md overflow-hidden">
