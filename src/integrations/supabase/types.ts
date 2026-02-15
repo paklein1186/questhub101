@@ -3361,6 +3361,7 @@ export type Database = {
           price_currency: string
           price_fiat: number
           priority: string
+          quest_type: string
           reward_currency: string
           reward_xp: number
           status: Database["public"]["Enums"]["quest_status"]
@@ -3398,6 +3399,7 @@ export type Database = {
           price_currency?: string
           price_fiat?: number
           priority?: string
+          quest_type?: string
           reward_currency?: string
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
@@ -3435,6 +3437,7 @@ export type Database = {
           price_currency?: string
           price_fiat?: number
           priority?: string
+          quest_type?: string
           reward_currency?: string
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]

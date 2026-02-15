@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -48,6 +48,7 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
+import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -73,6 +74,29 @@ export default function QuestDetail() {
   const { data: resolvedHosts } = useResolvedQuestHosts(id);
   const { data: allTopicsList } = useTopics();
   const { data: allTerritoriesList } = useTerritories();
+
+  // Highlighted quest star
+  const { data: highlightedIds = [] } = useQuery({
+    queryKey: ["highlighted-quests", currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("highlighted_quests" as any)
+        .select("quest_id")
+        .eq("user_id", currentUser.id);
+      return (data || []).map((h: any) => h.quest_id as string);
+    },
+    enabled: !!currentUser.id,
+  });
+  const isHighlighted = id ? highlightedIds.includes(id) : false;
+  const toggleHighlight = async () => {
+    if (!id || !currentUser.id) return;
+    if (isHighlighted) {
+      await supabase.from("highlighted_quests" as any).delete().eq("user_id", currentUser.id).eq("quest_id", id);
+    } else {
+      await supabase.from("highlighted_quests" as any).insert({ user_id: currentUser.id, quest_id: id } as any);
+    }
+    qc.invalidateQueries({ queryKey: ["highlighted-quests", currentUser.id] });
+  };
 
   // Subtask counts for tab label
   const { data: subtaskCounts } = useQuery({
@@ -120,6 +144,7 @@ export default function QuestDetail() {
   const [editFundingGoal, setEditFundingGoal] = useState("");
   const [editTopics, setEditTopics] = useState<string[]>([]);
   const [editTerritories, setEditTerritories] = useState<string[]>([]);
+  const [editQuestType, setEditQuestType] = useState("ACTION");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
@@ -224,6 +249,7 @@ export default function QuestDetail() {
     setEditFundingGoal(String((quest as any).funding_goal_credits ?? ""));
     setEditTopics(topics.map((t: any) => t.id));
     setEditTerritories(territories.map((t: any) => t.id));
+    setEditQuestType((quest as any).quest_type || "ACTION");
     setEditOpen(true);
   };
 
@@ -245,6 +271,7 @@ export default function QuestDetail() {
       credit_budget: Number(editCreditBudget) || 0,
       allow_fundraising: editAllowFundraising,
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
+      quest_type: editQuestType,
     } as any).eq("id", quest.id);
 
     // Update topics: delete old, insert new
@@ -278,7 +305,14 @@ export default function QuestDetail() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
           <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
-          <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
+          <div className="flex items-center gap-2">
+            {(quest as any).quest_type && QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType] && (
+              <Badge variant="outline" className={QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}>
+                {QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType]}
+              </Badge>
+            )}
+            <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
+          </div>
         </div>
 
         {/* Mission Budget & Economy Bar */}
@@ -365,6 +399,12 @@ export default function QuestDetail() {
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
+            {isOwner && (
+              <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
+                <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
+                {isHighlighted ? "Featured" : "Feature"}
+              </Button>
+            )}
             {canPostUpdate && (
               <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
                 <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
@@ -450,6 +490,16 @@ export default function QuestDetail() {
                     <SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem>
                     <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
                     <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><label className="text-sm font-medium mb-1 block">Type de quête</label>
+                <Select value={editQuestType} onValueChange={setEditQuestType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {QUEST_TYPES.map(qt => (
+                      <SelectItem key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

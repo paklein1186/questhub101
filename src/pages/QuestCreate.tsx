@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Compass, Loader2, Sparkles, X, RotateCcw, Check } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -11,6 +11,7 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
+import { QUEST_TYPES, QUEST_TYPE_LABELS } from "@/lib/questTypes";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -125,6 +126,7 @@ export default function QuestCreate() {
   const [missionBudgetMin, setMissionBudgetMin] = useState("");
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
   const [paymentType, setPaymentType] = useState("INVOICE");
+  const [questType, setQuestType] = useState("ACTION");
 
   // Co-hosts state
   const primaryEntityType = guildId ? "GUILD" as const : companyId ? "COMPANY" as const : undefined;
@@ -283,6 +285,7 @@ export default function QuestCreate() {
           mission_budget_min: missionBudgetMin ? Number(missionBudgetMin) : null,
           mission_budget_max: missionBudgetMax ? Number(missionBudgetMax) : null,
           payment_type: paymentType,
+          quest_type: questType,
         } as any)
         .select()
         .single();
@@ -484,6 +487,20 @@ export default function QuestCreate() {
           <div>
             <Label htmlFor="title">Title *</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Quest title" className="mt-1" />
+          </div>
+
+          <div>
+            <Label htmlFor="questType">Type de quête</Label>
+            <select
+              id="questType"
+              value={questType}
+              onChange={(e) => setQuestType(e.target.value)}
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              {QUEST_TYPES.map(qt => (
+                <option key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</option>
+              ))}
+            </select>
           </div>
 
           {/* AI Generation Section */}

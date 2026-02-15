@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSup
 import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
@@ -95,6 +96,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
     if (filters.status !== "all" && q.status !== filters.status) return false;
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
+    if (filters.questType !== "all" && (q as any).quest_type !== filters.questType) return false;
     return true;
   }), filters.sortBy);
 
@@ -121,7 +123,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true }}
+          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true }}
           houseFilter={{
             active: hf.houseFilterActive,
             onToggle: hf.setHouseFilterActive,
@@ -155,7 +157,14 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                 <UnitCoverImage type="QUEST" imageUrl={quest.cover_image_url} name={quest.title} height="h-32" />
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-display font-semibold">{quest.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-display font-semibold">{quest.title}</h3>
+                      {(quest as any).quest_type && QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType] && (
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}`}>
+                          {QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType]}
+                        </Badge>
+                      )}
+                    </div>
                     <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
