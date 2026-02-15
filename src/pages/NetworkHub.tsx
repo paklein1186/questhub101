@@ -269,8 +269,8 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
            {topics.length > 0 && (
              <div className="flex flex-wrap gap-1.5">
                {topics.map((t: any) => (
-                 <Link key={t.id} to={`/explore?houses=${t.id}`}>
-                   <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
+                  <Link key={t.id} to={`/explore?tab=houses&houses=${t.slug || t.id}`}>
+                    <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
                  </Link>
                ))}
              </div>
@@ -476,7 +476,7 @@ function TerritoriesTab({ territories, topics, activity, loadingT, loadingH }: {
         ) : (
           <div className="flex flex-wrap gap-2">
             {topics.map((t: any) => (
-              <Link key={t.id} to={`/topics/${t.slug}`}>
+              <Link key={t.id} to={`/explore?tab=houses&houses=${t.slug || t.id}`}>
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                   className="rounded-lg border border-border bg-card px-4 py-2.5 hover:border-primary/30 transition-all">
                   <span className="text-sm font-medium flex items-center gap-1.5"><Hash className="h-3.5 w-3.5 text-primary" />{t.name}</span>
