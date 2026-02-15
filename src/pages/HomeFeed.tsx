@@ -496,7 +496,7 @@ export default function HomeFeed() {
       >
         {bauhausPaused ? <Play size={14} /> : <Pause size={14} />}
       </button>
-      <div className="relative max-w-2xl mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
+      <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[60vh] justify-center px-4 py-12 sm:py-20">
 
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
@@ -684,7 +684,7 @@ export default function HomeFeed() {
 
       {/* Task Board — below the AI section */}
       {currentUser.id && (
-        <div className="max-w-2xl mx-auto px-4 pb-12 space-y-10">
+        <div className="max-w-[960px] mx-auto px-4 pb-12 space-y-10">
           <MyTaskBoard userId={currentUser.id} />
           <FollowingActivity />
         </div>
