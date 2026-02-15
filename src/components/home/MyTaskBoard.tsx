@@ -12,8 +12,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
-  ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X,
+  ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X, Sun,
 } from "lucide-react";
+import { ConfettiSpark } from "./ConfettiSpark";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
   DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
@@ -38,6 +39,37 @@ const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: "bg-primary/10 text-primary",
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
+
+// ── Today's Goals (resets daily at 9am, stored in localStorage) ──
+function getTodayKey(): string {
+  const now = new Date();
+  // If before 9am, use yesterday's date as the "day"
+  const ref = new Date(now);
+  if (ref.getHours() < 9) ref.setDate(ref.getDate() - 1);
+  return `today-goals-${ref.toISOString().slice(0, 10)}`;
+}
+
+function readTodayGoals(): Set<string> {
+  try {
+    const raw = localStorage.getItem(getTodayKey());
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeTodayGoals(goals: Set<string>) {
+  // Clean up old keys
+  const currentKey = getTodayKey();
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith("today-goals-") && k !== currentKey) {
+      localStorage.removeItem(k);
+    }
+  }
+  localStorage.setItem(currentKey, JSON.stringify([...goals]));
+}
 
 type TaskStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE";
 
@@ -143,6 +175,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [entityFilter, setEntityFilter] = useState<Set<string>>(new Set()); // empty = show all
+
+  // Today's goals state
+  const [todayGoals, setTodayGoals] = useState<Set<string>>(() => readTodayGoals());
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const toggleTodayGoal = (taskKey: string) => {
+    setTodayGoals((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskKey)) next.delete(taskKey);
+      else next.add(taskKey);
+      writeTodayGoals(next);
+      return next;
+    });
+  };
 
   // Track items marked as done this session (shown crossed-out until refresh)
   const [sessionDone, setSessionDone] = useState<Set<string>>(new Set());
@@ -566,6 +612,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   const handleCheckboxToggle = (task: UnifiedTask, checked: boolean) => {
+    if (checked) {
+      setShowConfetti(true);
+    }
     handleStatusChange(task, checked ? "DONE" : "TODO");
   };
 
@@ -987,6 +1036,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <thead className="bg-muted/50">
               <tr>
                 <th className="w-8 px-2 sm:px-3 py-2"></th>
+                <th className="w-8 px-1 py-2" title="Today's goals — resets daily at 9am">
+                  <Sun className="h-3.5 w-3.5 text-amber-500 mx-auto" />
+                </th>
                 <th className="w-8 px-1 sm:px-3 py-2"></th>
                 <th className="text-left px-2 sm:px-3 py-2 font-medium">Task</th>
                 <th className="text-left px-2 sm:px-3 py-2 font-medium hidden sm:table-cell">Source</th>
@@ -1002,7 +1054,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 if (isDoneThisSession) {
                   return (
                     <tr key={key} className="border-t border-border bg-muted/30">
-                      <td colSpan={6} className="px-3 py-2.5">
+                      <td colSpan={7} className="px-3 py-2.5">
                         <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                       </td>
                     </tr>
@@ -1010,11 +1062,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 }
 
                 return (
-                <tr key={key} className="border-t border-border group hover:bg-accent/30 transition-colors">
+                <tr key={key} className={cn("border-t border-border group hover:bg-accent/30 transition-colors", todayGoals.has(key) && "bg-amber-500/5")}>
                   <td className="px-2 sm:px-3 py-2.5">
                     <Checkbox
                       checked={task.workState === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                    />
+                  </td>
+                  <td className="px-1 py-2.5 text-center">
+                    <Checkbox
+                      checked={todayGoals.has(key)}
+                      onCheckedChange={() => toggleTodayGoal(key)}
+                      className={cn(
+                        "h-3.5 w-3.5 rounded-sm border-amber-400/60 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
+                      )}
                     />
                   </td>
                   <td className="px-1 py-2.5">
@@ -1350,6 +1411,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Confetti on task completion */}
+      {showConfetti && <ConfettiSpark onDone={() => setShowConfetti(false)} />}
     </div>
   );
 }
