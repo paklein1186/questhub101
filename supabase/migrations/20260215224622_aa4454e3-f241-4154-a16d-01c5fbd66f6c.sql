@@ -1,0 +1,1 @@
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS cover_focal_y smallint NOT NULL DEFAULT 50;

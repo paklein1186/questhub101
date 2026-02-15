@@ -112,6 +112,7 @@ export default function QuestDetail() {
   const [editDesc, setEditDesc] = useState("");
   const [editStatus, setEditStatus] = useState<QuestStatus>(QuestStatus.OPEN);
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
+  const [editCoverFocalY, setEditCoverFocalY] = useState(50);
   const [editCreditReward, setEditCreditReward] = useState("0");
   const [editPriceFiat, setEditPriceFiat] = useState("0");
   const [editCreditBudget, setEditCreditBudget] = useState("0");
@@ -215,6 +216,7 @@ export default function QuestDetail() {
     setEditDesc(quest.description || "");
     setEditStatus(quest.status as QuestStatus);
     setEditCoverImageUrl(quest.cover_image_url ?? undefined);
+    setEditCoverFocalY((quest as any).cover_focal_y ?? 50);
     setEditCreditReward(String(quest.credit_reward ?? 0));
     setEditPriceFiat(String(quest.price_fiat ?? 0));
     setEditCreditBudget(String((quest as any).credit_budget ?? 0));
@@ -236,6 +238,7 @@ export default function QuestDetail() {
       status: editStatus as any,
       is_draft: isDraft,
       cover_image_url: editCoverImageUrl || null,
+      cover_focal_y: editCoverFocalY,
       credit_reward: credits,
       price_fiat: fiat,
       monetization_type: monType as any,
@@ -268,7 +271,7 @@ export default function QuestDetail() {
 
       {quest.cover_image_url && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-          <img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" />
+          <img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
         </div>
       )}
 
@@ -434,7 +437,7 @@ export default function QuestDetail() {
                 </div>
                 <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" />
               </div>
-              <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} aspectRatio="16/9" />
+              <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
               <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label>
                 <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
