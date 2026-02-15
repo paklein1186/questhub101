@@ -29,6 +29,8 @@ import { Loader2 } from "lucide-react";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
+import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
+import { MessageSquare } from "lucide-react";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -172,6 +174,7 @@ export default function UserProfile() {
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.USER, id!);
   const { isBlocked, toggle: toggleBlock } = useBlock(id!);
   const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
+  const { open: openChat, isPending: chatPending } = useOpenChatBubble();
 
   const [tab, setTab] = useState("overview");
   const [showCreateUnit, setShowCreateUnit] = useState(false);
@@ -287,6 +290,14 @@ export default function UserProfile() {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={chatPending}
+                  onClick={() => openChat({ id: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl || undefined })}
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" /> Message
+                </Button>
                 <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
                   {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
                 </Button>

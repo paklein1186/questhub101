@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
+import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
+import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
@@ -143,11 +145,13 @@ const App = () => (
         <CurrentUserProvider>
           <NotificationProvider currentUserId="">
             <PersonaThemeProvider>
+            <ChatBubbleProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
             <PostSignupWizard />
             <GuestBauhausShape />
+            <ChatBubbleOverlay />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
@@ -284,6 +288,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
+            </ChatBubbleProvider>
             </PersonaThemeProvider>
           </NotificationProvider>
         </CurrentUserProvider>
