@@ -154,8 +154,7 @@ export function BauhausShape() {
         transition={{ duration: 2, ease: "easeOut" }}
         onClick={handleClick}
       >
-      {/* Key changes on pause to force remount & freeze/restart animations */}
-      <div key={paused ? "paused" : "playing"}>
+      <div>
       {/* Wide wandering orbit */}
       <motion.div
         animate={paused ? undefined : {
