@@ -24,6 +24,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
@@ -141,6 +145,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
   // Track items marked as done this session (shown crossed-out until refresh)
   const [sessionDone, setSessionDone] = useState<Set<string>>(new Set());
+
+  // Delete confirmation state
+  const [taskToDelete, setTaskToDelete] = useState<UnifiedTask | null>(null);
 
   // Unit picker state
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
@@ -1072,7 +1079,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteTask(task)}
+                        onClick={() => setTaskToDelete(task)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -1220,6 +1227,31 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           )}
         </DialogContent>
       </Dialog>
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. "{taskToDelete?.title}" will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (taskToDelete) {
+                  deleteTask(taskToDelete);
+                  setTaskToDelete(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
