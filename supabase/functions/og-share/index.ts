@@ -1,77 +1,87 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = "https://changethegame.xyz";
-const BRAND = "changethegame";
-const TAGLINE = "Human-powered. AI-augmented. Game-changing.";
-const DEFAULT_IMAGE = APP_URL + "/favicon.png";
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-}
+  const APP_URL = "https://changethegame.xyz";
+  const BRAND = "changethegame";
+  const TAGLINE = "Human-powered. AI-augmented. Game-changing.";
+  const DEFAULT_IMAGE = APP_URL + "/favicon.png";
 
-function synthesize(text: string | null | undefined, maxLen = 160): string {
-  if (!text) return "";
-  const clean = (text.split(/[.!?]\s/)[0] || text).replace(/\s+/g, " ").trim();
-  return clean.length <= maxLen ? clean : clean.slice(0, maxLen - 1).trimEnd() + "…";
-}
+  function esc(s: string): string {
+    return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
 
-function buildDesc(title: string, desc: string | null, label: string): string {
-  const s = synthesize(desc);
-  if (s) return s;
-  if (title) return 'Discover "' + title + '" — a ' + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
-  return "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
-}
+  function synthesize(text: string | null | undefined, maxLen = 160): string {
+    if (!text) return "";
+    const clean = (text.split(/[.!?]\s/)[0] || text).replace(/\s+/g, " ").trim();
+    return clean.length <= maxLen ? clean : clean.slice(0, maxLen - 1).trimEnd() + "\u2026";
+  }
 
-function html(title: string, desc: string, image: string, url: string): string {
-  const t = esc(title), d = esc(desc), i = esc(image), u = esc(url);
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/>' +
-    "<title>" + t + " | " + BRAND + "</title>" +
-    '<meta property="og:type" content="website"/>' +
-    '<meta property="og:title" content="' + t + '"/>' +
-    '<meta property="og:description" content="' + d + '"/>' +
-    '<meta property="og:image" content="' + i + '"/>' +
-    '<meta property="og:image:width" content="1200"/>' +
-    '<meta property="og:image:height" content="630"/>' +
-    '<meta property="og:url" content="' + u + '"/>' +
-    '<meta property="og:site_name" content="' + BRAND + '"/>' +
-    '<meta name="twitter:card" content="summary_large_image"/>' +
-    '<meta name="twitter:title" content="' + t + '"/>' +
-    '<meta name="twitter:description" content="' + d + '"/>' +
-    '<meta name="twitter:image" content="' + i + '"/>' +
-    '<meta name="description" content="' + d + '"/>' +
-    '<meta http-equiv="refresh" content="0;url=' + u + '"/>' +
-    '</head><body><p>Redirecting…</p></body></html>';
-}
+  function buildDesc(title: string, desc: string | null, label: string): string {
+    const s = synthesize(desc);
+    if (s) return s;
+    if (title) return "Discover \"" + title + "\" \u2014 a " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
+    return "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
+  }
 
-interface Cfg { table: string; title: string; desc: string; img: string; fallback: string; path: string; label: string }
+  function buildHtml(title: string, desc: string, image: string, pageUrl: string): string {
+    const t = esc(title);
+    const d = esc(desc);
+    const i = esc(image);
+    const u = esc(pageUrl);
+    return "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/>" +
+      "<title>" + t + " | " + BRAND + "</title>" +
+      "<meta property=\"og:type\" content=\"website\"/>" +
+      "<meta property=\"og:title\" content=\"" + t + "\"/>" +
+      "<meta property=\"og:description\" content=\"" + d + "\"/>" +
+      "<meta property=\"og:image\" content=\"" + i + "\"/>" +
+      "<meta property=\"og:image:width\" content=\"1200\"/>" +
+      "<meta property=\"og:image:height\" content=\"630\"/>" +
+      "<meta property=\"og:url\" content=\"" + u + "\"/>" +
+      "<meta property=\"og:site_name\" content=\"" + BRAND + "\"/>" +
+      "<meta name=\"twitter:card\" content=\"summary_large_image\"/>" +
+      "<meta name=\"twitter:title\" content=\"" + t + "\"/>" +
+      "<meta name=\"twitter:description\" content=\"" + d + "\"/>" +
+      "<meta name=\"twitter:image\" content=\"" + i + "\"/>" +
+      "<meta name=\"description\" content=\"" + d + "\"/>" +
+      "<meta http-equiv=\"refresh\" content=\"0;url=" + u + "\"/>" +
+      "</head><body><p>Redirecting...</p></body></html>";
+  }
 
-const MAP: Record<string, Cfg> = {
-  quest:     { table: "quests",       title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/quests",      label: "Quest" },
-  guild:     { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/guilds",      label: "Guild" },
-  service:   { table: "services",     title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/services",    label: "Service" },
-  company:   { table: "companies",    title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/companies",   label: "Organization" },
-  event:     { table: "guild_events", title: "title", desc: "description", img: "",                fallback: "",         path: "/events",      label: "Event" },
-  course:    { table: "courses",      title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/courses",     label: "Course" },
-  profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "banner_url",      fallback: "avatar_url", path: "/profile",   label: "Human" },
-  territory: { table: "territories",  title: "name",  desc: "description", img: "banner_url",      fallback: "",         path: "/territories", label: "Territory" },
-  pod:       { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/pods",        label: "Pod" },
-};
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const MAP: Record<string, { table: string; title: string; desc: string; img: string; fallback: string; path: string; label: string }> = {
+    quest:     { table: "quests",       title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/quests",      label: "Quest" },
+    guild:     { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/guilds",      label: "Guild" },
+    service:   { table: "services",     title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/services",    label: "Service" },
+    company:   { table: "companies",    title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/companies",   label: "Organization" },
+    event:     { table: "guild_events", title: "title", desc: "description", img: "",                fallback: "",         path: "/events",      label: "Event" },
+    course:    { table: "courses",      title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/courses",     label: "Course" },
+    profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "banner_url",      fallback: "avatar_url", path: "/profile",   label: "Human" },
+    territory: { table: "territories",  title: "name",  desc: "description", img: "banner_url",      fallback: "",         path: "/territories", label: "Territory" },
+    pod:       { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/pods",        label: "Pod" },
+  };
 
   try {
-    const url = new URL(req.url);
-    const type = url.searchParams.get("type");
-    const id = url.searchParams.get("id");
-    const ref = url.searchParams.get("ref");
-    if (!type || !id) return new Response("Missing type or id", { status: 400, headers: corsHeaders });
+    const reqUrl = new URL(req.url);
+    const type = reqUrl.searchParams.get("type");
+    const id = reqUrl.searchParams.get("id");
+    const ref = reqUrl.searchParams.get("ref");
+
+    if (!type || !id) {
+      return new Response("Missing type or id", { status: 400, headers: corsHeaders });
+    }
 
     const c = MAP[type];
-    if (!c) return new Response("Unknown type", { status: 400, headers: corsHeaders });
+    if (!c) {
+      return new Response("Unknown type", { status: 400, headers: corsHeaders });
+    }
 
     const sbUrl = Deno.env.get("SUPABASE_URL") || "";
     const sbKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -83,7 +93,7 @@ Deno.serve(async (req) => {
 
     const restUrl = sbUrl + "/rest/v1/" + c.table + "?select=" + cols.join(",") + "&" + idCol + "=eq." + id + "&limit=1";
     const res = await fetch(restUrl, {
-      headers: { "apikey": sbKey, "Authorization": "Bearer " + sbKey, "Accept": "application/json" },
+      headers: { apikey: sbKey, Authorization: "Bearer " + sbKey, Accept: "application/json" },
     });
     const rows = await res.json();
     const data = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
@@ -91,7 +101,7 @@ Deno.serve(async (req) => {
     const appUrl = APP_URL + c.path + "/" + id + (ref ? "?ref=" + ref : "");
 
     if (!data) {
-      return new Response(html(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, DEFAULT_IMAGE, appUrl), {
+      return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, DEFAULT_IMAGE, appUrl), {
         headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
       });
     }
@@ -101,12 +111,12 @@ Deno.serve(async (req) => {
     const description = buildDesc(rawTitle, data[c.desc], c.label);
     const image = (c.img && data[c.img]) || (c.fallback && data[c.fallback]) || DEFAULT_IMAGE;
 
-    return new Response(html(title, description, image, appUrl), {
+    return new Response(buildHtml(title, description, image, appUrl), {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" },
     });
   } catch (err) {
     console.error("OG error:", err);
-    return new Response(html(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL), {
+    return new Response(buildHtml(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL), {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
     });
   }

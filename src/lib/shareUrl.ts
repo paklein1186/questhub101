@@ -34,18 +34,19 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 
 /**
  * Returns a URL suitable for sharing on social media.
- * Uses the OG-share edge function so crawlers get proper meta tags,
- * while real browsers are redirected to the app.
+ * Uses the OG-share backend function so crawlers get proper meta tags
+ * (title, description, image), while real browsers are redirected to the app.
+ *
+ * NOTE: These URLs go through the backend because static SPAs cannot
+ * serve dynamic OG meta tags — crawlers don't execute JavaScript.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type];
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
+  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link using the production domain with ?ref=invite.
+ * Returns an invite link through the OG-share function.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type];
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
+  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
 }
