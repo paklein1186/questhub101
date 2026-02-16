@@ -55,35 +55,76 @@ export default function QuestCreate() {
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
 
-  const { data: guild } = useQuery({
-    queryKey: ["guild-for-quest", guildId],
-    enabled: !!guildId,
+  // Let user pick an entity if none provided via URL params
+  const [chosenEntityType, setChosenEntityType] = useState<"GUILD" | "COMPANY" | "PERSONAL" | null>(
+    guildId ? "GUILD" : companyId ? "COMPANY" : null
+  );
+  const [chosenEntityId, setChosenEntityId] = useState<string | null>(guildId || companyId || null);
+
+  // Fetch user's guilds and companies for the entity picker
+  const { data: userGuilds } = useQuery({
+    queryKey: ["user-guilds-for-quest", currentUser.id],
+    enabled: !!currentUser.id && !guildId && !companyId,
     queryFn: async () => {
-      const { data } = await supabase.from("guilds").select("id, name").eq("id", guildId!).maybeSingle();
+      const { data } = await supabase
+        .from("guild_members")
+        .select("guild_id, role, guilds:guild_id(id, name, logo_url, is_deleted)")
+        .eq("user_id", currentUser.id)
+        .in("role", ["ADMIN"]);
+      return (data ?? [])
+        .map((m: any) => m.guilds)
+        .filter((g: any) => g && !g.is_deleted);
+    },
+  });
+
+  const { data: userCompanies } = useQuery({
+    queryKey: ["user-companies-for-quest", currentUser.id],
+    enabled: !!currentUser.id && !guildId && !companyId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_members")
+        .select("company_id, role, companies:company_id(id, name, logo_url, is_deleted)")
+        .eq("user_id", currentUser.id)
+        .in("role", ["OWNER", "ADMIN"]);
+      return (data ?? [])
+        .map((m: any) => m.companies)
+        .filter((c: any) => c && !c.is_deleted);
+    },
+  });
+
+  // Effective IDs (from URL params or user selection)
+  const effectiveGuildId = chosenEntityType === "GUILD" ? chosenEntityId : guildId || null;
+  const effectiveCompanyId = chosenEntityType === "COMPANY" ? chosenEntityId : companyId || null;
+
+  const { data: guild } = useQuery({
+    queryKey: ["guild-for-quest", effectiveGuildId],
+    enabled: !!effectiveGuildId,
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("id, name, logo_url").eq("id", effectiveGuildId!).maybeSingle();
       return data;
     },
   });
 
   const { data: company } = useQuery({
-    queryKey: ["company-for-quest", companyId],
-    enabled: !!companyId,
+    queryKey: ["company-for-quest", effectiveCompanyId],
+    enabled: !!effectiveCompanyId,
     queryFn: async () => {
-      const { data } = await supabase.from("companies").select("id, name").eq("id", companyId!).maybeSingle();
+      const { data } = await supabase.from("companies").select("id, name, logo_url").eq("id", effectiveCompanyId!).maybeSingle();
       return data;
     },
   });
 
   // Auto-populate topics and territories from the parent unit
   const { data: unitTopics } = useQuery({
-    queryKey: ["unit-topics-for-quest", guildId, companyId],
-    enabled: !!guildId || !!companyId,
+    queryKey: ["unit-topics-for-quest", effectiveGuildId, effectiveCompanyId],
+    enabled: !!effectiveGuildId || !!effectiveCompanyId,
     queryFn: async () => {
-      if (guildId) {
-        const { data } = await supabase.from("guild_topics").select("topic_id").eq("guild_id", guildId);
+      if (effectiveGuildId) {
+        const { data } = await supabase.from("guild_topics").select("topic_id").eq("guild_id", effectiveGuildId);
         return data?.map(r => r.topic_id) ?? [];
       }
-      if (companyId) {
-        const { data } = await supabase.from("company_topics").select("topic_id").eq("company_id", companyId);
+      if (effectiveCompanyId) {
+        const { data } = await supabase.from("company_topics").select("topic_id").eq("company_id", effectiveCompanyId);
         return data?.map(r => r.topic_id) ?? [];
       }
       return [];
@@ -91,15 +132,15 @@ export default function QuestCreate() {
   });
 
   const { data: unitTerritories } = useQuery({
-    queryKey: ["unit-territories-for-quest", guildId, companyId],
-    enabled: !!guildId || !!companyId,
+    queryKey: ["unit-territories-for-quest", effectiveGuildId, effectiveCompanyId],
+    enabled: !!effectiveGuildId || !!effectiveCompanyId,
     queryFn: async () => {
-      if (guildId) {
-        const { data } = await supabase.from("guild_territories").select("territory_id").eq("guild_id", guildId);
+      if (effectiveGuildId) {
+        const { data } = await supabase.from("guild_territories").select("territory_id").eq("guild_id", effectiveGuildId);
         return data?.map(r => r.territory_id) ?? [];
       }
-      if (companyId) {
-        const { data } = await supabase.from("company_territories").select("territory_id").eq("company_id", companyId);
+      if (effectiveCompanyId) {
+        const { data } = await supabase.from("company_territories").select("territory_id").eq("company_id", effectiveCompanyId);
         return data?.map(r => r.territory_id) ?? [];
       }
       return [];
@@ -129,8 +170,8 @@ export default function QuestCreate() {
   const [questType, setQuestType] = useState("ACTION");
 
   // Co-hosts state
-  const primaryEntityType = guildId ? "GUILD" as const : companyId ? "COMPANY" as const : undefined;
-  const primaryEntityId = guildId || companyId || undefined;
+  const primaryEntityType = effectiveGuildId ? "GUILD" as const : effectiveCompanyId ? "COMPANY" as const : undefined;
+  const primaryEntityId = effectiveGuildId || effectiveCompanyId || undefined;
   const { data: availablePartners } = useAcceptedPartners(primaryEntityType, primaryEntityId);
   const [selectedCoHosts, setSelectedCoHosts] = useState<{ entityType: "GUILD" | "COMPANY"; entityId: string; name: string; logo_url: string | null }[]>([]);
 
@@ -153,7 +194,7 @@ export default function QuestCreate() {
     }
   }, [unitTerritories]);
 
-  const contextLabel = guild?.name ?? company?.name ?? "Personal";
+  const contextLabel = guild?.name ?? company?.name ?? (chosenEntityType === "PERSONAL" ? "Personal" : "Select an entity below");
 
   const generateWithAI = async () => {
     if (!title.trim()) {
@@ -271,8 +312,8 @@ export default function QuestCreate() {
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
           created_by_user_id: currentUser.id,
-          guild_id: guildId || null,
-          company_id: companyId || null,
+          guild_id: effectiveGuildId || null,
+          company_id: effectiveCompanyId || null,
           is_draft: isDraft,
           credit_reward: credits,
           price_fiat: fiatCents,
@@ -379,9 +420,9 @@ export default function QuestCreate() {
       await autoFollowEntity(currentUser.id, "QUEST", quest.id);
 
       qc.invalidateQueries({ queryKey: ["quests"] });
-      if (guildId) {
-        qc.invalidateQueries({ queryKey: ["quests-for-guild", guildId] });
-        notifyGuildQuestCreated({ guildId, questId: quest.id, questTitle: title.trim() });
+      if (effectiveGuildId) {
+        qc.invalidateQueries({ queryKey: ["quests-for-guild", effectiveGuildId] });
+        notifyGuildQuestCreated({ guildId: effectiveGuildId, questId: quest.id, questTitle: title.trim() });
       }
       toast({ title: "Quest created! +5 XP" });
       navigate(`/quests/${quest.id}`);
@@ -426,9 +467,67 @@ export default function QuestCreate() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-2">
           <Compass className="h-7 w-7 text-primary" /> Create Quest
         </h1>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-muted-foreground mb-2">
           Creating under: <span className="font-medium text-foreground">{contextLabel}</span>
         </p>
+
+        {/* Entity picker — only shown when no guildId/companyId in URL */}
+        {!guildId && !companyId && (
+          <Card className="p-4 space-y-3 mb-6">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              <h3 className="text-sm font-semibold">Launch from</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose which entity hosts this quest, or create it as a personal quest.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={chosenEntityType === "PERSONAL" ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
+                onClick={() => { setChosenEntityType("PERSONAL"); setChosenEntityId(null); setSelectedCoHosts([]); }}
+              >
+                <Compass className="h-3 w-3 mr-1" /> Personal
+              </Button>
+              {(userGuilds ?? []).map((g: any) => (
+                <Button
+                  key={g.id}
+                  type="button"
+                  variant={chosenEntityType === "GUILD" && chosenEntityId === g.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => { setChosenEntityType("GUILD"); setChosenEntityId(g.id); setSelectedCoHosts([]); }}
+                >
+                  <Avatar className="h-4 w-4 mr-1">
+                    <AvatarImage src={g.logo_url ?? undefined} />
+                    <AvatarFallback className="text-[7px]">{g.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  {g.name}
+                  <Badge variant="secondary" className="ml-1 text-[8px] px-1 py-0">Guild</Badge>
+                </Button>
+              ))}
+              {(userCompanies ?? []).map((c: any) => (
+                <Button
+                  key={c.id}
+                  type="button"
+                  variant={chosenEntityType === "COMPANY" && chosenEntityId === c.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => { setChosenEntityType("COMPANY"); setChosenEntityId(c.id); setSelectedCoHosts([]); }}
+                >
+                  <Avatar className="h-4 w-4 mr-1">
+                    <AvatarImage src={c.logo_url ?? undefined} />
+                    <AvatarFallback className="text-[7px]">{c.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  {c.name}
+                  <Badge variant="secondary" className="ml-1 text-[8px] px-1 py-0">Company</Badge>
+                </Button>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Co-hosts selection (only when creating under a guild/company) */}
         {primaryEntityType && primaryEntityId && (availablePartners ?? []).length > 0 && (
