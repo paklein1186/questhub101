@@ -91,6 +91,9 @@ export function WorkTasksTab() {
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
 
+  // Track just-added task IDs so they bypass filters until next navigation/refresh
+  const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
+
   // Pending done with undo
   const [pendingDone, setPendingDone] = useState<Map<string, { task: UnifiedTask; prevStatus: string }>>(new Map());
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -361,14 +364,15 @@ export function WorkTasksTab() {
   }
   const sortedEntities = [...entityOptions.values()].sort((a, b) => a.name.localeCompare(b.name));
 
-  // Apply filters
-  let filtered = filter === "all" ? unified : unified.filter((t) => t.source === filter);
-  if (statusFilter !== "all") filtered = filtered.filter((t) => t.status === statusFilter);
-  if (hideDone) filtered = filtered.filter((t) => t.status !== "DONE");
-  if (entityFilter !== "all") filtered = filtered.filter((t) => t.guildId === entityFilter);
+  // Apply filters — recently added tasks always bypass filters
+  const isRecentlyAdded = (t: UnifiedTask) => t.source === "personal" && recentlyAddedIds.has(t.id);
+  let filtered = filter === "all" ? unified : unified.filter((t) => isRecentlyAdded(t) || t.source === filter);
+  if (statusFilter !== "all") filtered = filtered.filter((t) => isRecentlyAdded(t) || t.status === statusFilter);
+  if (hideDone) filtered = filtered.filter((t) => isRecentlyAdded(t) || t.status !== "DONE");
+  if (entityFilter !== "all") filtered = filtered.filter((t) => isRecentlyAdded(t) || t.guildId === entityFilter);
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase();
-    filtered = filtered.filter((t) => t.title.toLowerCase().includes(q));
+    filtered = filtered.filter((t) => isRecentlyAdded(t) || t.title.toLowerCase().includes(q));
   }
 
   // Sort
@@ -392,11 +396,17 @@ export function WorkTasksTab() {
   const addTask = async () => {
     if (!newTitle.trim()) return;
     setAdding(true);
-    const { error } = await supabase.from("personal_tasks" as any).insert({
+    const { data: inserted, error } = await supabase.from("personal_tasks" as any).insert({
       user_id: userId, title: newTitle.trim(), status: "BACKLOG",
-    } as any);
+    } as any).select("id").single();
     if (error) toast({ title: "Failed to add task", variant: "destructive" });
-    else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["personal-tasks", userId] }); }
+    else {
+      setNewTitle("");
+      if (inserted) {
+        setRecentlyAddedIds((prev) => new Set(prev).add((inserted as any).id));
+      }
+      qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
+    }
     setAdding(false);
   };
 
