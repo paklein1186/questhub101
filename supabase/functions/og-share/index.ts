@@ -1,11 +1,11 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// OG Share — serves OG meta tags for shared links and redirects browsers
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -63,8 +63,8 @@ serve(async (req) => {
     company:   { table: "companies",    title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/companies",   label: "Organization" },
     event:     { table: "guild_events", title: "title", desc: "description", img: "",                fallback: "",         path: "/events",      label: "Event" },
     course:    { table: "courses",      title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/courses",     label: "Course" },
-    profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "banner_url",      fallback: "avatar_url", path: "/profile",   label: "Human" },
-    territory: { table: "territories",  title: "name",  desc: "description", img: "banner_url",      fallback: "",         path: "/territories", label: "Territory" },
+    profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "avatar_url",      fallback: "",           path: "/users",     label: "Human" },
+    territory: { table: "territories",  title: "name",  desc: "summary",     img: "",           fallback: "",         path: "/territories", label: "Territory" },
     pod:       { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/pods",        label: "Pod" },
   };
 
