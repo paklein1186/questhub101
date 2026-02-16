@@ -56,6 +56,7 @@ import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
@@ -309,6 +310,7 @@ export default function GuildDetail() {
               {isMember && !isAdmin && <Button size="sm" variant="ghost" onClick={leaveGuild}><UserMinus className="h-4 w-4 mr-1" /> Leave</Button>}
               {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
               {isAdmin && <InviteLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />}
+              <ShareLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />
               {isLoggedIn && <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />}
             </div>
         </div>

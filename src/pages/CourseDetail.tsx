@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PageShell } from "@/components/PageShell";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useCourseById, useLessonsForCourse, useCourseEnrollment, useCourseEnrollmentCount, usePublicProfile } from "@/hooks/useEntityQueries";
@@ -100,6 +101,7 @@ export default function CourseDetail() {
           </div>
 
           <div className="flex flex-col gap-2 shrink-0">
+            <ShareLinkButton entityType="course" entityId={course.id} entityName={course.title} />
             {isCreator && (
               <Button size="sm" variant="outline" asChild>
                 <Link to={`/courses/${course.id}/edit`}><Pencil className="h-4 w-4 mr-1" /> Edit course</Link>

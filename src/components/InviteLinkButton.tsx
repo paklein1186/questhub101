@@ -4,6 +4,7 @@ import { Link2, Check, Copy } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { getShareUrl, type ShareEntityType } from "@/lib/shareUrl";
 
 type EntityType = "guild" | "pod" | "quest" | "company";
 
@@ -24,21 +25,11 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  // Prefer published domain over preview URLs
-  const getOrigin = () => {
-    if (typeof window === "undefined") return "";
-    const hostname = window.location.hostname;
-    // If on a preview/dev URL, use the published domain instead
-    if (hostname.includes("id-preview--") || hostname.includes("lovableproject.com")) {
-      return "https://www.changethegame.xyz";
-    }
-    return window.location.origin;
-  };
-  const inviteUrl = `${getOrigin()}${ROUTE_MAP[entityType]}/${entityId}?ref=invite`;
+  const ogUrl = getShareUrl(entityType as ShareEntityType, entityId);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(ogUrl);
       setCopied(true);
       toast({ title: "Link copied!", description: `Share this link to invite people to "${entityName}"` });
       setTimeout(() => setCopied(false), 2000);
@@ -64,7 +55,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
           </div>
           <div className="flex gap-2">
             <Input
-              value={inviteUrl}
+              value={ogUrl}
               readOnly
               className="text-xs h-9"
               onClick={(e) => (e.target as HTMLInputElement).select()}

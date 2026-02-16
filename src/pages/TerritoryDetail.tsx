@@ -8,6 +8,7 @@ import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab"
 import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function TerritoryDetail() {
@@ -72,6 +73,9 @@ export default function TerritoryDetail() {
                   </>
                 )}
               </div>
+            </div>
+            <div className="ml-auto shrink-0">
+              <ShareLinkButton entityType="territory" entityId={territory.id} entityName={territory.name} />
             </div>
           </div>
         </div>

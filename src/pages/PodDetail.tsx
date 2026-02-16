@@ -35,6 +35,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserPlus } from "lucide-react";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { EntityFollowersCount } from "@/components/FollowersDialog";
 
@@ -220,6 +221,7 @@ export default function PodDetail() {
               <Link to={`/pods/${pod.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link>
             </Button>
           )}
+          <ShareLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />
           {isLoggedIn && <ReportButton targetType={ReportTargetType.POD} targetId={pod.id} />}
         </div>
       </motion.div>

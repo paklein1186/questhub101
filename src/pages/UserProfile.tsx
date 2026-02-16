@@ -20,6 +20,7 @@ import { ProfileWallSection } from "@/components/feed/ProfileWallSection";
 import { CommentTargetType, FollowTargetType, ReportTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ReportButton } from "@/components/ReportButton";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useBlock } from "@/hooks/useBlock";
 import { useProfileData, type ProfileData } from "@/hooks/useProfileData";
@@ -454,6 +455,7 @@ export default function UserProfile() {
                 <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
                   <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
                 </Button>
+                <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
                 <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />
               </div>
             )}

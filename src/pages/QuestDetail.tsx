@@ -47,6 +47,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 
@@ -403,6 +404,7 @@ export default function QuestDetail() {
                 {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
               </Button>
             )}
+            <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}

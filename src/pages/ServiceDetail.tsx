@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -280,6 +281,7 @@ export default function ServiceDetail() {
           {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
         </div>
         <div className="flex flex-wrap gap-2 mb-6">
+          <ShareLinkButton entityType="service" entityId={svc.id} entityName={svc.title} />
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
           {canManage && (
             <>
