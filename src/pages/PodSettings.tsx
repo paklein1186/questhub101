@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, Pencil, Crown, Hash, MapPin,
-  AlertCircle, Loader2, ClipboardList, ChevronUp, ChevronDown,
+  AlertCircle, Loader2, ClipboardList, ChevronUp, ChevronDown, Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,12 +35,15 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { EntityRolesManager } from "@/components/EntityRolesManager";
+import { useEntityRoles } from "@/hooks/useEntityRoles";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
+  { key: "roles", label: "Custom Roles", icon: Tag },
   { key: "documents", label: "Documents", icon: Briefcase },
 ];
 
@@ -79,6 +82,7 @@ export default function PodSettings() {
 function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { getRolesForUser } = useEntityRoles("pod", podId);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -370,10 +374,15 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <Badge variant={m.role === "HOST" ? "default" : "outline"} className="capitalize text-xs">
-                                {m.role === "HOST" && <Crown className="h-3 w-3 mr-1" />}
-                                {m.role.toLowerCase()}
-                              </Badge>
+                              <div className="flex flex-wrap items-center gap-1">
+                                <Badge variant={m.role === "HOST" ? "default" : "outline"} className="capitalize text-xs">
+                                  {m.role === "HOST" && <Crown className="h-3 w-3 mr-1" />}
+                                  {m.role.toLowerCase()}
+                                </Badge>
+                                {getRolesForUser(m.user_id).map((r: any) => (
+                                  <Badge key={r.id} className="text-[10px] h-5 text-white border-0" style={{ backgroundColor: r.color }}>{r.name}</Badge>
+                                ))}
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">
                               {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}
@@ -401,6 +410,13 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* ── Custom Roles ── */}
+              {activeTab === "roles" && (
+                <div className="space-y-4 max-w-lg">
+                  <EntityRolesManager entityType="pod" entityId={podId} members={members} />
                 </div>
               )}
 

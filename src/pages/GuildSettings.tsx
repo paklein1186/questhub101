@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, ShieldCheck, Shield,
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
-  Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin,
+  Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin, Tag,
   AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
   ChevronUp, ChevronDown,
 } from "lucide-react";
@@ -45,6 +45,8 @@ import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
+import { EntityRolesManager } from "@/components/EntityRolesManager";
+import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const TABS = [
@@ -54,6 +56,7 @@ const TABS = [
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
+  { key: "roles", label: "Custom Roles", icon: Tag },
   { key: "services", label: "Services", icon: Briefcase },
   { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
@@ -97,6 +100,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const currentUser = useCurrentUser();
   const { notifyGuildMemberAdded, notifyGuildRoleChanged } = useNotifications();
   const { toast } = useToast();
+  const { getRolesForUser } = useEntityRoles("guild", guildId);
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -649,10 +653,17 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <Badge variant={m.role === "ADMIN" ? "default" : "outline"} className="capitalize text-xs">
-                                {m.role === "ADMIN" && <Crown className="h-3 w-3 mr-1" />}
-                                {m.role.toLowerCase()}
-                              </Badge>
+                              <div className="flex flex-wrap items-center gap-1">
+                                <Badge variant={m.role === "ADMIN" ? "default" : "outline"} className="capitalize text-xs">
+                                  {m.role === "ADMIN" && <Crown className="h-3 w-3 mr-1" />}
+                                  {m.role.toLowerCase()}
+                                </Badge>
+                                {getRolesForUser(m.user_id).map((r: any) => (
+                                  <Badge key={r.id} className="text-[10px] h-5 text-white border-0" style={{ backgroundColor: r.color }}>
+                                    {r.name}
+                                  </Badge>
+                                ))}
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">
                               {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}
@@ -680,6 +691,13 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* ── Custom Roles ── */}
+              {activeTab === "roles" && (
+                <div className="space-y-4 max-w-lg">
+                  <EntityRolesManager entityType="guild" entityId={guildId} members={members} />
                 </div>
               )}
 
