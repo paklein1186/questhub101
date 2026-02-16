@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Users } from "lucide-react";
+import { Users, ExternalLink } from "lucide-react";
 
 export default function AdminCommunityUsers() {
   const [search, setSearch] = useState("");
@@ -52,7 +53,12 @@ export default function AdminCommunityUsers() {
           <TableBody>
             {filtered.map((p) => (
               <TableRow key={p.user_id}>
-                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link to={`/profile/${p.user_id}`} className="text-primary hover:underline inline-flex items-center gap-1">
+                    {p.name}
+                    <ExternalLink className="h-3 w-3 opacity-50" />
+                  </Link>
+                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">{p.email}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="capitalize text-xs">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Eye, EyeOff, Trash2, Search, ShieldAlert, Save, Pencil, X } from "lucide-react";
+import { Eye, EyeOff, Trash2, Search, ShieldAlert, Save, Pencil, X, ExternalLink } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -83,6 +84,22 @@ const ENTITY_CONFIG: Record<EntityType, {
     columns: ["name", "type", "is_draft", "is_deleted", "created_at"],
   },
 };
+
+function getEntityLink(entityType: EntityType, record: any): string | null {
+  const config = ENTITY_CONFIG[entityType];
+  const id = record[config.idField];
+  if (!id) return null;
+  switch (entityType) {
+    case "profiles": return `/profile/${id}`;
+    case "guilds": return `/guilds/${id}`;
+    case "companies": return `/companies/${id}`;
+    case "quests": return `/quests/${id}`;
+    case "services": return `/services/${id}`;
+    case "courses": return `/courses/${id}`;
+    case "pods": return `/pods/${id}`;
+    default: return null;
+  }
+}
 
 interface AdminEntityEditorProps {
   maskPII: boolean;
@@ -286,27 +303,36 @@ export function AdminEntityEditor({ maskPII }: AdminEntityEditorProps) {
 
                 return (
                   <TableRow key={id} className={record.is_deleted ? "opacity-50" : ""}>
-                    {config.columns.map((col) => (
-                      <TableCell key={col} className="text-sm">
-                        {isEditing && config.editableFields.includes(col) ? (
-                          col === "description" || col === "bio" ? (
-                            <Textarea
-                              value={editValues[col] ?? ""}
-                              onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
-                              className="text-xs min-h-[60px]"
-                            />
+                    {config.columns.map((col) => {
+                      const isNameCol = col === config.nameField;
+                      const link = isNameCol ? getEntityLink(entityType, record) : null;
+                      return (
+                        <TableCell key={col} className="text-sm">
+                          {isEditing && config.editableFields.includes(col) ? (
+                            col === "description" || col === "bio" ? (
+                              <Textarea
+                                value={editValues[col] ?? ""}
+                                onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
+                                className="text-xs min-h-[60px]"
+                              />
+                            ) : (
+                              <Input
+                                value={editValues[col] ?? ""}
+                                onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
+                                className="text-xs h-7"
+                              />
+                            )
+                          ) : link ? (
+                            <Link to={link} className="text-primary hover:underline font-medium inline-flex items-center gap-1">
+                              {displayValue(col, record[col])}
+                              <ExternalLink className="h-3 w-3 opacity-50" />
+                            </Link>
                           ) : (
-                            <Input
-                              value={editValues[col] ?? ""}
-                              onChange={(e) => setEditValues((v) => ({ ...v, [col]: e.target.value }))}
-                              className="text-xs h-7"
-                            />
-                          )
-                        ) : (
-                          displayValue(col, record[col])
-                        )}
-                      </TableCell>
-                    ))}
+                            displayValue(col, record[col])
+                          )}
+                        </TableCell>
+                      );
+                    })}
                     <TableCell className="text-right">
                       <div className="flex gap-1 justify-end">
                         {isEditing ? (
