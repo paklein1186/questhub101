@@ -48,13 +48,14 @@ const INTENTION_OPTIONS = [
   { key: "community", label: "Meet people, join communities", icon: Users, desc: "Find your people and belong" },
   { key: "work", label: "Find work / clients", icon: Briefcase, desc: "Offer your skills and get hired" },
   { key: "learn", label: "Learn and grow skills", icon: GraduationCap, desc: "Discover new topics and train" },
+  { key: "register_org", label: "Register my organization", icon: Building2, desc: "Create a profile for my company, institution, or NGO" },
   { key: "recruit", label: "Recruit talent for my organization", icon: Target, desc: "Find skilled individuals and guilds aligned with your mission" },
   { key: "fund", label: "Fund or sponsor initiatives", icon: Landmark, desc: "Support projects, quests, or communities as a sponsor" },
 ];
 
 function inferPersona(selections: string[]): "IMPACT" | "CREATIVE" | "HYBRID" {
   const s = new Set(selections);
-  const hasImpact = s.has("impact") || s.has("project") || s.has("work") || s.has("recruit") || s.has("fund");
+  const hasImpact = s.has("impact") || s.has("project") || s.has("work") || s.has("recruit") || s.has("fund") || s.has("register_org");
   const hasCreative = s.has("creative");
   if (hasImpact && hasCreative) return "HYBRID";
   if (hasCreative) return "CREATIVE";
@@ -592,7 +593,7 @@ export default function Onboarding() {
           {INTENTION_OPTIONS.map((opt) => (
             <button
               key={opt.key}
-              onClick={() => { selectImpactPath(); toggleIntention(opt.key); }}
+              onClick={() => { selectImpactPath(); toggleIntention(opt.key); if (opt.key === "register_org") setRepresentsOrg(true); }}
               className={cn(
                 "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                 intentions.includes(opt.key)
@@ -800,11 +801,12 @@ export default function Onboarding() {
 
   // ─── Impact Step 1: Identity ─────────────────────────────
   function renderIdentity() {
+    const isOrgRep = representsOrg || intentions.includes("register_org");
     return (
       <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
         <div>
-          <h2 className="font-display text-2xl font-bold">Who are you? 🌱</h2>
-          <p className="text-sm text-muted-foreground mt-1">A few things to help us know you better.</p>
+          <h2 className="font-display text-2xl font-bold">{isOrgRep ? "About you 🏛️" : "Who are you? 🌱"}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{isOrgRep ? "Tell us about yourself as the representative. Your organization profile comes next." : "A few things to help us know you better."}</p>
         </div>
 
         <div className="flex flex-col items-center gap-3">
@@ -824,7 +826,7 @@ export default function Onboarding() {
 
         <div>
           <label className="text-sm font-medium mb-1 block">Headline</label>
-          <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="e.g. Social entrepreneur, renewable energy" maxLength={120} />
+          <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder={isOrgRep ? "e.g. Head of Partnerships, ACME Foundation" : "e.g. Social entrepreneur, renewable energy"} maxLength={120} />
           <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
         </div>
 
@@ -886,7 +888,7 @@ export default function Onboarding() {
           <Textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="I'm passionate about…"
+            placeholder={isOrgRep ? "I represent [Organization] and I'm here to…" : "I'm passionate about…"}
             className="min-h-[120px] resize-none text-sm"
             maxLength={1300}
           />
