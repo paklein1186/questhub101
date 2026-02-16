@@ -20,21 +20,25 @@ serve(async (req) => {
       });
     }
 
-    // First, scrape the page for basic metadata
+    // Scrape the page for metadata + body text
     let html = "";
     let finalUrl = targetUrl;
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(targetUrl, {
         signal: controller.signal,
-        headers: { "User-Agent": "ChangeTheGame-Bot/1.0" },
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; ChangeTheGame-Bot/1.0; +https://changethegame.app)",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.5,fr;q=0.3",
+        },
         redirect: "follow",
       });
       clearTimeout(timeout);
       if (res.ok) {
         const text = await res.text();
-        html = text.slice(0, 500_000);
+        html = text.slice(0, 600_000);
         finalUrl = res.url || targetUrl;
       }
     } catch { /* ignore fetch errors */ }
@@ -58,30 +62,52 @@ serve(async (req) => {
     const ogImage = getMetaContent("og:image");
     const siteName = getMetaContent("og:site_name");
     const titleTag = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const keywords = getMetaContent("keywords");
 
     const basicName = siteName || ogTitle || titleTag?.[1]?.trim() || null;
     const basicDesc = ogDesc || null;
+
+    // Extract logo: try apple-touch-icon, then og:image, then favicon
     let logo = null;
-    if (ogImage) {
+    const appleTouchIcon = html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i);
+    if (appleTouchIcon?.[1]) {
+      try { logo = new URL(appleTouchIcon[1], finalUrl).href; } catch {}
+    }
+    if (!logo && ogImage) {
       try { logo = new URL(ogImage, finalUrl).href; } catch { logo = ogImage; }
-    } else {
+    }
+    if (!logo) {
       const iconMatch = html.match(/<link[^>]+rel=["'](?:shortcut\s+)?icon["'][^>]+href=["']([^"']+)["']/i);
       if (iconMatch?.[1]) {
         try { logo = new URL(iconMatch[1], finalUrl).href; } catch {}
       }
     }
 
+    // Extract visible text for AI, stripping scripts/styles/nav for cleaner content
+    const cleanedHtml = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
+      .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
+      .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "");
+
+    const bodyMatch = cleanedHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    const bodyText = (bodyMatch?.[1] || cleanedHtml)
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
     // Now use AI to extract richer organization data
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     let aiResult: any = {};
 
-    if (LOVABLE_API_KEY && (html.length > 100 || basicDesc)) {
+    if (LOVABLE_API_KEY && (bodyText.length > 50 || basicDesc)) {
       const textForAI = [
-        basicName ? `Organization Name: ${basicName}` : "",
-        basicDesc ? `Description: ${basicDesc}` : "",
-        html.length > 100
-          ? `Page text (truncated): ${html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 8000)}`
-          : "",
+        `URL: ${finalUrl}`,
+        basicName ? `Page Title / Site Name: ${basicName}` : "",
+        basicDesc ? `Meta Description: ${basicDesc}` : "",
+        keywords ? `Meta Keywords: ${keywords}` : "",
+        bodyText.length > 50 ? `Page Content (truncated):\n${bodyText.slice(0, 12000)}` : "",
       ].filter(Boolean).join("\n\n");
 
       try {
@@ -96,11 +122,11 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are an AI that extracts structured organization data from webpage content. Return a JSON object using the provided tool.`,
+                content: `You are an expert at analyzing organization websites to extract structured data. Be thorough: read the entire page content carefully. Infer information where reasonable based on context clues (e.g. ".edu" domains are likely academic, mentions of "members" suggest size). Always provide a rich, well-written description and mission statement even if you need to synthesize from multiple page sections. For topics, extract specific thematic areas the organization works in (e.g. "climate adaptation", "digital literacy", "social entrepreneurship") — NOT generic sector labels. For territories, identify specific geographic locations mentioned. Return as much useful data as possible.`,
               },
               {
                 role: "user",
-                content: `Extract organization information from this content:\n\n${textForAI}`,
+                content: `Extract detailed organization information from this website content. Be thorough and extract as much as possible:\n\n${textForAI}`,
               },
             ],
             tools: [
@@ -108,42 +134,37 @@ serve(async (req) => {
                 type: "function",
                 function: {
                   name: "extract_org_info",
-                  description: "Extract structured organization information",
+                  description: "Extract structured organization information from a website",
                   parameters: {
                     type: "object",
                     properties: {
-                      name: { type: "string", description: "Organization name" },
-                      mission_statement: { type: "string", description: "Mission statement or purpose (1-2 sentences)" },
+                      name: { type: "string", description: "Official organization name (clean, without taglines)" },
+                      mission_statement: { type: "string", description: "A clear, compelling 1-3 sentence mission statement. Synthesize from the page if not explicitly stated." },
+                      description: { type: "string", description: "A rich 2-4 sentence description of what the organization does, who it serves, and its key activities. Write it as a professional bio." },
                       org_type: {
                         type: "string",
                         enum: ["public_sector", "corporation", "academic", "foundation", "ngo", "cooperative", "other"],
-                        description: "Type of organization",
+                        description: "Type of organization. Use context clues to determine.",
                       },
-                      sector: { type: "string", description: "Primary sector (e.g. Technology, Education, Health, Sustainability)" },
                       size_estimate: {
                         type: "string",
                         enum: ["small", "medium", "large"],
-                        description: "Estimated organization size",
+                        description: "Estimated size: small (<50 people), medium (50-500), large (500+). Infer from team pages, social proof, etc.",
                       },
                       topics: {
                         type: "array",
                         items: { type: "string" },
-                        description: "Key topics and themes (max 8)",
+                        description: "Specific thematic topics the org works in (e.g. 'renewable energy', 'youth empowerment', 'AI ethics'). Be specific, not generic. Max 10.",
                       },
                       territories: {
                         type: "array",
                         items: { type: "string" },
-                        description: "Geographic territories of activity (cities, regions, countries)",
+                        description: "Geographic areas of activity: cities, regions, or countries mentioned. Include headquarters location if identifiable.",
                       },
                       collaboration_interests: {
                         type: "array",
                         items: { type: "string" },
-                        description: "Areas where they might seek collaboration (max 5)",
-                      },
-                      causes: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "Causes or SDGs they align with (max 5)",
+                        description: "Areas where the org might seek partnerships or collaboration based on their activities (max 5)",
                       },
                     },
                     required: ["name"],
@@ -172,15 +193,13 @@ serve(async (req) => {
 
     const result = {
       name: aiResult.name || basicName,
-      description: basicDesc,
+      description: aiResult.description || basicDesc,
       mission_statement: aiResult.mission_statement || null,
       org_type: aiResult.org_type || "other",
-      sector: aiResult.sector || null,
       size_estimate: aiResult.size_estimate || null,
       topics: aiResult.topics || [],
       territories: aiResult.territories || [],
       collaboration_interests: aiResult.collaboration_interests || [],
-      causes: aiResult.causes || [],
       logo,
       url: finalUrl,
     };
