@@ -18,6 +18,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { PostCard } from "@/components/feed/PostCard";
+import { PostTile } from "@/components/feed/PostTile";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
@@ -689,27 +690,10 @@ function FollowingFeedTab() {
           </div>
         </div>
       ) : (
-        <div className="space-y-4 max-w-[50%]">
-          {sortedPosts.map((post) => {
-            const ctxName = (post as any).contextName;
-            const route = contextRoute[post.context_type];
-            return (
-              <div key={post.id}>
-                {ctxName && route && (
-                  <div className="text-xs text-muted-foreground mb-1 pl-12">
-                    {post.context_type === "USER" ? "on profile of " : "in "}
-                    <Link
-                      to={`${route}/${post.context_id}`}
-                      className="text-primary hover:underline font-medium"
-                    >
-                      {ctxName}
-                    </Link>
-                  </div>
-                )}
-                <PostCard post={post} hasUpvoted={upvotedSet.has(post.id)} />
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-2 gap-3">
+          {sortedPosts.map((post) => (
+            <PostTile key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} size="large" />
+          ))}
         </div>
       )}
     </div>
