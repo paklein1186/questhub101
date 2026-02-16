@@ -11,7 +11,9 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useUserRoles } from "@/lib/admin";
 import { AppNav } from "@/components/AppNav";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   to: string;
@@ -141,31 +143,48 @@ export default function AdminLayout() {
           {sidebar}
         </aside>
 
-        {/* Mobile toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="lg:hidden fixed bottom-4 right-4 z-50 h-10 w-10 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
-
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-            <aside className="fixed left-0 top-14 bottom-0 z-50 w-64 bg-card border-r border-border overflow-y-auto lg:hidden">
-              {sidebar}
-            </aside>
-          </>
-        )}
+        {/* Mobile top nav - horizontal scrollable */}
+        <div className="lg:hidden sticky top-14 z-30 w-full bg-card/95 backdrop-blur border-b border-border overflow-x-auto">
+          <div className="flex items-center gap-1 px-2 py-2 min-w-max">
+            {visibleClusters.map((cluster) => (
+              <DropdownMenu key={cluster.label}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0",
+                      cluster.items.some((i) => isActive(i.to))
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <cluster.icon className="h-3.5 w-3.5" />
+                    {cluster.label}
+                    <ChevronRight className="h-3 w-3 rotate-90" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-52">
+                  {cluster.items.map((item) => (
+                    <DropdownMenuItem key={item.to} asChild>
+                      <Link
+                        to={item.to}
+                        className={cn(
+                          "cursor-pointer",
+                          isActive(item.to) && "bg-primary/10 font-medium"
+                        )}
+                      >
+                        <item.icon className="h-3.5 w-3.5 mr-2" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ))}
+          </div>
+        </div>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-3 sm:p-6 lg:p-8">
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             <Outlet />
           </motion.div>
