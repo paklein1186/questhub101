@@ -61,6 +61,7 @@ import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles";
+import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -428,24 +429,35 @@ export default function GuildDetail() {
             {members.map((m: any) => {
               const userRoles = getRolesForUser(m.user_id);
               return (
-                <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                  <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{m.user?.name}</p>
-                    <div className="flex items-center gap-1 flex-wrap mt-0.5">
-                      <span className="text-xs text-muted-foreground capitalize">{(m.role || "member").toLowerCase()}</span>
-                      {userRoles.map((r) => (
-                        <Badge key={r.id} variant="secondary" className="text-[10px] px-1.5 py-0" style={{ backgroundColor: r.color + "22", color: r.color, borderColor: r.color + "44" }}>
-                          {r.name}
-                        </Badge>
-                      ))}
+                <div key={m.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                  <Link to={`/users/${m.user_id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                    <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{m.user?.name}</p>
+                      <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                        <span className="text-xs text-muted-foreground capitalize">{(m.role || "member").toLowerCase()}</span>
+                        {userRoles.map((r) => (
+                          <Badge key={r.id} variant="secondary" className="text-[10px] px-1.5 py-0" style={{ backgroundColor: r.color + "22", color: r.color, borderColor: r.color + "44" }}>
+                            {r.name}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  {(m.user?.xp ?? 0) > 0 && (
-                    <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
+                    {(m.user?.xp ?? 0) > 0 && (
+                      <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
+                    )}
+                    <span className="text-xs text-muted-foreground shrink-0">Joined {m.joined_at && !isNaN(new Date(m.joined_at).getTime()) ? formatDistanceToNow(new Date(m.joined_at), { addSuffix: true }) : "recently"}</span>
+                  </Link>
+                  {isAdmin && m.user_id !== currentUser.id && (
+                    <SendOfficialMessageDialog
+                      recipientUserId={m.user_id}
+                      recipientName={m.user?.name || "User"}
+                      senderType="guild"
+                      guildId={guild.id}
+                      guildName={guild.name}
+                    />
                   )}
-                  <span className="text-xs text-muted-foreground shrink-0">Joined {m.joined_at && !isNaN(new Date(m.joined_at).getTime()) ? formatDistanceToNow(new Date(m.joined_at), { addSuffix: true }) : "recently"}</span>
-                </Link>
+                </div>
               );
             })}
           </div>

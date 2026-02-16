@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Users, ExternalLink } from "lucide-react";
+import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
 
 export default function AdminCommunityUsers() {
   const [search, setSearch] = useState("");
@@ -48,6 +49,7 @@ export default function AdminCommunityUsers() {
               <TableHead>Role</TableHead>
               <TableHead className="text-right">XP</TableHead>
               <TableHead>Joined</TableHead>
+              <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -69,11 +71,18 @@ export default function AdminCommunityUsers() {
                 <TableCell className="text-sm text-muted-foreground">
                   {new Date(p.created_at).toLocaleDateString()}
                 </TableCell>
+                <TableCell>
+                  <SendOfficialMessageDialog
+                    recipientUserId={p.user_id}
+                    recipientName={p.name || "User"}
+                    senderType="platform"
+                  />
+                </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No users found.
                 </TableCell>
               </TableRow>

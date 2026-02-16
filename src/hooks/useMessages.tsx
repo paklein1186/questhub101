@@ -10,6 +10,9 @@ export interface Conversation {
   created_by: string;
   created_at: string;
   updated_at: string;
+  sender_label?: string | null;
+  sender_entity_type?: string | null;
+  sender_entity_id?: string | null;
   participants: { user_id: string; name: string; avatar_url: string | null }[];
   last_message?: { content: string; created_at: string; sender_id: string };
   unread_count: number;

@@ -191,10 +191,13 @@ export default function InboxPage() {
   };
 
   const getConversationName = (conv: typeof conversations[0]) => {
+    if ((conv as any).sender_label) return (conv as any).sender_label;
     if (conv.title) return conv.title;
     const others = conv.participants.filter((p) => p.user_id !== userId);
     return others.map((p) => p.name).join(", ") || "Conversation";
   };
+
+  const isOfficialConv = (conv: typeof conversations[0]) => !!(conv as any).sender_label;
 
   const getConversationAvatar = (conv: typeof conversations[0]) => {
     const others = conv.participants.filter((p) => p.user_id !== userId);
@@ -288,7 +291,10 @@ export default function InboxPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <p className={cn("text-sm truncate", conv.unread_count > 0 ? "font-semibold" : "font-medium")}>{getConversationName(conv)}</p>
+                          <p className={cn("text-sm truncate", conv.unread_count > 0 ? "font-semibold" : "font-medium")}>
+                            {isOfficialConv(conv) && <span className="text-primary mr-1">●</span>}
+                            {getConversationName(conv)}
+                          </p>
                           {conv.last_message && (
                             <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
                               {formatDistanceToNow(new Date(conv.last_message.created_at), { addSuffix: false })}
@@ -446,8 +452,11 @@ export default function InboxPage() {
                                 ? "bg-primary text-primary-foreground rounded-br-md"
                                 : "bg-muted rounded-bl-md"
                             )}>
-                              {!isOwn && activeConv?.is_group && (
-                                <p className="text-[10px] font-medium opacity-70 mb-0.5">{msg.sender?.name}</p>
+                              {!isOwn && (activeConv?.is_group || (msg as any).sender_label) && (
+                                <p className="text-[10px] font-medium opacity-70 mb-0.5">
+                                  {(msg as any).sender_label || msg.sender?.name}
+                                  {(msg as any).sender_label && <span className="ml-1 text-primary">• Official</span>}
+                                </p>
                               )}
                               {isEditing ? (
                                 <div className="flex items-center gap-1.5">
