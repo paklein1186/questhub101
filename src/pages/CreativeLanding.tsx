@@ -143,7 +143,7 @@ export default function CreativeLanding() {
                   <Link to="/login">Log in</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/welcome">Sign up</Link>
                 </Button>
               </>
             )}
@@ -416,7 +416,7 @@ export default function CreativeLanding() {
           <p className="text-muted-foreground mb-6">Join a growing constellation of creators across Houses.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/signup">Join the creative world <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">Join the creative world <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/explore">Wander first</Link>

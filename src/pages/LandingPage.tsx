@@ -34,7 +34,7 @@ const personas = [
     subtitle: "Consultants, facilitators, practitioners",
     points: ["Find meaningful missions aligned with your values", "Share knowledge and build your reputation", "Earn XP and track your contribution index"],
     cta: "Sign up as Gamechanger",
-    href: "/signup?role=gamechanger",
+    href: "/welcome?role=gamechanger",
     accent: "primary",
   },
   {
@@ -43,7 +43,7 @@ const personas = [
     subtitle: "Guilds, networks, third spaces",
     points: ["Structure quests and coordinate action", "Host pods for peer learning groups", "Curate a vibrant learning network"],
     cta: "Create a guild",
-    href: "/signup?role=ecosystem",
+    href: "/welcome?role=ecosystem",
     accent: "accent",
   },
   {
@@ -52,7 +52,7 @@ const personas = [
     subtitle: "Organisations with impact ambitions",
     points: ["Post impact quests to find collaborators", "Book experts for your projects", "Support territories and build credibility"],
     cta: "Post a quest as a company",
-    href: "/signup",
+    href: "/welcome",
     accent: "warning",
   },
 ];
@@ -112,7 +112,7 @@ export default function LandingPage() {
               <Link to="/login">Log in</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link to="/signup">Sign up</Link>
+              <Link to="/welcome">Sign up</Link>
             </Button>
           </nav>
         </div>
@@ -152,10 +152,10 @@ export default function LandingPage() {
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" asChild className="gap-2 gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
-              <Link to="/signup?role=gamechanger"><Lightbulb className="h-4 w-4" /> Join as a Gamechanger</Link>
+              <Link to="/welcome?role=gamechanger"><Lightbulb className="h-4 w-4" /> Join as a Gamechanger</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground rounded-full hover:scale-105 transition-transform">
-              <Link to="/signup?role=ecosystem"><Shield className="h-4 w-4" /> Join as an Ecosystem Builder</Link>
+              <Link to="/welcome?role=ecosystem"><Shield className="h-4 w-4" /> Join as an Ecosystem Builder</Link>
             </Button>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="mt-4">
@@ -325,7 +325,7 @@ export default function LandingPage() {
           <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild className="gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
-              <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="rounded-full hover:scale-105 transition-transform">
               <Link to="/explore">Explore the platform</Link>
