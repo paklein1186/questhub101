@@ -88,7 +88,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
   const [questId, setQuestId] = useState("none");
   const [podTopicId, setPodTopicId] = useState("none");
   // Company-specific
-  const [sector, setSector] = useState("");
+  const [orgType, setOrgType] = useState("");
   const [companySize, setCompanySize] = useState<CompanySize>(CompanySize.SME);
   // Shared
   const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
@@ -106,7 +106,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
     setSourceUrl(""); setScraping(false); setScraped(false);
     setGuildType(GuildType.GUILD); setPodType(PodType.STUDY_POD);
     setQuestId("none"); setPodTopicId("none");
-    setSector(""); setCompanySize(CompanySize.SME);
+    setOrgType(""); setCompanySize(CompanySize.SME);
     setSelectedTopicIds([]); setSelectedTerritoryIds([]);
     setJoinPolicy(GuildJoinPolicy.OPEN); setUniverseVisibility("both");
     setIsDraft(false); setLogoUrl(undefined); setBannerUrl(undefined);
@@ -158,7 +158,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
         if (data.name && !name) setName(data.name);
         if (data.description && !description) setDescription(data.description);
         if (data.logo) setLogoUrl(data.logo);
-        if (data.sector && kind === "company") setSector(data.sector);
+        // sector from scrape is discarded (redundant with topics)
         setScraped(true);
         toast({ title: "Website data imported!", description: "Review and adjust the pre-filled fields." });
       }
@@ -216,7 +216,7 @@ Respond ONLY in this exact JSON format, no markdown:
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed.name && !name) setName(parsed.name);
           if (parsed.description) setDescription(parsed.description);
-          if (parsed.sector && kind === "company") setSector(parsed.sector);
+          // sector from AI is discarded (redundant with topics)
           toast({ title: "AI suggestions applied!", description: "Review and adjust the pre-filled fields." });
         }
       }
@@ -287,7 +287,7 @@ Respond ONLY in this exact JSON format, no markdown:
           .insert({
             name: name.trim(),
             description: (description || mission).trim() || null,
-            sector: sector.trim() || null,
+            org_type: orgType || null,
             size: companySize,
             logo_url: logoUrl || null,
             banner_url: bannerUrl || null,
@@ -502,8 +502,18 @@ Respond ONLY in this exact JSON format, no markdown:
             {kind === "company" && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Sector</label>
-                  <Input value={sector} onChange={e => setSector(e.target.value)} placeholder="e.g. Sustainability" maxLength={50} />
+                  <label className="text-sm font-medium mb-1 block">Type</label>
+                  <Select value={orgType} onValueChange={setOrgType}>
+                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="ngo">NGO</SelectItem>
+                      <SelectItem value="academics">Academics</SelectItem>
+                      <SelectItem value="company">Company</SelectItem>
+                      <SelectItem value="foundation">Foundation</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Size</label>
