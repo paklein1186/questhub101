@@ -25,6 +25,7 @@ import { CommentTargetType, FollowTargetType, OnlineLocationType } from "@/types
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
+import { EntityFollowersCount } from "@/components/FollowersDialog";
 import {
   useCompanyById, useQuestsForCompany, useBookingsForCompany,
   usePublicProfile, useCompanyMembersWithProfiles, useServicesForCompany,
@@ -303,7 +304,8 @@ export default function CompanyDetail() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
+            <EntityFollowersCount entityId={company.id} entityType="COMPANY" />
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></div>
             <div className="rounded-lg border border-border bg-card p-4 text-center"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></div>

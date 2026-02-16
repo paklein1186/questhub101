@@ -38,6 +38,7 @@ import { formatDistanceToNow } from "date-fns";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
+import { EntityFollowersCount } from "@/components/FollowersDialog";
 import { GuildKanbanBoard } from "@/components/guild/GuildKanbanBoard";
 import { GuildDocsSpace } from "@/components/guild/GuildDocsSpace";
 import { GuildEvents } from "@/components/guild/GuildEvents";
@@ -392,7 +393,8 @@ export default function GuildDetail() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
+            <EntityFollowersCount entityId={guild.id} entityType="GUILD" />
             <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
             <button onClick={() => setActiveTab("quests")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
             <button onClick={() => setActiveTab("services")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></button>
