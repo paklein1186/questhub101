@@ -34,12 +34,25 @@ export function FollowersDialog({ open, onOpenChange, targetId, targetType, mode
           .eq("target_id", targetId)
           .eq("target_type", targetType)
           .limit(200);
-        if (!data || data.length === 0) return [];
-        const ids = data.map((f) => f.follower_id);
+        const followerIds = (data ?? []).map((f) => f.follower_id);
+
+        // For territories, also include user_territories
+        let territoryUserIds: string[] = [];
+        if (targetType === "TERRITORY") {
+          const { data: utData } = await supabase
+            .from("user_territories" as any)
+            .select("user_id")
+            .eq("territory_id", targetId)
+            .limit(200);
+          territoryUserIds = (utData ?? []).map((u: any) => u.user_id);
+        }
+
+        const allIds = [...new Set([...followerIds, ...territoryUserIds])];
+        if (allIds.length === 0) return [];
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, name, avatar_url")
-          .in("user_id", ids);
+          .in("user_id", allIds);
         return (profiles ?? []) as UserRow[];
       } else {
         // People this user follows (only for USER type)
