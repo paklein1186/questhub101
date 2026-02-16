@@ -16,7 +16,7 @@ export default function JobsPage() {
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
 
   const handleShare = () => {
-    const url = "https://questhub101.lovable.app/jobs";
+    const url = "https://www.changethegame.xyz/jobs";
     navigator.clipboard.writeText(url);
     toast({ title: "Link copied!", description: "Share this page with anyone." });
   };

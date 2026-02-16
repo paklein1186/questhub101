@@ -30,7 +30,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
     const hostname = window.location.hostname;
     // If on a preview/dev URL, use the published domain instead
     if (hostname.includes("id-preview--") || hostname.includes("lovableproject.com")) {
-      return "https://questhub101.lovable.app";
+      return "https://www.changethegame.xyz";
     }
     return window.location.origin;
   };
