@@ -83,7 +83,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-accent/10 to-muted group-hover:scale-105 transition-transform duration-300 p-4">
               {post.content ? (
                 <p className={`text-foreground/70 text-center leading-relaxed ${size === "small" ? "text-xs line-clamp-3" : size === "medium" ? "text-sm line-clamp-4" : "text-sm line-clamp-6"}`}>
-                  {stripMentions(post.content.slice(0, 200))}
+                  {stripMentions(post.content).slice(0, 200)}
                 </p>
               ) : (
                 <span className="text-muted-foreground text-xs italic">No content</span>
