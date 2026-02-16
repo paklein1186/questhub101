@@ -448,7 +448,7 @@ export default function GuildDetail() {
                       <div className="p-4">
                         <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
                         {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
-                        <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{q.status.toLowerCase().replace("_", " ")}</Badge><Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge></div>
+                        <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace("_", " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}</div>
                       </div>
                     </Link>
                   ))}
