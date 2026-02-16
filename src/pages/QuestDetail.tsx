@@ -694,7 +694,7 @@ export default function QuestDetail() {
               </div>
             </div>
           )}
-          {/* Fallback: guild attached but no quest_hosts row */}
+          {/* Fallback: entity attached but no quest_hosts row */}
           {(!resolvedHosts || resolvedHosts.length === 0) && quest.guild_id && (quest as any).guilds && (
             <div className="mt-6">
               <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Guild</h3>
@@ -704,6 +704,18 @@ export default function QuestDetail() {
                   <AvatarFallback>{(quest as any).guilds.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <p className="text-sm font-medium">{(quest as any).guilds.name}</p>
+              </Link>
+            </div>
+          )}
+          {(!resolvedHosts || resolvedHosts.length === 0) && quest.company_id && (quest as any).companies && (
+            <div className="mt-6">
+              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Company</h3>
+              <Link to={`/companies/${quest.company_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all w-fit">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={(quest as any).companies.logo_url} />
+                  <AvatarFallback>{(quest as any).companies.name?.[0]}</AvatarFallback>
+                </Avatar>
+                <p className="text-sm font-medium">{(quest as any).companies.name}</p>
               </Link>
             </div>
           )}
