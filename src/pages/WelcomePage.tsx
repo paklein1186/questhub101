@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Sparkles, Target, Blend, Compass,
-  Palette, Shield, Feather, ArrowRight,
+  Palette, Shield, Feather, ArrowRight, Building2,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -52,6 +52,18 @@ const personas = [
     gradient: "from-amber-500/15 to-orange-500/10",
     accentClass: "text-amber-500",
     borderHover: "hover:border-amber-400/50",
+  },
+  {
+    key: "organization",
+    icon: Target,
+    emoji: "🏛️",
+    title: "I represent an organization",
+    subtitle: "Public institution, company, university, foundation, or NGO",
+    tagline: "Contribute, collaborate, launch initiatives in the ecosystem",
+    path: "/organizations",
+    gradient: "from-blue-500/15 to-indigo-500/10",
+    accentClass: "text-blue-500",
+    borderHover: "hover:border-blue-400/50",
   },
   {
     key: "browse",
