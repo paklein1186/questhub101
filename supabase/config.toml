@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.send-bug-report]
 verify_jwt = false
+
+[functions.og-share]
+verify_jwt = false
