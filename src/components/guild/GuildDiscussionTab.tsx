@@ -158,7 +158,7 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
                     </Badge>
                   )}
                 </div>
-                <PostCard post={post} hasUpvoted={upvotedSet.has(post.id)} />
+                <PostCard post={post} hasUpvoted={upvotedSet.has(post.id)} guildContext={{ guildId, guildName, isAdmin }} />
               </div>
             );
           })}
