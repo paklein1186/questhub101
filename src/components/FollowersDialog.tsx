@@ -136,7 +136,7 @@ export function EntityFollowersCount({
         .eq("target_type", entityType)
         .limit(500);
       if (!data || data.length === 0) return 0;
-      const ids = data.map((f) => f.follower_id);
+      const ids = [...new Set(data.map((f) => f.follower_id))];
       const { count: profileCount } = await supabase
         .from("profiles")
         .select("user_id", { count: "exact", head: true })
