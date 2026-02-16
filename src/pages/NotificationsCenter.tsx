@@ -252,7 +252,7 @@ export default function NotificationsCenter() {
           )}
 
           <Button variant="ghost" size="sm" asChild className="h-9 w-9 p-0">
-            <Link to="/settings?tab=notifications">
+            <Link to="/me/settings?tab=notifications">
               <Settings className="h-4 w-4" />
             </Link>
           </Button>
