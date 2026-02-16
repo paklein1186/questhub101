@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
-  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2,
+  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2, Map as MapIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -157,8 +157,9 @@ function TerritoryLine({ territories }: { territories: any[] }) {
 
   if (groups.length === 0) return null;
   return (
-    <p className="text-xs text-muted-foreground flex items-center gap-1">
+    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
       <MapPin className="h-3 w-3 shrink-0" />
+      <MapIcon className="h-3 w-3 shrink-0 text-primary/60" />
       {groups.map((g, i) => (
         <span key={i}>{i > 0 && " · "}{g}</span>
       ))}
