@@ -388,7 +388,7 @@ export default function GuildDetail() {
               })()}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Created</span>
-                <span className="text-sm">{formatDistanceToNow(new Date(guild.created_at), { addSuffix: true })}</span>
+                <span className="text-sm">{guild.created_at && !isNaN(new Date(guild.created_at).getTime()) ? formatDistanceToNow(new Date(guild.created_at), { addSuffix: true }) : "—"}</span>
               </div>
             </div>
           </div>
@@ -424,7 +424,7 @@ export default function GuildDetail() {
                 {(m.user?.xp ?? 0) > 0 && (
                   <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
                 )}
-                <span className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</span>
+                <span className="text-xs text-muted-foreground">Joined {m.joined_at && !isNaN(new Date(m.joined_at).getTime()) ? formatDistanceToNow(new Date(m.joined_at), { addSuffix: true }) : "recently"}</span>
               </Link>
             ))}
           </div>
@@ -542,7 +542,7 @@ export default function GuildDetail() {
                   <div className="flex-1">
                     <h4 className="font-display font-semibold">{a.title}</h4>
                     {a.description && <p className="text-sm text-muted-foreground mt-0.5">{a.description}</p>}
-                    <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}</span>
+                    <span className="text-xs text-muted-foreground">{a.created_at && !isNaN(new Date(a.created_at).getTime()) ? formatDistanceToNow(new Date(a.created_at), { addSuffix: true }) : "—"}</span>
                   </div>
                 </div>
               </Link>
