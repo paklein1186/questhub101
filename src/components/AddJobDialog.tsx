@@ -52,11 +52,17 @@ interface Props {
 
 export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   const currentUser = useCurrentUser();
-  const { data: allTerritories = [] } = useTerritories();
+  const { data: allTerritories = [], isLoading: terrLoading, error: terrError } = useTerritories();
   const createJob = useCreateJobPosition();
   const updateJob = useUpdateJobPosition();
   const { toast } = useToast();
   const isEdit = !!editJob;
+
+  useEffect(() => {
+    if (open) {
+      console.log("[AddJobDialog] opened — territories:", allTerritories.length, "loading:", terrLoading, "error:", terrError);
+    }
+  }, [open, allTerritories.length, terrLoading, terrError]);
 
   // Step state
   const [step, setStep] = useState<Step>("source");
@@ -259,8 +265,10 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
 
   const toggleTopic = (id: string) =>
     setSelectedTopics(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
-  const toggleTerritory = (id: string) =>
+  const toggleTerritory = (id: string) => {
+    console.log("[AddJobDialog] toggleTerritory called:", id, "allTerritories count:", allTerritories.length);
     setSelectedTerritories(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
