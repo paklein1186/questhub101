@@ -50,18 +50,17 @@ export default function ExploreHub() {
 
   const createParam = searchParams.get("create") as "guild" | "pod" | "company" | null;
 
-  const [tab, setTab] = useState(initialTab);
-  const [entitySub, setEntitySub] = useState<EntitySub>(initialSub);
+  const tab = validTabs.includes(rawTab) ? rawTab : isLegacyEntity ? "entities" : "entities";
+  const entitySubFromUrl = isLegacyEntity ? (rawTab as EntitySub) : "all";
+  const [entitySub, setEntitySub] = useState<EntitySub>(entitySubFromUrl);
   const [entityFilters, setEntityFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [wizardOpen, setWizardOpen] = useState(!!createParam);
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const entityHf = useHouseFilter();
-  // label from usePersona destructured above
 
   const handleTabChange = (value: string) => {
-    setTab(value);
-    setSearchParams(value === "quests" ? {} : { tab: value }, { replace: true });
+    setSearchParams({ tab: value });
   };
 
   return (
