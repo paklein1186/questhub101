@@ -4108,6 +4108,7 @@ export type Database = {
         Row: {
           created_at: string
           deleted_at: string | null
+          geojson: Json | null
           id: string
           is_deleted: boolean
           latitude: number | null
@@ -4123,6 +4124,7 @@ export type Database = {
         Insert: {
           created_at?: string
           deleted_at?: string | null
+          geojson?: Json | null
           id?: string
           is_deleted?: boolean
           latitude?: number | null
@@ -4138,6 +4140,7 @@ export type Database = {
         Update: {
           created_at?: string
           deleted_at?: string | null
+          geojson?: Json | null
           id?: string
           is_deleted?: boolean
           latitude?: number | null
