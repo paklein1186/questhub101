@@ -86,6 +86,15 @@ export default function InboxPage() {
   const addParticipants = useAddParticipants();
 
   const activeConv = conversations.find((c) => c.id === activeConvId);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll page to top when opening a conversation (especially on mobile)
+  useEffect(() => {
+    if (activeConvId) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [activeConvId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -209,7 +218,7 @@ export default function InboxPage() {
 
   return (
     <PageShell>
-      <div className={cn("flex rounded-xl border border-border overflow-hidden bg-card", isMobile ? "h-[calc(100vh-8rem)]" : "h-[calc(100vh-10rem)]")}>
+      <div ref={containerRef} className={cn("flex rounded-xl border border-border overflow-hidden bg-card", isMobile ? "h-[calc(100vh-8rem)]" : "h-[calc(100vh-10rem)]")}>
         {/* Conversation list */}
         {showConvList && (
           <div className={cn("flex flex-col border-r border-border", isMobile ? "w-full" : "w-80 shrink-0")}>
