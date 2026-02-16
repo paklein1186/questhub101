@@ -79,14 +79,60 @@ export const XP_REWARDS: Record<string, number> = {
 /** Daily cap for COMMENT_UPVOTED XP (max XP from this type per user per day) */
 export const COMMENT_UPVOTE_DAILY_XP_CAP = 10;
 
-// ─── XP Level Thresholds ────────────────────────────────────
+// ─── XP Level Thresholds (Regenerative Collaboration Ladder) ─
 export const XP_LEVEL_THRESHOLDS = [
-  { level: 1, minXp: 0 },
-  { level: 2, minXp: 50 },
-  { level: 3, minXp: 150 },
-  { level: 4, minXp: 500 },
-  { level: 5, minXp: 1500 },
+  { level: 1,  minXp: 0 },
+  { level: 2,  minXp: 25 },
+  { level: 3,  minXp: 75 },
+  { level: 4,  minXp: 150 },
+  { level: 5,  minXp: 250 },
+  { level: 6,  minXp: 400 },
+  { level: 7,  minXp: 600 },
+  { level: 8,  minXp: 900 },
+  { level: 9,  minXp: 1_300 },
+  { level: 10, minXp: 2_000 },
+  { level: 11, minXp: 3_000 },
+  { level: 12, minXp: 4_500 },
+  { level: 13, minXp: 6_500 },
+  { level: 14, minXp: 9_000 },
+  { level: 15, minXp: 12_000 },
 ];
+
+export const LEVEL_LABELS: Record<number, string> = {
+  1: "Spore",
+  2: "Seed",
+  3: "Seedling",
+  4: "Rooted",
+  5: "Sprout",
+  6: "Mycelium",
+  7: "Pollinator",
+  8: "Cultivator",
+  9: "Harvester",
+  10: "Catalyst",
+  11: "Weaver",
+  12: "Ecosystem Builder",
+  13: "Keystone",
+  14: "Steward",
+  15: "Forest Guardian",
+};
+
+export const LEVEL_DESCRIPTIONS: Record<number, string> = {
+  1: "Curious presence. Exploring the ecosystem.",
+  2: "First interactions and contributions.",
+  3: "Growing participation in quests or guilds.",
+  4: "Engaged in at least one collaborative structure.",
+  5: "Consistent contributor.",
+  6: "Connects people and ideas.",
+  7: "Enables cross-guild collaboration.",
+  8: "Launches initiatives and supports growth.",
+  9: "Delivers value regularly.",
+  10: "Sparks multi-actor projects.",
+  11: "Connects territories or ecosystems.",
+  12: "Structures long-term initiatives.",
+  13: "Stabilizes collaborative networks.",
+  14: "Protects governance and commons.",
+  15: "Embodies long-term systemic impact.",
+};
 
 export function computeLevelFromXp(xpTotal: number): number {
   let level = 1;

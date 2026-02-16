@@ -28,7 +28,7 @@ import { useProfileData, type ProfileData } from "@/hooks/useProfileData";
 import { AdminBadge } from "@/components/AdminBadge";
 import { useUserRoles } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
-import { XP_LEVEL_THRESHOLDS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { XP_LEVEL_THRESHOLDS, LEVEL_LABELS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { getLabel, type PersonaType } from "@/lib/personaLabels";
 import { Loader2 } from "lucide-react";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
@@ -61,10 +61,6 @@ function PersonaBadge({ persona }: { persona: PersonaType }) {
 }
 
 // ─── Unified XP Widget ─────────────────────────────────────
-const LEVEL_LABELS: Record<number, string> = {
-  1: "Newcomer", 2: "Contributor", 3: "Builder", 4: "Champion", 5: "Legend",
-};
-
 function XpWidget({ xp, xpRecent12m, level }: { xp: number; xpRecent12m: number; level: number }) {
   const current = XP_LEVEL_THRESHOLDS.find((t) => t.level === level);
   const next = XP_LEVEL_THRESHOLDS.find((t) => t.level === level + 1);
@@ -76,11 +72,7 @@ function XpWidget({ xp, xpRecent12m, level }: { xp: number; xpRecent12m: number;
 
   return (
     <div className="flex items-center gap-3 mt-2">
-      {/* Level badge */}
-      <div className="flex items-center gap-1.5">
-        <Zap className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold">{levelLabel}</span>
-      </div>
+      <XpLevelBadge level={level} xp={xp} />
 
       {/* Progress toward next level */}
       {!isMaxLevel && (
