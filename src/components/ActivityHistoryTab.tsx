@@ -24,7 +24,7 @@ const ACTION_META: Record<string, { label: string; icon: typeof History; color: 
   followed: { label: "Followed", icon: Heart, color: "text-pink-400", revertable: true },
   course_enrolled: { label: "Enrolled in a course", icon: FileText, color: "text-cyan-500" },
   event_registered: { label: "Registered for an event", icon: FileText, color: "text-emerald-500" },
-  quest_deleted: { label: "Deleted a quest", icon: Trash2, color: "text-red-500" },
+  quest_deleted: { label: "Deleted a quest", icon: Trash2, color: "text-red-500", revertable: true },
   subtask_deleted: { label: "Deleted a subtask", icon: Trash2, color: "text-red-400" },
   subtask_completed: { label: "Completed a subtask", icon: CheckSquare, color: "text-green-600" },
 };
@@ -85,6 +85,18 @@ export function ActivityHistoryTab() {
           toast({ title: "Unfollowed" });
           break;
         }
+        case "quest_deleted": {
+          // Check if within 10-day grace period
+          const deletedAt = new Date(action.created_at);
+          const daysSince = (Date.now() - deletedAt.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSince > 10) {
+            toast({ title: "Grace period expired (10 days)", variant: "destructive" });
+            break;
+          }
+          await supabase.from("quests").update({ is_deleted: false, deleted_at: null }).eq("id", action.target_id);
+          toast({ title: "Quest restored" });
+          break;
+        }
         default:
           toast({ title: "Cannot revert this action", variant: "destructive" });
       }
@@ -126,7 +138,11 @@ export function ActivityHistoryTab() {
           {actions.map((a: any) => {
             const m = meta(a.action_type);
             const Icon = m.icon;
-            const canRevert = !!(ACTION_META[a.action_type]?.revertable);
+            const isQuestDelete = a.action_type === "quest_deleted";
+            const daysSinceDelete = isQuestDelete ? (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60 * 24) : 0;
+            const graceExpired = isQuestDelete && daysSinceDelete > 10;
+            const daysLeft = isQuestDelete ? Math.max(0, Math.ceil(10 - daysSinceDelete)) : 0;
+            const canRevert = !!(ACTION_META[a.action_type]?.revertable) && !graceExpired;
             return (
               <div key={a.id} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
                 <Icon className={`h-4 w-4 shrink-0 ${m.color}`} />
@@ -139,6 +155,12 @@ export function ActivityHistoryTab() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(a.created_at).toLocaleString()}
+                    {isQuestDelete && !graceExpired && (
+                      <span className="ml-2 text-orange-500 font-medium">· {daysLeft}d left to restore</span>
+                    )}
+                    {graceExpired && (
+                      <span className="ml-2 text-muted-foreground">· grace period expired</span>
+                    )}
                   </p>
                 </div>
                 {canRevert && (
