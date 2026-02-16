@@ -34,7 +34,7 @@ export function GuestBauhausShape() {
       {/* Discrete pause/play toggle — bottom-left */}
       <button
         onClick={() => setPaused((p) => !p)}
-        className="fixed bottom-4 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
+        className="fixed top-4 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
         aria-label={paused ? "Resume animation" : "Pause animation"}
         title={paused ? "Resume animation" : "Pause animation"}
       >
