@@ -443,12 +443,30 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
   const unreadCount = dbNotifications.filter((n) => !n.isRead).length;
 
   const markAsRead = useCallback(async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    // Optimistic update
+    qc.setQueryData(["notifications", userId], (old: Notification[] | undefined) =>
+      (old ?? []).map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", id)
+      .eq("user_id", userId);
+    if (error) console.error("[Notifications] markAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
   const markAllAsRead = useCallback(async () => {
-    await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false);
+    // Optimistic update
+    qc.setQueryData(["notifications", userId], (old: Notification[] | undefined) =>
+      (old ?? []).map((n) => ({ ...n, isRead: true }))
+    );
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+    if (error) console.error("[Notifications] markAllAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
