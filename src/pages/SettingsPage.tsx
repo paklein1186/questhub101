@@ -6,7 +6,7 @@ import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, Plug,
+  Shield, UserCircle, Hash, Bell, Briefcase, Zap, Eye, EyeOff, Plug,
   Lock, Save, Trash2, Pencil, MapPin, Plus, Clock, Compass, Globe,
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
@@ -52,6 +52,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { LanguageSettingsTab } from "@/components/LanguageSettingsTab";
 import { WalletTab } from "@/components/WalletTab";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
+import { ProfileMaskingSettings } from "@/components/ProfileMaskingSettings";
 
 const TABS = [
   { key: "profile", label: "settings.profile", icon: UserCircle },
@@ -745,6 +746,12 @@ export default function SettingsPage() {
                       <NotifToggle label="Allow people to follow me" checked={allowFollow} onChange={(v) => updatePrivacy("allowFollows", v, setAllowFollow)} />
                       <NotifToggle label="Allow comments on my profile wall" checked={allowWallComments} onChange={(v) => updatePrivacy("allowProfileComments", v, setAllowWallComments, "allow_wall_comments")} />
                     </div>
+                  </Section>
+
+                  <Separator />
+
+                  <Section title="Hidden Profile Activity" icon={<EyeOff className="h-5 w-5" />}>
+                    <ProfileMaskingSettings />
                   </Section>
 
                   <Button onClick={() => toast({ title: "Privacy settings saved!" })}><Save className="h-4 w-4 mr-1" /> Save privacy settings</Button>

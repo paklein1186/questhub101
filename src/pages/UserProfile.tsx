@@ -213,6 +213,30 @@ export default function UserProfile() {
   const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
   const { open: openChat, isPending: chatPending } = useOpenChatBubble();
 
+  // Masked items — fetched for the profile user
+  const { data: maskedItems = [] } = useQuery({
+    queryKey: ["profile-masked-items", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profile_masked_items")
+        .select("target_id, target_type")
+        .eq("user_id", id!);
+      return (data ?? []) as { target_id: string; target_type: string }[];
+    },
+    enabled: !!id,
+  });
+
+  const maskedSet = new Set(maskedItems.map((m) => `${m.target_type}:${m.target_id}`));
+  const isMasked = (type: string, targetId: string) => !isOwnProfile && maskedSet.has(`${type}:${targetId}`);
+
+  // Filter masked items from profile data (only for visitors, not own profile)
+  const filteredGuilds = guilds.filter((g: any) => !isMasked("GUILD", g.guildId));
+  const filteredPods = pods.filter((p: any) => !isMasked("POD", p.podId));
+  const filteredCompanies = companies.filter((c: any) => !isMasked("COMPANY", c.companyId));
+  const filteredQuestsCreated = questsCreated.filter((q: any) => !isMasked("QUEST", q.id));
+  const filteredQuestsJoined = questsJoined.filter((qm: any) => !isMasked("QUEST", qm.quest?.id));
+  const filteredServices = services.filter((s: any) => !isMasked("SERVICE", s.id));
+
   const { data: followersCount = 0 } = useQuery({
     queryKey: ["followers-count", id],
     queryFn: async () => {
@@ -256,7 +280,7 @@ export default function UserProfile() {
   const persona = profile.personaType;
   const canSeePrivate = isOwnProfile || viewerIsAdmin;
   const serviceLabel = getLabel("service.label_plural", persona);
-  const totalEntities = guilds.length + pods.length + companies.length;
+  const totalEntities = filteredGuilds.length + filteredPods.length + filteredCompanies.length;
 
   return (
     <PageShell>
@@ -398,12 +422,12 @@ export default function UserProfile() {
             {/* Activity summary */}
             <ActivitySummary
               name={profile.name.split(" ")[0]}
-              questsCreated={questsCreated}
-              questsJoined={questsJoined}
-              guilds={guilds}
-              pods={pods}
-              companies={companies}
-              services={services}
+              questsCreated={filteredQuestsCreated}
+              questsJoined={filteredQuestsJoined}
+              guilds={filteredGuilds}
+              pods={filteredPods}
+              companies={filteredCompanies}
+              services={filteredServices}
               topics={topics}
               territories={territories}
               persona={persona}
@@ -413,14 +437,14 @@ export default function UserProfile() {
             <div className="flex flex-wrap gap-3">
               <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
               <StatCard icon={Users} label="Following" count={followingCount} onClick={() => setFollowDialogMode("following")} />
-              <StatCard icon={Compass} label="Quests created" count={questsCreated.length} onClick={() => setListDialog("quests-created")} />
-              <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} onClick={() => setListDialog("quests-joined")} />
-              <StatCard icon={Shield} label="Guilds" count={guilds.length} onClick={() => setListDialog("guilds")} />
+              <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />
+              <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />
+              <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />
               <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
               <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
-              <StatCard icon={CircleDot} label="Pods" count={pods.length} onClick={() => setListDialog("pods")} />
-              <StatCard icon={Building2} label="Organizations" count={companies.length} onClick={() => setListDialog("companies")} />
-              <StatCard icon={Briefcase} label={serviceLabel} count={services.length} onClick={() => setListDialog("services")} />
+              <StatCard icon={CircleDot} label="Pods" count={filteredPods.length} onClick={() => setListDialog("pods")} />
+              <StatCard icon={Building2} label="Organizations" count={filteredCompanies.length} onClick={() => setListDialog("companies")} />
+              <StatCard icon={Briefcase} label={serviceLabel} count={filteredServices.length} onClick={() => setListDialog("services")} />
             </div>
 
             {/* Entities preview */}
@@ -431,7 +455,7 @@ export default function UserProfile() {
                   <Button size="sm" variant="ghost" onClick={() => setTab("entities")} className="text-xs">View all →</Button>
                 </div>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {guilds.slice(0, 2).map((gm: any) => (
+                  {filteredGuilds.slice(0, 2).map((gm: any) => (
                     <Link key={gm.id} to={`/guilds/${gm.guildId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 rounded-lg">
@@ -445,7 +469,7 @@ export default function UserProfile() {
                       </div>
                     </Link>
                   ))}
-                  {pods.slice(0, 2).map((pm: any) => (
+                  {filteredPods.slice(0, 2).map((pm: any) => (
                     <Link key={pm.id} to={`/pods/${pm.podId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 rounded-lg">
@@ -458,7 +482,7 @@ export default function UserProfile() {
                       </div>
                     </Link>
                   ))}
-                  {companies.slice(0, 2).map((cm: any) => (
+                  {filteredCompanies.slice(0, 2).map((cm: any) => (
                     <Link key={cm.id} to={`/companies/${cm.companyId}`} className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 rounded-lg">
@@ -477,11 +501,11 @@ export default function UserProfile() {
             )}
 
             {/* Featured items */}
-            {(questsCreated.length > 0 || services.length > 0) && (
+            {(filteredQuestsCreated.length > 0 || filteredServices.length > 0) && (
               <section>
                 <h3 className="font-display font-semibold mb-3">Highlights</h3>
                 <div className="grid gap-3 md:grid-cols-3">
-              {questsCreated.slice(0, 2).map((q: any) => (
+              {filteredQuestsCreated.slice(0, 2).map((q: any) => (
                     <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                       <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
                       <div className="p-4">
@@ -491,7 +515,7 @@ export default function UserProfile() {
                       </div>
                     </Link>
                   ))}
-                  {services.slice(0, 2).map((s: any) => (
+                  {filteredServices.slice(0, 2).map((s: any) => (
                     <Link key={s.id} to={`/services/${s.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
                       {s.image_url && (
                         <div className="h-24 bg-muted">
@@ -738,12 +762,12 @@ export default function UserProfile() {
             listDialog === "companies" ? Building2 : Briefcase
           }
           items={
-            listDialog === "quests-created" ? questsCreated.map((q: any) => ({ id: q.id, name: q.title, imageUrl: q.cover_image_url, subtitle: (q.status || "draft").toLowerCase().replace("_", " "), link: `/quests/${q.id}` })) :
-            listDialog === "quests-joined" ? questsJoined.map((qm: any) => ({ id: qm.questId || qm.quest_id, name: qm.quest?.title || "Quest", imageUrl: qm.quest?.cover_image_url, link: `/quests/${qm.questId || qm.quest_id}` })) :
-            listDialog === "guilds" ? guilds.map((gm: any) => ({ id: gm.guildId, name: gm.guild?.name || "Guild", imageUrl: gm.guild?.logo_url, subtitle: gm.role?.toLowerCase(), link: `/guilds/${gm.guildId}` })) :
-            listDialog === "pods" ? pods.map((pm: any) => ({ id: pm.podId, name: pm.pod?.name || "Pod", subtitle: pm.role?.toLowerCase(), link: `/pods/${pm.podId}` })) :
-            listDialog === "companies" ? companies.map((cm: any) => ({ id: cm.companyId, name: cm.company?.name || "Organization", imageUrl: cm.company?.logo_url, subtitle: cm.role?.toLowerCase(), link: `/companies/${cm.companyId}` })) :
-            listDialog === "services" ? services.map((s: any) => ({ id: s.id, name: s.title, imageUrl: s.image_url, subtitle: s.price_amount != null ? (s.price_amount === 0 ? "Free" : `€${s.price_amount}`) : undefined, link: `/services/${s.id}` })) :
+            listDialog === "quests-created" ? filteredQuestsCreated.map((q: any) => ({ id: q.id, name: q.title, imageUrl: q.cover_image_url, subtitle: (q.status || "draft").toLowerCase().replace("_", " "), link: `/quests/${q.id}` })) :
+            listDialog === "quests-joined" ? filteredQuestsJoined.map((qm: any) => ({ id: qm.questId || qm.quest_id || qm.quest?.id, name: qm.quest?.title || "Quest", imageUrl: qm.quest?.cover_image_url, link: `/quests/${qm.questId || qm.quest_id || qm.quest?.id}` })) :
+            listDialog === "guilds" ? filteredGuilds.map((gm: any) => ({ id: gm.guildId, name: gm.guild?.name || "Guild", imageUrl: gm.guild?.logo_url, subtitle: gm.role?.toLowerCase(), link: `/guilds/${gm.guildId}` })) :
+            listDialog === "pods" ? filteredPods.map((pm: any) => ({ id: pm.podId, name: pm.pod?.name || "Pod", subtitle: pm.role?.toLowerCase(), link: `/pods/${pm.podId}` })) :
+            listDialog === "companies" ? filteredCompanies.map((cm: any) => ({ id: cm.companyId, name: cm.company?.name || "Organization", imageUrl: cm.company?.logo_url, subtitle: cm.role?.toLowerCase(), link: `/companies/${cm.companyId}` })) :
+            listDialog === "services" ? filteredServices.map((s: any) => ({ id: s.id, name: s.title, imageUrl: s.image_url, subtitle: s.price_amount != null ? (s.price_amount === 0 ? "Free" : `€${s.price_amount}`) : undefined, link: `/services/${s.id}` })) :
             []
           }
         />

@@ -2850,6 +2850,33 @@ export type Database = {
           },
         ]
       }
+      profile_masked_items: {
+        Row: {
+          created_at: string
+          id: string
+          target_id: string
+          target_name: string | null
+          target_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_id: string
+          target_name?: string | null
+          target_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_name?: string | null
+          target_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           allow_wall_comments: boolean
