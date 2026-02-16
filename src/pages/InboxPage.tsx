@@ -209,7 +209,7 @@ export default function InboxPage() {
 
   return (
     <PageShell>
-      <div className="flex h-[calc(100vh-10rem)] rounded-xl border border-border overflow-hidden bg-card">
+      <div className={cn("flex rounded-xl border border-border overflow-hidden bg-card", isMobile ? "h-[calc(100vh-8rem)]" : "h-[calc(100vh-10rem)]")}>
         {/* Conversation list */}
         {showConvList && (
           <div className={cn("flex flex-col border-r border-border", isMobile ? "w-full" : "w-80 shrink-0")}>
@@ -550,7 +550,7 @@ export default function InboxPage() {
                 )}
 
                 {/* Compose */}
-                <div className="p-3 border-t border-border">
+                <div className="p-3 border-t border-border pb-[env(safe-area-inset-bottom,0.75rem)]">
                   <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" />
                   <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}

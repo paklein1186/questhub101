@@ -12,6 +12,7 @@ import React from "react";
 import type { ChatBubble } from "./ChatBubbleContext";
 import { useChatBubbles } from "./ChatBubbleContext";
 import { formatDistanceToNow } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
 function renderWithLinks(text: string, isOwn: boolean) {
@@ -42,6 +43,7 @@ export function MiniChatWindow({ bubble, index }: Props) {
   const { closeBubble, toggleMinimize } = useChatBubbles();
   const { session } = useAuth();
   const userId = session?.user?.id;
+  const isMobile = useIsMobile();
   const { data: messages = [] } = useConversationMessages(bubble.minimized ? null : bubble.conversationId);
   const sendMessage = useSendMessage();
   const [text, setText] = useState("");
@@ -57,8 +59,8 @@ export function MiniChatWindow({ bubble, index }: Props) {
     setText("");
   };
 
-  // Position from the right
-  const rightOffset = 16 + index * 340;
+  // Position from the right — on mobile, stack full-width
+  const rightOffset = isMobile ? 0 : 16 + index * 340;
 
   if (bubble.minimized) {
     return (
@@ -83,8 +85,11 @@ export function MiniChatWindow({ bubble, index }: Props) {
 
   return (
     <div
-      className="fixed bottom-4 z-[60] w-80 rounded-2xl border border-border bg-card shadow-xl flex flex-col overflow-hidden"
-      style={{ right: `${rightOffset}px`, height: "420px" }}
+      className={cn(
+        "fixed z-[60] rounded-2xl border border-border bg-card shadow-xl flex flex-col overflow-hidden",
+        isMobile ? "inset-x-2 bottom-2" : "w-80 bottom-4"
+      )}
+      style={{ ...(isMobile ? {} : { right: `${rightOffset}px` }), height: isMobile ? "70vh" : "420px" }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/50">
