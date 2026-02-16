@@ -35,10 +35,10 @@ import {
 } from "@/lib/personaLabels";
 
 // ─── Step config ──────────────────────────────────────────────
-// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
-const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "Proud Project", "Skill Session", "Get Started"];
-// Impact: 0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
-const STEP_LABELS_IMPACT = ["Intention", "Identity", "Languages", "Your Work", "Review Suggestions", "Project", "Offering", "Get Started"];
+// Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=people, 8=project, 9=service, 10=done
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "People to Follow", "Proud Project", "Skill Session", "Get Started"];
+// Impact: 0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=people, 6=project, 7=service, 8=done
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Languages", "Your Work", "Review Suggestions", "People to Follow", "Project", "Offering", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
@@ -132,6 +132,12 @@ export default function Onboarding() {
   const [servicePrice, setServicePrice] = useState("");
   const [serviceTopics, setServiceTopics] = useState<string[]>([]);
   const [serviceImage, setServiceImage] = useState<string | undefined>();
+
+  // Suggested people to follow
+  const [selectedFollows, setSelectedFollows] = useState<string[]>([]);
+  const [suggestedPeople, setSuggestedPeople] = useState<any[]>([]);
+  const [suggestedPeopleLoading, setSuggestedPeopleLoading] = useState(false);
+  const [suggestedPeopleFetched, setSuggestedPeopleFetched] = useState(false);
 
   // Languages step
   const [spokenLangCodes, setSpokenLangCodes] = useState<string[]>(["en"]);
@@ -339,6 +345,17 @@ export default function Onboarding() {
         }
       }
 
+      // Save selected follows
+      if (selectedFollows.length > 0) {
+        await supabase.from("follows").insert(
+          selectedFollows.map(targetId => ({
+            follower_id: authUser.id,
+            target_id: targetId,
+            target_type: "USER",
+          }))
+        );
+      }
+
       // Save accepted draft services
       for (const svc of suggestedServices.filter(s => s.accepted)) {
         await supabase.from("services").insert({
@@ -449,14 +466,71 @@ export default function Onboarding() {
   const CREATIVE_LANG_STEP = 4;
   const CREATIVE_AFF_STEP = 5;
   const CREATIVE_REVIEW_STEP = 6;
-  const CREATIVE_PROJECT_STEP = 7;
-  const CREATIVE_SERVICE_STEP = 8;
+  const CREATIVE_PEOPLE_STEP = 7;
+  const CREATIVE_PROJECT_STEP = 8;
+  const CREATIVE_SERVICE_STEP = 9;
 
   const IMPACT_LANG_STEP = 2;
   const IMPACT_AFF_STEP = 3;
   const IMPACT_REVIEW_STEP = 4;
-  const IMPACT_PROJECT_STEP = 5;
-  const IMPACT_SERVICE_STEP = 6;
+  const IMPACT_PEOPLE_STEP = 5;
+  const IMPACT_PROJECT_STEP = 6;
+  const IMPACT_SERVICE_STEP = 7;
+
+  // Fetch suggested people based on shared topics/territories
+  const fetchSuggestedPeople = useCallback(async () => {
+    if (suggestedPeopleFetched || !authUser?.id) return;
+    setSuggestedPeopleLoading(true);
+    setSuggestedPeopleFetched(true);
+    try {
+      const topicIds = [...new Set([...selectedTopics, ...suggestedHouses.filter(h => h.accepted).map(h => h.topicId)])];
+      const territoryIds = selectedTerritories;
+
+      // Find users who share topics or territories
+      const fetches: Promise<string[]>[] = [];
+      if (topicIds.length > 0) {
+        fetches.push(
+          supabase.from("user_topics").select("user_id").in("topic_id", topicIds).limit(200)
+            .then(r => (r.data ?? []).map(d => d.user_id)) as Promise<string[]>
+        );
+      }
+      if (territoryIds.length > 0) {
+        fetches.push(
+          supabase.from("user_territories").select("user_id").in("territory_id", territoryIds).limit(200)
+            .then(r => (r.data ?? []).map(d => d.user_id)) as Promise<string[]>
+        );
+      }
+
+      const results = await Promise.all(fetches);
+      const userIdCounts = new Map<string, number>();
+      results.flat().forEach(uid => {
+        if (uid !== authUser.id) userIdCounts.set(uid, (userIdCounts.get(uid) || 0) + 1);
+      });
+
+      // Sort by overlap count, take top 20
+      const topIds = Array.from(userIdCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20)
+        .map(([uid]) => uid);
+
+      if (topIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("user_id, name, avatar_url, headline")
+          .in("user_id", topIds);
+        
+        // Sort profiles by overlap count
+        const sorted = (profiles ?? [])
+          .filter(p => p.name) // only show named profiles
+          .sort((a, b) => (userIdCounts.get(b.user_id) || 0) - (userIdCounts.get(a.user_id) || 0));
+        setSuggestedPeople(sorted);
+      }
+    } catch (e) {
+      console.error("Failed to fetch suggested people:", e);
+    } finally {
+      setSuggestedPeopleLoading(false);
+    }
+  }, [suggestedPeopleFetched, authUser?.id, selectedTopics, selectedTerritories, suggestedHouses]);
 
   const goNext = () => {
     if (isCreativePath) {
@@ -464,11 +538,18 @@ export default function Onboarding() {
       if (step === CREATIVE_AFF_STEP) {
         requestAiSuggestions();
       }
+      // Trigger people suggestions when entering people step
+      if (step === CREATIVE_REVIEW_STEP) {
+        fetchSuggestedPeople();
+      }
       if (step === CREATIVE_SERVICE_STEP) { finishOnboarding(); return; }
       if (step === CREATIVE_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(CREATIVE_SERVICE_STEP); return; }
     } else {
       if (step === IMPACT_AFF_STEP) {
         requestAiSuggestions();
+      }
+      if (step === IMPACT_REVIEW_STEP) {
+        fetchSuggestedPeople();
       }
       if (step === IMPACT_SERVICE_STEP) { finishOnboarding(); return; }
       if (step === IMPACT_PROJECT_STEP && wantsProject === false) { setDirection(1); setStep(IMPACT_SERVICE_STEP); return; }
@@ -501,7 +582,7 @@ export default function Onboarding() {
 
   const currentStepLabel = stepLabels[step] || "";
   const isLastStep = step === lastStepIndex;
-  const progressSteps = isCreativePath ? 9 : 7; // excluding final "done" step
+  const progressSteps = isCreativePath ? 10 : 8; // excluding final "done" step
 
   // Determine which step content to render
   const renderCreativeStep = () => {
@@ -513,9 +594,10 @@ export default function Onboarding() {
       case 4: return renderLanguagesStep();
       case 5: return renderAffiliationsInput();
       case 6: return renderAffiliationsReview();
-      case 7: return renderProject(true);
-      case 8: return renderService(true);
-      case 9: return renderDone(true);
+      case 7: return renderSuggestedPeople(true);
+      case 8: return renderProject(true);
+      case 9: return renderService(true);
+      case 10: return renderDone(true);
       default: return null;
     }
   };
@@ -527,9 +609,10 @@ export default function Onboarding() {
       case 2: return renderLanguagesStep();
       case 3: return renderAffiliationsInput();
       case 4: return renderAffiliationsReview();
-      case 5: return renderProject(false);
-      case 6: return renderService(false);
-      case 7: return renderDone(false);
+      case 5: return renderSuggestedPeople(false);
+      case 6: return renderProject(false);
+      case 7: return renderService(false);
+      case 8: return renderDone(false);
       default: return null;
     }
   };
@@ -985,7 +1068,87 @@ export default function Onboarding() {
     );
   }
 
-  // ─── Shared: Project step ───────────────────────────────
+  // ─── Suggested People to Follow step ─────────────────────
+  function renderSuggestedPeople(creative: boolean) {
+    const toggleFollow = (userId: string) =>
+      setSelectedFollows(p => p.includes(userId) ? p.filter(id => id !== userId) : [...p, userId]);
+
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">
+            {creative ? "Creators in your orbit 🌌" : "People you might know 🤝"}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {creative
+              ? "These creators share your Houses or territories. Follow them to see their work in your feed."
+              : "Based on your topics and territories — follow people to build your network."}
+          </p>
+        </div>
+
+        {suggestedPeopleLoading && (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2 text-sm text-muted-foreground">Finding your people…</span>
+          </div>
+        )}
+
+        {!suggestedPeopleLoading && suggestedPeople.length === 0 && (
+          <div className="text-center py-8">
+            <Users className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">No suggestions yet — you'll discover people as you explore!</p>
+          </div>
+        )}
+
+        {!suggestedPeopleLoading && suggestedPeople.length > 0 && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{selectedFollows.length} selected</span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedFollows(suggestedPeople.map(p => p.user_id))}>
+                  Follow all
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedFollows([])} disabled={selectedFollows.length === 0}>
+                  Clear
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {suggestedPeople.map((person) => (
+                <button
+                  key={person.user_id}
+                  onClick={() => toggleFollow(person.user_id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                    selectedFollows.includes(person.user_id)
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-primary/30"
+                  )}
+                >
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                    {person.avatar_url ? (
+                      <img src={person.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{person.name}</p>
+                    {person.headline && <p className="text-xs text-muted-foreground truncate">{person.headline}</p>}
+                  </div>
+                  {selectedFollows.includes(person.user_id) && <Check className="h-4 w-4 text-primary shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <p className="text-xs text-muted-foreground">You can always discover and follow more people later.</p>
+      </div>
+    );
+  }
+
+
   function renderProject(creative: boolean) {
     const statusOptions = creative
       ? [
