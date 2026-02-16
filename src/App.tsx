@@ -3,7 +3,7 @@ import { PostSignupWizard } from "@/components/PostSignupWizard";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
@@ -31,7 +31,7 @@ import QuestDetail from "./pages/QuestDetail";
 import UserProfile from "./pages/UserProfile";
 import ProfileEdit from "./pages/ProfileEdit";
 import NotificationsCenter from "./pages/NotificationsCenter";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import AdminLayout from "./components/AdminLayout";
 
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
@@ -140,6 +140,14 @@ import CalendarPage from "./pages/CalendarPage";
 
 const queryClient = new QueryClient();
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -151,6 +159,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+            <ScrollToTop />
             <PostSignupWizard />
             <GuestBauhausShape />
             <ChatBubbleOverlay />
