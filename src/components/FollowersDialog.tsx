@@ -63,14 +63,14 @@ export function FollowersDialog({ open, onOpenChange, targetId, targetType, mode
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[70vh]">
+      <DialogContent className="max-w-md max-h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {mode === "followers" ? <UserPlus className="h-4 w-4" /> : <Users className="h-4 w-4" />}
             {mode === "followers" ? "Followers" : "Following"}
           </DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto space-y-1 -mx-2 px-2">
+        <div className="overflow-y-auto space-y-1 -mx-2 px-2 flex-1 min-h-0">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
