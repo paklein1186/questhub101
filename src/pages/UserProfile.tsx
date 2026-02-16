@@ -157,10 +157,17 @@ function TerritoryLine({ territories }: { territories: any[] }) {
   ].filter(Boolean);
 
   if (groups.length === 0) return null;
+  const primaryTerritory = liveIn[0]?.territory || workIn[0]?.territory || careFor[0]?.territory;
   return (
     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
       <MapPin className="h-3 w-3 shrink-0" />
-      <MapIcon className="h-3 w-3 shrink-0 text-primary/60" />
+      {primaryTerritory ? (
+        <Link to={`/territories/${primaryTerritory.id}`} onClick={(e) => e.stopPropagation()} className="inline-flex" title={`View ${primaryTerritory.name} on map`}>
+          <MapIcon className="h-3 w-3 shrink-0 text-primary hover:text-primary/80 cursor-pointer transition-colors" />
+        </Link>
+      ) : (
+        <MapIcon className="h-3 w-3 shrink-0 text-primary/60" />
+      )}
       {groups.map((g, i) => (
         <span key={i}>{i > 0 && " · "}{g}</span>
       ))}
