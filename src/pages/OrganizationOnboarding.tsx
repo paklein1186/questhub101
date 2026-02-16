@@ -120,7 +120,7 @@ export default function OrganizationOnboarding() {
         if (data.name && !orgName) setOrgName(data.name);
         if (data.mission_statement) setMission(data.mission_statement);
         if (data.description) setDescription(data.description);
-        if (data.sector) setSector(data.sector);
+        if (data.description) setDescription(data.description);
         if (data.size_estimate) setScaleCategory(data.size_estimate);
         if (data.org_type && data.org_type !== "other" && !orgType) setOrgType(data.org_type);
         if (data.topics) setSuggestedTopics(data.topics);
@@ -151,7 +151,7 @@ export default function OrganizationOnboarding() {
         website_url: websiteUrl.trim() || null,
         linkedin_url: linkedinUrl.trim() || null,
         logo_url: logoUrl || null,
-        sector: sector.trim() || null,
+        sector: null,
         contact_user_id: currentUser.id,
         org_type: orgType || "other",
         mission_statement: mission.trim() || null,
@@ -312,22 +312,16 @@ export default function OrganizationOnboarding() {
                     <label className="text-sm font-medium mb-1 block">Description</label>
                     <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Brief description..." className="resize-none" rows={3} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Sector</label>
-                      <Input value={sector} onChange={e => setSector(e.target.value)} placeholder="e.g. Education" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Scale</label>
-                      <Select value={scaleCategory} onValueChange={setScaleCategory}>
-                        <SelectTrigger><SelectValue placeholder="Select scale" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="small">Small</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="large">Large</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Scale</label>
+                    <Select value={scaleCategory} onValueChange={setScaleCategory}>
+                      <SelectTrigger><SelectValue placeholder="Select scale" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Small</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="large">Large</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <ImageUpload label="Logo" currentImageUrl={logoUrl} onChange={setLogoUrl} aspectRatio="1/1" description="Organization logo" />
 
