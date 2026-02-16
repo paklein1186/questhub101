@@ -67,7 +67,7 @@ export function useGuildLeaderboard() {
 
 export function useTerritoryLeaderboard() {
   return useQuery<TerritoryLeaderboardEntry[]>({
-    queryKey: ["territory-leaderboard"],
+    queryKey: ["entity-territory-leaderboard"],
     staleTime: 120_000,
     queryFn: async () => {
       const { data: territories } = await supabase
