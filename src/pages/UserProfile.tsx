@@ -36,6 +36,7 @@ import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
 import { MessageSquare } from "lucide-react";
 import { ProfileQuestsTab } from "@/components/profile/ProfileQuestsTab";
+import { ProfileTerritoriesTab } from "@/components/profile/ProfileTerritoriesTab";
 import { FollowersDialog } from "@/components/FollowersDialog";
 import { FollowedEntitiesDialog, useFollowedEntityCount } from "@/components/FollowedEntitiesDialog";
 import { ProfileListDialog } from "@/components/ProfileListDialog";
@@ -477,6 +478,7 @@ export default function UserProfile() {
           <TabsTrigger value="wall">Wall</TabsTrigger>
           <TabsTrigger value="quests">Quests</TabsTrigger>
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
+          <TabsTrigger value="territories"><Globe className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           <TabsTrigger value="entities">Entities</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
@@ -703,6 +705,11 @@ export default function UserProfile() {
               </div>
             </Link>
           )} />
+        </TabsContent>
+
+        {/* ─── Territories ─── */}
+        <TabsContent value="territories">
+          <ProfileTerritoriesTab userId={id!} territories={territories} />
         </TabsContent>
 
         {/* ─── Entities ─── */}
