@@ -446,115 +446,119 @@ export default function UserProfile() {
 
       {/* ═══ Identity Banner ═══ */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-border bg-card p-6 mb-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left: avatar + identity */}
-          <div className="flex items-start gap-4 flex-1 min-w-0">
-            <Avatar className="h-20 w-20 shrink-0">
-              <AvatarImage src={profile.avatarUrl || undefined} />
-              <AvatarFallback className="text-2xl">{profile.name[0]}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-display text-2xl md:text-3xl font-bold truncate">{profile.name}</h1>
-                <AdminBadge userId={profile.userId} />
-              </div>
-              {profile.headline && (
-                <p className="text-muted-foreground text-sm mt-0.5">{profile.headline}</p>
-              )}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <PersonaBadge persona={persona} />
-                {canSeePrivate && (
-                  <span className="flex items-center gap-1 text-xs font-medium">
-                    <Coins className="h-3 w-3 text-primary" /> {profile.creditsBalance} Credits
-                  </span>
+        className="rounded-2xl border border-border bg-card p-4 sm:p-6 mb-6">
+        <div className="flex flex-col gap-4">
+          {/* Row 1: Avatar + Name + Actions */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+              <Avatar className="h-14 w-14 sm:h-20 sm:w-20 shrink-0">
+                <AvatarImage src={profile.avatarUrl || undefined} />
+                <AvatarFallback className="text-lg sm:text-2xl">{profile.name[0]}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold truncate">{profile.name}</h1>
+                  <AdminBadge userId={profile.userId} />
+                </div>
+                {profile.headline && (
+                  <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 line-clamp-2">{profile.headline}</p>
                 )}
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <PersonaBadge persona={persona} />
+                  {canSeePrivate && (
+                    <span className="flex items-center gap-1 text-xs font-medium">
+                      <Coins className="h-3 w-3 text-primary" /> {profile.creditsBalance} Credits
+                    </span>
+                  )}
+                </div>
               </div>
-              <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
+            </div>
 
-              {/* Topics & Houses chips — universe-aware */}
-              {(() => {
-                const impactTopics = topics.filter((t: any) => (t.universe_type ?? "impact") === "impact");
-                const creativeHouses = topics.filter((t: any) => (t.universe_type) === "creative");
-                const showImpact = persona !== "CREATIVE" || impactTopics.length > 0;
-                const showCreative = (persona === "CREATIVE" || persona === "HYBRID" || creativeHouses.length > 0);
-                return (
-                  <>
-                    {showCreative && creativeHouses.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {creativeHouses.slice(0, 4).map((t: any) => (
-                          <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
-                            <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20">
-                              <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
-                            </Badge>
-                          </Link>
-                        ))}
-                        {creativeHouses.length > 4 && (
-                          <Badge variant="outline" className="text-[10px]">+{creativeHouses.length - 4}</Badge>
-                        )}
-                      </div>
-                    )}
-                    {showImpact && impactTopics.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {impactTopics.slice(0, 6).map((t: any) => (
-                          <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
-                            <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
-                              <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
-                            </Badge>
-                          </Link>
-                        ))}
-                        {impactTopics.length > 6 && (
-                          <Badge variant="outline" className="text-[10px]">+{impactTopics.length - 6}</Badge>
-                        )}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-
-              <div className="mt-2">
-                <TerritoryLine territories={territories} />
-              </div>
+            {/* Actions */}
+            <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+              <SocialRow profile={profile} />
+              {isOwnProfile ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to="/me"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setShowCreateUnit(true)}>
+                    <Plus className="h-4 w-4 mr-1" /> Add entity
+                  </Button>
+                  <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to="/me"><Settings className="h-4 w-4" /></Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={chatPending}
+                    onClick={() => requireAuth(() => openChat({ id: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl || undefined }), "message this user")}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" /> Message
+                  </Button>
+                  <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth(toggleFollow, "follow this user")}>
+                    {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
+                  </Button>
+                  {isLoggedIn && (
+                    <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
+                      <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
+                    </Button>
+                  )}
+                  <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
+                  {isLoggedIn && <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Right: actions + social */}
-          <div className="flex flex-col items-end gap-3 shrink-0">
-            <SocialRow profile={profile} />
-            {isOwnProfile ? (
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/me"><Pencil className="h-4 w-4 mr-1" /> Edit profile</Link>
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setShowCreateUnit(true)}>
-                  <Plus className="h-4 w-4 mr-1" /> Add entity
-                </Button>
-                <Button size="sm" variant="ghost" asChild>
-                  <Link to="/me"><Settings className="h-4 w-4" /></Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={chatPending}
-                  onClick={() => requireAuth(() => openChat({ id: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl || undefined }), "message this user")}
-                >
-                  <MessageSquare className="h-4 w-4 mr-1" /> Message
-                </Button>
-                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth(toggleFollow, "follow this user")}>
-                  {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
-                </Button>
-                {isLoggedIn && (
-                  <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
-                    <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
-                  </Button>
-                )}
-                <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
-                {isLoggedIn && <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />}
-              </div>
-            )}
+          {/* Row 2: XP + Topics + Territories — full width, aligned under name */}
+          <div className="space-y-2 pl-0 sm:pl-24">
+            <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
+
+            {(() => {
+              const impactTopics = topics.filter((t: any) => (t.universe_type ?? "impact") === "impact");
+              const creativeHouses = topics.filter((t: any) => (t.universe_type) === "creative");
+              const showImpact = persona !== "CREATIVE" || impactTopics.length > 0;
+              const showCreative = (persona === "CREATIVE" || persona === "HYBRID" || creativeHouses.length > 0);
+              return (
+                <>
+                  {showCreative && creativeHouses.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {creativeHouses.slice(0, 4).map((t: any) => (
+                        <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
+                          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20">
+                            <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                          </Badge>
+                        </Link>
+                      ))}
+                      {creativeHouses.length > 4 && (
+                        <Badge variant="outline" className="text-[10px]">+{creativeHouses.length - 4}</Badge>
+                      )}
+                    </div>
+                  )}
+                  {showImpact && impactTopics.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {impactTopics.slice(0, 6).map((t: any) => (
+                        <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
+                          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
+                            <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
+                          </Badge>
+                        </Link>
+                      ))}
+                      {impactTopics.length > 6 && (
+                        <Badge variant="outline" className="text-[10px]">+{impactTopics.length - 6}</Badge>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+
+            <TerritoryLine territories={territories} />
           </div>
         </div>
       </motion.div>
