@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -54,10 +54,14 @@ Deno.serve(async (req) => {
     // Use service role client to delete from auth
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Delete from auth.users (cascades to profiles if FK is set, otherwise clean up manually)
+    // First soft-delete related data that might block auth deletion
+    // Clean up profile
+    await adminClient.from("profiles").delete().eq("user_id", userId);
+
+    // Delete from auth.users
     const { error: authError } = await adminClient.auth.admin.deleteUser(userId);
     if (authError) {
-      console.error("Auth deletion error:", authError);
+      console.error("Auth deletion error:", JSON.stringify(authError));
       return new Response(JSON.stringify({ error: authError.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
