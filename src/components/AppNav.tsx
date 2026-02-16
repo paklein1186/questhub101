@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useUnreadMessageCount } from "@/hooks/useMessages";
@@ -22,6 +23,32 @@ import {
 import {
   Sheet, SheetContent, SheetTrigger, SheetClose,
 } from "@/components/ui/sheet";
+
+const LANGUAGES = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
+];
+
+function LanguageSwitcherInline() {
+  const { i18n } = useTranslation();
+  const { session } = useAuth();
+  const current = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+  const other = LANGUAGES.find((l) => l.code !== current.code)!;
+
+  const switchLang = async () => {
+    i18n.changeLanguage(other.code);
+    if (session?.user?.id) {
+      await supabase.from("profiles").update({ preferred_language: other.code } as any).eq("user_id", session.user.id);
+    }
+  };
+
+  return (
+    <DropdownMenuItem onClick={switchLang} className="cursor-pointer justify-between">
+      <span className="flex items-center gap-2"><Globe className="h-4 w-4" /> {current.label}</span>
+      <span className="text-xs text-muted-foreground">{other.flag} {other.label}</span>
+    </DropdownMenuItem>
+  );
+}
 
 export function AppNav() {
   const { pathname } = useLocation();
@@ -112,82 +139,47 @@ export function AppNav() {
                     );
                   })}
 
-                  {/* Inbox */}
-                  <Link
-                    to="/inbox"
-                    className={cn(
-                      "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
-                      pathname === "/inbox"
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                    title="Messages"
-                  >
-                    <Mail className="h-4 w-4" />
-                    {unreadMessages > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                        {unreadMessages > 9 ? "9+" : unreadMessages}
-                      </span>
-                    )}
-                  </Link>
-
-                  {/* Bell */}
-                  <Link
-                    to="/notifications"
-                    className={cn(
-                      "relative flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors ml-1",
-                      pathname === "/notifications"
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                    title="Notifications"
-                  >
-                    <Bell className="h-4 w-4" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
-
-                  {showAdmin && (
-                    <Link
-                      to="/admin"
-                      className={cn(
-                        "flex items-center px-2.5 py-1.5 rounded-md text-sm transition-colors",
-                        pathname === "/admin"
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      )}
-                      title="Admin Dashboard"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                    </Link>
-                  )}
-
-                  <LanguageSwitcher />
-
-                  {/* Unified user menu */}
+                  {/* Unified profile menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className={cn(
-                        "ml-2 flex items-center gap-1.5 rounded-full px-1.5 py-1 transition-all",
-                        pathname.startsWith("/me")
-                          ? "ring-2 ring-primary"
-                          : "hover:ring-2 hover:ring-primary/20"
-                      )}>
-                        <Avatar className="h-8 w-8">
+                      <button className="relative ml-2 flex items-center rounded-full transition-all hover:ring-2 hover:ring-primary/30 focus-visible:ring-2 focus-visible:ring-primary">
+                        <Avatar className="h-9 w-9">
                           <AvatarImage src={user?.avatarUrl} />
                           <AvatarFallback className="text-xs">{user?.name?.[0] || "?"}</AvatarFallback>
                         </Avatar>
-                        <span className="text-sm font-medium text-foreground">{t("nav.me")}</span>
+                        {(unreadCount + unreadMessages) > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow-sm">
+                            {(unreadCount + unreadMessages) > 9 ? "9+" : unreadCount + unreadMessages}
+                          </span>
+                        )}
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuContent align="end" className="w-56 bg-popover z-50">
                       <div className="px-3 py-2">
                         <p className="text-sm font-medium truncate">{user?.name}</p>
                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/inbox" className="cursor-pointer justify-between">
+                          <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> Messages</span>
+                          {unreadMessages > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                              {unreadMessages > 9 ? "9+" : unreadMessages}
+                            </span>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/notifications" className="cursor-pointer justify-between">
+                          <span className="flex items-center gap-2"><Bell className="h-4 w-4" /> Notifications</span>
+                          {unreadCount > 0 && (
+                            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                              {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link to="/me" className="cursor-pointer">
@@ -199,6 +191,8 @@ export function AppNav() {
                           <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <LanguageSwitcherInline />
                       {showAdmin && (
                         <>
                           <DropdownMenuSeparator />
@@ -248,36 +242,28 @@ export function AppNav() {
               {isLoggedIn && (
                 <>
                   <GlobalSearchDialog />
-                  <Link
-                    to="/inbox"
-                    className="relative flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:bg-muted"
-                  >
-                    <Mail className="h-5 w-5" />
-                    {unreadMessages > 0 && (
-                      <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                        {unreadMessages > 9 ? "9+" : unreadMessages}
-                      </span>
-                    )}
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    className="relative flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:bg-muted"
-                  >
-                    <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
-                      <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
                 </>
               )}
 
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
-                  <button className="flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:bg-muted">
-                    <Menu className="h-5 w-5" />
-                  </button>
+                  {isLoggedIn ? (
+                    <button className="relative flex items-center justify-center h-9 w-9 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.avatarUrl} />
+                        <AvatarFallback className="text-[10px]">{user?.name?.[0] || "?"}</AvatarFallback>
+                      </Avatar>
+                      {(unreadCount + unreadMessages) > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                          {(unreadCount + unreadMessages) > 9 ? "9+" : unreadCount + unreadMessages}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    <button className="flex items-center justify-center h-9 w-9 rounded-md text-muted-foreground hover:bg-muted">
+                      <Menu className="h-5 w-5" />
+                    </button>
+                  )}
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[280px] p-0">
                   <div className="flex flex-col h-full">
@@ -335,6 +321,11 @@ export function AppNav() {
                               </span>
                             )}
                           </Link>
+
+                          <div className="py-2">
+                            <div className="h-px bg-border" />
+                          </div>
+                          <LanguageSwitcher variant="full" />
 
                           {showAdmin && (
                             <>
