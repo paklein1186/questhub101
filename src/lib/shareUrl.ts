@@ -41,12 +41,14 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
  * serve dynamic OG meta tags — crawlers don't execute JavaScript.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
 }
 
 /**
  * Returns an invite link through the OG-share function.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
 }
