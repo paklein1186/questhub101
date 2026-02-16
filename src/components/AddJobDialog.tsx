@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Briefcase, Building2, User, MapPin, FileText, Upload, Trash2, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useCreateJobPosition } from "@/hooks/useJobPositions";
+import { useCreateJobPosition, useUpdateJobPosition } from "@/hooks/useJobPositions";
 import { useTerritories } from "@/hooks/useSupabaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -29,16 +29,34 @@ const REMOTE_POLICIES = [
 
 type Step = "source" | "file" | "details";
 
+export interface JobToEdit {
+  id: string;
+  company_id?: string;
+  title: string;
+  description?: string;
+  organization_name?: string;
+  contract_type: string;
+  remote_policy?: string;
+  location_text?: string;
+  document_url?: string;
+  document_name?: string;
+  job_position_topics?: { topic_id: string }[];
+  job_position_territories?: { territory_id: string }[];
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editJob?: JobToEdit | null;
 }
 
-export function AddJobDialog({ open, onOpenChange }: Props) {
+export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   const currentUser = useCurrentUser();
   const { data: allTerritories = [] } = useTerritories();
   const createJob = useCreateJobPosition();
+  const updateJob = useUpdateJobPosition();
   const { toast } = useToast();
+  const isEdit = !!editJob;
 
   // Step state
   const [step, setStep] = useState<Step>("source");
@@ -81,6 +99,24 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
     setSelectedTopics([]);
     setSelectedTerritories([]);
   };
+
+  // Pre-populate when editing
+  useEffect(() => {
+    if (open && editJob) {
+      setStep("details");
+      setTitle(editJob.title || "");
+      setDescription(editJob.description || "");
+      setOrganizationName(editJob.organization_name || "");
+      setContractType(editJob.contract_type || "full-time");
+      setRemotePolicy(editJob.remote_policy || "on-site");
+      setLocationText(editJob.location_text || "");
+      setDocUrl(editJob.document_url || undefined);
+      setDocName(editJob.document_name || undefined);
+      setSelectedCompanyId(editJob.company_id || null);
+      setSelectedTopics((editJob.job_position_topics ?? []).map((t: any) => t.topic_id));
+      setSelectedTerritories((editJob.job_position_territories ?? []).map((t: any) => t.territory_id));
+    }
+  }, [open, editJob]);
 
   const handleOpenChange = (v: boolean) => {
     if (!v) resetForm();
@@ -180,25 +216,43 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
   const handleCreate = async () => {
     if (!title.trim()) return;
     try {
-      await createJob.mutateAsync({
-        company_id: selectedCompanyId || undefined,
-        created_by_user_id: currentUser.id,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        organization_name: organizationName.trim() || undefined,
-        contract_type: contractType,
-        remote_policy: remotePolicy,
-        location_text: locationText.trim() || undefined,
-        document_url: docUrl,
-        document_name: docName,
-        topic_ids: selectedTopics,
-        territory_ids: selectedTerritories,
-      });
-      toast({ title: "Job position posted!" });
+      if (isEdit && editJob) {
+        await updateJob.mutateAsync({
+          id: editJob.id,
+          company_id: selectedCompanyId || undefined,
+          title: title.trim(),
+          description: description.trim() || undefined,
+          organization_name: organizationName.trim() || undefined,
+          contract_type: contractType,
+          remote_policy: remotePolicy,
+          location_text: locationText.trim() || undefined,
+          document_url: docUrl,
+          document_name: docName,
+          topic_ids: selectedTopics,
+          territory_ids: selectedTerritories,
+        });
+        toast({ title: "Job position updated!" });
+      } else {
+        await createJob.mutateAsync({
+          company_id: selectedCompanyId || undefined,
+          created_by_user_id: currentUser.id,
+          title: title.trim(),
+          description: description.trim() || undefined,
+          organization_name: organizationName.trim() || undefined,
+          contract_type: contractType,
+          remote_policy: remotePolicy,
+          location_text: locationText.trim() || undefined,
+          document_url: docUrl,
+          document_name: docName,
+          topic_ids: selectedTopics,
+          territory_ids: selectedTerritories,
+        });
+        toast({ title: "Job position posted!" });
+      }
       resetForm();
       onOpenChange(false);
     } catch {
-      toast({ title: "Error creating job", variant: "destructive" });
+      toast({ title: isEdit ? "Error updating job" : "Error creating job", variant: "destructive" });
     }
   };
 
@@ -212,7 +266,7 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-primary" /> Post a Job Position
+            <Briefcase className="h-5 w-5 text-primary" /> {isEdit ? "Edit Job Position" : "Post a Job Position"}
           </DialogTitle>
         </DialogHeader>
 
@@ -391,9 +445,9 @@ export function AddJobDialog({ open, onOpenChange }: Props) {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setStep("file")}>Back</Button>
-              <Button onClick={handleCreate} className="flex-1" disabled={!title.trim() || createJob.isPending}>
-                {createJob.isPending ? "Creating…" : "Post Job"}
+              {!isEdit && <Button variant="outline" size="sm" onClick={() => setStep("file")}>Back</Button>}
+              <Button onClick={handleCreate} className="flex-1" disabled={!title.trim() || createJob.isPending || updateJob.isPending}>
+                {(createJob.isPending || updateJob.isPending) ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save Changes" : "Post Job")}
               </Button>
             </div>
           </div>

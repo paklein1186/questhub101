@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search, User, Trash2 } from "lucide-react";
+import { Briefcase, MapPin, Building2, FileText, ExternalLink, Search, User, Trash2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { AddJobDialog, type JobToEdit } from "@/components/AddJobDialog";
 import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { usePersona } from "@/hooks/usePersona";
@@ -48,6 +49,8 @@ export default function JobsExplore({ bare }: Props) {
   const [contractFilter, setContractFilter] = useState("all");
   const [remoteFilter, setRemoteFilter] = useState("all");
   const [authOpen, setAuthOpen] = useState(false);
+  const [editJob, setEditJob] = useState<JobToEdit | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [exploreFilters, setExploreFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { persona } = usePersona();
@@ -179,14 +182,24 @@ export default function JobsExplore({ bare }: Props) {
                   </div>
                 </div>
                 {isOwner && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => handleDelete(job.id, job.company_id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary"
+                      onClick={() => { setEditJob(job); setEditDialogOpen(true); }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(job.id, job.company_id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -281,6 +294,11 @@ export default function JobsExplore({ bare }: Props) {
         open={authOpen}
         onOpenChange={setAuthOpen}
         actionLabel="view this document"
+      />
+      <AddJobDialog
+        open={editDialogOpen}
+        onOpenChange={(v) => { setEditDialogOpen(v); if (!v) setEditJob(null); }}
+        editJob={editJob}
       />
     </div>
   );
