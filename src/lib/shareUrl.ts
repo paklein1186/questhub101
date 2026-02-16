@@ -27,7 +27,7 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
   company: "/companies",
   event: "/events",
   course: "/courses",
-  profile: "/profile",
+  profile: "/users",
   territory: "/territories",
   pod: "/pods",
 };

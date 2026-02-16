@@ -41,6 +41,9 @@ import { ProfileTerritoriesTab } from "@/components/profile/ProfileTerritoriesTa
 import { FollowersDialog } from "@/components/FollowersDialog";
 import { FollowedEntitiesDialog, useFollowedEntityCount } from "@/components/FollowedEntitiesDialog";
 import { ProfileListDialog } from "@/components/ProfileListDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthPromptDialog } from "@/components/AuthPromptDialog";
+import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -307,8 +310,20 @@ function ActivitySummary({
 export default function UserProfile() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { session } = useAuth();
+  const isLoggedIn = !!session;
   const currentUser = useCurrentUser();
-  const isOwnProfile = !!id && currentUser.id === id;
+  const isOwnProfile = !!id && isLoggedIn && currentUser.id === id;
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [guestOnboardingOpen, setGuestOnboardingOpen] = useState(false);
+  const [authActionLabel, setAuthActionLabel] = useState("perform this action");
+
+  /** Wraps any authenticated action — shows auth prompt for guests */
+  const requireAuth = (action: () => void, label: string) => {
+    if (isLoggedIn) { action(); return; }
+    setAuthActionLabel(label);
+    setAuthPromptOpen(true);
+  };
 
   const {
     profile, topics, territories, guilds, pods, companies,
@@ -524,18 +539,20 @@ export default function UserProfile() {
                   size="sm"
                   variant="outline"
                   disabled={chatPending}
-                  onClick={() => openChat({ id: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl || undefined })}
+                  onClick={() => requireAuth(() => openChat({ id: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl || undefined }), "message this user")}
                 >
                   <MessageSquare className="h-4 w-4 mr-1" /> Message
                 </Button>
-                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={toggleFollow}>
+                <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => requireAuth(toggleFollow, "follow this user")}>
                   {isFollowing ? <><UserMinus className="h-4 w-4 mr-1" /> Unfollow</> : <><UserPlus className="h-4 w-4 mr-1" /> Follow</>}
                 </Button>
-                <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
-                  <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
-                </Button>
+                {isLoggedIn && (
+                  <Button size="sm" variant={isBlocked ? "destructive" : "outline"} onClick={toggleBlock}>
+                    <Ban className="h-4 w-4 mr-1" /> {isBlocked ? "Unblock" : "Block"}
+                  </Button>
+                )}
                 <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
-                <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />
+                {isLoggedIn && <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />}
               </div>
             )}
           </div>
@@ -944,6 +961,22 @@ export default function UserProfile() {
           }
         />
       )}
+
+      {/* Guest auth prompt + onboarding */}
+      <AuthPromptDialog
+        open={authPromptOpen}
+        onOpenChange={setAuthPromptOpen}
+        actionLabel={authActionLabel}
+        onSignupClick={() => {
+          setAuthPromptOpen(false);
+          setGuestOnboardingOpen(true);
+        }}
+      />
+      <GuestOnboardingAssistant
+        open={guestOnboardingOpen}
+        onOpenChange={setGuestOnboardingOpen}
+        actionLabel={authActionLabel}
+      />
     </PageShell>
   );
 }
