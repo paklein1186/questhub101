@@ -670,8 +670,32 @@ export default function QuestDetail() {
             ))}
           </div>
 
-          {/* Guild attachment */}
-          {quest.guild_id && (quest as any).guilds && (
+          {/* Attached Entities (hosts) */}
+          {resolvedHosts && resolvedHosts.length > 0 && (
+            <div className="mt-6">
+              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Hosted by</h3>
+              <div className="flex flex-wrap gap-3">
+                {resolvedHosts.map((host) => (
+                  <Link
+                    key={host.id}
+                    to={host.entity_type === "GUILD" ? `/guilds/${host.entity_id}` : `/companies/${host.entity_id}`}
+                    className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all"
+                  >
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={host.logo_url ?? undefined} />
+                      <AvatarFallback>{host.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">{host.name}</p>
+                      <Badge variant="outline" className="text-[10px] capitalize">{host.role === "PRIMARY" ? "Host" : "Co-host"}</Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Fallback: guild attached but no quest_hosts row */}
+          {(!resolvedHosts || resolvedHosts.length === 0) && quest.guild_id && (quest as any).guilds && (
             <div className="mt-6">
               <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Guild</h3>
               <Link to={`/guilds/${quest.guild_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all w-fit">
