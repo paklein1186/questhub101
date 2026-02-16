@@ -3,7 +3,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = "https://questhub101.lovable.app";
+const APP_URL = "https://changethegame.xyz";
 const BRAND = "changethegame";
 const TAGLINE = "Human-powered. AI-augmented. Game-changing.";
 const DEFAULT_IMAGE = APP_URL + "/favicon.png";
