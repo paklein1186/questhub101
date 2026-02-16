@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from "react";
+import { Link } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Users, Building2, Compass, User } from "lucide-react";
 
 /** Mention types supported by the system */
-export type MentionEntityType = "user" | "guild" | "company" | "quest";
+export type MentionEntityType = "user" | "guild" | "company" | "quest" | "service" | "course" | "event" | "territory" | "pod";
 
 export interface MentionedEntity {
   entityType: MentionEntityType;
@@ -44,6 +46,11 @@ const ENTITY_ICON: Record<MentionEntityType, typeof User> = {
   guild: Users,
   company: Building2,
   quest: Compass,
+  service: Compass,
+  course: Compass,
+  event: Compass,
+  territory: Compass,
+  pod: Users,
 };
 
 const ENTITY_LABEL: Record<MentionEntityType, string> = {
@@ -51,6 +58,11 @@ const ENTITY_LABEL: Record<MentionEntityType, string> = {
   guild: "Guild",
   company: "Company",
   quest: "Quest",
+  service: "Service",
+  course: "Course",
+  event: "Event",
+  territory: "Territory",
+  pod: "Pod",
 };
 
 export function MentionTextarea({
@@ -283,7 +295,7 @@ function parseMentionRef(ref: string): { type: MentionEntityType; id: string } {
   const colonIdx = ref.indexOf(":");
   if (colonIdx > 0) {
     const type = ref.slice(0, colonIdx) as MentionEntityType;
-    if (["guild", "company", "quest"].includes(type)) {
+    if (["guild", "company", "quest", "service", "course", "event", "territory", "pod"].includes(type)) {
       return { type, id: ref.slice(colonIdx + 1) };
     }
   }
@@ -319,16 +331,24 @@ export function extractAllMentions(text: string): MentionedEntity[] {
 }
 
 function entityLink(type: MentionEntityType, id: string): string {
-  switch (type) {
-    case "user": return `/users/${id}`;
-    case "guild": return `/guilds/${id}`;
-    case "company": return `/companies/${id}`;
-    case "quest": return `/quests/${id}`;
-  }
+  const routes: Record<MentionEntityType, string> = {
+    user: "/users/",
+    guild: "/guilds/",
+    company: "/companies/",
+    quest: "/quests/",
+    service: "/services/",
+    course: "/courses/",
+    event: "/events/",
+    territory: "/territories/",
+    pod: "/pods/",
+  };
+  return `${routes[type] || "/"}${id}`;
 }
 
 /**
  * Convert mention tokens to display JSX.
+ * User mentions → inline @Name link
+ * Entity mentions (quest, guild, etc.) → clickable Badge
  */
 export function renderMentions(text: string): (string | JSX.Element)[] {
   const parts: (string | JSX.Element)[] = [];
@@ -342,16 +362,33 @@ export function renderMentions(text: string): (string | JSX.Element)[] {
     }
     const name = match[1];
     const parsed = parseMentionRef(match[2]);
-    parts.push(
-      <a
-        key={`${parsed.type}-${parsed.id}-${match.index}`}
-        href={entityLink(parsed.type, parsed.id)}
-        className="font-semibold text-primary hover:underline"
-        title={`View ${parsed.type}`}
-      >
-        {name}
-      </a>,
-    );
+    const href = entityLink(parsed.type, parsed.id);
+
+    if (parsed.type === "user") {
+      parts.push(
+        <Link
+          key={`${parsed.type}-${parsed.id}-${match.index}`}
+          to={href}
+          className="font-semibold text-primary hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          @{name}
+        </Link>,
+      );
+    } else {
+      parts.push(
+        <Link
+          key={`${parsed.type}-${parsed.id}-${match.index}`}
+          to={href}
+          className="inline-flex"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-primary/20 transition-colors">
+            {name}
+          </Badge>
+        </Link>,
+      );
+    }
     lastIndex = re.lastIndex;
   }
 
