@@ -1022,7 +1022,7 @@ function ReferralsSection({ userId }: { userId: string }) {
     enabled: !!userId,
   });
   const referralLink = myReferrals.length > 0
-    ? `${window.location.origin}/signup?ref=${myReferrals[0].code}`
+    ? `https://changethegame.xyz/signup?ref=${myReferrals[0].code}`
     : null;
 
   const createCode = async () => {
