@@ -37,6 +37,7 @@ import { MessageSquare } from "lucide-react";
 import { ProfileQuestsTab } from "@/components/profile/ProfileQuestsTab";
 import { FollowersDialog } from "@/components/FollowersDialog";
 import { FollowedEntitiesDialog, useFollowedEntityCount } from "@/components/FollowedEntitiesDialog";
+import { ProfileListDialog } from "@/components/ProfileListDialog";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -241,7 +242,7 @@ export default function UserProfile() {
   const [showCreateUnit, setShowCreateUnit] = useState(false);
   const [followDialogMode, setFollowDialogMode] = useState<"followers" | "following" | null>(null);
   const [followedEntityDialog, setFollowedEntityDialog] = useState<"GUILD" | "QUEST" | null>(null);
-
+  const [listDialog, setListDialog] = useState<string | null>(null);
   const { data: followedGuildsCount = 0 } = useFollowedEntityCount(id, "GUILD");
   const { data: followedQuestsCount = 0 } = useFollowedEntityCount(id, "QUEST");
 
@@ -412,14 +413,14 @@ export default function UserProfile() {
             <div className="flex flex-wrap gap-3">
               <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
               <StatCard icon={Users} label="Following" count={followingCount} onClick={() => setFollowDialogMode("following")} />
-              <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
-              <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
-              <StatCard icon={Shield} label="Guilds" count={guilds.length} />
+              <StatCard icon={Compass} label="Quests created" count={questsCreated.length} onClick={() => setListDialog("quests-created")} />
+              <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} onClick={() => setListDialog("quests-joined")} />
+              <StatCard icon={Shield} label="Guilds" count={guilds.length} onClick={() => setListDialog("guilds")} />
               <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
               <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
-              <StatCard icon={CircleDot} label="Pods" count={pods.length} />
-              <StatCard icon={Building2} label="Organizations" count={companies.length} />
-              <StatCard icon={Briefcase} label={serviceLabel} count={services.length} />
+              <StatCard icon={CircleDot} label="Pods" count={pods.length} onClick={() => setListDialog("pods")} />
+              <StatCard icon={Building2} label="Organizations" count={companies.length} onClick={() => setListDialog("companies")} />
+              <StatCard icon={Briefcase} label={serviceLabel} count={services.length} onClick={() => setListDialog("services")} />
             </div>
 
             {/* Entities preview */}
@@ -716,6 +717,35 @@ export default function UserProfile() {
           onOpenChange={(open) => { if (!open) setFollowedEntityDialog(null); }}
           userId={id!}
           entityType={followedEntityDialog}
+        />
+      )}
+      {listDialog && (
+        <ProfileListDialog
+          open={!!listDialog}
+          onOpenChange={(open) => { if (!open) setListDialog(null); }}
+          title={
+            listDialog === "quests-created" ? "Quests Created" :
+            listDialog === "quests-joined" ? "Quests Joined" :
+            listDialog === "guilds" ? "Guilds" :
+            listDialog === "pods" ? "Pods" :
+            listDialog === "companies" ? "Organizations" :
+            listDialog === "services" ? serviceLabel : ""
+          }
+          icon={
+            listDialog === "quests-created" || listDialog === "quests-joined" ? Compass :
+            listDialog === "guilds" ? Shield :
+            listDialog === "pods" ? CircleDot :
+            listDialog === "companies" ? Building2 : Briefcase
+          }
+          items={
+            listDialog === "quests-created" ? questsCreated.map((q: any) => ({ id: q.id, name: q.title, imageUrl: q.cover_image_url, subtitle: (q.status || "draft").toLowerCase().replace("_", " "), link: `/quests/${q.id}` })) :
+            listDialog === "quests-joined" ? questsJoined.map((qm: any) => ({ id: qm.questId || qm.quest_id, name: qm.quest?.title || "Quest", imageUrl: qm.quest?.cover_image_url, link: `/quests/${qm.questId || qm.quest_id}` })) :
+            listDialog === "guilds" ? guilds.map((gm: any) => ({ id: gm.guildId, name: gm.guild?.name || "Guild", imageUrl: gm.guild?.logo_url, subtitle: gm.role?.toLowerCase(), link: `/guilds/${gm.guildId}` })) :
+            listDialog === "pods" ? pods.map((pm: any) => ({ id: pm.podId, name: pm.pod?.name || "Pod", subtitle: pm.role?.toLowerCase(), link: `/pods/${pm.podId}` })) :
+            listDialog === "companies" ? companies.map((cm: any) => ({ id: cm.companyId, name: cm.company?.name || "Organization", imageUrl: cm.company?.logo_url, subtitle: cm.role?.toLowerCase(), link: `/companies/${cm.companyId}` })) :
+            listDialog === "services" ? services.map((s: any) => ({ id: s.id, name: s.title, imageUrl: s.image_url, subtitle: s.price_amount != null ? (s.price_amount === 0 ? "Free" : `€${s.price_amount}`) : undefined, link: `/services/${s.id}` })) :
+            []
+          }
         />
       )}
     </PageShell>
