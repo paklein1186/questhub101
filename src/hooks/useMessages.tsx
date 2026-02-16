@@ -326,15 +326,21 @@ export function useCreateConversation() {
             .in("conversation_id", myConvs.map((c) => c.conversation_id));
 
           if (otherConvs?.length) {
-            // Check if any of these are 1:1 (not group)
             for (const conv of otherConvs) {
+              // Check it's a non-group conversation with exactly 2 participants
               const { data: convData } = await supabase
                 .from("conversations")
                 .select("id, is_group")
                 .eq("id", conv.conversation_id)
                 .eq("is_group", false)
-                .single();
-              if (convData) return convData.id;
+                .maybeSingle();
+              if (!convData) continue;
+
+              const { count } = await supabase
+                .from("conversation_participants")
+                .select("id", { count: "exact", head: true })
+                .eq("conversation_id", convData.id);
+              if (count === 2) return convData.id;
             }
           }
         }
