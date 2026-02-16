@@ -46,6 +46,7 @@ const PERSONAS = [
   { key: "creative", label: "Creator", icon: Palette, desc: "Artist, designer, writer, performer", color: "text-purple-500", bg: "bg-purple-500/10 border-purple-500/20" },
   { key: "impact", label: "Impact Builder", icon: Shield, desc: "Consultant, facilitator, ecosystem builder", color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
   { key: "hybrid", label: "Both", icon: Blend, desc: "Creative meets strategic", color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
+  { key: "org_rep", label: "Organization Representative", icon: Building2, desc: "Company, institution, foundation, or NGO", color: "text-blue-500", bg: "bg-blue-500/10 border-blue-500/20" },
 ];
 
 interface TopicItem {
@@ -303,7 +304,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
       return;
     }
 
-    const roleMap: Record<string, string> = { creative: "CREATOR", impact: "GAMECHANGER", hybrid: "HYBRID" };
+    const roleMap: Record<string, string> = { creative: "CREATOR", impact: "GAMECHANGER", hybrid: "HYBRID", org_rep: "GAMECHANGER" };
     const role = roleMap[selectedPersona || ""] || "GAMECHANGER";
     const { error } = await signUp(email.trim(), password, name.trim(), role);
     setSigningUp(false);
@@ -324,12 +325,13 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         .map((id) => id.replace("topic:", ""));
 
       const ctx = {
-        persona: selectedPersona,
+        persona: selectedPersona === "org_rep" ? "impact" : selectedPersona,
         interests: interestLabels,
         interest_topic_ids: topicIds,
         goals: selectedGoal ? [selectedGoal] : [],
         suggested_role: role,
         org: scrapedOrg ? { name: scrapedOrg.name, url: scrapedOrg.url, sector: scrapedOrg.sector, logo: scrapedOrg.logo } : null,
+        is_org_rep: selectedPersona === "org_rep",
         preselected_guild_ids: selectedGuildIds,
         preselected_follow_user_ids: selectedUserIds,
         show_post_signup_wizard: true,
