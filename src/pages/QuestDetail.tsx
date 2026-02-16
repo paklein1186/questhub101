@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2 } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -151,6 +151,8 @@ export default function QuestDetail() {
   const [editTerritories, setEditTerritories] = useState<string[]>([]);
   const [editQuestType, setEditQuestType] = useState("ACTION");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteEmailSending, setInviteEmailSending] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
 
@@ -638,29 +640,87 @@ export default function QuestDetail() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-display font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Participants ({(participants || []).length})</h3>
             {canPostUpdate && (
-              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+              <Dialog open={inviteOpen} onOpenChange={(o) => { setInviteOpen(o); if (!o) setInviteEmail(""); }}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader><DialogTitle>Invite a participant</DialogTitle></DialogHeader>
-                  <div className="space-y-3 mt-2">
-                    <UserSearchInput
-                      onSelect={async (user) => {
-                        const already = (participants || []).some((p: any) => p.user_id === user.user_id);
-                        if (already) { toast({ title: "Already a participant" }); return; }
-                        const { error } = await supabase.from("quest_participants").insert({
-                          quest_id: quest.id, user_id: user.user_id, role: "COLLABORATOR", status: "ACCEPTED",
-                        });
-                        if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
-                        sendInviteNotification({ invitedUserId: user.user_id, inviterName: currentUser.name, entityType: "quest", entityId: quest.id, entityName: quest.title });
-                        setInviteOpen(false);
-                        qc.invalidateQueries({ queryKey: ["quest-participants", id] });
-                        toast({ title: `${user.display_name || "User"} invited!` });
-                      }}
-                      placeholder="Search by name…"
-                      excludeUserIds={(participants || []).map((p: any) => p.user_id)}
-                    />
+                  <div className="space-y-4 mt-2">
+                    {/* Existing user search */}
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Search existing members</label>
+                      <UserSearchInput
+                        onSelect={async (user) => {
+                          const already = (participants || []).some((p: any) => p.user_id === user.user_id);
+                          if (already) { toast({ title: "Already a participant" }); return; }
+                          const { error } = await supabase.from("quest_participants").insert({
+                            quest_id: quest.id, user_id: user.user_id, role: "COLLABORATOR", status: "ACCEPTED",
+                          });
+                          if (error) { toast({ title: "Failed to invite", variant: "destructive" }); return; }
+                          sendInviteNotification({ invitedUserId: user.user_id, inviterName: currentUser.name, entityType: "quest", entityId: quest.id, entityName: quest.title });
+                          setInviteOpen(false);
+                          qc.invalidateQueries({ queryKey: ["quest-participants", id] });
+                          toast({ title: `${user.display_name || "User"} invited!` });
+                        }}
+                        placeholder="Search by name…"
+                        excludeUserIds={(participants || []).map((p: any) => p.user_id)}
+                      />
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                      <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">or invite by email</span></div>
+                    </div>
+
+                    {/* Email invite */}
+                    <div>
+                      <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Invite someone new via email</label>
+                      <form
+                        className="flex gap-2"
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          const email = inviteEmail.trim().toLowerCase();
+                          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                            toast({ title: "Please enter a valid email", variant: "destructive" });
+                            return;
+                          }
+                          setInviteEmailSending(true);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("invite-quest-email", {
+                              body: { email, questId: quest.id, questTitle: quest.title, inviterName: currentUser.name },
+                            });
+                            if (error) throw error;
+                            if (data?.error) {
+                              toast({ title: data.error, variant: "destructive" });
+                            } else if (data?.type === "existing_user") {
+                              qc.invalidateQueries({ queryKey: ["quest-participants", id] });
+                              toast({ title: "User found and added as participant!" });
+                              setInviteOpen(false);
+                            } else {
+                              toast({ title: data?.emailSent ? "Invitation email sent!" : "Invite recorded (email delivery pending)" });
+                              setInviteOpen(false);
+                            }
+                          } catch (err: any) {
+                            toast({ title: err.message || "Failed to send invite", variant: "destructive" });
+                          } finally {
+                            setInviteEmailSending(false);
+                            setInviteEmail("");
+                          }
+                        }}
+                      >
+                        <Input
+                          type="email"
+                          placeholder="colleague@example.com"
+                          value={inviteEmail}
+                          onChange={(e) => setInviteEmail(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button type="submit" size="sm" disabled={inviteEmailSending}>
+                          {inviteEmailSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Mail className="h-4 w-4 mr-1" /> Send</>}
+                        </Button>
+                      </form>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

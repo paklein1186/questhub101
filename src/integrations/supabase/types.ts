@@ -3077,6 +3077,47 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_email_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by_user_id: string
+          quest_id: string
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by_user_id: string
+          quest_id: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by_user_id?: string
+          quest_id?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_email_invites_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_funding: {
         Row: {
           amount: number
@@ -5256,6 +5297,12 @@ export type Database = {
           token_expires_at: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_user_id_by_email: {
+        Args: { lookup_email: string }
+        Returns: {
+          id: string
         }[]
       }
       grant_user_credits: {
