@@ -12,6 +12,7 @@ import {
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
   Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ import { LanguageSettingsTab } from "@/components/LanguageSettingsTab";
 import { WalletTab } from "@/components/WalletTab";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 import { ProfileMaskingSettings } from "@/components/ProfileMaskingSettings";
+import { ActivityHistoryTab } from "@/components/ActivityHistoryTab";
 
 const TABS = [
   { key: "profile", label: "settings.profile", icon: UserCircle },
@@ -73,8 +75,8 @@ const TABS = [
   { key: "privacy", label: "settings.privacy", icon: Eye },
   { key: "referrals", label: "settings.referrals", icon: UserCircle },
   { key: "apps", label: "settings.apps", icon: Plug },
+  { key: "history", label: "Activity History", icon: History },
 ];
-
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -779,6 +781,9 @@ export default function SettingsPage() {
                   </Section>
                 </div>
               )}
+
+              {/* ── Activity History ── */}
+              {activeTab === "history" && <ActivityHistoryTab />}
 
             </motion.div>
           </div>
