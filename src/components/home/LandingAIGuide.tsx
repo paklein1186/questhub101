@@ -177,7 +177,7 @@ export function LandingAIGuide() {
                     return (
                       <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.08 }}>
-                        <Link to="/signup"
+                        <Link to="/welcome"
                           className="flex items-start gap-3 rounded-xl border border-border bg-card/80 p-3 text-left hover:border-primary/30 hover:shadow-sm transition-all group block"
                         >
                           <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">

@@ -92,7 +92,7 @@ export default function BrowseLanding() {
               <Link to="/explore"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
             </Button>
             <Button size="sm" variant="ghost" asChild><Link to="/login">Log in</Link></Button>
-            <Button size="sm" asChild><Link to="/signup">Sign up</Link></Button>
+            <Button size="sm" asChild><Link to="/welcome">Sign up</Link></Button>
           </nav>
         </div>
       </header>
@@ -135,7 +135,7 @@ export default function BrowseLanding() {
               <Link to="/explore"><Compass className="h-4 w-4" /> Browse Everything</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="gap-2">
-              <Link to="/signup"><Sparkles className="h-4 w-4" /> Create an Account</Link>
+              <Link to="/welcome"><Sparkles className="h-4 w-4" /> Create an Account</Link>
             </Button>
           </motion.div>
 
@@ -307,7 +307,7 @@ export default function BrowseLanding() {
           <p className="text-muted-foreground mb-6">Create your account and start contributing.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/welcome">← Back to persona selector</Link>

@@ -124,7 +124,7 @@ export default function HybridLanding() {
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild><Link to="/login">Log in</Link></Button>
-                <Button size="sm" asChild><Link to="/signup">Sign up</Link></Button>
+                <Button size="sm" asChild><Link to="/welcome">Sign up</Link></Button>
               </>
             )}
           </nav>
@@ -371,7 +371,7 @@ export default function HybridLanding() {
           <p className="text-muted-foreground mb-6">Join a network where creativity and impact amplify each other.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/signup">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/explore">Explore first</Link>

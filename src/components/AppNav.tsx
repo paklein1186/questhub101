@@ -234,7 +234,7 @@ export function AppNav() {
                   <Link to="/login"><LogIn className="h-4 w-4 mr-1" /> {t("nav.login")}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/signup">{t("nav.signup")}</Link>
+                  <Link to="/welcome">{t("nav.signup")}</Link>
                 </Button>
               </>
             )}
@@ -350,7 +350,7 @@ export function AppNav() {
                     ) : (
                       <>
                         <Button size="sm" className="w-full" asChild>
-                          <Link to="/signup" onClick={() => setMobileOpen(false)}>{t("nav.signup")}</Link>
+                          <Link to="/welcome" onClick={() => setMobileOpen(false)}>{t("nav.signup")}</Link>
                         </Button>
                         <Button variant="outline" size="sm" className="w-full" asChild>
                           <Link to="/login" onClick={() => setMobileOpen(false)}>
