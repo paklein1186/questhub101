@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   CalendarClock, Video, ExternalLink, ArrowLeft,
   ShieldAlert, FileQuestion, CalendarPlus,
@@ -23,6 +23,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function BookingDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const currentUser = useCurrentUser();
   const { data: booking, isLoading, error } = useBookingById(id);
@@ -71,8 +72,8 @@ export default function BookingDetail() {
   return (
     <PageShell>
       <div className="max-w-2xl mx-auto">
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link to="/work"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Work</Link>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
 
         <div className="flex items-start justify-between mb-6">

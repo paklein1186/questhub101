@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -39,6 +39,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { EntityFollowersCount } from "@/components/FollowersDialog";
 
 export default function PodDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: pod, isLoading } = usePodById(id);
   const currentUser = useCurrentUser();
@@ -106,8 +107,8 @@ export default function PodDetail() {
         onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_POD_CREDIT_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Not enough Credits", variant: "destructive" }); }}
       />
 
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=pods"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Pods</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       {pod.is_draft && <DraftBanner />}

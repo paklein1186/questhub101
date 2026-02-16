@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { Switch } from "@/components/ui/switch";
@@ -121,6 +121,7 @@ function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig 
 }
 
 export default function GuildDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: guild, isLoading } = useGuildById(id);
   const { data: membersData } = useGuildMembersWithProfiles(id);
@@ -257,8 +258,8 @@ export default function GuildDetail() {
 
       <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_CREDIT_COST} userXp={limits.userCredits} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_GUILD_CREDIT_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=guilds"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Guilds</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       {guild.is_draft && <DraftBanner />}

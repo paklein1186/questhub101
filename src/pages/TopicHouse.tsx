@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X, Brain, BookOpen } from "lucide-react";
@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 
 export default function TopicHouse() {
+  const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
   const { data: topic, isLoading } = useTopicBySlug(slug);
   const { data: stewards } = useTopicStewards(topic?.id);
@@ -83,8 +84,8 @@ export default function TopicHouse() {
 
   return (
     <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">

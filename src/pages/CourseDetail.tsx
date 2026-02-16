@@ -68,8 +68,8 @@ export default function CourseDetail() {
 
   return (
     <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=courses"><ArrowLeft className="h-4 w-4 mr-1" /> Courses</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       {course.cover_image_url && (

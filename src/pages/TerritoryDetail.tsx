@@ -1,4 +1,4 @@
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare } from "lucide-react";
@@ -11,6 +11,7 @@ import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 export default function TerritoryDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "overview";
@@ -45,9 +46,9 @@ export default function TerritoryDetail() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Back link */}
-        <Link to="/network" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="h-3.5 w-3.5" /> Network
-        </Link>
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </button>
 
         {/* Header */}
         <div className="space-y-3">
