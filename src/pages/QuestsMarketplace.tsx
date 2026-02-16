@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,7 @@ function CreateQuestButton() {
 
 export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
+  const [hideCompleted, setHideCompleted] = useState(true);
 
   const currentUser = useCurrentUser();
   const { session } = useAuth();
@@ -92,6 +93,7 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
 
   const filtered = applySortBy(preFiltered.filter((q) => {
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
+    if (hideCompleted && (q.status === "COMPLETED" || q.status === "CANCELLED")) return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
     if (filters.status !== "all" && q.status !== filters.status) return false;
@@ -134,6 +136,16 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
           universeMode={hf.universeMode}
           onUniverseModeChange={hf.setUniverseMode}
         />
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            type="button"
+            onClick={() => setHideCompleted(!hideCompleted)}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors ${hideCompleted ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:border-primary/20"}`}
+          >
+            <EyeOff className="h-3 w-3" />
+            Completed hidden
+          </button>
+        </div>
       </div>
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
