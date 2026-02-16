@@ -288,6 +288,32 @@ export default function UserProfile() {
     enabled: !!id,
   });
 
+  // Fetch all custom roles assigned to this user across entities
+  const { data: userCrossRoles = [] } = useQuery({
+    queryKey: ["user-cross-entity-roles", id],
+    queryFn: async () => {
+      const { data: assignments, error: e1 } = await supabase
+        .from("entity_member_roles")
+        .select("entity_role_id")
+        .eq("user_id", id!);
+      if (e1 || !assignments?.length) return [];
+      const roleIds = [...new Set((assignments as any[]).map((a: any) => a.entity_role_id))];
+      const { data: roles, error: e2 } = await supabase
+        .from("entity_roles")
+        .select("id, name, color, entity_id, entity_type")
+        .in("id", roleIds);
+      if (e2 || !roles?.length) return [];
+      const seen = new Map<string, { name: string; color: string | null; count: number }>();
+      for (const r of roles as any[]) {
+        const key = r.name.toLowerCase();
+        if (seen.has(key)) seen.get(key)!.count++;
+        else seen.set(key, { name: r.name, color: r.color, count: 1 });
+      }
+      return [...seen.values()];
+    },
+    enabled: !!id,
+  });
+
   const [searchParamsTab, setSearchParamsTab] = useSearchParams();
   const tab = searchParamsTab.get("tab") || "overview";
   const setTab = (v: string) => setSearchParamsTab(prev => {
@@ -527,6 +553,32 @@ export default function UserProfile() {
                         </div>
                       </div>
                     </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Roles cloud */}
+            {userCrossRoles.length > 0 && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Roles</h3>
+                <div className="flex flex-wrap gap-2">
+                  {userCrossRoles.map((role) => (
+                    <Badge
+                      key={role.name}
+                      variant="outline"
+                      className="text-xs px-3 py-1 rounded-full"
+                      style={role.color ? {
+                        borderColor: role.color,
+                        backgroundColor: `${role.color}15`,
+                        color: role.color,
+                      } : undefined}
+                    >
+                      {role.name}
+                      {role.count > 1 && (
+                        <span className="ml-1 opacity-60">×{role.count}</span>
+                      )}
+                    </Badge>
                   ))}
                 </div>
               </section>
