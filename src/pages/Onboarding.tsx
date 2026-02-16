@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash,
   Check, Compass, Heart, Palette, Rocket, Users, Briefcase,
-  GraduationCap, HelpCircle, Image as ImageIcon, Building2,
+  GraduationCap, HelpCircle, Image as ImageIcon, Building2, Target, Landmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,11 +48,13 @@ const INTENTION_OPTIONS = [
   { key: "community", label: "Meet people, join communities", icon: Users, desc: "Find your people and belong" },
   { key: "work", label: "Find work / clients", icon: Briefcase, desc: "Offer your skills and get hired" },
   { key: "learn", label: "Learn and grow skills", icon: GraduationCap, desc: "Discover new topics and train" },
+  { key: "recruit", label: "Recruit talent for my organization", icon: Target, desc: "Find skilled individuals and guilds aligned with your mission" },
+  { key: "fund", label: "Fund or sponsor initiatives", icon: Landmark, desc: "Support projects, quests, or communities as a sponsor" },
 ];
 
 function inferPersona(selections: string[]): "IMPACT" | "CREATIVE" | "HYBRID" {
   const s = new Set(selections);
-  const hasImpact = s.has("impact") || s.has("project") || s.has("work");
+  const hasImpact = s.has("impact") || s.has("project") || s.has("work") || s.has("recruit") || s.has("fund");
   const hasCreative = s.has("creative");
   if (hasImpact && hasCreative) return "HYBRID";
   if (hasCreative) return "CREATIVE";
@@ -68,6 +70,7 @@ const slideVariants = {
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user: authUser, refreshProfile } = useAuth();
   const currentUser = useCurrentUser();
   const { updatePersona } = usePersona();
@@ -86,7 +89,7 @@ export default function Onboarding() {
 
   // Creative vs Impact path
   const [isCreativePath, setIsCreativePath] = useState(false);
-  const [representsOrg, setRepresentsOrg] = useState(false);
+  const [representsOrg, setRepresentsOrg] = useState(() => searchParams.get("org") === "1");
 
   // Step 0 – Intention
   const [intentions, setIntentions] = useState<string[]>([]);
