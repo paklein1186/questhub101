@@ -5,7 +5,7 @@ import {
   Bell, Check, CheckCheck, MessageSquare, ThumbsUp, Users, Megaphone,
   CalendarCheck, UserPlus, Zap, Trophy, Shield, Radio, ChevronDown,
   Filter, AlertTriangle, CreditCard, Bug, Flag, Building2, Handshake,
-  GraduationCap, Calendar, Brain,
+  GraduationCap, Calendar, Brain, Settings,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -250,6 +250,12 @@ export default function NotificationsCenter() {
               <CheckCheck className="h-4 w-4 mr-1" /> Mark all read
             </Button>
           )}
+
+          <Button variant="ghost" size="sm" asChild className="h-9 w-9 p-0">
+            <Link to="/settings?tab=notifications">
+              <Settings className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -314,20 +320,24 @@ export default function NotificationsCenter() {
                         </p>
                       )}
                     </div>
-                    {!notification.isRead && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-primary"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          markAsRead(notification.id);
-                        }}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "shrink-0 h-8 w-8 p-0",
+                        notification.isRead
+                          ? "text-primary/40 cursor-default"
+                          : "text-muted-foreground hover:text-primary"
+                      )}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!notification.isRead) markAsRead(notification.id);
+                      }}
+                      title={notification.isRead ? "Read" : "Mark as read"}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
                   </Link>
                 </motion.div>
               );
