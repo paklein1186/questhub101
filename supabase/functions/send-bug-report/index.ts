@@ -47,7 +47,7 @@ serve(async (req) => {
     `;
 
     const payload: Record<string, unknown> = {
-      from: "changethegame <noreply@changethegame.xyz>",
+      from: "changethegame <hello@changethegame.xyz>",
       to: ["pa@changethegame.xyz"],
       subject: `🐛 Bug Report — ${description.slice(0, 60)}`,
       html: htmlBody,
