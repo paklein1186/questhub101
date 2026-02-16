@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { TerritorySynthesis } from "./TerritorySynthesis";
 import { useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ChevronUp, ChevronDown, ArrowLeftRight } from "lucide-react";
-import { EntityFollowersCount } from "@/components/FollowersDialog";
+import { FollowersDialog } from "@/components/FollowersDialog";
 
 interface Props {
   territoryId: string;
@@ -159,7 +160,7 @@ export function TerritoryOverviewTab({ territoryId, territoryName }: Props) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
-        <EntityFollowersCount entityId={territoryId} entityType="TERRITORY" />
+        <TerritoryPeopleCount territoryId={territoryId} />
       </div>
       <RelatedTerritoriesSection territoryId={territoryId} />
       <TerritorySynthesis
@@ -168,5 +169,53 @@ export function TerritoryOverviewTab({ territoryId, territoryName }: Props) {
         isMember={true}
       />
     </div>
+  );
+}
+
+/** Combined count: followers + user_territories for the territory */
+function TerritoryPeopleCount({ territoryId }: { territoryId: string }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { data: count = 0 } = useQuery({
+    queryKey: ["territory-people-count", territoryId],
+    queryFn: async () => {
+      const [followsRes, utRes] = await Promise.all([
+        supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("target_id", territoryId)
+          .eq("target_type", "TERRITORY")
+          .limit(500),
+        supabase
+          .from("user_territories" as any)
+          .select("user_id")
+          .eq("territory_id", territoryId)
+          .limit(500),
+      ]);
+      const ids = new Set<string>();
+      (followsRes.data ?? []).forEach((f: any) => ids.add(f.follower_id));
+      (utRes.data ?? []).forEach((u: any) => ids.add(u.user_id));
+      return ids.size;
+    },
+    enabled: !!territoryId,
+  });
+
+  return (
+    <>
+      <button
+        onClick={() => setDialogOpen(true)}
+        className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"
+      >
+        <p className="text-2xl font-bold text-primary">{count}</p>
+        <p className="text-sm text-muted-foreground">Connected Humans</p>
+      </button>
+      <FollowersDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        targetId={territoryId}
+        targetType="TERRITORY"
+        mode="followers"
+      />
+    </>
   );
 }
