@@ -372,7 +372,7 @@ export function renderMentions(text: string): (string | JSX.Element)[] {
           className="font-semibold text-primary hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
-          @{name}
+          {name}
         </Link>,
       );
     } else {
