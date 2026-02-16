@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
@@ -19,6 +19,7 @@ import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { PostCard } from "@/components/feed/PostCard";
 import { PostTile } from "@/components/feed/PostTile";
+import { FeedDisplayToggle, type FeedDisplayMode } from "@/components/feed/FeedDisplayToggle";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
@@ -621,6 +622,28 @@ const contextRoute: Record<string, string> = {
 function FollowingFeedTab() {
   const [filter, setFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
+  const currentUser = useCurrentUser();
+
+  // Per-user display mode persistence
+  const storageKey = currentUser?.id ? `following_display_${currentUser.id}` : null;
+  const [displayMode, setDisplayMode] = useState<FeedDisplayMode>(() => {
+    if (!storageKey) return "large";
+    return (localStorage.getItem(storageKey) as FeedDisplayMode) || "large";
+  });
+
+  const handleDisplayChange = useCallback((mode: FeedDisplayMode) => {
+    setDisplayMode(mode);
+    if (storageKey) localStorage.setItem(storageKey, mode);
+  }, [storageKey]);
+
+  // Sync when user changes
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey) as FeedDisplayMode | null;
+      if (saved) setDisplayMode(saved);
+    }
+  }, [storageKey]);
+
   const { data: posts = [], isLoading } = useFollowingFeed(filter);
 
   const postIds = useMemo(() => posts.map((p) => p.id), [posts]);
@@ -628,15 +651,24 @@ function FollowingFeedTab() {
   const upvotedSet = useMemo(() => new Set(myUpvotes.map((u) => u.post_id)), [myUpvotes]);
   const sortedPosts = useMemo(() => sortPosts(posts, sortMode), [posts, sortMode]);
 
+  const gridClass =
+    displayMode === "list" ? "space-y-3" :
+    displayMode === "small" ? "grid grid-cols-3 gap-2" :
+    displayMode === "medium" ? "grid grid-cols-2 md:grid-cols-3 gap-3" :
+    "grid grid-cols-2 gap-3";
+
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-          <Rss className="h-5 w-5 text-primary" /> Your network feed
-        </h2>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          Posts and updates from people and units you follow.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+            <Rss className="h-5 w-5 text-primary" /> Your network feed
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Posts and updates from people and units you follow.
+          </p>
+        </div>
+        <FeedDisplayToggle value={displayMode} onChange={handleDisplayChange} />
       </div>
 
       {/* Filter chips */}
@@ -690,10 +722,14 @@ function FollowingFeedTab() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {sortedPosts.map((post) => (
-            <PostTile key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} size="large" />
-          ))}
+        <div className={gridClass}>
+          {sortedPosts.map((post) =>
+            displayMode === "list" ? (
+              <PostCard key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} />
+            ) : (
+              <PostTile key={post.id} post={post} hasUpvoted={upvotedSet.has(post.id)} size={displayMode} />
+            )
+          )}
         </div>
       )}
     </div>
