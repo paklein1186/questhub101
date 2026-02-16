@@ -275,7 +275,7 @@ export default function GuildDetail() {
               {guild.is_approved ? <CheckCircle className="h-5 w-5 text-primary shrink-0" /> : isAdmin && <Badge variant="outline" className="text-xs shrink-0"><AlertCircle className="h-3 w-3 mr-1" /> Awaiting moderation</Badge>}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <Badge variant="secondary" className="capitalize">{guild.type.toLowerCase()}</Badge>
+              <Badge variant="secondary" className="capitalize">{(guild.type || "guild").toLowerCase()}</Badge>
               <span>Created by <Link to={`/users/${creator?.user_id}`} className="text-primary hover:underline">{creator?.name}</Link></span>
             </div>
             <p className="text-muted-foreground max-w-2xl mt-2 line-clamp-2">{guild.description}</p>
@@ -357,7 +357,7 @@ export default function GuildDetail() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Type</span>
-                <Badge variant="outline" className="capitalize text-xs">{guild.type.toLowerCase()}</Badge>
+                <Badge variant="outline" className="capitalize text-xs">{(guild.type || "guild").toLowerCase()}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Founder</span>
@@ -417,7 +417,7 @@ export default function GuildDetail() {
                 <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
                 <div className="flex-1">
                   <p className="text-sm font-medium">{m.user?.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{m.role.toLowerCase()}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{(m.role || "member").toLowerCase()}</p>
                 </div>
                 {(m.user?.xp ?? 0) > 0 && (
                   <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
