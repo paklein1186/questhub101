@@ -30,6 +30,15 @@ export interface NotificationPreferencesRow {
   notify_xp_and_achievements: boolean;
   notify_mentions: boolean;
   notify_direct_messages_email: boolean;
+  notify_direct_messages_in_app: boolean;
+  // Followed activity
+  notify_new_posts_from_followed: boolean;
+  notify_new_events_from_followed: boolean;
+  notify_new_services_from_followed: boolean;
+  notify_new_courses_from_followed: boolean;
+  notify_new_quests_from_followed: boolean;
+  notify_entity_updates_from_followed: boolean;
+  notify_new_members_in_my_units: boolean;
   // Digest
   notify_daily_digest_in_app: boolean;
   notify_daily_digest_email: boolean;
@@ -63,6 +72,14 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_xp_and_achievements: true,
   notify_mentions: true,
   notify_direct_messages_email: true,
+  notify_direct_messages_in_app: true,
+  notify_new_posts_from_followed: true,
+  notify_new_events_from_followed: true,
+  notify_new_services_from_followed: true,
+  notify_new_courses_from_followed: true,
+  notify_new_quests_from_followed: true,
+  notify_entity_updates_from_followed: true,
+  notify_new_members_in_my_units: true,
   notify_daily_digest_in_app: true,
   notify_daily_digest_email: true,
   digest_frequency: "three_days",

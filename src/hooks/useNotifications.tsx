@@ -69,6 +69,12 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.XP_GAINED:
     case NotificationType.ACHIEVEMENT_UNLOCKED:
       return "notifyOnXpAndAchievements";
+    case NotificationType.FOLLOWED_USER_NEW_POST:
+    case NotificationType.FOLLOWED_ENTITY_NEW_POST:
+      return "notifyOnFollowerActivity"; // mapped to follower activity for legacy compat
+    case NotificationType.DIRECT_MESSAGE_RECEIVED:
+    case NotificationType.MESSAGE_PRIVATE:
+      return "notifyOnComments"; // fallback
     default:
       return null;
   }
@@ -181,6 +187,23 @@ export function linkForNotification(n: Notification): string {
     case NotificationType.SYSTEM_PAYMENT_FAILED:
     case NotificationType.USER_SHARE_PURCHASE_CONFIRMED:
       return "/admin/economy/payments";
+    case NotificationType.FOLLOWED_USER_NEW_POST:
+    case NotificationType.FOLLOWED_ENTITY_NEW_POST:
+      return n.relatedEntityId ? `/` : "/feed";
+    case NotificationType.FOLLOWED_ENTITY_NEW_EVENT:
+      return n.relatedEntityId ? `/events/${n.relatedEntityId}` : "/explore";
+    case NotificationType.FOLLOWED_ENTITY_NEW_SERVICE:
+      return n.relatedEntityId ? `/services/${n.relatedEntityId}` : "/explore";
+    case NotificationType.FOLLOWED_ENTITY_NEW_COURSE:
+      return n.relatedEntityId ? `/courses/${n.relatedEntityId}` : "/explore";
+    case NotificationType.FOLLOWED_ENTITY_NEW_QUEST:
+      return n.relatedEntityId ? `/quests/${n.relatedEntityId}` : "/explore";
+    case NotificationType.FOLLOWED_ENTITY_UPDATE:
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/network";
+    case NotificationType.FOLLOWED_ENTITY_NEW_MEMBER:
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/network";
+    case NotificationType.DIRECT_MESSAGE_RECEIVED:
+      return n.relatedEntityId ? `/inbox` : "/inbox";
     default: {
       // Handle milestone_completed and other non-enum types
       const typeStr = n.type as string;
