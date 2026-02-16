@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send, Shield } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -163,9 +163,11 @@ interface PostCardProps {
   hasUpvoted?: boolean;
   /** Whether comments are allowed on this post's context wall */
   allowComments?: boolean;
+  /** If provided, guild admins can repost any post into this guild's discussion */
+  guildContext?: { guildId: string; guildName: string; isAdmin: boolean };
 }
 
-export function PostCard({ post, hasUpvoted = false, allowComments = true }: PostCardProps) {
+export function PostCard({ post, hasUpvoted = false, allowComments = true, guildContext }: PostCardProps) {
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const deletePost = useDeletePost();
@@ -294,6 +296,26 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
       toast.success("Quote posted!");
     } catch {
       toast.error("Failed to post quote");
+    } finally {
+      setIsResharing(false);
+    }
+  };
+
+  const handleRepostToGuild = async () => {
+    if (!currentUser.id || !guildContext || isResharing) return;
+    setIsResharing(true);
+    try {
+      await createPost.mutateAsync({
+        authorUserId: currentUser.id,
+        contextType: "GUILD_DISCUSSION",
+        contextId: guildContext.guildId,
+        content: "",
+        attachments: [],
+        resharedPostId: reshareTargetId,
+      });
+      toast.success(`Reposted to ${guildContext.guildName}`);
+    } catch {
+      toast.error("Failed to repost");
     } finally {
       setIsResharing(false);
     }
@@ -524,6 +546,11 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true }: Pos
                 <DropdownMenuItem onClick={() => setQuoteDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" /> Quote post
                 </DropdownMenuItem>
+                {guildContext?.isAdmin && post.context_type !== "GUILD_DISCUSSION" && (
+                  <DropdownMenuItem onClick={handleRepostToGuild}>
+                    <Shield className="h-4 w-4 mr-2" /> Repost to {guildContext.guildName}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
