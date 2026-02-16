@@ -116,12 +116,19 @@ export function EntityFollowersCount({
   const { data: count = 0 } = useQuery({
     queryKey: ["followers-count", entityId, entityType],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from("follows")
-        .select("*", { count: "exact", head: true })
+        .select("follower_id")
         .eq("target_id", entityId)
-        .eq("target_type", entityType);
-      return count ?? 0;
+        .eq("target_type", entityType)
+        .limit(500);
+      if (!data || data.length === 0) return 0;
+      const ids = data.map((f) => f.follower_id);
+      const { count: profileCount } = await supabase
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .in("user_id", ids);
+      return profileCount ?? 0;
     },
     enabled: !!entityId,
   });
