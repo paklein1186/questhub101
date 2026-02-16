@@ -561,31 +561,6 @@ export default function UserProfile() {
               </section>
             )}
 
-            {/* Roles cloud */}
-            {userCrossRoles.length > 0 && (
-              <section>
-                <h3 className="font-display font-semibold mb-3">Roles</h3>
-                <div className="flex flex-wrap gap-2">
-                  {userCrossRoles.map((role) => (
-                    <Badge
-                      key={role.name}
-                      variant="outline"
-                      className="text-xs px-3 py-1 rounded-full"
-                      style={role.color ? {
-                        borderColor: role.color,
-                        backgroundColor: `${role.color}15`,
-                        color: role.color,
-                      } : undefined}
-                    >
-                      {role.name}
-                      {role.count > 1 && (
-                        <span className="ml-1 opacity-60">×{role.count}</span>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </section>
-            )}
 
             {/* Featured items */}
             {(filteredQuestsCreated.length > 0 || filteredServices.length > 0) && (
@@ -726,6 +701,31 @@ export default function UserProfile() {
         {/* ─── Entities ─── */}
         <TabsContent value="entities">
           <div className="space-y-8">
+            {/* Roles cloud */}
+            {userCrossRoles.length > 0 && (
+              <section>
+                <h3 className="font-display font-semibold mb-3">Roles</h3>
+                <div className="flex flex-wrap gap-2">
+                  {userCrossRoles.map((role) => (
+                    <Badge
+                      key={role.name}
+                      variant="outline"
+                      className="text-xs px-3 py-1 rounded-full"
+                      style={role.color ? {
+                        borderColor: role.color,
+                        backgroundColor: `${role.color}15`,
+                        color: role.color,
+                      } : undefined}
+                    >
+                      {role.name}
+                      {role.count > 1 && (
+                        <span className="ml-1 opacity-60">×{role.count}</span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
+            )}
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display font-semibold">{getLabel("guild.label", persona)} ({guilds.length})</h3>
