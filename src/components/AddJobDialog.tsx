@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Plus, Briefcase, Building2, User, MapPin, FileText, Upload, Trash2, Link as LinkIcon, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,7 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   const [locationText, setLocationText] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
+  const [terrSearch, setTerrSearch] = useState("");
 
   // User's companies
   const [myCompanies, setMyCompanies] = useState<any[]>([]);
@@ -429,9 +430,23 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
 
             {/* Territories */}
             <div>
-              <label className="text-sm font-medium mb-1 block">Territories</label>
-              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-                {allTerritories.map((t: any) => (
+              <label className="text-sm font-medium mb-1 block flex items-center gap-1">
+                <MapPin className="h-4 w-4" /> Territories {selectedTerritories.length > 0 && `(${selectedTerritories.length})`}
+              </label>
+              <Input
+                value={terrSearch}
+                onChange={e => setTerrSearch(e.target.value)}
+                placeholder="Search territories…"
+                className="mb-2 text-sm"
+              />
+              <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto rounded-lg border border-border p-2">
+                {(terrSearch.trim()
+                  ? allTerritories.filter((t: any) => t.name.toLowerCase().includes(terrSearch.toLowerCase()))
+                  : [
+                      ...allTerritories.filter((t: any) => selectedTerritories.includes(t.id)),
+                      ...allTerritories.filter((t: any) => !selectedTerritories.includes(t.id)),
+                    ]
+                ).map((t: any) => (
                   <Badge
                     key={t.id}
                     variant={selectedTerritories.includes(t.id) ? "default" : "outline"}
