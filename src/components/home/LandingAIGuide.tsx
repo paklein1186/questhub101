@@ -232,7 +232,7 @@ export function LandingAIGuide() {
                     Ask something else
                   </Button>
                   <Button size="sm" asChild>
-                    <Link to="/signup">Sign up to get started <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                    <Link to="/welcome">Sign up to get started <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
                   </Button>
                 </div>
               </motion.div>
