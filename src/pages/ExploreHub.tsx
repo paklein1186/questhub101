@@ -28,8 +28,8 @@ import { AddJobDialog } from "@/components/AddJobDialog";
 
 const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
 const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_GUEST = ["entities", "houses", "courses", "jobs"];
-const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses"];
+const VALID_TABS_GUEST = ["entities", "houses", "courses", "jobs", "territories"];
+const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "territories"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
