@@ -8,13 +8,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserSearchInput } from "@/components/UserSearchInput";
-import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X } from "lucide-react";
+import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X, Paperclip, FileText, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+const URL_REGEX = /https?:\/\/[^\s<]+/gi;
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+function sanitizeFileName(name: string) {
+  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function renderWithLinks(text: string, isOwn: boolean) {
+  const parts = text.split(URL_REGEX);
+  const urls = text.match(URL_REGEX) || [];
+  if (urls.length === 0) return text;
+  const result: React.ReactNode[] = [];
+  parts.forEach((part, i) => {
+    result.push(part);
+    if (i < urls.length) {
+      result.push(
+        <a key={i} href={urls[i]} target="_blank" rel="noopener noreferrer"
+          className={cn("underline break-all", isOwn ? "text-primary-foreground/90 hover:text-primary-foreground" : "text-primary hover:text-primary/80")}>
+          {urls[i]}
+        </a>
+      );
+    }
+  });
+  return <>{result}</>;
+}
 
 function BlockMenuItem({ targetUserId }: { targetUserId: string }) {
   const { isBlocked, toggle } = useBlock(targetUserId);
@@ -57,10 +91,58 @@ export default function InboxPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
-    if (!messageText.trim() || !activeConvId) return;
-    sendMessage.mutate({ conversationId: activeConvId, content: messageText.trim() });
+  const [attachment, setAttachment] = useState<{ file: File; preview?: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSend = async () => {
+    if ((!messageText.trim() && !attachment) || !activeConvId || !userId) return;
+    const text = messageText.trim();
+    const currentAttachment = attachment;
     setMessageText("");
+    setAttachment(null);
+
+    let attachmentData: { url: string; name: string; type: string; size: number } | undefined;
+    if (currentAttachment) {
+      try {
+        const safeName = sanitizeFileName(currentAttachment.file.name);
+        const path = `${userId}/${Date.now()}-${safeName}`;
+        const { error } = await supabase.storage.from("dm-attachments").upload(path, currentAttachment.file);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage.from("dm-attachments").getPublicUrl(path);
+        attachmentData = { url: urlData.publicUrl, name: currentAttachment.file.name, type: currentAttachment.file.type, size: currentAttachment.file.size };
+      } catch (e: any) {
+        toast({ title: "Upload failed", description: e?.message, variant: "destructive" });
+        return;
+      }
+    }
+
+    sendMessage.mutate({
+      conversationId: activeConvId,
+      content: text || (attachmentData ? `[File: ${attachmentData.name}]` : ""),
+      ...(attachmentData && {
+        attachment_url: attachmentData.url,
+        attachment_name: attachmentData.name,
+        attachment_type: attachmentData.type,
+        attachment_size: attachmentData.size,
+      }),
+    } as any);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: "File too large", description: "Maximum size is 25 MB.", variant: "destructive" });
+      return;
+    }
+    const preview = IMAGE_TYPES.includes(file.type) ? URL.createObjectURL(file) : undefined;
+    setAttachment({ file, preview });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removeAttachment = () => {
+    if (attachment?.preview) URL.revokeObjectURL(attachment.preview);
+    setAttachment(null);
   };
 
   const handleNewConversation = async () => {
@@ -387,9 +469,32 @@ export default function InboxPage() {
                                   </Button>
                                 </div>
                               ) : (
-                                <p className="text-sm whitespace-pre-wrap break-words">
-                                  {msg.is_deleted ? <span className="italic opacity-60">Message deleted</span> : msg.content}
-                                </p>
+                                <>
+                                  {/* Attachment display */}
+                                  {msg.attachment_url && (
+                                    <div className="mb-1.5">
+                                      {msg.attachment_type && IMAGE_TYPES.includes(msg.attachment_type) ? (
+                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
+                                          <img src={msg.attachment_url} alt={msg.attachment_name || "Image"} className="rounded-lg max-h-48 max-w-full object-cover hover:opacity-90 transition-opacity" />
+                                        </a>
+                                      ) : (
+                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
+                                          className={cn("flex items-center gap-2 p-2 rounded-lg border transition-colors", isOwn ? "border-primary-foreground/20 hover:bg-primary-foreground/10" : "border-border hover:bg-background")}>
+                                          <FileText className="h-4 w-4 shrink-0" />
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-xs font-medium truncate">{msg.attachment_name}</p>
+                                            {msg.attachment_size && <p className="text-[10px] opacity-70">{formatFileSize(msg.attachment_size)}</p>}
+                                          </div>
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
+                                  {msg.content && (
+                                    <p className="text-sm whitespace-pre-wrap break-words">
+                                      {msg.is_deleted ? <span className="italic opacity-60">Message deleted</span> : renderWithLinks(msg.content, isOwn)}
+                                    </p>
+                                  )}
+                                </>
                               )}
                               <p className={cn("text-[10px] mt-1", isOwn ? "text-primary-foreground/60" : "text-muted-foreground")}>
                                 {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
@@ -417,12 +522,34 @@ export default function InboxPage() {
                   </div>
                 </ScrollArea>
 
+                {/* Attachment preview */}
+                {attachment && (
+                  <div className="px-3 pt-2 flex items-center gap-2">
+                    <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-xs max-w-xs">
+                      {attachment.preview ? (
+                        <img src={attachment.preview} alt="" className="h-8 w-8 rounded object-cover" />
+                      ) : (
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                      )}
+                      <span className="truncate">{attachment.file.name}</span>
+                      <span className="text-muted-foreground shrink-0">({formatFileSize(attachment.file.size)})</span>
+                      <button onClick={removeAttachment} className="shrink-0 hover:text-destructive transition-colors">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Compose */}
                 <div className="p-3 border-t border-border">
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" />
                   <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex items-center gap-2"
                   >
+                    <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={sendMessage.isPending || !!attachment} title="Attach file (max 25 MB)">
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
@@ -430,7 +557,7 @@ export default function InboxPage() {
                       className="flex-1"
                       autoFocus
                     />
-                    <Button type="submit" size="icon" disabled={!messageText.trim() || sendMessage.isPending}>
+                    <Button type="submit" size="icon" disabled={(!messageText.trim() && !attachment) || sendMessage.isPending}>
                       <Send className="h-4 w-4" />
                     </Button>
                   </form>

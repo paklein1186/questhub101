@@ -8,9 +8,30 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useConversationMessages, useSendMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
+import React from "react";
 import type { ChatBubble } from "./ChatBubbleContext";
 import { useChatBubbles } from "./ChatBubbleContext";
+import { formatDistanceToNow } from "date-fns";
+
+const URL_REGEX = /https?:\/\/[^\s<]+/gi;
+function renderWithLinks(text: string, isOwn: boolean) {
+  const parts = text.split(URL_REGEX);
+  const urls = text.match(URL_REGEX) || [];
+  if (urls.length === 0) return text;
+  const result: React.ReactNode[] = [];
+  parts.forEach((part, i) => {
+    result.push(part);
+    if (i < urls.length) {
+      result.push(
+        <a key={i} href={urls[i]} target="_blank" rel="noopener noreferrer"
+          className={cn("underline break-all", isOwn ? "text-primary-foreground/90 hover:text-primary-foreground" : "text-primary hover:text-primary/80")}>
+          {urls[i]}
+        </a>
+      );
+    }
+  });
+  return <>{result}</>;
+}
 
 interface Props {
   bubble: ChatBubble;
@@ -106,7 +127,7 @@ export function MiniChatWindow({ bubble, index }: Props) {
                       : "bg-muted text-foreground rounded-bl-sm"
                   )}
                 >
-                  <p>{msg.content}</p>
+                  <p>{renderWithLinks(msg.content, isOwn)}</p>
                   <p className={cn("text-[9px] mt-0.5", isOwn ? "text-primary-foreground/60" : "text-muted-foreground")}>
                     {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                   </p>
