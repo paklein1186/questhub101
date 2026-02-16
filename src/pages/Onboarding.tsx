@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ArrowLeft, Sparkles, Loader2, MapPin, Hash,
   Check, Compass, Heart, Palette, Rocket, Users, Briefcase,
-  GraduationCap, HelpCircle, Image as ImageIcon,
+  GraduationCap, HelpCircle, Image as ImageIcon, Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +86,7 @@ export default function Onboarding() {
 
   // Creative vs Impact path
   const [isCreativePath, setIsCreativePath] = useState(false);
+  const [representsOrg, setRepresentsOrg] = useState(false);
 
   // Step 0 – Intention
   const [intentions, setIntentions] = useState<string[]>([]);
@@ -555,6 +556,28 @@ export default function Onboarding() {
             <p className="text-xs text-muted-foreground">Enter the Creative path — Houses of Art, Muses, Collectives</p>
           </div>
           <ArrowRight className="h-4 w-4 text-accent shrink-0" />
+        </button>
+
+        <button
+          onClick={() => { setRepresentsOrg(!representsOrg); selectImpactPath(); }}
+          className={cn(
+            "w-full flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-all",
+            representsOrg
+              ? "border-blue-500 bg-blue-500/10 shadow-md"
+              : "border-border hover:border-blue-400/30"
+          )}
+        >
+          <div className={cn(
+            "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
+            representsOrg ? "bg-blue-500 text-white" : "bg-muted text-muted-foreground"
+          )}>
+            <Building2 className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">🏛️ I represent an organization</p>
+            <p className="text-xs text-muted-foreground">Public institution, company, university, foundation, or NGO</p>
+          </div>
+          {representsOrg && <Check className="h-4 w-4 text-blue-500 shrink-0" />}
         </button>
 
         <div className="relative">
@@ -1184,12 +1207,30 @@ export default function Onboarding() {
               </div>
             )}
 
+            {representsOrg && (
+              <div className="w-full rounded-lg border border-primary/20 bg-primary/5 p-4 text-left">
+                <p className="font-medium text-sm flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" /> Now let's set up your organization
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  You'll register your institution and configure its presence on the platform.
+                </p>
+                <Button asChild className="w-full mt-3" variant="default">
+                  <Link to="/organizations/onboarding">
+                    <Building2 className="h-4 w-4 mr-2" /> Onboard your organization
+                  </Link>
+                </Button>
+              </div>
+            )}
+
             <div className="w-full space-y-3">
-              <Button asChild className="w-full" variant="default">
-                <Link to={pendingRedirect || "/"}>
-                  <Compass className="h-4 w-4 mr-2" /> {pendingRedirect ? "Continue where you left off" : "Go to Home Feed"}
-                </Link>
-              </Button>
+              {!representsOrg && (
+                <Button asChild className="w-full" variant="default">
+                  <Link to={pendingRedirect || "/"}>
+                    <Compass className="h-4 w-4 mr-2" /> {pendingRedirect ? "Continue where you left off" : "Go to Home Feed"}
+                  </Link>
+                </Button>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <Button asChild variant="outline">
                   <Link to="/explore?tab=guilds">
