@@ -38,14 +38,14 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
  * while real browsers are redirected to the app.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  const route = ROUTE_MAP[type];
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link that goes through the OG-share function
- * so crawlers get proper title/description/image, while real browsers
- * are redirected to the app with ?ref=invite.
+ * Returns an invite link using the production domain with ?ref=invite.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
+  const route = ROUTE_MAP[type];
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
 }
