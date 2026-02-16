@@ -179,8 +179,14 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
   const { session } = useAuth();
   const isLoggedIn = !!session;
 
-  // When house filter is active and no manual topic filter set, inject user's topics
-  const effectiveTopicIds = filters.topicIds;
+  // "My topics only" toggle — default OFF for this page
+  const [myTopicsOnly, setMyTopicsOnly] = useState(false);
+
+  // When "My topics only" is active and no manual topic filter set, inject user's topics
+  const effectiveTopicIds =
+    myTopicsOnly && hf.hasHouses && filters.topicIds.length === 0
+      ? hf.expandedTopicIds
+      : filters.topicIds;
 
   const { data, isLoading } = useExploreUsers({
     search,
@@ -226,6 +232,13 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
         config={{ showTopics: true, showTerritories: true, showRole: true }}
         universeMode={hf.universeMode}
         onUniverseModeChange={hf.setUniverseMode}
+        houseFilter={isLoggedIn && hf.hasHouses ? {
+          active: myTopicsOnly,
+          onToggle: (val: boolean) => { setMyTopicsOnly(val); setPage(0); },
+          hasHouses: hf.hasHouses,
+          topicNames: hf.topicNames,
+          myTopicIds: hf.myTopicIds,
+        } : undefined}
       />
 
       {!isLoggedIn && (
