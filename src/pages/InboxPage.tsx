@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { useConversations, useConversationMessages, useSendMessage, useCreateConversation, useDeleteMessage, useEditMessage, useAddParticipants } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,9 +7,11 @@ import { useBlock } from "@/hooks/useBlock";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { UserSearchInput } from "@/components/UserSearchInput";
-import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X, Paperclip, FileText, Image as ImageIcon } from "lucide-react";
+import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X, Paperclip, FileText, Image as ImageIcon, Loader2, Sparkles, MapPin, Hash, Briefcase, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -60,11 +64,102 @@ function BlockMenuItem({ targetUserId }: { targetUserId: string }) {
   );
 }
 
+function isPulseConversation(conv: any): boolean {
+  return conv?.sender_entity_type === "pulse_bot";
+}
+
+function EnrichmentCards({ data, onAccept }: { data: any; onAccept: (field: string, value: any) => void }) {
+  if (!data) return null;
+  return (
+    <div className="space-y-3 mt-3 mb-2 px-1">
+      {data.headline && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs font-semibold flex items-center gap-1"><Briefcase className="h-3 w-3" /> Suggested Headline</p>
+            <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => onAccept("headline", data.headline)}>
+              <Check className="h-3 w-3 mr-1" /> Accept
+            </Button>
+          </div>
+          <p className="text-sm">{data.headline}</p>
+        </div>
+      )}
+
+      {data.bioVariants && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+          <p className="text-xs font-semibold flex items-center gap-1 mb-2"><Sparkles className="h-3 w-3" /> Bio Suggestions</p>
+          {Object.entries(data.bioVariants).map(([key, value]) => (
+            <div key={key} className="mb-2 last:mb-0">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[10px] font-medium uppercase text-muted-foreground">{key}</span>
+                <Button size="sm" variant="outline" className="h-5 text-[10px] px-1.5" onClick={() => onAccept("bio", value)}>
+                  Use this
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{value as string}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.suggestedTopics?.length > 0 && (
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-3">
+          <p className="text-xs font-semibold flex items-center gap-1 mb-2"><Hash className="h-3 w-3" /> Suggested Topics</p>
+          <div className="flex flex-wrap gap-1.5">
+            {data.suggestedTopics.map((t: string) => (
+              <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.suggestedTerritories?.length > 0 && (
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-3">
+          <p className="text-xs font-semibold flex items-center gap-1 mb-2"><MapPin className="h-3 w-3" /> Suggested Territories</p>
+          <div className="flex flex-wrap gap-1.5">
+            {data.suggestedTerritories.map((t: string) => (
+              <Badge key={t} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.suggestedQuests?.length > 0 && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+          <p className="text-xs font-semibold flex items-center gap-1 mb-2"><Sparkles className="h-3 w-3" /> Quest Ideas</p>
+          {data.suggestedQuests.map((q: any, i: number) => (
+            <div key={i} className="flex items-start justify-between gap-2 mb-2 last:mb-0">
+              <div>
+                <p className="text-sm font-medium">{q.title}</p>
+                <p className="text-xs text-muted-foreground">{q.description}</p>
+                <Badge variant="outline" className="text-[10px] mt-1">{q.type === "completed" ? "Past achievement" : "Open project"}</Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.detectedOrganizations?.length > 0 && (
+        <div className="rounded-xl border border-accent/20 bg-accent/5 p-3">
+          <p className="text-xs font-semibold flex items-center gap-1 mb-2"><Building2 className="h-3 w-3" /> Detected Organizations</p>
+          {data.detectedOrganizations.map((org: any, i: number) => (
+            <div key={i} className="text-xs mb-1.5 last:mb-0">
+              <span className="font-medium">{org.name}</span> — {org.role}
+              {org.isCurrent && <Badge variant="secondary" className="text-[9px] ml-1.5">Current</Badge>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function InboxPage() {
   const { session } = useAuth();
   const userId = session?.user?.id;
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -76,6 +171,8 @@ export default function InboxPage() {
   const [newParticipants, setNewParticipants] = useState<{ id: string; name: string }[]>([]);
   const [newGroupTitle, setNewGroupTitle] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [pulseLoading, setPulseLoading] = useState(false);
+  const [pulseEnrichment, setPulseEnrichment] = useState<any>(null);
 
   const { data: conversations = [], isLoading } = useConversations();
   const { data: messages = [] } = useConversationMessages(activeConvId);
@@ -103,6 +200,8 @@ export default function InboxPage() {
   const [attachment, setAttachment] = useState<{ file: File; preview?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const isPulseActive = activeConv && isPulseConversation(activeConv);
+
   const handleSend = async () => {
     if ((!messageText.trim() && !attachment) || !activeConvId || !userId) return;
     const text = messageText.trim();
@@ -125,6 +224,7 @@ export default function InboxPage() {
       }
     }
 
+    // Save user's message first
     sendMessage.mutate({
       conversationId: activeConvId,
       content: text || (attachmentData ? `[File: ${attachmentData.name}]` : ""),
@@ -135,7 +235,42 @@ export default function InboxPage() {
         attachment_size: attachmentData.size,
       }),
     } as any);
+
+    // If this is a Pulse bot conversation, also call the AI
+    if (isPulseActive && text) {
+      setPulseLoading(true);
+      setPulseEnrichment(null);
+      try {
+        const { data: botResponse, error: botError } = await supabase.functions.invoke("pulse-bot", {
+          body: { message: text, conversationId: activeConvId },
+        });
+        if (botError) throw botError;
+        if (botResponse?.enrichment) {
+          setPulseEnrichment(botResponse.enrichment);
+        }
+        // Refresh messages to show the bot's reply
+        qc.invalidateQueries({ queryKey: ["conversation-messages", activeConvId] });
+        qc.invalidateQueries({ queryKey: ["conversations", userId] });
+      } catch (e: any) {
+        console.error("Pulse bot error:", e);
+        toast({ title: "Pulse couldn't respond", description: e?.message || "Try again in a moment", variant: "destructive" });
+      } finally {
+        setPulseLoading(false);
+      }
+    }
   };
+
+  const handleAcceptEnrichment = useCallback(async (field: string, value: any) => {
+    if (!userId) return;
+    try {
+      if (field === "bio" || field === "headline") {
+        await supabase.from("profiles").update({ [field]: value }).eq("user_id", userId);
+        toast({ title: `${field === "bio" ? "Bio" : "Headline"} updated!` });
+      }
+    } catch (e: any) {
+      toast({ title: "Failed to update", description: e?.message, variant: "destructive" });
+    }
+  }, [userId, toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -423,15 +558,22 @@ export default function InboxPage() {
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
                     {messages.map((msg) => {
-                      const isOwn = msg.sender_id === userId;
+                      const isPulseMsg = (msg as any).sender_label === "Pulse 🌱";
+                      const isOwn = msg.sender_id === userId && !isPulseMsg;
                       const isEditing = editingMsgId === msg.id;
 
                       return (
                         <div key={msg.id} className={cn("flex gap-2 group", isOwn ? "justify-end" : "justify-start")}>
                           {!isOwn && (
-                            <Avatar className="h-7 w-7 shrink-0 mt-1">
-                              <AvatarImage src={msg.sender?.avatar_url ?? undefined} />
-                              <AvatarFallback className="text-[10px]">{msg.sender?.name?.[0] ?? "?"}</AvatarFallback>
+                            <Avatar className={cn("h-7 w-7 shrink-0 mt-1", isPulseMsg && "ring-2 ring-green-500/30")}>
+                              {isPulseMsg ? (
+                                <AvatarFallback className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">🌱</AvatarFallback>
+                              ) : (
+                                <>
+                                  <AvatarImage src={msg.sender?.avatar_url ?? undefined} />
+                                  <AvatarFallback className="text-[10px]">{msg.sender?.name?.[0] ?? "?"}</AvatarFallback>
+                                </>
+                              )}
                             </Avatar>
                           )}
                           <div className="flex items-start gap-1 max-w-[75%]">
@@ -536,6 +678,24 @@ export default function InboxPage() {
                         </div>
                       );
                     })}
+                    {/* Pulse bot loading indicator */}
+                    {pulseLoading && isPulseActive && (
+                      <div className="flex gap-2 justify-start">
+                        <Avatar className="h-7 w-7 shrink-0 mt-1 ring-2 ring-green-500/30">
+                          <AvatarFallback className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">🌱</AvatarFallback>
+                        </Avatar>
+                        <div className="rounded-2xl rounded-bl-md bg-muted px-3.5 py-2 flex items-center gap-2">
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-green-600" />
+                          <span className="text-xs text-muted-foreground">Pulse is thinking...</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Enrichment suggestion cards */}
+                    {pulseEnrichment && isPulseActive && (
+                      <EnrichmentCards data={pulseEnrichment} onAccept={handleAcceptEnrichment} />
+                    )}
+
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
@@ -571,12 +731,12 @@ export default function InboxPage() {
                     <Input
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
-                      placeholder="Type a message..."
+                      placeholder={isPulseActive ? "Share your LinkedIn URL, describe yourself, or ask Pulse…" : "Type a message..."}
                       className="flex-1"
                       autoFocus
                     />
-                    <Button type="submit" size="icon" disabled={(!messageText.trim() && !attachment) || sendMessage.isPending}>
-                      <Send className="h-4 w-4" />
+                    <Button type="submit" size="icon" disabled={(!messageText.trim() && !attachment) || sendMessage.isPending || pulseLoading}>
+                      {pulseLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                   </form>
                 </div>
