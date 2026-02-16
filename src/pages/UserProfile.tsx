@@ -36,6 +36,7 @@ import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
 import { MessageSquare } from "lucide-react";
 import { ProfileQuestsTab } from "@/components/profile/ProfileQuestsTab";
 import { FollowersDialog } from "@/components/FollowersDialog";
+import { FollowedEntitiesDialog, useFollowedEntityCount } from "@/components/FollowedEntitiesDialog";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -239,6 +240,10 @@ export default function UserProfile() {
   const [tab, setTab] = useState("overview");
   const [showCreateUnit, setShowCreateUnit] = useState(false);
   const [followDialogMode, setFollowDialogMode] = useState<"followers" | "following" | null>(null);
+  const [followedEntityDialog, setFollowedEntityDialog] = useState<"GUILD" | "QUEST" | null>(null);
+
+  const { data: followedGuildsCount = 0 } = useFollowedEntityCount(id, "GUILD");
+  const { data: followedQuestsCount = 0 } = useFollowedEntityCount(id, "QUEST");
 
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
@@ -410,6 +415,8 @@ export default function UserProfile() {
               <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
               <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
               <StatCard icon={Shield} label="Guilds" count={guilds.length} />
+              <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
+              <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
               <StatCard icon={CircleDot} label="Pods" count={pods.length} />
               <StatCard icon={Building2} label="Organizations" count={companies.length} />
               <StatCard icon={Briefcase} label={serviceLabel} count={services.length} />
@@ -703,11 +710,17 @@ export default function UserProfile() {
           mode={followDialogMode}
         />
       )}
+      {followedEntityDialog && (
+        <FollowedEntitiesDialog
+          open={!!followedEntityDialog}
+          onOpenChange={(open) => { if (!open) setFollowedEntityDialog(null); }}
+          userId={id!}
+          entityType={followedEntityDialog}
+        />
+      )}
     </PageShell>
   );
 }
-
-// ─── Reusable helpers ──────────────────────────────────────
 function StatCard({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick?: () => void }) {
   const Comp = onClick ? "button" : "div";
   return (
