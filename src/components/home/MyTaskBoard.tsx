@@ -612,13 +612,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setAdding(false);
   };
 
-  const handleStatusChange = (task: UnifiedTask, newWorkState: string) => {
+  const handleStatusChange = async (task: UnifiedTask, newWorkState: string) => {
     if (newWorkState === "DONE") {
       // Immediately commit DONE and mark in session for crossed-out display
       const key = `${task.source}-${task.id}`;
       setSessionDone((prev) => new Set(prev).add(key));
       const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
-      upsertWorkState(entityType, task.id, "DONE");
+      await upsertWorkState(entityType, task.id, "DONE");
       // Invalidate Work hub queries so status is reflected there too
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
       qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
@@ -629,7 +629,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
     // Update work state (does NOT change quest lifecycle)
     const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
-    upsertWorkState(entityType, task.id, newWorkState as TaskStatus);
+    await upsertWorkState(entityType, task.id, newWorkState as TaskStatus);
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     qc.invalidateQueries({ queryKey: ["my-subtasks-home", userId] });
     qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
