@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -48,7 +48,13 @@ export default function PodDetail() {
 
   const limits = usePlanLimits();
   const [showPodXpDialog, setShowPodXpDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState("members");
+  const [podSp, setPodSp] = useSearchParams();
+  const activeTab = podSp.get("tab") || "members";
+  const setActiveTab = (v: string) => setPodSp(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "members") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [inviteOpen, setInviteOpen] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");

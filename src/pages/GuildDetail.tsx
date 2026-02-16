@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { Switch } from "@/components/ui/switch";
@@ -137,7 +137,13 @@ export default function GuildDetail() {
   const limits = usePlanLimits();
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [guildSp, setGuildSp] = useSearchParams();
+  const activeTab = guildSp.get("tab") || "overview";
+  const setActiveTab = (v: string) => setGuildSp(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [editSvcId, setEditSvcId] = useState<string | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");

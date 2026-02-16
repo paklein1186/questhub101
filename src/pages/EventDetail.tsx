@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,13 @@ export default function EventDetail() {
   const { session } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [tab, setTab] = useState("overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "overview";
+  const setTab = (v: string) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [actionRegId, setActionRegId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"accept" | "refuse" | "">("");

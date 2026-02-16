@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -288,7 +288,13 @@ export default function UserProfile() {
     enabled: !!id,
   });
 
-  const [tab, setTab] = useState("overview");
+  const [searchParamsTab, setSearchParamsTab] = useSearchParams();
+  const tab = searchParamsTab.get("tab") || "overview";
+  const setTab = (v: string) => setSearchParamsTab(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [showCreateUnit, setShowCreateUnit] = useState(false);
   const [followDialogMode, setFollowDialogMode] = useState<"followers" | "following" | null>(null);
   const [followedEntityDialog, setFollowedEntityDialog] = useState<"GUILD" | "QUEST" | null>(null);
