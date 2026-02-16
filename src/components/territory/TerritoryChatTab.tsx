@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import { Send, Loader2, Brain, Sparkles, BookOpen, MessageSquare, Paperclip, X, FileText, Image as ImageIcon, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -260,11 +261,11 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
               )}
             >
               <div
-                className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+              className={cn(
+                  "max-w-[85%] rounded-2xl px-5 py-4",
                   msg.message_role === "USER"
-                    ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-muted text-foreground rounded-bl-md"
+                    ? "bg-primary text-primary-foreground rounded-br-md text-sm leading-relaxed"
+                    : "bg-muted text-foreground rounded-bl-md text-[0.9rem] leading-[1.75]"
                 )}
               >
                 {msg.is_knowledge_contribution && (
@@ -308,12 +309,16 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
                   </div>
                 )}
 
-                {/* Message text with URL highlighting */}
-                {msg.content && (
+                {/* Message text */}
+                {msg.content && msg.message_role === "AI" ? (
+                  <div className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-headings:my-2 prose-li:my-0.5">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : msg.content ? (
                   <p className="whitespace-pre-line">
-                    {renderContentWithUrls(msg.content, msg.message_role === "USER")}
+                    {renderContentWithUrls(msg.content, true)}
                   </p>
-                )}
+                ) : null}
 
                 {/* URL previews */}
                 {msg.urls && msg.urls.length > 0 && (
