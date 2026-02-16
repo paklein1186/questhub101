@@ -3029,6 +3029,7 @@ export type Database = {
           persona_source: string | null
           persona_type: string
           preferred_language: string
+          pulse_nudge_sent: boolean
           role: string
           total_shares_a: number
           total_shares_b: number
@@ -3066,6 +3067,7 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           preferred_language?: string
+          pulse_nudge_sent?: boolean
           role?: string
           total_shares_a?: number
           total_shares_b?: number
@@ -3103,6 +3105,7 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           preferred_language?: string
+          pulse_nudge_sent?: boolean
           role?: string
           total_shares_a?: number
           total_shares_b?: number

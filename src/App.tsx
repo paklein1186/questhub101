@@ -131,6 +131,7 @@ import BrowseLanding from "./pages/BrowseLanding";
 import OrganizationsLanding from "./pages/OrganizationsLanding";
 import OrganizationOnboarding from "./pages/OrganizationOnboarding";
 import OrganizationNextSteps from "./pages/OrganizationNextSteps";
+import ProfileEnrichment from "./pages/ProfileEnrichment";
 import SharesPage from "./pages/SharesPage";
 import RevenueModelsPage from "./pages/RevenueModelsPage";
 import GuidesPage from "./pages/GuidesPage";
@@ -255,6 +256,7 @@ const App = () => (
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
                 <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
+                <Route path="/profile/enrich" element={<RequireAuth><ProfileEnrichment /></RequireAuth>} />
                 <Route path="/me/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
                 <Route path="/me/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
                 <Route path="/me/guilds" element={<RequireAuth><SettingsPage /></RequireAuth>} />
