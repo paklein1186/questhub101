@@ -59,7 +59,7 @@ const updateIcons: Record<string, typeof Sparkles> = {
 
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);
   const { data: participants } = useQuestParticipants(id);
   const { data: updates } = useQuestUpdates(id);
@@ -121,7 +121,12 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
-  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "overview");
+  const activeTab = searchParams.get("tab") || "overview";
+  const setActiveTab = (v: string) => setSearchParams(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
 
   const [podOpen, setPodOpen] = useState(false);

@@ -1,5 +1,5 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
@@ -60,6 +60,14 @@ export default function CompanyDetail() {
   const qc = useQueryClient();
 
   const { data: contact } = usePublicProfile(company?.contact_user_id ?? undefined);
+
+  const [searchParamsC, setSearchParamsC] = useSearchParams();
+  const activeCompanyTab = searchParamsC.get("tab") || "overview";
+  const setActiveCompanyTab = (v: string) => setSearchParamsC(prev => {
+    const next = new URLSearchParams(prev);
+    if (v === "overview") next.delete("tab"); else next.set("tab", v);
+    return next;
+  }, { replace: true });
 
   // Quest creation state
   const [questOpen, setQuestOpen] = useState(false);
@@ -229,7 +237,7 @@ export default function CompanyDetail() {
         </Dialog>
       </motion.div>
 
-      <Tabs defaultValue="overview">
+      <Tabs value={activeCompanyTab} onValueChange={setActiveCompanyTab}>
         <TabsList>
           <TabsTrigger value="overview"><Building2 className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>

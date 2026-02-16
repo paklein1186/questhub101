@@ -39,7 +39,11 @@ export default function TerritoryDetail() {
   }
 
   const setTab = (t: string) => {
-    setSearchParams({ tab: t });
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (t === "overview") next.delete("tab"); else next.set("tab", t);
+      return next;
+    }, { replace: true });
   };
 
   return (
