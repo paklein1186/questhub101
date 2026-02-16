@@ -2,6 +2,23 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
+// Helper: enrich quests with subtask counts
+async function enrichWithSubtaskCounts(quests: any[]) {
+  const ids = quests.map(q => q.id);
+  if (ids.length === 0) return quests;
+  const { data: subtasks } = await supabase
+    .from("quest_subtasks" as any)
+    .select("quest_id, status")
+    .in("quest_id", ids);
+  const map: Record<string, { total: number; done: number }> = {};
+  for (const st of (subtasks || []) as any[]) {
+    if (!map[st.quest_id]) map[st.quest_id] = { total: 0, done: 0 };
+    map[st.quest_id].total++;
+    if (st.status === "DONE") map[st.quest_id].done++;
+  }
+  return quests.map(q => ({ ...q, _subtasks: map[q.id] }));
+}
+
 // ─── Guild by ID ─────────────────────────────────────────────
 export function useGuildById(id: string | undefined) {
   return useQuery({
@@ -366,11 +383,13 @@ export function useQuestsForCompany(companyId: string | undefined) {
       const directIds = new Set((directRes.data ?? []).map(q => q.id));
       const coHostedIds = (hostRes.data ?? []).map(h => h.quest_id).filter(id => !directIds.has(id));
 
-      if (coHostedIds.length === 0) return directRes.data ?? [];
+      if (coHostedIds.length === 0) {
+        return await enrichWithSubtaskCounts(directRes.data ?? []);
+      }
 
       const { data: coHosted, error } = await supabase.from("quests").select("*").in("id", coHostedIds).eq("is_deleted", false);
       if (error) throw error;
-      return [...(directRes.data ?? []), ...(coHosted ?? [])];
+      return await enrichWithSubtaskCounts([...(directRes.data ?? []), ...(coHosted ?? [])]);
     },
     enabled: !!companyId,
   });
@@ -504,11 +523,13 @@ export function useQuestsForGuild(guildId: string | undefined) {
       const directIds = new Set((directRes.data ?? []).map(q => q.id));
       const coHostedIds = (hostRes.data ?? []).map(h => h.quest_id).filter(id => !directIds.has(id));
 
-      if (coHostedIds.length === 0) return directRes.data ?? [];
+      if (coHostedIds.length === 0) {
+        return await enrichWithSubtaskCounts(directRes.data ?? []);
+      }
 
       const { data: coHosted, error } = await supabase.from("quests").select("*").in("id", coHostedIds).eq("is_deleted", false);
       if (error) throw error;
-      return [...(directRes.data ?? []), ...(coHosted ?? [])];
+      return await enrichWithSubtaskCounts([...(directRes.data ?? []), ...(coHosted ?? [])]);
     },
     enabled: !!guildId,
   });

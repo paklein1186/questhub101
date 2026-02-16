@@ -106,7 +106,21 @@ export function useQuests() {
         .eq("is_deleted", false)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Batch-fetch subtask counts
+      const questIds = (data || []).map(q => q.id);
+      let subtaskMap: Record<string, { total: number; done: number }> = {};
+      if (questIds.length > 0) {
+        const { data: subtasks } = await supabase
+          .from("quest_subtasks" as any)
+          .select("quest_id, status")
+          .in("quest_id", questIds);
+        for (const st of (subtasks || []) as any[]) {
+          if (!subtaskMap[st.quest_id]) subtaskMap[st.quest_id] = { total: 0, done: 0 };
+          subtaskMap[st.quest_id].total++;
+          if (st.status === "DONE") subtaskMap[st.quest_id].done++;
+        }
+      }
+      return (data || []).map(q => ({ ...q, _subtasks: subtaskMap[q.id] }));
     },
   });
 }

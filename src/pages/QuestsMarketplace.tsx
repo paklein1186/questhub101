@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -195,7 +195,13 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                   })()}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{(quest as any).guilds?.name}</span>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <div className="flex gap-1.5 flex-wrap items-center">
+                      {(quest as any)._subtasks && (quest as any)._subtasks.total > 0 && (
+                        <Badge variant="secondary" className="text-[10px] gap-0.5">
+                          <ListChecks className="h-3 w-3" />
+                          {(quest as any)._subtasks.done}/{(quest as any)._subtasks.total}
+                        </Badge>
+                      )}
                       {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
                       <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
                       {(quest as any).price_fiat > 0 && (
