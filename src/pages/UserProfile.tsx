@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
@@ -208,6 +210,31 @@ export default function UserProfile() {
   const { isAdmin: viewerIsAdmin } = useUserRoles(currentUser.id);
   const { open: openChat, isPending: chatPending } = useOpenChatBubble();
 
+  const { data: followersCount = 0 } = useQuery({
+    queryKey: ["followers-count", id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("target_id", id!)
+        .eq("target_type", "USER");
+      return count ?? 0;
+    },
+    enabled: !!id,
+  });
+
+  const { data: followingCount = 0 } = useQuery({
+    queryKey: ["following-count", id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("follower_id", id!);
+      return count ?? 0;
+    },
+    enabled: !!id,
+  });
+
   const [tab, setTab] = useState("overview");
   const [showCreateUnit, setShowCreateUnit] = useState(false);
 
@@ -376,6 +403,8 @@ export default function UserProfile() {
 
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
+              <StatCard icon={UserPlus} label="Followers" count={followersCount} />
+              <StatCard icon={Users} label="Following" count={followingCount} />
               <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
               <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
               <StatCard icon={Shield} label="Guilds" count={guilds.length} />
