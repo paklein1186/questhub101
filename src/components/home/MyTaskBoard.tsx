@@ -1080,18 +1080,18 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         </p>
       ) : (
         <div className="rounded-xl border border-border overflow-x-auto">
-          <table className="w-full text-sm min-w-0">
+          <table className="w-full text-xs sm:text-sm min-w-0">
             <thead className="bg-muted/50">
               <tr>
-                <th className="w-8 px-2 sm:px-3 py-2"></th>
-                <th className="w-8 px-1 py-2" title="Today's goals — resets daily at 9am">
-                  <Sun className="h-3.5 w-3.5 text-amber-500 mx-auto" />
+                <th className="w-7 sm:w-8 px-1.5 sm:px-3 py-1.5 sm:py-2"></th>
+                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2" title="Today's goals — resets daily at 9am">
+                  <Sun className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-amber-500 mx-auto" />
                 </th>
-                <th className="w-8 px-1 sm:px-3 py-2"></th>
-                <th className="text-left px-2 sm:px-3 py-2 font-medium">Task</th>
-                <th className="text-left px-2 sm:px-3 py-2 font-medium hidden sm:table-cell">Source</th>
-                <th className="text-left px-2 sm:px-3 py-2 font-medium">Status</th>
-                <th className="w-8 sm:w-10 px-1 sm:px-3 py-2"></th>
+                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2"></th>
+                <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2 font-medium">Task</th>
+                <th className="text-left px-2 sm:px-3 py-1.5 sm:py-2 font-medium hidden sm:table-cell">Source</th>
+                <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2 font-medium w-[80px] sm:w-auto">Status</th>
+                <th className="w-7 sm:w-10 px-1 sm:px-3 py-1.5 sm:py-2"></th>
               </tr>
             </thead>
             <tbody>
@@ -1111,28 +1111,29 @@ export function MyTaskBoard({ userId }: { userId: string }) {
 
                 return (
                 <tr key={key} className={cn("border-t border-border group hover:bg-accent/30 transition-colors", todayGoals.has(key) && "bg-amber-500/5")}>
-                  <td className="px-2 sm:px-3 py-2.5">
+                  <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                     <Checkbox
                       checked={task.workState === "DONE"}
                       onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                      className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                     />
                   </td>
-                  <td className="px-1 py-2.5 text-center">
+                  <td className="px-1 py-1.5 sm:py-2.5 text-center">
                     <Checkbox
                       checked={todayGoals.has(key)}
                       onCheckedChange={() => toggleTodayGoal(key)}
                       className={cn(
-                        "h-3.5 w-3.5 rounded-sm border-amber-400/60 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
+                        "h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-sm border-amber-400/60 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
                       )}
                     />
                   </td>
-                  <td className="px-1 py-2.5">
+                  <td className="px-1 py-1.5 sm:py-2.5">
                     <PriorityPicker
                       value={task.priority || "NONE"}
                       onChange={(p) => updatePriority(task, p)}
                     />
                   </td>
-                  <td className="px-2 sm:px-3 py-2.5">
+                  <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5 max-w-0 w-full">
                     {editingId === task.id ? (
                       <Input
                         value={editingTitle}
@@ -1149,7 +1150,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       <>
                         <span
                           className={cn(
-                            "text-sm cursor-pointer",
+                            "text-xs sm:text-sm cursor-pointer line-clamp-2 break-words",
                             task.workState === "DONE" && "line-through text-muted-foreground",
                           )}
                           onDoubleClick={() => startEditing(task)}
@@ -1157,10 +1158,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                           {task.title}
                         </span>
                         {task.convertedToQuestId && (
-                          <Badge variant="outline" className="ml-2 text-[10px]">→ Quest</Badge>
+                          <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Quest</Badge>
                         )}
                         {task.convertedToSubtaskId && (
-                          <Badge variant="outline" className="ml-2 text-[10px]">→ Subtask</Badge>
+                          <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Subtask</Badge>
                         )}
                       </>
                     )}
@@ -1207,14 +1208,13 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       )}
                     </div>
                   </td>
-                  <td className="px-2 sm:px-3 py-2.5">
-                    {/* Task Perspective status only - NO quest lifecycle status */}
+                  <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                     <Select
                       value={task.workState}
                       onValueChange={(v) => handleStatusChange(task, v)}
                     >
                       <SelectTrigger className={cn(
-                        "h-6 w-[90px] sm:w-[110px] text-[10px] font-medium px-1.5 sm:px-2 py-0 border-none shadow-none rounded-full",
+                        "h-5 sm:h-6 w-[72px] sm:w-[110px] text-[9px] sm:text-[10px] font-medium px-1 sm:px-2 py-0 border-none shadow-none rounded-full",
                         STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
                       )}>
                         <SelectValue />
@@ -1227,7 +1227,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="px-1 sm:px-3 py-2.5">
+                  <td className="px-0.5 sm:px-3 py-1.5 sm:py-2.5">
                     <div className="flex items-center gap-0.5">
                       {task.source === "personal" && (
                         <DropdownMenu>

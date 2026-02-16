@@ -813,22 +813,22 @@ export function WorkTasksTab() {
       ) : (
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+             <table className="w-full text-xs sm:text-sm">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="w-10 px-3 py-2.5"></th>
-                  <th className="w-8 px-1 py-2.5"></th>
-                  <th className="text-left px-3 py-2.5 font-medium">Task</th>
-                  <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">Source</th>
-                  <th className="text-left px-3 py-2.5 font-medium">Status</th>
-                  <th className="text-left px-3 py-2.5 font-medium hidden lg:table-cell">
+                  <th className="w-7 sm:w-10 px-1.5 sm:px-3 py-1.5 sm:py-2.5"></th>
+                  <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2.5"></th>
+                  <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium">Task</th>
+                  <th className="text-left px-2 sm:px-3 py-1.5 sm:py-2.5 font-medium hidden md:table-cell">Source</th>
+                  <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium w-[80px] sm:w-auto">Status</th>
+                  <th className="text-left px-3 py-1.5 sm:py-2.5 font-medium hidden lg:table-cell">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Created</span>
                   </th>
-                  <th className="text-left px-3 py-2.5 font-medium hidden xl:table-cell">Link</th>
-                  <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">
+                  <th className="text-left px-3 py-1.5 sm:py-2.5 font-medium hidden xl:table-cell">Link</th>
+                  <th className="text-left px-3 py-1.5 sm:py-2.5 font-medium hidden md:table-cell">
                     <span className="flex items-center gap-1"><Users className="h-3 w-3" /> Assigned to</span>
                   </th>
-                  <th className="w-12 px-3 py-2.5"></th>
+                  <th className="w-8 sm:w-12 px-1.5 sm:px-3 py-1.5 sm:py-2.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -862,20 +862,21 @@ export function WorkTasksTab() {
                       transition={{ delay: i * 0.02 }}
                       className="border-t border-border group hover:bg-accent/30 transition-colors"
                     >
-                      <td className="px-3 py-2.5">
+                      <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                         <Checkbox
                           checked={task.status === "DONE"}
                           onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                          className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                         />
                       </td>
-                      <td className="px-1 py-2.5">
+                      <td className="px-1 py-1.5 sm:py-2.5">
                         <PriorityPicker
                           value={task.priority || "NONE"}
                           onChange={(p) => updatePriority(task, p)}
                           disabled={false}
                         />
                       </td>
-                      <td className="px-3 py-2.5 max-w-[300px]">
+                      <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5 max-w-0 w-full">
                         {editingId === task.id ? (
                           <Input
                             value={editingTitle}
@@ -892,18 +893,18 @@ export function WorkTasksTab() {
                           <div>
                             <span
                               className={cn(
-                                "text-sm cursor-pointer hover:text-primary transition-colors",
+                                "text-xs sm:text-sm cursor-pointer hover:text-primary transition-colors line-clamp-2 break-words",
                                 task.status === "DONE" && "line-through text-muted-foreground",
                               )}
                               onDoubleClick={() => startEditing(task)}
                             >
                               {task.title}
                             </span>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              {task.convertedToQuestId && <Badge variant="outline" className="text-[9px] h-4">→ Quest</Badge>}
-                              {task.convertedToSubtaskId && <Badge variant="outline" className="text-[9px] h-4">→ Subtask</Badge>}
+                            <div className="flex items-center gap-1 mt-0.5">
+                              {task.convertedToQuestId && <Badge variant="outline" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4">→ Quest</Badge>}
+                              {task.convertedToSubtaskId && <Badge variant="outline" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4">→ Subtask</Badge>}
                               <span className="md:hidden">
-                                <Badge variant="secondary" className="text-[9px] h-4 capitalize">
+                                <Badge variant="secondary" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4 capitalize">
                                   {task.source === "personal" ? "Personal" : (task.sourceLabel || task.source).slice(0, 16)}
                                 </Badge>
                               </span>
@@ -953,10 +954,10 @@ export function WorkTasksTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5">
+                      <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                         <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
                           <SelectTrigger className={cn(
-                            "h-6 w-[110px] text-[10px] font-medium px-2 py-0 border-none shadow-none rounded-full",
+                            "h-5 sm:h-6 w-[72px] sm:w-[110px] text-[9px] sm:text-[10px] font-medium px-1 sm:px-2 py-0 border-none shadow-none rounded-full",
                             STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
                           )}>
                             <SelectValue />
