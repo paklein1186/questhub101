@@ -280,7 +280,8 @@ export default function UserProfile() {
       const { count } = await supabase
         .from("follows")
         .select("*", { count: "exact", head: true })
-        .eq("follower_id", id!);
+        .eq("follower_id", id!)
+        .eq("target_type", "USER");
       return count ?? 0;
     },
     enabled: !!id,
@@ -460,7 +461,7 @@ export default function UserProfile() {
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
               <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
-              <StatCard icon={Users} label="Following" count={followingCount} onClick={() => setFollowDialogMode("following")} />
+              <StatCard icon={Users} label="Following people" count={followingCount} onClick={() => setFollowDialogMode("following")} />
               <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />
               <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />
               <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />
