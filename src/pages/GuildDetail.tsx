@@ -57,6 +57,7 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
+import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles";
 
@@ -130,6 +131,7 @@ export default function GuildDetail() {
   const qc = useQueryClient();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
   const { data: creator } = usePublicProfile(guild?.created_by_user_id);
+  const { getRolesForUser, roles: entityRoles } = useEntityRoles("guild", id);
 
   const limits = usePlanLimits();
   
@@ -414,19 +416,29 @@ export default function GuildDetail() {
             <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
           )}
           <div className="grid gap-3 md:grid-cols-2">
-            {members.map((m: any) => (
-              <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{m.user?.name}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{(m.role || "member").toLowerCase()}</p>
-                </div>
-                {(m.user?.xp ?? 0) > 0 && (
-                  <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
-                )}
-                <span className="text-xs text-muted-foreground">Joined {m.joined_at && !isNaN(new Date(m.joined_at).getTime()) ? formatDistanceToNow(new Date(m.joined_at), { addSuffix: true }) : "recently"}</span>
-              </Link>
-            ))}
+            {members.map((m: any) => {
+              const userRoles = getRolesForUser(m.user_id);
+              return (
+                <Link key={m.id} to={`/users/${m.user_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                  <Avatar className="h-10 w-10"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.name?.[0]}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{m.user?.name}</p>
+                    <div className="flex items-center gap-1 flex-wrap mt-0.5">
+                      <span className="text-xs text-muted-foreground capitalize">{(m.role || "member").toLowerCase()}</span>
+                      {userRoles.map((r) => (
+                        <Badge key={r.id} variant="secondary" className="text-[10px] px-1.5 py-0" style={{ backgroundColor: r.color + "22", color: r.color, borderColor: r.color + "44" }}>
+                          {r.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  {(m.user?.xp ?? 0) > 0 && (
+                    <XpLevelBadge level={computeLevelFromXp(m.user?.xp ?? 0)} xp={m.user?.xp} compact />
+                  )}
+                  <span className="text-xs text-muted-foreground shrink-0">Joined {m.joined_at && !isNaN(new Date(m.joined_at).getTime()) ? formatDistanceToNow(new Date(m.joined_at), { addSuffix: true }) : "recently"}</span>
+                </Link>
+              );
+            })}
           </div>
         </TabsContent>
 
