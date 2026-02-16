@@ -128,6 +128,9 @@ import HybridLanding from "./pages/HybridLanding";
 import ImpactLanding from "./pages/ImpactLanding";
 import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
+import OrganizationsLanding from "./pages/OrganizationsLanding";
+import OrganizationOnboarding from "./pages/OrganizationOnboarding";
+import OrganizationNextSteps from "./pages/OrganizationNextSteps";
 import SharesPage from "./pages/SharesPage";
 import RevenueModelsPage from "./pages/RevenueModelsPage";
 import GuidesPage from "./pages/GuidesPage";
@@ -178,6 +181,9 @@ const App = () => (
                 <Route path="/landing/hybrid" element={<HybridLanding />} />
                 <Route path="/landing/impact" element={<ImpactLanding />} />
                 <Route path="/landing/browse" element={<BrowseLanding />} />
+                <Route path="/organizations" element={<OrganizationsLanding />} />
+                <Route path="/onboarding/organization" element={<RequireAuth><OrganizationOnboarding /></RequireAuth>} />
+                <Route path="/organizations/:id/next-steps" element={<RequireAuth><OrganizationNextSteps /></RequireAuth>} />
                 <Route path="/error/:code" element={<ErrorPage />} />
                 <Route path="/explore" element={<ExploreHub />} />
                 <Route path="/jobs" element={<JobsPage />} />

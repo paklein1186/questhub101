@@ -522,6 +522,7 @@ export type Database = {
       companies: {
         Row: {
           banner_url: string | null
+          collaboration_interests: string[] | null
           contact_user_id: string | null
           created_at: string
           credits_balance: number
@@ -530,9 +531,13 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_deleted: boolean
+          is_verified: boolean | null
           linkedin_url: string | null
           logo_url: string | null
+          mission_statement: string | null
           name: string
+          org_type: string | null
+          scale_category: string | null
           sector: string | null
           size: string | null
           twitter_url: string | null
@@ -542,6 +547,7 @@ export type Database = {
         }
         Insert: {
           banner_url?: string | null
+          collaboration_interests?: string[] | null
           contact_user_id?: string | null
           created_at?: string
           credits_balance?: number
@@ -550,9 +556,13 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
+          is_verified?: boolean | null
           linkedin_url?: string | null
           logo_url?: string | null
+          mission_statement?: string | null
           name: string
+          org_type?: string | null
+          scale_category?: string | null
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
@@ -562,6 +572,7 @@ export type Database = {
         }
         Update: {
           banner_url?: string | null
+          collaboration_interests?: string[] | null
           contact_user_id?: string | null
           created_at?: string
           credits_balance?: number
@@ -570,9 +581,13 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
+          is_verified?: boolean | null
           linkedin_url?: string | null
           logo_url?: string | null
+          mission_statement?: string | null
           name?: string
+          org_type?: string | null
+          scale_category?: string | null
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
