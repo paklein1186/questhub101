@@ -137,54 +137,55 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <AppNav />
+
+      {/* Mobile top nav - horizontal scrollable chips */}
+      <div className="lg:hidden sticky top-14 z-30 bg-card/95 backdrop-blur border-b border-border overflow-x-auto">
+        <div className="flex items-center gap-1 px-2 py-2 min-w-max">
+          {visibleClusters.map((cluster) => (
+            <DropdownMenu key={cluster.label}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0",
+                    cluster.items.some((i) => isActive(i.to))
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <cluster.icon className="h-3.5 w-3.5" />
+                  {cluster.label}
+                  <ChevronRight className="h-3 w-3 rotate-90" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                {cluster.items.map((item) => (
+                  <DropdownMenuItem key={item.to} asChild>
+                    <Link
+                      to={item.to}
+                      className={cn(
+                        "cursor-pointer",
+                        isActive(item.to) && "bg-primary/10 font-medium"
+                      )}
+                    >
+                      <item.icon className="h-3.5 w-3.5 mr-2" />
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-1">
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex w-56 shrink-0 border-r border-border bg-card/50 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">
           {sidebar}
         </aside>
 
-        {/* Mobile top nav - horizontal scrollable */}
-        <div className="lg:hidden sticky top-14 z-30 w-full bg-card/95 backdrop-blur border-b border-border overflow-x-auto">
-          <div className="flex items-center gap-1 px-2 py-2 min-w-max">
-            {visibleClusters.map((cluster) => (
-              <DropdownMenu key={cluster.label}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0",
-                      cluster.items.some((i) => isActive(i.to))
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <cluster.icon className="h-3.5 w-3.5" />
-                    {cluster.label}
-                    <ChevronRight className="h-3 w-3 rotate-90" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52">
-                  {cluster.items.map((item) => (
-                    <DropdownMenuItem key={item.to} asChild>
-                      <Link
-                        to={item.to}
-                        className={cn(
-                          "cursor-pointer",
-                          isActive(item.to) && "bg-primary/10 font-medium"
-                        )}
-                      >
-                        <item.icon className="h-3.5 w-3.5 mr-2" />
-                        {item.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ))}
-          </div>
-        </div>
-
         {/* Main content */}
-        <main className="flex-1 min-w-0 p-3 sm:p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-3 sm:p-6 lg:p-8 overflow-x-auto">
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             <Outlet />
           </motion.div>
