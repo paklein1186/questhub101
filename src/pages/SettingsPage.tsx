@@ -906,10 +906,25 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
          </div>
        </Section>
 
+       {/* Followed Activity */}
+       <Section title="Followed Activity" icon={<Rss className="h-5 w-5" />}>
+         <p className="text-xs text-muted-foreground mb-3">Get notified when people or entities you follow publish new content.</p>
+         <div className="space-y-3">
+           {toggle("notify_new_posts_from_followed" as any, "New posts from people & entities I follow")}
+           {toggle("notify_new_quests_from_followed" as any, `New ${label("quest.label")}s from entities I follow`)}
+           {toggle("notify_new_events_from_followed" as any, "New events from entities I follow")}
+           {toggle("notify_new_services_from_followed" as any, "New services from people I follow")}
+           {toggle("notify_new_courses_from_followed" as any, "New courses from entities I follow")}
+           {toggle("notify_entity_updates_from_followed" as any, "General updates from entities I follow")}
+           {toggle("notify_new_members_in_my_units" as any, "New members joining my guilds, pods & organizations")}
+         </div>
+       </Section>
+
        {/* Direct Messages */}
        <Section title="Direct Messages" icon={<MessageSquare className="h-5 w-5" />}>
          <p className="text-xs text-muted-foreground mb-3">Control how you're notified when you receive private messages.</p>
          <div className="space-y-3">
+           {toggle("notify_direct_messages_in_app" as any, "In-app notification for new messages")}
            {toggle("notify_direct_messages_email" as any, "Email notification when I receive a message")}
          </div>
        </Section>

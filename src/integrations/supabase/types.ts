@@ -2269,14 +2269,22 @@ export type Database = {
           notify_daily_digest_email: boolean
           notify_daily_digest_in_app: boolean
           notify_direct_messages_email: boolean | null
+          notify_direct_messages_in_app: boolean
+          notify_entity_updates_from_followed: boolean
           notify_events_and_courses: boolean
           notify_follower_activity: boolean
           notify_invitations_to_units: boolean
           notify_mentions: boolean
           notify_new_bug_reports: boolean
+          notify_new_courses_from_followed: boolean
+          notify_new_events_from_followed: boolean
           notify_new_join_requests_guilds: boolean
           notify_new_join_requests_pods: boolean
+          notify_new_members_in_my_units: boolean
           notify_new_partnership_requests: boolean
+          notify_new_posts_from_followed: boolean
+          notify_new_quests_from_followed: boolean
+          notify_new_services_from_followed: boolean
           notify_new_user_registrations: boolean
           notify_payments_and_shares: boolean
           notify_quest_updates_and_comments: boolean
@@ -2304,14 +2312,22 @@ export type Database = {
           notify_daily_digest_email?: boolean
           notify_daily_digest_in_app?: boolean
           notify_direct_messages_email?: boolean | null
+          notify_direct_messages_in_app?: boolean
+          notify_entity_updates_from_followed?: boolean
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
           notify_mentions?: boolean
           notify_new_bug_reports?: boolean
+          notify_new_courses_from_followed?: boolean
+          notify_new_events_from_followed?: boolean
           notify_new_join_requests_guilds?: boolean
           notify_new_join_requests_pods?: boolean
+          notify_new_members_in_my_units?: boolean
           notify_new_partnership_requests?: boolean
+          notify_new_posts_from_followed?: boolean
+          notify_new_quests_from_followed?: boolean
+          notify_new_services_from_followed?: boolean
           notify_new_user_registrations?: boolean
           notify_payments_and_shares?: boolean
           notify_quest_updates_and_comments?: boolean
@@ -2339,14 +2355,22 @@ export type Database = {
           notify_daily_digest_email?: boolean
           notify_daily_digest_in_app?: boolean
           notify_direct_messages_email?: boolean | null
+          notify_direct_messages_in_app?: boolean
+          notify_entity_updates_from_followed?: boolean
           notify_events_and_courses?: boolean
           notify_follower_activity?: boolean
           notify_invitations_to_units?: boolean
           notify_mentions?: boolean
           notify_new_bug_reports?: boolean
+          notify_new_courses_from_followed?: boolean
+          notify_new_events_from_followed?: boolean
           notify_new_join_requests_guilds?: boolean
           notify_new_join_requests_pods?: boolean
+          notify_new_members_in_my_units?: boolean
           notify_new_partnership_requests?: boolean
+          notify_new_posts_from_followed?: boolean
+          notify_new_quests_from_followed?: boolean
+          notify_new_services_from_followed?: boolean
           notify_new_user_registrations?: boolean
           notify_payments_and_shares?: boolean
           notify_quest_updates_and_comments?: boolean
