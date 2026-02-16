@@ -30,14 +30,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Check admin role
-    const { data: callerProfile } = await callerClient
-      .from("profiles")
+    // Check admin role via user_roles table
+    const { data: adminRoles } = await callerClient
+      .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
-      .single();
+      .eq("user_id", caller.id);
 
-    if (!callerProfile || callerProfile.role !== "ADMIN") {
+    const roles = (adminRoles ?? []).map((r: any) => r.role);
+    if (!roles.includes("admin") && !roles.includes("superadmin")) {
       return new Response(JSON.stringify({ error: "Forbidden: admin only" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
