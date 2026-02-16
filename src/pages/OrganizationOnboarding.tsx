@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2, Landmark, GraduationCap, Heart, Leaf, Handshake,
   ChevronRight, ChevronLeft, Loader2, Globe, MapPin, Hash,
-  Sparkles, Check, ArrowRight, Shield, Briefcase, Target, Users,
+  Sparkles, Check, ArrowRight, Shield, Briefcase, Target, Users, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 
 const ORG_TYPES = [
   { value: "public_sector", label: "Public Sector", icon: Landmark, desc: "Government, municipality, public institution" },
@@ -47,6 +48,7 @@ export default function OrganizationOnboarding() {
 
   const [step, setStep] = useState<Step>("type");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEntityWizard, setShowEntityWizard] = useState(false);
 
   // Step 1: Type selection
   const [orgType, setOrgType] = useState("");
@@ -235,22 +237,25 @@ export default function OrganizationOnboarding() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-xl border border-amber-300/30 bg-amber-50/50 dark:bg-amber-900/10 p-4">
-                <p className="text-sm text-muted-foreground">
-                  Looking to create a <strong>DAO, collective, or community</strong>?{" "}
-                  <button onClick={() => navigate("/explore")} className="text-primary font-medium hover:underline">
-                    Create a Guild instead →
-                  </button>
+              <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                <p className="text-sm font-medium mb-2">Not a traditional organization?</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Create a <strong>Guild</strong> (community, collective, DAO) or a <strong>Pod</strong> (micro-team, study group) instead.
                 </p>
+                <Button variant="outline" size="sm" onClick={() => setShowEntityWizard(true)} className="gap-1.5">
+                  <Plus className="h-3.5 w-3.5" /> Create a Guild or Pod
+                </Button>
               </div>
+
+              <EntityCreationWizard open={showEntityWizard} onOpenChange={setShowEntityWizard} />
             </motion.div>
           )}
 
           {/* STEP 2: Basic Info */}
           {step === "info" && (
             <motion.div key="info" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <h1 className="font-display text-2xl font-bold mb-2">Basic Information</h1>
-              <p className="text-muted-foreground mb-6">Tell us about your organization. We'll use your URL to auto-fill details.</p>
+              <h1 className="font-display text-2xl font-bold mb-2">Your Project or Organization</h1>
+              <p className="text-muted-foreground mb-6">Paste a website URL to auto-fill your profile — name, logo, mission, and more. We'll use AI to extract the best info.</p>
 
               <div className="space-y-4">
                 <div>
