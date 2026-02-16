@@ -7,7 +7,7 @@ import {
   CreditCard, MapPin, Eye, Ban, Zap, Settings, Globe,
   ShoppingBag, AlertTriangle, Mail, BarChart3, MessageSquare,
   EyeOff, Send, TrendingUp, Flag, ExternalLink,
-  ScrollText, Bell,
+  ScrollText, Bell, Wrench,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ import { questUpdates as allQuestUpdates, companies as allCompanies } from "@/da
 import type { QuestUpdate, Company, Pod } from "@/types";
 import { adminActionLogs, logAdminAction } from "@/lib/adminLog";
 import { useAdminStats } from "@/hooks/useAdminStats";
+import AdminDataRepair from "@/pages/admin/AdminDataRepair";
 
 // ─── Users & Roles Tab ──────────────────────────────────────
 function UsersRolesTab() {
@@ -1862,6 +1863,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="emails"><Mail className="h-4 w-4 mr-1" /> Emails</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-4 w-4 mr-1" /> Analytics</TabsTrigger>
             <TabsTrigger value="audit"><ScrollText className="h-4 w-4 mr-1" /> Audit Logs</TabsTrigger>
+            <TabsTrigger value="repair"><Wrench className="h-4 w-4 mr-1" /> Data Repair</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6"><UsersRolesTab /></TabsContent>
@@ -1876,6 +1878,7 @@ export default function AdminDashboard() {
           <TabsContent value="emails" className="mt-6"><EmailsDigestsTab /></TabsContent>
           <TabsContent value="analytics" className="mt-6"><AnalyticsTab /></TabsContent>
           <TabsContent value="audit" className="mt-6"><AuditLogsTab /></TabsContent>
+          <TabsContent value="repair" className="mt-6"><AdminDataRepair /></TabsContent>
         </Tabs>
       </motion.div>
     </PageShell>

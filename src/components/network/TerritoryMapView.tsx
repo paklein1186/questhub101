@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Badge } from "@/components/ui/badge";
-import { Compass, Users, Brain, MapPin } from "lucide-react";
 import type { TerritoryLeaderboardItem } from "@/hooks/useNetworkLeaderboardData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +45,12 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
+interface TerritoryGeoData {
+  lat: number;
+  lng: number;
+  geojson?: any;
+}
+
 interface Props {
   territories: TerritoryLeaderboardItem[];
 }
@@ -54,22 +58,19 @@ interface Props {
 export function TerritoryMapView({ territories }: Props) {
   const navigate = useNavigate();
 
-  // Fetch coordinates from DB
   const territoryIds = useMemo(() => territories.map((t) => t.id), [territories]);
-  const { data: coords = {} } = useQuery({
-    queryKey: ["territory-coords", territoryIds],
+  const { data: geoData = {} } = useQuery({
+    queryKey: ["territory-geo", territoryIds],
     queryFn: async () => {
       if (territoryIds.length === 0) return {};
       const { data } = await supabase
         .from("territories")
-        .select("id, latitude, longitude")
-        .in("id", territoryIds)
-        .not("latitude", "is", null)
-        .not("longitude", "is", null);
-      const map: Record<string, { lat: number; lng: number }> = {};
+        .select("id, latitude, longitude, geojson")
+        .in("id", territoryIds);
+      const map: Record<string, TerritoryGeoData> = {};
       (data ?? []).forEach((t: any) => {
         if (t.latitude != null && t.longitude != null) {
-          map[t.id] = { lat: t.latitude, lng: t.longitude };
+          map[t.id] = { lat: t.latitude, lng: t.longitude, geojson: t.geojson };
         }
       });
       return map;
@@ -78,13 +79,13 @@ export function TerritoryMapView({ territories }: Props) {
   });
 
   const mappedTerritories = useMemo(
-    () => territories.filter((t) => coords[t.id]),
-    [territories, coords]
+    () => territories.filter((t) => geoData[t.id]),
+    [territories, geoData]
   );
 
   const positions = useMemo(
-    () => mappedTerritories.map((t) => [coords[t.id].lat, coords[t.id].lng] as [number, number]),
-    [mappedTerritories, coords]
+    () => mappedTerritories.map((t) => [geoData[t.id].lat, geoData[t.id].lng] as [number, number]),
+    [mappedTerritories, geoData]
   );
 
   const unmappedCount = territories.length - mappedTerritories.length;
@@ -104,13 +105,56 @@ export function TerritoryMapView({ territories }: Props) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {positions.length > 0 && <FitBounds positions={positions} />}
+
+          {/* GeoJSON boundary shapes */}
           {mappedTerritories.map((t, i) => {
-            const pos = coords[t.id];
-            const score = t.quests * 3 + t.entities * 2 + t.memoryContributions;
+            const geo = geoData[t.id];
+            if (!geo?.geojson) return null;
+            const color = MARKER_COLORS[i % MARKER_COLORS.length];
+            return (
+              <GeoJSON
+                key={`geo-${t.id}`}
+                data={geo.geojson}
+                style={{
+                  color,
+                  weight: 2,
+                  fillColor: color,
+                  fillOpacity: 0.15,
+                  opacity: 0.8,
+                }}
+                eventHandlers={{
+                  click: () => navigate(`/territories/${t.id}`),
+                  mouseover: (e: any) => {
+                    e.target.setStyle({ fillOpacity: 0.35, weight: 3 });
+                  },
+                  mouseout: (e: any) => {
+                    e.target.setStyle({ fillOpacity: 0.15, weight: 2 });
+                  },
+                }}
+                onEachFeature={(_feature, layer) => {
+                  layer.bindPopup(
+                    `<div style="min-width:160px">
+                      <h4 style="font-weight:600;font-size:13px;margin:0 0 4px">${t.name}</h4>
+                      ${t.parent_name ? `<p style="font-size:11px;color:#888;margin:0 0 4px">${t.parent_name}</p>` : ""}
+                      <div style="font-size:11px;display:flex;gap:8px">
+                        <span>${t.quests} quests</span>
+                        <span>${t.entities} entities</span>
+                      </div>
+                    </div>`
+                  );
+                }}
+              />
+            );
+          })}
+
+          {/* Point markers for territories without GeoJSON */}
+          {mappedTerritories.map((t, i) => {
+            const geo = geoData[t.id];
+            if (geo?.geojson) return null; // skip if has boundary
             return (
               <Marker
                 key={t.id}
-                position={[pos.lat, pos.lng]}
+                position={[geo.lat, geo.lng]}
                 icon={createCustomIcon(MARKER_COLORS[i % MARKER_COLORS.length])}
                 eventHandlers={{
                   click: () => navigate(`/territories/${t.id}`),
