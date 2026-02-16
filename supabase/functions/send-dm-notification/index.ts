@@ -67,7 +67,7 @@ serve(async (req) => {
       });
     }
 
-    const { messageId, conversationId, senderId, content } = await req.json();
+    const { messageId, conversationId, senderId, content, senderLabel } = await req.json();
 
     if (!messageId || !conversationId || !senderId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -133,7 +133,7 @@ serve(async (req) => {
       .eq("user_id", senderId)
       .single();
 
-    const senderName = senderProfile?.name || "Someone";
+    const senderName = senderLabel || senderProfile?.name || "Someone";
 
     // For each recipient, check their preferences and send notification + email
     const recipientIds = participants.map((p: any) => p.user_id);

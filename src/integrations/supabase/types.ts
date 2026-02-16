@@ -810,6 +810,9 @@ export type Database = {
           created_by: string
           id: string
           is_group: boolean
+          sender_entity_id: string | null
+          sender_entity_type: string | null
+          sender_label: string | null
           title: string | null
           updated_at: string
         }
@@ -818,6 +821,9 @@ export type Database = {
           created_by: string
           id?: string
           is_group?: boolean
+          sender_entity_id?: string | null
+          sender_entity_type?: string | null
+          sender_label?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -826,6 +832,9 @@ export type Database = {
           created_by?: string
           id?: string
           is_group?: boolean
+          sender_entity_id?: string | null
+          sender_entity_type?: string | null
+          sender_label?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -1250,6 +1259,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           sender_id: string
+          sender_label: string | null
         }
         Insert: {
           attachment_name?: string | null
@@ -1262,6 +1272,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           sender_id: string
+          sender_label?: string | null
         }
         Update: {
           attachment_name?: string | null
@@ -1274,6 +1285,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           sender_id?: string
+          sender_label?: string | null
         }
         Relationships: [
           {
