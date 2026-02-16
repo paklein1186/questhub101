@@ -6,6 +6,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { PageShell } from "@/components/PageShell";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { CommentThread } from "@/components/CommentThread";
 import { FeedSection } from "@/components/feed/FeedSection";
 import { Button } from "@/components/ui/button";
@@ -209,6 +210,7 @@ export default function EventDetail() {
                 )}
               </div>
             )}
+            <ShareLinkButton entityType="event" entityId={id!} entityName={event.title} />
             {canManage && (
               <div className="flex gap-1.5">
                 <Button size="sm" variant="outline" asChild>

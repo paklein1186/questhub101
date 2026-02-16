@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
   Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake, ListChecks,
@@ -204,6 +205,7 @@ export default function CompanyDetail() {
                   </Button>
                 )
               )}
+              <ShareLinkButton entityType="company" entityId={company.id} entityName={company.name} />
               {isAdmin && (
                 <>
                   <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
