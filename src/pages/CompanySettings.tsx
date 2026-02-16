@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
-  CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus,
+  CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus, Tag,
   Zap, Clock, Settings, ClipboardList, Handshake, CalendarDays,
   ShieldCheck, ChevronUp, ChevronDown, Loader2,
 } from "lucide-react";
@@ -45,12 +45,15 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { useNotifications } from "@/hooks/useNotifications";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
+import { EntityRolesManager } from "@/components/EntityRolesManager";
+import { useEntityRoles } from "@/hooks/useEntityRoles";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
+  { key: "roles", label: "Custom Roles", icon: Tag },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
   { key: "availability", label: "Availability", icon: CalendarDays },
@@ -85,6 +88,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { getRolesForUser } = useEntityRoles("company", companyId);
   const { notifyGuildRoleChanged } = useNotifications();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -394,9 +398,12 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <p className="font-medium text-sm truncate">{m.user?.name || "Unknown"}</p>
-                                  {isAdminRole && (
-                                    <Badge variant="secondary" className="text-xs gap-1"><Crown className="h-3 w-3" /> Admin</Badge>
-                                  )}
+                                   {isAdminRole && (
+                                     <Badge variant="secondary" className="text-xs gap-1"><Crown className="h-3 w-3" /> Admin</Badge>
+                                   )}
+                                   {getRolesForUser(m.user_id).map((r: any) => (
+                                     <Badge key={r.id} className="text-[10px] h-5 text-white border-0" style={{ backgroundColor: r.color }}>{r.name}</Badge>
+                                   ))}
                                 </div>
                                 <p className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(m.joined_at), { addSuffix: true })}</p>
                               </div>
@@ -422,6 +429,13 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                       </div>
                     )}
                   </Section>
+                </div>
+              )}
+
+              {/* ── Custom Roles ── */}
+              {activeTab === "roles" && (
+                <div className="space-y-4 max-w-lg">
+                  <EntityRolesManager entityType="company" entityId={companyId} members={members} />
                 </div>
               )}
 

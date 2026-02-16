@@ -1273,6 +1273,68 @@ export type Database = {
           },
         ]
       }
+      entity_member_roles: {
+        Row: {
+          created_at: string
+          entity_role_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_role_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_role_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_member_roles_entity_role_id_fkey"
+            columns: ["entity_role_id"]
+            isOneToOne: false
+            referencedRelation: "entity_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_roles: {
+        Row: {
+          color: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_default: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_default?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           category: string
