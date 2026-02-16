@@ -26,7 +26,7 @@ export function useQuestById(id: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("*, quest_topics(topic_id, topics(id, name, slug)), quest_territories(territory_id, territories(id, name)), guilds(id, name, logo_url)")
+        .select("*, quest_topics(topic_id, topics(id, name, slug)), quest_territories(territory_id, territories(id, name)), guilds(id, name, logo_url), companies(id, name, logo_url)")
         .eq("id", id!)
         .single();
       if (error) throw error;
