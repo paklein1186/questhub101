@@ -3461,6 +3461,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "quests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "quests_guild_id_fkey"
             columns: ["guild_id"]
             isOneToOne: false
