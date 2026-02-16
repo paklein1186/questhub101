@@ -108,8 +108,9 @@ export const GOVERNANCE_BODIES = [
 ] as const;
 
 // ─── Level-gated feature check ─────────────────────────────
-export function canAccessFeature(level: number, requiredLevel: number): boolean {
-  return level >= requiredLevel;
+/** Currently open — all features accessible regardless of level. Will be fine-tuned later. */
+export function canAccessFeature(_level: number, _requiredLevel: number): boolean {
+  return true;
 }
 
 // ─── XP Action Rewards (updated with cross-territory) ─────
