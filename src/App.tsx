@@ -128,6 +128,7 @@ import ImpactLanding from "./pages/ImpactLanding";
 import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import SharesPage from "./pages/SharesPage";
+import RevenueModelsPage from "./pages/RevenueModelsPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryDetail";
 import InboxPage from "./pages/InboxPage";
@@ -222,6 +223,7 @@ const App = () => (
                 <Route path="/manifesto" element={<ManifestoPage />} />
                 <Route path="/cooperative" element={<CooperativeVenturePage />} />
                 <Route path="/what-comes-next" element={<WhatComesNextPage />} />
+                <Route path="/revenue-models" element={<RevenueModelsPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
 
                 {/* Protected pages */}
