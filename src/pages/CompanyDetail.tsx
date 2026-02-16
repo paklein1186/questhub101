@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
-  Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake,
+  Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake, ListChecks,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -370,7 +370,7 @@ export default function CompanyDetail() {
                       <div className="p-4">
                         <div className="flex items-center justify-between mb-1"><h4 className="font-display font-semibold truncate">{quest.title}</h4><span className="flex items-center gap-1 text-sm font-semibold text-primary shrink-0"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span></div>
                         {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>}
-                        <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace("_", " ")}</Badge></div>
+                        <div className="flex gap-1.5 mt-2"><Badge variant="outline" className="text-[10px] capitalize">{quest.status?.toLowerCase().replace("_", " ")}</Badge>{(quest as any)._subtasks && (quest as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(quest as any)._subtasks.done}/{(quest as any)._subtasks.total}</Badge>}</div>
                       </div>
                     </Link>
                   ))}

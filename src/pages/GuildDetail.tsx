@@ -7,7 +7,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle,
+  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -450,7 +450,7 @@ export default function GuildDetail() {
                       <div className="p-4">
                         <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
                         {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}
-                        <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace("_", " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}</div>
+                        <div className="flex items-center gap-2 mt-2"><Badge variant="outline" className="capitalize text-xs">{(q.status || "open").toLowerCase().replace("_", " ")}</Badge>{q.monetization_type && <Badge variant="secondary" className="capitalize text-xs">{q.monetization_type.toLowerCase()}</Badge>}{(q as any)._subtasks && (q as any)._subtasks.total > 0 && <Badge variant="secondary" className="text-[10px] gap-0.5"><ListChecks className="h-3 w-3" />{(q as any)._subtasks.done}/{(q as any)._subtasks.total}</Badge>}</div>
                       </div>
                     </Link>
                   ))}
