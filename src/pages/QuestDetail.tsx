@@ -291,8 +291,8 @@ export default function QuestDetail() {
 
   return (
     <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=quests"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Quests</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
       {quest.is_draft && <DraftBanner />}
 

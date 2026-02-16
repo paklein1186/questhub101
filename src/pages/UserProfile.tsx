@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -222,6 +222,7 @@ function ActivitySummary({
 
 // ─── Main component ────────────────────────────────────────
 export default function UserProfile() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const currentUser = useCurrentUser();
   const isOwnProfile = !!id && currentUser.id === id;
@@ -309,8 +310,8 @@ export default function UserProfile() {
 
   return (
     <PageShell>
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Back</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       {/* ═══ Identity Banner ═══ */}

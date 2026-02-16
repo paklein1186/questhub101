@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -45,6 +45,7 @@ import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
 import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
 
 export default function CompanyDetail() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data: company, isLoading } = useCompanyById(id);
   const { data: companyQuests } = useQuestsForCompany(id);
@@ -159,8 +160,8 @@ export default function CompanyDetail() {
   return (
     <PageShell>
       <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
-      <Button variant="ghost" size="sm" asChild className="mb-4">
-        <Link to="/explore?tab=companies"><ArrowLeft className="h-4 w-4 mr-1" /> Back to Traditional Organizations</Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
       {company.banner_url && (
