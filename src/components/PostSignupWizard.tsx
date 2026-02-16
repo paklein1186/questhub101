@@ -96,8 +96,20 @@ export function PostSignupWizard() {
   if (!user) return null;
 
   // Don't show this wizard if the user hasn't completed onboarding yet —
-  // the full /onboarding page will handle profile completion instead
+  // the full /onboarding page will handle profile completion instead.
+  // Also suppress it entirely if the user completed the full onboarding flow,
+  // since all profile fields (photo, bio, headline, location) are already collected there.
   if (!user.hasCompletedOnboarding) return null;
+
+  // If the user went through the full onboarding, the PostSignupWizard is redundant
+  // Check if the guest onboarding context triggered this; if not, don't show
+  const guestCtx = (() => {
+    try {
+      const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+  if (!guestCtx?.show_post_signup_wizard) return null;
 
   const stepIndex = STEPS.indexOf(step);
 
