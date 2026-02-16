@@ -106,6 +106,57 @@ export function useCreateJobPosition() {
   });
 }
 
+export function useUpdateJobPosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      company_id?: string;
+      title: string;
+      description?: string;
+      organization_name?: string;
+      contract_type: string;
+      location_text?: string;
+      remote_policy?: string;
+      document_url?: string;
+      document_name?: string;
+      topic_ids?: string[];
+      territory_ids?: string[];
+    }) => {
+      const { id, topic_ids, territory_ids, ...jobData } = params;
+      const { error } = await supabase
+        .from("job_positions" as any)
+        .update(jobData as any)
+        .eq("id", id);
+      if (error) throw error;
+
+      // Replace topics
+      await supabase.from("job_position_topics" as any).delete().eq("job_position_id", id);
+      if (topic_ids?.length) {
+        const { error: topicErr } = await supabase
+          .from("job_position_topics" as any)
+          .insert(topic_ids.map(tid => ({ job_position_id: id, topic_id: tid })) as any);
+        if (topicErr) throw topicErr;
+      }
+
+      // Replace territories
+      await supabase.from("job_position_territories" as any).delete().eq("job_position_id", id);
+      if (territory_ids?.length) {
+        const { error: terrErr } = await supabase
+          .from("job_position_territories" as any)
+          .insert(territory_ids.map(tid => ({ job_position_id: id, territory_id: tid })) as any);
+        if (terrErr) throw terrErr;
+      }
+
+      return params;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["job-positions", "company", vars.company_id] });
+      qc.invalidateQueries({ queryKey: ["job-positions", "all"] });
+    },
+  });
+}
+
 export function useDeleteJobPosition() {
   const qc = useQueryClient();
   return useMutation({
