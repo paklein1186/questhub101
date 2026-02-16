@@ -61,7 +61,7 @@ function PersonaBadge({ persona }: { persona: PersonaType }) {
 }
 
 // ─── Unified XP Widget ─────────────────────────────────────
-function XpWidget({ xp, xpRecent12m, level }: { xp: number; xpRecent12m: number; level: number }) {
+function XpWidget({ xp, xpRecent12m, level, userId }: { xp: number; xpRecent12m: number; level: number; userId: string }) {
   const current = XP_LEVEL_THRESHOLDS.find((t) => t.level === level);
   const next = XP_LEVEL_THRESHOLDS.find((t) => t.level === level + 1);
   const levelLabel = LEVEL_LABELS[level] || `Level ${level}`;
@@ -70,34 +70,77 @@ function XpWidget({ xp, xpRecent12m, level }: { xp: number; xpRecent12m: number;
   const remaining = next ? next.minXp - xp : 0;
   const nextLabel = next ? LEVEL_LABELS[next.level] || `Level ${next.level}` : null;
 
+  // Fetch territory/country impact
+  const { data: territoryStats } = useQuery({
+    queryKey: ["user-territory-impact", userId],
+    queryFn: async () => {
+      const { data: ut } = await supabase
+        .from("user_territories")
+        .select("territory_id, territories(id, name, level)")
+        .eq("user_id", userId);
+      if (!ut?.length) return { territories: 0, countries: 0 };
+      const territoryCount = ut.length;
+      const countryCount = new Set(
+        (ut as any[]).filter((r) => r.territories?.level === "NATIONAL").map((r) => r.territory_id)
+      ).size;
+      return { territories: territoryCount, countries: countryCount };
+    },
+    enabled: !!userId,
+  });
+
   return (
-    <div className="flex items-center gap-3 mt-2">
-      <XpLevelBadge level={level} xp={xp} />
+    <div className="space-y-1.5 mt-2">
+      <div className="flex items-center gap-3">
+        <XpLevelBadge level={level} xp={xp} />
 
-      {/* Progress toward next level */}
-      {!isMaxLevel && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-2 flex-1 max-w-[200px]">
-              <Progress value={Math.min(progress, 100)} className="h-1.5 flex-1" />
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap">{remaining} to {nextLabel}</span>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">{xp} XP total · {xpRecent12m} earned in the last 12 months</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
+        {/* Progress toward next level */}
+        {!isMaxLevel && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+                <Progress value={Math.min(progress, 100)} className="h-1.5 flex-1" />
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap">{remaining} to {nextLabel}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">{xp} XP total · {xpRecent12m} earned in the last 12 months</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
-      {isMaxLevel && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-[10px] text-muted-foreground">Max level · {xp} XP</span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">{xpRecent12m} XP earned in the last 12 months</p>
-          </TooltipContent>
-        </Tooltip>
+        {isMaxLevel && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-[10px] text-muted-foreground">Max level · {xp} XP</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">{xpRecent12m} XP earned in the last 12 months</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Territory impact stats */}
+      {territoryStats && (territoryStats.territories > 0 || territoryStats.countries > 0) && (
+        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+          {territoryStats.territories > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex items-center gap-1">
+                  <MapIcon className="h-3 w-3" /> Active in {territoryStats.territories} territor{territoryStats.territories === 1 ? "y" : "ies"}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Cross-territory collaborations increase your impact multiplier.</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {territoryStats.countries > 0 && (
+            <span className="flex items-center gap-1">
+              <Globe className="h-3 w-3" /> {territoryStats.countries} countr{territoryStats.countries === 1 ? "y" : "ies"}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );
@@ -412,7 +455,7 @@ export default function UserProfile() {
                   </span>
                 )}
               </div>
-              <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} />
+              <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
 
               {/* Topics & Houses chips — universe-aware */}
               {(() => {
