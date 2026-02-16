@@ -11,6 +11,7 @@ import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
 import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
 import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
+import { BugReportBubble } from "@/components/BugReportBubble";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -153,6 +154,7 @@ const App = () => (
             <PostSignupWizard />
             <GuestBauhausShape />
             <ChatBubbleOverlay />
+            <BugReportBubble />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
