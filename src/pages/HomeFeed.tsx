@@ -10,6 +10,7 @@ import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAuth } from "@/hooks/useAuth";
 import { usePersona } from "@/hooks/usePersona";
+import { useIsOrgRep } from "@/hooks/useIsOrgRep";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -28,6 +29,7 @@ const PERSONA_VERBS: Record<string, string[]> = {
   IMPACT: ["do", "achieve", "contribute", "repair", "organize", "collaborate", "support", "activate", "explore"],
   CREATIVE: ["create", "imagine", "express", "make more beautiful", "share", "explore", "experiment", "collaborate"],
   HYBRID: ["do", "create", "achieve", "imagine", "contribute", "explore", "experiment", "collaborate", "support", "express"],
+  ORG_REP: ["grow", "connect", "develop", "partner", "expand", "recruit", "promote", "collaborate"],
   UNSET: ["do", "create", "explore", "collaborate", "share", "achieve"],
 };
 
@@ -35,6 +37,7 @@ const PERSONA_GREETING: Record<string, string> = {
   IMPACT: "Ready to move something forward today?",
   CREATIVE: "What do you feel like creating today?",
   HYBRID: "What do you want to weave today?",
+  ORG_REP: "How can your organization grow today?",
   UNSET: "What would you like to accomplish today?",
 };
 
@@ -42,6 +45,7 @@ const PERSONA_DESCRIPTION: Record<string, string> = {
   IMPACT: "Use changethegame to advance your projects, connect allies, and take action for your territory and community.",
   CREATIVE: "Use changethegame to express, explore, and co-create with other artists and dreamers.",
   HYBRID: "Use changethegame to mix art, impact, ideas and people into something new.",
+  ORG_REP: "Use changethegame to find talent, build partnerships, promote your services, and connect with the ecosystem.",
   UNSET: "Use changethegame to discover quests, connect with people, and build something meaningful.",
 };
 
@@ -287,12 +291,15 @@ export default function HomeFeed() {
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const { persona } = usePersona();
+  const isOrgRep = useIsOrgRep();
   useMilestoneChecker();
+
+  // Org reps get a dedicated homepage persona overlay
+  const effectivePersona = isOrgRep ? "ORG_REP" : persona;
 
   const [mode, setMode] = useState<"free" | "guided">(() => {
     const stored = localStorage.getItem("home-mode");
     if (stored === "free" || stored === "guided") return stored;
-    // First-time users default to guided
     return "guided";
   });
 
@@ -306,7 +313,7 @@ export default function HomeFeed() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
-  const verb = useRotatingVerb(persona);
+  const verb = useRotatingVerb(effectivePersona as PersonaType);
 
   const userName = (authUser?.name || currentUser.name).split(" ")[0];
 
@@ -501,10 +508,10 @@ export default function HomeFeed() {
         {/* Greeting */}
         <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
         <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
-          {PERSONA_GREETING[persona] || PERSONA_GREETING.UNSET}
+          {PERSONA_GREETING[effectivePersona] || PERSONA_GREETING.UNSET}
         </h1>
         <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-4 sm:mb-6 px-2">
-          {PERSONA_DESCRIPTION[persona] || PERSONA_DESCRIPTION.UNSET}
+          {PERSONA_DESCRIPTION[effectivePersona] || PERSONA_DESCRIPTION.UNSET}
         </p>
 
         {/* Search shortcut */}
@@ -612,7 +619,7 @@ export default function HomeFeed() {
 
         {/* ─── Guided mode ─── */}
         {mode === "guided" && !result && (
-          <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} />
+          <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} />
         )}
 
         {/* ─── Territory Intent Flow ─── */}

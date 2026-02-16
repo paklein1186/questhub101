@@ -6,6 +6,7 @@ import {
   Sparkles, X, Send, Loader2, ArrowLeft,
   Briefcase, Calendar, Shield, CircleDot, BookOpen, Brain,
   Eye, User, Heart, Zap, Globe, MessageSquare,
+  Building2, Handshake, FileText, Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -129,15 +130,81 @@ const PATHWAYS: Pathway[] = [
   },
 ];
 
+/* ────────── Org Rep pathways (shown when isOrgRep) ────────── */
+
+const ORG_REP_PATHWAYS: Pathway[] = [
+  {
+    id: "org-manage",
+    icon: Building2,
+    title: { DEFAULT: "My Organization" },
+    subtitle: { DEFAULT: "Manage your entity" },
+    subActions: [
+      { id: "my-orgs", label: { DEFAULT: "View my Organizations" }, icon: Building2, behavior: "navigate", route: "/me/companies" },
+      { id: "create-org", label: { DEFAULT: "Register a new Organization" }, icon: PlusCircle, behavior: "navigate", route: "/explore?tab=entities&create=company" },
+      { id: "update-profile", label: { DEFAULT: "Update Organization profile" }, icon: User, behavior: "navigate", route: "/me/companies" },
+      { id: "manage-members", label: { DEFAULT: "Manage team members" }, icon: Users, behavior: "navigate", route: "/me/companies" },
+    ],
+  },
+  {
+    id: "org-services",
+    icon: Briefcase,
+    title: { DEFAULT: "Services & Offerings" },
+    subtitle: { DEFAULT: "Promote what you offer" },
+    subActions: [
+      { id: "create-service", label: { DEFAULT: "Create a Service" }, icon: Briefcase, behavior: "navigate", route: "/services/new" },
+      { id: "create-course", label: { DEFAULT: "Create a Training / Course" }, icon: BookOpen, behavior: "navigate", route: "/courses/new" },
+      { id: "create-event", label: { DEFAULT: "Organize an Event" }, icon: Calendar, behavior: "navigate", route: "/explore?tab=guilds" },
+      { id: "review-bookings", label: { DEFAULT: "Review Bookings" }, icon: Calendar, behavior: "navigate", route: "/me/bookings" },
+      { id: "post-job", label: { DEFAULT: "Post a Job Position" }, icon: FileText, behavior: "navigate", route: "/jobs" },
+    ],
+  },
+  {
+    id: "org-connect",
+    icon: Handshake,
+    title: { DEFAULT: "Connect & Partner" },
+    subtitle: { DEFAULT: "Find allies and talent" },
+    subActions: [
+      { id: "find-talent", label: { DEFAULT: "Find talent & collaborators" }, icon: Users, behavior: "ai-prompt", promptText: { DEFAULT: "What kind of talent or collaborator are you looking for?" }, aiCode: "FIND_COLLABORATORS" },
+      { id: "find-partners", label: { DEFAULT: "Find partner organizations" }, icon: Handshake, behavior: "navigate", route: "/explore?tab=companies" },
+      { id: "join-guild", label: { DEFAULT: "Join a Guild or Network" }, icon: Shield, behavior: "navigate", route: "/explore?tab=guilds" },
+      { id: "explore-territories", label: { DEFAULT: "Explore Territories" }, icon: MapPin, behavior: "navigate", route: "/explore?tab=territories" },
+    ],
+  },
+  {
+    id: "org-visibility",
+    icon: Megaphone,
+    title: { DEFAULT: "Visibility & Growth" },
+    subtitle: { DEFAULT: "Grow your presence" },
+    subActions: [
+      { id: "publish-post", label: { DEFAULT: "Publish a Post" }, icon: MessageSquare, behavior: "navigate", route: "/feed" },
+      { id: "create-quest", label: { DEFAULT: "Launch a Quest / Project" }, icon: Compass, behavior: "navigate", route: "/quests/new" },
+      { id: "explore-quests", label: { DEFAULT: "Browse open Quests to join" }, icon: Eye, behavior: "navigate", route: "/explore?tab=quests" },
+      { id: "add-territory-knowledge", label: { DEFAULT: "Contribute to your Territory" }, icon: Brain, behavior: "ai-prompt", promptText: { DEFAULT: "What insight would you like to contribute?" }, aiCode: "TERRITORY_ADD_KNOWLEDGE" },
+    ],
+  },
+  {
+    id: "org-guidance",
+    icon: Lightbulb,
+    title: { DEFAULT: "Guidance" },
+    subtitle: { DEFAULT: "AI-assisted strategy" },
+    subActions: [
+      { id: "strategy", label: { DEFAULT: "What should my organization focus on?" }, icon: Sparkles, behavior: "ai-prompt", promptText: { DEFAULT: "Tell me about your organization's goals" }, aiCode: "GUIDANCE_FOCUS" },
+      { id: "partnerships", label: { DEFAULT: "Suggest partnerships for my org" }, icon: Handshake, behavior: "ai-prompt", promptText: { DEFAULT: "What does your organization do and what kind of partners do you need?" }, aiCode: "GUIDANCE_CONNECTIONS" },
+      { id: "momentum", label: { DEFAULT: "Help me build momentum" }, icon: Zap, behavior: "ai-prompt", promptText: { DEFAULT: "What's slowing you down?" }, aiCode: "GUIDANCE_MOMENTUM" },
+    ],
+  },
+];
+
 /* ────────── Component ────────── */
 
 interface Props {
   persona: PersonaType;
   userName: string;
   userId?: string;
+  isOrgRep?: boolean;
 }
 
-export function GuidedPathways({ persona, userName, userId }: Props) {
+export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
   const navigate = useNavigate();
   const [openPathway, setOpenPathway] = useState<string | null>(null);
   const [promptStep, setPromptStep] = useState<SubAction | null>(null);
@@ -146,7 +213,8 @@ export function GuidedPathways({ persona, userName, userId }: Props) {
   const [aiResult, setAiResult] = useState<any>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const activePathway = PATHWAYS.find((pw) => pw.id === openPathway);
+  const displayedPathways = isOrgRep ? ORG_REP_PATHWAYS : PATHWAYS;
+  const activePathway = displayedPathways.find((pw) => pw.id === openPathway);
 
   const handleSubAction = (sub: SubAction) => {
     if (sub.behavior === "navigate" && sub.route) {
@@ -214,7 +282,7 @@ export function GuidedPathways({ persona, userName, userId }: Props) {
     <>
       {/* 6-pathway grid */}
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {PATHWAYS.map((pw, i) => {
+        {displayedPathways.map((pw, i) => {
           const Icon = pw.icon;
           return (
             <motion.button

@@ -12,7 +12,7 @@ interface ActionItem {
   route: string;
 }
 
-const ACTIONS: Record<PersonaType, ActionItem[]> = {
+const ACTIONS: Record<PersonaType | "ORG_REP", ActionItem[]> = {
   CREATIVE: [
     { label: "Start a new Creation", icon: PlusCircle, route: "/quests/new" },
     { label: "Offer a Skill Session", icon: Briefcase, route: "/services/new" },
@@ -33,6 +33,13 @@ const ACTIONS: Record<PersonaType, ActionItem[]> = {
     { label: "Join a Circle or Guild", icon: Shield, route: "/explore?tab=guilds" },
     { label: "Check collaborations in progress", icon: Users, route: "/work" },
     { label: "Explore your hybrid Houses", icon: Hash, route: "/explore/houses" },
+  ],
+  ORG_REP: [
+    { label: "Manage my Organizations", icon: Users, route: "/me/companies" },
+    { label: "Create a Service", icon: Briefcase, route: "/services/new" },
+    { label: "Post a Job", icon: Compass, route: "/jobs" },
+    { label: "Find partners", icon: Handshake, route: "/explore?tab=companies" },
+    { label: "Explore Guilds & Networks", icon: Shield, route: "/explore?tab=guilds" },
   ],
   UNSET: [
     { label: "Start a Quest", icon: PlusCircle, route: "/quests/new" },
