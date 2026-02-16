@@ -67,6 +67,7 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const type = url.searchParams.get("type");
     const id = url.searchParams.get("id");
+    const ref = url.searchParams.get("ref");
     if (!type || !id) return new Response("Missing type or id", { status: 400, headers: corsHeaders });
 
     const c = MAP[type];
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
     const rows = await res.json();
     const data = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
-    const appUrl = APP_URL + c.path + "/" + id;
+    const appUrl = APP_URL + c.path + "/" + id + (ref ? "?ref=" + ref : "");
 
     if (!data) {
       return new Response(html(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, DEFAULT_IMAGE, appUrl), {
