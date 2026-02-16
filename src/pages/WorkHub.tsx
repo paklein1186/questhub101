@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -7,7 +8,7 @@ import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsL
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
-import { Link } from "react-router-dom";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -41,7 +42,9 @@ function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; 
 }
 
 export default function WorkHub() {
-  const [tab, setTab] = useState("tasks");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "tasks";
+  const setTab = (t: string) => setSearchParams({ tab: t });
   const [showMore, setShowMore] = useState(true);
   const tabsListRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
