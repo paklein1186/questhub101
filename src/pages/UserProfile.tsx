@@ -128,16 +128,40 @@ function TerritoryLine({ territories }: { territories: any[] }) {
   const workIn = territories.filter((t) => t.attachmentType === "WORK_IN");
   const careFor = territories.filter((t) => t.attachmentType === "CARE_FOR");
 
-  const parts: string[] = [];
-  if (liveIn.length) parts.push(`Lives in ${liveIn.map((t) => t.territory?.name).join(", ")}`);
-  if (workIn.length) parts.push(`Works in ${workIn.map((t) => t.territory?.name).join(", ")}`);
-  if (careFor.length) parts.push(`Cares for ${careFor.slice(0, 2).map((t) => t.territory?.name).join(", ")}`);
+  const renderGroup = (label: string, items: any[]) => {
+    if (items.length === 0) return null;
+    return (
+      <span>
+        {label}{" "}
+        {items.map((t, i) => (
+          <span key={t.territory?.id || i}>
+            {i > 0 && ", "}
+            <Link
+              to={`/territories/${t.territory?.id}`}
+              className="hover:underline text-primary"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {t.territory?.name}
+            </Link>
+          </span>
+        ))}
+      </span>
+    );
+  };
 
-  if (parts.length === 0) return null;
+  const groups = [
+    renderGroup("Lives in", liveIn),
+    renderGroup("Works in", workIn),
+    renderGroup("Cares for", careFor.slice(0, 2)),
+  ].filter(Boolean);
+
+  if (groups.length === 0) return null;
   return (
     <p className="text-xs text-muted-foreground flex items-center gap-1">
       <MapPin className="h-3 w-3 shrink-0" />
-      {parts.join(" · ")}
+      {groups.map((g, i) => (
+        <span key={i}>{i > 0 && " · "}{g}</span>
+      ))}
     </p>
   );
 }
