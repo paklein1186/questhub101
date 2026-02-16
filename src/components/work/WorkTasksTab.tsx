@@ -128,7 +128,7 @@ export function WorkTasksTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("id, title, status, created_at, reward_xp, guild_id, guilds(name, logo_url)")
+        .select("id, title, status, created_at, reward_xp, guild_id, priority, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
         .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE", "COMPLETED"])
@@ -223,7 +223,7 @@ export function WorkTasksTab() {
       const questIds = parts.map((p: any) => p.quest_id);
       const { data: quests } = await supabase
         .from("quests")
-        .select("id, title, status, created_at, guild_id, guilds(name, logo_url)")
+        .select("id, title, status, created_at, guild_id, priority, guilds(name, logo_url)")
         .in("id", questIds)
         .eq("is_deleted", false);
       return quests || [];
@@ -319,6 +319,7 @@ export function WorkTasksTab() {
       id: q.id, title: q.title,
       status: q.status === "ACTIVE" ? "IN_PROGRESS" : q.status === "COMPLETED" ? "DONE" : "TODO",
       source: "quest", sourceLabel: "My Quest", sourceId: q.id, createdAt: q.created_at,
+      priority: ((q as any).priority as Priority) || "NONE",
       guildId: (q as any).guild_id || null,
       guildName: (q as any).guilds?.name || null,
       guildLogo: (q as any).guilds?.logo_url || null,
@@ -333,6 +334,7 @@ export function WorkTasksTab() {
         id: q.id, title: q.title,
         status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
         source: "quest", sourceLabel: "Collaborator", sourceId: q.id, createdAt: q.created_at,
+        priority: ((q as any).priority as Priority) || "NONE",
         guildId: (q as any).guild_id || null,
         guildName: (q as any).guilds?.name || null,
         guildLogo: (q as any).guilds?.logo_url || null,
@@ -860,7 +862,7 @@ export function WorkTasksTab() {
                         <PriorityPicker
                           value={task.priority || "NONE"}
                           onChange={(p) => updatePriority(task, p)}
-                          disabled={task.source === "quest"}
+                          disabled={false}
                         />
                       </td>
                       <td className="px-3 py-2.5 max-w-[300px]">
