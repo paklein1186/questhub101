@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export function BugReportBubble() {
   const [open, setOpen] = useState(false);
@@ -34,24 +35,32 @@ export function BugReportBubble() {
     }
     setSending(true);
 
-    const subject = encodeURIComponent("Bug Report — changethegame");
-    const userInfo = user?.email ? `\n\nReported by: ${user.email}` : "";
-    const pageInfo = `\nPage: ${window.location.href}`;
-    const body = encodeURIComponent(`${text.trim()}${pageInfo}${userInfo}\n\n(Screenshot attached separately if provided)`);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-bug-report", {
+        body: {
+          description: text.trim(),
+          page: window.location.href,
+          userEmail: user?.email || null,
+          screenshot: preview || null,
+        },
+      });
 
-    window.open(`mailto:pa@changethegame.xyz?subject=${subject}&body=${body}`, "_blank");
+      if (error) throw error;
 
-    setSending(false);
-    setText("");
-    setFile(null);
-    setPreview(null);
-    setOpen(false);
-    toast({ title: "Bug report prepared", description: "Your email client should open with the report." });
+      setText("");
+      setFile(null);
+      setPreview(null);
+      setOpen(false);
+      toast({ title: "Bug report sent!", description: "Thanks for helping us improve." });
+    } catch (e: any) {
+      toast({ title: "Failed to send", description: e.message || "Please try again.", variant: "destructive" });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <>
-      {/* Floating trigger */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -63,7 +72,6 @@ export function BugReportBubble() {
         </button>
       )}
 
-      {/* Panel */}
       {open && (
         <div className="fixed bottom-4 left-4 z-50 w-80 rounded-2xl border border-border bg-card shadow-xl p-4 space-y-3 animate-in slide-in-from-bottom-4 fade-in duration-200">
           <div className="flex items-center justify-between">
