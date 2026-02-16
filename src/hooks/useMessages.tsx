@@ -22,6 +22,10 @@ export interface DirectMessage {
   content: string;
   created_at: string;
   is_deleted: boolean;
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  attachment_type?: string | null;
+  attachment_size?: number | null;
   sender?: { name: string; avatar_url: string | null };
 }
 
@@ -192,12 +196,13 @@ export function useSendMessage() {
   const { session } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
+    mutationFn: async ({ conversationId, content, attachment_url, attachment_name, attachment_type, attachment_size }: { conversationId: string; content: string; attachment_url?: string; attachment_name?: string; attachment_type?: string; attachment_size?: number }) => {
       // Insert message
       const { data: msg, error } = await supabase.from("direct_messages").insert({
         conversation_id: conversationId,
         sender_id: session!.user.id,
         content,
+        ...(attachment_url && { attachment_url, attachment_name, attachment_type, attachment_size }),
       }).select().single();
       
       if (error) throw error;
