@@ -115,6 +115,22 @@ export default function QuestDetail() {
     enabled: !!id,
   });
 
+  // Guilds where user is admin (for re-attaching quest)
+  const { data: myAdminGuilds = [] } = useQuery({
+    queryKey: ["my-admin-guilds", currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guild_members")
+        .select("guild_id, role, guilds(id, name, logo_url, is_draft, is_deleted)")
+        .eq("user_id", currentUser.id!)
+        .in("role", ["ADMIN", "MEMBER"]);
+      return (data ?? [])
+        .filter((m: any) => m.guilds && !m.guilds.is_draft && !m.guilds.is_deleted && (m.role === "ADMIN" || m.role === "OWNER"))
+        .map((m: any) => m.guilds);
+    },
+    enabled: !!currentUser.id,
+  });
+
   const [updateOpen, setUpdateOpen] = useState(false);
   const [uTitle, setUTitle] = useState("");
   const [uContent, setUContent] = useState("");
@@ -151,6 +167,7 @@ export default function QuestDetail() {
   const [editTopics, setEditTopics] = useState<string[]>([]);
   const [editTerritories, setEditTerritories] = useState<string[]>([]);
   const [editQuestType, setEditQuestType] = useState("ACTION");
+  const [editGuildId, setEditGuildId] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteEmailSending, setInviteEmailSending] = useState(false);
@@ -258,6 +275,7 @@ export default function QuestDetail() {
     setEditTopics(topics.map((t: any) => t.id));
     setEditTerritories(territories.map((t: any) => t.id));
     setEditQuestType((quest as any).quest_type || "ACTION");
+    setEditGuildId(quest.guild_id || null);
     setEditOpen(true);
   };
 
@@ -280,6 +298,7 @@ export default function QuestDetail() {
       allow_fundraising: editAllowFundraising,
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
       quest_type: editQuestType,
+      guild_id: editGuildId || null,
     } as any).eq("id", quest.id);
 
     // Update topics: delete old, insert new
@@ -512,6 +531,25 @@ export default function QuestDetail() {
                   </SelectContent>
                 </Select>
               </div>
+              {myAdminGuilds.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    <Building2 className="h-3.5 w-3.5 inline mr-1" /> Attached Guild
+                  </label>
+                  <Select value={editGuildId || "__none__"} onValueChange={v => setEditGuildId(v === "__none__" ? null : v)}>
+                    <SelectTrigger><SelectValue placeholder="No guild" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No guild (independent quest)</SelectItem>
+                      {myAdminGuilds.map((g: any) => (
+                        <SelectItem key={g.id} value={g.id}>
+                          {g.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Move this quest to another guild you manage</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
