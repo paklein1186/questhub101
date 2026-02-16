@@ -14,7 +14,7 @@ interface HighlightedPostsTilesProps {
 export function HighlightedPostsTiles({ guildId, onViewAll }: HighlightedPostsTilesProps) {
   // Fetch guild to get highlighted post IDs from features_config
   const { data: guild } = useQuery({
-    queryKey: ["guild", guildId],
+    queryKey: ["guild-config-highlights", guildId],
     queryFn: async () => {
       const { data } = await supabase.from("guilds").select("features_config").eq("id", guildId).single();
       return data;
