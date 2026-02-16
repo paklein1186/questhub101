@@ -35,6 +35,7 @@ import { EntityCreationWizard } from "@/components/EntityCreationWizard";
 import { useOpenChatBubble } from "@/hooks/useOpenChatBubble";
 import { MessageSquare } from "lucide-react";
 import { ProfileQuestsTab } from "@/components/profile/ProfileQuestsTab";
+import { FollowersDialog } from "@/components/FollowersDialog";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -237,6 +238,7 @@ export default function UserProfile() {
 
   const [tab, setTab] = useState("overview");
   const [showCreateUnit, setShowCreateUnit] = useState(false);
+  const [followDialogMode, setFollowDialogMode] = useState<"followers" | "following" | null>(null);
 
   if (isLoading) {
     return <PageShell><div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></PageShell>;
@@ -403,8 +405,8 @@ export default function UserProfile() {
 
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
-              <StatCard icon={UserPlus} label="Followers" count={followersCount} />
-              <StatCard icon={Users} label="Following" count={followingCount} />
+              <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
+              <StatCard icon={Users} label="Following" count={followingCount} onClick={() => setFollowDialogMode("following")} />
               <StatCard icon={Compass} label="Quests created" count={questsCreated.length} />
               <StatCard icon={Compass} label="Quests joined" count={questsJoined.length} />
               <StatCard icon={Shield} label="Guilds" count={guilds.length} />
@@ -692,18 +694,28 @@ export default function UserProfile() {
       {isOwnProfile && (
         <EntityCreationWizard open={showCreateUnit} onOpenChange={setShowCreateUnit} />
       )}
+      {followDialogMode && (
+        <FollowersDialog
+          open={!!followDialogMode}
+          onOpenChange={(open) => { if (!open) setFollowDialogMode(null); }}
+          targetId={id!}
+          targetType="USER"
+          mode={followDialogMode}
+        />
+      )}
     </PageShell>
   );
 }
 
 // ─── Reusable helpers ──────────────────────────────────────
-function StatCard({ icon: Icon, label, count }: { icon: any; label: string; count: number }) {
+function StatCard({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick?: () => void }) {
+  const Comp = onClick ? "button" : "div";
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
+    <Comp onClick={onClick} className={`flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 ${onClick ? "cursor-pointer hover:border-primary/30 transition-colors" : ""}`}>
       <Icon className="h-4 w-4 text-primary" />
       <span className="text-sm font-medium">{count}</span>
       <span className="text-xs text-muted-foreground">{label}</span>
-    </div>
+    </Comp>
   );
 }
 

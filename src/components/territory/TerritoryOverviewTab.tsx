@@ -5,6 +5,7 @@ import { TerritorySynthesis } from "./TerritorySynthesis";
 import { useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ChevronUp, ChevronDown, ArrowLeftRight } from "lucide-react";
+import { EntityFollowersCount } from "@/components/FollowersDialog";
 
 interface Props {
   territoryId: string;
@@ -157,6 +158,9 @@ function RelatedTerritoriesSection({ territoryId }: { territoryId: string }) {
 export function TerritoryOverviewTab({ territoryId, territoryName }: Props) {
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <EntityFollowersCount entityId={territoryId} entityType="TERRITORY" />
+      </div>
       <RelatedTerritoriesSection territoryId={territoryId} />
       <TerritorySynthesis
         territoryId={territoryId}

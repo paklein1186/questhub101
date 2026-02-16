@@ -36,6 +36,7 @@ import { UserPlus } from "lucide-react";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { EntityFollowersCount } from "@/components/FollowersDialog";
 
 export default function PodDetail() {
   const { id } = useParams<{ id: string }>();
@@ -133,6 +134,10 @@ export default function PodDetail() {
 
         {/* Unit details */}
         <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mt-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Followers</span>
+            <EntityFollowersCount entityId={pod.id} entityType="POD" variant="inline" />
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Membership policy</span>
             <Badge variant={pod.join_policy === "OPEN" ? "default" : pod.join_policy === "INVITE_ONLY" ? "destructive" : "secondary"} className="capitalize text-xs">
