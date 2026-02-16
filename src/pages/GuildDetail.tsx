@@ -62,6 +62,7 @@ import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles";
 import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
+import { BroadcastMessageDialog } from "@/components/BroadcastMessageDialog";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -423,7 +424,17 @@ export default function GuildDetail() {
 
         <TabsContent value="members" className="mt-6 space-y-4">
           {isAdmin && (
-            <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
+            <>
+              <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
+              <div className="flex justify-end">
+                <BroadcastMessageDialog
+                  recipientIds={members.filter((m: any) => m.user_id !== currentUser.id).map((m: any) => m.user_id)}
+                  recipientCount={members.filter((m: any) => m.user_id !== currentUser.id).length}
+                  guildId={guild.id}
+                  guildName={guild.name}
+                />
+              </div>
+            </>
           )}
           <div className="grid gap-3 md:grid-cols-2">
             {members.map((m: any) => {
