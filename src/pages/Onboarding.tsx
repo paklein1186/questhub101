@@ -102,6 +102,7 @@ export default function Onboarding() {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [location, setLocation] = useState("");
   const [bio, setBio] = useState("");
 
   // Affiliations step
@@ -166,7 +167,7 @@ export default function Onboarding() {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("name, bio, headline, avatar_url, website_url, linkedin_url, instagram_url")
+        .select("name, bio, headline, avatar_url, location, website_url, linkedin_url, instagram_url")
         .eq("user_id", authUser.id)
         .single();
       if (data) {
@@ -174,6 +175,7 @@ export default function Onboarding() {
         if (data.bio) setBio(data.bio);
         if ((data as any).headline) setHeadline((data as any).headline);
         if ((data as any).avatar_url) setAvatarUrl((data as any).avatar_url);
+        if ((data as any).location) setLocation((data as any).location);
         if (data.website_url || data.linkedin_url || data.instagram_url) {
           setAffLinks({
             website: data.website_url || "",
@@ -264,6 +266,7 @@ export default function Onboarding() {
         headline: headline.trim() || null,
         avatar_url: avatarUrl || null,
         bio: bio.trim() || null,
+        location: location.trim() || null,
         has_completed_onboarding: true,
         persona_type: personaType,
         persona_source: "onboarding_intent",
@@ -809,6 +812,13 @@ export default function Onboarding() {
         </div>
 
         <div>
+          <label className="text-sm font-medium mb-1 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> Location
+          </label>
+          <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Berlin, Germany" maxLength={100} />
+        </div>
+
+        <div>
           <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5 text-accent" /> Places of resonance
           </label>
@@ -911,6 +921,13 @@ export default function Onboarding() {
           <label className="text-sm font-medium mb-1 block">Headline</label>
           <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder={isOrgRep ? "e.g. Head of Partnerships, ACME Foundation" : "e.g. Social entrepreneur, renewable energy"} maxLength={120} />
           <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> Location
+          </label>
+          <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Paris, France" maxLength={100} />
         </div>
 
         <div>
@@ -1384,7 +1401,7 @@ export default function Onboarding() {
                   You'll register your institution and configure its presence on the platform.
                 </p>
                 <Button asChild className="w-full mt-3" variant="default">
-                  <Link to="/organizations/onboarding">
+                  <Link to="/onboarding/organization">
                     <Building2 className="h-4 w-4 mr-2" /> Onboard your organization
                   </Link>
                 </Button>
