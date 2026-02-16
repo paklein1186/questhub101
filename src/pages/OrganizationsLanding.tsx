@@ -114,8 +114,8 @@ export default function OrganizationsLanding() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
-            <Button size="lg" className="gap-2" onClick={() => handleGatedClick("create an organization profile", "/onboarding?org=1")}>
-              <Building2 className="h-4 w-4" /> Get Started
+            <Button size="lg" className="gap-2" onClick={() => handleGatedClick("create an organization profile", "/onboarding/organization")}>
+              <Building2 className="h-4 w-4" /> Create Organization Profile
             </Button>
             <Button size="lg" variant="outline" className="gap-2" asChild>
               <Link to="/explore"><Compass className="h-4 w-4" /> Explore Ecosystem</Link>
@@ -227,8 +227,8 @@ export default function OrganizationsLanding() {
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to join the ecosystem?</h2>
           <p className="text-muted-foreground mb-6">Create your organization profile and start collaborating.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" onClick={() => handleGatedClick("create an organization profile", "/onboarding?org=1")}>
-              Get Started <ArrowRight className="h-4 w-4 ml-1" />
+            <Button size="lg" onClick={() => handleGatedClick("create an organization profile", "/onboarding/organization")}>
+              Create Organization Profile <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/explore">Explore the platform</Link>
