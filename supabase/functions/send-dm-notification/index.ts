@@ -50,11 +50,51 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { messageId, conversationId, senderId, content } = await req.json();
 
     if (!messageId || !conversationId || !senderId) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Verify sender matches authenticated user
+    if (senderId !== user.id) {
+      return new Response(JSON.stringify({ error: "Sender mismatch" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Verify the caller is a participant in the conversation
+    const { data: participation } = await supabase
+      .from("conversation_participants")
+      .select("id")
+      .eq("conversation_id", conversationId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!participation) {
+      return new Response(JSON.stringify({ error: "Not a participant" }), {
+        status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
