@@ -15,6 +15,7 @@ const TYPE_LABELS: Record<SearchResultType, string> = {
   POD: "Pods",
   SERVICE: "Services",
   COMPANY: "Companies",
+  TERRITORY: "Territories",
 };
 
 const TYPE_COLORS: Record<SearchResultType, string> = {
@@ -24,6 +25,7 @@ const TYPE_COLORS: Record<SearchResultType, string> = {
   POD: "bg-violet-500/10 text-violet-600",
   SERVICE: "bg-rose-500/10 text-rose-600",
   COMPANY: "bg-cyan-500/10 text-cyan-600",
+  TERRITORY: "bg-orange-500/10 text-orange-600",
 };
 
 export function GlobalSearchDialog() {
