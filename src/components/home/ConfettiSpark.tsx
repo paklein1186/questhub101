@@ -58,7 +58,7 @@ export function ConfettiSpark({ onDone }: { onDone: () => void }) {
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 1.5 + Math.random() * 3;
-        const life = 40 + Math.floor(Math.random() * 30);
+        const life = 220 + Math.floor(Math.random() * 30);
         particles.push({
           x: cx,
           y: cy,
