@@ -219,11 +219,38 @@ Rules:
           },
         });
 
-        // Log email (actual sending would use Resend/etc.)
+        // Send email via Resend
         if (pref.channel_email_enabled && profile.email) {
           const emailHtml = buildDigestEmailHtml(digest, profile.name);
-          console.log(`📧 [AI digest email] To: ${profile.email} | Subject: ${digest.subject}`);
-          console.log(`📧 [AI digest email] Preview:`, emailHtml.slice(0, 300));
+          const resendKey = Deno.env.get("RESEND_API_KEY");
+          if (resendKey) {
+            try {
+              const emailRes = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${resendKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: "changethegame <hello@changethegame.xyz>",
+                  to: [profile.email],
+                  subject: digest.subject ?? `Your ${userContext.period} digest`,
+                  html: emailHtml,
+                }),
+              });
+              if (emailRes.ok) {
+                const emailData = await emailRes.json();
+                console.log(`✅ Digest email sent to ${profile.email} (id: ${emailData.id})`);
+              } else {
+                const errText = await emailRes.text();
+                console.error(`Resend error for ${profile.email}: ${errText}`);
+              }
+            } catch (emailErr: any) {
+              console.error(`Email send failed for ${profile.email}:`, emailErr.message);
+            }
+          } else {
+            console.warn("RESEND_API_KEY not set — skipping digest email");
+          }
         }
 
         // Update last_digest_sent_at
