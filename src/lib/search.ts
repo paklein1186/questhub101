@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type SearchResultType = "USER" | "GUILD" | "QUEST" | "POD" | "SERVICE" | "COMPANY";
+export type SearchResultType = "USER" | "GUILD" | "QUEST" | "POD" | "SERVICE" | "COMPANY" | "TERRITORY";
 
 export interface SearchResult {
   type: SearchResultType;
@@ -140,6 +140,18 @@ export async function globalSearch(
 
   for (const c of companiesData ?? []) {
     results.push({ type: "COMPANY", id: c.id, title: c.name, subtitle: c.description ?? undefined, url: `/companies/${c.id}` });
+  }
+
+  // Territories
+  const { data: territoriesData } = await supabase
+    .from("territories")
+    .select("id, name, level, summary")
+    .eq("is_deleted", false)
+    .ilike("name", q)
+    .limit(20);
+
+  for (const t of territoriesData ?? []) {
+    results.push({ type: "TERRITORY", id: t.id, title: t.name, subtitle: t.level ?? undefined, url: `/territories/${t.id}` });
   }
 
   return results;

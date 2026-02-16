@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes, Loader2 } from "lucide-react";
+import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes, Loader2, MapPin } from "lucide-react";
 import { UnitCoverImage, type UnitType } from "@/components/UnitCoverImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ const TYPE_META: Record<SearchResultType, { label: string; icon: typeof Users; c
   POD: { label: "Pods", icon: Boxes, color: "text-violet-600" },
   SERVICE: { label: "Services", icon: Briefcase, color: "text-rose-600" },
   COMPANY: { label: "Companies", icon: Building2, color: "text-cyan-600" },
+  TERRITORY: { label: "Territories", icon: MapPin, color: "text-orange-600" },
 };
 
 export default function SearchPage() {
