@@ -42,10 +42,10 @@ export function getShareUrl(type: ShareEntityType, id: string): string {
 }
 
 /**
- * Returns a direct invite link on the production domain.
- * This is the link users actually click to open the app.
+ * Returns an invite link that goes through the OG-share function
+ * so crawlers get proper title/description/image, while real browsers
+ * are redirected to the app with ?ref=invite.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type] || `/${type}s`;
-  return `${PRODUCTION_DOMAIN}${route}/${id}?ref=invite`;
+  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
 }
