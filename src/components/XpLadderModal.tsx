@@ -151,15 +151,12 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
                   <div className="rounded-xl border border-border bg-card p-3 space-y-2">
                     <p className="text-xs font-semibold">Your Governance Status</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {GOVERNANCE_BODIES.filter(b => currentLevel >= b.minLevel).map(b => (
+                      {GOVERNANCE_BODIES.map(b => (
                         <Badge key={b.name} variant="outline" className="text-[10px] bg-primary/5">
                           <CheckCircle2 className="h-2.5 w-2.5 mr-1 text-primary" />
                           {b.name} Eligible
                         </Badge>
                       ))}
-                      {GOVERNANCE_BODIES.filter(b => currentLevel >= b.minLevel).length === 0 && (
-                        <p className="text-[10px] text-muted-foreground">Reach Level 4 to unlock governance participation.</p>
-                      )}
                     </div>
                   </div>
                 )}
@@ -179,14 +176,9 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
                       <p className="text-xs font-semibold mb-1.5">{phase.title}</p>
                       <div className="space-y-1">
                         {rights.map((r, i) => {
-                          const unlocked = currentLevel != null && currentLevel >= r.minLevel;
                           return (
-                            <div key={i} className={`flex items-start gap-2 px-2 py-1.5 rounded-md ${unlocked ? "" : "opacity-50"}`}>
-                              {unlocked ? (
-                                <Unlock className="h-3 w-3 text-primary shrink-0 mt-0.5" />
-                              ) : (
-                                <Lock className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
-                              )}
+                            <div key={i} className="flex items-start gap-2 px-2 py-1.5 rounded-md">
+                              <Unlock className="h-3 w-3 text-primary shrink-0 mt-0.5" />
                               <div className="flex-1">
                                 <div className="flex items-center gap-1.5">
                                   <span className="text-xs font-medium">{r.label}</span>
