@@ -90,7 +90,7 @@ function getEntityLink(entityType: EntityType, record: any): string | null {
   const id = record[config.idField];
   if (!id) return null;
   switch (entityType) {
-    case "profiles": return `/profile/${id}`;
+    case "profiles": return `/users/${id}`;
     case "guilds": return `/guilds/${id}`;
     case "companies": return `/companies/${id}`;
     case "quests": return `/quests/${id}`;

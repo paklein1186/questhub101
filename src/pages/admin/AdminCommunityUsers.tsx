@@ -54,7 +54,7 @@ export default function AdminCommunityUsers() {
             {filtered.map((p) => (
               <TableRow key={p.user_id}>
                 <TableCell className="font-medium">
-                  <Link to={`/profile/${p.user_id}`} className="text-primary hover:underline inline-flex items-center gap-1">
+                  <Link to={`/users/${p.user_id}`} className="text-primary hover:underline inline-flex items-center gap-1">
                     {p.name}
                     <ExternalLink className="h-3 w-3 opacity-50" />
                   </Link>
