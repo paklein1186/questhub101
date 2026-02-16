@@ -14,6 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { ProfileWallSection } from "@/components/feed/ProfileWallSection";
@@ -59,16 +60,53 @@ function PersonaBadge({ persona }: { persona: PersonaType }) {
   );
 }
 
-// ─── XP Progress bar ───────────────────────────────────────
-function XpProgressBar({ xp, level }: { xp: number; level: number }) {
+// ─── Unified XP Widget ─────────────────────────────────────
+const LEVEL_LABELS: Record<number, string> = {
+  1: "Newcomer", 2: "Contributor", 3: "Builder", 4: "Champion", 5: "Legend",
+};
+
+function XpWidget({ xp, xpRecent12m, level }: { xp: number; xpRecent12m: number; level: number }) {
   const current = XP_LEVEL_THRESHOLDS.find((t) => t.level === level);
   const next = XP_LEVEL_THRESHOLDS.find((t) => t.level === level + 1);
-  if (!current || !next) return null;
-  const progress = ((xp - current.minXp) / (next.minXp - current.minXp)) * 100;
+  const levelLabel = LEVEL_LABELS[level] || `Level ${level}`;
+  const isMaxLevel = !next;
+  const progress = next && current ? ((xp - current.minXp) / (next.minXp - current.minXp)) * 100 : 100;
+  const remaining = next ? next.minXp - xp : 0;
+  const nextLabel = next ? LEVEL_LABELS[next.level] || `Level ${next.level}` : null;
+
   return (
-    <div className="w-full max-w-[180px]">
-      <Progress value={Math.min(progress, 100)} className="h-1.5" />
-      <p className="text-[10px] text-muted-foreground mt-0.5">{next.minXp - xp} XP to Level {next.level}</p>
+    <div className="flex items-center gap-3 mt-2">
+      {/* Level badge */}
+      <div className="flex items-center gap-1.5">
+        <Zap className="h-4 w-4 text-primary" />
+        <span className="text-sm font-semibold">{levelLabel}</span>
+      </div>
+
+      {/* Progress toward next level */}
+      {!isMaxLevel && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-2 flex-1 max-w-[200px]">
+              <Progress value={Math.min(progress, 100)} className="h-1.5 flex-1" />
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap">{remaining} to {nextLabel}</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">{xp} XP total · {xpRecent12m} earned in the last 12 months</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {isMaxLevel && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-[10px] text-muted-foreground">Max level · {xp} XP</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">{xpRecent12m} XP earned in the last 12 months</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
@@ -376,15 +414,13 @@ export default function UserProfile() {
               )}
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <PersonaBadge persona={persona} />
-                <XpLevelBadge level={profile.xpLevel} xp={profile.xp} />
-                <span className="text-xs text-muted-foreground">{profile.xpRecent12m} XP last 12m</span>
                 {canSeePrivate && (
                   <span className="flex items-center gap-1 text-xs font-medium">
                     <Coins className="h-3 w-3 text-primary" /> {profile.creditsBalance} Credits
                   </span>
                 )}
               </div>
-              <XpProgressBar xp={profile.xp} level={profile.xpLevel} />
+              <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} />
 
               {/* Topics & Houses chips — universe-aware */}
               {(() => {
