@@ -152,6 +152,7 @@ export default function QuestCreate() {
   const [rewardXp, setRewardXp] = useState("100");
   const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>();
   const [isDraft, setIsDraft] = useState(false);
+  const [questStatus, setQuestStatus] = useState<string>("OPEN");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
   const [monetizationType, setMonetizationType] = useState("FREE");
@@ -299,7 +300,7 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
-      const questStatus = isDraft ? "DRAFT" : openForProposals ? "OPEN_FOR_PROPOSALS" : "OPEN";
+      const finalStatus = isDraft ? "DRAFT" : questStatus;
 
       const { data: quest, error } = await supabase
         .from("quests")
@@ -307,7 +308,7 @@ export default function QuestCreate() {
           title: title.trim(),
           description: description.trim() || null,
           cover_image_url: coverImageUrl || null,
-          status: questStatus as any,
+          status: finalStatus as any,
           monetization_type: monType as any,
           reward_xp: Number(rewardXp) || 100,
           is_featured: false,
@@ -599,6 +600,23 @@ export default function QuestCreate() {
               {QUEST_TYPES.map(qt => (
                 <option key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</option>
               ))}
+          </select>
+          </div>
+
+          <div>
+            <Label htmlFor="questStatus">Status</Label>
+            <select
+              id="questStatus"
+              value={questStatus}
+              onChange={(e) => setQuestStatus(e.target.value)}
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="OPEN">Open</option>
+              <option value="OPEN_FOR_PROPOSALS">Open for proposals</option>
+              <option value="IN_PROGRESS">In progress</option>
+              <option value="ACTIVE">Active</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
 
