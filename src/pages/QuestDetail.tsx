@@ -198,6 +198,14 @@ export default function QuestDetail() {
   const [authPromptAction, setAuthPromptAction] = useState("");
   const [editFundingType, setEditFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
 
+  // Quest features config (hooks must be before any early returns)
+  const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
+  const qfc = typeof (quest as any)?.features_config === "object" && (quest as any)?.features_config
+    ? { ...questDefaultFeatures, ...(quest as any).features_config }
+    : questDefaultFeatures;
+  const [questFeaturesConfig, setQuestFeaturesConfig] = useState<Record<string, any>>(qfc);
+  const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
@@ -212,14 +220,6 @@ export default function QuestDetail() {
   const isOwner = isLoggedIn && currentUser.id === quest.created_by_user_id;
   const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
-
-  // Quest features config
-  const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
-  const qfc = typeof (quest as any).features_config === "object" && (quest as any).features_config
-    ? { ...questDefaultFeatures, ...(quest as any).features_config }
-    : questDefaultFeatures;
-  const [questFeaturesConfig, setQuestFeaturesConfig] = useState<Record<string, any>>(qfc);
-  const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
   const toggleQuestFeature = (key: string) => setQuestFeaturesConfig((prev) => ({ ...prev, [key]: !prev[key] }));
   const saveQuestFeatures = async () => {
     await supabase.from("quests").update({ features_config: questFeaturesConfig } as any).eq("id", quest.id);
