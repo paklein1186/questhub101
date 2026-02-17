@@ -907,9 +907,9 @@ export function WorkTasksTab() {
                             <div className="flex items-center gap-1 mt-0.5">
                               {task.convertedToQuestId && <Badge variant="outline" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4">→ Quest</Badge>}
                               {task.convertedToSubtaskId && <Badge variant="outline" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4">→ Subtask</Badge>}
-                              <span className="md:hidden">
-                                <Badge variant="secondary" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4 capitalize">
-                                  {task.source === "personal" ? "Personal" : (task.sourceLabel || task.source).slice(0, 16)}
+                              <span className="md:hidden" title={task.source === "personal" ? "Personal" : (task.sourceLabel || task.source)}>
+                                <Badge variant="secondary" className="text-[8px] sm:text-[9px] h-3.5 sm:h-4 px-1">
+                                  {task.source === "personal" ? <User className="h-2.5 w-2.5" /> : task.source === "quest" ? <Compass className="h-2.5 w-2.5" /> : <ListChecks className="h-2.5 w-2.5" />}
                                 </Badge>
                               </span>
                             </div>
