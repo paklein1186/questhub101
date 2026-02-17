@@ -30,23 +30,38 @@ const LANGUAGES = [
 ];
 
 function LanguageSwitcherInline() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { session } = useAuth();
   const current = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
-  const other = LANGUAGES.find((l) => l.code !== current.code)!;
 
-  const switchLang = async () => {
-    i18n.changeLanguage(other.code);
+  const switchLang = async (code: string) => {
+    i18n.changeLanguage(code);
     if (session?.user?.id) {
-      await supabase.from("profiles").update({ preferred_language: other.code } as any).eq("user_id", session.user.id);
+      await supabase.from("profiles").update({ preferred_language: code } as any).eq("user_id", session.user.id);
     }
   };
 
   return (
-    <DropdownMenuItem onClick={switchLang} className="cursor-pointer justify-between">
-      <span className="flex items-center gap-2"><Globe className="h-4 w-4" /> {current.label}</span>
-      <span className="text-xs text-muted-foreground">{other.flag} {other.label}</span>
-    </DropdownMenuItem>
+    <div className="px-1 py-1">
+      <p className="px-2 pb-1 text-xs font-medium text-muted-foreground">{t("language.switcher")}</p>
+      <div className="flex gap-1 px-2">
+        {LANGUAGES.map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => switchLang(lang.code)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors",
+              lang.code === current.code
+                ? "bg-primary/10 font-medium text-foreground ring-1 ring-primary/30"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <span className="text-base">{lang.flag}</span>
+            <span>{lang.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -73,7 +88,7 @@ export function AppNav() {
   const authedLinks = [
     { to: "/", label: t("nav.home"), icon: Home },
     { to: "/explore", label: label("nav.explore"), icon: Search },
-    { to: "/feed", label: "Feed", icon: Rss },
+    { to: "/feed", label: t("nav.feed"), icon: Rss },
     { to: "/work", label: t("nav.work"), icon: Briefcase },
     ...(isFeatureEnabled(flags, "feature_network_section")
       ? [{ to: "/network", label: t("nav.network"), icon: Users }]
@@ -162,7 +177,7 @@ export function AppNav() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
                         <Link to="/inbox" className="cursor-pointer justify-between">
-                          <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> Messages</span>
+                          <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> {t("nav.messages")}</span>
                           {unreadMessages > 0 && (
                             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
                               {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -172,7 +187,7 @@ export function AppNav() {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/notifications" className="cursor-pointer justify-between">
-                          <span className="flex items-center gap-2"><Bell className="h-4 w-4" /> Notifications</span>
+                          <span className="flex items-center gap-2"><Bell className="h-4 w-4" /> {t("nav.notifications")}</span>
                           {unreadCount > 0 && (
                             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
                               {unreadCount > 9 ? "9+" : unreadCount}
@@ -305,7 +320,7 @@ export function AppNav() {
                           </Link>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                            <Mail className="h-4 w-4" /> Messages
+                            <Mail className="h-4 w-4" /> {t("nav.messages")}
                             {unreadMessages > 0 && (
                               <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
                                 {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -314,7 +329,7 @@ export function AppNav() {
                           </Link>
                           <Link to="/notifications" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                            <Bell className="h-4 w-4" /> Notifications
+                            <Bell className="h-4 w-4" /> {t("nav.notifications")}
                             {unreadCount > 0 && (
                               <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
                                 {unreadCount > 9 ? "9+" : unreadCount}

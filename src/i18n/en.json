@@ -11,7 +11,9 @@
     "logout": "Log out",
     "me": "Me",
     "myHub": "My Hub",
-    "myPublicProfile": "My public profile"
+    "myPublicProfile": "My public profile",
+    "feed": "Feed",
+    "messages": "Messages"
   },
   "common": {
     "save": "Save",
