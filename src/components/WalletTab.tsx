@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Wallet, Coins, Zap, CreditCard, ShieldCheck, Package, Crown,
   ArrowRight, ExternalLink, Loader2, TrendingDown, History,
-  Info, ArrowUpRight, ArrowDownRight, Filter,
+  Info, ArrowUpRight, ArrowDownRight, Filter, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
 import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -28,8 +29,8 @@ const TX_TYPE_LABELS: Record<string, string> = {
   TOP_UP_PURCHASE: "Top-up purchase",
   SUBSCRIPTION_MONTHLY_CREDIT: "Monthly plan credits",
   ADJUSTMENT: "Admin adjustment",
-  GIFT_RECEIVED: "Gift received",
-  GIFT_SENT: "Gift sent",
+  GIFT_RECEIVED: "Credits received (transfer)",
+  GIFT_SENT: "Credits sent (transfer)",
   MONTHLY_INCLUDED: "Monthly included",
 };
 
@@ -41,6 +42,7 @@ export function WalletTab() {
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [txFilter, setTxFilter] = useState("all");
+  const [transferOpen, setTransferOpen] = useState(false);
 
   // Fetch transaction history
   const { data: transactions = [], isLoading: txLoading } = useQuery({
@@ -105,6 +107,9 @@ export function WalletTab() {
               <p className="text-xs text-muted-foreground">XP (reputation)</p>
             </div>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+            <Send className="h-4 w-4 mr-1" /> Transfer Credits
+          </Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div className="rounded-lg border border-border bg-card p-3">
@@ -117,6 +122,12 @@ export function WalletTab() {
           </div>
         </div>
       </Section>
+
+      <TransferCreditsDialog
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+        currentBalance={limits.userCredits}
+      />
 
       <Separator />
 
