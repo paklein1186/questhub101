@@ -23,18 +23,13 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
-  const supabaseAnon = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-  );
-
   try {
-    // Admin check
+    // Admin check — use service-role client to verify JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData } = await supabaseAnon.auth.getUser(token);
-    if (!userData.user) throw new Error("Not authenticated");
+    const { data: userData, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !userData.user) throw new Error("Not authenticated");
 
     const { data: adminRole } = await supabase
       .from("user_roles")
