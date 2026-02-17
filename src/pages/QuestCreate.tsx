@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, Building2, Handshake, X as XIcon } from "lucide-react";
@@ -164,6 +165,7 @@ export default function QuestCreate() {
   const [creditBudget, setCreditBudget] = useState("0");
   const [allowFundraising, setAllowFundraising] = useState(false);
   const [fundingGoalCredits, setFundingGoalCredits] = useState("");
+  const [fundingType, setFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
   const [openForProposals, setOpenForProposals] = useState(false);
   const [missionBudgetMin, setMissionBudgetMin] = useState("");
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
@@ -324,6 +326,7 @@ export default function QuestCreate() {
           escrow_credits: budget,
           allow_fundraising: allowFundraising,
           funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
+          funding_type: fundingType,
           mission_budget_min: missionBudgetMin ? Number(missionBudgetMin) : null,
           mission_budget_max: missionBudgetMax ? Number(missionBudgetMax) : null,
           payment_type: paymentType,
@@ -853,16 +856,27 @@ export default function QuestCreate() {
             </div>
             {openForProposals && (
               <>
+                <div>
+                  <Label className="mb-1 block">Funding Type</Label>
+                  <Select value={fundingType} onValueChange={(v) => setFundingType(v as "CREDITS" | "FIAT")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
+                      <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Choose whether the quest pot uses Credits or fiat currency</p>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="creditBudget">Credit Budget (pot)</Label>
+                    <Label htmlFor="creditBudget">{fundingType === "CREDITS" ? "Credit Budget (pot)" : "Fiat Budget (€)"}</Label>
                     <Input id="creditBudget" type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} className="mt-1" placeholder="0" />
-                    <p className="text-xs text-muted-foreground mt-1">Credits you commit to fund proposals</p>
+                    <p className="text-xs text-muted-foreground mt-1">{fundingType === "CREDITS" ? "Credits you commit to fund proposals" : "Euros you commit to the quest"}</p>
                   </div>
                   <div>
                     <Label htmlFor="fundingGoal">Funding Goal (optional)</Label>
                     <Input id="fundingGoal" type="number" value={fundingGoalCredits} onChange={e => setFundingGoalCredits(e.target.value)} min={0} className="mt-1" placeholder="Target" />
-                    <p className="text-xs text-muted-foreground mt-1">Target Credits for the quest</p>
+                    <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "Credits" : "€"} for the quest</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

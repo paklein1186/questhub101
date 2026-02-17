@@ -3488,6 +3488,7 @@ export type Database = {
           funder_user_id: string | null
           id: string
           quest_id: string
+          refunded_at: string | null
           status: string
           type: string
           updated_at: string
@@ -3499,6 +3500,7 @@ export type Database = {
           funder_user_id?: string | null
           id?: string
           quest_id: string
+          refunded_at?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -3510,6 +3512,7 @@ export type Database = {
           funder_user_id?: string | null
           id?: string
           quest_id?: string
+          refunded_at?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -3875,6 +3878,8 @@ export type Database = {
           description: string | null
           escrow_credits: number
           funding_goal_credits: number | null
+          funding_type: string
+          fundraising_cancelled: boolean
           guild_id: string | null
           id: string
           is_boosted: boolean
@@ -3913,6 +3918,8 @@ export type Database = {
           description?: string | null
           escrow_credits?: number
           funding_goal_credits?: number | null
+          funding_type?: string
+          fundraising_cancelled?: boolean
           guild_id?: string | null
           id?: string
           is_boosted?: boolean
@@ -3951,6 +3958,8 @@ export type Database = {
           description?: string | null
           escrow_credits?: number
           funding_goal_credits?: number | null
+          funding_type?: string
+          fundraising_cancelled?: boolean
           guild_id?: string | null
           id?: string
           is_boosted?: boolean
@@ -5785,6 +5794,13 @@ export type Database = {
         Returns: boolean
       }
       rebuild_territory_closure: { Args: never; Returns: undefined }
+      refund_quest_funding: {
+        Args: { _quest_id: string }
+        Returns: {
+          refunded_count: number
+          refunded_total: number
+        }[]
+      }
       set_user_role:
         | {
             Args: {
