@@ -5377,6 +5377,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
+          today_goal_at: string | null
           updated_at: string
           user_id: string
           work_state: string
@@ -5386,6 +5387,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
+          today_goal_at?: string | null
           updated_at?: string
           user_id: string
           work_state?: string
@@ -5395,6 +5397,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
+          today_goal_at?: string | null
           updated_at?: string
           user_id?: string
           work_state?: string
