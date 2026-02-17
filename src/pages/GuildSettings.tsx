@@ -275,7 +275,8 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       return;
     }
     const newRole = gm.role === "ADMIN" ? "MEMBER" : "ADMIN";
-    await supabase.from("guild_members").update({ role: newRole as any }).eq("id", memberId);
+    const { error } = await supabase.from("guild_members").update({ role: newRole as any }).eq("id", memberId);
+    if (error) { toast({ title: "Failed to update role", description: error.message, variant: "destructive" }); return; }
     notifyGuildRoleChanged({ guildId: guildId!, userId: gm.user_id, newRole });
     refetchMembers();
     toast({ title: `Role changed to ${newRole.toLowerCase()}` });
