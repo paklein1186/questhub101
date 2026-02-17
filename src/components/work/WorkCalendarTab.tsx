@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -47,6 +48,7 @@ function generateIcs(title: string, start: string, durationMin: number, location
 
 interface CalendarEvent {
   id: string;
+  occurrenceId?: string;
   title: string;
   date: string;
   durationMinutes: number;
@@ -60,6 +62,7 @@ interface CalendarEvent {
 
 export function WorkCalendarTab() {
   const currentUser = useCurrentUser();
+  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Fetch guild events user is attending
@@ -118,6 +121,7 @@ export function WorkCalendarTab() {
       const isQuest = !!ritual.quest_id;
       items.push({
         id: `ritual-${occ.id}`,
+        occurrenceId: occ.id,
         title: ritual.title,
         date: occ.scheduled_at,
         durationMinutes: ritual.duration_minutes || 60,
@@ -245,13 +249,17 @@ export function WorkCalendarTab() {
                     >
                       <CalendarPlus className="h-3.5 w-3.5" />
                     </Button>
-                    {evt.visioLink && (
+                    {evt.type === "ritual" && evt.occurrenceId ? (
+                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/ritual-call/${evt.occurrenceId}`)}>
+                        <Video className="h-3 w-3 mr-1" /> Join
+                      </Button>
+                    ) : evt.visioLink ? (
                       <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
                         <a href={evt.visioLink} target="_blank" rel="noopener noreferrer">
                           <Video className="h-3 w-3 mr-1" /> Join
                         </a>
                       </Button>
-                    )}
+                    ) : null}
                   </div>
                 </CardContent>
               </Card>
