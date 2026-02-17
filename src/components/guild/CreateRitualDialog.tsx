@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
   Telescope, Network, PartyPopper, Clock, Plus, Trash2, GripVertical,
@@ -36,7 +38,7 @@ interface Props {
 export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: Props) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const [step, setStep] = useState(0); // 0=type, 1=details, 2=program, 3=access, 4=review
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
   // Form state
@@ -46,12 +48,29 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
   const [frequency, setFrequency] = useState("MONTHLY");
   const [durationMinutes, setDurationMinutes] = useState(90);
   const [accessType, setAccessType] = useState("MEMBERS");
+  const [accessRoles, setAccessRoles] = useState<string[]>([]);
   const [minXp, setMinXp] = useState(0);
   const [xpReward, setXpReward] = useState(5);
   const [facilitatorBonus, setFacilitatorBonus] = useState(10);
   const [creditReward, setCreditReward] = useState(0);
   const [recordingEnabled, setRecordingEnabled] = useState(false);
   const [segments, setSegments] = useState<ProgramSegment[]>([]);
+
+  // Fetch guild entity roles when access type is ROLES
+  const { data: entityRoles = [] } = useQuery({
+    queryKey: ["entity-roles", "guild", guildId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("entity_roles")
+        .select("id, name, color")
+        .eq("entity_id", guildId)
+        .eq("entity_type", "guild")
+        .order("sort_order");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open,
+  });
 
   const config = RITUAL_SESSION_TYPES[sessionType];
 
@@ -81,6 +100,12 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
     setSegments(updated);
   };
 
+  const toggleRole = (roleId: string) => {
+    setAccessRoles((prev) =>
+      prev.includes(roleId) ? prev.filter((r) => r !== roleId) : [...prev, roleId]
+    );
+  };
+
   const handleCreate = async () => {
     if (!title.trim()) {
       toast({ title: "Title is required", variant: "destructive" });
@@ -95,6 +120,7 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
       frequency,
       duration_minutes: durationMinutes,
       access_type: accessType,
+      access_roles: accessType === "ROLES" ? accessRoles : [],
       min_xp: accessType === "XP_THRESHOLD" ? minXp : null,
       program_segments: segments,
       xp_reward: xpReward,
@@ -109,10 +135,9 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
       return;
     }
     toast({ title: "Ritual created" });
-    // Reset
     setStep(0);
     setSessionType("GUILD_ASSEMBLY");
-    setTitle(""); setDescription("");
+    setTitle(""); setDescription(""); setAccessRoles([]);
     onCreated();
   };
 
@@ -267,7 +292,7 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
             <div className="space-y-4">
               <div>
                 <Label>Access Level</Label>
-                <Select value={accessType} onValueChange={setAccessType}>
+                <Select value={accessType} onValueChange={(v) => { setAccessType(v); if (v !== "ROLES") setAccessRoles([]); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(RITUAL_ACCESS_TYPES).map(([k, v]) => (
@@ -276,6 +301,33 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Role selection when ROLES access type */}
+              {accessType === "ROLES" && (
+                <div className="space-y-2">
+                  <Label>Select allowed roles</Label>
+                  {entityRoles.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No custom roles defined for this guild. Create roles in the guild settings first.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {entityRoles.map((role: any) => (
+                        <label key={role.id} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors">
+                          <Checkbox
+                            checked={accessRoles.includes(role.id)}
+                            onCheckedChange={() => toggleRole(role.id)}
+                          />
+                          <span
+                            className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: role.color || "hsl(var(--primary))" }}
+                          />
+                          <span className="text-sm">{role.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {accessType === "XP_THRESHOLD" && (
                 <div>
                   <Label>Minimum XP Level</Label>
@@ -318,6 +370,20 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
                     <div><span className="text-muted-foreground">Access:</span> {RITUAL_ACCESS_TYPES[accessType as keyof typeof RITUAL_ACCESS_TYPES]?.label}</div>
                     <div><span className="text-muted-foreground">Recording:</span> {recordingEnabled ? "Yes" : "No"}</div>
                   </div>
+                  {accessType === "ROLES" && accessRoles.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="text-xs text-muted-foreground">Roles:</span>
+                      {accessRoles.map((roleId) => {
+                        const role = entityRoles.find((r: any) => r.id === roleId);
+                        return role ? (
+                          <Badge key={roleId} variant="outline" className="text-[10px]">
+                            <span className="w-2 h-2 rounded-full mr-1 inline-block" style={{ backgroundColor: role.color || "hsl(var(--primary))" }} />
+                            {role.name}
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
                   <div className="flex gap-2 text-xs">
                     <Badge variant="outline" className="text-primary">+{xpReward} XP attendance</Badge>
                     {facilitatorBonus > 0 && <Badge variant="outline">+{facilitatorBonus} XP facilitator</Badge>}

@@ -6,14 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   Plus, Calendar, Clock, Users, Video, Archive, CheckCircle,
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
-  Telescope, Network, PartyPopper, Play, XCircle,
+  Telescope, Network, PartyPopper, Play, XCircle, CalendarPlus,
+  ThumbsUp, ThumbsDown, UserCheck,
 } from "lucide-react";
-import { format, formatDistanceToNow, isPast, isFuture } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { RITUAL_SESSION_TYPES, RITUAL_FREQUENCIES, RITUAL_ACCESS_TYPES, GOVERNANCE_IMPACT_COLORS, type RitualSessionTypeKey } from "@/lib/ritualConfig";
 import { CreateRitualDialog } from "./CreateRitualDialog";
 
@@ -25,6 +30,38 @@ function getSessionIcon(sessionType: string) {
   const config = RITUAL_SESSION_TYPES[sessionType as RitualSessionTypeKey];
   if (!config) return Calendar;
   return SESSION_ICONS[config.icon] || Calendar;
+}
+
+function generateRitualIcs(title: string, scheduledAt: string, durationMinutes: number, visioLink?: string): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const toIcsDate = (iso: string) => {
+    const d = new Date(iso);
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+  };
+  const esc = (t: string) => t.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  const start = new Date(scheduledAt);
+  const end = new Date(start.getTime() + durationMinutes * 60000);
+  return [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Changethegame//Ritual//EN",
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+    `UID:ritual-${Date.now()}@${window.location.hostname}`,
+    `DTSTAMP:${toIcsDate(new Date().toISOString())}`,
+    `DTSTART:${toIcsDate(start.toISOString())}`,
+    `DTEND:${toIcsDate(end.toISOString())}`,
+    `SUMMARY:${esc(title)}`,
+    visioLink ? `LOCATION:${esc(visioLink)}` : "",
+    "END:VEVENT", "END:VCALENDAR",
+  ].filter(Boolean).join("\r\n");
+}
+
+function downloadRitualIcs(title: string, scheduledAt: string, durationMinutes: number, visioLink?: string) {
+  const content = generateRitualIcs(title, scheduledAt, durationMinutes, visioLink);
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `ritual-${Date.now()}.ics`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 interface Props {
@@ -39,6 +76,9 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
   const currentUser = useCurrentUser();
   const [createOpen, setCreateOpen] = useState(false);
   const [subTab, setSubTab] = useState<"upcoming" | "archive">("upcoming");
+  const [scheduleRitualId, setScheduleRitualId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("18:00");
 
   const { data: rituals = [], isLoading } = useQuery({
     queryKey: ["rituals", guildId],
@@ -61,7 +101,7 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
       if (!ritualIds.length) return [];
       const { data, error } = await supabase
         .from("ritual_occurrences")
-        .select("*, ritual_attendees(id, user_id, role, xp_granted)")
+        .select("*, ritual_attendees(id, user_id, role, xp_granted, status)")
         .in("ritual_id", ritualIds)
         .order("scheduled_at", { ascending: false })
         .limit(50);
@@ -71,45 +111,69 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
     enabled: rituals.length > 0,
   });
 
-  const upcomingOccurrences = occurrences.filter((o: any) => 
-    o.status === "scheduled" || (o.status === "in_progress")
+  // Fetch profiles for attendees
+  const allAttendeeIds = [...new Set(occurrences.flatMap((o: any) => (o.ritual_attendees || []).map((a: any) => a.user_id)))];
+  const { data: attendeeProfiles = [] } = useQuery({
+    queryKey: ["ritual-attendee-profiles", allAttendeeIds.sort().join(",")],
+    queryFn: async () => {
+      if (!allAttendeeIds.length) return [];
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", allAttendeeIds);
+      return data || [];
+    },
+    enabled: allAttendeeIds.length > 0,
+  });
+
+  const profileMap = Object.fromEntries(attendeeProfiles.map((p: any) => [p.user_id, p]));
+
+  const upcomingOccurrences = occurrences.filter((o: any) =>
+    o.status === "scheduled" || o.status === "in_progress"
   );
-  const pastOccurrences = occurrences.filter((o: any) => 
+  const pastOccurrences = occurrences.filter((o: any) =>
     o.status === "completed" || o.status === "cancelled"
   );
 
-  const handleJoinOccurrence = async (occurrenceId: string) => {
-    const { error } = await supabase.from("ritual_attendees").insert({
-      occurrence_id: occurrenceId,
-      user_id: currentUser.id,
-      role: "participant",
-    });
-    if (error) {
-      if (error.code === "23505") {
-        toast({ title: "Already registered" });
-      } else {
-        toast({ title: "Failed to join", variant: "destructive" });
+  const handleRsvp = async (occurrenceId: string, rsvpStatus: "attending" | "declined") => {
+    // Try upsert: check if already registered
+    const { data: existing } = await supabase
+      .from("ritual_attendees")
+      .select("id")
+      .eq("occurrence_id", occurrenceId)
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from("ritual_attendees")
+        .update({ status: rsvpStatus } as any)
+        .eq("id", existing.id);
+    } else {
+      const { error } = await supabase.from("ritual_attendees").insert({
+        occurrence_id: occurrenceId,
+        user_id: currentUser.id,
+        role: "participant",
+        status: rsvpStatus,
+      } as any);
+      if (error && error.code !== "23505") {
+        toast({ title: "Failed to respond", variant: "destructive" });
+        return;
       }
-      return;
     }
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
-    toast({ title: "Registered for ritual" });
+    toast({ title: rsvpStatus === "attending" ? "You're attending!" : "Declined" });
   };
 
-  const handleLeaveOccurrence = async (occurrenceId: string) => {
-    await supabase.from("ritual_attendees")
-      .delete()
-      .eq("occurrence_id", occurrenceId)
-      .eq("user_id", currentUser.id);
-    qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
-    toast({ title: "Unregistered from ritual" });
-  };
-
-  const handleCreateOccurrence = async (ritualId: string, scheduledAt: string) => {
+  const handleCreateOccurrence = async (ritualId: string) => {
+    if (!scheduleDate || !scheduleTime) {
+      toast({ title: "Please select date and time", variant: "destructive" });
+      return;
+    }
+    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
     const ritual = rituals.find((r: any) => r.id === ritualId);
-    const visioLink = (ritual as any)?.default_visio_link || 
+    const visioLink = (ritual as any)?.default_visio_link ||
       `https://meet.jit.si/ctg-ritual-${ritualId.slice(0, 8)}-${Date.now()}`;
-    
+
     const { error } = await supabase.from("ritual_occurrences").insert({
       ritual_id: ritualId,
       scheduled_at: scheduledAt,
@@ -120,6 +184,8 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
       toast({ title: "Failed to schedule", variant: "destructive" });
       return;
     }
+    setScheduleRitualId(null);
+    setScheduleDate(""); setScheduleTime("18:00");
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
     toast({ title: "Ritual occurrence scheduled" });
   };
@@ -219,19 +285,37 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
                   )}
                   {isAdmin && (
                     <div className="pt-2 border-t border-border">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full text-xs"
-                        onClick={() => {
-                          const next = new Date();
-                          next.setDate(next.getDate() + 7);
-                          next.setHours(18, 0, 0, 0);
-                          handleCreateOccurrence(ritual.id, next.toISOString());
-                        }}
-                      >
-                        <Plus className="h-3 w-3 mr-1" /> Schedule Next Occurrence
-                      </Button>
+                      {scheduleRitualId === ritual.id ? (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">Date</Label>
+                              <Input type="date" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} className="h-8 text-xs" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Time</Label>
+                              <Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="h-8 text-xs" />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" className="flex-1 text-xs" onClick={() => handleCreateOccurrence(ritual.id)}>
+                              <CheckCircle className="h-3 w-3 mr-1" /> Confirm
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-xs" onClick={() => setScheduleRitualId(null)}>
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs"
+                          onClick={() => setScheduleRitualId(ritual.id)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Schedule Next Occurrence
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -274,49 +358,134 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
               {upcomingOccurrences.map((occ: any) => {
                 const ritual = rituals.find((r: any) => r.id === occ.ritual_id);
                 const Icon = getSessionIcon(ritual?.session_type || "");
-                const attendees = occ.ritual_attendees || [];
-                const isRegistered = attendees.some((a: any) => a.user_id === currentUser.id);
+                const attendees = (occ.ritual_attendees || []) as any[];
+                const attending = attendees.filter((a) => a.status !== "declined");
+                const declined = attendees.filter((a) => a.status === "declined");
+                const myRsvp = attendees.find((a: any) => a.user_id === currentUser.id);
+                const myStatus = myRsvp?.status;
                 return (
                   <Card key={occ.id}>
-                    <CardContent className="py-4 flex items-center gap-4 flex-wrap">
-                      <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                        <Icon className="h-5 w-5 text-primary" />
+                    <CardContent className="py-4 space-y-3">
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                          <Icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(occ.scheduled_at), "EEEE, MMMM d · HH:mm")}
+                            {" · "}
+                            {formatDistanceToNow(new Date(occ.scheduled_at), { addSuffix: true })}
+                          </p>
+                          {ritual?.duration_minutes && (
+                            <p className="text-xs text-muted-foreground">
+                              Duration: {ritual.duration_minutes} min
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {/* Calendar export */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={() => downloadRitualIcs(
+                                  ritual?.title || "Ritual",
+                                  occ.scheduled_at,
+                                  ritual?.duration_minutes || 60,
+                                  occ.visio_link
+                                )}
+                              >
+                                <CalendarPlus className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Add to calendar (.ics)</TooltipContent>
+                          </Tooltip>
+
+                          {/* Join visio */}
+                          {occ.visio_link && (
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={occ.visio_link} target="_blank" rel="noopener noreferrer">
+                                <Video className="h-3.5 w-3.5 mr-1" /> Join Call
+                              </a>
+                            </Button>
+                          )}
+
+                          {/* Admin complete */}
+                          {isAdmin && occ.status === "scheduled" && (
+                            <Button size="sm" variant="outline" onClick={() => handleCompleteOccurrence(occ.id)}>
+                              <Play className="h-3.5 w-3.5 mr-1" /> Complete
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(occ.scheduled_at), "EEEE, MMMM d · HH:mm")}
-                          {" · "}
-                          {formatDistanceToNow(new Date(occ.scheduled_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" /> {attendees.length}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {occ.visio_link && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={occ.visio_link} target="_blank" rel="noopener noreferrer">
-                              <Video className="h-3.5 w-3.5 mr-1" /> Join
-                            </a>
+
+                      {/* RSVP buttons */}
+                      {isMember && (
+                        <div className="flex items-center gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            variant={myStatus === "attending" ? "default" : "outline"}
+                            className="text-xs"
+                            onClick={() => handleRsvp(occ.id, "attending")}
+                          >
+                            <ThumbsUp className="h-3.5 w-3.5 mr-1" />
+                            {myStatus === "attending" ? "Attending" : "Attend"}
                           </Button>
-                        )}
-                        {isMember && !isRegistered && (
-                          <Button size="sm" onClick={() => handleJoinOccurrence(occ.id)}>
-                            <CheckCircle className="h-3.5 w-3.5 mr-1" /> Register
+                          <Button
+                            size="sm"
+                            variant={myStatus === "declined" ? "destructive" : "outline"}
+                            className="text-xs"
+                            onClick={() => handleRsvp(occ.id, "declined")}
+                          >
+                            <ThumbsDown className="h-3.5 w-3.5 mr-1" />
+                            {myStatus === "declined" ? "Declined" : "Decline"}
                           </Button>
-                        )}
-                        {isRegistered && (
-                          <Button size="sm" variant="ghost" onClick={() => handleLeaveOccurrence(occ.id)}>
-                            <XCircle className="h-3.5 w-3.5 mr-1" /> Unregister
-                          </Button>
-                        )}
-                        {isAdmin && occ.status === "scheduled" && (
-                          <Button size="sm" variant="outline" onClick={() => handleCompleteOccurrence(occ.id)}>
-                            <Play className="h-3.5 w-3.5 mr-1" /> Complete
-                          </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
+
+                      {/* Participants */}
+                      {attendees.length > 0 && (
+                        <div className="border-t border-border pt-2 space-y-2">
+                          {/* Attending */}
+                          {attending.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <UserCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                              <span className="text-xs text-muted-foreground shrink-0">{attending.length} attending</span>
+                              <div className="flex -space-x-1.5">
+                                {attending.slice(0, 8).map((a: any) => {
+                                  const profile = profileMap[a.user_id];
+                                  return (
+                                    <Tooltip key={a.id}>
+                                      <TooltipTrigger asChild>
+                                        <Avatar className="h-6 w-6 border-2 border-background">
+                                          <AvatarImage src={profile?.avatar_url} />
+                                          <AvatarFallback className="text-[9px]">
+                                            {(profile?.name || "?").charAt(0).toUpperCase()}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                      </TooltipTrigger>
+                                      <TooltipContent>{profile?.name || "Member"}</TooltipContent>
+                                    </Tooltip>
+                                  );
+                                })}
+                                {attending.length > 8 && (
+                                  <span className="text-[10px] text-muted-foreground ml-1.5">+{attending.length - 8}</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {/* Declined */}
+                          {declined.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <XCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="text-xs text-muted-foreground">{declined.length} declined</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
@@ -330,27 +499,53 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
               {pastOccurrences.map((occ: any) => {
                 const ritual = rituals.find((r: any) => r.id === occ.ritual_id);
                 const Icon = getSessionIcon(ritual?.session_type || "");
-                const attendees = occ.ritual_attendees || [];
+                const attendees = (occ.ritual_attendees || []).filter((a: any) => a.status !== "declined");
                 return (
                   <Card key={occ.id} className="opacity-80">
-                    <CardContent className="py-4 flex items-center gap-4 flex-wrap">
-                      <div className="p-2 rounded-lg bg-muted shrink-0">
-                        <Icon className="h-5 w-5 text-muted-foreground" />
+                    <CardContent className="py-4 space-y-2">
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <div className="p-2 rounded-lg bg-muted shrink-0">
+                          <Icon className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(occ.scheduled_at), "MMMM d, yyyy · HH:mm")}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Users className="h-3.5 w-3.5" /> {attendees.length} attended
+                        </div>
+                        <Badge variant={occ.status === "completed" ? "default" : "destructive"} className="text-xs">
+                          {occ.status}
+                        </Badge>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{ritual?.title || "Ritual"}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(occ.scheduled_at), "MMMM d, yyyy · HH:mm")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Users className="h-3.5 w-3.5" /> {attendees.length} attended
-                      </div>
-                      <Badge variant={occ.status === "completed" ? "default" : "destructive"} className="text-xs">
-                        {occ.status}
-                      </Badge>
+                      {/* Attendee avatars */}
+                      {attendees.length > 0 && (
+                        <div className="flex -space-x-1.5 pt-1">
+                          {attendees.slice(0, 10).map((a: any) => {
+                            const profile = profileMap[a.user_id];
+                            return (
+                              <Tooltip key={a.id}>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="h-5 w-5 border border-background">
+                                    <AvatarImage src={profile?.avatar_url} />
+                                    <AvatarFallback className="text-[8px]">
+                                      {(profile?.name || "?").charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>{profile?.name || "Member"}</TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                          {attendees.length > 10 && (
+                            <span className="text-[10px] text-muted-foreground ml-1.5">+{attendees.length - 10}</span>
+                          )}
+                        </div>
+                      )}
                       {occ.notes && (
-                        <p className="w-full text-xs text-muted-foreground mt-2 border-t border-border pt-2 line-clamp-2">{occ.notes}</p>
+                        <p className="text-xs text-muted-foreground border-t border-border pt-2 line-clamp-2">{occ.notes}</p>
                       )}
                     </CardContent>
                   </Card>
