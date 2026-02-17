@@ -384,9 +384,11 @@ interface PlanRow {
 }
 
 const DEFAULT_PLANS: PlanRow[] = [
-  { id: "plan-free", name: "Free", code: "FREE", monthlyPriceAmount: 0, freeQuestsPerWeek: 1, maxGuildMemberships: 2, maxPods: 1, xpMultiplier: 1, marketplaceFeePercent: 15, isPublic: true },
-  { id: "plan-impact", name: "Impact+", code: "IMPACT_PLUS", monthlyPriceAmount: 9, freeQuestsPerWeek: 5, maxGuildMemberships: 10, maxPods: 5, xpMultiplier: 1.5, marketplaceFeePercent: 10, isPublic: true },
-  { id: "plan-eco", name: "Ecosystem Pro", code: "ECOSYSTEM_PRO", monthlyPriceAmount: 29, freeQuestsPerWeek: -1, maxGuildMemberships: null, maxPods: null, xpMultiplier: 2, marketplaceFeePercent: 5, isPublic: true },
+  { id: "plan-free", name: "Free", code: "FREE", monthlyPriceAmount: 0, freeQuestsPerWeek: 2, maxGuildMemberships: 3, maxPods: 1, xpMultiplier: 1, marketplaceFeePercent: 15, isPublic: true },
+  { id: "plan-starter", name: "Starter", code: "STARTER", monthlyPriceAmount: 7, freeQuestsPerWeek: 5, maxGuildMemberships: 8, maxPods: 2, xpMultiplier: 1.2, marketplaceFeePercent: 12, isPublic: true },
+  { id: "plan-creator", name: "Creator", code: "CREATOR", monthlyPriceAmount: 14, freeQuestsPerWeek: 10, maxGuildMemberships: 15, maxPods: 5, xpMultiplier: 1.5, marketplaceFeePercent: 10, isPublic: true },
+  { id: "plan-catalyst", name: "Catalyst", code: "CATALYST", monthlyPriceAmount: 29, freeQuestsPerWeek: 30, maxGuildMemberships: 50, maxPods: 10, xpMultiplier: 2, marketplaceFeePercent: 5, isPublic: true },
+  { id: "plan-visionary", name: "Visionary", code: "VISIONARY", monthlyPriceAmount: 49, freeQuestsPerWeek: 99, maxGuildMemberships: null, maxPods: null, xpMultiplier: 3, marketplaceFeePercent: 3, isPublic: true },
 ];
 
 function PlansXpTab() {

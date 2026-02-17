@@ -194,13 +194,15 @@ export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
 // ─── Plan Codes ─────────────────────────────────────────────
 export const PLAN_CODES = {
   FREE: "FREE",
+  STARTER: "STARTER",
   CREATOR: "CREATOR",
   CATALYST: "CATALYST",
+  VISIONARY: "VISIONARY",
 } as const;
 
 export type PlanCode = (typeof PLAN_CODES)[keyof typeof PLAN_CODES];
 
-export const PLAN_ORDER: PlanCode[] = ["FREE", "CREATOR", "CATALYST"];
+export const PLAN_ORDER: PlanCode[] = ["FREE", "STARTER", "CREATOR", "CATALYST", "VISIONARY"];
 
 // ─── Grace Period ───────────────────────────────────────────
 /** Number of days new users can play without spending credits */

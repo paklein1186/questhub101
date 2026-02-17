@@ -30,13 +30,22 @@ interface PlanLimits {
   canCreateCompany: boolean;
   customGuildTools: boolean;
   commissionDiscountPercent: number;
+  maxTerritories: number | null;
+  canCreateTerritory: boolean;
+  maxAttachmentSizeMb: number;
+  partnershipProposalsEnabled: boolean;
+  fundraisingToolsEnabled: boolean;
+  aiAgentsEnabled: boolean;
+  territoryIntelligenceEnabled: boolean;
+  memoryEngineEnabled: boolean;
+  broadcastEnabled: boolean;
 }
 
 const DEFAULT_PLAN: PlanLimits = {
-  freeQuestsPerWeek: 3,
-  maxGuildMemberships: 5,
-  maxPods: 2,
-  maxServicesActive: 2,
+  freeQuestsPerWeek: 2,
+  maxGuildMemberships: 3,
+  maxPods: 1,
+  maxServicesActive: 1,
   maxCourses: 1,
   xpMultiplier: 1.0,
   planName: "Free",
@@ -47,6 +56,15 @@ const DEFAULT_PLAN: PlanLimits = {
   canCreateCompany: false,
   customGuildTools: false,
   commissionDiscountPercent: 0,
+  maxTerritories: 2,
+  canCreateTerritory: false,
+  maxAttachmentSizeMb: 10,
+  partnershipProposalsEnabled: false,
+  fundraisingToolsEnabled: false,
+  aiAgentsEnabled: false,
+  territoryIntelligenceEnabled: false,
+  memoryEngineEnabled: false,
+  broadcastEnabled: false,
 };
 
 function getMonday(date: Date): string {
@@ -112,7 +130,7 @@ export function usePlanLimits() {
       if (sub?.subscription_plans) {
         const p = sub.subscription_plans;
         setPlan({
-          freeQuestsPerWeek: p.free_quests_per_week ?? 3,
+          freeQuestsPerWeek: p.free_quests_per_week ?? 2,
           maxGuildMemberships: p.max_guild_memberships,
           maxPods: p.max_pods,
           maxServicesActive: p.max_services_active ?? null,
@@ -126,6 +144,15 @@ export function usePlanLimits() {
           canCreateCompany: p.can_create_company ?? false,
           customGuildTools: p.custom_guild_tools ?? false,
           commissionDiscountPercent: Number(p.commission_discount_percentage) || 0,
+          maxTerritories: p.max_territories ?? null,
+          canCreateTerritory: p.can_create_territory ?? false,
+          maxAttachmentSizeMb: p.max_attachment_size_mb ?? 10,
+          partnershipProposalsEnabled: p.partnership_proposals_enabled ?? false,
+          fundraisingToolsEnabled: p.fundraising_tools_enabled ?? false,
+          aiAgentsEnabled: p.ai_agents_enabled ?? false,
+          territoryIntelligenceEnabled: p.territory_intelligence_enabled ?? false,
+          memoryEngineEnabled: p.memory_engine_enabled ?? false,
+          broadcastEnabled: p.broadcast_enabled ?? false,
         });
       }
 

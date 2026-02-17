@@ -32,18 +32,31 @@ interface PlanRow {
   can_create_company: boolean;
   custom_guild_tools: boolean;
   commission_discount_percentage: number;
+  max_territories: number | null;
+  can_create_territory: boolean;
+  max_attachment_size_mb: number;
+  partnership_proposals_enabled: boolean;
+  fundraising_tools_enabled: boolean;
+  ai_agents_enabled: boolean;
+  territory_intelligence_enabled: boolean;
+  memory_engine_enabled: boolean;
+  broadcast_enabled: boolean;
 }
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
   FREE: Crown,
+  STARTER: ArrowRight,
   CREATOR: Sparkles,
   CATALYST: Zap,
+  VISIONARY: Crown,
 };
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "text-muted-foreground",
+  STARTER: "text-blue-500",
   CREATOR: "text-primary",
   CATALYST: "text-amber-500",
+  VISIONARY: "text-purple-500",
 };
 
 export default function PlansPage() {
@@ -133,7 +146,7 @@ export default function PlansPage() {
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2">
             {plans.map((plan, i) => {
               const planIdx = PLAN_ORDER.indexOf(plan.code as any);
               const isCurrentPlan = isCurrent(plan.code);
@@ -147,8 +160,8 @@ export default function PlansPage() {
                   key={plan.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={`rounded-xl border-2 bg-card p-6 relative ${
+                  transition={{ delay: i * 0.08 }}
+                  className={`rounded-xl border-2 bg-card p-5 relative flex flex-col ${
                     isCurrentPlan
                       ? "border-primary shadow-lg"
                       : isHighlighted
@@ -163,61 +176,69 @@ export default function PlansPage() {
                   )}
                   {isHighlighted && !isCurrentPlan && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
-                      Recommended
+                      Popular
                     </Badge>
                   )}
 
-                  <div className="text-center mb-4 pt-2">
-                    <PlanIcon className={`h-8 w-8 mx-auto mb-2 ${iconColor}`} />
-                    <h3 className="font-display text-xl font-bold">{plan.name}</h3>
-                    {plan.description && <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>}
+                  <div className="text-center mb-3 pt-2">
+                    <PlanIcon className={`h-7 w-7 mx-auto mb-1.5 ${iconColor}`} />
+                    <h3 className="font-display text-lg font-bold">{plan.name}</h3>
+                    {plan.description && <p className="text-xs text-muted-foreground mt-0.5">{plan.description}</p>}
                   </div>
 
-                  <div className="text-center mb-6">
+                  <div className="text-center mb-4">
                     {plan.monthly_price_amount && plan.monthly_price_amount > 0 ? (
                       <>
-                        <span className="text-3xl font-bold">€{plan.monthly_price_amount}</span>
-                        <span className="text-sm text-muted-foreground">/month</span>
+                        <span className="text-2xl font-bold">€{plan.monthly_price_amount}</span>
+                        <span className="text-xs text-muted-foreground">/mo</span>
                       </>
                     ) : (
-                      <span className="text-3xl font-bold">Free</span>
+                      <span className="text-2xl font-bold">Free</span>
                     )}
                   </div>
 
-                  <ul className="space-y-2 mb-6">
-                    <PlanFeature icon={<Coins className="h-3.5 w-3.5" />} label={`${plan.monthly_included_credits} credits/month`} />
-                    <PlanFeature label={`${plan.free_quests_per_week >= 30 ? "30+" : plan.free_quests_per_week} quests/week`} />
-                    <PlanFeature label={plan.max_guild_memberships === null ? "Unlimited guilds" : `${plan.max_guild_memberships} guilds`} />
-                    <PlanFeature label={plan.max_pods === null ? "Unlimited pods" : `${plan.max_pods} pods`} />
-                    <PlanFeature label={plan.max_services_active === null ? "Unlimited services" : `${plan.max_services_active} services`} />
-                    <PlanFeature label={plan.max_courses === null ? "Unlimited courses" : `${plan.max_courses} courses`} />
-                    <PlanFeature icon={<Eye className="h-3.5 w-3.5" />} label={`${plan.visibility_ranking} visibility`} highlight={plan.visibility_ranking !== "standard"} />
-                    <PlanFeature icon={<Sparkles className="h-3.5 w-3.5" />} label={`AI Muse: ${plan.ai_muse_mode}`} highlight={plan.ai_muse_mode !== "basic"} />
-                    {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3.5 w-3.5" />} label="Create companies" highlight />}
+                  <ul className="space-y-1.5 mb-4 flex-1 text-xs">
+                    <PlanFeature icon={<Coins className="h-3 w-3" />} label={`${plan.monthly_included_credits} credits/mo`} />
+                    <PlanFeature label={`${plan.free_quests_per_week >= 30 ? "∞" : plan.free_quests_per_week} quests/week`} />
+                    <PlanFeature label={plan.max_guild_memberships === null ? "∞ guilds" : `${plan.max_guild_memberships} guilds`} />
+                    <PlanFeature label={plan.max_pods === null ? "∞ pods" : `${plan.max_pods} pods`} />
+                    <PlanFeature label={plan.max_services_active === null ? "∞ services" : `${plan.max_services_active} services`} />
+                    <PlanFeature label={plan.max_courses === null ? "∞ courses" : `${plan.max_courses} courses`} />
+                    <PlanFeature label={plan.max_territories === null ? "∞ territories" : `${plan.max_territories} territories`} />
+                    <PlanFeature icon={<Eye className="h-3 w-3" />} label={`${plan.visibility_ranking} visibility`} highlight={plan.visibility_ranking !== "standard"} />
+                    <PlanFeature icon={<Sparkles className="h-3 w-3" />} label={`AI: ${plan.ai_muse_mode}`} highlight={plan.ai_muse_mode !== "basic"} />
+                    <PlanFeature label={`${plan.max_attachment_size_mb} MB uploads`} />
+                    {plan.commission_discount_percentage > 0 && <PlanFeature icon={<TrendingDown className="h-3 w-3" />} label={`${plan.commission_discount_percentage}% commission off`} highlight />}
+                    {plan.can_create_territory && <PlanFeature label="Create territories" highlight />}
+                    {plan.can_create_company && <PlanFeature icon={<Building2 className="h-3 w-3" />} label="Create companies" highlight />}
+                    {plan.partnership_proposals_enabled && <PlanFeature label="Partnership proposals" highlight />}
+                    {plan.ai_agents_enabled && <PlanFeature label="AI Agents" highlight />}
+                    {plan.territory_intelligence_enabled && <PlanFeature label="Territory intelligence" highlight />}
+                    {plan.fundraising_tools_enabled && <PlanFeature label="Fundraising tools" highlight />}
+                    {plan.memory_engine_enabled && <PlanFeature label="Memory engine" highlight />}
                     {plan.custom_guild_tools && <PlanFeature label="Custom guild tools" highlight />}
-                    {plan.commission_discount_percentage > 0 && <PlanFeature icon={<TrendingDown className="h-3.5 w-3.5" />} label={`${plan.commission_discount_percentage}% commission discount`} highlight />}
                     <PlanFeature label={`${plan.xp_multiplier}x XP multiplier`} />
                   </ul>
 
                   {isCurrentPlan ? (
                     currentPlan.planCode !== "FREE" ? (
-                      <Button variant="outline" className="w-full" onClick={handleManage} disabled={portalLoading}>
+                      <Button variant="outline" className="w-full" size="sm" onClick={handleManage} disabled={portalLoading}>
                         {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ExternalLink className="h-4 w-4 mr-1" />}
-                        Manage subscription
+                        Manage
                       </Button>
                     ) : (
-                      <Button variant="outline" className="w-full" disabled>Current plan</Button>
+                      <Button variant="outline" className="w-full" size="sm" disabled>Current plan</Button>
                     )
                   ) : isUpgrade && plan.stripe_price_id ? (
-                    <Button className="w-full" onClick={() => handleUpgrade(plan)} disabled={!!checkoutLoading}>
+                    <Button className="w-full" size="sm" onClick={() => handleUpgrade(plan)} disabled={!!checkoutLoading}>
                       {checkoutLoading === plan.code ? (
-                        <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Processing…</>
+                        <><Loader2 className="h-4 w-4 animate-spin mr-1" /> …</>
                       ) : (
                         <><Zap className="h-4 w-4 mr-1" /> Upgrade</>
                       )}
                     </Button>
                   ) : (
-                    <Button variant="outline" className="w-full" disabled>
+                    <Button variant="outline" className="w-full" size="sm" disabled>
                       {planIdx < currentIdx ? "Downgrade via portal" : "N/A"}
                     </Button>
                   )}
