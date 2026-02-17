@@ -172,33 +172,54 @@ export function TerritoryOverviewTab({ territoryId, territoryName }: Props) {
   );
 }
 
-/** Combined count: followers + user_territories for the territory */
+/** Connected Humans = user_territories associations (direct) + descendants */
+/** Followers = people who explicitly follow but are NOT associated via user_territories */
 function TerritoryPeopleCount({ territoryId }: { territoryId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data: count = 0 } = useQuery({
+  const { data } = useQuery({
     queryKey: ["territory-people-count", territoryId],
     queryFn: async () => {
-      const [followsRes, utRes] = await Promise.all([
-        supabase
-          .from("follows")
-          .select("follower_id")
-          .eq("target_id", territoryId)
-          .eq("target_type", "TERRITORY")
-          .limit(500),
-        supabase
-          .from("user_territories" as any)
-          .select("user_id")
-          .eq("territory_id", territoryId)
-          .limit(500),
-      ]);
-      const ids = new Set<string>();
-      (followsRes.data ?? []).forEach((f: any) => ids.add(f.follower_id));
-      (utRes.data ?? []).forEach((u: any) => ids.add(u.user_id));
-      return ids.size;
+      // Get descendant territory IDs from closure table
+      const { data: closureData } = await supabase
+        .from("territory_closure" as any)
+        .select("descendant_id")
+        .eq("ancestor_id", territoryId);
+      const allTerritoryIds = (closureData ?? []).map((c: any) => c.descendant_id as string);
+      if (allTerritoryIds.length === 0) allTerritoryIds.push(territoryId);
+
+      // Connected Humans: users associated via user_territories (including descendants)
+      const { data: utData } = await supabase
+        .from("user_territories" as any)
+        .select("user_id")
+        .in("territory_id", allTerritoryIds);
+      const associatedIds = new Set<string>();
+      (utData ?? []).forEach((u: any) => associatedIds.add(u.user_id));
+
+      // Followers: users who follow THIS territory but are NOT in user_territories for it
+      const { data: followData } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("target_id", territoryId)
+        .eq("target_type", "TERRITORY")
+        .limit(500);
+      const followerIds = new Set<string>();
+      (followData ?? []).forEach((f: any) => {
+        if (!associatedIds.has(f.follower_id)) {
+          followerIds.add(f.follower_id);
+        }
+      });
+
+      return {
+        connectedHumans: associatedIds.size,
+        exclusiveFollowers: followerIds.size,
+      };
     },
     enabled: !!territoryId,
   });
+
+  const connectedHumans = data?.connectedHumans ?? 0;
+  const exclusiveFollowers = data?.exclusiveFollowers ?? 0;
 
   return (
     <>
@@ -206,8 +227,13 @@ function TerritoryPeopleCount({ territoryId }: { territoryId: string }) {
         onClick={() => setDialogOpen(true)}
         className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"
       >
-        <p className="text-2xl font-bold text-primary">{count}</p>
+        <p className="text-2xl font-bold text-primary">{connectedHumans}</p>
         <p className="text-sm text-muted-foreground">Connected Humans</p>
+        {exclusiveFollowers > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            + {exclusiveFollowers} follower{exclusiveFollowers !== 1 ? "s" : ""}
+          </p>
+        )}
       </button>
       <FollowersDialog
         open={dialogOpen}
