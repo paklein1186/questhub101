@@ -44,7 +44,7 @@ export async function sendInviteNotification(params: {
       .from("notifications")
       .select("id")
       .eq("user_id", params.invitedUserId)
-      .eq("type", "UNIT_INVITATION")
+      .eq("type", "USER_INVITED_TO_UNIT")
       .eq("related_entity_id", params.entityId)
       .gte("created_at", cutoff)
       .limit(1);
@@ -54,7 +54,7 @@ export async function sendInviteNotification(params: {
 
     await supabase.from("notifications").insert({
       user_id: params.invitedUserId,
-      type: "UNIT_INVITATION",
+      type: "USER_INVITED_TO_UNIT",
       title: `You've been invited to a ${label}`,
       body: `${params.inviterName} invited you to "${params.entityName}"`,
       related_entity_type: params.entityType.toUpperCase(),
