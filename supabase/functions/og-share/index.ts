@@ -26,10 +26,12 @@ Deno.serve(async (req) => {
   }
 
   function buildDesc(title: string, desc: string | null, label: string): string {
-    const s = synthesize(desc);
-    if (s) return s;
-    if (title) return "Discover \"" + title + "\" \u2014 a " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
-    return "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
+    const s = synthesize(desc, 200);
+    if (s && s.length > 30) return s;
+    // Short or missing description — build a richer fallback
+    const prefix = s ? s + " — " : "";
+    if (title) return prefix + "Discover \"" + title + "\" — a " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
+    return prefix + "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
   }
 
   function buildHtml(title: string, desc: string, image: string, pageUrl: string): string {
