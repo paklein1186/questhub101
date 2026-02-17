@@ -184,6 +184,12 @@ export default function Onboarding() {
           });
         }
       }
+      // If no avatar from profile, try auth metadata (Google picture)
+      if (!(data as any)?.avatar_url) {
+        const { data: authData } = await supabase.auth.getUser();
+        const metaAvatar = authData?.user?.user_metadata?.avatar_url || authData?.user?.user_metadata?.picture;
+        if (metaAvatar) setAvatarUrl(metaAvatar);
+      }
       const { data: ut } = await supabase.from("user_topics").select("topic_id").eq("user_id", authUser.id);
       if (ut?.length) setSelectedTopics(ut.map((r) => r.topic_id));
       const { data: utr } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser.id);
