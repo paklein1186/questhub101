@@ -32,6 +32,7 @@ const EMAIL_WORTHY_TYPES = new Set([
   "FOLLOWED_ENTITY_NEW_POST",
   "FOLLOWED_ENTITY_NEW_EVENT",
   "FOLLOWED_ENTITY_NEW_QUEST",
+  "CREDIT_RECEIVED",
 ]);
 
 // Map notification type to existing preference column
@@ -45,7 +46,7 @@ function prefKeyForType(type: string): string | null {
   if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED"].includes(type)) return "notify_bookings_and_cancellations";
   if (["GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "USER_INVITED_TO_UNIT"].includes(type)) return "notify_invitations_to_units";
   if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return "notify_quest_updates_and_comments";
-  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED"].includes(type)) return "notify_xp_and_achievements";
+  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED"].includes(type)) return "notify_xp_and_achievements";
   return null;
 }
 
@@ -135,6 +136,9 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "FOLLOWED_ENTITY_NEW_QUEST") {
     subject = `New quest from a community you follow`;
     ctaLabel = "View quest";
+  } else if (type === "CREDIT_RECEIVED") {
+    subject = `You received credits! 💰`;
+    ctaLabel = "View your wallet";
   }
 
   const html = `
