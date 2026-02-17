@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +79,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
   const { toast } = useToast();
   const qc = useQueryClient();
   const currentUser = useCurrentUser();
+  const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
   const [subTab, setSubTab] = useState<"upcoming" | "archive">("upcoming");
   const [scheduleRitualId, setScheduleRitualId] = useState<string | null>(null);
@@ -411,14 +413,10 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                             <TooltipContent>Add to calendar (.ics)</TooltipContent>
                           </Tooltip>
 
-                          {/* Join visio */}
-                          {occ.visio_link && (
-                            <Button size="sm" variant="outline" asChild>
-                              <a href={occ.visio_link} target="_blank" rel="noopener noreferrer">
-                                <Video className="h-3.5 w-3.5 mr-1" /> Join Call
-                              </a>
-                            </Button>
-                          )}
+                          {/* Join call (internal) */}
+                          <Button size="sm" variant="outline" onClick={() => navigate(`/ritual-call/${occ.id}`)}>
+                            <Video className="h-3.5 w-3.5 mr-1" /> Join Call
+                          </Button>
 
                           {/* Admin complete */}
                           {isAdmin && occ.status === "scheduled" && (
