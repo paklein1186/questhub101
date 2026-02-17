@@ -71,7 +71,24 @@ serve(async (req) => {
 
     const priceInCents = Math.round((event.price_per_ticket || 0) * 100);
 
-    const session = await stripe.checkout.sessions.create({
+    // Look up host's Stripe Connect account for payout routing
+    let transferData: { destination: string } | undefined;
+    let applicationFee: number | undefined;
+    if (event.created_by_user_id) {
+      const { data: hostProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("stripe_account_id, stripe_onboarding_complete")
+        .eq("user_id", event.created_by_user_id)
+        .single();
+
+      if (hostProfile?.stripe_account_id && hostProfile?.stripe_onboarding_complete) {
+        transferData = { destination: hostProfile.stripe_account_id };
+        applicationFee = Math.round(priceInCents * 0.10); // 10% platform fee
+        console.log(`[EVENT-CHECKOUT] Routing payout to Connect account ${hostProfile.stripe_account_id}`);
+      }
+    }
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [{
@@ -91,7 +108,16 @@ serve(async (req) => {
         user_id: user.id,
         notes: notes || "",
       },
-    });
+    };
+
+    if (transferData) {
+      sessionParams.payment_intent_data = {
+        application_fee_amount: applicationFee,
+        transfer_data: transferData,
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     // Create pending registration
     if (existing) {

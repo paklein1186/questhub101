@@ -54,15 +54,19 @@ export default function CourseDetail() {
   };
 
   const handleBuy = async () => {
-    await supabase.from("course_purchases").insert({
-      course_id: course.id, user_id: currentUser.id, amount: course.price_amount ?? 0, currency: course.price_currency, status: "PAID",
-    });
-    await supabase.from("course_enrollments").insert({
-      course_id: course.id, user_id: currentUser.id, progress_percent: 0,
-    });
-    qc.invalidateQueries({ queryKey: ["course-enrollment", id] });
-    toast({ title: "Purchase successful! You're now enrolled." });
-    if (lessonsList.length > 0) navigate(`/courses/${course.id}/lessons/${lessonsList[0].id}`);
+    try {
+      const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("course-checkout", {
+        body: { courseId: course.id },
+      });
+      if (checkoutErr || !checkoutData?.url) {
+        toast({ title: "Payment error", description: checkoutErr?.message || "Could not start checkout", variant: "destructive" });
+        return;
+      }
+      window.open(checkoutData.url, "_blank");
+      toast({ title: "Complete payment in the new tab to unlock the course." });
+    } catch {
+      toast({ title: "Payment error", description: "Could not start checkout", variant: "destructive" });
+    }
   };
 
   const continueLesson = lessonsList.length > 0 ? `/courses/${course.id}/lessons/${lessonsList[0].id}` : undefined;

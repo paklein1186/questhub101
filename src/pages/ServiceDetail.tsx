@@ -173,6 +173,24 @@ export default function ServiceDetail() {
     queryClient.invalidateQueries({ queryKey: ["bookings-for-unit"] });
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
 
+    // For paid bookings, redirect to Stripe Checkout
+    if (!isFree) {
+      try {
+        const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("booking-checkout", {
+          body: { bookingId: newBooking.id },
+        });
+        if (checkoutErr || !checkoutData?.url) {
+          toast({ title: "Booking created", description: "Payment link could not be generated. You can pay later from your bookings." });
+        } else {
+          window.open(checkoutData.url, "_blank");
+          toast({ title: "Booking created! Complete payment in the new tab." });
+          return;
+        }
+      } catch {
+        toast({ title: "Booking created", description: "Payment link could not be generated." });
+      }
+    }
+
     // Notify provider (user-owned service)
     if (svc.provider_user_id) {
       await insertBookingNotification({
@@ -319,7 +337,6 @@ export default function ServiceDetail() {
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
                 <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
-                {!isFree && <p className="text-[11px] text-muted-foreground text-center">Stripe Checkout will be enabled when Cloud is connected.</p>}
               </div>
             </DialogContent>
           </Dialog>
