@@ -45,9 +45,31 @@ export function BroadcastMessageDialog({
     let sent = 0;
     let failed = 0;
 
+    // Create broadcast record
+    const { data: broadcast } = await supabase
+      .from("broadcast_messages" as any)
+      .insert({
+        sender_user_id: userId,
+        sender_label: senderLabel,
+        sender_entity_type: "guild",
+        sender_entity_id: guildId,
+        content: content.trim(),
+        total_recipients: recipientIds.length,
+      })
+      .select("id")
+      .single();
+
+    const broadcastId = (broadcast as any)?.id;
+
+    // Pre-insert all recipients as pending
+    if (broadcastId) {
+      await supabase.from("broadcast_recipients" as any).insert(
+        recipientIds.map((rid) => ({ broadcast_id: broadcastId, user_id: rid, status: "pending" }))
+      );
+    }
+
     for (const recipientId of recipientIds) {
       try {
-        // Create conversation
         const { data: conv, error: convError } = await supabase
           .from("conversations")
           .insert({
@@ -61,15 +83,17 @@ export function BroadcastMessageDialog({
           .select("id")
           .single();
 
-        if (convError || !conv) { failed++; continue; }
+        if (convError || !conv) {
+          failed++;
+          if (broadcastId) await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
+          continue;
+        }
 
-        // Add participants
         const allIds = [...new Set([userId, recipientId])];
         await supabase
           .from("conversation_participants")
           .insert(allIds.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
 
-        // Send message
         const { data: msg } = await supabase
           .from("direct_messages")
           .insert({
@@ -81,13 +105,20 @@ export function BroadcastMessageDialog({
           .select("id")
           .single();
 
-        // Update conversation timestamp
         await supabase
           .from("conversations")
           .update({ updated_at: new Date().toISOString() })
           .eq("id", conv.id);
 
-        // Trigger notification (fire-and-forget)
+        // Mark recipient as sent
+        if (broadcastId) {
+          await supabase
+            .from("broadcast_recipients" as any)
+            .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
+            .eq("broadcast_id", broadcastId)
+            .eq("user_id", recipientId);
+        }
+
         fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
           {
@@ -109,9 +140,15 @@ export function BroadcastMessageDialog({
         sent++;
       } catch {
         failed++;
+        if (broadcastId) await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
       }
 
       setProgress(Math.round(((sent + failed) / recipientIds.length) * 100));
+    }
+
+    // Update broadcast totals
+    if (broadcastId) {
+      await supabase.from("broadcast_messages" as any).update({ total_sent: sent, total_failed: failed }).eq("id", broadcastId);
     }
 
     toast({

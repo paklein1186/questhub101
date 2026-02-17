@@ -130,6 +130,36 @@ export function PlatformBroadcastDialog() {
         return;
       }
 
+      // Create broadcast record
+      const { data: broadcast, error: broadcastErr } = await supabase
+        .from("broadcast_messages" as any)
+        .insert({
+          sender_user_id: userId,
+          sender_label: SENDER_LABEL,
+          sender_entity_type: "platform",
+          sender_entity_id: null,
+          subject: subject.trim() || null,
+          content: messageBody,
+          link_url: linkUrl.trim() || null,
+          attachment_url: attachment?.url || null,
+          attachment_name: attachment?.name || null,
+          audience_segments: audiences,
+          total_recipients: recipientIds.length,
+        })
+        .select("id")
+        .single();
+
+      if (broadcastErr || !broadcast) throw broadcastErr;
+      const broadcastId = (broadcast as any).id;
+
+      // Pre-insert all recipients as pending
+      const recipientRows = recipientIds.map((rid) => ({
+        broadcast_id: broadcastId,
+        user_id: rid,
+        status: "pending",
+      }));
+      await supabase.from("broadcast_recipients" as any).insert(recipientRows);
+
       const total = recipientIds.length;
       let sent = 0;
       let failed = 0;
@@ -154,7 +184,7 @@ export function PlatformBroadcastDialog() {
                 .select("id")
                 .single();
 
-              if (convError || !conv) { failed++; return; }
+              if (convError || !conv) { failed++; await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId); return; }
 
               const allIds = [...new Set([userId, recipientId])];
               await supabase
@@ -177,6 +207,13 @@ export function PlatformBroadcastDialog() {
                 .update({ updated_at: new Date().toISOString() })
                 .eq("id", conv.id);
 
+              // Mark recipient as sent
+              await supabase
+                .from("broadcast_recipients" as any)
+                .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
+                .eq("broadcast_id", broadcastId)
+                .eq("user_id", recipientId);
+
               fetch(
                 `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
                 {
@@ -198,6 +235,7 @@ export function PlatformBroadcastDialog() {
               sent++;
             } catch {
               failed++;
+              await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
             }
           })
         );
@@ -205,6 +243,12 @@ export function PlatformBroadcastDialog() {
         setProgress(Math.round(((sent + failed) / total) * 100));
         setStats({ total, sent, failed });
       }
+
+      // Update broadcast totals
+      await supabase
+        .from("broadcast_messages" as any)
+        .update({ total_sent: sent, total_failed: failed })
+        .eq("id", broadcastId);
 
       toast({
         title: "Broadcast complete",

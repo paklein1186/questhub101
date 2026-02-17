@@ -4,6 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AdminEntityEditor } from "@/components/AdminEntityEditor";
 import { PlatformBroadcastDialog } from "@/components/PlatformBroadcastDialog";
+import { BroadcastHistoryPanel } from "@/components/broadcast/BroadcastHistoryPanel";
 
 export default function AdminSuperMode() {
   const [maskPII, setMaskPII] = useState(false);
@@ -29,6 +30,8 @@ export default function AdminSuperMode() {
       </p>
 
       <PlatformBroadcastDialog />
+
+      <BroadcastHistoryPanel />
 
       <AdminEntityEditor maskPII={maskPII} />
     </div>
