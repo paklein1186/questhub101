@@ -562,7 +562,7 @@ export default function UserProfile() {
                     <div className="flex flex-wrap gap-1">
                       {creativeHouses.slice(0, 4).map((t: any) => (
                         <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
-                          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-violet-500/10 text-violet-700 dark:text-violet-300 border-violet-500/20">
+                          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-accent/10 text-accent-foreground border-accent/20">
                             <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
                           </Badge>
                         </Link>
@@ -591,6 +591,20 @@ export default function UserProfile() {
             })()}
 
             <TerritoryLine territories={territories} />
+
+            {/* Enrichment CTA for own profile with no topics */}
+            {isOwnProfile && topics.length === 0 && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center gap-3">
+                <Sparkles className="h-5 w-5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">Your profile looks a bit empty!</p>
+                  <p className="text-xs text-muted-foreground">Add topics, houses and territories to get better recommendations and connect with the right people.</p>
+                </div>
+                <Button size="sm" variant="default" asChild>
+                  <Link to="/profile/enrich">Enrich profile</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
