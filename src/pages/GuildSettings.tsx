@@ -191,7 +191,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const [defaultQuestTerritories, setDefaultQuestTerritories] = useState<string[]>([]);
 
   // ── Features config state ──
-  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER", showMemberServices: true };
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER", showMemberServices: true, rituals: true };
   const parsedFeatures = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
   const [featuresConfig, setFeaturesConfig] = useState(parsedFeatures);
 
@@ -479,6 +479,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                         { key: "events", label: "Events", desc: "Create online/offline events with attendees", icon: CalendarDays },
                         { key: "applicationProcess", label: "Application Process", desc: "Require applications for new members", icon: ClipboardList },
                         { key: "showMemberServices", label: "Member Services", desc: "Display services offered by guild members in the Services tab", icon: Briefcase },
+                        { key: "rituals", label: "Rituals", desc: "Recurring sessions with video calls, notes, and attendance tracking", icon: CalendarDays },
                       ].map(({ key, label, desc, icon: Icon }) => (
                         <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                           <div className="flex items-center gap-3">

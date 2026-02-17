@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -212,6 +212,21 @@ export default function QuestDetail() {
   const isOwner = isLoggedIn && currentUser.id === quest.created_by_user_id;
   const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
+
+  // Quest features config
+  const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
+  const qfc = typeof (quest as any).features_config === "object" && (quest as any).features_config
+    ? { ...questDefaultFeatures, ...(quest as any).features_config }
+    : questDefaultFeatures;
+  const [questFeaturesConfig, setQuestFeaturesConfig] = useState<Record<string, any>>(qfc);
+  const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
+  const toggleQuestFeature = (key: string) => setQuestFeaturesConfig((prev) => ({ ...prev, [key]: !prev[key] }));
+  const saveQuestFeatures = async () => {
+    await supabase.from("quests").update({ features_config: questFeaturesConfig } as any).eq("id", quest.id);
+    qc.invalidateQueries({ queryKey: ["quest", id] });
+    setFeaturesDialogOpen(false);
+    toast({ title: "Features saved" });
+  };
 
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
@@ -803,7 +818,7 @@ export default function QuestDetail() {
             <TabsTrigger value="discussion">Discussion</TabsTrigger>
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
             {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
-            {isLoggedIn && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
+            {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -829,6 +844,9 @@ export default function QuestDetail() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
                     <Coins className="h-4 w-4 mr-2" /> Fundraising AI
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFeaturesDialogOpen(true)}>
+                    <Puzzle className="h-4 w-4 mr-2" /> Features
                   </DropdownMenuItem>
                   {!isCancelled && (
                     <DropdownMenuItem
@@ -1181,10 +1199,41 @@ export default function QuestDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="rituals" className="mt-6">
-          <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
-        </TabsContent>
+        {qfc.rituals && (
+          <TabsContent value="rituals" className="mt-6">
+            <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
+          </TabsContent>
+        )}
       </Tabs>
+
+      {/* Quest Features Dialog */}
+      <Dialog open={featuresDialogOpen} onOpenChange={setFeaturesDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Puzzle className="h-5 w-5" /> Quest Features</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">Enable or disable tools for this quest.</p>
+          <div className="space-y-3">
+            {[
+              { key: "rituals", label: "Rituals", desc: "Recurring sessions with video calls and attendance", icon: Calendar },
+              { key: "subtasks", label: "Subtasks", desc: "Break the quest into smaller assignable tasks", icon: ListChecks },
+              { key: "discussion", label: "Discussion", desc: "Feed and comment thread for the quest", icon: MessageCircle },
+            ].map(({ key, label, desc, icon: Icon }) => (
+              <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
+                <div className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <span className="text-sm font-medium">{label}</span>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                </div>
+                <Switch checked={questFeaturesConfig[key]} onCheckedChange={() => toggleQuestFeature(key)} />
+              </div>
+            ))}
+          </div>
+          <Button onClick={saveQuestFeatures} className="w-full mt-2"><Save className="h-4 w-4 mr-2" /> Save features</Button>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }
