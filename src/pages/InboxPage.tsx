@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { UserSearchInput } from "@/components/UserSearchInput";
-import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X, Paperclip, FileText, Image as ImageIcon, Loader2, Sparkles, MapPin, Hash, Briefcase, Building2 } from "lucide-react";
+import { Send, Plus, ArrowLeft, Users, MessageSquare, MoreVertical, Pencil, Trash2, Ban, UserPlus, Check, X, Paperclip, FileText, Image as ImageIcon, Loader2, Sparkles, MapPin, Hash, Briefcase, Building2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -173,6 +173,7 @@ export default function InboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesScrollAreaRef = useRef<HTMLDivElement>(null);
   const [pulseEnrichment, setPulseEnrichment] = useState<any>(null);
+  const [convSearch, setConvSearch] = useState("");
 
   const { data: conversations = [], isLoading } = useConversations();
   const { data: messages = [] } = useConversationMessages(activeConvId);
@@ -202,15 +203,23 @@ export default function InboxPage() {
     }
   }, [activeConvId]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change — always instant for snappy feel
   const prevMsgCountRef = useRef(0);
+  const prevConvIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (messages.length === 0) return;
-    // Use smooth only on first load of conversation, instant for new messages
-    const isFirstLoad = prevMsgCountRef.current === 0;
     prevMsgCountRef.current = messages.length;
-    scrollToBottom(isFirstLoad ? "smooth" : "instant");
-  }, [messages.length, scrollToBottom]);
+    // Always instant scroll for immediate feel
+    scrollToBottom("instant");
+  }, [messages.length, activeConvId, scrollToBottom]);
+
+  // Reset message count ref when conversation changes
+  useEffect(() => {
+    if (activeConvId !== prevConvIdRef.current) {
+      prevMsgCountRef.current = 0;
+      prevConvIdRef.current = activeConvId;
+    }
+  }, [activeConvId]);
 
   const [attachment, setAttachment] = useState<{ file: File; preview?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -375,6 +384,7 @@ export default function InboxPage() {
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h2 className="font-semibold text-lg">Messages</h2>
               <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+
                 <DialogTrigger asChild>
                   <Button size="icon" variant="ghost"><Plus className="h-5 w-5" /></Button>
                 </DialogTrigger>
@@ -416,6 +426,19 @@ export default function InboxPage() {
               </Dialog>
             </div>
 
+            {/* Conversation search */}
+            <div className="px-3 py-2 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={convSearch}
+                  onChange={(e) => setConvSearch(e.target.value)}
+                  placeholder="Search conversations..."
+                  className="h-8 text-xs pl-8 rounded-full"
+                />
+              </div>
+            </div>
+
             <ScrollArea className="flex-1">
               {isLoading ? (
                 <div className="p-4 text-sm text-muted-foreground">Loading...</div>
@@ -426,12 +449,18 @@ export default function InboxPage() {
                   <p className="text-xs mt-1">Start one with the + button</p>
                 </div>
               ) : (
-                conversations.map((conv) => {
+                conversations.filter((conv) => {
+                  if (!convSearch.trim()) return true;
+                  const q = convSearch.toLowerCase();
+                  const name = getConversationName(conv).toLowerCase();
+                  const lastMsg = conv.last_message?.content?.toLowerCase() ?? "";
+                  return name.includes(q) || lastMsg.includes(q);
+                }).map((conv) => {
                   const avatar = getConversationAvatar(conv);
                   return (
                     <button
                       key={conv.id}
-                      onClick={() => { prevMsgCountRef.current = 0; setActiveConvId(conv.id); }}
+                      onClick={() => setActiveConvId(conv.id)}
                       className={cn(
                         "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50",
                         activeConvId === conv.id && "bg-muted"
