@@ -198,13 +198,11 @@ export default function QuestDetail() {
   const [authPromptAction, setAuthPromptAction] = useState("");
   const [editFundingType, setEditFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
 
-  // Quest features config (hooks must be before any early returns)
+  // Quest features config (read-only, managed on Settings page)
   const questDefaultFeatures = { rituals: true, subtasks: true, discussion: true };
   const qfc = typeof (quest as any)?.features_config === "object" && (quest as any)?.features_config
     ? { ...questDefaultFeatures, ...(quest as any).features_config }
     : questDefaultFeatures;
-  const [questFeaturesConfig, setQuestFeaturesConfig] = useState<Record<string, any>>(qfc);
-  const [featuresDialogOpen, setFeaturesDialogOpen] = useState(false);
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -220,13 +218,6 @@ export default function QuestDetail() {
   const isOwner = isLoggedIn && currentUser.id === quest.created_by_user_id;
   const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
-  const toggleQuestFeature = (key: string) => setQuestFeaturesConfig((prev) => ({ ...prev, [key]: !prev[key] }));
-  const saveQuestFeatures = async () => {
-    await supabase.from("quests").update({ features_config: questFeaturesConfig } as any).eq("id", quest.id);
-    qc.invalidateQueries({ queryKey: ["quest", id] });
-    setFeaturesDialogOpen(false);
-    toast({ title: "Features saved" });
-  };
 
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
@@ -590,6 +581,7 @@ export default function QuestDetail() {
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && !isCancelled && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
+            {isOwner && <Button size="sm" variant="outline" asChild><Link to={`/quests/${quest.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
             {isOwner && !isCancelled && (
               <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
                 <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
@@ -819,7 +811,7 @@ export default function QuestDetail() {
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
             {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
-            {isOwner && <TabsTrigger value="settings"><Settings className="h-3.5 w-3.5 mr-1" /> Settings</TabsTrigger>}
+            
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -846,8 +838,8 @@ export default function QuestDetail() {
                   <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
                     <Coins className="h-4 w-4 mr-2" /> Fundraising AI
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFeaturesDialogOpen(true)}>
-                    <Puzzle className="h-4 w-4 mr-2" /> Features
+                  <DropdownMenuItem asChild>
+                    <Link to={`/quests/${quest.id}/settings`}><Puzzle className="h-4 w-4 mr-2" /> Settings</Link>
                   </DropdownMenuItem>
                   {!isCancelled && (
                     <DropdownMenuItem
@@ -1205,167 +1197,9 @@ export default function QuestDetail() {
             <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
           </TabsContent>
         )}
-        {/* ── Settings Tab (owner only) ── */}
-        {isOwner && (
-          <TabsContent value="settings" className="mt-6 space-y-6">
-            {/* Fundraising Management */}
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-              <h3 className="font-display font-semibold flex items-center gap-2">
-                <Coins className="h-4 w-4 text-primary" /> Fundraising Settings
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Funding Type</label>
-                  <Select value={editFundingType} onValueChange={(v) => setEditFundingType(v as "CREDITS" | "FIAT")}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
-                      <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Funding Goal</label>
-                  <Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" />
-                  <p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "Credits" : "€"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label>
-                  <Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Credit Reward</label>
-                  <Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} />
-                  <p className="text-xs text-muted-foreground mt-1">Per participant on completion</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <Switch id="settingsFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
-                <label htmlFor="settingsFundraising" className="text-sm font-medium">Allow community fundraising</label>
-              </div>
-              <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {(quest as any).funding_type === "FIAT" ? "€" : "Credits"}</p>
-                {(quest as any).funding_goal_credits && (
-                  <p><strong>Goal:</strong> {(quest as any).funding_goal_credits} — {Math.min(100, Math.round(((quest as any).escrow_credits / (quest as any).funding_goal_credits) * 100))}% funded</p>
-                )}
-                <p><strong>Fundraising:</strong> {(quest as any).allow_fundraising ? "Open" : "Closed"}{(quest as any).fundraising_cancelled ? " (Cancelled)" : ""}</p>
-              </div>
-              <Button
-                size="sm"
-                onClick={async () => {
-                  await supabase.from("quests").update({
-                    funding_type: editFundingType,
-                    funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
-                    credit_budget: Number(editCreditBudget) || 0,
-                    credit_reward: Number(editCreditReward) || 0,
-                    allow_fundraising: editAllowFundraising,
-                  } as any).eq("id", quest.id);
-                  qc.invalidateQueries({ queryKey: ["quest", id] });
-                  toast({ title: "Fundraising settings saved" });
-                }}
-              >
-                <Save className="h-4 w-4 mr-1" /> Save Fundraising Settings
-              </Button>
-            </div>
-
-            {/* Features Config */}
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-              <h3 className="font-display font-semibold flex items-center gap-2">
-                <Puzzle className="h-4 w-4 text-primary" /> Quest Features
-              </h3>
-              <p className="text-sm text-muted-foreground">Enable or disable tools for this quest.</p>
-              <div className="space-y-3">
-                {[
-                  { key: "rituals", label: "Rituals", desc: "Recurring sessions with video calls and attendance", icon: Calendar },
-                  { key: "subtasks", label: "Subtasks", desc: "Break the quest into smaller assignable tasks", icon: ListChecks },
-                  { key: "discussion", label: "Discussion", desc: "Feed and comment thread for the quest", icon: MessageCircle },
-                ].map(({ key, label, desc, icon: Icon }) => (
-                  <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-                    <div className="flex items-center gap-3">
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <span className="text-sm font-medium">{label}</span>
-                        <p className="text-xs text-muted-foreground">{desc}</p>
-                      </div>
-                    </div>
-                    <Switch checked={questFeaturesConfig[key]} onCheckedChange={() => toggleQuestFeature(key)} />
-                  </div>
-                ))}
-              </div>
-              <Button onClick={saveQuestFeatures} size="sm"><Save className="h-4 w-4 mr-1" /> Save Features</Button>
-            </div>
-
-            {/* Danger Zone */}
-            {!isCancelled && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 space-y-4">
-                <h3 className="font-display font-semibold flex items-center gap-2 text-destructive">
-                  <AlertTriangle className="h-4 w-4" /> Danger Zone
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-orange-600 border-orange-500/30 hover:bg-orange-500/10"
-                    onClick={async () => {
-                      if (!confirm("Cancel this quest? Credit contributions will be refunded.")) return;
-                      if ((quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
-                        await supabase.rpc("refund_quest_funding" as any, { _quest_id: quest.id });
-                      }
-                      await supabase.from("quests").update({ status: "CANCELLED" } as any).eq("id", quest.id);
-                      qc.invalidateQueries({ queryKey: ["quest", id] });
-                      toast({ title: "Quest cancelled" });
-                    }}
-                  >
-                    <Ban className="h-4 w-4 mr-1" /> Cancel Quest & Refund
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                    onClick={async () => {
-                      if (!confirm("Are you sure you want to delete this quest?")) return;
-                      await supabase.from("quests").update({ is_deleted: true, deleted_at: new Date().toISOString() } as any).eq("id", quest.id);
-                      toast({ title: "Quest deleted" });
-                      navigate("/explore?tab=quests");
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete Quest
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        )}
+        
       </Tabs>
 
-      {/* Quest Features Dialog */}
-      <Dialog open={featuresDialogOpen} onOpenChange={setFeaturesDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Puzzle className="h-5 w-5" /> Quest Features</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">Enable or disable tools for this quest.</p>
-          <div className="space-y-3">
-            {[
-              { key: "rituals", label: "Rituals", desc: "Recurring sessions with video calls and attendance", icon: Calendar },
-              { key: "subtasks", label: "Subtasks", desc: "Break the quest into smaller assignable tasks", icon: ListChecks },
-              { key: "discussion", label: "Discussion", desc: "Feed and comment thread for the quest", icon: MessageCircle },
-            ].map(({ key, label, desc, icon: Icon }) => (
-              <div key={key} className="flex items-center justify-between rounded-lg border border-border bg-card p-3">
-                <div className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <span className="text-sm font-medium">{label}</span>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                </div>
-                <Switch checked={questFeaturesConfig[key]} onCheckedChange={() => toggleQuestFeature(key)} />
-              </div>
-            ))}
-          </div>
-          <Button onClick={saveQuestFeatures} className="w-full mt-2"><Save className="h-4 w-4 mr-2" /> Save features</Button>
-        </DialogContent>
-      </Dialog>
     </PageShell>
   );
 }
