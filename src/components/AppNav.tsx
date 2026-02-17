@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
@@ -79,6 +80,20 @@ export function AppNav() {
   const { data: flags = [] } = useFeatureFlags();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { data: creditsBalance } = useQuery({
+    queryKey: ["nav-credits-balance", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("credits_balance")
+        .eq("user_id", session!.user.id)
+        .maybeSingle();
+      return (data as any)?.credits_balance ?? 0;
+    },
+    refetchInterval: 60_000,
+  });
 
   const handleLogout = async () => {
     await signOut();
@@ -206,6 +221,12 @@ export function AppNav() {
                           <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/me?tab=wallet" className="cursor-pointer justify-between">
+                          <span className="flex items-center gap-2"><Coins className="h-4 w-4" /> Crédits</span>
+                          <span className="text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <LanguageSwitcherInline />
                       {showAdmin && (
@@ -317,6 +338,11 @@ export function AppNav() {
                           <Link to={`/users/${currentUser.id}`} onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
                             <User className="h-4 w-4" /> {t("nav.myPublicProfile")}
+                          </Link>
+                          <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
+                            <Coins className="h-4 w-4" /> Crédits
+                            <span className="ml-auto text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
                           </Link>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
