@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
@@ -63,14 +64,15 @@ const NETWORK_DEFAULT_TABS = ["following", "activity", "overview", "people", "en
 function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser }: any) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("network_hub", NETWORK_DEFAULT_TABS);
 
+  const { t } = useTranslation();
   const tabDefs: TabDefinition[] = [
-    { value: "following", label: <><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Following</span><span className="sm:hidden">Feed</span></> },
-    { value: "activity", label: <><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Activity</span></> },
-    { value: "overview", label: "Overview" },
-    { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">People ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
-    { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Entities ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
-    { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories & Topics</span><span className="sm:hidden">Areas</span></> },
-    { value: "leaderboard", label: <><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Leaderboard</span></> },
+    { value: "following", label: <><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.following")}</span><span className="sm:hidden">{t("tabs.following")}</span></> },
+    { value: "activity", label: <><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.activity")}</span></> },
+    { value: "overview", label: t("tabs.overview") },
+    { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.people")} ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
+    { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.entities")} ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
+    { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.territoriesAndTopics")}</span><span className="sm:hidden">{t("tabs.areas")}</span></> },
+    { value: "leaderboard", label: <><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.leaderboard")}</span></> },
   ];
 
   return (

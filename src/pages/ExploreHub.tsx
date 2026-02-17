@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,7 +81,7 @@ export default function ExploreHub() {
           <div className="flex items-center gap-2 mb-4 flex-wrap justify-between">
             <div className="flex items-center gap-2 flex-wrap">
             {([
-              ["all", "All"],
+              ["all", label("common.all")],
               ["guilds", label("guild.label")],
               ["pods", label("pod.label")],
               ["companies", label("company.label")],
@@ -97,7 +98,7 @@ export default function ExploreHub() {
             ))}
             </div>
             <Button size="sm" onClick={() => setWizardOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Create Entity
+              <Plus className="h-4 w-4 mr-1" /> {label("tabs.createEntity")}
             </Button>
             <EntityCreationWizard open={wizardOpen} onOpenChange={setWizardOpen} initialKind={wizardKind} />
           </div>
@@ -148,14 +149,14 @@ export default function ExploreHub() {
 
         <TabsContent value="quests">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
+            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createQuest")}</Link></Button>
           </div>
           <QuestsMarketplace bare />
         </TabsContent>
 
         <TabsContent value="services">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> Create Service</Link></Button>
+            <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createService")}</Link></Button>
           </div>
           <ServicesMarketplace bare />
         </TabsContent>
@@ -163,7 +164,7 @@ export default function ExploreHub() {
           {!isGuest && (
             <div className="flex justify-end mb-4">
               <Button size="sm" onClick={() => setJobDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Post a Job
+                <Plus className="h-4 w-4 mr-1" /> {label("tabs.postJob")}
               </Button>
             </div>
           )}
@@ -172,7 +173,7 @@ export default function ExploreHub() {
         </TabsContent>
         <TabsContent value="courses">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/courses/new"><Plus className="h-4 w-4 mr-1" /> Create Course</Link></Button>
+            <Button size="sm" asChild><Link to="/courses/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createCourse")}</Link></Button>
           </div>
           <CoursesExplore bare />
         </TabsContent>
@@ -198,18 +199,19 @@ export default function ExploreHub() {
 }
 
 function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId, label, children }: any) {
+  const { t } = useTranslation();
   const exploreTabs: TabDefinition[] = useMemo(() => [
-    { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> Entities</> },
+    { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")}</> },
     { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</>, visible: !isGuest },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</>, visible: !isGuest },
-    { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> Agents</> },
-    { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</>, visible: !isCreative },
-    { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> Topics</> },
+    { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")}</> },
+    { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> {t("tabs.jobs")}</>, visible: !isCreative },
+    { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")}</> },
     { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</> },
-    { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> Humans</>, visible: !isGuest },
-    { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> Territories</>, visible: !isGuest },
-    { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</>, visible: !!currentUserId },
-  ], [isGuest, isCreative, currentUserId, label]);
+    { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> {t("tabs.humans")}</>, visible: !isGuest },
+    { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> {t("tabs.territories")}</>, visible: !isGuest },
+    { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> {t("tabs.matchmaker")}</>, visible: !!currentUserId },
+  ], [isGuest, isCreative, currentUserId, label, t]);
 
   const defaultOrder = useMemo(() => exploreTabs.filter(t => t.visible !== false).map(t => t.value), [exploreTabs]);
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("explore_hub", defaultOrder);

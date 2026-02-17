@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,10 +20,10 @@ import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHou
 // ─── Sort options ───────────────────────────────────────────
 export type ExploreSortBy = "most_recent" | "creation_date" | "most_active";
 
-export const SORT_LABELS: Record<ExploreSortBy, string> = {
-  most_recent: "Most recent interaction",
-  creation_date: "Creation date",
-  most_active: "Most active",
+export const SORT_LABEL_KEYS: Record<ExploreSortBy, string> = {
+  most_recent: "filters.sortMostRecent",
+  creation_date: "filters.sortCreationDate",
+  most_active: "filters.sortMostActive",
 };
 
 /** Generic sort utility — works with any object that has updated_at and created_at */
@@ -105,13 +106,14 @@ interface Props {
   onUniverseModeChange?: (mode: UniverseMode) => void;
 }
 
-const ROLE_LABELS: Record<string, string> = {
-  GAMECHANGER: "Gamechanger",
-  ECOSYSTEM_BUILDER: "Ecosystem Builder",
-  BOTH: "Both",
+const ROLE_LABEL_KEYS: Record<string, string> = {
+  GAMECHANGER: "filters.gamechanger",
+  ECOSYSTEM_BUILDER: "filters.ecosystemBuilder",
+  BOTH: "filters.both",
 };
 
 export function ExploreFilters({ filters, onChange, config, houseFilter, universeMode, onUniverseModeChange }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -201,12 +203,12 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             className="text-xs gap-1.5"
           >
             <Home className="h-3.5 w-3.5" />
-            My Topics only
+            {t("filters.myTopicsOnly")}
           </Button>
         )}
         {houseFilter && houseFilter.active && !houseFilter.hasHouses && (
           <Badge variant="secondary" className="text-xs py-1 px-2">
-            No Topics selected — <a href="/settings?tab=persona" className="underline ml-1">add some</a>
+            {t("filters.noTopicsSelected")} <a href="/settings?tab=persona" className="underline ml-1">{t("filters.addSome")}</a>
           </Badge>
         )}
 
@@ -217,8 +219,8 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(Object.entries(SORT_LABELS) as [ExploreSortBy, string][]).map(([key, label]) => (
-              <SelectItem key={key} value={key} className="text-xs">{label}</SelectItem>
+            {(Object.entries(SORT_LABEL_KEYS) as [ExploreSortBy, string][]).map(([key, tKey]) => (
+              <SelectItem key={key} value={key} className="text-xs">{t(tKey)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -230,14 +232,14 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           className={open ? "bg-muted" : ""}
         >
           <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
-          Filters
+          {t("filters.filters")}
           {activeCount > 0 && (
             <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 h-4">{activeCount}</Badge>
           )}
         </Button>
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" className="text-xs h-7" onClick={clearAll}>
-            Clear all
+            {t("filters.clearAll")}
           </Button>
         )}
       </div>
@@ -245,17 +247,17 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
       {/* Active house chips */}
       {houseFilter && houseFilter.active && houseFilter.myTopicIds.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground mr-1">Showing:</span>
+          <span className="text-[10px] text-muted-foreground mr-1">{t("filters.showing")}</span>
           {houseFilter.myTopicIds.slice(0, 5).map((id) => (
             <Badge key={id} variant="secondary" className="text-[10px] gap-1">
               <Home className="h-2.5 w-2.5" />{houseFilter.topicNames[id] || id}
             </Badge>
           ))}
           {houseFilter.myTopicIds.length > 5 && (
-            <span className="text-[10px] text-muted-foreground">+{houseFilter.myTopicIds.length - 5} more</span>
+            <span className="text-[10px] text-muted-foreground">{t("filters.more", { count: houseFilter.myTopicIds.length - 5 })}</span>
           )}
           <Button variant="ghost" size="sm" className="text-[10px] h-5 px-2" onClick={() => houseFilter.onToggle(false)}>
-            Show all
+            {t("filters.showAll")}
           </Button>
         </div>
       )}
@@ -267,11 +269,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             {/* Dropdowns */}
             {config.showStatus && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Status</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.status")}</p>
                 <Select value={filters.status} onValueChange={v => set({ status: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
+                    <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
                     {Object.values(QuestStatus).map(s => (
                       <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>
                     ))}
@@ -282,11 +284,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showQuestType && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Type de quête</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.questType")}</p>
                 <Select value={filters.questType} onValueChange={v => set({ questType: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All types</SelectItem>
+                    <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
                     {QUEST_TYPES.map(qt => (
                       <SelectItem key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</SelectItem>
                     ))}
@@ -297,11 +299,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showMonetization && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Monetization</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.monetization")}</p>
                 <Select value={filters.monetization} onValueChange={v => set({ monetization: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All types</SelectItem>
+                    <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
                     {Object.values(MonetizationType).map(m => (
                       <SelectItem key={m} value={m}>{m.toLowerCase()}</SelectItem>
                     ))}
@@ -312,11 +314,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showLevel && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Level</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.level")}</p>
                 <Select value={filters.level} onValueChange={v => set({ level: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All levels</SelectItem>
+                    <SelectItem value="all">{t("filters.allLevels")}</SelectItem>
                     {Object.values(CourseLevel).map(l => (
                       <SelectItem key={l} value={l}>{l.charAt(0) + l.slice(1).toLowerCase()}</SelectItem>
                     ))}
@@ -327,13 +329,13 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showPodType && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Pod type</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.podType")}</p>
                 <Select value={filters.podType} onValueChange={v => set({ podType: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All types</SelectItem>
-                    <SelectItem value={PodType.QUEST_POD}>Quest Pod</SelectItem>
-                    <SelectItem value={PodType.STUDY_POD}>Study Pod</SelectItem>
+                    <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
+                    <SelectItem value={PodType.QUEST_POD}>{t("filters.questPod")}</SelectItem>
+                    <SelectItem value={PodType.STUDY_POD}>{t("filters.studyPod")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -341,11 +343,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showGuildType && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Guild type</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.guildType")}</p>
                 <Select value={filters.guildType} onValueChange={v => set({ guildType: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All types</SelectItem>
+                    <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
                     {Object.values(GuildType).map(g => (
                       <SelectItem key={g} value={g}>{g.charAt(0) + g.slice(1).toLowerCase()}</SelectItem>
                     ))}
@@ -356,13 +358,13 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showPrice && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Price</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.price")}</p>
                 <Select value={filters.price} onValueChange={v => set({ price: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="all">{t("filters.all")}</SelectItem>
+                    <SelectItem value="free">{t("filters.free")}</SelectItem>
+                    <SelectItem value="paid">{t("filters.paid")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -370,13 +372,13 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showRole && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Role</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.role")}</p>
                 <Select value={filters.role} onValueChange={v => set({ role: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All roles</SelectItem>
-                    {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem value="all">{t("filters.allRoles")}</SelectItem>
+                    {Object.entries(ROLE_LABEL_KEYS).map(([k, tKey]) => (
+                      <SelectItem key={k} value={k}>{t(tKey)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -397,7 +399,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" /> Houses
+                        <Sparkles className="h-3 w-3" /> {t("filters.houses")}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -423,11 +425,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                        <Hash className="h-3 w-3" /> Topics
+                        <Hash className="h-3 w-3" /> {t("filters.topics")}
                       </p>
                       {filters.topicIds.length > 0 && (
                         <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => set({ topicIds: [] })}>
-                          Clear
+                          {t("filters.clear")}
                         </Button>
                       )}
                     </div>
@@ -459,7 +461,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> Territories
+                  <MapPin className="h-3 w-3" /> {t("filters.territories")}
                 </p>
                 <div className="flex gap-1">
                   {myTerritoryIds.length > 0 && (
@@ -469,15 +471,15 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                       className="h-5 text-[10px] px-2"
                       onClick={() => set({ territoryIds: myTerritoryIds })}
                     >
-                      <Navigation className="h-3 w-3 mr-0.5" /> My territories
+                      <Navigation className="h-3 w-3 mr-0.5" /> {t("filters.myTerritories")}
                     </Button>
                   )}
                   <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={selectAllTerritories}>
-                    <CheckSquare className="h-3 w-3 mr-0.5" /> All
+                    <CheckSquare className="h-3 w-3 mr-0.5" /> {t("filters.all")}
                   </Button>
                   {filters.territoryIds.length > 0 && (
                     <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={deselectAllTerritories}>
-                      <Square className="h-3 w-3 mr-0.5" /> None
+                      <Square className="h-3 w-3 mr-0.5" /> {t("filters.none")}
                     </Button>
                   )}
                 </div>
@@ -502,7 +504,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
       {/* Active filter chips */}
       {activeCount > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground mr-1">Active:</span>
+          <span className="text-[10px] text-muted-foreground mr-1">{t("filters.active")}</span>
           {filters.topicIds.map(id => {
             const t = (topics ?? []).find(x => x.id === id);
             if (!t) return null;
@@ -562,7 +564,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           )}
           {filters.role !== "all" && (
             <Badge variant="secondary" className="text-[10px]">
-              {ROLE_LABELS[filters.role] ?? filters.role}
+              {t(ROLE_LABEL_KEYS[filters.role] ?? filters.role)}
               <button onClick={() => set({ role: "all" })} className="ml-1"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}
