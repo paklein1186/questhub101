@@ -19,13 +19,29 @@ export default function BuyXpPage() {
   const [loading, setLoading] = useState<string | null>(null);
 
   const success = searchParams.get("success") === "true";
+  const successBundle = searchParams.get("bundle");
+  const [verifying, setVerifying] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    if (success) {
-      refresh();
-      toast({ title: "Credits purchased!", description: "Your credit bundle has been added to your account." });
+    if (success && successBundle && !verified && !verifying) {
+      setVerifying(true);
+      supabase.functions.invoke("verify-credit-purchase", {
+        body: { bundleCode: successBundle },
+      }).then(({ data, error }) => {
+        setVerifying(false);
+        setVerified(true);
+        refresh();
+        if (data?.granted) {
+          toast({ title: "Credits purchased!", description: `${data.creditsAmount} credits added to your account.` });
+        } else if (data?.alreadyGranted) {
+          toast({ title: "Credits already added", description: "This purchase was already processed." });
+        } else if (error) {
+          toast({ title: "Verification issue", description: "Credits may take a moment to appear. Please refresh.", variant: "destructive" });
+        }
+      });
     }
-  }, [success]);
+  }, [success, successBundle, verified, verifying]);
 
   const handleBuy = async (code: string) => {
     setLoading(code);
@@ -51,10 +67,10 @@ export default function BuyXpPage() {
 
         {success && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-success/30 bg-success/5 p-4 mb-6 flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-success" />
+            {verifying ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : <CheckCircle className="h-5 w-5 text-success" />}
             <div>
-              <p className="font-medium text-sm">Payment successful!</p>
-              <p className="text-xs text-muted-foreground">Your credits have been added to your account.</p>
+              <p className="font-medium text-sm">{verifying ? "Verifying payment…" : "Payment successful!"}</p>
+              <p className="text-xs text-muted-foreground">{verifying ? "Please wait while we confirm your purchase." : "Your credits have been added to your account."}</p>
             </div>
           </motion.div>
         )}
