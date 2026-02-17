@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Sparkles, Compass, Shield, CircleDot, Users, Briefcase,
   Loader2, AlertCircle, RefreshCw, Lightbulb, Coins, Wrench,
@@ -20,6 +21,7 @@ interface MatchmakerPanelProps {
 }
 
 interface MatchItem {
+  id?: string;
   title?: string;
   name?: string;
   description?: string;
@@ -104,28 +106,28 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
       {/* User matches */}
       {matchType === "user" && (
         <div className="space-y-3">
-          <MatchSection icon={Compass} title="Recommended Quests" items={data.quests} labelKey="title" />
-          <MatchSection icon={Shield} title="Recommended Guilds" items={data.guilds} labelKey="name" />
-          <MatchSection icon={CircleDot} title="Recommended Pods" items={data.pods} labelKey="name" />
-          <MatchSection icon={Users} title="Collaborators to Seek" items={data.collaborators} labelKey="description" />
-          <MatchSection icon={Briefcase} title="Services to Explore" items={data.services} labelKey="title" />
+          <MatchSection icon={Compass} title="Recommended Quests" items={data.quests} labelKey="title" routePrefix="/quests" />
+          <MatchSection icon={Shield} title="Recommended Guilds" items={data.guilds} labelKey="name" routePrefix="/guilds" />
+          <MatchSection icon={CircleDot} title="Recommended Pods" items={data.pods} labelKey="name" routePrefix="/pods" />
+          <MatchSection icon={Users} title="Collaborators to Seek" items={data.collaborators} labelKey="description" routePrefix="/profile" />
+          <MatchSection icon={Briefcase} title="Services to Explore" items={data.services} labelKey="title" routePrefix="/services" />
         </div>
       )}
 
       {/* Guild matches */}
       {matchType === "guild" && (
         <div className="space-y-3">
-          <MatchSection icon={Users} title="Recommended Members" items={data.recommendedUsers} labelKey="description" />
-          <MatchSection icon={Compass} title="Recommended Quests" items={data.recommendedQuests} labelKey="title" />
+          <MatchSection icon={Users} title="Recommended Members" items={data.recommendedUsers} labelKey="description" routePrefix="/profile" />
+          <MatchSection icon={Compass} title="Recommended Quests" items={data.recommendedQuests} labelKey="title" routePrefix="/quests" />
         </div>
       )}
 
       {/* Quest matches */}
       {matchType === "quest" && (
         <div className="space-y-3">
-          <MatchSection icon={Users} title="Potential Proposers" items={data.proposers} labelKey="description" />
+          <MatchSection icon={Users} title="Potential Proposers" items={data.proposers} labelKey="description" routePrefix="/profile" />
           <MatchSection icon={Wrench} title="Missing Skills" items={data.missingSkills} labelKey="skill" extraKey="suggestion" />
-          <MatchSection icon={Coins} title="Funding Partners" items={data.fundingPartners} labelKey="description" />
+          <MatchSection icon={Coins} title="Funding Partners" items={data.fundingPartners} labelKey="description" routePrefix="/companies" />
         </div>
       )}
 
@@ -138,8 +140,8 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
   );
 }
 
-function MatchSection({ icon: Icon, title, items, labelKey, extraKey }: {
-  icon: any; title: string; items?: MatchItem[]; labelKey: string; extraKey?: string;
+function MatchSection({ icon: Icon, title, items, labelKey, extraKey, routePrefix }: {
+  icon: any; title: string; items?: MatchItem[]; labelKey: string; extraKey?: string; routePrefix?: string;
 }) {
   if (!items || items.length === 0) return null;
   return (
@@ -148,20 +150,27 @@ function MatchSection({ icon: Icon, title, items, labelKey, extraKey }: {
         <Icon className="h-3.5 w-3.5" /> {title}
       </p>
       <div className="space-y-1.5">
-        {items.map((item, i) => (
-          <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
-            <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{(item as any)[labelKey]}</p>
-              <p className="text-xs text-muted-foreground">{item.reason}</p>
-              {extraKey && (item as any)[extraKey] && (
-                <Badge variant="secondary" className="text-[10px] mt-1">{(item as any)[extraKey]}</Badge>
-              )}
-            </div>
-          </motion.div>
-        ))}
+        {items.map((item, i) => {
+          const href = routePrefix && item.id ? `${routePrefix}/${item.id}` : undefined;
+          const Wrapper = href ? Link : "div";
+          const wrapperProps = href ? { to: href } : {};
+          return (
+            <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}>
+              <Wrapper {...(wrapperProps as any)}
+                className={`flex items-start gap-2 rounded-lg border border-border bg-background p-2.5 transition-colors ${href ? "hover:bg-muted/60 cursor-pointer" : ""}`}>
+                <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{(item as any)[labelKey]}</p>
+                  <p className="text-xs text-muted-foreground">{item.reason}</p>
+                  {extraKey && (item as any)[extraKey] && (
+                    <Badge variant="secondary" className="text-[10px] mt-1">{(item as any)[extraKey]}</Badge>
+                  )}
+                </div>
+              </Wrapper>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
