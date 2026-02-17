@@ -137,9 +137,9 @@ export default function PlansPage() {
         )}
 
         <div className="text-center mb-10">
-          <h1 className="font-display text-3xl font-bold mb-2">{t("pages.plans.title")}</h1>
+          <h1 className="font-display text-3xl font-bold mb-2">Choose Your Participation Level</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            {t("pages.plans.subtitle")}
+            Changethegame remains open to all. Plans accelerate your visibility and tools — they do not buy influence.
           </p>
         </div>
 
@@ -248,23 +248,27 @@ export default function PlansPage() {
           </div>
         )}
 
-        {/* Dual economy info */}
+        {/* Economy info */}
         <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center max-w-2xl mx-auto">
           <h3 className="font-display text-lg font-bold mb-3 flex items-center justify-center gap-2">
-            <Coins className="h-5 w-5 text-primary" /> Understanding the Dual Economy
+            <Coins className="h-5 w-5 text-primary" /> Understanding the Hybrid Economy
           </h3>
-          <div className="grid md:grid-cols-3 gap-4 text-sm">
+          <div className="grid md:grid-cols-4 gap-3 text-sm">
             <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="font-semibold text-primary mb-1">💶 Money (€)</p>
-              <p className="text-muted-foreground">Mission budgets & freelance payments. Handled via Stripe or invoicing.</p>
+              <p className="font-semibold text-primary mb-1">💶 Fiat (€)</p>
+              <p className="text-muted-foreground text-xs">Mission payments & services. Real-world income via Stripe.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="font-semibold text-primary mb-1">⚡ Credits</p>
-              <p className="text-muted-foreground">Platform utility: boosts, extra capacity, AI features. Not exchangeable for money.</p>
+              <p className="font-semibold text-primary mb-1">🪙 Credits</p>
+              <p className="text-muted-foreground text-xs">Collaboration fuel. Boosts, tools, proposals. Not exchangeable.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="font-semibold text-primary mb-1">🏆 XP</p>
-              <p className="text-muted-foreground">Your reputation score. Earned through activity, never purchased.</p>
+              <p className="font-semibold text-primary mb-1">⭐ XP</p>
+              <p className="text-muted-foreground text-xs">Reputation. Earned through activity, never purchased.</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border border-border">
+              <p className="font-semibold text-primary mb-1">🧭 Shares</p>
+              <p className="text-muted-foreground text-xs">Stewardship participation. Governance & dividends.</p>
             </div>
           </div>
         </div>

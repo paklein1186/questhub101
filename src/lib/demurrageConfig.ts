@@ -1,11 +1,11 @@
 // ─── Demurrage (Credit Fade) Configuration ──────────────────
 // Monthly demurrage rate applied to wallet balances
 
-/** Monthly fade rate as a decimal (1.5% = 0.015) */
-export const DEMURRAGE_RATE = 0.015;
+/** Monthly fade rate as a decimal (1% = 0.01) */
+export const DEMURRAGE_RATE = 0.01;
 
 /** Monthly fade rate as a percentage string */
-export const DEMURRAGE_RATE_PERCENT = "1.5%";
+export const DEMURRAGE_RATE_PERCENT = "1%";
 
 /** Treasury system key in cooperative_settings */
 export const TREASURY_SETTINGS_KEY = "treasury_balance";
@@ -38,30 +38,39 @@ export const DEMURRAGE_TX_TYPES = {
 export const ECONOMY_LAYERS = [
   {
     key: "fiat",
-    label: "Fiat Currency",
+    label: "Fiat Currency (€)",
     purpose: "Real economic exchange",
     icon: "Banknote",
     convertible: true,
     description:
-      "Used for buying services, paying missions, fundraising quests, and equity investment. Processed via regulated payment providers.",
+      "Your earnings from paid missions and services. Processed via Stripe. Real-world income.",
   },
   {
     key: "credits",
     label: "Credits",
-    purpose: "Internal coordination",
+    purpose: "Collaboration fuel",
     icon: "Coins",
     convertible: false,
     description:
-      "Non-convertible internal coordination units. Circulate between members, encourage active participation, and gradually redistribute if inactive.",
+      "Non-convertible internal coordination units earned through contribution. Cannot be exchanged or withdrawn. Gently fade by 1% per month to encourage circulation.",
   },
   {
     key: "xp",
     label: "XP (Reputation)",
-    purpose: "Reputation & governance",
+    purpose: "Contribution level",
     icon: "Star",
     convertible: false,
     description:
-      "Non-transferable, earned via contribution. Used for governance rights, status, and visibility. Does not fade.",
+      "Reflects your impact and participation. Never decays, cannot be purchased. Unlocks governance rights and stewardship eligibility.",
+  },
+  {
+    key: "shares",
+    label: "Shares",
+    purpose: "Stewardship participation",
+    icon: "Compass",
+    convertible: false,
+    description:
+      "Long-term commitment to the platform's mission. Provide governance weight and dividend eligibility. Cannot be traded within the platform.",
   },
 ] as const;
 
