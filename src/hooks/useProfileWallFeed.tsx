@@ -172,6 +172,7 @@ export function useProfileWallFeed(profileUserId: string | undefined, sourceFilt
         .from("feed_posts" as any)
         .select("*, post_attachments(*)")
         .eq("is_deleted", false)
+        .eq("author_user_id", profileUserId)
         .or(orClauses)
         .order("created_at", { ascending: false })
         .limit(50);
