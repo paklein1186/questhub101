@@ -185,6 +185,7 @@ export function useConversationMessages(conversationId: string | null) {
     },
     enabled: !!conversationId,
     staleTime: 2000,
+    placeholderData: (prev) => prev,
   });
 
   // Mark as read when viewing
