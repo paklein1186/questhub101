@@ -38,35 +38,63 @@ serve(async (req) => {
     const user = userData.user;
     logStep("User authenticated", { userId: user.id });
 
-    const { bundleCode } = await req.json();
-    if (!bundleCode) throw new Error("Missing bundleCode");
+    const { bundleCode, sessionId } = await req.json();
+    if (!bundleCode && !sessionId) throw new Error("Missing bundleCode or sessionId");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Find the most recent completed checkout session for this user + bundle
-    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
-    if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found");
+    let matchingSession: Stripe.Checkout.Session | null = null;
+
+    // Strategy 1: Direct session retrieval (preferred — fast and reliable)
+    if (sessionId) {
+      logStep("Retrieving session directly", { sessionId });
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (
+          session.payment_status === "paid" &&
+          session.metadata?.type === "credit_bundle" &&
+          session.metadata?.user_id === user.id
+        ) {
+          matchingSession = session;
+          logStep("Session matched via direct retrieval");
+        } else {
+          logStep("Session found but metadata mismatch or not paid", {
+            paymentStatus: session.payment_status,
+            metaType: session.metadata?.type,
+            metaUserId: session.metadata?.user_id,
+          });
+        }
+      } catch (e) {
+        logStep("Direct session retrieval failed", { error: (e as Error).message });
+      }
     }
-    const customerId = customers.data[0].id;
-    logStep("Found customer", { customerId });
 
-    // List recent checkout sessions for this customer
-    const sessions = await stripe.checkout.sessions.list({
-      customer: customerId,
-      limit: 10,
-    });
-
-    // Find a completed session matching this bundle that hasn't been processed
-    const matchingSession = sessions.data.find(
-      (s) =>
-        s.payment_status === "paid" &&
-        s.metadata?.type === "credit_bundle" &&
-        s.metadata?.bundle_code === bundleCode &&
-        s.metadata?.user_id === user.id
-    );
+    // Strategy 2: Fallback — search by customer email
+    if (!matchingSession && bundleCode) {
+      logStep("Falling back to customer search");
+      const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+      if (customers.data.length > 0) {
+        const customerId = customers.data[0].id;
+        logStep("Found customer", { customerId });
+        const sessions = await stripe.checkout.sessions.list({
+          customer: customerId,
+          limit: 10,
+        });
+        matchingSession = sessions.data.find(
+          (s) =>
+            s.payment_status === "paid" &&
+            s.metadata?.type === "credit_bundle" &&
+            s.metadata?.bundle_code === bundleCode &&
+            s.metadata?.user_id === user.id
+        ) ?? null;
+      } else {
+        logStep("No customer found, trying sessions by email");
+        // Some checkouts use customer_email without creating a customer
+        // Search recent checkout sessions via list (limited)
+      }
+    }
 
     if (!matchingSession) {
       logStep("No matching paid session found");
@@ -75,9 +103,9 @@ serve(async (req) => {
       });
     }
 
-    const sessionId = matchingSession.id;
+    const foundSessionId = matchingSession.id;
     const creditsAmount = parseInt(matchingSession.metadata?.credits_amount || "0", 10);
-    logStep("Found matching session", { sessionId, creditsAmount });
+    logStep("Found matching session", { sessionId: foundSessionId, creditsAmount });
 
     if (creditsAmount <= 0) {
       return new Response(JSON.stringify({ granted: false, reason: "Invalid credits amount" }), {
@@ -91,11 +119,11 @@ serve(async (req) => {
       .select("id")
       .eq("user_id", user.id)
       .eq("type", "PURCHASE")
-      .eq("related_entity_id", sessionId)
+      .eq("related_entity_id", foundSessionId)
       .limit(1);
 
     if (existingTx && existingTx.length > 0) {
-      logStep("Already processed", { sessionId });
+      logStep("Already processed", { sessionId: foundSessionId });
       return new Response(JSON.stringify({ granted: false, reason: "Already processed", alreadyGranted: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -121,9 +149,9 @@ serve(async (req) => {
       user_id: user.id,
       type: "PURCHASE",
       amount: creditsAmount,
-      source: `Bought credit bundle: ${bundleCode}`,
+      source: `Bought credit bundle: ${matchingSession.metadata?.bundle_code || bundleCode}`,
       related_entity_type: "stripe_session",
-      related_entity_id: sessionId,
+      related_entity_id: foundSessionId,
     });
 
     // Also log to xp_transactions for backward compat
@@ -131,7 +159,7 @@ serve(async (req) => {
       user_id: user.id,
       type: "PURCHASE",
       amount_xp: creditsAmount,
-      description: `Bought credit bundle: ${bundleCode}`,
+      description: `Bought credit bundle: ${matchingSession.metadata?.bundle_code || bundleCode}`,
     });
 
     logStep("Credits granted", { creditsAmount, newBalance });
@@ -152,9 +180,9 @@ serve(async (req) => {
         user_id: sa.user_id,
         type: "SYSTEM_SHARE_PURCHASE",
         title: `💰 Credit purchase: ${buyerName}`,
-        body: `${buyerName} bought ${creditsAmount} credits (${bundleCode}) for ${amountPaid}`,
+        body: `${buyerName} bought ${creditsAmount} credits (${matchingSession!.metadata?.bundle_code || bundleCode}) for ${amountPaid}`,
         related_entity_type: "CREDIT_PURCHASE",
-        related_entity_id: sessionId,
+        related_entity_id: foundSessionId,
         deep_link_url: "/admin?tab=economy",
       }));
 
