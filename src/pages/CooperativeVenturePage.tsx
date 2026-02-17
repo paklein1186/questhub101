@@ -33,6 +33,11 @@ export default function CooperativeVenturePage() {
               <li>Vote on governance and future directions</li>
               <li>Contribute to long-term stewardship</li>
             </ul>
+            <div className="rounded-lg bg-muted/50 border border-border p-3 text-sm space-y-1 mt-2">
+              <p><strong>Minimum ticket:</strong> €25,000</p>
+              <p><strong>Target range:</strong> €25k – €100k</p>
+              <p><strong>Cap:</strong> 30–40 Class A holders maximum</p>
+            </div>
             <p className="text-muted-foreground text-sm pt-1">
               To access: send us an email if you feel called to take responsibility.
             </p>
