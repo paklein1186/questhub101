@@ -773,16 +773,17 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     } catch { /* silent */ }
 
     const notifType = entityType === "pod" ? NotificationType.UNIT_NEW_POD_JOIN_REQUEST : NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST;
-    // Route to the applications tab in settings
-    const settingsPath = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}/settings?tab=applications`;
+    // Route to the members tab where applications are shown
+    const deepLink = `/${entityType === "company" ? "companies" : entityType + "s"}/${entityId}?tab=members`;
 
     for (const adminId of adminIds) {
       if (adminId === userId) continue;
       await addNotification({
         userId: adminId, type: notifType,
-        title: `New join request`, body: `${applicantName} wants to join ${entityName}`,
+        title: `New join request for ${entityName}`,
+        body: `${applicantName} wants to join ${entityName}`,
         relatedEntityType: entityType.toUpperCase(), relatedEntityId: entityId,
-        deepLinkUrl: settingsPath,
+        deepLinkUrl: deepLink,
       });
     }
   }, [userId, addNotification]);
