@@ -294,6 +294,8 @@ export function QuestProposals({
 
     qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
     qc.invalidateQueries({ queryKey: ["quest", questId] });
+    qc.invalidateQueries({ queryKey: ["profile-data"] });
+    qc.invalidateQueries({ queryKey: ["plan-limits"] });
     setFundOpen(false); setFundAmount("");
     toast({ title: `+${amount} Credits added to quest pot` });
   };
