@@ -11,6 +11,7 @@ const CULTURAL_LINKS = [
 
 const TRANSPARENCY_LINKS = [
   { labelKey: "footer.revenueModels", href: "/revenue-models" },
+  { labelKey: "footer.creditEconomy", href: "/credit-economy" },
   { labelKey: "footer.governance", href: "/governance" },
   { labelKey: "footer.privacy", href: "/privacy" },
   { labelKey: "footer.terms", href: "/terms" },
