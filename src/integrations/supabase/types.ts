@@ -3386,6 +3386,8 @@ export type Database = {
           preferred_language: string
           pulse_nudge_sent: boolean
           role: string
+          stripe_account_id: string | null
+          stripe_onboarding_complete: boolean
           total_shares_a: number
           total_shares_b: number
           twitter_url: string | null
@@ -3429,6 +3431,8 @@ export type Database = {
           preferred_language?: string
           pulse_nudge_sent?: boolean
           role?: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           total_shares_a?: number
           total_shares_b?: number
           twitter_url?: string | null
@@ -3472,6 +3476,8 @@ export type Database = {
           preferred_language?: string
           pulse_nudge_sent?: boolean
           role?: string
+          stripe_account_id?: string | null
+          stripe_onboarding_complete?: boolean
           total_shares_a?: number
           total_shares_b?: number
           twitter_url?: string | null

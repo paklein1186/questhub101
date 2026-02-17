@@ -55,6 +55,7 @@ import { WalletTab } from "@/components/WalletTab";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 import { ProfileMaskingSettings } from "@/components/ProfileMaskingSettings";
 import { ActivityHistoryTab } from "@/components/ActivityHistoryTab";
+import { StripeConnectSection } from "@/components/StripeConnectSection";
 
 const TABS = [
   { key: "profile", label: "settings.profile", icon: UserCircle },
@@ -781,21 +782,7 @@ export default function SettingsPage() {
 
               {/* ── Connected Apps ── */}
               {activeTab === "apps" && (
-                <div className="space-y-6">
-                  <Section title="Stripe (Payouts)" icon={<Zap className="h-5 w-5" />}>
-                    <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
-                      <div>
-                        <p className="text-sm font-medium">Stripe Connect</p>
-                        <p className="text-xs text-muted-foreground">Connect your Stripe account to receive payouts from bookings.</p>
-                      </div>
-                      <Badge variant="outline">Not connected</Badge>
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-2" disabled>
-                      <Plug className="h-4 w-4 mr-1" /> Connect Stripe
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-1">Coming soon — Stripe Connect onboarding will be available here.</p>
-                  </Section>
-                </div>
+                <StripeConnectSection />
               )}
 
               {/* ── Activity History ── */}
