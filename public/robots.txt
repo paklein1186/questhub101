@@ -1,3 +1,11 @@
+# changethegame — robots.txt
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /admin
+Disallow: /inbox
+
+# Social crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +18,29 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Bytespider
+Disallow: /
+
+Sitemap: https://changethegame.xyz/sitemap.xml

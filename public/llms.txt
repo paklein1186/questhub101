@@ -1,0 +1,45 @@
+# changethegame
+
+> Human-powered. AI-augmented. Game-changing.
+
+changethegame is a regenerative collaboration platform connecting changemakers, ecosystem builders, and impact-driven organisations.
+
+## What is changethegame?
+
+changethegame is a web-based ecosystem where individuals and organisations collaborate on meaningful missions ("quests"), form learning groups ("pods"), and join thematic communities ("guilds"). It uses AI to enhance human collaboration — not replace it.
+
+## Core Concepts
+
+- **Quests**: Open missions posted by individuals, guilds, or companies. Participants earn XP (experience points) for contributions.
+- **Guilds**: Thematic communities or professional networks that coordinate action and host events.
+- **Pods**: Small learning and action groups for peer accountability and deep collaboration.
+- **Services**: Expertise offerings from practitioners (consulting, facilitation, coaching, etc.).
+- **Territories**: Geographic or thematic zones that anchor the ecosystem locally.
+- **Houses (Topics)**: Thematic categories (e.g. Circular Economy, Social Innovation) that organise content and people.
+- **Companies / Organisations**: Entities that post quests, hire experts, and support territories.
+- **XP & Contribution Index**: A reputation system based on verified contributions, not self-reported CVs.
+- **Courses**: Educational content created by guilds, companies, or individuals.
+
+## Who is it for?
+
+- **Gamechangers**: Consultants, facilitators, designers, and practitioners seeking meaningful missions.
+- **Ecosystem Builders**: Networks, guilds, and third spaces structuring collective action.
+- **Companies & Institutions**: Organisations with social or environmental impact ambitions.
+
+## Key Features
+
+- Quest marketplace for impact missions
+- Guild and pod management for community coordination
+- Service booking with availability and payments
+- AI-powered matchmaking, facilitation, and territory intelligence
+- XP-based reputation and achievement system
+- Multi-language support (English, French)
+- Territory-based ecosystem mapping
+
+## Links
+
+- Website: https://changethegame.xyz
+- Explore: https://changethegame.xyz/explore
+- About: https://changethegame.xyz/about
+- How it Works: https://changethegame.xyz/how-it-works
+- Manifesto: https://changethegame.xyz/manifesto
