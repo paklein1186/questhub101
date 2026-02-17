@@ -285,6 +285,13 @@ export function useEditPost() {
         .eq("id", postId);
       if (error) throw error;
 
+      // Clear cached translations so they get re-generated
+      await supabase
+        .from("content_translations")
+        .delete()
+        .eq("entity_type", "feed_post")
+        .eq("entity_id", postId);
+
       // Sync territories if provided
       if (territoryIds !== undefined) {
         await supabase.from("post_territories").delete().eq("post_id", postId);
@@ -303,10 +310,11 @@ export function useEditPost() {
         }
       }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
       qc.invalidateQueries({ queryKey: ["profile-wall-feed"] });
       qc.invalidateQueries({ queryKey: ["following-feed"] });
+      qc.invalidateQueries({ queryKey: ["post-translation", variables.postId] });
     },
   });
 }
