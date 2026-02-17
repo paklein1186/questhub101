@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -85,7 +86,7 @@ export function MentionTextarea({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [mentionStart, setMentionStart] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const [entityMentions, setEntityMentions] = useState<MentionedEntity[]>([]);
 
   // Search users, guilds, companies, quests
@@ -223,6 +224,32 @@ export function MentionTextarea({
     return () => document.removeEventListener("mousedown", handler);
   }, [showSuggestions]);
 
+  // Compute dropdown position relative to viewport when suggestions show
+  useEffect(() => {
+    if (!showSuggestions || !textareaRef.current) {
+      setDropdownPos(null);
+      return;
+    }
+    const updatePos = () => {
+      const rect = textareaRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      // Place above the textarea if near bottom, otherwise below
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = 224; // max-h-56 = 14rem = 224px
+      const top = spaceBelow < dropdownHeight
+        ? rect.top - dropdownHeight
+        : rect.bottom + 4;
+      setDropdownPos({ top, left: rect.left, width: Math.min(rect.width, 288) });
+    };
+    updatePos();
+    window.addEventListener("scroll", updatePos, true);
+    window.addEventListener("resize", updatePos);
+    return () => {
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
+    };
+  }, [showSuggestions]);
+
   return (
     <div className="relative w-full">
       <Textarea
@@ -241,10 +268,11 @@ export function MentionTextarea({
         </p>
       )}
 
-      {showSuggestions && (
+      {showSuggestions && dropdownPos && createPortal(
         <div
           ref={dropdownRef}
-          className="absolute z-50 mt-1 w-72 max-h-56 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg"
+          className="fixed z-[9999] w-72 max-h-56 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg"
+          style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
         >
           {loading && suggestions.length === 0 && (
             <div className="px-3 py-2 text-xs text-muted-foreground">Searching…</div>
@@ -275,7 +303,8 @@ export function MentionTextarea({
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
