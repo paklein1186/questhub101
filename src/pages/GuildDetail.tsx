@@ -209,7 +209,7 @@ export default function GuildDetail() {
   };
 
   // Feature flags
-  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER" };
+  const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER", rituals: true };
   const fc = typeof guild.features_config === "object" && guild.features_config ? { ...defaultFeatures, ...guild.features_config } : defaultFeatures;
 
   const doJoinGuild = async () => {
@@ -361,7 +361,7 @@ export default function GuildDetail() {
             { value: "memory", label: <><Brain className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Memory</span></>, visible: isMember },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "agents", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isMember },
-            { value: "rituals", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Rituals</span></>, visible: isMember || (fc as any).ritualPublic },
+            { value: "rituals", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Rituals</span></>, visible: !!(fc as any).rituals && (isMember || (fc as any).ritualPublic) },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
           return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
@@ -685,9 +685,11 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="rituals" className="mt-6">
-          <GuildRitualsTab guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
-        </TabsContent>
+        {(fc as any).rituals && (
+          <TabsContent value="rituals" className="mt-6">
+            <GuildRitualsTab guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );

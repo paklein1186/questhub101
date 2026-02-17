@@ -3922,6 +3922,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           escrow_credits: number
+          features_config: Json
           funding_goal_credits: number | null
           funding_type: string
           fundraising_cancelled: boolean
@@ -3962,6 +3963,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           escrow_credits?: number
+          features_config?: Json
           funding_goal_credits?: number | null
           funding_type?: string
           fundraising_cancelled?: boolean
@@ -4002,6 +4004,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           escrow_credits?: number
+          features_config?: Json
           funding_goal_credits?: number | null
           funding_type?: string
           fundraising_cancelled?: boolean
