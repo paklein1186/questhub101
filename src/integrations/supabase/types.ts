@@ -4139,6 +4139,7 @@ export type Database = {
           joined_at: string
           occurrence_id: string
           role: string
+          status: string
           user_id: string
           xp_granted: boolean
         }
@@ -4147,6 +4148,7 @@ export type Database = {
           joined_at?: string
           occurrence_id: string
           role?: string
+          status?: string
           user_id: string
           xp_granted?: boolean
         }
@@ -4155,6 +4157,7 @@ export type Database = {
           joined_at?: string
           occurrence_id?: string
           role?: string
+          status?: string
           user_id?: string
           xp_granted?: boolean
         }
