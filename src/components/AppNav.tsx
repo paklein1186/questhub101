@@ -223,7 +223,7 @@ export function AppNav() {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link to="/me?tab=wallet" className="cursor-pointer justify-between">
-                          <span className="flex items-center gap-2"><Coins className="h-4 w-4" /> Crédits</span>
+                          <span className="flex items-center gap-2"><Coins className="h-4 w-4" /> {t("wallet.credits")}</span>
                           <span className="text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
                         </Link>
                       </DropdownMenuItem>
@@ -341,7 +341,7 @@ export function AppNav() {
                           </Link>
                           <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                            <Coins className="h-4 w-4" /> Crédits
+                            <Coins className="h-4 w-4" /> {t("wallet.credits")}
                             <span className="ml-auto text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
                           </Link>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
