@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,6 +57,7 @@ const TARGET_ROUTES: Record<string, string> = {
 };
 
 export function FollowingActivity() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const userId = user?.id;
   const navigate = useNavigate();
@@ -204,7 +206,7 @@ export function FollowingActivity() {
     return (
       <div className="w-full space-y-3">
         <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" /> From your network
+          <Users className="h-5 w-5 text-primary" /> {t("home.fromNetwork")}
         </h2>
         <div className="flex justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -217,7 +219,7 @@ export function FollowingActivity() {
     return (
       <div className="w-full space-y-3">
         <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" /> From your network
+          <Users className="h-5 w-5 text-primary" /> {t("home.fromNetwork")}
         </h2>
         <p className="text-sm text-muted-foreground text-center py-6">
           No recent activity from people you follow yet.
@@ -229,7 +231,7 @@ export function FollowingActivity() {
   return (
     <div className="w-full space-y-3">
       <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-        <Users className="h-5 w-5 text-primary" /> From your network
+        <Users className="h-5 w-5 text-primary" /> {t("home.fromNetwork")}
       </h2>
       <div className="space-y-2">
         {items.map((item) => (

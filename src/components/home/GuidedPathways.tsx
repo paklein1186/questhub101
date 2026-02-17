@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -205,6 +206,7 @@ interface Props {
 }
 
 export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [openPathway, setOpenPathway] = useState<string | null>(null);
   const [promptStep, setPromptStep] = useState<SubAction | null>(null);
@@ -213,6 +215,23 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
   const [aiResult, setAiResult] = useState<any>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // i18n overrides for pathway titles/subtitles
+  const i18nTitles: Record<string, string> = {
+    create: t("home.create"),
+    develop: t("home.develop"),
+    "find-people": t("home.findPeople"),
+    explore: t("home.explorePath"),
+    territories: t("home.territories"),
+    guidance: t("home.guidance"),
+  };
+  const i18nSubtitles: Record<string, string> = {
+    create: t("home.createSub"),
+    develop: t("home.developSub"),
+    "find-people": t("home.findPeopleSub"),
+    explore: t("home.explorePathSub"),
+    territories: t("home.territoriesSub"),
+    guidance: t("home.guidanceSub"),
+  };
   const displayedPathways = isOrgRep ? ORG_REP_PATHWAYS : PATHWAYS;
   const activePathway = displayedPathways.find((pw) => pw.id === openPathway);
 
@@ -297,8 +316,8 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
                 <Icon className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">{p(pw.title, persona)}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{p(pw.subtitle, persona)}</p>
+                <p className="text-sm font-semibold text-foreground">{i18nTitles[pw.id] || p(pw.title, persona)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{i18nSubtitles[pw.id] || p(pw.subtitle, persona)}</p>
               </div>
             </motion.button>
           );
