@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
+import { ThumbsUp, MessageSquare, Send, Pencil, Trash2, X, Check, Loader2, ImagePlus } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -94,6 +94,51 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Image upload state
+  const [newCommentImage, setNewCommentImage] = useState<File | null>(null);
+  const [newCommentImagePreview, setNewCommentImagePreview] = useState<string | null>(null);
+  const [replyImage, setReplyImage] = useState<File | null>(null);
+  const [replyImagePreview, setReplyImagePreview] = useState<string | null>(null);
+  const mainImageRef = useRef<HTMLInputElement>(null);
+  const replyImageRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = (file: File | null, isReply: boolean) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Only image files are allowed", variant: "destructive" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Image must be under 10MB", variant: "destructive" });
+      return;
+    }
+    const preview = URL.createObjectURL(file);
+    if (isReply) { setReplyImage(file); setReplyImagePreview(preview); }
+    else { setNewCommentImage(file); setNewCommentImagePreview(preview); }
+  };
+
+  const clearImage = (isReply: boolean) => {
+    if (isReply) {
+      if (replyImagePreview) URL.revokeObjectURL(replyImagePreview);
+      setReplyImage(null); setReplyImagePreview(null);
+      if (replyImageRef.current) replyImageRef.current.value = "";
+    } else {
+      if (newCommentImagePreview) URL.revokeObjectURL(newCommentImagePreview);
+      setNewCommentImage(null); setNewCommentImagePreview(null);
+      if (mainImageRef.current) mainImageRef.current.value = "";
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "-");
+    const path = `${currentUser.id}/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage.from("comment-images").upload(path, file, { contentType: file.type });
+    if (error) { toast({ title: "Image upload failed", variant: "destructive" }); return null; }
+    const { data: urlData } = supabase.storage.from("comment-images").getPublicUrl(path);
+    return urlData.publicUrl;
+  };
+
   const getAuthor = (userId: string) => authorProfiles.find((p) => p.user_id === userId);
   const topLevel = comments.filter((c) => !c.parent_id && !c.is_deleted);
   const deletedTopLevel = comments.filter((c) => !c.parent_id && c.is_deleted);
@@ -128,19 +173,28 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
   const addComment = async (parentId?: string) => {
     const content = parentId ? replyText.trim() : newComment.trim();
-    if (!content || !currentUser.id || isSubmitting) return;
+    const imageFile = parentId ? replyImage : newCommentImage;
+    if ((!content && !imageFile) || !currentUser.id || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
       const allowed = await checkRateLimit("comment");
       if (!allowed) return;
 
+      // Upload image if present
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+        if (!imageUrl && !content) return; // image upload failed and no text
+      }
+
       const { data: inserted, error } = await supabase.from("comments").insert({
-        content,
+        content: content || "",
         author_id: currentUser.id,
         parent_id: parentId || null,
         target_type: targetType,
         target_id: targetId,
+        image_url: imageUrl,
       }).select("id").single();
 
       if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
@@ -174,7 +228,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         });
       }
 
-      if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); } else { setNewComment(""); setPendingMentions([]); }
+      if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); clearImage(true); } else { setNewComment(""); setPendingMentions([]); clearImage(false); }
       toast({ title: "Comment added" });
       qc.invalidateQueries({ queryKey });
     } catch (err: any) {
@@ -263,7 +317,14 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm mt-1 text-foreground/90">{renderMentions(comment.content)}</p>
+                <>
+                  <p className="text-sm mt-1 text-foreground/90">{renderMentions(comment.content)}</p>
+                  {(comment as any).image_url && (
+                    <a href={(comment as any).image_url} target="_blank" rel="noopener noreferrer" className="block mt-2">
+                      <img src={(comment as any).image_url} alt="Comment attachment" className="rounded-md max-h-64 max-w-full object-cover border border-border" />
+                    </a>
+                  )}
+                </>
               )}
               <div className="flex items-center gap-2 mt-2">
                 <Button variant="ghost" size="sm" className={`h-7 px-2 ${voted ? "text-primary" : "text-muted-foreground hover:text-primary"}`} onClick={() => handleUpvote(comment.id)}>
@@ -297,19 +358,37 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="ml-8 mt-2">
               <div className="flex gap-2">
                 <Avatar className="h-7 w-7 mt-1"><AvatarImage src={currentUser.avatarUrl} /><AvatarFallback>{currentUser.name[0]}</AvatarFallback></Avatar>
-                <div className="flex-1 flex gap-2">
-                  <MentionTextarea
-                    value={replyText}
-                    onChange={setReplyText}
-                    onMentionsChange={setReplyMentions}
-                    placeholder="Write a reply… (type @ to mention)"
-                    className="min-h-[60px] flex-1"
-                    maxLength={500}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(comment.id); } }}
-                  />
-                  <Button size="sm" className="self-end" disabled={!replyText.trim() || isSubmitting} onClick={() => addComment(comment.id)}>
-                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <MentionTextarea
+                      value={replyText}
+                      onChange={setReplyText}
+                      onMentionsChange={setReplyMentions}
+                      placeholder="Write a reply… (type @ to mention)"
+                      className="min-h-[60px] flex-1"
+                      maxLength={500}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(comment.id); } }}
+                    />
+                  </div>
+                  {replyImagePreview && (
+                    <div className="relative inline-block">
+                      <img src={replyImagePreview} alt="Preview" className="rounded-md max-h-24 max-w-[160px] object-cover border border-border" />
+                      <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" onClick={() => clearImage(true)}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <input ref={replyImageRef} type="file" accept="image/*" className="hidden" onChange={e => { handleImageSelect(e.target.files?.[0] || null, true); }} />
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary" onClick={() => replyImageRef.current?.click()}>
+                        <ImagePlus className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <Button size="sm" disabled={(!replyText.trim() && !replyImage) || isSubmitting} onClick={() => addComment(comment.id)}>
+                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -340,8 +419,22 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               maxLength={1000}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(); } }}
             />
-            <div className="flex justify-end mt-2">
-              <Button size="sm" disabled={!newComment.trim() || isSubmitting} onClick={() => addComment()}>
+            {newCommentImagePreview && (
+              <div className="relative inline-block mt-2">
+                <img src={newCommentImagePreview} alt="Preview" className="rounded-md max-h-32 max-w-[200px] object-cover border border-border" />
+                <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-5 w-5 rounded-full" onClick={() => clearImage(false)}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            <div className="flex items-center justify-between mt-2">
+              <div>
+                <input ref={mainImageRef} type="file" accept="image/*" className="hidden" onChange={e => { handleImageSelect(e.target.files?.[0] || null, false); }} />
+                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-primary" onClick={() => mainImageRef.current?.click()}>
+                  <ImagePlus className="h-4 w-4 mr-1" /> Photo
+                </Button>
+              </div>
+              <Button size="sm" disabled={(!newComment.trim() && !newCommentImage) || isSubmitting} onClick={() => addComment()}>
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
                 Comment
               </Button>

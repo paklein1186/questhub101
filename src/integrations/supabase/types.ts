@@ -677,6 +677,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          image_url: string | null
           is_deleted: boolean
           parent_id: string | null
           target_id: string
@@ -689,6 +690,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean
           parent_id?: string | null
           target_id: string
@@ -701,6 +703,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean
           parent_id?: string | null
           target_id?: string
