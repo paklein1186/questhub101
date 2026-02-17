@@ -318,11 +318,24 @@ export default function UserProfile() {
   const [guestOnboardingOpen, setGuestOnboardingOpen] = useState(false);
   const [authActionLabel, setAuthActionLabel] = useState("perform this action");
 
-  /** Wraps any authenticated action — shows auth prompt for guests */
+  /** Wraps any authenticated action — opens guest onboarding for guests */
   const requireAuth = (action: () => void, label: string) => {
     if (isLoggedIn) { action(); return; }
     setAuthActionLabel(label);
-    setAuthPromptOpen(true);
+    setGuestOnboardingOpen(true);
+  };
+
+  /** Intercept all clicks on interactive elements when not logged in */
+  const handleGuestClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isLoggedIn) return;
+    const target = e.target as HTMLElement;
+    const interactive = target.closest("a, button, [role='button'], [role='tab']");
+    if (interactive) {
+      e.preventDefault();
+      e.stopPropagation();
+      setAuthActionLabel("interact with this profile");
+      setGuestOnboardingOpen(true);
+    }
   };
 
   const {
@@ -457,6 +470,8 @@ export default function UserProfile() {
 
   return (
     <PageShell>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
+      <div onClick={handleGuestClick}>
       <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
@@ -1024,7 +1039,9 @@ export default function UserProfile() {
         />
       )}
 
-      {/* Guest auth prompt + onboarding */}
+    </div>
+
+      {/* Guest auth prompt + onboarding — outside click interceptor */}
       <AuthPromptDialog
         open={authPromptOpen}
         onOpenChange={setAuthPromptOpen}
