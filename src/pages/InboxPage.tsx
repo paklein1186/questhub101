@@ -58,8 +58,8 @@ function renderWithLinks(text: string, isOwn: boolean) {
 
 /** Render message content with both mentions and links */
 function renderMessageContent(text: string, isOwn: boolean) {
-  // First parse mentions into parts
-  const mentionParts = renderMentions(text);
+  // First parse mentions into parts, with dark variant for own messages
+  const mentionParts = renderMentions(text, { onDark: isOwn });
   // Then apply link rendering to string parts only
   return mentionParts.map((part, i) => {
     if (typeof part === "string") {

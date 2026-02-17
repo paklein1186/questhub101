@@ -379,11 +379,12 @@ function entityLink(type: MentionEntityType, id: string): string {
  * User mentions → inline @Name link
  * Entity mentions (quest, guild, etc.) → clickable Badge
  */
-export function renderMentions(text: string): (string | JSX.Element)[] {
+export function renderMentions(text: string, options?: { onDark?: boolean }): (string | JSX.Element)[] {
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   const re = new RegExp(MENTION_REGEX.source, "g");
+  const onDark = options?.onDark ?? false;
 
   while ((match = re.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -398,7 +399,9 @@ export function renderMentions(text: string): (string | JSX.Element)[] {
         <Link
           key={`${parsed.type}-${parsed.id}-${match.index}`}
           to={href}
-          className="font-semibold text-primary hover:underline"
+          className={onDark
+            ? "font-semibold text-white/90 underline decoration-white/40 hover:decoration-white"
+            : "font-semibold text-primary hover:underline"}
           onClick={(e) => e.stopPropagation()}
         >
           {name}
@@ -412,7 +415,9 @@ export function renderMentions(text: string): (string | JSX.Element)[] {
           className="inline-flex"
           onClick={(e) => e.stopPropagation()}
         >
-          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-primary/20 transition-colors">
+          <Badge variant="secondary" className={onDark
+            ? "text-[10px] cursor-pointer bg-white/20 text-white hover:bg-white/30 transition-colors border-0"
+            : "text-[10px] cursor-pointer hover:bg-primary/20 transition-colors"}>
             {name}
           </Badge>
         </Link>,
