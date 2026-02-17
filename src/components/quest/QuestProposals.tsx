@@ -97,6 +97,19 @@ export function QuestProposals({
     },
   });
 
+  // Funder profiles
+  const funderIds = [...new Set((funding as any[]).map((f: any) => f.funder_user_id).filter(Boolean))];
+  const { data: funderProfiles = [] } = useQuery({
+    queryKey: ["funder-profiles", funderIds.join(",")],
+    queryFn: async () => {
+      if (!funderIds.length) return [];
+      const { data } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", funderIds);
+      return data ?? [];
+    },
+    enabled: funderIds.length > 0,
+  });
+  const funderMap = Object.fromEntries(funderProfiles.map((p: any) => [p.user_id, p]));
+
   // Proposer profiles
   const proposerIds = proposals.filter((p: any) => p.proposer_type === "USER").map((p: any) => p.proposer_id);
   const { data: proposerProfiles = [] } = useQuery({
@@ -308,10 +321,50 @@ export function QuestProposals({
             {escrowCredits}{fundingGoalCredits ? ` / ${fundingGoalCredits}` : ""} Credits
           </span>
         </div>
-        {fundingGoalCredits && fundingGoalCredits > 0 && (
-          <Progress value={Math.min(100, (escrowCredits / fundingGoalCredits) * 100)} className="h-2 mb-2" />
+
+        {/* Progress bar — always show if there's a goal, or if there's any escrow */}
+        {fundingGoalCredits && fundingGoalCredits > 0 ? (
+          <div className="space-y-1 mb-3">
+            <Progress value={Math.min(100, (escrowCredits / fundingGoalCredits) * 100)} className="h-2.5" />
+            <p className="text-xs text-muted-foreground text-right">
+              {Math.min(100, Math.round((escrowCredits / fundingGoalCredits) * 100))}% funded
+            </p>
+          </div>
+        ) : escrowCredits > 0 ? (
+          <div className="mb-3">
+            <Progress value={100} className="h-2.5" />
+            <p className="text-xs text-muted-foreground mt-1">No funding goal set</p>
+          </div>
+        ) : null}
+
+        {/* Contributors list */}
+        {funding.length > 0 && (
+          <div className="mb-3 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">{funding.length} contributor{funding.length !== 1 ? "s" : ""}</p>
+            <div className="space-y-1.5 max-h-40 overflow-y-auto">
+              {(funding as any[]).map((f: any) => {
+                const fProfile = funderMap[f.funder_user_id];
+                return (
+                  <div key={f.id} className="flex items-center gap-2 text-sm">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={fProfile?.avatar_url} />
+                      <AvatarFallback className="text-[10px]">{fProfile?.name?.[0] || "?"}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-sm truncate flex-1">{fProfile?.name || "Anonymous"}</span>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      +{f.amount} Credits
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {formatDistanceToNow(new Date(f.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
-        <div className="flex items-center gap-2 mt-3">
+
+        <div className="flex items-center gap-2">
           {allowFundraising && currentUser.id && (
             <Dialog open={fundOpen} onOpenChange={setFundOpen}>
               <DialogTrigger asChild>
@@ -333,7 +386,6 @@ export function QuestProposals({
               </DialogContent>
             </Dialog>
           )}
-          <span className="text-xs text-muted-foreground">{funding.length} funder{funding.length !== 1 ? "s" : ""}</span>
         </div>
       </div>
 
