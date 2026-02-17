@@ -3490,6 +3490,56 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_campaigns: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          currency: string
+          goal_amount: number
+          id: string
+          quest_id: string
+          raised_amount: number
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          currency?: string
+          goal_amount?: number
+          id?: string
+          quest_id: string
+          raised_amount?: number
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          currency?: string
+          goal_amount?: number
+          id?: string
+          quest_id?: string
+          raised_amount?: number
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_campaigns_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_email_invites: {
         Row: {
           accepted_at: string | null
