@@ -50,10 +50,22 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
   const handleFiles = async (files: FileList | null) => {
     if (!files || !currentUser.id) return;
     for (const file of Array.from(files)) {
-      // For now, create object URL (real storage upload would go here)
-      const fileUrl = URL.createObjectURL(file);
+      const safeName = file.name
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "-");
+      const path = `${currentUser.id}/${targetId}/${Date.now()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("quest-attachments")
+        .upload(path, file, { contentType: file.type || "application/octet-stream" });
+      if (uploadError) {
+        console.error("Upload failed:", uploadError.message);
+        continue;
+      }
+      const { data: urlData } = supabase.storage
+        .from("quest-attachments")
+        .getPublicUrl(path);
       await supabase.from("attachments").insert({
-        file_url: fileUrl,
+        file_url: urlData.publicUrl,
         file_name: file.name,
         mime_type: file.type || "application/octet-stream",
         file_size: file.size,
