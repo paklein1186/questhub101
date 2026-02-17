@@ -72,7 +72,7 @@ export default function ExploreHub() {
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
         </h1>
-        <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${label("quest.label").toLowerCase()}, ${label("service.label_plural").toLowerCase()}` })}</p>
+        <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
       </div>
 
       <ExploreTabsInner tab={tab} onTabChange={handleTabChange} isGuest={isGuest} isCreative={isCreative} currentUserId={currentUser.id} label={label}>
@@ -82,10 +82,10 @@ export default function ExploreHub() {
           <div className="flex items-center gap-2 mb-4 flex-wrap justify-between">
             <div className="flex items-center gap-2 flex-wrap">
             {([
-              ["all", label("common.all")],
-              ["guilds", label("guild.label")],
-              ["pods", label("pod.label")],
-              ["companies", label("company.label")],
+              ["all", t("common.all")],
+              ["guilds", t("explore.guilds")],
+              ["pods", t("network.pods")],
+              ["companies", t("explore.companies")],
             ] as [EntitySub, string][]).map(([key, lbl]) => (
               <Button
                 key={key}
