@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles } from "lucide-react";
+import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PageShell } from "@/components/PageShell";
@@ -14,6 +14,93 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+const CATEGORY_PROMPTS: Record<string, string[]> = {
+  strategy: [
+    "Quels sont les axes stratégiques prioritaires ?",
+    "Comment aligner les objectifs de l'équipe ?",
+    "Propose un plan d'action sur 3 mois",
+    "Analyse les forces et faiblesses actuelles",
+  ],
+  research: [
+    "Quelles sont les tendances émergentes dans ce domaine ?",
+    "Fais une synthèse des dernières avancées",
+    "Compare les approches existantes",
+    "Identifie les lacunes dans la recherche actuelle",
+  ],
+  creative: [
+    "Propose des idées innovantes pour ce projet",
+    "Comment stimuler la créativité de l'équipe ?",
+    "Imagine un concept disruptif",
+    "Aide-moi à brainstormer sur ce sujet",
+  ],
+  technical: [
+    "Quelles technologies recommandes-tu ?",
+    "Comment optimiser l'architecture actuelle ?",
+    "Identifie les risques techniques",
+    "Propose une solution à ce problème technique",
+  ],
+  community: [
+    "Comment engager davantage les membres ?",
+    "Propose des initiatives communautaires",
+    "Quels sont les besoins de la communauté ?",
+    "Comment améliorer la rétention ?",
+  ],
+  default: [
+    "Présente-toi et explique tes compétences",
+    "Comment peux-tu m'aider dans mon projet ?",
+    "Quels sont les sujets que tu maîtrises le mieux ?",
+    "Donne-moi un conseil pour commencer",
+  ],
+};
+
+type RelatedPage = { label: string; path: string; icon: React.ReactNode };
+
+function getContextualPages(messages: Msg[], agentCategory: string, agentSkills: string[]): RelatedPage[] {
+  const allText = messages.map(m => m.content).join(" ").toLowerCase();
+  const pages: RelatedPage[] = [];
+
+  const kw = (words: string[]) => words.some(w => allText.includes(w));
+
+  if (kw(["territoire", "territory", "région", "zone", "géograph", "local"])) {
+    pages.push({ label: "Territoires", path: "/explore?tab=territories", icon: <Map className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["compétence", "skill", "expertise", "savoir", "talent"])) {
+    pages.push({ label: "Compétences", path: "/explore?tab=users", icon: <Users className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["topic", "sujet", "thématique", "thème", "domaine"])) {
+    pages.push({ label: "Topics", path: "/explore?tab=entities", icon: <Tag className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["utilisateur", "user", "profil", "membre", "personne", "contact"])) {
+    pages.push({ label: "Utilisateurs", path: "/explore?tab=users", icon: <Users className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["quest", "mission", "projet", "défi", "challenge"])) {
+    pages.push({ label: "Quests", path: "/quests", icon: <Sparkles className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["guild", "guilde", "équipe", "groupe", "communauté"])) {
+    pages.push({ label: "Guilds", path: "/guilds", icon: <Users className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["service", "prestation", "offre", "booking"])) {
+    pages.push({ label: "Services", path: "/services", icon: <Briefcase className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["cours", "course", "formation", "apprentissage", "learn"])) {
+    pages.push({ label: "Cours", path: "/courses", icon: <BookOpen className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["agent", "ia", "ai", "intelligence", "automatisation"])) {
+    pages.push({ label: "Agents", path: "/agents", icon: <Bot className="h-3.5 w-3.5" /> });
+  }
+  if (kw(["réseau", "network", "connexion", "carte"])) {
+    pages.push({ label: "Réseau", path: "/network", icon: <Globe className="h-3.5 w-3.5" /> });
+  }
+
+  // Deduplicate by path
+  const seen = new Set<string>();
+  return pages.filter(p => {
+    if (seen.has(p.path)) return false;
+    seen.add(p.path);
+    return true;
+  }).slice(0, 4);
+}
 
 export default function AgentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -113,7 +200,7 @@ export default function AgentDetail() {
         {/* Chat */}
         <div className="lg:col-span-2">
           {isHired ? (
-            <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} />
+            <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
           ) : (
             <Card className="p-12 text-center">
               <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
@@ -127,22 +214,30 @@ export default function AgentDetail() {
   );
 }
 
-function AgentChat({ agentId, agentName, costPerUse, userId }: { agentId: string; agentName: string; costPerUse: number; userId: string }) {
+function AgentChat({ agentId, agentName, costPerUse, userId, agentCategory, agentSkills }: { agentId: string; agentName: string; costPerUse: number; userId: string; agentCategory: string; agentSkills: string[] }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const suggestedPrompts = useMemo(() => {
+    const cat = agentCategory?.toLowerCase() || "";
+    return CATEGORY_PROMPTS[cat] || CATEGORY_PROMPTS.default;
+  }, [agentCategory]);
+
+  const contextualPages = useMemo(() => {
+    return getContextualPages(messages, agentCategory, agentSkills);
+  }, [messages, agentCategory, agentSkills]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
-    if (!text || streaming) return;
+  const sendText = useCallback(async (text: string) => {
+    if (!text.trim() || streaming) return;
     setInput("");
-    const userMsg: Msg = { role: "user", content: text };
+    const userMsg: Msg = { role: "user", content: text.trim() };
     setMessages(prev => [...prev, userMsg]);
     setStreaming(true);
 
@@ -212,7 +307,9 @@ function AgentChat({ agentId, agentName, costPerUse, userId }: { agentId: string
     } finally {
       setStreaming(false);
     }
-  }, [input, streaming, messages, agentId]);
+  }, [streaming, messages, agentId]);
+
+  const send = useCallback(() => sendText(input), [sendText, input]);
 
   return (
     <Card className="flex flex-col h-[600px]">
@@ -224,9 +321,23 @@ function AgentChat({ agentId, agentName, costPerUse, userId }: { agentId: string
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-muted-foreground text-sm py-12">
-            <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            Start a conversation with {agentName}
+          <div className="py-8 space-y-4">
+            <div className="text-center text-muted-foreground text-sm">
+              <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              Commencez une conversation avec {agentName}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto">
+              {suggestedPrompts.map((prompt, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendText(prompt)}
+                  className="text-left text-xs px-3 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/60 hover:border-primary/30 transition-all text-muted-foreground hover:text-foreground group"
+                >
+                  <MessageSquare className="h-3 w-3 inline mr-1.5 opacity-40 group-hover:opacity-70 text-primary" />
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((m, i) => (
@@ -254,14 +365,30 @@ function AgentChat({ agentId, agentName, costPerUse, userId }: { agentId: string
         <div ref={bottomRef} />
       </div>
 
-      <div className="p-4 border-t border-border">
-        <div className="flex gap-2">
+      <div className="border-t border-border">
+        {/* Contextual related pages */}
+        {contextualPages.length > 0 && (
+          <div className="px-4 pt-3 flex flex-wrap gap-1.5">
+            <span className="text-[10px] text-muted-foreground mr-1 self-center">Explorer :</span>
+            {contextualPages.map((page) => (
+              <Link
+                key={page.path}
+                to={page.path}
+                className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border border-border bg-card hover:bg-muted hover:border-primary/30 text-muted-foreground hover:text-foreground transition-all"
+              >
+                {page.icon}
+                {page.label}
+              </Link>
+            ))}
+          </div>
+        )}
+        <div className="p-4 flex gap-2">
           <Textarea
             ref={textareaRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Type your message..."
+            placeholder="Tapez votre message..."
             rows={1}
             className="resize-none min-h-[40px]"
           />
