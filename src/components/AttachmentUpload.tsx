@@ -262,7 +262,7 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
                     </Button>
                   </div>
                 ) : (
-                  <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 font-medium hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+                  <a href={`https://changethegame.xyz/documents/${att.id}`} target="_blank" rel="noopener noreferrer" className="truncate flex-1 font-medium hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
                     {displayTitle}
                   </a>
                 )}
