@@ -217,6 +217,35 @@ export type Database = {
           },
         ]
       }
+      attachment_upvotes: {
+        Row: {
+          attachment_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          attachment_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          attachment_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachment_upvotes_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "attachments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attachments: {
         Row: {
           created_at: string
@@ -228,6 +257,7 @@ export type Database = {
           target_id: string
           target_type: string
           uploaded_by_user_id: string
+          upvote_count: number
         }
         Insert: {
           created_at?: string
@@ -239,6 +269,7 @@ export type Database = {
           target_id: string
           target_type: string
           uploaded_by_user_id: string
+          upvote_count?: number
         }
         Update: {
           created_at?: string
@@ -250,6 +281,7 @@ export type Database = {
           target_id?: string
           target_type?: string
           uploaded_by_user_id?: string
+          upvote_count?: number
         }
         Relationships: []
       }
