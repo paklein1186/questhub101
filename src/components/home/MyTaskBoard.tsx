@@ -1093,7 +1093,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2"></th>
                 <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2 font-medium">Task</th>
                 <th className="text-left px-2 sm:px-3 py-1.5 sm:py-2 font-medium hidden sm:table-cell">Source</th>
-                <th className="text-left px-1.5 md:px-3 py-1.5 sm:py-2 font-medium w-[40px] md:w-auto"><span className="hidden md:inline">Status</span></th>
+                <th className="text-left px-1.5 md:px-3 py-1.5 sm:py-2 font-medium w-[36px] md:w-[130px]"><span className="hidden md:inline">Status</span></th>
                 <th className="w-7 sm:w-10 px-1 sm:px-3 py-1.5 sm:py-2"></th>
               </tr>
             </thead>
@@ -1217,7 +1217,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       onValueChange={(v) => handleStatusChange(task, v)}
                     >
                       <SelectTrigger className={cn(
-                        "h-6 md:h-7 w-8 md:w-[120px] text-[10px] md:text-xs font-medium px-1.5 md:px-2.5 py-0 border-none shadow-none rounded-full whitespace-nowrap [&>svg:last-child]:hidden md:[&>svg:last-child]:inline-block",
+                        "h-7 w-8 md:w-[120px] text-[10px] font-medium px-1.5 md:px-2.5 py-0 border-none shadow-none rounded-full gap-1 [&>svg:last-child]:h-3 [&>svg:last-child]:w-3 [&>svg:last-child]:hidden md:[&>svg:last-child]:block [&>svg:last-child]:shrink-0",
                         STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
                       )}>
                         <span className="md:hidden flex items-center justify-center">
