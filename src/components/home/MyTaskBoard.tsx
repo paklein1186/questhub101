@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -161,6 +162,7 @@ function resolveWorkState(
 }
 
 export function MyTaskBoard({ userId }: { userId: string }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -959,7 +961,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h2 className="font-display text-base sm:text-lg font-semibold flex items-center gap-2">
           <ListTodo className="h-5 w-5 text-primary" />
-          My Tasks
+          {t("home.myTasks")}
           {(todoCount > 0 || inProgressCount > 0) && (
             <Badge variant="secondary" className="text-xs ml-1">
               {todoCount + inProgressCount} active

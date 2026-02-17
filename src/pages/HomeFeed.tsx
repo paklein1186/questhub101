@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { BauhausShape } from "@/components/home/BauhausShape";
 import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
@@ -33,20 +34,20 @@ const PERSONA_VERBS: Record<string, string[]> = {
   UNSET: ["do", "create", "explore", "collaborate", "share", "achieve"],
 };
 
-const PERSONA_GREETING: Record<string, string> = {
-  IMPACT: "Ready to move something forward today?",
-  CREATIVE: "What do you feel like creating today?",
-  HYBRID: "What do you want to weave today?",
-  ORG_REP: "How can your organization grow today?",
-  UNSET: "What would you like to accomplish today?",
+const PERSONA_GREETING_KEYS: Record<string, string> = {
+  IMPACT: "home.greetingImpact",
+  CREATIVE: "home.greetingCreative",
+  HYBRID: "home.greetingHybrid",
+  ORG_REP: "home.greetingOrgRep",
+  UNSET: "home.greetingDefault",
 };
 
-const PERSONA_DESCRIPTION: Record<string, string> = {
-  IMPACT: "Use changethegame to advance your projects, connect allies, and take action for your territory and community.",
-  CREATIVE: "Use changethegame to express, explore, and co-create with other artists and dreamers.",
-  HYBRID: "Use changethegame to mix art, impact, ideas and people into something new.",
-  ORG_REP: "Use changethegame to find talent, build partnerships, promote your services, and connect with the ecosystem.",
-  UNSET: "Use changethegame to discover quests, connect with people, and build something meaningful.",
+const PERSONA_DESCRIPTION_KEYS: Record<string, string> = {
+  IMPACT: "home.descImpact",
+  CREATIVE: "home.descCreative",
+  HYBRID: "home.descHybrid",
+  ORG_REP: "home.descOrgRep",
+  UNSET: "home.descDefault",
 };
 
 /* ───────── Guided mode uses GuidedPathways component ───────── */
@@ -288,6 +289,7 @@ function TerritoryFlow({
 /* ───────── Main Component ───────── */
 
 export default function HomeFeed() {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const { persona } = usePersona();
@@ -506,12 +508,12 @@ export default function HomeFeed() {
       <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
 
         {/* Greeting */}
-        <p className="text-sm text-muted-foreground mb-1">Welcome back, {userName}</p>
+        <p className="text-sm text-muted-foreground mb-1">{t("home.welcome")}, {userName}</p>
         <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
-          {PERSONA_GREETING[effectivePersona] || PERSONA_GREETING.UNSET}
+          {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
         </h1>
         <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-4 sm:mb-6 px-2">
-          {PERSONA_DESCRIPTION[effectivePersona] || PERSONA_DESCRIPTION.UNSET}
+          {t(PERSONA_DESCRIPTION_KEYS[effectivePersona] || PERSONA_DESCRIPTION_KEYS.UNSET)}
         </p>
 
         {/* Search shortcut */}
@@ -529,7 +531,7 @@ export default function HomeFeed() {
         {/* Free / Guided toggle */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <span className={cn("text-sm font-medium transition-colors", mode === "free" ? "text-foreground" : "text-muted-foreground")}>
-            Free
+            {t("home.free")}
           </span>
           <Switch
             checked={mode === "guided"}
@@ -539,7 +541,7 @@ export default function HomeFeed() {
             }}
           />
           <span className={cn("text-sm font-medium transition-colors", mode === "guided" ? "text-foreground" : "text-muted-foreground")}>
-            Guided
+            {t("home.guided")}
           </span>
         </div>
 
