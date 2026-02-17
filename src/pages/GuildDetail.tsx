@@ -61,6 +61,7 @@ import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles";
+import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
 import { BroadcastMessageDialog } from "@/components/BroadcastMessageDialog";
 
@@ -344,6 +345,7 @@ export default function GuildDetail() {
             { value: "facilitator", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Facilitator</span></>, visible: isMember },
             { value: "memory", label: <><Brain className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Memory</span></>, visible: isMember },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
+            { value: "agents", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isMember },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
           return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
@@ -421,6 +423,12 @@ export default function GuildDetail() {
         <TabsContent value="partnerships" className="mt-6">
           <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
         </TabsContent>
+
+        {isMember && (
+          <TabsContent value="agents" className="mt-6">
+            <UnitAgentsTab unitType="guild" unitId={guild.id} unitName={guild.name} isAdmin={isAdmin} />
+          </TabsContent>
+        )}
 
         <TabsContent value="members" className="mt-6 space-y-4">
           {isAdmin && (

@@ -37,6 +37,7 @@ import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
+import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 import { FundraisingAIPanel } from "@/components/FundraisingAIPanel";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -622,6 +623,7 @@ export default function QuestDetail() {
             <TabsTrigger value="updates">Updates ({(updates || []).length})</TabsTrigger>
             <TabsTrigger value="discussion">Discussion</TabsTrigger>
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
+            {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -967,6 +969,12 @@ export default function QuestDetail() {
         <TabsContent value="ai-chat" className="mt-6">
           <UnitChat entityType="QUEST" entityId={quest.id} entityName={quest.title} />
         </TabsContent>
+
+        {isParticipant && (
+          <TabsContent value="agents" className="mt-6">
+            <UnitAgentsTab unitType="quest" unitId={quest.id} unitName={quest.title} isAdmin={isOwner} />
+          </TabsContent>
+        )}
       </Tabs>
     </PageShell>
   );

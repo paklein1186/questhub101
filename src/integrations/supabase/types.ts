@@ -4823,6 +4823,44 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_agents: {
+        Row: {
+          admitted_at: string
+          admitted_by_user_id: string
+          agent_id: string
+          id: string
+          is_active: boolean
+          unit_id: string
+          unit_type: string
+        }
+        Insert: {
+          admitted_at?: string
+          admitted_by_user_id: string
+          agent_id: string
+          id?: string
+          is_active?: boolean
+          unit_id: string
+          unit_type: string
+        }
+        Update: {
+          admitted_at?: string
+          admitted_by_user_id?: string
+          agent_id?: string
+          id?: string
+          is_active?: boolean
+          unit_id?: string
+          unit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_availability: {
         Row: {
           availability_mode: string
