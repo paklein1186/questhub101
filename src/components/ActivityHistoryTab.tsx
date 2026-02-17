@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { History, Undo2, Trash2, MessageSquare, FileText, Swords, Heart, UserPlus, Loader2, CheckSquare } from "lucide-react";
+import { History, Undo2, Trash2, MessageSquare, FileText, Swords, Heart, UserPlus, Loader2, CheckSquare, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ const ACTION_META: Record<string, { label: string; icon: typeof History; color: 
   quest_deleted: { label: "Deleted a quest", icon: Trash2, color: "text-red-500", revertable: true },
   subtask_deleted: { label: "Deleted a subtask", icon: Trash2, color: "text-red-400" },
   subtask_completed: { label: "Completed a subtask", icon: CheckSquare, color: "text-green-600" },
+  quest_funded: { label: "Funded a quest", icon: Coins, color: "text-emerald-600" },
 };
 
 export function ActivityHistoryTab() {
