@@ -156,6 +156,8 @@ export const CREDIT_TX_TYPES = {
   GIFT_RECEIVED: "GIFT_RECEIVED",
   GIFT_SENT: "GIFT_SENT",
   MONTHLY_INCLUDED: "MONTHLY_INCLUDED",
+  DEMURRAGE_FADE: "DEMURRAGE_FADE",
+  TREASURY_DEMURRAGE_RECEIVED: "TREASURY_DEMURRAGE_RECEIVED",
 } as const;
 
 export type CreditTxType = (typeof CREDIT_TX_TYPES)[keyof typeof CREDIT_TX_TYPES];
@@ -211,6 +213,7 @@ export const GRACE_PERIOD_DAYS = 30;
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
   moneyDisclaimer: "Mission budgets are in euros. Credits are not used for compensation.",
-  creditsDisclaimer: "Credits are platform utility tokens and cannot be exchanged for money or used for mission payments.",
+  creditsDisclaimer: "Credits are non-convertible internal coordination units. They circulate within the ecosystem and are subject to 1.5% monthly redistribution. They cannot be exchanged for money.",
   upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use credits.",
+  demurrageNotice: "Inactive credits are gradually redistributed to the ecosystem treasury (1.5%/month).",
 } as const;

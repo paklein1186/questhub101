@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Wallet, Coins, Zap, CreditCard, ShieldCheck, Package, Crown,
   ArrowRight, ExternalLink, Loader2, TrendingDown, History,
-  Info, ArrowUpRight, ArrowDownRight, Filter, Send,
+  Info, ArrowUpRight, ArrowDownRight, Filter, Send, Recycle, Timer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -17,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
 import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 
 const TX_TYPE_LABELS: Record<string, string> = {
@@ -32,6 +34,8 @@ const TX_TYPE_LABELS: Record<string, string> = {
   GIFT_RECEIVED: "Credits received (transfer)",
   GIFT_SENT: "Credits sent (transfer)",
   MONTHLY_INCLUDED: "Monthly included",
+  DEMURRAGE_FADE: "Ecosystem redistribution",
+  TREASURY_DEMURRAGE_RECEIVED: "Treasury received",
 };
 
 export function WalletTab() {
@@ -114,14 +118,50 @@ export function WalletTab() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div className="rounded-lg border border-border bg-card p-3">
             <p className="text-xs text-muted-foreground mb-1">How Credits work</p>
-            <p className="text-xs">Credits are used to launch quests, events, and certain services. You earn Credits by completing quests and via subscription plans or top-ups.</p>
+            <p className="text-xs">Credits are internal coordination units. They circulate between members and gradually redistribute if inactive ({DEMURRAGE_RATE_PERCENT}/month).</p>
           </div>
           <div className="rounded-lg border border-border bg-card p-3">
             <p className="text-xs text-muted-foreground mb-1">How XP works</p>
-            <p className="text-xs">XP reflects your long-term contributions and reputation. XP is assigned by the platform and cannot be edited directly.</p>
+            <p className="text-xs">XP reflects your long-term reputation. XP is non-transferable, does not fade, and cannot be edited directly.</p>
           </div>
         </div>
       </Section>
+
+      {/* Demurrage Info Panel */}
+      <div className="rounded-xl border-2 border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Recycle className="h-5 w-5 text-amber-500" />
+          <h4 className="font-display text-sm font-semibold">Credits Circulation Status</h4>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-card border border-border p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Next monthly adjustment</p>
+            <p className="text-lg font-bold text-amber-600">−{estimateFade(limits.userCredits)}</p>
+            <p className="text-[10px] text-muted-foreground">{DEMURRAGE_RATE_PERCENT} of {limits.userCredits}</p>
+          </div>
+          <div className="rounded-lg bg-card border border-border p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">After redistribution</p>
+            <p className="text-lg font-bold text-primary">{Math.max(0, limits.userCredits - estimateFade(limits.userCredits))}</p>
+            <p className="text-[10px] text-muted-foreground">Projected balance</p>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Circulation health</span>
+            <span className="font-medium">Keep credits active</span>
+          </div>
+          <Progress value={Math.min(100, Math.max(10, 100 - (limits.userCredits > 0 ? 15 : 0)))} className="h-2" />
+        </div>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p className="flex items-center gap-1"><Timer className="h-3 w-3" /> Inactive credits are gradually redistributed to the ecosystem treasury.</p>
+          <p>Active contributors naturally neutralize fade through earning.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/credit-economy">How it works <ArrowRight className="h-3 w-3 ml-1" /></Link>
+          </Button>
+        </div>
+      </div>
 
       <TransferCreditsDialog
         open={transferOpen}

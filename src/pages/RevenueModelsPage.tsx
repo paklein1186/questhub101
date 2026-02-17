@@ -249,43 +249,53 @@ export default function RevenueModelsPage() {
         <section>
           <SectionHeader id="credits" title="Credits" icon={Coins} />
           <Prose>
-            <p>Credits are internal utility units.</p>
-            <p className="font-semibold text-foreground">Credits:</p>
+            <p>Credits are internal, non-convertible coordination units that circulate within the ecosystem.</p>
+            <p className="font-semibold text-foreground">Core Properties:</p>
             <BulletList
               items={[
-                "Are not currency.",
-                "Have no external exchange value.",
-                "Cannot be withdrawn.",
-                "Cannot be traded.",
-                "Do not represent ownership.",
+                "Non-convertible to fiat currency",
+                "Circulate peer-to-peer within the platform",
+                "Subject to 1.5% monthly demurrage (redistribution)",
+                "Cannot be withdrawn, traded, or exchanged externally",
+                "Do not represent ownership or financial return",
               ]}
             />
             <p className="font-semibold text-foreground pt-2">Credits may be obtained via:</p>
             <BulletList
               items={[
                 "Subscription plans",
-                "Institutional allocations",
-                "Participation programs",
-                "Contribution incentives",
-                "Promotional grants",
+                "Optional top-up purchases",
+                "Quest allocations by providers",
+                "Contribution incentives & volunteering rewards",
               ]}
             />
             <p className="font-semibold text-foreground pt-2">Credits may be used for:</p>
             <BulletList
               items={[
+                "Activating & boosting quests",
                 "Unlocking advanced features",
-                "Highlighting quests",
-                "Accessing premium tools",
-                "Increased visibility within defined limits",
+                "Rewarding collaborators",
+                "Supporting territorial initiatives",
               ]}
             />
+            <p className="font-semibold text-foreground pt-2">Demurrage (Monthly Redistribution):</p>
+            <p>
+              Credits are subject to a 1.5% monthly redistribution rate. Inactive balances gradually return to the Platform Treasury, 
+              which reinvests them into collective quests, territorial initiatives, and ecosystem-wide development.
+              This mechanism encourages circulation and prevents concentration of coordination power.
+            </p>
           </Prose>
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
             <CalloutBox>
-              Credits ≠ Money<br />
-              Credits ≠ Investment<br />
-              Credits ≠ Equity
+              Credits ≠ Money · Credits ≠ Investment · Credits ≠ Equity
+              <br />
+              <span className="text-xs font-normal text-muted-foreground">
+                Credits are a coordination &amp; reciprocity tool, not a financial asset.
+              </span>
             </CalloutBox>
+            <a href="/credit-economy" className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium">
+              Learn more about the Credit Economy →
+            </a>
           </div>
         </section>
 
