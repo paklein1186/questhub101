@@ -38,7 +38,7 @@ import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { EntityFollowersCount } from "@/components/FollowersDialog";
-
+import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 export default function PodDetail() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -232,6 +232,7 @@ export default function PodDetail() {
             <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="discussion">Discussion</TabsTrigger>
+            {isMember && <TabsTrigger value="agents"><Bot className="h-4 w-4 mr-1" /> Agents</TabsTrigger>}
           </TabsList>
           {isMember && (
             <DropdownMenu>
@@ -341,6 +342,12 @@ export default function PodDetail() {
         {isMember && (
           <TabsContent value="ai-chat" className="mt-6">
             <UnitChat entityType="POD" entityId={pod.id} entityName={pod.name} />
+          </TabsContent>
+        )}
+
+        {isMember && (
+          <TabsContent value="agents" className="mt-6">
+            <UnitAgentsTab unitType="pod" unitId={pod.id} unitName={pod.name} isAdmin={isHost} />
           </TabsContent>
         )}
       </Tabs>
