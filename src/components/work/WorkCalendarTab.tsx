@@ -16,6 +16,8 @@ import {
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from "date-fns";
 import { useState } from "react";
 import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualConfig";
+import { CalendarSyncTab } from "@/components/CalendarSyncTab";
+import { Separator } from "@/components/ui/separator";
 
 const SESSION_ICONS: Record<string, any> = {
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale, Telescope, Network, PartyPopper,
@@ -267,6 +269,10 @@ export function WorkCalendarTab() {
           })}
         </div>
       </div>
+
+      {/* Calendar Sync (Google / Outlook) */}
+      <Separator />
+      <CalendarSyncTab />
     </div>
   );
 }
