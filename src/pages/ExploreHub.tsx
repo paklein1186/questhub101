@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -25,11 +25,12 @@ import ExploreUsers from "./ExploreUsers";
 import ExploreHouses from "./ExploreHouses";
 import JobsExplore from "./JobsExplore";
 import { AddJobDialog } from "@/components/AddJobDialog";
+import AgentsMarketplace from "./AgentsMarketplace";
 
-const VALID_TABS_AUTH = ["entities", "quests", "services", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "courses", "users", "houses", "territories", "matchmaker"];
-const VALID_TABS_GUEST = ["entities", "houses", "courses", "jobs", "territories"];
-const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "territories"];
+const VALID_TABS_AUTH = ["entities", "quests", "services", "agents", "jobs", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_AUTH_CREATIVE = ["entities", "quests", "services", "agents", "courses", "users", "houses", "territories", "matchmaker"];
+const VALID_TABS_GUEST = ["entities", "houses", "courses", "agents", "jobs", "territories"];
+const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "territories"];
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
@@ -183,6 +184,9 @@ export default function ExploreHub() {
             <TerritoryExplorer />
           </div>
         </TabsContent>
+        <TabsContent value="agents">
+          <AgentsMarketplace />
+        </TabsContent>
         {currentUser.id && (
           <TabsContent value="matchmaker">
             <MatchmakerPanel matchType="user" userId={currentUser.id} />
@@ -198,6 +202,7 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> Entities</> },
     { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</>, visible: !isGuest },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</>, visible: !isGuest },
+    { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> Agents</> },
     { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> Jobs</>, visible: !isCreative },
     { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> Topics</> },
     { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</> },
