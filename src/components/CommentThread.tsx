@@ -305,7 +305,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                     placeholder="Write a reply… (type @ to mention)"
                     className="min-h-[60px] flex-1"
                     maxLength={500}
-                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(comment.id); } }}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(comment.id); } }}
                   />
                   <Button size="sm" className="self-end" disabled={!replyText.trim() || isSubmitting} onClick={() => addComment(comment.id)}>
                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -338,7 +338,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               placeholder="Add a comment… (type @ to mention someone)"
               className="min-h-[80px]"
               maxLength={1000}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); addComment(); } }}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(); } }}
             />
             <div className="flex justify-end mt-2">
               <Button size="sm" disabled={!newComment.trim() || isSubmitting} onClick={() => addComment()}>
