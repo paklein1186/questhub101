@@ -171,7 +171,7 @@ export default function InboxPage() {
   const [newParticipants, setNewParticipants] = useState<{ id: string; name: string }[]>([]);
   const [newGroupTitle, setNewGroupTitle] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [pulseLoading, setPulseLoading] = useState(false);
+  const messagesScrollAreaRef = useRef<HTMLDivElement>(null);
   const [pulseEnrichment, setPulseEnrichment] = useState<any>(null);
 
   const { data: conversations = [], isLoading } = useConversations();
@@ -185,17 +185,32 @@ export default function InboxPage() {
   const activeConv = conversations.find((c) => c.id === activeConvId);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const [pulseLoading, setPulseLoading] = useState(false);
+
+  // Scroll to bottom helper — instant for new messages, smooth for conversation open
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "instant") => {
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior, block: "end" });
+    });
+  }, []);
+
   // Scroll page to top when opening a conversation (especially on mobile)
   useEffect(() => {
     if (activeConvId) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.scrollTo({ top: 0, behavior: "instant" });
+      containerRef.current?.scrollIntoView({ behavior: "instant", block: "start" });
     }
   }, [activeConvId]);
 
+  // Scroll to bottom when messages change
+  const prevMsgCountRef = useRef(0);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length === 0) return;
+    // Use smooth only on first load of conversation, instant for new messages
+    const isFirstLoad = prevMsgCountRef.current === 0;
+    prevMsgCountRef.current = messages.length;
+    scrollToBottom(isFirstLoad ? "smooth" : "instant");
+  }, [messages.length, scrollToBottom]);
 
   const [attachment, setAttachment] = useState<{ file: File; preview?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -416,7 +431,7 @@ export default function InboxPage() {
                   return (
                     <button
                       key={conv.id}
-                      onClick={() => setActiveConvId(conv.id)}
+                      onClick={() => { prevMsgCountRef.current = 0; setActiveConvId(conv.id); }}
                       className={cn(
                         "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50",
                         activeConvId === conv.id && "bg-muted"
