@@ -481,15 +481,19 @@ export default function UserProfile() {
                 )}
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   <PersonaBadge persona={persona} />
-                  {profile.isCooperativeMember && (
+                  {profile.isCooperativeMember && profile.totalSharesA > 0 && (
                     <Link to="/shares">
-                      <Badge variant="outline" className={
-                        profile.totalSharesA > 0
-                          ? "text-xs bg-primary/10 text-primary border-primary/30"
-                          : "text-xs bg-accent/10 text-accent border-accent/30"
-                      }>
+                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                         <Shield className="h-3 w-3 mr-1" />
-                        {profile.totalSharesA > 0 ? "Guardian" : "Steward"}
+                        Guardian
+                      </Badge>
+                    </Link>
+                  )}
+                  {profile.isCooperativeMember && profile.totalSharesB > 0 && (
+                    <Link to="/shares">
+                      <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Steward
                       </Badge>
                     </Link>
                   )}
