@@ -4133,6 +4133,180 @@ export type Database = {
         }
         Relationships: []
       }
+      ritual_attendees: {
+        Row: {
+          id: string
+          joined_at: string
+          occurrence_id: string
+          role: string
+          user_id: string
+          xp_granted: boolean
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          occurrence_id: string
+          role?: string
+          user_id: string
+          xp_granted?: boolean
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          occurrence_id?: string
+          role?: string
+          user_id?: string
+          xp_granted?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ritual_attendees_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "ritual_occurrences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ritual_occurrences: {
+        Row: {
+          created_at: string
+          decisions: Json | null
+          ended_at: string | null
+          id: string
+          notes: string | null
+          quests_created: string[] | null
+          ritual_id: string
+          scheduled_at: string
+          status: string
+          updated_at: string
+          visio_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          decisions?: Json | null
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          quests_created?: string[] | null
+          ritual_id: string
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          visio_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          decisions?: Json | null
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          quests_created?: string[] | null
+          ritual_id?: string
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          visio_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ritual_occurrences_ritual_id_fkey"
+            columns: ["ritual_id"]
+            isOneToOne: false
+            referencedRelation: "rituals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rituals: {
+        Row: {
+          access_roles: string[] | null
+          access_type: Database["public"]["Enums"]["ritual_access_type"]
+          archive_visibility: string
+          created_at: string
+          created_by_user_id: string
+          credit_reward: number | null
+          custom_cron: string | null
+          default_visio_link: string | null
+          description: string | null
+          duration_minutes: number
+          facilitator_xp_bonus: number
+          frequency: Database["public"]["Enums"]["ritual_frequency"]
+          guild_id: string
+          id: string
+          is_active: boolean
+          min_share_class: string | null
+          min_xp: number | null
+          next_occurrence: string | null
+          program_segments: Json | null
+          recording_enabled: boolean
+          session_type: Database["public"]["Enums"]["ritual_session_type"]
+          title: string
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          access_roles?: string[] | null
+          access_type?: Database["public"]["Enums"]["ritual_access_type"]
+          archive_visibility?: string
+          created_at?: string
+          created_by_user_id: string
+          credit_reward?: number | null
+          custom_cron?: string | null
+          default_visio_link?: string | null
+          description?: string | null
+          duration_minutes?: number
+          facilitator_xp_bonus?: number
+          frequency?: Database["public"]["Enums"]["ritual_frequency"]
+          guild_id: string
+          id?: string
+          is_active?: boolean
+          min_share_class?: string | null
+          min_xp?: number | null
+          next_occurrence?: string | null
+          program_segments?: Json | null
+          recording_enabled?: boolean
+          session_type?: Database["public"]["Enums"]["ritual_session_type"]
+          title: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          access_roles?: string[] | null
+          access_type?: Database["public"]["Enums"]["ritual_access_type"]
+          archive_visibility?: string
+          created_at?: string
+          created_by_user_id?: string
+          credit_reward?: number | null
+          custom_cron?: string | null
+          default_visio_link?: string | null
+          description?: string | null
+          duration_minutes?: number
+          facilitator_xp_bonus?: number
+          frequency?: Database["public"]["Enums"]["ritual_frequency"]
+          guild_id?: string
+          id?: string
+          is_active?: boolean
+          min_share_class?: string | null
+          min_xp?: number | null
+          next_occurrence?: string | null
+          program_segments?: Json | null
+          recording_enabled?: boolean
+          session_type?: Database["public"]["Enums"]["ritual_session_type"]
+          title?: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rituals_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_territories: {
         Row: {
           id: string
@@ -5905,6 +6079,30 @@ export type Database = {
         | "ACTIVE"
         | "CANCELLED"
         | "DRAFT"
+      ritual_access_type:
+        | "PUBLIC"
+        | "MEMBERS"
+        | "ROLES"
+        | "XP_THRESHOLD"
+        | "SHARE_CLASS"
+        | "INVITE_ONLY"
+      ritual_frequency:
+        | "WEEKLY"
+        | "BIWEEKLY"
+        | "MONTHLY"
+        | "QUARTERLY"
+        | "CUSTOM"
+      ritual_session_type:
+        | "INFORMAL_HANGING"
+        | "EMOTIONAL_CHECKIN"
+        | "GUILD_ASSEMBLY"
+        | "MASTERMIND"
+        | "LEARNING_LAB"
+        | "SPRINT_ALIGNMENT"
+        | "CONFLICT_RESOLUTION"
+        | "VISIONARY_SESSION"
+        | "CROSS_GUILD_FEDERATION"
+        | "CELEBRATION"
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
       territory_level:
         | "TOWN"
@@ -6064,6 +6262,33 @@ export const Constants = {
         "ACTIVE",
         "CANCELLED",
         "DRAFT",
+      ],
+      ritual_access_type: [
+        "PUBLIC",
+        "MEMBERS",
+        "ROLES",
+        "XP_THRESHOLD",
+        "SHARE_CLASS",
+        "INVITE_ONLY",
+      ],
+      ritual_frequency: [
+        "WEEKLY",
+        "BIWEEKLY",
+        "MONTHLY",
+        "QUARTERLY",
+        "CUSTOM",
+      ],
+      ritual_session_type: [
+        "INFORMAL_HANGING",
+        "EMOTIONAL_CHECKIN",
+        "GUILD_ASSEMBLY",
+        "MASTERMIND",
+        "LEARNING_LAB",
+        "SPRINT_ALIGNMENT",
+        "CONFLICT_RESOLUTION",
+        "VISIONARY_SESSION",
+        "CROSS_GUILD_FEDERATION",
+        "CELEBRATION",
       ],
       subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
       territory_level: [

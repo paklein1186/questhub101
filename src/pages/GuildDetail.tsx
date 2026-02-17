@@ -7,7 +7,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks, Coins, Wallet,
+  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks, Coins, Wallet, Calendar,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,7 @@ import { HighlightedPostsTiles } from "@/components/guild/HighlightedPostsTiles"
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
 import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
 import { BroadcastMessageDialog } from "@/components/BroadcastMessageDialog";
+import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -360,6 +361,7 @@ export default function GuildDetail() {
             { value: "memory", label: <><Brain className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Memory</span></>, visible: isMember },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "agents", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isMember },
+            { value: "rituals", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Rituals</span></>, visible: isMember || (fc as any).ritualPublic },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
           return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
@@ -682,6 +684,10 @@ export default function GuildDetail() {
             <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
           </TabsContent>
         )}
+
+        <TabsContent value="rituals" className="mt-6">
+          <GuildRitualsTab guildId={guild.id} isAdmin={isAdmin} isMember={isMember} />
+        </TabsContent>
       </Tabs>
     </PageShell>
   );
