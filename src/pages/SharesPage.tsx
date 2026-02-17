@@ -235,7 +235,7 @@ export default function SharesPage() {
             <CardHeader>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-primary/10 text-primary border-0">Class A</Badge>
-                <Badge variant="outline">{sharePrice} € / share</Badge>
+                <Badge variant="outline">25 000 € minimum</Badge>
                 <Badge variant="secondary" className="text-[10px]">
                   <Lock className="h-3 w-3 mr-0.5" /> Application-Only
                 </Badge>
