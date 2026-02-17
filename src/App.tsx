@@ -28,6 +28,7 @@ import GuildDetail from "./pages/GuildDetail";
 import GuildEdit from "./pages/GuildEdit";
 import GuildSettings from "./pages/GuildSettings";
 import QuestDetail from "./pages/QuestDetail";
+import QuestSettings from "./pages/QuestSettings";
 import UserProfile from "./pages/UserProfile";
 import ProfileEdit from "./pages/ProfileEdit";
 import NotificationsCenter from "./pages/NotificationsCenter";
@@ -266,6 +267,7 @@ const App = () => (
                 <Route path="/settings/wallet" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/guilds/:id/edit" element={<RequireAuth><GuildEdit /></RequireAuth>} />
                 <Route path="/guilds/:id/settings" element={<RequireAuth><GuildSettings /></RequireAuth>} />
+                <Route path="/quests/:id/settings" element={<RequireAuth><QuestSettings /></RequireAuth>} />
                 <Route path="/profile/edit" element={<RequireAuth><ProfileEdit /></RequireAuth>} />
                 <Route path="/profile/enrich" element={<RequireAuth><ProfileEnrichment /></RequireAuth>} />
                 <Route path="/me/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
