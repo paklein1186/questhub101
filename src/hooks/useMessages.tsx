@@ -88,7 +88,7 @@ export function useConversations() {
       // Get profile info for all participants
       const allUserIds = [...new Set(allParticipants?.map((p: any) => p.user_id) ?? [])];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("user_id, name, avatar_url")
         .in("user_id", allUserIds);
 
@@ -168,7 +168,7 @@ export function useConversationMessages(conversationId: string | null) {
 
       const senderIds = [...new Set(messages.map((m) => m.sender_id))];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("user_id, name, avatar_url")
         .in("user_id", senderIds);
 
@@ -176,12 +176,37 @@ export function useConversationMessages(conversationId: string | null) {
         (profiles ?? []).map((p) => [p.user_id, p])
       );
 
-      return messages.map((m) => ({
-        ...m,
-        sender: profileMap[m.sender_id]
-          ? { name: profileMap[m.sender_id].name, avatar_url: profileMap[m.sender_id].avatar_url }
-          : undefined,
-      }));
+      // Resolve signed URLs for dm-attachments (bucket is now private)
+      const resolvedMessages = await Promise.all(
+        messages.map(async (m) => {
+          let attachmentUrl = m.attachment_url;
+          if (attachmentUrl) {
+            const bucketSegment = "/storage/v1/object/public/dm-attachments/";
+            const idx = attachmentUrl.indexOf(bucketSegment);
+            const storagePath = idx !== -1
+              ? decodeURIComponent(attachmentUrl.substring(idx + bucketSegment.length))
+              : attachmentUrl; // New format: path stored directly
+            // Only generate signed URL if it looks like a storage path (not an external URL)
+            if (!storagePath.startsWith("http")) {
+              const { data: signedData } = await supabase.storage
+                .from("dm-attachments")
+                .createSignedUrl(storagePath, 3600); // 1 hour expiry
+              if (signedData?.signedUrl) {
+                attachmentUrl = signedData.signedUrl;
+              }
+            }
+          }
+          return {
+            ...m,
+            attachment_url: attachmentUrl,
+            sender: profileMap[m.sender_id]
+              ? { name: profileMap[m.sender_id].name, avatar_url: profileMap[m.sender_id].avatar_url }
+              : undefined,
+          };
+        })
+      );
+
+      return resolvedMessages;
     },
     enabled: !!conversationId,
     staleTime: 2000,
@@ -316,12 +341,13 @@ export function useDeleteMessage() {
       if (msg?.attachment_url) {
         try {
           const url = msg.attachment_url as string;
+          // Support both old public URLs and new storage paths
           const bucketSegment = "/storage/v1/object/public/dm-attachments/";
           const idx = url.indexOf(bucketSegment);
-          if (idx !== -1) {
-            const storagePath = decodeURIComponent(url.substring(idx + bucketSegment.length));
-            await supabase.storage.from("dm-attachments").remove([storagePath]);
-          }
+          const storagePath = idx !== -1
+            ? decodeURIComponent(url.substring(idx + bucketSegment.length))
+            : url; // New format: path is stored directly
+          await supabase.storage.from("dm-attachments").remove([storagePath]);
         } catch (e) {
           console.error("Failed to delete attachment from storage:", e);
         }
