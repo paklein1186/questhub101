@@ -188,7 +188,36 @@ export default function Onboarding() {
       if (ut?.length) setSelectedTopics(ut.map((r) => r.topic_id));
       const { data: utr } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser.id);
       if (utr?.length) setSelectedTerritories(utr.map((r) => r.territory_id));
-      setPreloaded(true);
+    // Also persist any guest onboarding topics
+    try {
+      const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
+      if (raw) {
+        const ctx = JSON.parse(raw);
+        if (ctx.interest_topic_ids?.length > 0) {
+          const topicRows = ctx.interest_topic_ids.map((topicId: string) => ({
+            user_id: authUser.id,
+            topic_id: topicId,
+          }));
+          await supabase
+            .from("user_topics")
+            .upsert(topicRows, { onConflict: "user_id,topic_id", ignoreDuplicates: true });
+          // Merge into local state
+          setSelectedTopics(prev => {
+            const merged = new Set([...prev, ...ctx.interest_topic_ids]);
+            return Array.from(merged);
+          });
+          delete ctx.interest_topic_ids;
+          localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+          sessionStorage.removeItem("guestOnboardingContext");
+        }
+        // Clean up the wizard flag so PostSignupWizard never triggers
+        if (ctx.show_post_signup_wizard) {
+          delete ctx.show_post_signup_wizard;
+          localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
+        }
+      }
+    } catch { /* ignore */ }
+    setPreloaded(true);
     })();
   }, [authUser?.id, preloaded]);
 
@@ -249,6 +278,47 @@ export default function Onboarding() {
       setAiLoading(false);
     }
   }, [aiRequested, personaType, name, bio, affLinks, manualAffiliations, selectedTopics, toast]);
+
+  // ─── Incremental save: persist profile data at each step transition ───
+  const saveProgressIncremental = useCallback(async () => {
+    if (!authUser?.id) return;
+    try {
+      const updates: Record<string, any> = {};
+      if (name.trim()) updates.name = name.trim();
+      if (headline.trim()) updates.headline = headline.trim();
+      if (avatarUrl) updates.avatar_url = avatarUrl;
+      if (bio.trim()) updates.bio = bio.trim();
+      if (location.trim()) updates.location = location.trim();
+      if (affLinks.website.trim()) updates.website_url = affLinks.website.trim();
+      if (affLinks.linkedin.trim()) updates.linkedin_url = affLinks.linkedin.trim();
+      if (affLinks.other.trim()) updates.instagram_url = affLinks.other.trim();
+      updates.persona_type = personaType;
+      updates.persona_source = "onboarding_intent";
+
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("profiles").update(updates).eq("user_id", authUser.id);
+      }
+
+      // Save topics incrementally
+      if (selectedTopics.length > 0) {
+        const topicRows = selectedTopics.map(topicId => ({ user_id: authUser.id, topic_id: topicId }));
+        await supabase.from("user_topics").upsert(topicRows, { onConflict: "user_id,topic_id", ignoreDuplicates: true });
+      }
+
+      // Save territories incrementally
+      if (selectedTerritories.length > 0) {
+        const territoryRows = selectedTerritories.map(tid => ({ user_id: authUser.id, territory_id: tid }));
+        await supabase.from("user_territories").upsert(territoryRows, { onConflict: "user_id,territory_id", ignoreDuplicates: true });
+      }
+
+      // Save languages incrementally
+      if (spokenLangCodes.length > 0) {
+        await saveSpokenLanguages(spokenLangCodes);
+      }
+    } catch (e) {
+      console.error("Incremental save error:", e);
+    }
+  }, [authUser?.id, name, headline, avatarUrl, bio, location, affLinks, personaType, selectedTopics, selectedTerritories, spokenLangCodes, saveSpokenLanguages]);
 
   // ─── Save all onboarding data ─────────────────────────────
   const finishOnboarding = async () => {
@@ -536,6 +606,9 @@ export default function Onboarding() {
   }, [suggestedPeopleFetched, authUser?.id, selectedTopics, selectedTerritories, suggestedHouses]);
 
   const goNext = () => {
+    // Save progress incrementally on every step transition
+    saveProgressIncremental();
+
     if (isCreativePath) {
       // Trigger AI when entering review step
       if (step === CREATIVE_AFF_STEP) {

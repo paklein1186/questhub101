@@ -60,11 +60,10 @@ export function useOnboardingProgress() {
     addedLanguages: counts?.hasLanguages ?? false,
   };
 
+  // Only show steps that are NOT already covered by the onboarding wizard
+  // The wizard already handles: profile (photo/bio/headline/location), languages, and topics/houses
   const steps = useMemo(
     () => [
-      { key: "completedProfile" as const, label: "Complete your profile", description: "Add a bio and headline (+25 XP)", link: "/me/settings?tab=profile" },
-      { key: "addedLanguages" as const, label: "Add spoken languages", description: "Let others know what you speak (+5 XP)", link: "/me/settings?tab=languages" },
-      { key: "selectedHouses" as const, label: "Select your Houses", description: "Pick topics you care about", link: "/explore?tab=topics" },
       { key: "joinedGuild" as const, label: "Join a Guild", description: "Find your community (+30 XP)", link: "/explore?tab=guilds" },
       { key: "followedQuests" as const, label: "Create your first Quest", description: "Launch a project (+50 Credits)", link: "/quests/new" },
       { key: "createdService" as const, label: "Publish a Service", description: "Offer your skills (+15 XP)", link: "/services/new" },
