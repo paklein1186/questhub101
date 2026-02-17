@@ -29,6 +29,7 @@ const ACTION_CONFIG: Record<string, {
   comment_created:    { icon: MessageSquare,  verb: "commented on",            color: "text-sky-500" },
   course_enrolled:    { icon: GraduationCap, verb: "enrolled in course",      color: "text-indigo-500" },
   event_registered:   { icon: CalendarCheck, verb: "registered for event",    color: "text-teal-500" },
+  quest_funded:       { icon: Compass,       verb: "funded quest",            color: "text-emerald-600" },
 };
 
 const FILTER_OPTIONS = [
@@ -43,7 +44,7 @@ const FILTER_ACTIONS: Record<string, string[]> = {
   social:     ["followed"],
   membership: ["guild_joined", "company_joined", "pod_joined", "quest_joined", "course_enrolled", "event_registered"],
   content:    ["post_created", "comment_created"],
-  engagement: ["post_upvoted", "quest_highlighted"],
+  engagement: ["post_upvoted", "quest_highlighted", "quest_funded"],
 };
 
 const TARGET_ROUTES: Record<string, string> = {

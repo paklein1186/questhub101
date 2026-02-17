@@ -279,6 +279,19 @@ export function QuestProposals({
       escrow_credits: escrowCredits + amount,
     }).eq("id", questId);
 
+    // Fetch quest title for activity log
+    const { data: questRow } = await supabase.from("quests").select("title").eq("id", questId).maybeSingle();
+
+    // Log activity
+    await supabase.from("activity_log").insert({
+      actor_user_id: currentUser.id,
+      action_type: "quest_funded",
+      target_type: "quest",
+      target_id: questId,
+      target_name: questRow?.title ?? "Quest",
+      metadata: { amount },
+    });
+
     // Notify quest owner
     if (currentUser.id !== questOwnerId) {
       await supabase.from("notifications").insert({
