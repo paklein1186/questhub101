@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock, Compass, Handshake } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
@@ -84,6 +85,7 @@ function useAllShareholders() {
 }
 
 export default function SharesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const { effectiveMode } = usePersona();
@@ -147,10 +149,10 @@ export default function SharesPage() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium text-primary">
-            <Crown className="h-4 w-4" /> Membership & Shares
+            <Crown className="h-4 w-4" /> {t("pages.shares.title")}
           </div>
           <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold">
-            Co-own <span className="text-primary">changethegame</span>
+            {t("pages.shares.heading")} <span className="text-primary">changethegame</span>
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             changethegame is co-owned by its members. Two share classes exist — strategic (A) and community (B).

@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function RoadmapPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Roadmap & Changelog" subtitle="What's coming next.">
+    <ContentPageShell title={t("pages.roadmap.title")} subtitle={t("pages.roadmap.subtitle")}>
       <ContentSection title="Upcoming Features">
         <ContentList items={[
           "Enhanced territory intelligence dashboards",

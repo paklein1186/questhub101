@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function SupportPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Guides & Support" subtitle="Everything you need to get started, learn, and grow.">
+    <ContentPageShell title={t("pages.support.title")} subtitle={t("pages.support.subtitle")}>
       <ContentSection title="Quickstart Guides">
         <ContentList items={[
           "How to create your profile",

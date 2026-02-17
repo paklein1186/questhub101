@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function SecurityPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Security" subtitle="How we protect your data and the platform.">
+    <ContentPageShell title={t("pages.security.title")} subtitle={t("pages.security.subtitle")}>
       <ContentSection title="Our Commitment">
         <p>Security is foundational to changethegame. We implement industry-standard protections across all layers of the platform.</p>
       </ContentSection>

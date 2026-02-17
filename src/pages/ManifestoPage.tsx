@@ -1,14 +1,16 @@
 import { PageShell } from "@/components/PageShell";
+import { useTranslation } from "react-i18next";
 
 export default function ManifestoPage() {
+  const { t } = useTranslation();
   return (
     <PageShell>
       <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4">
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
-          The changethegame Manifesto
+          {t("pages.manifesto.title")}
         </h1>
         <p className="text-muted-foreground text-lg mb-12">
-          A space to imagine together.
+          {t("pages.manifesto.subtitle")}
         </p>
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">

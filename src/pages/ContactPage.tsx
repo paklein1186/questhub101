@@ -5,8 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [type, setType] = useState("");
@@ -19,7 +21,7 @@ export default function ContactPage() {
   };
 
   return (
-    <ContentPageShell title="Contact" subtitle="We're here to support your quests.">
+    <ContentPageShell title={t("pages.contact.title")} subtitle={t("pages.contact.subtitle")}>
       <ContentSection title="Reach Out">
         <p>Have a question, request or issue? We respond to all messages.</p>
       </ContentSection>
