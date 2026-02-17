@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { useConversations, useConversationMessages, useSendMessage, useCreateConversation, useDeleteMessage, useEditMessage, useAddParticipants } from "@/hooks/useMessages";
@@ -20,6 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { MentionTextarea, renderMentions } from "@/components/MentionTextarea";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -52,6 +53,20 @@ function renderWithLinks(text: string, isOwn: boolean) {
     }
   });
   return <>{result}</>;
+}
+
+/** Render message content with both mentions and links */
+function renderMessageContent(text: string, isOwn: boolean) {
+  // First parse mentions into parts
+  const mentionParts = renderMentions(text);
+  // Then apply link rendering to string parts only
+  return mentionParts.map((part, i) => {
+    if (typeof part === "string") {
+      const linked = renderWithLinks(part, isOwn);
+      return <React.Fragment key={i}>{linked}</React.Fragment>;
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
 }
 
 function BlockMenuItem({ targetUserId }: { targetUserId: string }) {
@@ -695,7 +710,7 @@ export default function InboxPage() {
                                   )}
                                   {msg.content && (
                                     <p className="text-sm whitespace-pre-wrap break-words">
-                                      {msg.is_deleted ? <span className="italic opacity-60">Message deleted</span> : renderWithLinks(msg.content, isOwn)}
+                                      {msg.is_deleted ? <span className="italic opacity-60">Message deleted</span> : renderMessageContent(msg.content, isOwn)}
                                     </p>
                                   )}
                                 </>
@@ -772,12 +787,17 @@ export default function InboxPage() {
                     <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={sendMessage.isPending || !!attachment} title="Attach file (max 25 MB)">
                       <Paperclip className="h-4 w-4" />
                     </Button>
-                    <Input
+                    <MentionTextarea
                       value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      placeholder={isPulseActive ? "Share your LinkedIn URL, describe yourself, or ask Pulse…" : "Type a message..."}
-                      className="flex-1"
-                      autoFocus
+                      onChange={setMessageText}
+                      placeholder={isPulseActive ? "Share your LinkedIn URL, describe yourself, or ask Pulse…" : "Type a message… Use @ to mention"}
+                      className="flex-1 min-h-[36px] max-h-[120px] py-1.5"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
                     />
                     <Button type="submit" size="icon" disabled={(!messageText.trim() && !attachment) || sendMessage.isPending || pulseLoading}>
                       {pulseLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

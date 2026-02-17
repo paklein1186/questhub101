@@ -3,8 +3,8 @@ import { X, Minus, Send, Maximize2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { MentionTextarea, renderMentions } from "@/components/MentionTextarea";
 import { useConversationMessages, useSendMessage } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,17 @@ function renderWithLinks(text: string, isOwn: boolean) {
     }
   });
   return <>{result}</>;
+}
+
+function renderMessageContent(text: string, isOwn: boolean) {
+  const mentionParts = renderMentions(text);
+  return mentionParts.map((part, i) => {
+    if (typeof part === "string") {
+      const linked = renderWithLinks(part, isOwn);
+      return <React.Fragment key={i}>{linked}</React.Fragment>;
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
 }
 
 interface Props {
@@ -135,7 +146,7 @@ export function MiniChatWindow({ bubble, index }: Props) {
                       : "bg-muted text-foreground rounded-bl-sm"
                   )}
                 >
-                  <p>{renderWithLinks(msg.content, isOwn)}</p>
+                  <p>{renderMessageContent(msg.content, isOwn)}</p>
                   <p className={cn("text-[9px] mt-0.5", isOwn ? "text-primary-foreground/60" : "text-muted-foreground")}>
                     {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                   </p>
@@ -149,12 +160,17 @@ export function MiniChatWindow({ bubble, index }: Props) {
 
       {/* Input */}
       <div className="flex items-center gap-1.5 px-2 py-2 border-t border-border">
-        <Input
+        <MentionTextarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-          placeholder="Message..."
-          className="h-8 text-xs rounded-full"
+          onChange={setText}
+          placeholder="Message… @ to mention"
+          className="min-h-[32px] max-h-[80px] text-xs rounded-xl flex-1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
         />
         <Button size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={handleSend} disabled={!text.trim()}>
           <Send className="h-3.5 w-3.5" />
