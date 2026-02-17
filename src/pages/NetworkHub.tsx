@@ -5,6 +5,7 @@ import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
   ArrowRight, Hash, Rss, Trophy, Activity,
+  LayoutDashboard,
 } from "lucide-react";
 import { useTabOrder } from "@/hooks/useTabOrder";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
@@ -25,6 +26,7 @@ import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortCo
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { sortPosts } from "@/lib/feedSort";
 import LeaderboardTab from "@/components/LeaderboardTab";
+import NetworkDashboardTab from "@/components/network/NetworkDashboardTab";
 import TerritoryTopicLeaderboard from "@/components/network/TerritoryTopicLeaderboard";
 import NetworkActivityTab from "@/components/network/NetworkActivityTab";
 import {
@@ -59,7 +61,7 @@ function SectionHeader({ icon: Icon, title, count, seeMoreTo }: { icon: any; tit
   );
 }
 
-const NETWORK_DEFAULT_TABS = ["following", "activity", "overview", "people", "entities", "territories", "leaderboard"];
+const NETWORK_DEFAULT_TABS = ["following", "activity", "overview", "dashboard", "people", "entities", "territories", "leaderboard"];
 
 function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser }: any) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("network_hub", NETWORK_DEFAULT_TABS);
@@ -69,6 +71,7 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
     { value: "following", label: <><Rss className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.following")}</span><span className="sm:hidden">{t("tabs.following")}</span></> },
     { value: "activity", label: <><Activity className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.activity")}</span></> },
     { value: "overview", label: t("tabs.overview") },
+    { value: "dashboard", label: <><LayoutDashboard className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Dashboard</span></> },
     { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.people")} ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
     { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.entities")} ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
     { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.territoriesAndTopics")}</span><span className="sm:hidden">{t("tabs.areas")}</span></> },
@@ -102,6 +105,10 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
           );
           return null;
         })}
+      </TabsContent>
+
+      <TabsContent value="dashboard" className="mt-0">
+        <NetworkDashboardTab />
       </TabsContent>
 
       <TabsContent value="following" className="mt-0">
