@@ -11,7 +11,7 @@ import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoTranslatePost } from "@/hooks/useAutoTranslatePost";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +24,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
 
+const CONTENT_CHAR_LIMIT = 1000;
+
+function TruncatedContent({ content, maxChars = CONTENT_CHAR_LIMIT }: { content: string; maxChars?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsTruncation = content.length > maxChars;
+  const displayed = needsTruncation && !expanded ? content.slice(0, maxChars) : content;
+
+  return (
+    <div className="space-y-1">
+      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+        {renderMentions(displayed)}
+        {needsTruncation && !expanded && "…"}
+      </p>
+      {needsTruncation && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs font-medium text-primary hover:underline"
+        >
+          {expanded ? "Show less" : "See more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ImageGrid({ images }: { images: PostAttachment[] }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const gridClass =
@@ -31,12 +56,12 @@ function ImageGrid({ images }: { images: PostAttachment[] }) {
 
   return (
     <>
-      <div className={`grid ${gridClass} gap-1.5 rounded-lg overflow-hidden`}>
+      <div className={`grid ${gridClass} gap-1.5 rounded-lg overflow-hidden max-w-2xl`}>
         {images.slice(0, 4).map((img, i) => (
           <button
             key={img.id}
             onClick={() => setLightbox(img.url)}
-            className={`relative aspect-video bg-muted overflow-hidden ${
+            className={`relative aspect-video bg-muted overflow-hidden max-h-96 ${
               images.length === 3 && i === 0 ? "row-span-2 aspect-square" : ""
             }`}
           >
@@ -406,10 +431,14 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
           </div>
         </div>
       ) : post.content ? (
-        <div className="space-y-1">
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {renderMentions(displayContent || post.content)}
-          </p>
+        <TruncatedContent
+          content={displayContent || post.content}
+          maxChars={1000}
+        />
+      ) : null}
+      {/* Translation controls */}
+      {post.content && !editing && (
+        <div className="space-y-0.5">
           {isTranslating && (
             <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
               <Loader2 className="h-2.5 w-2.5 animate-spin" /> Translating…
@@ -426,7 +455,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
             </button>
           )}
         </div>
-      ) : null}
+      )}
 
       {/* Attachments */}
       {images.length > 0 && <ImageGrid images={images} />}

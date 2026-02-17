@@ -64,7 +64,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
     <>
       <div className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20">
         {/* Thumbnail area */}
-        <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-56"}`}>
+        <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-52 max-h-52"}`}>
           {firstImage ? (
             <>
               <img
@@ -116,8 +116,8 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
 
           {/* Post text */}
           {post.content && (
-            <p className={`text-sm leading-relaxed text-foreground/90 line-clamp-${contentLines}`}>
-              {stripMentions(post.content)}
+            <p className={`text-sm leading-relaxed text-foreground/90 ${size === "small" ? "line-clamp-2" : size === "medium" ? "line-clamp-3" : "line-clamp-4"}`}>
+              {stripMentions(post.content).slice(0, 500)}
             </p>
           )}
         </div>
