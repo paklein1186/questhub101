@@ -50,6 +50,7 @@ const AdminEconomyXp = lazy(() => import("./pages/admin/AdminEconomyXp"));
 const AdminEconomyPlans = lazy(() => import("./pages/admin/AdminEconomyPlans"));
 const AdminEconomyNotifications = lazy(() => import("./pages/admin/AdminEconomyNotifications"));
 const AdminEconomyEmails = lazy(() => import("./pages/admin/AdminEconomyEmails"));
+const AdminEconomyTreasury = lazy(() => import("./pages/admin/AdminEconomyTreasury"));
 const AdminSystemRoles = lazy(() => import("./pages/admin/AdminSystemRoles"));
 const AdminSystemHouses = lazy(() => import("./pages/admin/AdminSystemHouses"));
 const AdminSystemGovernance = lazy(() => import("./pages/admin/AdminSystemGovernance"));
@@ -294,6 +295,7 @@ const App = () => (
                   <Route path="economy/plans" element={<Suspense fallback={null}><AdminEconomyPlans /></Suspense>} />
                   <Route path="economy/notifications" element={<Suspense fallback={null}><AdminEconomyNotifications /></Suspense>} />
                   <Route path="economy/emails" element={<Suspense fallback={null}><AdminEconomyEmails /></Suspense>} />
+                  <Route path="economy/treasury" element={<Suspense fallback={null}><AdminEconomyTreasury /></Suspense>} />
                   <Route path="system/roles" element={<Suspense fallback={null}><AdminSystemRoles /></Suspense>} />
                   <Route path="system/houses" element={<Suspense fallback={null}><AdminSystemHouses /></Suspense>} />
                   <Route path="system/governance" element={<Suspense fallback={null}><AdminSystemGovernance /></Suspense>} />

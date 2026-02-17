@@ -1617,6 +1617,51 @@ export type Database = {
           },
         ]
       }
+      ecosystem_treasury_allocations: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          id: string
+          notes: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reinvestment_amount: number
+          shareholder_amount: number
+          solidarity_amount: number
+          total_surplus: number
+          treasury_amount: number
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          reinvestment_amount?: number
+          shareholder_amount?: number
+          solidarity_amount?: number
+          total_surplus?: number
+          treasury_amount?: number
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          reinvestment_amount?: number
+          shareholder_amount?: number
+          solidarity_amount?: number
+          total_surplus?: number
+          treasury_amount?: number
+        }
+        Relationships: []
+      }
       entity_member_roles: {
         Row: {
           created_at: string
@@ -4427,6 +4472,7 @@ export type Database = {
           free_quests_per_week: number
           fundraising_tools_enabled: boolean | null
           id: string
+          is_public: boolean
           marketplace_fee_percent: number | null
           max_attachment_size_mb: number | null
           max_courses: number | null
@@ -4460,6 +4506,7 @@ export type Database = {
           free_quests_per_week?: number
           fundraising_tools_enabled?: boolean | null
           id?: string
+          is_public?: boolean
           marketplace_fee_percent?: number | null
           max_attachment_size_mb?: number | null
           max_courses?: number | null
@@ -4493,6 +4540,7 @@ export type Database = {
           free_quests_per_week?: number
           fundraising_tools_enabled?: boolean | null
           id?: string
+          is_public?: boolean
           marketplace_fee_percent?: number | null
           max_attachment_size_mb?: number | null
           max_courses?: number | null

@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PLAN_ORDER, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { PLAN_ORDER, ECONOMY_LABELS, PLAN_MIGRATION_MAP, LEGACY_PLAN_CODES } from "@/lib/xpCreditsConfig";
 
 interface PlanRow {
   id: string;
@@ -45,6 +45,9 @@ interface PlanRow {
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
   FREE: Crown,
+  PRO: Sparkles,
+  TERRITORY_BUILDER: Zap,
+  // Legacy
   STARTER: ArrowRight,
   CREATOR: Sparkles,
   CATALYST: Zap,
@@ -53,6 +56,9 @@ const PLAN_ICONS: Record<string, typeof Crown> = {
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "text-muted-foreground",
+  PRO: "text-primary",
+  TERRITORY_BUILDER: "text-amber-500",
+  // Legacy
   STARTER: "text-blue-500",
   CREATOR: "text-primary",
   CATALYST: "text-amber-500",
@@ -83,9 +89,20 @@ export default function PlansPage() {
   const fetchPlans = async () => {
     const { data } = await supabase
       .from("subscription_plans")
-      .select("*") as { data: PlanRow[] | null };
+      .select("*") as { data: (PlanRow & { is_public?: boolean })[] | null };
     if (data) {
-      setPlans(data.sort((a, b) => PLAN_ORDER.indexOf(a.code as any) - PLAN_ORDER.indexOf(b.code as any)));
+      // Show only public plans (new 3-tier) unless user is on a legacy plan
+      const isOnLegacy = LEGACY_PLAN_CODES.includes(currentPlan.planCode as any);
+      const filtered = data.filter(p => {
+        if (p.is_public !== false) return true;
+        // Show legacy plan only if user is on it
+        return isOnLegacy && p.code === currentPlan.planCode;
+      });
+      setPlans(filtered.sort((a, b) => {
+        const orderA = PLAN_ORDER.indexOf(a.code as any);
+        const orderB = PLAN_ORDER.indexOf(b.code as any);
+        return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+      }));
     }
     setLoading(false);
   };
@@ -146,12 +163,12 @@ export default function PlansPage() {
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-2">
             {plans.map((plan, i) => {
               const planIdx = PLAN_ORDER.indexOf(plan.code as any);
               const isCurrentPlan = isCurrent(plan.code);
               const isUpgrade = planIdx > currentIdx;
-              const isHighlighted = plan.code === "CREATOR";
+              const isHighlighted = plan.code === "PRO";
               const PlanIcon = PLAN_ICONS[plan.code] || Crown;
               const iconColor = PLAN_COLORS[plan.code] || "text-primary";
 

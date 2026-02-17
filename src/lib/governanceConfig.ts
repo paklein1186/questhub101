@@ -108,9 +108,32 @@ export const GOVERNANCE_BODIES = [
 ] as const;
 
 // ─── Level-gated feature check ─────────────────────────────
-/** Currently open — all features accessible regardless of level. Will be fine-tuned later. */
-export function canAccessFeature(_level: number, _requiredLevel: number): boolean {
-  return true;
+/**
+ * Enforce XP-gated governance tiers:
+ * L1–4: Participate, L5–8: Comment & Vote, L9–12: Propose, L13–15: Steward
+ */
+export function canAccessFeature(level: number, requiredLevel: number): boolean {
+  return level >= requiredLevel;
+}
+
+// ─── Governance Tier Helpers ───────────────────────────────
+export function getGovernanceTier(level: number): string {
+  if (level >= 13) return "steward";
+  if (level >= 9) return "propose";
+  if (level >= 5) return "vote";
+  return "participate";
+}
+
+export function canVote(level: number): boolean {
+  return level >= 5;
+}
+
+export function canPropose(level: number): boolean {
+  return level >= 9;
+}
+
+export function isStewardEligible(level: number): boolean {
+  return level >= 13;
 }
 
 // ─── XP Action Rewards (updated with cross-territory) ─────

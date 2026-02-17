@@ -68,6 +68,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/economy/plans", label: "Plans", icon: CreditCard },
       { to: "/admin/economy/notifications", label: "Notifications", icon: Bell },
       { to: "/admin/economy/emails", label: "Emails & Digests", icon: Mail },
+      { to: "/admin/economy/treasury", label: "Treasury & Revenue", icon: Zap },
       { to: "/admin/economy/milestones", label: "Milestones", icon: Trophy },
     ],
   },
