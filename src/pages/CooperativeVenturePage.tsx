@@ -26,7 +26,7 @@ export default function CooperativeVenturePage() {
           {/* Class A */}
           <div className="pt-6 space-y-2">
             <h2 className="text-xl font-semibold text-foreground">
-              Class A — Effective Members
+              Class A — Guardians
             </h2>
             <ul className="list-disc list-inside space-y-1 pl-1">
               <li>Participate in strategic decisions</li>
@@ -51,7 +51,7 @@ export default function CooperativeVenturePage() {
           {/* Class B */}
           <div className="pt-8 space-y-2">
             <h2 className="text-xl font-semibold text-foreground">
-              Class B — Community Members
+              Class B — Stewards
             </h2>
             <ul className="list-disc list-inside space-y-1 pl-1">
               <li>Support the project financially</li>

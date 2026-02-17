@@ -240,7 +240,7 @@ export default function SharesPage() {
                   <Lock className="h-3 w-3 mr-0.5" /> Application-Only
                 </Badge>
               </div>
-              <CardTitle className="font-display text-xl">Strategic Shares</CardTitle>
+              <CardTitle className="font-display text-xl">Guardian Shares</CardTitle>
               <CardDescription>
                 For governance participation and operational decision-making.
               </CardDescription>
@@ -278,7 +278,7 @@ export default function SharesPage() {
                   Open for Purchase
                 </Badge>
               </div>
-              <CardTitle className="font-display text-xl">Community Shares</CardTitle>
+              <CardTitle className="font-display text-xl">Steward Shares</CardTitle>
               <CardDescription>
                 Support the ecosystem & join assemblies.
               </CardDescription>
@@ -386,12 +386,12 @@ export default function SharesPage() {
                         <div className="flex gap-1 mt-0.5 flex-wrap">
                           {hasA && (
                             <Badge className="text-[10px] bg-primary/10 text-primary border-0 px-1.5 py-0">
-                              <Shield className="h-2.5 w-2.5 mr-0.5" /> Strategic
+                              <Shield className="h-2.5 w-2.5 mr-0.5" /> Guardian
                             </Badge>
                           )}
                           {hasB && (
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                              <Users className="h-2.5 w-2.5 mr-0.5" /> Community
+                              <Users className="h-2.5 w-2.5 mr-0.5" /> Steward
                             </Badge>
                           )}
                         </div>
