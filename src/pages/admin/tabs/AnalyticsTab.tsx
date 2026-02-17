@@ -75,14 +75,28 @@ function useMarketplaceStats() {
   return useQuery({
     queryKey: ["admin-marketplace-stats"],
     queryFn: async () => {
-      const { data: bookings } = await supabase
-        .from("bookings")
-        .select("amount, payment_status")
-        .eq("is_deleted", false);
-      const rows = bookings ?? [];
-      const totalRevenue = rows.reduce((s, b) => s + (b.amount ?? 0), 0);
-      const paidBookings = rows.filter((b) => b.payment_status === "PAID" || (b.amount && b.amount > 0)).length;
-      return { totalRevenue, paidBookings };
+      const [bookingsResp, creditsResp] = await Promise.all([
+        supabase.from("bookings").select("amount, payment_status").eq("is_deleted", false),
+        supabase.from("credit_transactions").select("amount, type").in("type", ["PURCHASE", "purchase", "TOP_UP_PURCHASE"]).gt("amount", 0),
+      ]);
+      const bookingRows = bookingsResp.data ?? [];
+      const totalBookingRevenue = bookingRows.reduce((s, b) => s + (b.amount ?? 0), 0);
+      const paidBookings = bookingRows.filter((b) => b.payment_status === "PAID" || (b.amount && b.amount > 0)).length;
+
+      // Map credit amounts to euros using bundle pricing
+      const creditBundles = [
+        { credits: 100, priceEur: 4 },
+        { credits: 300, priceEur: 10 },
+        { credits: 1000, priceEur: 25 },
+      ];
+      const creditsToEur = (credits: number) => {
+        const bundle = creditBundles.find(b => b.credits === credits);
+        return bundle ? bundle.priceEur : Math.round((credits / 100) * 4 * 100) / 100;
+      };
+      const creditRows = creditsResp.data ?? [];
+      const totalCreditRevenue = creditRows.reduce((s, r) => s + creditsToEur(r.amount), 0);
+
+      return { totalBookingRevenue, paidBookings, totalCreditRevenue };
     },
     staleTime: 30_000,
   });
@@ -242,14 +256,18 @@ export function AnalyticsTab() {
 
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-4"><TrendingUp className="h-5 w-5" /> Marketplace & Revenue <LiveLabel /></h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Booking Revenue</p>
-            <p className="text-2xl font-bold text-primary">{loadingMkt ? "…" : `€${mktStats?.totalRevenue ?? 0}`}</p>
+            <p className="text-2xl font-bold text-primary">{loadingMkt ? "…" : `€${mktStats?.totalBookingRevenue ?? 0}`}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Paid Bookings</p>
             <p className="text-2xl font-bold text-primary">{loadingMkt ? "…" : mktStats?.paidBookings ?? 0}</p>
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground">Credit Purchases</p>
+            <p className="text-2xl font-bold text-primary">{loadingMkt ? "…" : `€${mktStats?.totalCreditRevenue ?? 0}`}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-xs text-muted-foreground">Shares (A / B)</p>

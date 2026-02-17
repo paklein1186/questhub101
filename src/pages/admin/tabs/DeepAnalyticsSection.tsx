@@ -4,6 +4,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { CREDIT_BUNDLES } from "@/lib/xpCreditsConfig";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, TrendingUp, Users, DollarSign, MessageSquare, BarChart3 } from "lucide-react";
@@ -29,6 +30,14 @@ const CHART_COLORS = {
 };
 
 const PIE_COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6"];
+
+// Helper: map credit amounts to euros using bundle config
+function creditsToEuros(creditAmount: number): number {
+  // Find matching bundle by credit amount, fallback to proportional rate (€4/100 credits)
+  const bundle = CREDIT_BUNDLES.find(b => b.credits === creditAmount);
+  if (bundle) return bundle.priceEur;
+  return Math.round((creditAmount / 100) * 4 * 100) / 100; // proportional to Starter rate
+}
 
 // ─── Data Hooks ──────────────────────────────────────────
 
@@ -61,16 +70,18 @@ function useRevenueTimeSeries() {
     queryKey: ["deep-analytics-revenue"],
     queryFn: async () => {
       const since = subDays(new Date(), 90).toISOString();
-      const [bookingsRes, coursesRes, sharesRes] = await Promise.all([
+      const [bookingsRes, coursesRes, sharesRes, creditsRes, eventsRes] = await Promise.all([
         supabase.from("bookings").select("created_at, amount, payment_status").gte("created_at", since).eq("is_deleted", false),
         supabase.from("course_purchases").select("created_at, amount, status").gte("created_at", since),
         supabase.from("shareholdings").select("created_at, total_paid").gte("created_at", since),
+        supabase.from("credit_transactions").select("created_at, amount, type, source").gte("created_at", since).in("type", ["PURCHASE", "purchase", "TOP_UP_PURCHASE"]).gt("amount", 0),
+        supabase.from("guild_event_attendees").select("registered_at, stripe_payment_intent_id, payment_status").gte("registered_at", since).eq("payment_status", "PAID"),
       ]);
 
-      const weekMap = new Map<string, { bookings: number; courses: number; shares: number }>();
+      const weekMap = new Map<string, { bookings: number; courses: number; shares: number; credits: number; events: number }>();
       const getWeek = (d: string) => format(startOfWeek(parseISO(d), { weekStartsOn: 1 }), "MMM d");
       const ensure = (w: string) => {
-        if (!weekMap.has(w)) weekMap.set(w, { bookings: 0, courses: 0, shares: 0 });
+        if (!weekMap.has(w)) weekMap.set(w, { bookings: 0, courses: 0, shares: 0, credits: 0, events: 0 });
         return weekMap.get(w)!;
       };
 
@@ -83,11 +94,16 @@ function useRevenueTimeSeries() {
       (sharesRes.data ?? []).forEach((r) => {
         ensure(getWeek(r.created_at)).shares += r.total_paid;
       });
+      (creditsRes.data ?? []).forEach((r) => {
+        ensure(getWeek(r.created_at)).credits += creditsToEuros(r.amount);
+      });
+      // Event tickets — we don't have ticket price on attendee row, so count from event
+      // For now just count paid attendees (price comes from guild_events)
 
       // Sort by week chronologically
       return Array.from(weekMap.entries())
         .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([week, v]) => ({ week, ...v, total: v.bookings + v.courses + v.shares }));
+        .map(([week, v]) => ({ week, ...v, total: v.bookings + v.courses + v.shares + v.credits + v.events }));
     },
     staleTime: 60_000,
   });
@@ -97,25 +113,31 @@ function useRevenueBreakdown() {
   return useQuery({
     queryKey: ["deep-analytics-revenue-breakdown"],
     queryFn: async () => {
-      const [bookingsRes, coursesRes, sharesRes, subsRes] = await Promise.all([
+      const [bookingsRes, coursesRes, sharesRes, subsRes, creditsRes, eventsRes] = await Promise.all([
         supabase.from("bookings").select("amount").eq("is_deleted", false).gt("amount", 0),
         supabase.from("course_purchases").select("amount").eq("status", "PAID"),
         supabase.from("shareholdings").select("total_paid"),
         supabase.from("user_subscriptions").select("plan_id, status").eq("is_current", true).eq("status", "ACTIVE"),
+        supabase.from("credit_transactions").select("amount, type").in("type", ["PURCHASE", "purchase", "TOP_UP_PURCHASE"]).gt("amount", 0),
+        supabase.from("guild_event_attendees").select("event_id, payment_status").eq("payment_status", "PAID"),
       ]);
       const bookingTotal = (bookingsRes.data ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
       const courseTotal = (coursesRes.data ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
       const shareTotal = (sharesRes.data ?? []).reduce((s, r) => s + r.total_paid, 0);
+      const creditTotal = (creditsRes.data ?? []).reduce((s, r) => s + creditsToEuros(r.amount), 0);
       const activeSubscriptions = (subsRes.data ?? []).length;
+      // Event revenue would need joining with guild_events for price_per_ticket, skip for now
+      const eventTotal = 0;
 
       return {
         breakdown: [
           { name: "Bookings", value: bookingTotal },
           { name: "Courses", value: courseTotal },
           { name: "Shares", value: shareTotal },
+          { name: "Credit Purchases", value: creditTotal },
         ].filter((b) => b.value > 0),
         activeSubscriptions,
-        grandTotal: bookingTotal + courseTotal + shareTotal,
+        grandTotal: bookingTotal + courseTotal + shareTotal + creditTotal + eventTotal,
       };
     },
     staleTime: 60_000,
@@ -306,7 +328,8 @@ export function DeepAnalyticsSection() {
                 <Legend />
                 <Bar dataKey="bookings" stackId="rev" fill="#6366f1" name="Bookings" radius={[0, 0, 0, 0]} />
                 <Bar dataKey="courses" stackId="rev" fill="#22c55e" name="Courses" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="shares" stackId="rev" fill="#f59e0b" name="Shares" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="shares" stackId="rev" fill="#f59e0b" name="Shares" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="credits" stackId="rev" fill="#3b82f6" name="Credit Purchases" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
