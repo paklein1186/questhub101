@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,35 +43,18 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-// ── Today's Goals (resets daily at 9am, stored in localStorage) ──
-function getTodayKey(): string {
+// ── Today's Goals (resets daily at 9am) ──
+function getTodayWindowStart(): Date {
   const now = new Date();
-  // If before 9am, use yesterday's date as the "day"
   const ref = new Date(now);
   if (ref.getHours() < 9) ref.setDate(ref.getDate() - 1);
-  return `today-goals-${ref.toISOString().slice(0, 10)}`;
+  ref.setHours(9, 0, 0, 0);
+  return ref;
 }
 
-function readTodayGoals(): Set<string> {
-  try {
-    const raw = localStorage.getItem(getTodayKey());
-    if (!raw) return new Set();
-    return new Set(JSON.parse(raw));
-  } catch {
-    return new Set();
-  }
-}
-
-function writeTodayGoals(goals: Set<string>) {
-  // Clean up old keys
-  const currentKey = getTodayKey();
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith("today-goals-") && k !== currentKey) {
-      localStorage.removeItem(k);
-    }
-  }
-  localStorage.setItem(currentKey, JSON.stringify([...goals]));
+function isGoalActive(goalAt: string | null): boolean {
+  if (!goalAt) return false;
+  return new Date(goalAt) >= getTodayWindowStart();
 }
 
 type TaskStatus = "BACKLOG" | "TODO" | "IN_PROGRESS" | "DONE";
@@ -111,6 +94,7 @@ type WorkItem = {
   entity_type: string;
   entity_id: string;
   work_state: TaskStatus;
+  today_goal_at: string | null;
 };
 
 type UnifiedTask = {
@@ -181,19 +165,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [entityFilter, setEntityFilter] = useState<Set<string>>(new Set()); // empty = show all
 
-  // Today's goals state
-  const [todayGoals, setTodayGoals] = useState<Set<string>>(() => readTodayGoals());
   const [showConfetti, setShowConfetti] = useState(false);
-
-  const toggleTodayGoal = (taskKey: string) => {
-    setTodayGoals((prev) => {
-      const next = new Set(prev);
-      if (next.has(taskKey)) next.delete(taskKey);
-      else next.add(taskKey);
-      writeTodayGoals(next);
-      return next;
-    });
-  };
 
   // Track items marked as done this session (shown crossed-out until refresh)
   const [sessionDone, setSessionDone] = useState<Set<string>>(new Set());
@@ -232,6 +204,30 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   for (const wi of workItemsRaw) {
     workItemsMap.set(`${wi.entity_type}:${wi.entity_id}`, wi.work_state as TaskStatus);
   }
+
+  // Today's goals — derived from work items' today_goal_at column
+  const todayGoals = useMemo(() => {
+    const set = new Set<string>();
+    for (const wi of workItemsRaw) {
+      if (isGoalActive(wi.today_goal_at)) {
+        const src = wi.entity_type === "personal_task" ? "personal" : wi.entity_type === "quest" ? "quest" : "subtask";
+        set.add(`${src}-${wi.entity_id}`);
+      }
+    }
+    return set;
+  }, [workItemsRaw]);
+
+  const toggleTodayGoal = async (taskKey: string, entityType: string, entityId: string) => {
+    const isCurrentlyGoal = todayGoals.has(taskKey);
+    const newValue = isCurrentlyGoal ? null : new Date().toISOString();
+    await supabase.from("user_work_items" as any).upsert({
+      user_id: userId,
+      entity_type: entityType,
+      entity_id: entityId,
+      today_goal_at: newValue,
+    } as any, { onConflict: "user_id,entity_type,entity_id" });
+    qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+  };
 
   // Fetch personal tasks
   const { data: personalTasks = [], isLoading: loadingPersonal } = useQuery({
@@ -1124,7 +1120,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <td className="px-1 py-1.5 sm:py-2.5 text-center">
                     <Checkbox
                       checked={todayGoals.has(key)}
-                      onCheckedChange={() => toggleTodayGoal(key)}
+                      onCheckedChange={() => toggleTodayGoal(key, task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask", task.id)}
                       className={cn(
                         "h-3 w-3 sm:h-3.5 sm:w-3.5 rounded-sm border-amber-400/60 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500",
                       )}
