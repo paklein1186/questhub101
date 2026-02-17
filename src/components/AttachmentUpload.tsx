@@ -1,11 +1,12 @@
-import { useRef } from "react";
-import { Paperclip, X, FileText, Image, Film, Music, File, Upload } from "lucide-react";
+import { useRef, useState } from "react";
+import { Paperclip, X, FileText, Image, Film, Music, File, Upload, Heart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AttachmentTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface AttachmentUploadProps {
   targetType: AttachmentTargetType;
@@ -128,8 +129,12 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
 
 /** Read-only list of attachments for detail pages */
 export function AttachmentList({ targetType, targetId }: { targetType: AttachmentTargetType; targetId: string }) {
+  const currentUser = useCurrentUser();
+  const qc = useQueryClient();
+  const listKey = ["attachments-list", targetType, targetId];
+
   const { data: items = [] } = useQuery({
-    queryKey: ["attachments-list", targetType, targetId],
+    queryKey: listKey,
     queryFn: async () => {
       const { data } = await supabase
         .from("attachments")
@@ -139,6 +144,58 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
         .order("created_at", { ascending: true });
       return data ?? [];
     },
+  });
+
+  const { data: myUpvotes = [] } = useQuery({
+    queryKey: ["attachment-upvotes-mine", targetType, targetId],
+    queryFn: async () => {
+      if (!currentUser.id) return [];
+      const ids = items.map((i) => i.id);
+      if (ids.length === 0) return [];
+      const { data } = await supabase
+        .from("attachment_upvotes")
+        .select("attachment_id")
+        .eq("user_id", currentUser.id)
+        .in("attachment_id", ids);
+      return (data ?? []).map((r) => r.attachment_id);
+    },
+    enabled: items.length > 0 && !!currentUser.id,
+  });
+
+  const toggleLike = useMutation({
+    mutationFn: async (attachmentId: string) => {
+      if (!currentUser.id) return;
+      const liked = myUpvotes.includes(attachmentId);
+      if (liked) {
+        await supabase.from("attachment_upvotes").delete().eq("attachment_id", attachmentId).eq("user_id", currentUser.id);
+      } else {
+        await supabase.from("attachment_upvotes").insert({ attachment_id: attachmentId, user_id: currentUser.id });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: listKey });
+      qc.invalidateQueries({ queryKey: ["attachment-upvotes-mine", targetType, targetId] });
+    },
+  });
+
+  const deleteAttachment = useMutation({
+    mutationFn: async (att: { id: string; file_url: string }) => {
+      // Try to remove from storage
+      try {
+        const url = new URL(att.file_url);
+        const pathMatch = url.pathname.match(/\/object\/public\/quest-attachments\/(.+)/);
+        if (pathMatch) {
+          await supabase.storage.from("quest-attachments").remove([decodeURIComponent(pathMatch[1])]);
+        }
+      } catch { /* ignore storage errors */ }
+      const { error } = await supabase.from("attachments").delete().eq("id", att.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: listKey });
+      toast.success("Document deleted");
+    },
+    onError: () => toast.error("Failed to delete document"),
   });
 
   if (items.length === 0) return null;
@@ -151,12 +208,40 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
       <div className="space-y-1.5">
         {items.map((att) => {
           const Icon = getFileIcon(att.mime_type ?? "");
+          const isOwner = currentUser.id === att.uploaded_by_user_id;
+          const liked = myUpvotes.includes(att.id);
           return (
-            <a key={att.id} href={att.file_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm hover:border-primary/30 transition-all">
+            <div key={att.id} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm group">
               <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="truncate flex-1">{att.file_name}</span>
+              <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+                {att.file_name}
+              </a>
               <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.file_size ?? 0)}</span>
-            </a>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 shrink-0"
+                onClick={() => toggleLike.mutate(att.id)}
+                disabled={!currentUser.id}
+              >
+                <Heart className={cn("h-3.5 w-3.5 transition-colors", liked ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+              </Button>
+              {(att.upvote_count ?? 0) > 0 && (
+                <span className="text-xs text-muted-foreground -ml-1">{att.upvote_count}</span>
+              )}
+              {isOwner && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-destructive hover:text-destructive"
+                  onClick={() => deleteAttachment.mutate({ id: att.id, file_url: att.file_url })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           );
         })}
       </div>
