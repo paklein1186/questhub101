@@ -1,10 +1,16 @@
-import { Zap, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Zap, Loader2, RefreshCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminEconomyPayments() {
+  const { toast } = useToast();
+  const [reconciling, setReconciling] = useState(false);
+
   const { data: shareholdings = [], isLoading } = useQuery({
     queryKey: ["admin-shareholdings"],
     queryFn: async () => {
@@ -18,15 +24,39 @@ export default function AdminEconomyPayments() {
     },
   });
 
+  const handleReconcile = async () => {
+    setReconciling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reconcile-credits", { body: {} });
+      if (error) throw error;
+      const granted = data?.reconciled?.filter((r: any) => r.status === "granted") ?? [];
+      if (granted.length > 0) {
+        toast({ title: "Credits reconciled", description: `${granted.length} payment(s) had missing credits — now granted.` });
+      } else {
+        toast({ title: "All good", description: "No missing credits found. All payments are accounted for." });
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setReconciling(false);
+    }
+  };
+
   const totalA = shareholdings.filter(s => s.share_class === "A").reduce((sum, s) => sum + s.number_of_shares, 0);
   const totalB = shareholdings.filter(s => s.share_class === "B").reduce((sum, s) => sum + s.number_of_shares, 0);
   const totalPaid = shareholdings.reduce((sum, s) => sum + s.total_paid, 0);
 
   return (
     <div className="space-y-4">
-      <h2 className="font-display text-2xl font-bold flex items-center gap-2">
-        <Zap className="h-6 w-6 text-primary" /> Payments & Shares
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-2xl font-bold flex items-center gap-2">
+          <Zap className="h-6 w-6 text-primary" /> Payments & Shares
+        </h2>
+        <Button variant="outline" size="sm" onClick={handleReconcile} disabled={reconciling}>
+          {reconciling ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCcw className="h-4 w-4 mr-1" />}
+          Reconcile Stripe Credits
+        </Button>
+      </div>
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-xs text-muted-foreground">Class A Shares</p>
