@@ -1217,7 +1217,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                       onValueChange={(v) => handleStatusChange(task, v)}
                     >
                       <SelectTrigger className={cn(
-                        "h-5 md:h-6 w-7 md:w-[110px] text-[9px] md:text-[10px] font-medium px-1 md:px-2 py-0 border-none shadow-none rounded-full [&>svg:last-child]:hidden md:[&>svg:last-child]:inline-block",
+                        "h-6 md:h-7 w-8 md:w-[120px] text-[10px] md:text-xs font-medium px-1.5 md:px-2.5 py-0 border-none shadow-none rounded-full whitespace-nowrap [&>svg:last-child]:hidden md:[&>svg:last-child]:inline-block",
                         STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
                       )}>
                         <span className="md:hidden flex items-center justify-center">
@@ -1226,7 +1226,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                           {task.workState === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
                           {task.workState === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
                         </span>
-                        <span className="hidden md:inline"><SelectValue /></span>
+                        <span className="hidden md:inline truncate"><SelectValue /></span>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
