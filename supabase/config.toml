@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.pulse-nudge]
 verify_jwt = false
+
+[functions.reconcile-credits]
+verify_jwt = false
