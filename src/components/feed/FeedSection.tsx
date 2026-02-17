@@ -17,6 +17,10 @@ interface FeedSectionProps {
   className?: string;
   /** Show display mode toggle (list / gallery tiles) */
   showDisplayToggle?: boolean;
+  /** Pre-populate territory chips from parent entity */
+  initialTerritoryIds?: string[];
+  /** Pre-populate topic chips from parent entity */
+  initialTopicIds?: string[];
 }
 
 const gridClasses: Record<Exclude<FeedDisplayMode, "list">, string> = {
@@ -25,7 +29,7 @@ const gridClasses: Record<Exclude<FeedDisplayMode, "list">, string> = {
   large: "grid grid-cols-1 sm:grid-cols-2 gap-5",
 };
 
-export function FeedSection({ contextType, contextId, canPost = true, className, showDisplayToggle = false }: FeedSectionProps) {
+export function FeedSection({ contextType, contextId, canPost = true, className, showDisplayToggle = false, initialTerritoryIds, initialTopicIds }: FeedSectionProps) {
   const { session } = useAuth();
   const { data: posts = [], isLoading } = useFeedPosts(contextType, contextId);
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
@@ -41,7 +45,7 @@ export function FeedSection({ contextType, contextId, canPost = true, className,
   return (
     <div className={className}>
       {isLoggedIn && canPost && (
-        <PostComposer contextType={contextType} contextId={contextId} />
+        <PostComposer contextType={contextType} contextId={contextId} initialTerritoryIds={initialTerritoryIds} initialTopicIds={initialTopicIds} />
       )}
 
       {posts.length > 0 && (

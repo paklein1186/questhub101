@@ -48,9 +48,13 @@ interface PostComposerProps {
   contextType: string;
   contextId?: string;
   showVisibilityPicker?: boolean;
+  /** Pre-populate territory chips from parent entity */
+  initialTerritoryIds?: string[];
+  /** Pre-populate topic chips from parent entity */
+  initialTopicIds?: string[];
 }
 
-export function PostComposer({ contextType, contextId, showVisibilityPicker = false }: PostComposerProps) {
+export function PostComposer({ contextType, contextId, showVisibilityPicker = false, initialTerritoryIds, initialTopicIds }: PostComposerProps) {
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const createPost = useCreatePost();
@@ -62,8 +66,8 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>([]);
-  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
+  const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>(initialTerritoryIds ?? []);
+  const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>(initialTopicIds ?? []);
   const [visibility, setVisibility] = useState<string>("public");
 
   const imgRef = useRef<HTMLInputElement>(null);

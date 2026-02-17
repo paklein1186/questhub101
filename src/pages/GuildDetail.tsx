@@ -665,12 +665,14 @@ export default function GuildDetail() {
                 isAdmin ||
                 (isMember && (fc as any).discussionPostPermission !== "ADMIN")
               }
+              initialTerritoryIds={territories.map((t: any) => t.id)}
+              initialTopicIds={topics.map((t: any) => t.id)}
             />
           </TabsContent>
         )}
 
         <TabsContent value="wall" className="mt-6 space-y-6">
-          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} showDisplayToggle />
+          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} showDisplayToggle initialTerritoryIds={territories.map((t: any) => t.id)} initialTopicIds={topics.map((t: any) => t.id)} />
         </TabsContent>
 
         {isMember && (
