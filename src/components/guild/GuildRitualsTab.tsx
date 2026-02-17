@@ -65,12 +65,16 @@ function downloadRitualIcs(title: string, scheduledAt: string, durationMinutes: 
 }
 
 interface Props {
-  guildId: string;
+  guildId?: string;
+  questId?: string;
   isAdmin: boolean;
   isMember: boolean;
 }
 
-export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
+export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) {
+  const entityId = guildId || questId || "";
+  const entityType = questId ? "quest" : "guild";
+  const entityFilterCol = questId ? "quest_id" : "guild_id";
   const { toast } = useToast();
   const qc = useQueryClient();
   const currentUser = useCurrentUser();
@@ -81,21 +85,24 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
   const [scheduleTime, setScheduleTime] = useState("18:00");
 
   const { data: rituals = [], isLoading } = useQuery({
-    queryKey: ["rituals", guildId],
+    queryKey: ["rituals", entityId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const filterCol = questId ? "quest_id" : "guild_id";
+      const filterVal = questId || guildId;
+      const { data, error } = await (supabase
         .from("rituals")
         .select("*")
-        .eq("guild_id", guildId)
         .eq("is_active", true)
-        .order("next_occurrence", { ascending: true });
+        .order("next_occurrence", { ascending: true }) as any)
+        .eq(filterCol, filterVal);
+
       if (error) throw error;
       return data || [];
     },
   });
 
   const { data: occurrences = [] } = useQuery({
-    queryKey: ["ritual-occurrences", guildId],
+    queryKey: ["ritual-occurrences", entityId],
     queryFn: async () => {
       const ritualIds = rituals.map((r: any) => r.id);
       if (!ritualIds.length) return [];
@@ -160,7 +167,7 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
         return;
       }
     }
-    qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
+    qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
     toast({ title: rsvpStatus === "attending" ? "You're attending!" : "Declined" });
   };
 
@@ -186,7 +193,7 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
     }
     setScheduleRitualId(null);
     setScheduleDate(""); setScheduleTime("18:00");
-    qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
+    qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
     toast({ title: "Ritual occurrence scheduled" });
   };
 
@@ -194,7 +201,7 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
     await supabase.from("ritual_occurrences")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", occurrenceId);
-    qc.invalidateQueries({ queryKey: ["ritual-occurrences", guildId] });
+    qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
     toast({ title: "Ritual marked as completed" });
   };
 
@@ -560,8 +567,9 @@ export function GuildRitualsTab({ guildId, isAdmin, isMember }: Props) {
         open={createOpen}
         onOpenChange={setCreateOpen}
         guildId={guildId}
+        questId={questId}
         onCreated={() => {
-          qc.invalidateQueries({ queryKey: ["rituals", guildId] });
+          qc.invalidateQueries({ queryKey: ["rituals", entityId] });
           setCreateOpen(false);
         }}
       />
