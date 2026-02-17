@@ -3,6 +3,7 @@ import { ShieldAlert, EyeOff, Eye } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AdminEntityEditor } from "@/components/AdminEntityEditor";
+import { PlatformBroadcastDialog } from "@/components/PlatformBroadcastDialog";
 
 export default function AdminSuperMode() {
   const [maskPII, setMaskPII] = useState(false);
@@ -26,6 +27,8 @@ export default function AdminSuperMode() {
         Search and inspect any record. Edit visibility, ownership, and internal flags.
         Toggle PII masking for screen sharing or demos.
       </p>
+
+      <PlatformBroadcastDialog />
 
       <AdminEntityEditor maskPII={maskPII} />
     </div>
