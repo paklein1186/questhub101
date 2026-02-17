@@ -1534,6 +1534,39 @@ export type Database = {
           },
         ]
       }
+      demurrage_log: {
+        Row: {
+          balance_after: number
+          balance_before: number
+          created_at: string
+          fade_amount: number
+          fade_rate: number
+          id: string
+          treasury_credited: boolean
+          user_id: string
+        }
+        Insert: {
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          fade_amount: number
+          fade_rate?: number
+          id?: string
+          treasury_credited?: boolean
+          user_id: string
+        }
+        Update: {
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          fade_amount?: number
+          fade_rate?: number
+          id?: string
+          treasury_credited?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           attachment_name: string | null
@@ -3283,6 +3316,7 @@ export type Database = {
           created_at: string
           credits_balance: number
           current_plan_code: string | null
+          demurrage_exempt: boolean
           email: string
           filter_by_houses: boolean
           governance_weight: number
@@ -3291,8 +3325,12 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_cooperative_member: boolean
+          last_demurrage_at: string | null
           last_milestone_popup_at: string | null
           last_xp_recalculated_at: string | null
+          lifetime_credits_earned: number
+          lifetime_credits_faded: number
+          lifetime_credits_spent: number
           linkedin_url: string | null
           location: string | null
           milestone_popups_enabled: boolean
@@ -3321,6 +3359,7 @@ export type Database = {
           created_at?: string
           credits_balance?: number
           current_plan_code?: string | null
+          demurrage_exempt?: boolean
           email?: string
           filter_by_houses?: boolean
           governance_weight?: number
@@ -3329,8 +3368,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_demurrage_at?: string | null
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
+          lifetime_credits_earned?: number
+          lifetime_credits_faded?: number
+          lifetime_credits_spent?: number
           linkedin_url?: string | null
           location?: string | null
           milestone_popups_enabled?: boolean
@@ -3359,6 +3402,7 @@ export type Database = {
           created_at?: string
           credits_balance?: number
           current_plan_code?: string | null
+          demurrage_exempt?: boolean
           email?: string
           filter_by_houses?: boolean
           governance_weight?: number
@@ -3367,8 +3411,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_demurrage_at?: string | null
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
+          lifetime_credits_earned?: number
+          lifetime_credits_faded?: number
+          lifetime_credits_spent?: number
           linkedin_url?: string | null
           location?: string | null
           milestone_popups_enabled?: boolean
@@ -5555,6 +5603,17 @@ export type Database = {
       }
     }
     Views: {
+      economy_stats: {
+        Row: {
+          active_holders: number | null
+          monthly_faded: number | null
+          monthly_minted: number | null
+          total_credits_in_circulation: number | null
+          total_lifetime_faded: number | null
+          treasury_balance: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           allow_wall_comments: boolean | null
@@ -5632,6 +5691,14 @@ export type Database = {
       }
     }
     Functions: {
+      apply_monthly_demurrage: {
+        Args: { _fade_rate?: number }
+        Returns: {
+          total_faded: number
+          treasury_credited: number
+          users_faded: number
+        }[]
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_conversation_participants: {
         Args: { conv_ids: string[] }
