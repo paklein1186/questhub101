@@ -39,10 +39,9 @@ export function ShareholderCTA() {
           <Shield className="h-5 w-5 text-primary" />
           <div>
             <p className="text-sm font-medium">
-              {hasA && <span>Class A: {profile.total_shares_a} shares</span>}
-              {hasA && hasB && <span className="mx-1">·</span>}
-              {hasB && <span>Class B: {profile.total_shares_b} shares</span>}
-              <Badge variant="secondary" className="ml-2 text-[10px]">
+              {hasA && <Badge variant="default" className="text-[10px] mr-1">Guardian</Badge>}
+              {hasB && <Badge variant="secondary" className="text-[10px] mr-1">Steward</Badge>}
+              <Badge variant="secondary" className="ml-1 text-[10px]">
                 Weight: {Number(profile.governance_weight).toFixed(2)}
               </Badge>
             </p>
