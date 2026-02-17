@@ -417,9 +417,9 @@ export function useBookingsForCompany(companyId: string | undefined) {
 //  a) share at least one topic with the guild, OR
 //  b) have no topics assigned (treated as uncategorized → always visible)
 // Deduplicated by service id.
-export function useServicesForGuild(guildId: string | undefined) {
+export function useServicesForGuild(guildId: string | undefined, showMemberServices = true) {
   return useQuery({
-    queryKey: ["services-for-guild", guildId],
+    queryKey: ["services-for-guild", guildId, showMemberServices],
     queryFn: async () => {
       // 1. Guild-owned services (owner or legacy provider)
       const { data: guildOwned, error: ownedErr } = await supabase
@@ -429,6 +429,9 @@ export function useServicesForGuild(guildId: string | undefined) {
         .eq("is_deleted", false);
       if (ownedErr) throw ownedErr;
 
+      // If admin disabled member services, return only guild-owned
+      if (!showMemberServices) return (guildOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
+
       // 2. Get accepted member user ids
       const { data: membersRows } = await supabase
         .from("guild_members")
@@ -436,7 +439,7 @@ export function useServicesForGuild(guildId: string | undefined) {
         .eq("guild_id", guildId!);
       const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
 
-      if (memberUserIds.length === 0) return guildOwned ?? [];
+      if (memberUserIds.length === 0) return (guildOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
 
       // 3. Get ALL active, non-draft services from members
       const { data: allMemberServices } = await supabase
@@ -446,7 +449,7 @@ export function useServicesForGuild(guildId: string | undefined) {
         .eq("is_deleted", false)
         .eq("is_active", true);
 
-      if (!allMemberServices || allMemberServices.length === 0) return guildOwned ?? [];
+      if (!allMemberServices || allMemberServices.length === 0) return (guildOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
 
       // 4. Get guild topic ids
       const { data: guildTopics } = await supabase
@@ -473,9 +476,7 @@ export function useServicesForGuild(guildId: string | undefined) {
       const topicIdSet = new Set(topicIds);
       const matchingMemberServices = allMemberServices.filter((s) => {
         const sTopics = serviceTopicMap.get(s.id);
-        // No topics assigned → always include (uncategorized member service)
         if (!sTopics || sTopics.size === 0) return true;
-        // Has topics → must share at least one with guild
         for (const t of sTopics) {
           if (topicIdSet.has(t)) return true;
         }
