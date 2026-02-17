@@ -305,19 +305,42 @@ export function useDeleteMessage() {
 
   return useMutation({
     mutationFn: async ({ messageId, conversationId }: { messageId: string; conversationId: string }) => {
+      // Fetch the message first to get attachment info for storage cleanup
+      const { data: msg } = await supabase
+        .from("direct_messages")
+        .select("attachment_url")
+        .eq("id", messageId)
+        .maybeSingle();
+
+      // Delete attachment from storage if present
+      if (msg?.attachment_url) {
+        try {
+          const url = msg.attachment_url as string;
+          const bucketSegment = "/storage/v1/object/public/dm-attachments/";
+          const idx = url.indexOf(bucketSegment);
+          if (idx !== -1) {
+            const storagePath = decodeURIComponent(url.substring(idx + bucketSegment.length));
+            await supabase.storage.from("dm-attachments").remove([storagePath]);
+          }
+        } catch (e) {
+          console.error("Failed to delete attachment from storage:", e);
+        }
+      }
+
+      // Hard-delete the message row
       const { error } = await supabase
         .from("direct_messages")
-        .update({ is_deleted: true })
+        .delete()
         .eq("id", messageId);
       if (error) throw error;
       return conversationId;
     },
-    // Optimistic delete
+    // Optimistic delete — remove from list immediately
     onMutate: async ({ messageId, conversationId }) => {
       await queryClient.cancelQueries({ queryKey: ["messages", conversationId] });
       const previousMessages = queryClient.getQueryData<DirectMessage[]>(["messages", conversationId]);
       queryClient.setQueryData<DirectMessage[]>(["messages", conversationId], (old = []) =>
-        old.map((m) => m.id === messageId ? { ...m, is_deleted: true } : m)
+        old.filter((m) => m.id !== messageId)
       );
       return { previousMessages, conversationId };
     },
