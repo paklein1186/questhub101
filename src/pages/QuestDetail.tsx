@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2 } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -118,6 +118,25 @@ export default function QuestDetail() {
     enabled: !!id,
   });
 
+  // Activity timeline for quest
+  const { data: questTimeline = [] } = useQuery({
+    queryKey: ["quest-timeline", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("activity_log")
+        .select("*")
+        .eq("target_id", id!)
+        .in("action_type", [
+          "quest_joined", "quest_funded", "quest_deleted",
+          "post_created", "subtask_completed", "quest_highlighted",
+        ])
+        .order("created_at", { ascending: true })
+        .limit(50);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
   // Guilds where user is admin (for re-attaching quest)
   const { data: myAdminGuilds = [] } = useQuery({
     queryKey: ["my-admin-guilds", currentUser.id],
@@ -181,6 +200,8 @@ export default function QuestDetail() {
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
+
+  const isCancelled = quest.status === "CANCELLED";
   if (quest.is_draft && quest.created_by_user_id !== currentUser.id && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Quest not found.</p></PageShell>;
 
   const isLoggedIn = !!currentUser.id;
@@ -401,6 +422,36 @@ export default function QuestDetail() {
       </Button>
       {quest.is_draft && <DraftBanner />}
 
+      {/* Cancelled Quest Banner + Timeline */}
+      {isCancelled && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 mb-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Ban className="h-6 w-6 text-destructive shrink-0" />
+            <div>
+              <h3 className="font-display font-bold text-destructive">Quest Cancelled</h3>
+              <p className="text-sm text-muted-foreground">
+                This quest has been cancelled. All interactions are locked.
+                {(quest as any).funding_type === "CREDITS" && " Credit contributions have been refunded."}
+              </p>
+            </div>
+          </div>
+          {questTimeline.length > 0 && (
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Activity Timeline</p>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {questTimeline.map((ev: any) => (
+                  <div key={ev.id} className="flex items-center gap-2 text-xs">
+                    <span className="text-muted-foreground w-28 shrink-0">{new Date(ev.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="font-medium">{ev.action_type.replace(/_/g, ' ')}</span>
+                    {ev.target_name && <span className="text-muted-foreground truncate">— {ev.target_name}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {quest.cover_image_url && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
           <img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
@@ -505,11 +556,13 @@ export default function QuestDetail() {
         <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
 
         <div className="flex items-center gap-3 mt-4 flex-wrap">
-            <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => {
-              if (!isLoggedIn) { setAuthPromptAction("follow this quest"); setAuthPromptOpen(true); return; }
-              toggleFollow();
-            }}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
-            {!isParticipant && (
+            {!isCancelled && (
+              <Button size="sm" variant={isFollowing ? "outline" : "default"} onClick={() => {
+                if (!isLoggedIn) { setAuthPromptAction("follow this quest"); setAuthPromptOpen(true); return; }
+                toggleFollow();
+              }}><Heart className={`h-4 w-4 mr-1 ${isFollowing ? "fill-current" : ""}`} />{isFollowing ? "Unfollow" : "Follow"}</Button>
+            )}
+            {!isParticipant && !isCancelled && (
               <Button size="sm" variant={isPaidQuest ? "default" : "outline"} onClick={() => {
                 if (!isLoggedIn) { setAuthPromptAction("join this quest"); setAuthPromptOpen(true); return; }
                 joinQuest();
@@ -520,14 +573,14 @@ export default function QuestDetail() {
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
-            {isOwner && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
-            {isOwner && (
+            {isOwner && !isCancelled && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
+            {isOwner && !isCancelled && (
               <Button size="sm" variant="outline" onClick={toggleHighlight} title={isHighlighted ? "Remove from featured" : "Feature on your profile"}>
                 <Star className={`h-4 w-4 mr-1 ${isHighlighted ? "text-amber-500 fill-amber-500" : ""}`} />
                 {isHighlighted ? "Featured" : "Feature"}
               </Button>
             )}
-            {canPostUpdate && (
+            {canPostUpdate && !isCancelled && (
               <Dialog open={updateOpen} onOpenChange={(open) => { setUpdateOpen(open); if (!open) { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); } }}>
                 <DialogTrigger asChild><Button size="sm" variant="outline"><Send className="h-4 w-4 mr-1" /> Post Update</Button></DialogTrigger>
                 <DialogContent>
@@ -711,6 +764,29 @@ export default function QuestDetail() {
                 </div>
               </div>
               <Button onClick={saveEditQuest} className="w-full">Save Changes</Button>
+              {/* Danger Zone */}
+              {!isCancelled && (
+                <div className="rounded-lg border border-destructive/30 p-3 mt-2">
+                  <p className="text-xs font-semibold text-destructive mb-2 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Danger Zone</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                    onClick={async () => {
+                      if (!confirm("Cancel this quest? Credit contributions will be refunded.")) return;
+                      if ((quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
+                        await supabase.rpc("refund_quest_funding" as any, { _quest_id: quest.id });
+                      }
+                      await supabase.from("quests").update({ status: "CANCELLED" } as any).eq("id", quest.id);
+                      qc.invalidateQueries({ queryKey: ["quest", id] });
+                      setEditOpen(false);
+                      toast({ title: "Quest cancelled" });
+                    }}
+                  >
+                    <Ban className="h-4 w-4 mr-1" /> Cancel Quest & Refund
+                  </Button>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -752,6 +828,23 @@ export default function QuestDetail() {
                   <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
                     <Coins className="h-4 w-4 mr-2" /> Fundraising AI
                   </DropdownMenuItem>
+                  {!isCancelled && (
+                    <DropdownMenuItem
+                      className="text-orange-600 focus:text-orange-600"
+                      onClick={async () => {
+                        if (!confirm("Cancel this quest? Credit contributions will be refunded.")) return;
+                        // Trigger refund if credit-funded
+                        if ((quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
+                          await supabase.rpc("refund_quest_funding" as any, { _quest_id: quest.id });
+                        }
+                        await supabase.from("quests").update({ status: "CANCELLED" } as any).eq("id", quest.id);
+                        qc.invalidateQueries({ queryKey: ["quest", id] });
+                        toast({ title: "Quest cancelled" });
+                      }}
+                    >
+                      <Ban className="h-4 w-4 mr-2" /> Cancel Quest
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
                     onClick={async () => {
