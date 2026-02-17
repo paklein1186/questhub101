@@ -66,9 +66,9 @@ function useAdminEntities(userId: string | undefined) {
     queryFn: async () => {
       const entities: AdminEntity[] = [];
       const [guilds, companies, pods] = await Promise.all([
-        supabase.from("guild_members").select("guild_id, role, guilds(id, name, logo_url)").eq("user_id", userId!).in("role", ["ADMIN", "admin", "steward", "owner"] as any[]),
-        supabase.from("company_members").select("company_id, role, companies(id, name, logo_url)").eq("user_id", userId!).in("role", ["admin", "owner"] as any[]),
-        supabase.from("pod_members").select("pod_id, role, pods(id, name, logo_url)").eq("user_id", userId!).in("role", ["HOST", "admin", "owner"] as any[]),
+        supabase.from("guild_members").select("guild_id, role, guilds(id, name, logo_url)").eq("user_id", userId!).eq("role", "ADMIN"),
+        supabase.from("company_members").select("company_id, role, companies(id, name, logo_url)").eq("user_id", userId!).eq("role", "ADMIN"),
+        supabase.from("pod_members").select("pod_id, role, pods(id, name, logo_url)").eq("user_id", userId!).eq("role", "HOST"),
       ]);
       guilds.data?.forEach((m: any) => entities.push({ entityType: "guild", entityId: m.guild_id, entityName: m.guilds?.name || "Guild", logoUrl: m.guilds?.logo_url }));
       companies.data?.forEach((m: any) => entities.push({ entityType: "company", entityId: m.company_id, entityName: m.companies?.name || "Organization", logoUrl: m.companies?.logo_url }));

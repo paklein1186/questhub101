@@ -61,7 +61,7 @@ function SectionHeader({ icon: Icon, title, count, seeMoreTo }: { icon: any; tit
   );
 }
 
-const NETWORK_DEFAULT_TABS = ["following", "activity", "overview", "dashboard", "people", "entities", "territories", "leaderboard"];
+const NETWORK_DEFAULT_TABS = ["activity", "dashboard", "following", "overview", "people", "entities", "territories", "leaderboard"];
 
 function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser }: any) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("network_hub", NETWORK_DEFAULT_TABS);
