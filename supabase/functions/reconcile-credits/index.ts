@@ -17,19 +17,24 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+
+  // Use anon client to verify the user's JWT
+  const anonClient = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
+  // Use service-role client for privileged DB operations
+  const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
   try {
-    // Admin check — use service-role client to verify JWT
+    // Admin check — use anon client to verify JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header");
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: authError } = await supabase.auth.getUser(token);
+    const { data: userData, error: authError } = await anonClient.auth.getUser(token);
     if (authError || !userData.user) throw new Error("Not authenticated");
+
+    logStep("User identified", { userId: userData.user.id });
 
     const { data: adminRole } = await supabase
       .from("user_roles")
@@ -38,6 +43,7 @@ serve(async (req) => {
       .in("role", ["superadmin", "admin"])
       .maybeSingle();
 
+    logStep("Admin role check", { adminRole });
     if (!adminRole) throw new Error("Admin access required");
 
     logStep("Admin authenticated", { userId: userData.user.id });
