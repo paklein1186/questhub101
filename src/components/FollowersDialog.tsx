@@ -52,7 +52,8 @@ export function FollowersDialog({ open, onOpenChange, targetId, targetType, mode
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, name, avatar_url")
-          .in("user_id", allIds);
+          .in("user_id", allIds)
+          .not("name", "is", null);
         return (profiles ?? []) as UserRow[];
       } else {
         // People this user follows (only for USER type)
@@ -67,7 +68,8 @@ export function FollowersDialog({ open, onOpenChange, targetId, targetType, mode
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, name, avatar_url")
-          .in("user_id", ids);
+          .in("user_id", ids)
+          .not("name", "is", null);
         return (profiles ?? []) as UserRow[];
       }
     },
@@ -140,7 +142,8 @@ export function EntityFollowersCount({
       const { count: profileCount } = await supabase
         .from("profiles")
         .select("user_id", { count: "exact", head: true })
-        .in("user_id", ids);
+        .in("user_id", ids)
+        .not("name", "is", null);
       return profileCount ?? 0;
     },
     enabled: !!entityId,

@@ -363,12 +363,20 @@ export default function UserProfile() {
   const { data: followersCount = 0 } = useQuery({
     queryKey: ["followers-count", id],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from("follows")
-        .select("*", { count: "exact", head: true })
+        .select("follower_id")
         .eq("target_id", id!)
-        .eq("target_type", "USER");
-      return count ?? 0;
+        .eq("target_type", "USER")
+        .limit(500);
+      if (!data || data.length === 0) return 0;
+      const ids = [...new Set(data.map((f) => f.follower_id))];
+      const { count: profileCount } = await supabase
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .in("user_id", ids)
+        .not("name", "is", null);
+      return profileCount ?? 0;
     },
     enabled: !!id,
   });
@@ -376,12 +384,20 @@ export default function UserProfile() {
   const { data: followingCount = 0 } = useQuery({
     queryKey: ["following-count", id],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from("follows")
-        .select("*", { count: "exact", head: true })
+        .select("target_id")
         .eq("follower_id", id!)
-        .eq("target_type", "USER");
-      return count ?? 0;
+        .eq("target_type", "USER")
+        .limit(500);
+      if (!data || data.length === 0) return 0;
+      const ids = [...new Set(data.map((f) => f.target_id))];
+      const { count: profileCount } = await supabase
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .in("user_id", ids)
+        .not("name", "is", null);
+      return profileCount ?? 0;
     },
     enabled: !!id,
   });
