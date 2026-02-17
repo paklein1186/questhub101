@@ -424,6 +424,108 @@ export type Database = {
           },
         ]
       }
+      broadcast_messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_url: string | null
+          audience_segments: Json | null
+          content: string
+          created_at: string
+          id: string
+          link_url: string | null
+          sender_entity_id: string | null
+          sender_entity_type: string | null
+          sender_label: string | null
+          sender_user_id: string
+          subject: string | null
+          total_failed: number
+          total_recipients: number
+          total_sent: number
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          audience_segments?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          sender_entity_id?: string | null
+          sender_entity_type?: string | null
+          sender_label?: string | null
+          sender_user_id: string
+          subject?: string | null
+          total_failed?: number
+          total_recipients?: number
+          total_sent?: number
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
+          audience_segments?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          link_url?: string | null
+          sender_entity_id?: string | null
+          sender_entity_type?: string | null
+          sender_label?: string | null
+          sender_user_id?: string
+          subject?: string | null
+          total_failed?: number
+          total_recipients?: number
+          total_sent?: number
+        }
+        Relationships: []
+      }
+      broadcast_recipients: {
+        Row: {
+          broadcast_id: string
+          conversation_id: string | null
+          created_at: string
+          delivered_at: string | null
+          id: string
+          read_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          broadcast_id: string
+          conversation_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          read_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          read_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_recipients_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "broadcast_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "broadcast_recipients_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_busy_events: {
         Row: {
           connection_id: string
