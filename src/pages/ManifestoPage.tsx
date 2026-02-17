@@ -34,7 +34,7 @@ export default function ManifestoPage() {
           </div>
 
           <div className="pt-6 space-y-4">
-            <p>This is our movement, our cooperative, our little rebellion.</p>
+            <p>This is our movement, our coop-like venture, our little rebellion.</p>
             <p>We're not here to take attention.</p>
             <p>We're here to give people <em>their power back</em>.</p>
           </div>
