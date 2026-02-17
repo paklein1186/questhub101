@@ -141,6 +141,8 @@ import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
 import EventSettings from "./pages/EventSettings";
 import CalendarPage from "./pages/CalendarPage";
+import AgentsMarketplace from "./pages/AgentsMarketplace";
+import AgentDetail from "./pages/AgentDetail";
 
 const queryClient = new QueryClient();
 
@@ -243,6 +245,8 @@ const App = () => (
                 <Route path="/what-comes-next" element={<WhatComesNextPage />} />
                 <Route path="/revenue-models" element={<RevenueModelsPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
+                <Route path="/agents" element={<AgentsMarketplace />} />
+                <Route path="/agents/:id" element={<AgentDetail />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
