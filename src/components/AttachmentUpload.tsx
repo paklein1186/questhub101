@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
-import { Paperclip, X, FileText, Image, Film, Music, File, Upload, Heart, Trash2 } from "lucide-react";
+import { Paperclip, X, FileText, Image, Film, Music, File, Upload, Heart, Trash2, Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { AttachmentTargetType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 interface AttachmentUploadProps {
   targetType: AttachmentTargetType;
@@ -198,6 +200,33 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
     onError: () => toast.error("Failed to delete document"),
   });
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+
+  const updateTitle = useMutation({
+    mutationFn: async ({ id, title }: { id: string; title: string }) => {
+      const { error } = await supabase.from("attachments").update({ title } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: listKey });
+      setEditingId(null);
+    },
+  });
+
+  const startEdit = (att: any) => {
+    setEditingId(att.id);
+    setEditTitle(att.title || att.file_name || "");
+  };
+
+  const submitEdit = (id: string) => {
+    if (editTitle.trim()) {
+      updateTitle.mutate({ id, title: editTitle.trim() });
+    } else {
+      setEditingId(null);
+    }
+  };
+
   if (items.length === 0) return null;
 
   return (
@@ -210,37 +239,73 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
           const Icon = getFileIcon(att.mime_type ?? "");
           const isOwner = currentUser.id === att.uploaded_by_user_id;
           const liked = myUpvotes.includes(att.id);
+          const isEditing = editingId === att.id;
+          const displayTitle = (att as any).title || att.file_name || "Untitled";
           return (
-            <div key={att.id} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm group">
-              <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-              <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
-                {att.file_name}
-              </a>
-              <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.file_size ?? 0)}</span>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 shrink-0"
-                onClick={() => toggleLike.mutate(att.id)}
-                disabled={!currentUser.id}
-              >
-                <Heart className={cn("h-3.5 w-3.5 transition-colors", liked ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-              </Button>
-              {(att.upvote_count ?? 0) > 0 && (
-                <span className="text-xs text-muted-foreground -ml-1">{att.upvote_count}</span>
-              )}
-              {isOwner && (
+            <div key={att.id} className="rounded-lg border border-border bg-card px-3 py-2 text-sm group">
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                {isEditing ? (
+                  <div className="flex items-center gap-1 flex-1 min-w-0">
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && submitEdit(att.id)}
+                      className="h-7 text-sm flex-1"
+                      autoFocus
+                    />
+                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => submitEdit(att.id)}>
+                      <Check className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button type="button" size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => setEditingId(null)}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 font-medium hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
+                    {displayTitle}
+                  </a>
+                )}
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-destructive hover:text-destructive"
-                  onClick={() => deleteAttachment.mutate({ id: att.id, file_url: att.file_url })}
+                  className="h-7 w-7 shrink-0"
+                  onClick={() => toggleLike.mutate(att.id)}
+                  disabled={!currentUser.id}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Heart className={cn("h-3.5 w-3.5 transition-colors", liked ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                 </Button>
-              )}
+                {(att.upvote_count ?? 0) > 0 && (
+                  <span className="text-xs text-muted-foreground -ml-1">{att.upvote_count}</span>
+                )}
+                {isOwner && !isEditing && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    onClick={() => startEdit(att)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+                {isOwner && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-destructive hover:text-destructive"
+                    onClick={() => deleteAttachment.mutate({ id: att.id, file_url: att.file_url })}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-1 ml-6 text-xs text-muted-foreground">
+                <span>{formatSize(att.file_size ?? 0)}</span>
+                <span>Uploaded {formatDistanceToNow(new Date(att.created_at), { addSuffix: true })}</span>
+              </div>
             </div>
           );
         })}
