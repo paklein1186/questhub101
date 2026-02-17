@@ -21,6 +21,9 @@ export interface ProfileData {
   instagramUrl: string | null;
   hasCompletedOnboarding: boolean;
   allowWallComments: boolean;
+  isCooperativeMember: boolean;
+  totalSharesA: number;
+  totalSharesB: number;
 }
 
 export function useProfileData(userId: string | undefined) {
@@ -239,6 +242,9 @@ export function useProfileData(userId: string | undefined) {
         instagramUrl: (priv as any)?.instagram_url ?? null,
         hasCompletedOnboarding: (priv as any)?.has_completed_onboarding ?? false,
         allowWallComments: (pub as any)?.allow_wall_comments !== false,
+        isCooperativeMember: (pub as any)?.is_cooperative_member ?? false,
+        totalSharesA: (pub as any)?.total_shares_a ?? 0,
+        totalSharesB: (pub as any)?.total_shares_b ?? 0,
       }
     : null;
 
