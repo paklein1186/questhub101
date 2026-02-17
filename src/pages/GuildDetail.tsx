@@ -7,7 +7,7 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks,
+  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks, Coins, Wallet,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ import { DraftBanner } from "@/components/DraftBanner";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useGuildById, useGuildMembersWithProfiles, useServicesForGuild, useQuestsForGuild, useAchievementsForQuests, usePublicProfile } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
@@ -129,6 +129,18 @@ export default function GuildDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: guild, isLoading } = useGuildById(id);
   const { data: membersData } = useGuildMembersWithProfiles(id);
+  const memberUserIds = useMemo(() => (membersData || []).map((m: any) => m.user_id), [membersData]);
+  const { data: membersCreditSum = 0 } = useQuery({
+    queryKey: ["guild-members-credits", id, memberUserIds],
+    enabled: memberUserIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("credits_balance")
+        .in("user_id", memberUserIds);
+      return (data || []).reduce((sum: number, p: any) => sum + (p.credits_balance ?? 0), 0);
+    },
+  });
   const { data: guildServices } = useServicesForGuild(id);
   const { data: guildQuests } = useQuestsForGuild(id);
   const currentUser = useCurrentUser();
@@ -408,11 +420,19 @@ export default function GuildDetail() {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             <EntityFollowersCount entityId={guild.id} entityType="GUILD" />
             <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
             <button onClick={() => setActiveTab("quests")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
             <button onClick={() => setActiveTab("services")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{services.length}</p><p className="text-sm text-muted-foreground">Services</p></button>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-2xl font-bold text-primary flex items-center justify-center gap-1"><Wallet className="h-5 w-5" />{guild.credits_balance ?? 0}</p>
+              <p className="text-sm text-muted-foreground">Guild Wallet</p>
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <p className="text-2xl font-bold text-muted-foreground flex items-center justify-center gap-1"><Coins className="h-5 w-5" />{membersCreditSum}</p>
+              <p className="text-sm text-muted-foreground">Members' Credits</p>
+            </div>
           </div>
 
           {/* Highlighted posts from Discussion/Posts tab */}
