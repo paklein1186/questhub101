@@ -236,44 +236,58 @@ export default function InboxPage() {
     }
   }, [activeConvId]);
 
-  const [attachment, setAttachment] = useState<{ file: File; preview?: string } | null>(null);
+  const MAX_ATTACHMENTS = 10;
+  const [attachments, setAttachments] = useState<{ file: File; preview?: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isPulseActive = activeConv && isPulseConversation(activeConv);
 
   const handleSend = async () => {
-    if ((!messageText.trim() && !attachment) || !activeConvId || !userId) return;
+    if ((!messageText.trim() && attachments.length === 0) || !activeConvId || !userId) return;
     const text = messageText.trim();
-    const currentAttachment = attachment;
+    const currentAttachments = [...attachments];
     setMessageText("");
-    setAttachment(null);
+    setAttachments([]);
 
-    let attachmentData: { url: string; name: string; type: string; size: number } | undefined;
-    if (currentAttachment) {
+    // Upload all attachments
+    const uploadedFiles: { url: string; name: string; type: string; size: number }[] = [];
+    for (const att of currentAttachments) {
       try {
-        const safeName = sanitizeFileName(currentAttachment.file.name);
-        const path = `${userId}/${Date.now()}-${safeName}`;
-        const { error } = await supabase.storage.from("dm-attachments").upload(path, currentAttachment.file);
+        const safeName = sanitizeFileName(att.file.name);
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${safeName}`;
+        const { error } = await supabase.storage.from("dm-attachments").upload(path, att.file);
         if (error) throw error;
         const { data: urlData } = supabase.storage.from("dm-attachments").getPublicUrl(path);
-        attachmentData = { url: urlData.publicUrl, name: currentAttachment.file.name, type: currentAttachment.file.type, size: currentAttachment.file.size };
+        uploadedFiles.push({ url: urlData.publicUrl, name: att.file.name, type: att.file.type, size: att.file.size });
       } catch (e: any) {
-        toast({ title: "Upload failed", description: e?.message, variant: "destructive" });
-        return;
+        toast({ title: "Upload failed", description: `${att.file.name}: ${e?.message}`, variant: "destructive" });
       }
     }
 
-    // Save user's message first
+    // Send first message with text + first attachment (if any)
+    const firstAttachment = uploadedFiles.shift();
     sendMessage.mutate({
       conversationId: activeConvId,
-      content: text || (attachmentData ? `[File: ${attachmentData.name}]` : ""),
-      ...(attachmentData && {
-        attachment_url: attachmentData.url,
-        attachment_name: attachmentData.name,
-        attachment_type: attachmentData.type,
-        attachment_size: attachmentData.size,
+      content: text || (firstAttachment ? `[File: ${firstAttachment.name}]` : ""),
+      ...(firstAttachment && {
+        attachment_url: firstAttachment.url,
+        attachment_name: firstAttachment.name,
+        attachment_type: firstAttachment.type,
+        attachment_size: firstAttachment.size,
       }),
     } as any);
+
+    // Send remaining attachments as separate messages
+    for (const file of uploadedFiles) {
+      sendMessage.mutate({
+        conversationId: activeConvId,
+        content: `[File: ${file.name}]`,
+        attachment_url: file.url,
+        attachment_name: file.name,
+        attachment_type: file.type,
+        attachment_size: file.size,
+      } as any);
+    }
 
     // If this is a Pulse bot conversation, also call the AI
     if (isPulseActive && text) {
@@ -312,20 +326,36 @@ export default function InboxPage() {
   }, [userId, toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_FILE_SIZE) {
-      toast({ title: "File too large", description: "Maximum size is 25 MB.", variant: "destructive" });
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const remaining = MAX_ATTACHMENTS - attachments.length;
+    if (remaining <= 0) {
+      toast({ title: "Maximum attachments reached", description: `You can attach up to ${MAX_ATTACHMENTS} files.`, variant: "destructive" });
       return;
     }
-    const preview = IMAGE_TYPES.includes(file.type) ? URL.createObjectURL(file) : undefined;
-    setAttachment({ file, preview });
+    const toAdd = files.slice(0, remaining);
+    if (files.length > remaining) {
+      toast({ title: `Only ${remaining} more file(s) allowed`, variant: "destructive" });
+    }
+    const newAttachments: { file: File; preview?: string }[] = [];
+    for (const file of toAdd) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({ title: "File too large", description: `${file.name} exceeds 25 MB.`, variant: "destructive" });
+        continue;
+      }
+      const preview = IMAGE_TYPES.includes(file.type) ? URL.createObjectURL(file) : undefined;
+      newAttachments.push({ file, preview });
+    }
+    setAttachments((prev) => [...prev, ...newAttachments]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeAttachment = () => {
-    if (attachment?.preview) URL.revokeObjectURL(attachment.preview);
-    setAttachment(null);
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => {
+      const att = prev[index];
+      if (att?.preview) URL.revokeObjectURL(att.preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleNewConversation = async () => {
@@ -759,32 +789,34 @@ export default function InboxPage() {
                   </div>
                 </ScrollArea>
 
-                {/* Attachment preview */}
-                {attachment && (
-                  <div className="px-3 pt-2 flex items-center gap-2">
-                    <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-xs max-w-xs">
-                      {attachment.preview ? (
-                        <img src={attachment.preview} alt="" className="h-8 w-8 rounded object-cover" />
-                      ) : (
-                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                      )}
-                      <span className="truncate">{attachment.file.name}</span>
-                      <span className="text-muted-foreground shrink-0">({formatFileSize(attachment.file.size)})</span>
-                      <button onClick={removeAttachment} className="shrink-0 hover:text-destructive transition-colors">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                {/* Attachment previews */}
+                {attachments.length > 0 && (
+                  <div className="px-3 pt-2 flex flex-wrap gap-2">
+                    {attachments.map((att, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 text-xs max-w-xs">
+                        {att.preview ? (
+                          <img src={att.preview} alt="" className="h-8 w-8 rounded object-cover" />
+                        ) : (
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <span className="truncate max-w-[100px]">{att.file.name}</span>
+                        <span className="text-muted-foreground shrink-0">({formatFileSize(att.file.size)})</span>
+                        <button onClick={() => removeAttachment(idx)} className="shrink-0 hover:text-destructive transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
                 {/* Compose */}
                 <div className="p-3 border-t border-border pb-[env(safe-area-inset-bottom,0.75rem)]">
-                  <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" />
+                  <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md" />
                   <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex items-center gap-2"
                   >
-                    <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={sendMessage.isPending || !!attachment} title="Attach file (max 25 MB)">
+                    <Button type="button" variant="ghost" size="icon" className="shrink-0" onClick={() => fileInputRef.current?.click()} disabled={sendMessage.isPending || attachments.length >= MAX_ATTACHMENTS} title={`Attach files (max ${MAX_ATTACHMENTS}, 25 MB each)`}>
                       <Paperclip className="h-4 w-4" />
                     </Button>
                     <MentionTextarea
@@ -799,7 +831,7 @@ export default function InboxPage() {
                         }
                       }}
                     />
-                    <Button type="submit" size="icon" disabled={(!messageText.trim() && !attachment) || sendMessage.isPending || pulseLoading}>
+                    <Button type="submit" size="icon" disabled={(!messageText.trim() && attachments.length === 0) || sendMessage.isPending || pulseLoading}>
                       {pulseLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
                   </form>
