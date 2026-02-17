@@ -59,7 +59,10 @@ export default function TerritoryDetail() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Back link */}
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </button>
 
