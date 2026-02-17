@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare } from "lucide-react";
+import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare, CreditCard, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
@@ -132,6 +133,8 @@ export function QuestProposals({
   const [propTitle, setPropTitle] = useState("");
   const [propDesc, setPropDesc] = useState("");
   const [propCredits, setPropCredits] = useState("");
+  const [propCurrency, setPropCurrency] = useState<"CREDITS" | "FIAT" | "BOTH">("CREDITS");
+  const [propFiatAmount, setPropFiatAmount] = useState("");
 
   const submitProposal = async () => {
     if (!propTitle.trim() || !currentUser.id) return;
@@ -141,7 +144,9 @@ export function QuestProposals({
       proposer_id: currentUser.id,
       title: propTitle.trim(),
       description: propDesc.trim() || null,
-      requested_credits: Number(propCredits) || 0,
+      requested_credits: propCurrency !== "FIAT" ? (Number(propCredits) || 0) : 0,
+      requested_fiat: propCurrency !== "CREDITS" ? (Number(propFiatAmount) || 0) : 0,
+      requested_currency: propCurrency,
       status: "PENDING",
     });
 
@@ -164,8 +169,8 @@ export function QuestProposals({
     });
 
     qc.invalidateQueries({ queryKey: ["quest-proposals", questId] });
-    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits("");
-    toast({ title: "Proposal submitted! +3 XP" });
+    setPropOpen(false); setPropTitle(""); setPropDesc(""); setPropCredits(""); setPropCurrency("CREDITS"); setPropFiatAmount("");
+    toast({ title: "Contribution submitted! +3 XP" });
   };
 
   // ── Upvote toggle ─────────────────────────────────────
@@ -432,15 +437,15 @@ export function QuestProposals({
       {/* ── Proposals list ────────────────────────────── */}
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold flex items-center gap-2">
-          <Send className="h-4 w-4" /> Proposals ({proposals.length})
+          <Send className="h-4 w-4" /> Contributions ({proposals.length})
         </h3>
         {canSubmitProposal && (
           <Dialog open={propOpen} onOpenChange={setPropOpen}>
             <DialogTrigger asChild>
-              <Button size="sm"><Plus className="h-3.5 w-3.5 mr-1" /> Submit Proposal</Button>
+              <Button size="sm"><Plus className="h-3.5 w-3.5 mr-1" /> Submit Contribution</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Submit a Proposal</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>Submit a Contribution</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-2">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Title *</label>
@@ -451,12 +456,32 @@ export function QuestProposals({
                   <Textarea value={propDesc} onChange={e => setPropDesc(e.target.value)} maxLength={1000} className="resize-none min-h-[80px]" placeholder="Explain your approach…" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Requested Credits</label>
-                  <Input type="number" value={propCredits} onChange={e => setPropCredits(e.target.value)} min={0} placeholder="0" />
-                  <p className="text-xs text-muted-foreground mt-1">Credits you'd like from the quest pot</p>
+                  <label className="text-sm font-medium mb-1 block">Payment Currency</label>
+                  <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CREDITS">Credits only</SelectItem>
+                      <SelectItem value="FIAT">Fiat (€) only</SelectItem>
+                      <SelectItem value="BOTH">Credits + Fiat (€)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                {propCurrency !== "FIAT" && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Requested Credits</label>
+                    <Input type="number" value={propCredits} onChange={e => setPropCredits(e.target.value)} min={0} placeholder="0" />
+                    <p className="text-xs text-muted-foreground mt-1">Credits from the quest pot</p>
+                  </div>
+                )}
+                {propCurrency !== "CREDITS" && (
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Requested Amount (€)</label>
+                    <Input type="number" value={propFiatAmount} onChange={e => setPropFiatAmount(e.target.value)} min={0} placeholder="0" />
+                    <p className="text-xs text-muted-foreground mt-1">Payment link will be activated upon admin approval</p>
+                  </div>
+                )}
                 <Button onClick={submitProposal} disabled={!propTitle.trim()} className="w-full">
-                  <Send className="h-4 w-4 mr-1" /> Submit Proposal
+                  <Send className="h-4 w-4 mr-1" /> Submit Contribution
                 </Button>
               </div>
             </DialogContent>
@@ -502,10 +527,38 @@ export function QuestProposals({
                   </div>
                   <h4 className="font-semibold mt-1">{proposal.title}</h4>
                   {proposal.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{proposal.description}</p>}
-                  <div className="flex items-center gap-3 mt-2">
-                    <Badge variant="secondary" className="text-xs">
-                      <Coins className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits requested
-                    </Badge>
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    {proposal.requested_credits > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Coins className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits
+                      </Badge>
+                    )}
+                    {(proposal.requested_fiat > 0) && (
+                      <Badge variant="secondary" className="text-xs">
+                        <CreditCard className="h-3 w-3 mr-1" /> €{proposal.requested_fiat}
+                      </Badge>
+                    )}
+                    {proposal.requested_currency && proposal.requested_currency !== "CREDITS" && (
+                      <Badge variant="outline" className="text-[10px] capitalize">
+                        {proposal.requested_currency === "BOTH" ? "Credits + Fiat" : "Fiat"}
+                      </Badge>
+                    )}
+                    {/* Payment link — only active when accepted and fiat requested */}
+                    {proposal.status === "ACCEPTED" && proposal.requested_fiat > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs text-primary"
+                        onClick={() => {
+                          toast({ title: "Payment link", description: `Fiat payment of €${proposal.requested_fiat} has been validated by the quest admin.` });
+                        }}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" /> Payment Link
+                      </Button>
+                    )}
+                    {proposal.status === "PENDING" && proposal.requested_fiat > 0 && (
+                      <span className="text-[10px] text-muted-foreground italic">Payment link activates on approval</span>
+                    )}
                     <Button
                       variant={hasUpvoted ? "default" : "ghost"}
                       size="sm"

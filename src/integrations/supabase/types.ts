@@ -3689,6 +3689,8 @@ export type Database = {
           proposer_type: string
           quest_id: string
           requested_credits: number
+          requested_currency: string | null
+          requested_fiat: number | null
           status: string
           title: string
           updated_at: string
@@ -3702,6 +3704,8 @@ export type Database = {
           proposer_type?: string
           quest_id: string
           requested_credits?: number
+          requested_currency?: string | null
+          requested_fiat?: number | null
           status?: string
           title: string
           updated_at?: string
@@ -3715,6 +3719,8 @@ export type Database = {
           proposer_type?: string
           quest_id?: string
           requested_credits?: number
+          requested_currency?: string | null
+          requested_fiat?: number | null
           status?: string
           title?: string
           updated_at?: string
