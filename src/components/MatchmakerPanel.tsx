@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Sparkles, Compass, Shield, CircleDot, Users, Briefcase,
   Loader2, AlertCircle, RefreshCw, Lightbulb, Coins, Wrench,
@@ -35,6 +36,7 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const run = async () => {
     setLoading(true);
@@ -46,14 +48,14 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
       if (fnErr) throw fnErr;
       if (res?.error) {
         setError(res.error);
-        toast({ title: "Matchmaker error", description: res.error, variant: "destructive" });
+        toast({ title: t("matchmaker.error"), description: res.error, variant: "destructive" });
       } else {
         setData(res);
       }
     } catch (e: any) {
-      const msg = e.message || "Something went wrong";
+      const msg = e.message || t("errors.somethingWentWrong");
       setError(msg);
-      toast({ title: "Matchmaker unavailable", description: msg, variant: "destructive" });
+      toast({ title: t("matchmaker.unavailable"), description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -63,14 +65,14 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
     return (
       <div className={`rounded-xl border border-dashed border-primary/30 bg-primary/5 ${compact ? "p-3" : "p-5"} text-center`}>
         <Sparkles className="h-5 w-5 text-primary mx-auto mb-2" />
-        <p className="text-sm font-medium mb-1">AI Matchmaker</p>
+        <p className="text-sm font-medium mb-1">{t("matchmaker.title")}</p>
         <p className="text-xs text-muted-foreground mb-3">
-          {matchType === "user" && "Discover quests, guilds, and collaborators tailored to you."}
-          {matchType === "guild" && "Find ideal members and quests for this guild."}
-          {matchType === "quest" && "Identify proposers, missing skills, and funding partners."}
+          {matchType === "user" && t("matchmaker.userDesc")}
+          {matchType === "guild" && t("matchmaker.guildDesc")}
+          {matchType === "quest" && t("matchmaker.questDesc")}
         </p>
         <Button size="sm" onClick={run} disabled={loading}>
-          <Sparkles className="h-4 w-4 mr-1" /> Get Recommendations
+          <Sparkles className="h-4 w-4 mr-1" /> {t("matchmaker.getRecommendations")}
         </Button>
       </div>
     );
@@ -80,7 +82,7 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-center">
         <Loader2 className="h-5 w-5 animate-spin text-primary mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Analyzing your profile...</p>
+        <p className="text-sm text-muted-foreground">{t("matchmaker.analyzing")}</p>
       </div>
     );
   }
@@ -90,7 +92,7 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-center">
         <AlertCircle className="h-5 w-5 text-destructive mx-auto mb-2" />
         <p className="text-sm text-destructive mb-2">{error}</p>
-        <Button size="sm" variant="outline" onClick={run}><RefreshCw className="h-4 w-4 mr-1" /> Retry</Button>
+        <Button size="sm" variant="outline" onClick={run}><RefreshCw className="h-4 w-4 mr-1" /> {t("common.retry")}</Button>
       </div>
     );
   }
@@ -98,42 +100,38 @@ export function MatchmakerPanel({ matchType, userId, guildId, questId, compact }
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
       className="rounded-xl border border-primary/20 bg-card p-5 space-y-4">
-      {/* Summary */}
       {data.summary && (
         <p className="text-sm leading-relaxed">{data.summary}</p>
       )}
 
-      {/* User matches */}
       {matchType === "user" && (
         <div className="space-y-3">
-          <MatchSection icon={Compass} title="Recommended Quests" items={data.quests} labelKey="title" routePrefix="/quests" />
-          <MatchSection icon={Shield} title="Recommended Guilds" items={data.guilds} labelKey="name" routePrefix="/guilds" />
-          <MatchSection icon={CircleDot} title="Recommended Pods" items={data.pods} labelKey="name" routePrefix="/pods" />
-          <MatchSection icon={Users} title="Collaborators to Seek" items={data.collaborators} labelKey="description" routePrefix="/profile" />
-          <MatchSection icon={Briefcase} title="Services to Explore" items={data.services} labelKey="title" routePrefix="/services" />
+          <MatchSection icon={Compass} title={t("matchmaker.recommendedQuests")} items={data.quests} labelKey="title" routePrefix="/quests" />
+          <MatchSection icon={Shield} title={t("matchmaker.recommendedGuilds")} items={data.guilds} labelKey="name" routePrefix="/guilds" />
+          <MatchSection icon={CircleDot} title={t("matchmaker.recommendedPods")} items={data.pods} labelKey="name" routePrefix="/pods" />
+          <MatchSection icon={Users} title={t("matchmaker.collaborators")} items={data.collaborators} labelKey="description" routePrefix="/profile" />
+          <MatchSection icon={Briefcase} title={t("matchmaker.servicesToExplore")} items={data.services} labelKey="title" routePrefix="/services" />
         </div>
       )}
 
-      {/* Guild matches */}
       {matchType === "guild" && (
         <div className="space-y-3">
-          <MatchSection icon={Users} title="Recommended Members" items={data.recommendedUsers} labelKey="description" routePrefix="/profile" />
-          <MatchSection icon={Compass} title="Recommended Quests" items={data.recommendedQuests} labelKey="title" routePrefix="/quests" />
+          <MatchSection icon={Users} title={t("matchmaker.recommendedMembers")} items={data.recommendedUsers} labelKey="description" routePrefix="/profile" />
+          <MatchSection icon={Compass} title={t("matchmaker.recommendedQuests")} items={data.recommendedQuests} labelKey="title" routePrefix="/quests" />
         </div>
       )}
 
-      {/* Quest matches */}
       {matchType === "quest" && (
         <div className="space-y-3">
-          <MatchSection icon={Users} title="Potential Proposers" items={data.proposers} labelKey="description" routePrefix="/profile" />
-          <MatchSection icon={Wrench} title="Missing Skills" items={data.missingSkills} labelKey="skill" extraKey="suggestion" />
-          <MatchSection icon={Coins} title="Funding Partners" items={data.fundingPartners} labelKey="description" routePrefix="/companies" />
+          <MatchSection icon={Users} title={t("matchmaker.potentialProposers")} items={data.proposers} labelKey="description" routePrefix="/profile" />
+          <MatchSection icon={Wrench} title={t("matchmaker.missingSkills")} items={data.missingSkills} labelKey="skill" extraKey="suggestion" />
+          <MatchSection icon={Coins} title={t("matchmaker.fundingPartners")} items={data.fundingPartners} labelKey="description" routePrefix="/companies" />
         </div>
       )}
 
       <div className="flex justify-end">
         <Button size="sm" variant="ghost" onClick={run}>
-          <RefreshCw className="h-3.5 w-3.5 mr-1" /> Regenerate
+          <RefreshCw className="h-3.5 w-3.5 mr-1" /> {t("common.regenerate")}
         </Button>
       </div>
     </motion.div>
