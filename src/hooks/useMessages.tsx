@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 export interface Conversation {
   id: string;
@@ -29,12 +29,30 @@ export interface DirectMessage {
   attachment_name?: string | null;
   attachment_type?: string | null;
   attachment_size?: number | null;
+  sender_label?: string | null;
   sender?: { name: string; avatar_url: string | null };
 }
 
 export function useConversations() {
   const { session } = useAuth();
   const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  // Global realtime: listen for any new DM to refresh conversation list
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel("inbox-global")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "direct_messages" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["conversations", userId] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, queryClient]);
 
   return useQuery({
     queryKey: ["conversations", userId],
@@ -63,12 +81,12 @@ export function useConversations() {
 
       if (!convs?.length) return [];
 
-      // Get all participants for these conversations via RPC (bypasses RLS safely)
+      // Get all participants via RPC
       const { data: allParticipants } = await supabase
         .rpc("get_conversation_participants", { conv_ids: convIds });
 
       // Get profile info for all participants
-      const allUserIds = [...new Set(allParticipants?.map((p) => p.user_id) ?? [])];
+      const allUserIds = [...new Set(allParticipants?.map((p: any) => p.user_id) ?? [])];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, name, avatar_url")
@@ -78,47 +96,55 @@ export function useConversations() {
         (profiles ?? []).map((p) => [p.user_id, p])
       );
 
-      // Get last message for each conversation
-      const results: Conversation[] = [];
-      for (const conv of convs) {
-        const { data: lastMsg } = await supabase
-          .from("direct_messages")
-          .select("content, created_at, sender_id")
-          .eq("conversation_id", conv.id)
-          .eq("is_deleted", false)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+      // Batch fetch: get last messages and unread counts in parallel
+      const [lastMsgsResult, unreadResults] = await Promise.all([
+        // Get last message per conversation — fetch most recent messages for all convs
+        Promise.all(
+          convs.map((conv) =>
+            supabase
+              .from("direct_messages")
+              .select("content, created_at, sender_id")
+              .eq("conversation_id", conv.id)
+              .eq("is_deleted", false)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
+          )
+        ),
+        // Unread counts in parallel
+        Promise.all(
+          convs.map((conv) =>
+            supabase
+              .from("direct_messages")
+              .select("id", { count: "exact", head: true })
+              .eq("conversation_id", conv.id)
+              .eq("is_deleted", false)
+              .gt("created_at", lastReadMap[conv.id] ?? conv.created_at)
+              .neq("sender_id", userId)
+          )
+        ),
+      ]);
 
-        // Count unread
-        const { count } = await supabase
-          .from("direct_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("conversation_id", conv.id)
-          .eq("is_deleted", false)
-          .gt("created_at", lastReadMap[conv.id] ?? conv.created_at)
-          .neq("sender_id", userId);
-
+      return convs.map((conv, i) => {
         const participants = (allParticipants ?? [])
-          .filter((p) => p.conversation_id === conv.id)
-          .map((p) => ({
+          .filter((p: any) => p.conversation_id === conv.id)
+          .map((p: any) => ({
             user_id: p.user_id,
             name: profileMap[p.user_id]?.name ?? "Unknown",
             avatar_url: profileMap[p.user_id]?.avatar_url ?? null,
           }));
 
-        results.push({
+        return {
           ...conv,
           participants,
-          last_message: lastMsg ?? undefined,
-          unread_count: count ?? 0,
-        });
-      }
-
-      return results;
+          last_message: lastMsgsResult[i]?.data ?? undefined,
+          unread_count: unreadResults[i]?.count ?? 0,
+        };
+      });
     },
     enabled: !!userId,
     refetchInterval: 30000,
+    staleTime: 5000,
   });
 }
 
@@ -158,6 +184,7 @@ export function useConversationMessages(conversationId: string | null) {
       }));
     },
     enabled: !!conversationId,
+    staleTime: 2000,
   });
 
   // Mark as read when viewing
@@ -171,16 +198,16 @@ export function useConversationMessages(conversationId: string | null) {
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
       });
-  }, [conversationId, session?.user?.id]);
+  }, [conversationId, session?.user?.id, queryClient]);
 
-  // Realtime subscription
+  // Realtime subscription — listen for INSERT, UPDATE, DELETE
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
       .channel(`dm-${conversationId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "direct_messages", filter: `conversation_id=eq.${conversationId}` },
+        { event: "*", schema: "public", table: "direct_messages", filter: `conversation_id=eq.${conversationId}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
@@ -189,7 +216,7 @@ export function useConversationMessages(conversationId: string | null) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [conversationId]);
+  }, [conversationId, queryClient]);
 
   return query;
 }
@@ -200,14 +227,13 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: async ({ conversationId, content, attachment_url, attachment_name, attachment_type, attachment_size }: { conversationId: string; content: string; attachment_url?: string; attachment_name?: string; attachment_type?: string; attachment_size?: number }) => {
-      // Insert message
       const { data: msg, error } = await supabase.from("direct_messages").insert({
         conversation_id: conversationId,
         sender_id: session!.user.id,
         content,
         ...(attachment_url && { attachment_url, attachment_name, attachment_type, attachment_size }),
       }).select().single();
-      
+
       if (error) throw error;
 
       // Update conversation updated_at
@@ -216,32 +242,57 @@ export function useSendMessage() {
         .update({ updated_at: new Date().toISOString() })
         .eq("id", conversationId);
 
-      // Trigger email notification edge function
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messageId: msg?.id,
-              conversationId,
-              senderId: session!.user.id,
-              content,
-            }),
-          }
-        );
-        if (!response.ok) {
-          console.error("Failed to send DM notification:", response.statusText);
+      // Trigger email notification (fire-and-forget)
+      fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messageId: msg?.id,
+            conversationId,
+            senderId: session!.user.id,
+            content,
+          }),
         }
-      } catch (err) {
-        console.error("Error triggering DM notification:", err);
+      ).catch((err) => console.error("DM notification error:", err));
+
+      return msg;
+    },
+    // Optimistic update: inject the message immediately
+    onMutate: async ({ conversationId, content, attachment_url, attachment_name, attachment_type, attachment_size }) => {
+      const userId = session!.user.id;
+      await queryClient.cancelQueries({ queryKey: ["messages", conversationId] });
+
+      const previousMessages = queryClient.getQueryData<DirectMessage[]>(["messages", conversationId]);
+
+      const optimisticMsg: DirectMessage = {
+        id: `optimistic-${Date.now()}`,
+        conversation_id: conversationId,
+        sender_id: userId,
+        content,
+        created_at: new Date().toISOString(),
+        is_deleted: false,
+        attachment_url: attachment_url ?? null,
+        attachment_name: attachment_name ?? null,
+        attachment_type: attachment_type ?? null,
+        attachment_size: attachment_size ? Number(attachment_size) : null,
+        sender: { name: "You", avatar_url: null },
+      };
+
+      queryClient.setQueryData<DirectMessage[]>(["messages", conversationId], (old = []) => [...old, optimisticMsg]);
+
+      return { previousMessages, conversationId };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousMessages !== undefined) {
+        queryClient.setQueryData(["messages", context.conversationId], context.previousMessages);
       }
     },
-    onSuccess: (_, { conversationId }) => {
+    onSettled: (_data, _err, { conversationId }) => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
@@ -260,9 +311,25 @@ export function useDeleteMessage() {
       if (error) throw error;
       return conversationId;
     },
-    onSuccess: (conversationId) => {
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    // Optimistic delete
+    onMutate: async ({ messageId, conversationId }) => {
+      await queryClient.cancelQueries({ queryKey: ["messages", conversationId] });
+      const previousMessages = queryClient.getQueryData<DirectMessage[]>(["messages", conversationId]);
+      queryClient.setQueryData<DirectMessage[]>(["messages", conversationId], (old = []) =>
+        old.map((m) => m.id === messageId ? { ...m, is_deleted: true } : m)
+      );
+      return { previousMessages, conversationId };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousMessages !== undefined) {
+        queryClient.setQueryData(["messages", context.conversationId], context.previousMessages);
+      }
+    },
+    onSettled: (conversationId) => {
+      if (conversationId) {
+        queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      }
     },
   });
 }
@@ -279,8 +346,24 @@ export function useEditMessage() {
       if (error) throw error;
       return conversationId;
     },
-    onSuccess: (conversationId) => {
-      queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+    // Optimistic edit
+    onMutate: async ({ messageId, content, conversationId }) => {
+      await queryClient.cancelQueries({ queryKey: ["messages", conversationId] });
+      const previousMessages = queryClient.getQueryData<DirectMessage[]>(["messages", conversationId]);
+      queryClient.setQueryData<DirectMessage[]>(["messages", conversationId], (old = []) =>
+        old.map((m) => m.id === messageId ? { ...m, content } : m)
+      );
+      return { previousMessages, conversationId };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousMessages !== undefined) {
+        queryClient.setQueryData(["messages", context.conversationId], context.previousMessages);
+      }
+    },
+    onSettled: (conversationId) => {
+      if (conversationId) {
+        queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
+      }
     },
   });
 }
@@ -290,13 +373,11 @@ export function useAddParticipants() {
 
   return useMutation({
     mutationFn: async ({ conversationId, userIds, makeGroup, title }: { conversationId: string; userIds: string[]; makeGroup?: boolean; title?: string }) => {
-      // Add participants
       const { error } = await supabase
         .from("conversation_participants")
         .insert(userIds.map((uid) => ({ conversation_id: conversationId, user_id: uid })));
       if (error) throw error;
 
-      // Convert to group if needed
       if (makeGroup) {
         await supabase
           .from("conversations")
@@ -335,7 +416,6 @@ export function useCreateConversation() {
 
           if (otherConvs?.length) {
             for (const conv of otherConvs) {
-              // Check it's a non-group conversation with exactly 2 participants
               const { data: convData } = await supabase
                 .from("conversations")
                 .select("id, is_group")
@@ -354,7 +434,6 @@ export function useCreateConversation() {
         }
       }
 
-      // Create new conversation
       const { data: conv, error } = await supabase
         .from("conversations")
         .insert({
@@ -367,7 +446,6 @@ export function useCreateConversation() {
 
       if (error || !conv) throw error ?? new Error("Failed to create conversation");
 
-      // Add all participants including self
       const allIds = [...new Set([userId, ...participantIds])];
       const { error: pError } = await supabase
         .from("conversation_participants")

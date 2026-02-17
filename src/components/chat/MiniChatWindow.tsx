@@ -50,8 +50,11 @@ export function MiniChatWindow({ bubble, index }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length === 0) return;
+    requestAnimationFrame(() => {
+      endRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+    });
+  }, [messages.length]);
 
   const handleSend = () => {
     if (!text.trim()) return;
