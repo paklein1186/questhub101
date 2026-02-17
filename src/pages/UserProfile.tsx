@@ -436,6 +436,7 @@ export default function UserProfile() {
     return next;
   }, { replace: true });
   const [showCreateUnit, setShowCreateUnit] = useState(false);
+  const [topicsExpanded, setTopicsExpanded] = useState(false);
   const [followDialogMode, setFollowDialogMode] = useState<"followers" | "following" | null>(null);
   const [followedEntityDialog, setFollowedEntityDialog] = useState<"GUILD" | "QUEST" | null>(null);
   const [listDialog, setListDialog] = useState<string | null>(null);
@@ -556,35 +557,46 @@ export default function UserProfile() {
               const creativeHouses = topics.filter((t: any) => (t.universe_type) === "creative");
               const showImpact = persona !== "CREATIVE" || impactTopics.length > 0;
               const showCreative = (persona === "CREATIVE" || persona === "HYBRID" || creativeHouses.length > 0);
+              const housesLimit = topicsExpanded ? creativeHouses.length : 4;
+              const topicsLimit = topicsExpanded ? impactTopics.length : 6;
               return (
                 <>
                   {showCreative && creativeHouses.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {creativeHouses.slice(0, 4).map((t: any) => (
+                      {creativeHouses.slice(0, housesLimit).map((t: any) => (
                         <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
                           <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-accent/10 text-accent-foreground border-accent/20">
                             <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
                           </Badge>
                         </Link>
                       ))}
-                      {creativeHouses.length > 4 && (
-                        <Badge variant="outline" className="text-[10px]">+{creativeHouses.length - 4}</Badge>
+                      {!topicsExpanded && creativeHouses.length > 4 && (
+                        <button onClick={() => setTopicsExpanded(true)}>
+                          <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">+{creativeHouses.length - 4}</Badge>
+                        </button>
                       )}
                     </div>
                   )}
                   {showImpact && impactTopics.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {impactTopics.slice(0, 6).map((t: any) => (
+                      {impactTopics.slice(0, topicsLimit).map((t: any) => (
                         <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
                           <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80">
                             <Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}
                           </Badge>
                         </Link>
                       ))}
-                      {impactTopics.length > 6 && (
-                        <Badge variant="outline" className="text-[10px]">+{impactTopics.length - 6}</Badge>
+                      {!topicsExpanded && impactTopics.length > 6 && (
+                        <button onClick={() => setTopicsExpanded(true)}>
+                          <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">+{impactTopics.length - 6}</Badge>
+                        </button>
                       )}
                     </div>
+                  )}
+                  {topicsExpanded && (creativeHouses.length > 4 || impactTopics.length > 6) && (
+                    <button onClick={() => setTopicsExpanded(false)} className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+                      Show less
+                    </button>
                   )}
                 </>
               );
@@ -624,38 +636,7 @@ export default function UserProfile() {
         {/* ─── Overview ─── */}
         <TabsContent value="overview">
           <div className="space-y-8">
-            {/* Bio */}
-            {profile.bio && <AboutSection bio={profile.bio} />}
-
-            {/* Activity summary */}
-            <ActivitySummary
-              name={profile.name.split(" ")[0]}
-              questsCreated={filteredQuestsCreated}
-              questsJoined={filteredQuestsJoined}
-              guilds={filteredGuilds}
-              pods={filteredPods}
-              companies={filteredCompanies}
-              services={filteredServices}
-              topics={topics}
-              territories={territories}
-              persona={persona}
-            />
-
-            {/* Stat badges */}
-            <div className="flex flex-wrap gap-3">
-              <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
-              <StatCard icon={Users} label="Following people" count={followingCount} onClick={() => setFollowDialogMode("following")} />
-              <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />
-              <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />
-              <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />
-              <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
-              <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
-              <StatCard icon={CircleDot} label="Pods" count={filteredPods.length} onClick={() => setListDialog("pods")} />
-              <StatCard icon={Building2} label="Organizations" count={filteredCompanies.length} onClick={() => setListDialog("companies")} />
-              <StatCard icon={Briefcase} label={serviceLabel} count={filteredServices.length} onClick={() => setListDialog("services")} />
-            </div>
-
-            {/* Entities preview */}
+            {/* Entities preview — shown first */}
             {totalEntities > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-3">
@@ -707,6 +688,37 @@ export default function UserProfile() {
                 </div>
               </section>
             )}
+
+            {/* Bio */}
+            {profile.bio && <AboutSection bio={profile.bio} />}
+
+            {/* Activity summary */}
+            <ActivitySummary
+              name={profile.name.split(" ")[0]}
+              questsCreated={filteredQuestsCreated}
+              questsJoined={filteredQuestsJoined}
+              guilds={filteredGuilds}
+              pods={filteredPods}
+              companies={filteredCompanies}
+              services={filteredServices}
+              topics={topics}
+              territories={territories}
+              persona={persona}
+            />
+
+            {/* Stat badges */}
+            <div className="flex flex-wrap gap-3">
+              <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
+              <StatCard icon={Users} label="Following people" count={followingCount} onClick={() => setFollowDialogMode("following")} />
+              <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />
+              <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />
+              <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />
+              <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
+              <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
+              <StatCard icon={CircleDot} label="Pods" count={filteredPods.length} onClick={() => setListDialog("pods")} />
+              <StatCard icon={Building2} label="Organizations" count={filteredCompanies.length} onClick={() => setListDialog("companies")} />
+              <StatCard icon={Briefcase} label={serviceLabel} count={filteredServices.length} onClick={() => setListDialog("services")} />
+            </div>
 
 
             {/* Featured items */}
