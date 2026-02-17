@@ -141,7 +141,9 @@ export default function GuildDetail() {
       return (data || []).reduce((sum: number, p: any) => sum + (p.credits_balance ?? 0), 0);
     },
   });
-  const { data: guildServices } = useServicesForGuild(id);
+  const _fc = typeof guild?.features_config === "object" && guild?.features_config ? guild.features_config : {};
+  const showMemberServices = (_fc as any).showMemberServices !== false;
+  const { data: guildServices } = useServicesForGuild(id, showMemberServices);
   const { data: guildQuests } = useQuestsForGuild(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
