@@ -189,10 +189,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
     try {
       const { data, error } = await supabase.functions.invoke("home-assistant", {
         body: {
-          messages: [
-            {
-              role: "user",
-              content: `I'm creating a ${t(KIND_CONFIG[kind].labelKey)} on a collaborative ecosystem platform. 
+          message: `I'm creating a ${t(KIND_CONFIG[kind].labelKey)} on a collaborative ecosystem platform. 
 My mission/purpose: "${mission}"
 
 Based on this, suggest:
@@ -202,23 +199,23 @@ Based on this, suggest:
 
 Respond ONLY in this exact JSON format, no markdown:
 {"name": "...", "description": "...", "sector": "..."}`
-            }
-          ]
         }
       });
 
+      if (error) throw error;
+
       if (data) {
+        // home-assistant returns parsed JSON with a "message" field containing the AI text
         let responseText = "";
         if (typeof data === "string") responseText = data;
+        else if (data.message) responseText = data.message;
         else if (data.choices?.[0]?.message?.content) responseText = data.choices[0].message.content;
-        else if (data.content) responseText = data.content;
 
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed.name && !name) setName(parsed.name);
           if (parsed.description) setDescription(parsed.description);
-          // sector from AI is discarded (redundant with topics)
           toast({ title: "AI suggestions applied!", description: "Review and adjust the pre-filled fields." });
         }
       }
