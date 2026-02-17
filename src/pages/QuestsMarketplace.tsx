@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks, Target, HandCoins } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -193,6 +194,38 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                       </div>
                     ) : null;
                   })()}
+                  {/* Funding progress bar */}
+                  {(quest as any).allow_fundraising && (quest as any).funding_goal_credits > 0 && (
+                    <div className="mb-3 space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <HandCoins className="h-3 w-3" /> Fundraising
+                        </span>
+                        <span className="font-medium text-primary">
+                          {(quest as any).escrow_credits ?? 0} / {(quest as any).funding_goal_credits} Cr
+                        </span>
+                      </div>
+                      <Progress
+                        value={Math.min(100, (((quest as any).escrow_credits ?? 0) / (quest as any).funding_goal_credits) * 100)}
+                        className="h-1.5"
+                      />
+                    </div>
+                  )}
+                  {/* Reward badges */}
+                  {((quest as any).credit_reward > 0 || quest.reward_xp > 0) && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {quest.reward_xp > 0 && (
+                        <Badge variant="secondary" className="text-[10px] gap-0.5">
+                          <Zap className="h-3 w-3 text-primary" /> {quest.reward_xp} XP
+                        </Badge>
+                      )}
+                      {(quest as any).credit_reward > 0 && (
+                        <Badge variant="secondary" className="text-[10px] gap-0.5">
+                          <Coins className="h-3 w-3 text-primary" /> {(quest as any).credit_reward} Credits
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{(quest as any).guilds?.name}</span>
                     <div className="flex gap-1.5 flex-wrap items-center">
@@ -206,12 +239,6 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
                       <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
                       {(quest as any).price_fiat > 0 && (
                         <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
-                      )}
-                      {(quest as any).credit_reward > 0 && (
-                        <Badge variant="secondary"><Coins className="h-3 w-3 mr-0.5" />{(quest as any).credit_reward} Cr</Badge>
-                      )}
-                      {(quest as any).price_fiat === 0 && (quest as any).credit_reward === 0 && (
-                        <Badge variant="secondary">Free</Badge>
                       )}
                     </div>
                   </div>
