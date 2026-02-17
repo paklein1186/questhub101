@@ -64,12 +64,13 @@ export default function QuestSettings() {
 
 /* ─── Campaign form state ─── */
 interface CampaignForm {
-  amount: string;
+  title: string;
+  goal_amount: string;
   type: "CREDITS" | "FIAT";
   currency: string;
   status: string;
 }
-const emptyCampaign: CampaignForm = { amount: "0", type: "CREDITS", currency: "EUR", status: "PAID" };
+const emptyCampaign: CampaignForm = { title: "", goal_amount: "0", type: "CREDITS", currency: "EUR", status: "ACTIVE" };
 
 function QuestSettingsInner({ questId, quest }: { questId: string; quest: any }) {
   const currentUser = useCurrentUser();
@@ -92,10 +93,10 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
 
   // ── Campaigns CRUD ──
   const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: ["quest-funding", questId],
+    queryKey: ["quest-campaigns", questId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("quest_funding")
+        .from("quest_campaigns" as any)
         .select("*")
         .eq("quest_id", questId)
         .order("created_at", { ascending: false });
@@ -116,34 +117,35 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   };
   const openEdit = (c: any) => {
     setEditingId(c.id);
-    setForm({ amount: String(c.amount), type: c.type, currency: c.currency || "EUR", status: c.status });
+    setForm({ title: c.title || "", goal_amount: String(c.goal_amount), type: c.type, currency: c.currency || "EUR", status: c.status });
     setDialogOpen(true);
   };
   const saveCampaign = async () => {
     setSaving(true);
     const payload: any = {
-      amount: Number(form.amount) || 0,
+      title: form.title,
+      goal_amount: Number(form.goal_amount) || 0,
       type: form.type,
       currency: form.currency,
       status: form.status,
     };
     if (editingId) {
-      await supabase.from("quest_funding").update(payload).eq("id", editingId);
+      await supabase.from("quest_campaigns" as any).update(payload).eq("id", editingId);
       toast({ title: "Campaign updated" });
     } else {
       payload.quest_id = questId;
-      payload.funder_user_id = currentUser.id;
-      await supabase.from("quest_funding").insert(payload);
+      payload.created_by_user_id = currentUser.id;
+      await supabase.from("quest_campaigns" as any).insert(payload);
       toast({ title: "Campaign created" });
     }
-    qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
     setSaving(false);
     setDialogOpen(false);
   };
   const deleteCampaign = async (id: string) => {
-    if (!confirm("Delete this funding entry?")) return;
-    await supabase.from("quest_funding").delete().eq("id", id);
-    qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+    if (!confirm("Delete this campaign?")) return;
+    await supabase.from("quest_campaigns" as any).delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
     toast({ title: "Campaign deleted" });
   };
 
@@ -177,9 +179,9 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   };
 
   const statusColor = (s: string) => {
-    if (s === "PAID") return "bg-green-500/10 text-green-700 border-green-500/30";
-    if (s === "REFUNDED") return "bg-orange-500/10 text-orange-700 border-orange-500/30";
-    if (s === "PENDING") return "bg-yellow-500/10 text-yellow-700 border-yellow-500/30";
+    if (s === "ACTIVE") return "bg-green-500/10 text-green-700 border-green-500/30";
+    if (s === "COMPLETED") return "bg-blue-500/10 text-blue-700 border-blue-500/30";
+    if (s === "CANCELLED") return "bg-orange-500/10 text-orange-700 border-orange-500/30";
     return "bg-muted text-muted-foreground";
   };
 
@@ -283,28 +285,38 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       <p className="text-sm text-muted-foreground text-center py-4">No funding campaigns yet.</p>
                     ) : (
                       <div className="space-y-2">
-                        {campaigns.map((c: any) => (
-                          <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-background p-3 gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-sm">{c.amount} {c.type === "FIAT" ? (c.currency || "EUR") : "Credits"}</span>
-                                <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
-                                {c.refunded_at && <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-700 border-orange-500/30">Refunded</Badge>}
+                        {campaigns.map((c: any) => {
+                          const pct = c.goal_amount > 0 ? Math.min(100, Math.round((c.raised_amount / c.goal_amount) * 100)) : 0;
+                          return (
+                            <div key={c.id} className="rounded-lg border border-border bg-background p-3 space-y-2">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-medium text-sm">{c.title || "Untitled campaign"}</span>
+                                    <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "Credits"} · Raised: {c.raised_amount}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(c)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteCampaign(c.id)}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                {new Date(c.created_at).toLocaleDateString()} · {c.type}
-                              </p>
+                              {c.goal_amount > 0 && (
+                                <div className="w-full bg-muted rounded-full h-2">
+                                  <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                              )}
+                              <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}{c.goal_amount > 0 ? ` · ${pct}% funded` : ""}</p>
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(c)}>
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteCampaign(c.id)}>
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
@@ -411,13 +423,17 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Campaign" : "New Funding Campaign"}</DialogTitle>
             <DialogDescription>
-              {editingId ? "Update the funding campaign details." : "Create a new funding entry for this quest."}
+              {editingId ? "Update the campaign details." : "Create a new funding campaign with a goal to reach."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">Amount</label>
-              <Input type="number" min={0} value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+              <label className="text-sm font-medium mb-1 block">Campaign Title</label>
+              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Seed round, Community fund…" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Goal Amount</label>
+              <Input type="number" min={0} value={form.goal_amount} onChange={e => setForm(f => ({ ...f, goal_amount: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -440,9 +456,8 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
               <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PAID">Paid</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="REFUNDED">Refunded</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
                   <SelectItem value="CANCELLED">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
