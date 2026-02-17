@@ -5576,6 +5576,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      transfer_credits: {
+        Args: {
+          _amount: number
+          _note?: string
+          _source_guild_id?: string
+          _target_id: string
+          _target_type: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "superadmin"

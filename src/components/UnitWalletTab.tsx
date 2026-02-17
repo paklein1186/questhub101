@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Coins, History, Loader2, Package, Filter,
-  ArrowDownRight, ArrowUpRight, Info,
+  ArrowDownRight, ArrowUpRight, Info, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { CREDIT_BUNDLES } from "@/lib/xpCreditsConfig";
+import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -22,6 +23,8 @@ const TX_TYPE_LABELS: Record<string, string> = {
   QUEST_REWARD_EARNED: "Quest reward earned",
   ADMIN_ADJUSTMENT: "Admin adjustment",
   SUBSCRIPTION_MONTHLY_CREDIT: "Monthly plan credits",
+  TRANSFER_IN: "Credits received",
+  TRANSFER_OUT: "Credits sent",
 };
 
 interface UnitWalletTabProps {
@@ -36,6 +39,7 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
   const { toast } = useToast();
   const [buyLoading, setBuyLoading] = useState<string | null>(null);
   const [txFilter, setTxFilter] = useState("all");
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const { data: transactions = [], isLoading: txLoading } = useQuery({
     queryKey: ["unit-credit-transactions", unitType, unitId],
@@ -78,16 +82,33 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
     <div className="space-y-6 max-w-lg">
       {/* Balance */}
       <Section title="Unit Credits" icon={<Coins className="h-5 w-5" />}>
-        <div className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-3 mb-3">
-          <Coins className="h-6 w-6 text-primary" />
-          <div>
-            <p className="text-2xl font-bold">{creditsBalance}</p>
-            <p className="text-xs text-muted-foreground">Credits</p>
+        <div className="flex flex-wrap items-center gap-4 mb-3">
+          <div className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-3">
+            <Coins className="h-6 w-6 text-primary" />
+            <div>
+              <p className="text-2xl font-bold">{creditsBalance}</p>
+              <p className="text-xs text-muted-foreground">Credits</p>
+            </div>
           </div>
+          {unitType === "GUILD" && (
+            <Button variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+              <Send className="h-4 w-4 mr-1" /> Send to Member
+            </Button>
+          )}
         </div>
         <p className="text-xs text-muted-foreground">
           These credits belong to <strong>{unitName}</strong> and can be used for quests, events, or services hosted by this unit.
         </p>
+
+        {unitType === "GUILD" && (
+          <TransferCreditsDialog
+            open={transferOpen}
+            onOpenChange={setTransferOpen}
+            sourceGuildId={unitId}
+            sourceGuildName={unitName}
+            currentBalance={creditsBalance}
+          />
+        )}
       </Section>
 
       <Separator />
