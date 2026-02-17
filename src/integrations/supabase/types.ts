@@ -256,6 +256,7 @@ export type Database = {
           mime_type: string | null
           target_id: string
           target_type: string
+          title: string | null
           uploaded_by_user_id: string
           upvote_count: number
         }
@@ -268,6 +269,7 @@ export type Database = {
           mime_type?: string | null
           target_id: string
           target_type: string
+          title?: string | null
           uploaded_by_user_id: string
           upvote_count?: number
         }
@@ -280,6 +282,7 @@ export type Database = {
           mime_type?: string | null
           target_id?: string
           target_type?: string
+          title?: string | null
           uploaded_by_user_id?: string
           upvote_count?: number
         }
