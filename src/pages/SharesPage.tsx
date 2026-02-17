@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { usePersona } from "@/hooks/usePersona";
 import { getLabel } from "@/lib/personaLabels";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const CLASS_A_MAILTO = "mailto:pa@changethegame.xyz?subject=Class%20A%20Membership%20Application";
 
@@ -61,6 +62,27 @@ function useProfileShares(userId?: string) {
   });
 }
 
+function useAllShareholders() {
+  return useQuery({
+    queryKey: ["all-shareholders"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, total_shares_a, total_shares_b")
+        .eq("is_cooperative_member", true)
+        .order("total_shares_a", { ascending: false });
+      return (data ?? []) as {
+        user_id: string;
+        name: string;
+        avatar_url: string | null;
+        total_shares_a: number;
+        total_shares_b: number;
+      }[];
+    },
+    staleTime: 60_000,
+  });
+}
+
 export default function SharesPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -68,6 +90,7 @@ export default function SharesPage() {
   const { data: holdings = [], isLoading } = useShareholdings(user?.id);
   const { data: settings = {} } = useCoopSettings();
   const { data: profile } = useProfileShares(user?.id);
+  const { data: shareholders = [] } = useAllShareholders();
   const [quantity, setQuantity] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
   const [showBuyB, setShowBuyB] = useState(false);
@@ -332,6 +355,51 @@ export default function SharesPage() {
               </table>
             </div>
           </div>
+        )}
+
+        {/* ═══ Shareholders ═══ */}
+        {shareholders.length > 0 && (
+          <>
+            <Separator />
+            <div className="space-y-4">
+              <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" /> Shareholders
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {shareholders.map((s) => {
+                  const hasA = (s.total_shares_a ?? 0) > 0;
+                  const hasB = (s.total_shares_b ?? 0) > 0;
+                  return (
+                    <Link
+                      key={s.user_id}
+                      to={`/profile/${s.user_id}`}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <Avatar className="h-10 w-10 shrink-0">
+                        <AvatarImage src={s.avatar_url || undefined} />
+                        <AvatarFallback className="text-sm">{(s.name || "?")[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{s.name}</p>
+                        <div className="flex gap-1 mt-0.5 flex-wrap">
+                          {hasA && (
+                            <Badge className="text-[10px] bg-primary/10 text-primary border-0 px-1.5 py-0">
+                              <Shield className="h-2.5 w-2.5 mr-0.5" /> Strategic
+                            </Badge>
+                          )}
+                          {hasB && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              <Users className="h-2.5 w-2.5 mr-0.5" /> Community
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </PageShell>
