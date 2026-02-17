@@ -193,8 +193,9 @@ export default function Onboarding() {
       const raw = localStorage.getItem("guestOnboardingContext") || sessionStorage.getItem("guestOnboardingContext");
       if (raw) {
         const ctx = JSON.parse(raw);
-        if (ctx.interest_topic_ids?.length > 0) {
-          const topicRows = ctx.interest_topic_ids.map((topicId: string) => ({
+        const guestTopicIds = Array.isArray(ctx.interest_topic_ids) ? ctx.interest_topic_ids : [];
+        if (guestTopicIds.length > 0) {
+          const topicRows = guestTopicIds.map((topicId: string) => ({
             user_id: authUser.id,
             topic_id: topicId,
           }));
@@ -203,12 +204,18 @@ export default function Onboarding() {
             .upsert(topicRows, { onConflict: "user_id,topic_id", ignoreDuplicates: true });
           // Merge into local state
           setSelectedTopics(prev => {
-            const merged = new Set([...prev, ...ctx.interest_topic_ids]);
+            const merged = new Set([...prev, ...guestTopicIds]);
             return Array.from(merged);
           });
           delete ctx.interest_topic_ids;
           localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
           sessionStorage.removeItem("guestOnboardingContext");
+        }
+        // Set the persona path based on guest wizard selection
+        if (ctx.persona === "creative") {
+          setIsCreativePath(true);
+        } else if (ctx.persona === "impact" || ctx.persona === "hybrid") {
+          setIsCreativePath(false);
         }
         // Clean up the wizard flag so PostSignupWizard never triggers
         if (ctx.show_post_signup_wizard) {

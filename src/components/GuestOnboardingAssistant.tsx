@@ -324,6 +324,9 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         .filter((id) => id.startsWith("topic:"))
         .map((id) => id.replace("topic:", ""));
 
+      const personaMap: Record<string, string> = { creative: "CREATIVE", impact: "IMPACT", hybrid: "HYBRID", org_rep: "IMPACT" };
+      const mappedPersona = personaMap[selectedPersona || ""] || "IMPACT";
+
       const ctx = {
         persona: selectedPersona === "org_rep" ? "impact" : selectedPersona,
         interests: interestLabels,
@@ -334,12 +337,37 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         is_org_rep: selectedPersona === "org_rep",
         preselected_guild_ids: selectedGuildIds,
         preselected_follow_user_ids: selectedUserIds,
-        show_post_signup_wizard: true,
+        show_post_signup_wizard: false,
       };
       localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
       // Clear dismissal flag so post-signup flows work
       localStorage.removeItem("guestAssistantDismissed");
+
+      // Persist persona + topics to the profile immediately after signup
+      // (use a short delay to allow auth trigger to create the profile row)
+      setTimeout(async () => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const uid = session?.user?.id;
+          if (uid) {
+            await supabase.from("profiles").update({
+              persona_type: mappedPersona,
+              persona_source: "guest_onboarding",
+            }).eq("user_id", uid);
+
+            if (topicIds.length > 0) {
+              const topicRows = topicIds.map((tid: string) => ({ user_id: uid, topic_id: tid }));
+              await supabase.from("user_topics").upsert(topicRows, { onConflict: "user_id,topic_id", ignoreDuplicates: true });
+            }
+          }
+        } catch (e) {
+          console.error("Post-signup persist error:", e);
+        }
+      }, 1500);
+
       handleOpenChange(false);
+      // Navigate to onboarding wizard
+      navigate("/onboarding");
     }
   };
 
