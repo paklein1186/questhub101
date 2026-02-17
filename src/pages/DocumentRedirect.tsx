@@ -27,7 +27,8 @@ export default function DocumentRedirect() {
         return;
       }
 
-      window.location.replace(data.file_url);
+      // Use direct link assignment — works in all contexts including iframes
+      window.location.href = data.file_url;
     })();
   }, [id]);
 
@@ -41,8 +42,9 @@ export default function DocumentRedirect() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">Redirecting to document…</p>
     </div>
   );
 }
