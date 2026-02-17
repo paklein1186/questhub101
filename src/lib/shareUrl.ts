@@ -4,7 +4,7 @@
  * and redirects real browsers to the app.
  */
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 
 /** Production domain used for all shared / invite links */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
@@ -39,21 +39,14 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
  * Real browsers are redirected to the app via meta-refresh.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  if (!SUPABASE_URL) {
-    // Fallback to direct URL if no backend configured
-    const route = ROUTE_MAP[type] || "/" + type + "s";
-    return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
-  }
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
 }
 
 /**
  * Returns an invite link through the OG-share function.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  if (!SUPABASE_URL) {
-    const route = ROUTE_MAP[type] || "/" + type + "s";
-    return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
-  }
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
 }
