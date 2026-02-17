@@ -4217,73 +4217,100 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          ai_agents_enabled: boolean | null
           ai_muse_mode: string
+          broadcast_enabled: boolean | null
           can_create_company: boolean
+          can_create_territory: boolean | null
           code: string
           commission_discount_percentage: number
           created_at: string
           custom_guild_tools: boolean
           description: string | null
           free_quests_per_week: number
+          fundraising_tools_enabled: boolean | null
           id: string
           marketplace_fee_percent: number | null
+          max_attachment_size_mb: number | null
           max_courses: number | null
           max_guild_memberships: number | null
           max_pods: number | null
           max_services_active: number | null
+          max_territories: number | null
+          memory_engine_enabled: boolean | null
           monthly_included_credits: number
           monthly_price_amount: number | null
           monthly_price_currency: string
           name: string
+          partnership_proposals_enabled: boolean | null
           stripe_price_id: string | null
+          territory_intelligence_enabled: boolean | null
           updated_at: string
           visibility_ranking: string
           xp_multiplier: number
         }
         Insert: {
+          ai_agents_enabled?: boolean | null
           ai_muse_mode?: string
+          broadcast_enabled?: boolean | null
           can_create_company?: boolean
+          can_create_territory?: boolean | null
           code: string
           commission_discount_percentage?: number
           created_at?: string
           custom_guild_tools?: boolean
           description?: string | null
           free_quests_per_week?: number
+          fundraising_tools_enabled?: boolean | null
           id?: string
           marketplace_fee_percent?: number | null
+          max_attachment_size_mb?: number | null
           max_courses?: number | null
           max_guild_memberships?: number | null
           max_pods?: number | null
           max_services_active?: number | null
+          max_territories?: number | null
+          memory_engine_enabled?: boolean | null
           monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name: string
+          partnership_proposals_enabled?: boolean | null
           stripe_price_id?: string | null
+          territory_intelligence_enabled?: boolean | null
           updated_at?: string
           visibility_ranking?: string
           xp_multiplier?: number
         }
         Update: {
+          ai_agents_enabled?: boolean | null
           ai_muse_mode?: string
+          broadcast_enabled?: boolean | null
           can_create_company?: boolean
+          can_create_territory?: boolean | null
           code?: string
           commission_discount_percentage?: number
           created_at?: string
           custom_guild_tools?: boolean
           description?: string | null
           free_quests_per_week?: number
+          fundraising_tools_enabled?: boolean | null
           id?: string
           marketplace_fee_percent?: number | null
+          max_attachment_size_mb?: number | null
           max_courses?: number | null
           max_guild_memberships?: number | null
           max_pods?: number | null
           max_services_active?: number | null
+          max_territories?: number | null
+          memory_engine_enabled?: boolean | null
           monthly_included_credits?: number
           monthly_price_amount?: number | null
           monthly_price_currency?: string
           name?: string
+          partnership_proposals_enabled?: boolean | null
           stripe_price_id?: string | null
+          territory_intelligence_enabled?: boolean | null
           updated_at?: string
           visibility_ranking?: string
           xp_multiplier?: number
