@@ -1040,15 +1040,10 @@ export default function QuestDetail() {
           <QuestProposals
             questId={quest.id}
             questOwnerId={quest.created_by_user_id}
-            escrowCredits={(quest as any).escrow_credits ?? 0}
-            fundingGoalCredits={(quest as any).funding_goal_credits}
-            allowFundraising={(quest as any).allow_fundraising ?? false}
             questStatus={quest.status}
             missionBudgetMin={(quest as any).mission_budget_min}
             missionBudgetMax={(quest as any).mission_budget_max}
             paymentType={(quest as any).payment_type}
-            fundingType={(quest as any).funding_type ?? "CREDITS"}
-            fundraisingCancelled={(quest as any).fundraising_cancelled ?? false}
           />
         </TabsContent>
 
