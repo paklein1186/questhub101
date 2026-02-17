@@ -613,5 +613,18 @@
     "podDesc": "A small, focused micro-team for a specific project or study topic.",
     "company": "Traditional Organization",
     "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
+  },
+  "footer": {
+    "culture": "Culture",
+    "transparency": "Transparency",
+    "manifesto": "Manifesto",
+    "cooperative": "The Cooperative Venture",
+    "whatComesNext": "What Comes Next",
+    "revenueModels": "Revenue Models",
+    "governance": "Governance",
+    "privacy": "Data & Privacy",
+    "terms": "Terms",
+    "contact": "Contact",
+    "tagline": "Human-powered. AI-augmented. Community-owned."
   }
 }

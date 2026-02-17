@@ -613,5 +613,18 @@
     "podDesc": "Une micro-équipe ciblée pour un projet ou un sujet d'étude spécifique.",
     "company": "Organisation traditionnelle",
     "companyDesc": "Une PME, une association ou une organisation établie rejoignant l'écosystème."
+  },
+  "footer": {
+    "culture": "Culture",
+    "transparency": "Transparence",
+    "manifesto": "Manifeste",
+    "cooperative": "L'Aventure Coopérative",
+    "whatComesNext": "Et maintenant ?",
+    "revenueModels": "Modèles de revenus",
+    "governance": "Gouvernance",
+    "privacy": "Données & Confidentialité",
+    "terms": "Conditions",
+    "contact": "Contact",
+    "tagline": "Porté par l'humain. Augmenté par l'IA. Propriété de la communauté."
   }
 }
