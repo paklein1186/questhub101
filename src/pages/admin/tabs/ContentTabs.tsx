@@ -1,7 +1,7 @@
 /**
  * ContentTabs — ALL data from real Supabase database, zero mocks.
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Check, X, Star, Pencil, Save, Crown, Hash, Plus, Trash2,
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -29,6 +30,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTableSort } from "@/hooks/useTableSort";
 
 // ─── Users & Roles Tab (Superadmin) ─────────────────────────
 export function UsersRolesTab() {
@@ -60,6 +62,8 @@ export function UsersRolesTab() {
     },
   });
 
+  const { sorted, sort, toggle } = useTableSort(profiles);
+
   const hasRole = (userId: string, role: string) => allRoles.filter((r) => r.user_id === userId).map((r) => r.role as string).includes(role);
 
   const handleToggleRole = async (targetUserId: string, role: "admin" | "superadmin", currentlyHas: boolean) => {
@@ -78,18 +82,18 @@ export function UsersRolesTab() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead className="text-right">XP</TableHead>
-            <TableHead className="text-right">CI</TableHead>
+            <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Name</SortableTableHead>
+            <SortableTableHead sortKey="email" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Email</SortableTableHead>
+            <SortableTableHead sortKey="role" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Role</SortableTableHead>
+            <SortableTableHead sortKey="xp" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">XP</SortableTableHead>
+            <SortableTableHead sortKey="contribution_index" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">CI</SortableTableHead>
             <TableHead>Admin</TableHead>
             <TableHead>Superadmin</TableHead>
             <TableHead className="w-[80px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {profiles.map((p) => {
+          {sorted.map((p) => {
             const isTargetAdmin = hasRole(p.user_id, "admin") || hasRole(p.user_id, "superadmin");
             const isTargetSuperadmin = hasRole(p.user_id, "superadmin");
             const isSelf = p.user_id === currentUser.id;
@@ -216,6 +220,15 @@ export function GuildsTab() {
     },
   });
 
+  const enriched = useMemo(() => guilds.map(g => ({
+    ...g,
+    _members: memberCounts[g.id] ?? 0,
+    _quests: questCounts[g.id] ?? 0,
+    _creator: creatorProfiles[g.created_by_user_id] ?? "—",
+  })), [guilds, memberCounts, questCounts, creatorProfiles]);
+
+  const { sorted, sort, toggle } = useTableSort(enriched);
+
   const toggleApproved = async (id: string, current: boolean) => {
     await supabase.from("guilds").update({ is_approved: !current }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["admin-guilds"] });
@@ -229,16 +242,16 @@ export function GuildsTab() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Created By</TableHead>
-            <TableHead className="text-right">Members</TableHead>
-            <TableHead className="text-right">Quests</TableHead>
+            <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Name</SortableTableHead>
+            <SortableTableHead sortKey="type" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Type</SortableTableHead>
+            <SortableTableHead sortKey="_creator" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Created By</SortableTableHead>
+            <SortableTableHead sortKey="_members" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Members</SortableTableHead>
+            <SortableTableHead sortKey="_quests" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Quests</SortableTableHead>
             <TableHead>Approved</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {guilds.map((guild) => (
+          {sorted.map((guild) => (
             <TableRow key={guild.id}>
               <TableCell>
                 <Link to={`/guilds/${guild.id}`} className="flex items-center gap-2 hover:underline">
@@ -247,9 +260,9 @@ export function GuildsTab() {
                 </Link>
               </TableCell>
               <TableCell><Badge variant="secondary" className="capitalize text-xs">{guild.type.toLowerCase()}</Badge></TableCell>
-              <TableCell className="text-sm text-muted-foreground">{creatorProfiles[guild.created_by_user_id] ?? "—"}</TableCell>
-              <TableCell className="text-right">{memberCounts[guild.id] ?? 0}</TableCell>
-              <TableCell className="text-right">{questCounts[guild.id] ?? 0}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">{guild._creator}</TableCell>
+              <TableCell className="text-right">{guild._members}</TableCell>
+              <TableCell className="text-right">{guild._quests}</TableCell>
               <TableCell><Switch checked={guild.is_approved} onCheckedChange={() => toggleApproved(guild.id, guild.is_approved)} /></TableCell>
             </TableRow>
           ))}
@@ -290,6 +303,13 @@ export function QuestsTab() {
 
   const filtered = quests.filter((q) => statusFilter === "all" || q.status === statusFilter);
 
+  const enriched = useMemo(() => filtered.map(q => ({
+    ...q,
+    _guild: q.guild_id ? guildNames[q.guild_id] ?? "—" : "—",
+  })), [filtered, guildNames]);
+
+  const { sorted, sort, toggle } = useTableSort(enriched);
+
   const toggleFeatured = async (id: string, current: boolean) => {
     await supabase.from("quests").update({ is_featured: !current }).eq("id", id);
     qc.invalidateQueries({ queryKey: ["admin-quests"] });
@@ -316,26 +336,26 @@ export function QuestsTab() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Guild</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Monetization</TableHead>
-              <TableHead className="text-right">Reward XP</TableHead>
+              <SortableTableHead sortKey="title" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Title</SortableTableHead>
+              <SortableTableHead sortKey="_guild" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Guild</SortableTableHead>
+              <SortableTableHead sortKey="status" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Status</SortableTableHead>
+              <SortableTableHead sortKey="monetization_type" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Monetization</SortableTableHead>
+              <SortableTableHead sortKey="reward_xp" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Reward XP</SortableTableHead>
               <TableHead>Featured</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((quest) => (
+            {sorted.map((quest) => (
               <TableRow key={quest.id}>
                 <TableCell><Link to={`/quests/${quest.id}`} className="font-medium hover:underline">{quest.title}</Link></TableCell>
-                <TableCell className="text-sm text-muted-foreground">{quest.guild_id ? guildNames[quest.guild_id] ?? "—" : "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{quest._guild}</TableCell>
                 <TableCell><Badge variant="outline" className="capitalize text-xs">{quest.status.toLowerCase().replace("_", " ")}</Badge></TableCell>
                 <TableCell><Badge variant="secondary" className="capitalize text-xs">{quest.monetization_type.toLowerCase()}</Badge></TableCell>
                 <TableCell className="text-right">{quest.reward_xp}</TableCell>
                 <TableCell><Switch checked={quest.is_featured} onCheckedChange={() => toggleFeatured(quest.id, quest.is_featured)} /></TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No quests match filters.</TableCell></TableRow>}
+            {sorted.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No quests match filters.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>
@@ -359,6 +379,8 @@ export function PlansXpTab() {
     },
   });
 
+  const { sorted, sort, toggle } = useTableSort(plans);
+
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -369,13 +391,16 @@ export function PlansXpTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead><TableHead>Code</TableHead><TableHead className="text-right">€/mo</TableHead>
-                <TableHead className="text-right">Quests/wk</TableHead><TableHead className="text-right">XP×</TableHead>
-                <TableHead>Public</TableHead>
+                <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Name</SortableTableHead>
+                <SortableTableHead sortKey="code" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Code</SortableTableHead>
+                <SortableTableHead sortKey="monthly_price_amount" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">€/mo</SortableTableHead>
+                <SortableTableHead sortKey="free_quests_per_week" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Quests/wk</SortableTableHead>
+                <SortableTableHead sortKey="xp_multiplier" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">XP×</SortableTableHead>
+                <SortableTableHead sortKey="is_public" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Public</SortableTableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {plans.map((plan: any) => (
+              {sorted.map((plan: any) => (
                 <TableRow key={plan.id}>
                   <TableCell className="font-medium">{plan.name}</TableCell>
                   <TableCell><code className="text-xs text-muted-foreground">{plan.code}</code></TableCell>
@@ -418,6 +443,9 @@ export function HousesTerritoriesTab() {
     },
   });
 
+  const topicSort = useTableSort(topics);
+  const territorySort = useTableSort(territories);
+
   const addTopic = async () => {
     if (!newTopicName.trim()) return;
     const slug = newTopicName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -445,9 +473,14 @@ export function HousesTerritoriesTab() {
         </div>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Slug</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead sortKey="name" currentKey={topicSort.sort.key} direction={topicSort.sort.direction} onSort={topicSort.toggle}>Name</SortableTableHead>
+                <SortableTableHead sortKey="slug" currentKey={topicSort.sort.key} direction={topicSort.sort.direction} onSort={topicSort.toggle}>Slug</SortableTableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {topics.map((topic: any) => (
+              {topicSort.sorted.map((topic: any) => (
                 <TableRow key={topic.id}>
                   <TableCell className="font-medium">{topic.name}</TableCell>
                   <TableCell><code className="text-xs text-muted-foreground">{topic.slug}</code></TableCell>
@@ -478,9 +511,14 @@ export function HousesTerritoriesTab() {
         </div>
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
-            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Level</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead sortKey="name" currentKey={territorySort.sort.key} direction={territorySort.sort.direction} onSort={territorySort.toggle}>Name</SortableTableHead>
+                <SortableTableHead sortKey="level" currentKey={territorySort.sort.key} direction={territorySort.sort.direction} onSort={territorySort.toggle}>Level</SortableTableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {territories.map((t: any) => (
+              {territorySort.sorted.map((t: any) => (
                 <TableRow key={t.id}>
                   <TableCell className="font-medium">{t.name}</TableCell>
                   <TableCell><Badge variant="outline" className="capitalize text-xs">{t.level?.toLowerCase()}</Badge></TableCell>
@@ -509,6 +547,8 @@ export function GovernanceTab() {
     },
   });
 
+  const { sorted, sort, toggle } = useTableSort(polls);
+
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -519,9 +559,16 @@ export function GovernanceTab() {
       ) : (
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
-            <TableHeader><TableRow><TableHead>Question</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead sortKey="question" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Question</SortableTableHead>
+                <SortableTableHead sortKey="decision_type" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Type</SortableTableHead>
+                <SortableTableHead sortKey="status" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Status</SortableTableHead>
+                <SortableTableHead sortKey="created_at" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Created</SortableTableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {polls.map((p: any) => (
+              {sorted.map((p: any) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium max-w-xs truncate">{p.question}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs capitalize">{p.decision_type?.toLowerCase()}</Badge></TableCell>
@@ -580,6 +627,14 @@ export function ServicesSection() {
     },
   });
 
+  const enriched = useMemo(() => services.map(svc => ({
+    ...svc,
+    _provider: svc.provider_user_id ? providerNames[svc.provider_user_id] : svc.provider_guild_id ? providerNames[svc.provider_guild_id] : "—",
+    _bookings: bookingCounts[svc.id] ?? 0,
+  })), [services, providerNames, bookingCounts]);
+
+  const { sorted, sort, toggle } = useTableSort(enriched);
+
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -587,23 +642,23 @@ export function ServicesSection() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Title</TableHead><TableHead>Provider</TableHead><TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-right">Bookings</TableHead><TableHead>Active</TableHead>
+            <SortableTableHead sortKey="title" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Title</SortableTableHead>
+            <SortableTableHead sortKey="_provider" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Provider</SortableTableHead>
+            <SortableTableHead sortKey="price_amount" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Price</SortableTableHead>
+            <SortableTableHead sortKey="_bookings" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Bookings</SortableTableHead>
+            <SortableTableHead sortKey="is_active" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Active</SortableTableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {services.map((svc) => {
-            const provider = svc.provider_user_id ? providerNames[svc.provider_user_id] : svc.provider_guild_id ? providerNames[svc.provider_guild_id] : null;
-            return (
-              <TableRow key={svc.id} className={!svc.is_active ? "opacity-50" : ""}>
-                <TableCell><Link to={`/services/${svc.id}`} className="font-medium hover:underline">{svc.title}</Link></TableCell>
-                <TableCell className="text-sm text-muted-foreground">{provider ?? "—"}</TableCell>
-                <TableCell className="text-right">{svc.price_amount != null ? `${svc.price_amount} ${svc.price_currency}` : "Free"}</TableCell>
-                <TableCell className="text-right">{bookingCounts[svc.id] ?? 0}</TableCell>
-                <TableCell><Badge variant={svc.is_active ? "default" : "secondary"} className="text-xs">{svc.is_active ? "Active" : "Inactive"}</Badge></TableCell>
-              </TableRow>
-            );
-          })}
+          {sorted.map((svc) => (
+            <TableRow key={svc.id} className={!svc.is_active ? "opacity-50" : ""}>
+              <TableCell><Link to={`/services/${svc.id}`} className="font-medium hover:underline">{svc.title}</Link></TableCell>
+              <TableCell className="text-sm text-muted-foreground">{svc._provider}</TableCell>
+              <TableCell className="text-right">{svc.price_amount != null ? `${svc.price_amount} ${svc.price_currency}` : "Free"}</TableCell>
+              <TableCell className="text-right">{svc._bookings}</TableCell>
+              <TableCell><Badge variant={svc.is_active ? "default" : "secondary"} className="text-xs">{svc.is_active ? "Active" : "Inactive"}</Badge></TableCell>
+            </TableRow>
+          ))}
           {services.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No services yet.</TableCell></TableRow>}
         </TableBody>
       </Table>
@@ -665,6 +720,15 @@ export function BookingsSection() {
 
   const filtered = bookings.filter((b) => statusFilter === "all" || b.status === statusFilter);
 
+  const enriched = useMemo(() => filtered.map(b => ({
+    ...b,
+    _service: nameMap[`svc-${b.service_id}`] ?? "—",
+    _requester: nameMap[b.requester_id] ?? "—",
+    _provider: b.provider_user_id ? nameMap[b.provider_user_id] : b.provider_guild_id ? nameMap[b.provider_guild_id] : "—",
+  })), [filtered, nameMap]);
+
+  const { sorted, sort, toggle } = useTableSort(enriched);
+
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
@@ -685,16 +749,20 @@ export function BookingsSection() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Service</TableHead><TableHead>Requester</TableHead><TableHead>Provider</TableHead>
-              <TableHead>Status</TableHead><TableHead>Payment</TableHead><TableHead className="text-right">Amount</TableHead>
+              <SortableTableHead sortKey="_service" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Service</SortableTableHead>
+              <SortableTableHead sortKey="_requester" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Requester</SortableTableHead>
+              <SortableTableHead sortKey="_provider" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Provider</SortableTableHead>
+              <SortableTableHead sortKey="status" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Status</SortableTableHead>
+              <SortableTableHead sortKey="payment_status" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Payment</SortableTableHead>
+              <SortableTableHead sortKey="amount" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Amount</SortableTableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((b) => (
+            {sorted.map((b) => (
               <TableRow key={b.id}>
-                <TableCell className="font-medium text-sm">{nameMap[`svc-${b.service_id}`] ?? "—"}</TableCell>
-                <TableCell className="text-sm">{nameMap[b.requester_id] ?? "—"}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{b.provider_user_id ? nameMap[b.provider_user_id] : b.provider_guild_id ? nameMap[b.provider_guild_id] : "—"}</TableCell>
+                <TableCell className="font-medium text-sm">{b._service}</TableCell>
+                <TableCell className="text-sm">{b._requester}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{b._provider}</TableCell>
                 <TableCell>
                   <Select value={b.status} onValueChange={(v) => updateStatus(b.id, v)}>
                     <SelectTrigger className="h-7 w-[130px] text-xs"><SelectValue /></SelectTrigger>
@@ -710,7 +778,7 @@ export function BookingsSection() {
                 <TableCell className="text-right text-sm">{b.amount != null ? `${b.amount} ${b.currency}` : "—"}</TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No bookings match filter.</TableCell></TableRow>}
+            {sorted.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No bookings match filter.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>
@@ -724,7 +792,6 @@ export function ModerationTab() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Real reports from DB
   const { data: reports = [], isLoading: loadingReports } = useQuery({
     queryKey: ["admin-reports"],
     queryFn: async () => {
@@ -750,7 +817,6 @@ export function ModerationTab() {
     },
   });
 
-  // Real comments from DB
   const { data: comments = [], isLoading: loadingComments } = useQuery({
     queryKey: ["admin-comments"],
     queryFn: async () => {
@@ -777,6 +843,20 @@ export function ModerationTab() {
   });
 
   const filteredReports = reports.filter((r) => statusFilter === "all" || r.status === statusFilter);
+
+  const enrichedReports = useMemo(() => filteredReports.map(r => ({
+    ...r,
+    _reporter: reporterNames[r.reporter_id] ?? "—",
+  })), [filteredReports, reporterNames]);
+
+  const reportSort = useTableSort(enrichedReports);
+
+  const enrichedComments = useMemo(() => comments.map(c => ({
+    ...c,
+    _author: commentAuthors[c.author_id] ?? "—",
+  })), [comments, commentAuthors]);
+
+  const commentSort = useTableSort(enrichedComments);
 
   const updateReportStatus = async (id: string, status: string) => {
     await supabase.from("reports").update({ status, reviewed_at: new Date().toISOString() }).eq("id", id);
@@ -822,11 +902,20 @@ export function ModerationTab() {
         ) : (
           <div className="rounded-xl border border-border overflow-hidden">
             <Table>
-              <TableHeader><TableRow><TableHead>Reporter</TableHead><TableHead>Type</TableHead><TableHead>Reason</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead><TableHead className="w-[240px]">Actions</TableHead></TableRow></TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead sortKey="_reporter" currentKey={reportSort.sort.key} direction={reportSort.sort.direction} onSort={reportSort.toggle}>Reporter</SortableTableHead>
+                  <SortableTableHead sortKey="target_type" currentKey={reportSort.sort.key} direction={reportSort.sort.direction} onSort={reportSort.toggle}>Type</SortableTableHead>
+                  <SortableTableHead sortKey="reason" currentKey={reportSort.sort.key} direction={reportSort.sort.direction} onSort={reportSort.toggle}>Reason</SortableTableHead>
+                  <SortableTableHead sortKey="status" currentKey={reportSort.sort.key} direction={reportSort.sort.direction} onSort={reportSort.toggle}>Status</SortableTableHead>
+                  <SortableTableHead sortKey="created_at" currentKey={reportSort.sort.key} direction={reportSort.sort.direction} onSort={reportSort.toggle}>Date</SortableTableHead>
+                  <TableHead className="w-[240px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                {filteredReports.map((r) => (
+                {reportSort.sorted.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell className="font-medium text-sm">{reporterNames[r.reporter_id] ?? "—"}</TableCell>
+                    <TableCell className="font-medium text-sm">{r._reporter}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{r.target_type}</Badge></TableCell>
                     <TableCell className="text-sm max-w-xs truncate">{r.reason}</TableCell>
                     <TableCell><Badge variant={r.status === "OPEN" ? "destructive" : r.status === "RESOLVED" ? "default" : "secondary"} className="text-xs">{r.status}</Badge></TableCell>
@@ -861,11 +950,19 @@ export function ModerationTab() {
         ) : (
           <div className="rounded-xl border border-border overflow-hidden">
             <Table>
-              <TableHeader><TableRow><TableHead>Author</TableHead><TableHead>Content</TableHead><TableHead>Target</TableHead><TableHead className="text-right">Upvotes</TableHead><TableHead>Visible</TableHead></TableRow></TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead sortKey="_author" currentKey={commentSort.sort.key} direction={commentSort.sort.direction} onSort={commentSort.toggle}>Author</SortableTableHead>
+                  <SortableTableHead sortKey="content" currentKey={commentSort.sort.key} direction={commentSort.sort.direction} onSort={commentSort.toggle}>Content</SortableTableHead>
+                  <SortableTableHead sortKey="target_type" currentKey={commentSort.sort.key} direction={commentSort.sort.direction} onSort={commentSort.toggle}>Target</SortableTableHead>
+                  <SortableTableHead sortKey="upvote_count" currentKey={commentSort.sort.key} direction={commentSort.sort.direction} onSort={commentSort.toggle} className="text-right">Upvotes</SortableTableHead>
+                  <TableHead>Visible</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                {comments.map((c) => (
+                {commentSort.sorted.map((c) => (
                   <TableRow key={c.id} className={c.is_deleted ? "opacity-50" : ""}>
-                    <TableCell className="font-medium text-sm">{commentAuthors[c.author_id] ?? "—"}</TableCell>
+                    <TableCell className="font-medium text-sm">{c._author}</TableCell>
                     <TableCell className="text-sm max-w-xs truncate">{c.content}</TableCell>
                     <TableCell><Badge variant="outline" className="capitalize text-xs">{c.target_type?.toLowerCase().replace("_", " ")}</Badge></TableCell>
                     <TableCell className="text-right">{c.upvote_count}</TableCell>
@@ -890,7 +987,6 @@ export function ModerationTab() {
 export function NotificationsMonitoringTab() {
   const { toast } = useToast();
 
-  // Real stats from notifications table
   const { data: notifStats, isLoading } = useQuery({
     queryKey: ["admin-notification-stats"],
     queryFn: async () => {
@@ -912,7 +1008,8 @@ export function NotificationsMonitoringTab() {
     staleTime: 30_000,
   });
 
-  // Real user profiles for test push
+  const notifSort = useTableSort(notifStats?.byType ?? []);
+
   const { data: users = [] } = useQuery({
     queryKey: ["admin-users-for-push"],
     queryFn: async () => {
@@ -944,9 +1041,14 @@ export function NotificationsMonitoringTab() {
         ) : (
           <div className="rounded-xl border border-border overflow-hidden">
             <Table>
-              <TableHeader><TableRow><TableHead>Type</TableHead><TableHead className="text-right">Count</TableHead></TableRow></TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <SortableTableHead sortKey="type" currentKey={notifSort.sort.key} direction={notifSort.sort.direction} onSort={notifSort.toggle}>Type</SortableTableHead>
+                  <SortableTableHead sortKey="count" currentKey={notifSort.sort.key} direction={notifSort.sort.direction} onSort={notifSort.toggle} className="text-right">Count</SortableTableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                {notifStats?.byType.map((v) => (
+                {notifSort.sorted.map((v) => (
                   <TableRow key={v.type}>
                     <TableCell><Badge variant="secondary" className="text-xs capitalize">{v.type.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                     <TableCell className="text-right">{v.count}</TableCell>
@@ -1003,6 +1105,8 @@ export function EmailsDigestsTab() {
   const [editSubject, setEditSubject] = useState("");
   const [editIntro, setEditIntro] = useState("");
 
+  const { sorted, sort, toggle } = useTableSort(templates);
+
   const startEdit = (t: EmailTemplate) => { setEditId(t.id); setEditSubject(t.subject); setEditIntro(t.introText); };
   const saveEdit = () => {
     if (!editId) return;
@@ -1016,9 +1120,16 @@ export function EmailsDigestsTab() {
       <p className="text-sm text-muted-foreground">Manage email templates sent to users. Toggle to enable/disable.</p>
       <div className="rounded-xl border border-border overflow-hidden">
         <Table>
-          <TableHeader><TableRow><TableHead>Template</TableHead><TableHead>Subject</TableHead><TableHead>Enabled</TableHead><TableHead className="w-[80px]"></TableHead></TableRow></TableHeader>
+          <TableHeader>
+            <TableRow>
+              <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Template</SortableTableHead>
+              <SortableTableHead sortKey="subject" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Subject</SortableTableHead>
+              <TableHead>Enabled</TableHead>
+              <TableHead className="w-[80px]"></TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
-            {templates.map((t) => (
+            {sorted.map((t) => (
               <TableRow key={t.id}>
                 <TableCell>
                   <div><span className="font-medium">{t.name}</span><p className="text-xs text-muted-foreground">{t.description}</p></div>

@@ -1,13 +1,16 @@
 import { Star, Loader2, TrendingUp, Users, BarChart3, Settings2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { TableHead } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { XP_LEVEL_THRESHOLDS, LEVEL_LABELS, computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { GOVERNANCE_RIGHTS } from "@/lib/governanceConfig";
+import { useTableSort } from "@/hooks/useTableSort";
 
 export default function AdminEconomyXp() {
   const { data: transactions = [], isLoading } = useQuery({
@@ -27,6 +30,8 @@ export default function AdminEconomyXp() {
     },
   });
 
+  const txSort = useTableSort(transactions);
+
   const { data: achievements = [] } = useQuery({
     queryKey: ["admin-achievements"],
     queryFn: async () => {
@@ -34,6 +39,8 @@ export default function AdminEconomyXp() {
       return data ?? [];
     },
   });
+
+  const achievementSort = useTableSort(achievements);
 
   // XP distribution stats
   const { data: distributionStats } = useQuery({
@@ -58,6 +65,8 @@ export default function AdminEconomyXp() {
       return { totalUsers, levelCounts, totalXp, avgXp: Math.round(totalXp / totalUsers), maxXp };
     },
   });
+
+  const govSort = useTableSort(GOVERNANCE_RIGHTS);
 
   return (
     <div className="space-y-6">
@@ -126,9 +135,16 @@ export default function AdminEconomyXp() {
           {isLoading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
             <div className="rounded-xl border border-border overflow-hidden">
               <Table>
-                <TableHeader><TableRow><TableHead>User</TableHead><TableHead>Type</TableHead><TableHead className="text-right">XP</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead sortKey="userName" currentKey={txSort.sort.key} direction={txSort.sort.direction} onSort={txSort.toggle}>User</SortableTableHead>
+                    <SortableTableHead sortKey="type" currentKey={txSort.sort.key} direction={txSort.sort.direction} onSort={txSort.toggle}>Type</SortableTableHead>
+                    <SortableTableHead sortKey="amount_xp" currentKey={txSort.sort.key} direction={txSort.sort.direction} onSort={txSort.toggle} className="text-right">XP</SortableTableHead>
+                    <SortableTableHead sortKey="created_at" currentKey={txSort.sort.key} direction={txSort.sort.direction} onSort={txSort.toggle}>Date</SortableTableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
-                  {transactions.map(t => (
+                  {txSort.sorted.map(t => (
                     <TableRow key={t.id}>
                       <TableCell className="font-medium">{t.userName}</TableCell>
                       <TableCell><Badge variant="secondary" className="text-xs">{t.type}</Badge></TableCell>
@@ -146,9 +162,14 @@ export default function AdminEconomyXp() {
           {achievements.length === 0 ? <p className="text-sm text-muted-foreground">No achievements unlocked yet.</p> : (
             <div className="rounded-xl border border-border overflow-hidden">
               <Table>
-                <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead sortKey="title" currentKey={achievementSort.sort.key} direction={achievementSort.sort.direction} onSort={achievementSort.toggle}>Title</SortableTableHead>
+                    <SortableTableHead sortKey="created_at" currentKey={achievementSort.sort.key} direction={achievementSort.sort.direction} onSort={achievementSort.toggle}>Date</SortableTableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
-                  {achievements.map(a => (
+                  {achievementSort.sorted.map(a => (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">{a.title}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{new Date(a.created_at).toLocaleDateString()}</TableCell>
@@ -201,13 +222,13 @@ export default function AdminEconomyXp() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Level</TableHead>
-                      <TableHead>Right</TableHead>
-                      <TableHead>Sphere</TableHead>
+                      <SortableTableHead sortKey="minLevel" currentKey={govSort.sort.key} direction={govSort.sort.direction} onSort={govSort.toggle}>Level</SortableTableHead>
+                      <SortableTableHead sortKey="label" currentKey={govSort.sort.key} direction={govSort.sort.direction} onSort={govSort.toggle}>Right</SortableTableHead>
+                      <SortableTableHead sortKey="sphere" currentKey={govSort.sort.key} direction={govSort.sort.direction} onSort={govSort.toggle}>Sphere</SortableTableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {GOVERNANCE_RIGHTS.map((r, i) => (
+                    {govSort.sorted.map((r, i) => (
                       <TableRow key={i}>
                         <TableCell className="font-medium">Lv{r.minLevel}</TableCell>
                         <TableCell>

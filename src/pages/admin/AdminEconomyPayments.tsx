@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Zap, Loader2, RefreshCcw } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useTableSort } from "@/hooks/useTableSort";
 
 export default function AdminEconomyPayments() {
   const { toast } = useToast();
@@ -23,6 +25,8 @@ export default function AdminEconomyPayments() {
       return data.map(s => ({ ...s, userName: nameMap[s.user_id] ?? "—" }));
     },
   });
+
+  const { sorted, sort, toggle } = useTableSort(shareholdings);
 
   const handleReconcile = async () => {
     setReconciling(true);
@@ -74,9 +78,17 @@ export default function AdminEconomyPayments() {
       {isLoading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : (
         <div className="rounded-xl border border-border overflow-hidden">
           <Table>
-            <TableHeader><TableRow><TableHead>User</TableHead><TableHead>Class</TableHead><TableHead className="text-right">Shares</TableHead><TableHead className="text-right">Total Paid</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <SortableTableHead sortKey="userName" currentKey={sort.key} direction={sort.direction} onSort={toggle}>User</SortableTableHead>
+                <SortableTableHead sortKey="share_class" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Class</SortableTableHead>
+                <SortableTableHead sortKey="number_of_shares" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Shares</SortableTableHead>
+                <SortableTableHead sortKey="total_paid" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">Total Paid</SortableTableHead>
+                <SortableTableHead sortKey="created_at" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Date</SortableTableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
-              {shareholdings.map(s => (
+              {sorted.map(s => (
                 <TableRow key={s.id}>
                   <TableCell className="font-medium">{s.userName}</TableCell>
                   <TableCell><Badge variant="secondary" className="text-xs">{s.share_class}</Badge></TableCell>

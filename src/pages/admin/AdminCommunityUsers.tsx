@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Users, ExternalLink, Trash2, Loader2 } from "lucide-react";
 import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useTableSort } from "@/hooks/useTableSort";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -37,6 +39,8 @@ export default function AdminCommunityUsers() {
       p.name?.toLowerCase().includes(search.toLowerCase()) ||
       p.email?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const { sorted, sort, toggle } = useTableSort(filtered);
 
   const handleDeleteUser = async (userId: string, userName: string) => {
     setDeletingId(userId);
@@ -70,16 +74,16 @@ export default function AdminCommunityUsers() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead className="text-right">XP</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="w-20"></TableHead>
+              <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Name</SortableTableHead>
+              <SortableTableHead sortKey="email" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Email</SortableTableHead>
+              <SortableTableHead sortKey="role" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Role</SortableTableHead>
+              <SortableTableHead sortKey="xp" currentKey={sort.key} direction={sort.direction} onSort={toggle} className="text-right">XP</SortableTableHead>
+              <SortableTableHead sortKey="created_at" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Joined</SortableTableHead>
+              <th className="h-12 px-4 w-20"></th>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((p) => (
+            {sorted.map((p) => (
               <TableRow key={p.user_id}>
                 <TableCell className="font-medium">
                   <Link to={`/users/${p.user_id}`} className="text-primary hover:underline inline-flex items-center gap-1">
@@ -132,7 +136,7 @@ export default function AdminCommunityUsers() {
                 </TableCell>
               </TableRow>
             ))}
-            {filtered.length === 0 && (
+            {sorted.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No users found.

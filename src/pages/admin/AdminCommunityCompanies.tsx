@@ -1,9 +1,12 @@
 import { Building2 } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { useAllCompanies } from "@/hooks/useEntityQueries";
+import { useTableSort } from "@/hooks/useTableSort";
 
 export default function AdminCommunityCompanies() {
   const { data: allCompanies = [], isLoading } = useAllCompanies();
+  const { sorted, sort, toggle } = useTableSort(allCompanies);
 
   return (
     <div className="space-y-4">
@@ -14,13 +17,13 @@ export default function AdminCommunityCompanies() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Sector</TableHead>
-              <TableHead>Size</TableHead>
+              <SortableTableHead sortKey="name" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Name</SortableTableHead>
+              <SortableTableHead sortKey="sector" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Sector</SortableTableHead>
+              <SortableTableHead sortKey="size" currentKey={sort.key} direction={sort.direction} onSort={toggle}>Size</SortableTableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {allCompanies.map((c) => (
+            {sorted.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{c.sector ?? "—"}</TableCell>
