@@ -582,7 +582,6 @@ export default function QuestDetail() {
                 <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" />
               </div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
-              <AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
               <div><label className="text-sm font-medium mb-1 block">Status</label>
                 <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
