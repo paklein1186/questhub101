@@ -197,6 +197,9 @@ export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
 // ─── Plan Codes ─────────────────────────────────────────────
 export const PLAN_CODES = {
   FREE: "FREE",
+  PRO: "PRO",
+  TERRITORY_BUILDER: "TERRITORY_BUILDER",
+  // Legacy (hidden, kept for existing subscribers)
   STARTER: "STARTER",
   CREATOR: "CREATOR",
   CATALYST: "CATALYST",
@@ -205,7 +208,47 @@ export const PLAN_CODES = {
 
 export type PlanCode = (typeof PLAN_CODES)[keyof typeof PLAN_CODES];
 
-export const PLAN_ORDER: PlanCode[] = ["FREE", "STARTER", "CREATOR", "CATALYST", "VISIONARY"];
+export const PLAN_ORDER: PlanCode[] = ["FREE", "PRO", "TERRITORY_BUILDER"];
+
+/** Legacy plan codes — hidden from new signups, kept for auto-migration */
+export const LEGACY_PLAN_CODES = ["STARTER", "CREATOR", "CATALYST", "VISIONARY"] as const;
+
+/** Map legacy plans → new tier for auto-migration at renewal */
+export const PLAN_MIGRATION_MAP: Record<string, string> = {
+  STARTER: "PRO",
+  CREATOR: "PRO",
+  CATALYST: "PRO",
+  VISIONARY: "TERRITORY_BUILDER",
+};
+
+// ─── Share Classes ──────────────────────────────────────────
+export const SHARE_CLASSES = {
+  A: { label: "Guardian", description: "Core builders — strategic governance" },
+  B: { label: "Steward", description: "Active contributors — community governance" },
+  C: { label: "Strategic Partner", description: "Strategic partners — institutional alignment" },
+} as const;
+
+export type ShareClass = keyof typeof SHARE_CLASSES;
+
+// ─── Ecosystem Treasury Allocation Model ────────────────────
+export const TREASURY_ALLOCATION = {
+  REINVESTMENT: { percent: 40, label: "Reinvestment Reserve" },
+  SHAREHOLDERS: { percent: 30, label: "Shareholder Distribution" },
+  ECOSYSTEM: { percent: 20, label: "Ecosystem Treasury" },
+  SOLIDARITY: { percent: 10, label: "Solidarity & New Territories" },
+} as const;
+
+// ─── Cross-Territory XP Bonus ───────────────────────────────
+/** Flat bonus when contributing outside primary territory */
+export const CROSS_TERRITORY_XP_BONUS = 0.10; // +10%
+
+// ─── Governance XP Tiers ────────────────────────────────────
+export const GOVERNANCE_XP_TIERS = [
+  { levels: "1–4", label: "Participate", minLevel: 1, description: "Explore the ecosystem, join guilds, attend events." },
+  { levels: "5–8", label: "Comment & Vote", minLevel: 5, description: "Engage in governance discussions and cast votes on proposals." },
+  { levels: "9–12", label: "Propose", minLevel: 9, description: "Submit governance proposals and lead initiatives." },
+  { levels: "13–15", label: "Steward Council", minLevel: 13, description: "Eligible for steward council roles and strategic decisions." },
+] as const;
 
 // ─── Grace Period ───────────────────────────────────────────
 /** Number of days new users can play without spending credits */

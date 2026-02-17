@@ -1,16 +1,15 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { canVote, canPropose, isStewardEligible } from "@/lib/governanceConfig";
+import { GOVERNANCE_XP_TIERS } from "@/lib/xpCreditsConfig";
 
 export default function GovernancePage() {
   const { t } = useTranslation();
-
-  const tiers = [
-    { levels: "1–4", label: "Participate", description: "Explore the ecosystem, join guilds, attend events." },
-    { levels: "5–8", label: "Comment & Vote", description: "Engage in governance discussions and cast votes on proposals." },
-    { levels: "9–12", label: "Propose", description: "Submit governance proposals and lead initiatives." },
-    { levels: "13–15", label: "Steward Council", description: "Eligible for steward council roles and strategic decisions." },
-  ];
+  const { user } = useAuth();
+  const { userLevel } = usePlanLimits();
 
   return (
     <ContentPageShell title="Cooperative Governance" subtitle="Changethegame combines marketplace activity with cooperative stewardship.">
@@ -23,16 +22,38 @@ export default function GovernancePage() {
           This ensures merit-based legitimacy, long-term alignment, and protection from speculative capture.
         </p>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          {tiers.map((tier) => (
-            <div key={tier.levels} className="rounded-lg border border-border bg-card p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline" className="text-xs">Level {tier.levels}</Badge>
-                <span className="font-display font-semibold text-sm">{tier.label}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">{tier.description}</p>
+        {user && (
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-6">
+            <p className="text-sm font-medium">Your current level: <strong>Level {userLevel}</strong></p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="default" className="text-xs">✓ Participate</Badge>
+              <Badge variant={canVote(userLevel) ? "default" : "outline"} className="text-xs">
+                {canVote(userLevel) ? "✓" : "🔒"} Vote
+              </Badge>
+              <Badge variant={canPropose(userLevel) ? "default" : "outline"} className="text-xs">
+                {canPropose(userLevel) ? "✓" : "🔒"} Propose
+              </Badge>
+              <Badge variant={isStewardEligible(userLevel) ? "default" : "outline"} className="text-xs">
+                {isStewardEligible(userLevel) ? "✓" : "🔒"} Steward Council
+              </Badge>
             </div>
-          ))}
+          </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {GOVERNANCE_XP_TIERS.map((tier) => {
+            const unlocked = userLevel >= tier.minLevel;
+            return (
+              <div key={tier.levels} className={`rounded-lg border bg-card p-4 ${unlocked ? "border-primary/30" : "border-border"}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant={unlocked ? "default" : "outline"} className="text-xs">Level {tier.levels}</Badge>
+                  <span className="font-display font-semibold text-sm">{tier.label}</span>
+                  {unlocked && <Badge variant="secondary" className="text-[10px]">✓ Unlocked</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground">{tier.description}</p>
+              </div>
+            );
+          })}
         </div>
       </ContentSection>
 
