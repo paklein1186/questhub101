@@ -83,18 +83,18 @@ export default function WorkHub() {
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Briefcase className="h-7 w-7 text-primary" /> {label("nav.work")}
+          <Briefcase className="h-7 w-7 text-primary" /> {t("work.title")}
         </h1>
-        <p className="text-muted-foreground mt-1">Your {label("quest.label").toLowerCase()}, pods, {label("service.label_plural").toLowerCase()}, and bookings.</p>
+        <p className="text-muted-foreground mt-1">{t("work.subtitle")}</p>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         {(() => {
           const workTabs: TabDefinition[] = [
             { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.tasks")}</span></> },
-            { value: "quests", label: <><span className="hidden sm:inline">{label("work.myQuests")}</span><span className="sm:hidden">{label("quest.label")}</span> ({questsList.length})</> },
+            { value: "quests", label: <><span className="hidden sm:inline">{t("work.myQuests")}</span><span className="sm:hidden">{t("explore.quests")}</span> ({questsList.length})</> },
             { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})</> },
-            { value: "services", label: <><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
+            { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
             { value: "bookings", label: t("tabs.bookings") },
             { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
