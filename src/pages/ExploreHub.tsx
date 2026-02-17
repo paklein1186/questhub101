@@ -130,19 +130,19 @@ export default function ExploreHub() {
           {/* Entity lists — filters handled above */}
           {(entitySub === "all" || entitySub === "guilds") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
-              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("guild.label")}</h3>}
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{t("explore.guilds")}</h3>}
               <GuildsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "pods") && (
             <div className={entitySub === "all" ? "mb-8" : ""}>
-              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("pod.label")}</h3>}
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{t("network.pods")}</h3>}
               <PodsList bare hideFilters externalFilters={entityFilters} externalHouseFilter={entityHf} />
             </div>
           )}
           {(entitySub === "all" || entitySub === "companies") && (
             <div>
-              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{label("company.label")}</h3>}
+              {entitySub === "all" && <h3 className="font-display font-semibold text-base mb-3">{t("explore.companies")}</h3>}
               <CompaniesList bare hideFilters externalFilters={entityFilters} />
             </div>
           )}
@@ -203,12 +203,12 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
   const { t } = useTranslation();
   const exploreTabs: TabDefinition[] = useMemo(() => [
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")}</> },
-    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {label("quest.label")}</>, visible: !isGuest },
-    { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {label("service.label_plural")}</>, visible: !isGuest },
+    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")}</>, visible: !isGuest },
+    { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
     { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")}</> },
     { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> {t("tabs.jobs")}</>, visible: !isCreative },
     { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")}</> },
-    { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {label("course.label")}</> },
+    { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {t("explore.courses")}</> },
     { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> {t("tabs.humans")}</>, visible: !isGuest },
     { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> {t("tabs.territories")}</>, visible: !isGuest },
     { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> {t("tabs.matchmaker")}</>, visible: !!currentUserId },
