@@ -955,19 +955,21 @@ export function WorkTasksTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-1.5 md:px-3 py-1.5 md:py-2.5">
+                       <td className="px-1.5 md:px-3 py-1.5 md:py-2.5">
                         <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
                           <SelectTrigger className={cn(
                             "h-7 w-8 md:w-[120px] text-[10px] font-medium px-1.5 md:px-2.5 py-0 border-none shadow-none rounded-full gap-1 [&>svg:last-child]:h-3 [&>svg:last-child]:w-3 [&>svg:last-child]:hidden md:[&>svg:last-child]:block [&>svg:last-child]:shrink-0",
                             STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
                           )}>
-                            <span className="md:hidden flex items-center justify-center">
+                            <span className="flex items-center justify-center md:hidden">
                               {task.status === "BACKLOG" && <Circle className="h-3.5 w-3.5" />}
                               {task.status === "TODO" && <CircleDot className="h-3.5 w-3.5" />}
                               {task.status === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
                               {task.status === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
                             </span>
-                            <span className="hidden md:inline truncate"><SelectValue /></span>
+                            <span className="hidden md:inline truncate">
+                              {task.status === "BACKLOG" ? "Backlog" : task.status === "TODO" ? "To do next" : task.status === "IN_PROGRESS" ? "In progress" : "Done"}
+                            </span>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
