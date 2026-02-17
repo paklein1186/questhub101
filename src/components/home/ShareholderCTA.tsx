@@ -38,19 +38,13 @@ export function ShareholderCTA() {
         <div className="flex items-center gap-3">
           <Shield className="h-5 w-5 text-primary" />
           <div>
-            <p className="text-sm font-medium">
-              {hasA && <Badge variant="default" className="text-[10px] mr-1">Guardian</Badge>}
-              {hasB && <Badge variant="secondary" className="text-[10px] mr-1">Steward</Badge>}
-              <Badge variant="secondary" className="ml-1 text-[10px]">
+            <p className="text-sm font-medium flex items-center gap-1 flex-wrap">
+              {hasA && <Badge variant="default" className="text-[10px]">Guardian</Badge>}
+              {hasB && <Badge variant="secondary" className="text-[10px]">Steward</Badge>}
+              <Badge variant="secondary" className="text-[10px]">
                 Weight: {Number(profile.governance_weight).toFixed(2)}
               </Badge>
             </p>
-            {hasA && (
-              <Badge variant="default" className="text-[10px] mt-1 mr-1">Guardian</Badge>
-            )}
-            {hasB && !hasA && (
-              <Badge variant="secondary" className="text-[10px] mt-1">Steward</Badge>
-            )}
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -76,10 +70,10 @@ export function ShareholderCTA() {
       <Crown className="h-8 w-8 text-primary mx-auto" />
       <h3 className="font-display font-semibold">Become a member of changethegame</h3>
       <p className="text-sm text-muted-foreground max-w-md mx-auto">
-        Co-own the platform, vote on decisions, and shape the ecosystem's future.
+        Co-own the platform, vote on decisions, and shape the ecosystem's future. Three share classes: Guardian, Steward, and Strategic Partner.
       </p>
       <Button asChild>
-        <Link to="/shares">Buy Class B Shares — From 10 € <ArrowRight className="ml-2 h-4 w-4" /></Link>
+        <Link to="/shares">Explore Stewardship Options <ArrowRight className="ml-2 h-4 w-4" /></Link>
       </Button>
     </motion.div>
   );
