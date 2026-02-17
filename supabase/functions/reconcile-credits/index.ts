@@ -36,14 +36,15 @@ serve(async (req) => {
 
     logStep("User identified", { userId: userData.user.id });
 
-    const { data: adminRole } = await supabase
+    const { data: adminRoles, error: roleError } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userData.user.id)
-      .in("role", ["superadmin", "admin"])
-      .maybeSingle();
+      .in("role", ["superadmin", "admin"]);
 
-    logStep("Admin role check", { adminRole });
+    const adminRole = adminRoles && adminRoles.length > 0 ? adminRoles[0] : null;
+
+    logStep("Admin role check", { adminRole, roleError, serviceKeyPrefix: serviceKey?.substring(0, 20) });
     if (!adminRole) throw new Error("Admin access required");
 
     logStep("Admin authenticated", { userId: userData.user.id });
