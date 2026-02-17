@@ -13,6 +13,7 @@ import { AdminBadge } from "@/components/AdminBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import ImageLightbox from "@/components/ImageLightbox";
 import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
 import { useNotifications, stripMentionTokens } from "@/hooks/useNotifications";
@@ -38,6 +39,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const qc = useQueryClient();
   const { checkRateLimit } = useRateLimit();
   const { notifyComment, notifyUpvote } = useNotifications();
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const queryKey = ["comments", targetType, targetId];
 
@@ -320,9 +322,9 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                 <>
                   <p className="text-sm mt-1 text-foreground/90">{renderMentions(comment.content)}</p>
                   {(comment as any).image_url && (
-                    <a href={(comment as any).image_url} target="_blank" rel="noopener noreferrer" className="block mt-2">
-                      <img src={(comment as any).image_url} alt="Comment attachment" className="rounded-md max-h-64 max-w-full object-cover border border-border" />
-                    </a>
+                    <div className="block mt-2 cursor-pointer" onClick={() => setLightboxSrc((comment as any).image_url)}>
+                      <img src={(comment as any).image_url} alt="Comment attachment" className="rounded-md max-h-64 max-w-full object-cover border border-border hover:opacity-90 transition-opacity" />
+                    </div>
                   )}
                 </>
               )}
@@ -403,6 +405,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   };
 
   return (
+    <>
     <div className="space-y-4">
       {topLevel.length === 0 && deletedTopLevel.length === 0 && <p className="text-sm text-muted-foreground italic py-4">No comments yet. Start the conversation!</p>}
       {[...deletedTopLevel, ...topLevel].map((comment) => renderComment(comment))}
@@ -461,5 +464,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    </>
   );
 }

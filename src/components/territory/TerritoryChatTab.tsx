@@ -14,6 +14,7 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ImageLightbox from "@/components/ImageLightbox";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -61,6 +62,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
   const addMemory = useAddTerritoryMemory();
   const createExcerpt = useCreateExcerpt();
   const { grantXp } = useXpCredits();
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -224,6 +226,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
   };
 
   return (
+    <>
     <div className="space-y-4">
       {/* Header */}
       <div className="space-y-1">
@@ -278,13 +281,12 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
                 {msg.attachment_url && (
                   <div className="mb-2">
                     {msg.attachment_type && IMAGE_TYPES.includes(msg.attachment_type) ? (
-                      <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
-                        <img
+                    <img
                           src={msg.attachment_url}
                           alt={msg.attachment_name || "Attachment"}
                           className="rounded-lg max-h-48 max-w-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => setLightboxSrc(msg.attachment_url!)}
                         />
-                      </a>
                     ) : (
                       <a
                         href={msg.attachment_url}
@@ -448,6 +450,8 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
         </p>
       )}
     </div>
+    <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    </>
   );
 }
 

@@ -17,6 +17,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ImageLightbox from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -189,6 +190,7 @@ export default function InboxPage() {
   const messagesScrollAreaRef = useRef<HTMLDivElement>(null);
   const [pulseEnrichment, setPulseEnrichment] = useState<any>(null);
   const [convSearch, setConvSearch] = useState("");
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const { data: conversations = [], isLoading } = useConversations();
   const { data: messages = [] } = useConversationMessages(activeConvId);
@@ -425,6 +427,7 @@ export default function InboxPage() {
   const showThread = !isMobile || !!activeConvId;
 
   return (
+    <>
     <PageShell>
       <div ref={containerRef} className={cn("flex rounded-xl border border-border overflow-hidden bg-card", isMobile ? "h-[calc(100vh-8rem)]" : "h-[calc(100vh-10rem)]")}>
         {/* Conversation list */}
@@ -727,9 +730,12 @@ export default function InboxPage() {
                                   {msg.attachment_url && (
                                     <div className="mb-1.5">
                                       {msg.attachment_type && IMAGE_TYPES.includes(msg.attachment_type) ? (
-                                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer">
-                                          <img src={msg.attachment_url} alt={msg.attachment_name || "Image"} className="rounded-lg max-h-48 max-w-full object-cover hover:opacity-90 transition-opacity" />
-                                        </a>
+                                        <img
+                                          src={msg.attachment_url}
+                                          alt={msg.attachment_name || "Image"}
+                                          className="rounded-lg max-h-48 max-w-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                                          onClick={() => setLightboxSrc(msg.attachment_url!)}
+                                        />
                                       ) : (
                                         <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer"
                                           className={cn("flex items-center gap-2 p-2 rounded-lg border transition-colors", isOwn ? "border-primary-foreground/20 hover:bg-primary-foreground/10" : "border-border hover:bg-background")}>
@@ -853,5 +859,7 @@ export default function InboxPage() {
         )}
       </div>
     </PageShell>
+    <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+    </>
   );
 }
