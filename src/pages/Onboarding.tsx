@@ -217,7 +217,7 @@ export default function Onboarding() {
         } else if (ctx.persona === "impact" || ctx.persona === "hybrid") {
           setIsCreativePath(false);
         }
-        // Clean up the wizard flag so PostSignupWizard never triggers
+        // Clean up legacy wizard flag
         if (ctx.show_post_signup_wizard) {
           delete ctx.show_post_signup_wizard;
           localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
