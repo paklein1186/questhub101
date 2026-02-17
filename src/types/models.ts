@@ -566,6 +566,7 @@ export interface OnboardingProgress {
   contributedTerritory: boolean;
   attendedEvent: boolean;
   addedLanguages: boolean;
+  enrichedProfile: boolean;
   [key: string]: string | boolean;
 }
 

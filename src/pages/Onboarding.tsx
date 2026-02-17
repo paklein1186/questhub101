@@ -1489,8 +1489,15 @@ export default function Onboarding() {
             )}
 
             <div className="w-full space-y-3">
+              {/* Profile Enrichment CTA */}
+              <Button asChild className="w-full" variant="default">
+                <Link to="/profile/enrich">
+                  <Sparkles className="h-4 w-4 mr-2" /> Enrich your profile with AI
+                </Link>
+              </Button>
+
               {!representsOrg && (
-                <Button asChild className="w-full" variant="default">
+                <Button asChild className="w-full" variant="outline">
                   <Link to={pendingRedirect || "/"}>
                     <Compass className="h-4 w-4 mr-2" /> {pendingRedirect ? "Continue where you left off" : "Go to Home Feed"}
                   </Link>
