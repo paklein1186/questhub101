@@ -19,7 +19,7 @@ export default function CooperativeVenturePage() {
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">
           <p>changethegame is not just a platform.</p>
-          <p>It is a cooperative project owned, shaped and governed by its members.</p>
+          <p>It is a coop-like project owned, shaped and governed by its members.</p>
 
           <p className="pt-4">We offer two share classes:</p>
 
@@ -62,7 +62,7 @@ export default function CooperativeVenturePage() {
           {/* Why */}
           <div className="pt-10 space-y-4">
             <h2 className="text-xl font-semibold text-foreground">
-              Why a cooperative?
+              Why a coop-like structure?
             </h2>
             <p>
               Because the tools we use to collaborate should belong to the people

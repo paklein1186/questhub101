@@ -298,7 +298,7 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
                     </div>
                     <div className="space-y-0.5">
                       <p className="font-medium text-foreground">Shares</p>
-                      <p>Cooperative ownership</p>
+                      <p>Coop-like ownership</p>
                     </div>
                     <div className="space-y-0.5">
                       <p className="font-medium text-foreground">Money (€)</p>

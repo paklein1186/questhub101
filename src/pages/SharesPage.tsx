@@ -204,7 +204,7 @@ export default function SharesPage() {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h3 className="font-display font-semibold text-lg flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" /> You are a cooperative member
+                  <Shield className="h-5 w-5 text-primary" /> You are a coop-like member
                 </h3>
                 <div className="flex gap-4 mt-2 text-sm">
                   <span>Class A: <strong>{profile.total_shares_a ?? 0}</strong> shares</span>

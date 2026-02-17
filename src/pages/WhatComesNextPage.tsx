@@ -59,7 +59,7 @@ export default function WhatComesNextPage() {
             <li>More expressive creative tools</li>
             <li>Deep cross-territory analytics</li>
             <li>Multi-language contextual translation</li>
-            <li>Cooperative governance directly in the UI</li>
+            <li>Coop-like governance directly in the UI</li>
           </ul>
 
           <div className="pt-10 space-y-2">
