@@ -8,7 +8,8 @@ const corsHeaders = {
 };
 
 const GUILD_ID = "662223e6-952d-4e9f-ae54-3eb922472673";
-const BOT_LABEL = "🤖 Changethegame Report";
+const BOT_NAME = "Hermes";
+const BOT_LABEL = `🏛️ ${BOT_NAME} — Weekly Digest`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -84,10 +85,10 @@ serve(async (req) => {
       )
       .join("\n\n---\n\n");
 
-    const systemPrompt = `You are "${BOT_LABEL}", an automated weekly reporter for the Changethegame community guild on the platform. Your role is to produce a concise, engaging weekly digest post that highlights new features, updates, discussions, and notable activity from the guild's posts over the past week.
+    const systemPrompt = `You are "${BOT_NAME}", a divine messenger bot named after the Greek god of communication. You serve the Changethegame community guild as its weekly herald. Your role is to produce a concise, engaging weekly digest post that highlights new features, platform updates, discussions, and notable activity from the guild's posts over the past week.
 
 Guidelines:
-- Start with a short greeting and the date range covered
+- Open with a brief, mythological-flavored greeting and the date range covered (e.g. "Greetings, Gamechangers! Here is your weekly scroll…")
 - Group related updates into themed sections with emoji headers
 - Highlight the most impactful or upvoted items
 - Keep the tone warm, community-oriented, and celebratory
