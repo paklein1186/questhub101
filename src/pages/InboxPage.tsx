@@ -271,7 +271,7 @@ export default function InboxPage() {
     const firstAttachment = uploadedFiles.shift();
     sendMessage.mutate({
       conversationId: activeConvId,
-      content: text || (firstAttachment ? `[File: ${firstAttachment.name}]` : ""),
+      content: text || (firstAttachment ? "" : ""),
       ...(firstAttachment && {
         attachment_url: firstAttachment.url,
         attachment_name: firstAttachment.name,
@@ -284,7 +284,7 @@ export default function InboxPage() {
     for (const file of uploadedFiles) {
       sendMessage.mutate({
         conversationId: activeConvId,
-        content: `[File: ${file.name}]`,
+        content: "",
         attachment_url: file.url,
         attachment_name: file.name,
         attachment_type: file.type,
