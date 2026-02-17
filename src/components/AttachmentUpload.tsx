@@ -106,25 +106,6 @@ export function AttachmentUpload({ targetType, targetId, onAttachmentsChange, cl
         <span className="text-xs text-muted-foreground">Drop files or click to upload</span>
       </div>
       <input ref={fileRef} type="file" multiple onChange={(e) => handleFiles(e.target.files)} className="hidden" />
-      {existing.length > 0 && (
-        <div className="space-y-1.5">
-          {existing.map((att) => {
-            const Icon = getFileIcon(att.mime_type ?? "");
-            return (
-              <div key={att.id} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm group">
-                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <a href={att.file_url} target="_blank" rel="noopener noreferrer" className="truncate flex-1 hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
-                  {att.file_name}
-                </a>
-                <span className="text-xs text-muted-foreground shrink-0">{formatSize(att.file_size ?? 0)}</span>
-                <Button type="button" size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={() => removeAttachment(att.id)}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
