@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { DestinationPostComposer } from "@/components/feed/DestinationPostComposer";
@@ -27,28 +28,29 @@ import {
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
-const CONTENT_TYPE_OPTIONS = [
-  { value: "all", label: "All types" },
-  { value: "text", label: "Text only" },
-  { value: "image", label: "With images" },
-  { value: "video", label: "With videos" },
-  { value: "link", label: "With links" },
-  { value: "document", label: "With documents" },
-];
-
-const SOURCE_OPTIONS = [
-  { value: "all", label: "All sources" },
-  { value: "USER", label: "Profile walls" },
-  { value: "GUILD", label: "Guilds" },
-  { value: "COMPANY", label: "Organizations" },
-  { value: "TERRITORY", label: "Territories" },
-  { value: "QUEST", label: "Quests" },
-];
-
 export default function FeedHub() {
+  const { t } = useTranslation();
   const { session } = useAuth();
   const currentUser = useCurrentUser();
   const { label } = usePersona();
+
+  const CONTENT_TYPE_OPTIONS = [
+    { value: "all", label: t("filters.allContentTypes") },
+    { value: "text", label: t("filters.textOnly") },
+    { value: "image", label: t("filters.withImages") },
+    { value: "video", label: t("filters.withVideos") },
+    { value: "link", label: t("filters.withLinks") },
+    { value: "document", label: t("filters.withDocuments") },
+  ];
+
+  const SOURCE_OPTIONS = [
+    { value: "all", label: t("filters.allSources") },
+    { value: "USER", label: t("filters.profileWalls") },
+    { value: "GUILD", label: t("filters.guilds") },
+    { value: "COMPANY", label: t("filters.organizations") },
+    { value: "TERRITORY", label: t("filters.territories") },
+    { value: "QUEST", label: t("filters.quests") },
+  ];
   const isLoggedIn = !!session;
   const [searchParams] = useSearchParams();
 
@@ -260,8 +262,8 @@ export default function FeedHub() {
             <Rss className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Feed</h1>
-            <p className="text-sm text-muted-foreground">Activity from across the platform</p>
+            <h1 className="text-xl font-bold">{t("feed.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("feed.subtitle")}</p>
           </div>
         </div>
 
@@ -273,7 +275,7 @@ export default function FeedHub() {
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[200px]">
               <Input
-                placeholder="Search posts…"
+                placeholder={t("feed.searchPosts")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-9 text-sm pl-3 pr-8"
@@ -292,7 +294,7 @@ export default function FeedHub() {
               className={cn(filtersOpen && "bg-muted")}
             >
               <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
-              Filters
+              {t("filters.filters")}
               {activeFilterCount > 0 && (
                 <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 h-4">
                   {activeFilterCount}
@@ -302,7 +304,7 @@ export default function FeedHub() {
 
             {activeFilterCount > 0 && (
               <Button variant="ghost" size="sm" className="text-xs h-7" onClick={clearFilters}>
-                Clear all
+                {t("filters.clearAll")}
               </Button>
             )}
 
@@ -315,7 +317,7 @@ export default function FeedHub() {
             <CollapsibleContent className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-medium mb-1.5 text-muted-foreground">Source</p>
+                  <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.source")}</p>
                   <Select value={sourceFilter} onValueChange={setSourceFilter}>
                     <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -326,7 +328,7 @@ export default function FeedHub() {
                   </Select>
                 </div>
                 <div>
-                  <p className="text-xs font-medium mb-1.5 text-muted-foreground">Content type</p>
+                  <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.contentType")}</p>
                   <Select value={contentTypeFilter} onValueChange={setContentTypeFilter}>
                     <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -343,11 +345,11 @@ export default function FeedHub() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <Hash className="h-3 w-3" /> Topics
+                      <Hash className="h-3 w-3" /> {t("filters.topics")}
                     </p>
                     {selectedTopicIds.length > 0 && (
                       <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => setSelectedTopicIds([])}>
-                        Clear
+                        {t("filters.clear")}
                       </Button>
                     )}
                   </div>
@@ -371,11 +373,11 @@ export default function FeedHub() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> Territories
+                      <MapPin className="h-3 w-3" /> {t("filters.territories")}
                     </p>
                     {selectedTerritoryIds.length > 0 && (
                       <Button variant="ghost" size="sm" className="h-5 text-[10px] px-2" onClick={() => setSelectedTerritoryIds([])}>
-                        Clear
+                        {t("filters.clear")}
                       </Button>
                     )}
                   </div>
@@ -406,8 +408,8 @@ export default function FeedHub() {
           ) : sorted.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-dashed border-border">
               <Rss className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-muted-foreground mb-1">No posts found</p>
-              <p className="text-xs text-muted-foreground">Try adjusting your filters or be the first to post!</p>
+              <p className="text-muted-foreground mb-1">{t("feed.noPostsFound")}</p>
+              <p className="text-xs text-muted-foreground">{t("feed.tryAdjusting")}</p>
             </div>
           ) : displayMode === "list" ? (
             <div className="space-y-4">

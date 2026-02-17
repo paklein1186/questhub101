@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
 import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +43,7 @@ function Thumb({ src, fallback, alt }: { src?: string | null; fallback: string; 
 }
 
 export default function WorkHub() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "tasks";
   const setTab = (t: string) => setSearchParams({ tab: t });
@@ -89,12 +91,12 @@ export default function WorkHub() {
       <Tabs value={tab} onValueChange={setTab}>
         {(() => {
           const workTabs: TabDefinition[] = [
-            { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Tasks</span></> },
-            { value: "quests", label: <><span className="hidden sm:inline">My {label("quest.label")}</span><span className="sm:hidden">Quests</span> ({questsList.length})</> },
-            { value: "teams", label: <><span className="hidden sm:inline">My Entities</span><span className="sm:hidden">Teams</span> ({teamsList.length})</> },
-            { value: "services", label: <><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">Svc</span> ({servicesList.length})</> },
-            { value: "bookings", label: "Bookings" },
-            { value: "drafts", label: <>Drafts ({totalDrafts})</> },
+            { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.tasks")}</span></> },
+            { value: "quests", label: <><span className="hidden sm:inline">{label("work.myQuests")}</span><span className="sm:hidden">{label("quest.label")}</span> ({questsList.length})</> },
+            { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})</> },
+            { value: "services", label: <><span className="hidden sm:inline">{label("service.my_label")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
+            { value: "bookings", label: t("tabs.bookings") },
+            { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
           return <WorkTabsListInner tabs={workTabs} />;
         })()}
@@ -209,7 +211,7 @@ export default function WorkHub() {
           <div className="space-y-6">
             {(drafts?.quests || []).length > 0 && (
               <div>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Quest Drafts</h3>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> {t("tabs.questDrafts")}</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.quests || []).map((q: any, i: number) => (
                     <motion.div key={q.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
@@ -230,7 +232,7 @@ export default function WorkHub() {
             )}
             {(drafts?.guilds || []).length > 0 && (
               <div>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Guild Drafts</h3>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> {t("tabs.guildDrafts")}</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.guilds || []).map((g: any, i: number) => (
                     <motion.div key={g.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
@@ -251,7 +253,7 @@ export default function WorkHub() {
             )}
             {(drafts?.pods || []).length > 0 && (
               <div>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Pod Drafts</h3>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> {t("tabs.podDrafts")}</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.pods || []).map((p: any, i: number) => (
                     <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
@@ -272,7 +274,7 @@ export default function WorkHub() {
             )}
             {(drafts?.services || []).length > 0 && (
               <div>
-                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> Service Drafts</h3>
+                <h3 className="font-display font-semibold text-lg mb-3 flex items-center gap-2"><FileEdit className="h-4 w-4" /> {t("tabs.serviceDrafts")}</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   {(drafts?.services || []).map((s: any, i: number) => (
                     <motion.div key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
