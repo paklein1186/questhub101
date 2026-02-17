@@ -250,11 +250,27 @@ export default function SettingsPage() {
           selectedTopics.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
         );
       }
+      // Fetch previous territory associations to diff follows
+      const { data: prevUt } = await supabase.from("user_territories").select("territory_id").eq("user_id", authUser.id);
+      const prevTerritoryIds = new Set((prevUt ?? []).map((r: any) => r.territory_id));
+      const newTerritoryIds = new Set(selectedTerritories);
+
       await supabase.from("user_territories").delete().eq("user_id", authUser.id);
       if (selectedTerritories.length > 0) {
         await supabase.from("user_territories").insert(
           selectedTerritories.map((territoryId) => ({ user_id: authUser.id, territory_id: territoryId }))
         );
+      }
+
+      // Remove follows for territories that were removed (trigger handles new inserts)
+      const removedTerritories = [...prevTerritoryIds].filter((id) => !newTerritoryIds.has(id));
+      if (removedTerritories.length > 0) {
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", authUser.id)
+          .eq("target_type", "TERRITORY")
+          .in("target_id", removedTerritories);
       }
       qc.invalidateQueries({ queryKey: ["user-topics"] });
       qc.invalidateQueries({ queryKey: ["user-territories"] });
