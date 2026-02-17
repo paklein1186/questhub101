@@ -489,7 +489,7 @@ export default function UserProfile() {
                           : "text-xs bg-accent/10 text-accent border-accent/30"
                       }>
                         <Shield className="h-3 w-3 mr-1" />
-                        {profile.totalSharesA > 0 ? "Strategic Member" : "Community Member"}
+                        {profile.totalSharesA > 0 ? "Guardian" : "Steward"}
                       </Badge>
                     </Link>
                   )}

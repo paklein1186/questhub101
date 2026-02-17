@@ -47,10 +47,10 @@ export function ShareholderCTA() {
               </Badge>
             </p>
             {hasA && (
-              <Badge variant="default" className="text-[10px] mt-1 mr-1">Strategic Member</Badge>
+              <Badge variant="default" className="text-[10px] mt-1 mr-1">Guardian</Badge>
             )}
             {hasB && !hasA && (
-              <Badge variant="secondary" className="text-[10px] mt-1">Community Member</Badge>
+              <Badge variant="secondary" className="text-[10px] mt-1">Steward</Badge>
             )}
           </div>
         </div>
