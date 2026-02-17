@@ -471,7 +471,7 @@ export default function UserProfile() {
   return (
     <PageShell>
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
-      <div onClick={handleGuestClick}>
+      <div onClickCapture={handleGuestClick}>
       <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
