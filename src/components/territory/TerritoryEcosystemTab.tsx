@@ -637,7 +637,7 @@ function PeopleSection({
 
 function PersonCard({ person, isFollowed = false }: { person: TerritoryPerson; isFollowed?: boolean }) {
   return (
-    <Link to={`/profile/${person.user_id}`}>
+    <Link to={`/users/${person.user_id}`}>
       <Card className="relative group p-3 hover:bg-muted/50 transition-colors cursor-pointer flex items-center gap-3">
         <FollowOnHoverButton targetUserId={person.user_id} isFollowed={isFollowed} />
         <Avatar className="h-9 w-9 shrink-0">
