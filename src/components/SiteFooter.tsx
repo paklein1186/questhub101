@@ -1,23 +1,25 @@
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const CULTURAL_LINKS = [
-  { label: "Manifesto", href: "/manifesto" },
-  { label: "The Cooperative Venture", href: "/cooperative" },
-  { label: "What Comes Next", href: "/what-comes-next" },
+  { labelKey: "footer.manifesto", href: "/manifesto" },
+  { labelKey: "footer.cooperative", href: "/cooperative" },
+  { labelKey: "footer.whatComesNext", href: "/what-comes-next" },
 ];
 
 const TRANSPARENCY_LINKS = [
-  { label: "Revenue Models", href: "/revenue-models" },
-  { label: "Governance", href: "/governance" },
-  { label: "Data & Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
-  { label: "Contact", href: "/contact" },
+  { labelKey: "footer.revenueModels", href: "/revenue-models" },
+  { labelKey: "footer.governance", href: "/governance" },
+  { labelKey: "footer.privacy", href: "/privacy" },
+  { labelKey: "footer.terms", href: "/terms" },
+  { labelKey: "footer.contact", href: "/contact" },
 ];
 
 export function SiteFooter() {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   return (
     <footer className="mt-auto pt-12 pb-8 sm:pt-16 sm:pb-10">
@@ -30,26 +32,26 @@ export function SiteFooter() {
         </div>
 
         <p className="text-xs tracking-widest uppercase text-muted-foreground/60 font-medium">
-          changethegame — Human-powered. AI-augmented. Community-owned.
+          changethegame — {t("footer.tagline")}
         </p>
 
         <div className={`flex ${isMobile ? "flex-col items-center gap-6" : "flex-row items-start gap-12"}`}>
           <div className="flex flex-col items-center sm:items-start gap-2">
-            <span className="text-[10px] tracking-widest uppercase text-muted-foreground/50 font-semibold">Culture</span>
+            <span className="text-[10px] tracking-widest uppercase text-muted-foreground/50 font-semibold">{t("footer.culture")}</span>
             <nav className={`flex ${isMobile ? "flex-col items-center gap-2" : "flex-row items-center gap-5"}`}>
               {CULTURAL_LINKS.map((link) => (
                 <Link key={link.href} to={link.href} className="text-xs sm:text-sm font-semibold text-primary hover:text-secondary transition-colors duration-200">
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="flex flex-col items-center sm:items-start gap-2">
-            <span className="text-[10px] tracking-widest uppercase text-muted-foreground/50 font-semibold">Transparency</span>
+            <span className="text-[10px] tracking-widest uppercase text-muted-foreground/50 font-semibold">{t("footer.transparency")}</span>
             <nav className={`flex ${isMobile ? "flex-col items-center gap-2" : "flex-row items-center gap-5"}`}>
               {TRANSPARENCY_LINKS.map((link) => (
                 <Link key={link.href} to={link.href} className="text-xs sm:text-sm font-semibold text-primary hover:text-secondary transition-colors duration-200">
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
             </nav>
