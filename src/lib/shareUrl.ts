@@ -1,12 +1,21 @@
 /**
  * Share & invite URL helpers.
  *
- * Links use the clean production domain so users see friendly URLs.
- * The og-share edge function remains available for social-media crawlers
- * and can be wired via a reverse-proxy / rewrite rule at the hosting layer.
+ * Social-media crawlers don't execute JS, so the SPA can't serve per-page
+ * OG tags from index.html alone.
+ *
+ * getShareUrl / getInviteUrl route through the og-share edge function which:
+ *   1. Fetches entity-specific title, description & image from the DB
+ *   2. Serves HTML with proper OG meta tags for crawlers
+ *   3. Meta-refreshes real browsers to changethegame.xyz instantly
+ *
+ * getDisplayUrl returns the clean human-readable URL for display in the UI.
+ * Social media cards will show the clean og:url, not the function URL.
  */
 
-/** Production domain */
+const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-share`;
+
+/** Production domain used for display URLs */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
 
 export type ShareEntityType =
@@ -33,23 +42,22 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a clean share URL on the production domain.
+ * Returns a share URL routed through og-share for social crawler support.
+ * Browsers are meta-refreshed to the clean domain instantly.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type] || "/" + type + "s";
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
+  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns a clean invite link on the production domain.
+ * Returns an invite link through og-share for social crawler support.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type] || "/" + type + "s";
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
+  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
 }
 
 /**
- * Returns the clean, human-readable URL for display purposes.
+ * Returns the clean, human-readable URL for display in the UI.
  */
 export function getDisplayUrl(type: ShareEntityType, id: string): string {
   const route = ROUTE_MAP[type] || "/" + type + "s";
