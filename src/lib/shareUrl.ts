@@ -1,10 +1,8 @@
 /**
- * Generate a share-friendly URL that serves proper OG meta tags
- * for social media crawlers (Facebook, Twitter, LinkedIn, Slack, etc.)
- * and redirects real browsers to the app.
+ * Generate share-friendly URLs using the production domain.
+ * All shared / invite links point to changethegame.xyz so they are
+ * always accessible regardless of backend configuration.
  */
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 /** Production domain used for all shared / invite links */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
@@ -33,20 +31,19 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a URL suitable for sharing on social media.
- * Routes through the OG-share edge function so crawlers get proper
- * per-item meta tags (title, description, image).
- * Real browsers are redirected to changethegame.xyz via meta-refresh.
+ * Returns the canonical share URL on changethegame.xyz.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link through the OG-share function.
+ * Returns an invite link on changethegame.xyz with an invite ref param.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
+  const route = ROUTE_MAP[type] || "/" + type + "s";
+  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
 }
 
 /**
