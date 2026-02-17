@@ -577,5 +577,41 @@
     "createGuild": { "title": "Create a Guild", "subtitle": "Gather people around a shared intention." },
     "createCompany": { "title": "Create a Traditional Organization", "subtitle": "Bring your organization into the ecosystem." },
     "networkHub": { "title": "My Network", "subtitle": "Your ecosystem at a glance." }
+  },
+  "search": {
+    "placeholder": "Search…",
+    "inputPlaceholder": "Search users, guilds, quests, pods, services, companies…",
+    "noResults": "No results found.",
+    "advancedSearch": "Advanced search",
+    "advancedSearchFor": "Advanced search for \"{{query}}\"",
+    "users": "Users",
+    "guilds": "Guilds",
+    "quests": "Quests",
+    "pods": "Pods",
+    "services": "Services",
+    "companies": "Companies",
+    "territories": "Territories"
+  },
+  "wizard": {
+    "chooseType": "Choose type",
+    "getStarted": "Get started",
+    "nameAndDetails": "Name & details",
+    "topicsAndTerritories": "Topics & Territories",
+    "accessAndVisibility": "Access & visibility",
+    "branding": "Branding",
+    "reviewAndCreate": "Review & create",
+    "whatKind": "What kind of entity would you like to create?",
+    "haveWebsite": "Do you have a website?",
+    "pasteUrl": "Paste a URL and we'll auto-fill your entity's details — name, description, logo, and more.",
+    "importFromWebsite": "Import from website",
+    "importingData": "Importing data...",
+    "fillManually": "Fill in manually",
+    "prefilledFromWebsite": "Pre-filled from website — review and adjust below.",
+    "guild": "Guild",
+    "guildDesc": "A collective or community of like-minded people working toward shared goals.",
+    "pod": "Pod",
+    "podDesc": "A small, focused micro-team for a specific project or study topic.",
+    "company": "Traditional Organization",
+    "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
   }
 }

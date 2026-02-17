@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import {
   CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
@@ -8,14 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
 
-const TYPE_LABELS: Record<SearchResultType, string> = {
-  USER: "Users",
-  GUILD: "Guilds",
-  QUEST: "Quests",
-  POD: "Pods",
-  SERVICE: "Services",
-  COMPANY: "Companies",
-  TERRITORY: "Territories",
+const TYPE_I18N_KEYS: Record<SearchResultType, string> = {
+  USER: "search.users",
+  GUILD: "search.guilds",
+  QUEST: "search.quests",
+  POD: "search.pods",
+  SERVICE: "search.services",
+  COMPANY: "search.companies",
+  TERRITORY: "search.territories",
 };
 
 const TYPE_COLORS: Record<SearchResultType, string> = {
@@ -29,11 +30,13 @@ const TYPE_COLORS: Record<SearchResultType, string> = {
 };
 
 export function GlobalSearchDialog() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
+
   // Ctrl+K / Cmd+K shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -46,7 +49,7 @@ export function GlobalSearchDialog() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  // Debounced async search — no pre-filtering, show all results
+  // Debounced async search
   useEffect(() => {
     if (query.trim().length < 2) { setResults([]); return; }
     const timer = setTimeout(async () => {
@@ -87,7 +90,7 @@ export function GlobalSearchDialog() {
         className="flex items-center gap-2 h-8 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
       >
         <Search className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Search…</span>
+        <span className="hidden sm:inline">{t("search.placeholder")}</span>
         <kbd className="hidden md:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           ⌘K
         </kbd>
@@ -95,17 +98,17 @@ export function GlobalSearchDialog() {
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search users, guilds, quests, pods, services, companies…"
+          placeholder={t("search.inputPlaceholder")}
           value={query}
           onValueChange={setQuery}
         />
         <CommandList>
           {query.trim().length >= 2 && results.length === 0 && (
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t("search.noResults")}</CommandEmpty>
           )}
 
           {Array.from(grouped.entries()).map(([type, items]) => (
-            <CommandGroup key={type} heading={TYPE_LABELS[type]}>
+            <CommandGroup key={type} heading={t(TYPE_I18N_KEYS[type])}>
               {items.slice(0, 5).map((item) => (
                 <CommandItem
                   key={`${item.type}-${item.id}`}
@@ -114,7 +117,7 @@ export function GlobalSearchDialog() {
                   className="cursor-pointer"
                 >
                   <Badge variant="secondary" className={`mr-2 text-[10px] px-1.5 py-0 ${TYPE_COLORS[item.type]}`}>
-                    {item.type}
+                    {t(TYPE_I18N_KEYS[item.type])}
                   </Badge>
                   <span className="font-medium">{item.title}</span>
                   {item.subtitle && (
@@ -131,7 +134,7 @@ export function GlobalSearchDialog() {
             <CommandGroup>
               <CommandItem onSelect={handleAdvanced} className="cursor-pointer text-primary">
                 <Search className="h-4 w-4 mr-2" />
-                Advanced search{query ? ` for "${query}"` : ""}
+                {query ? t("search.advancedSearchFor", { query }) : t("search.advancedSearch")}
               </CommandItem>
             </CommandGroup>
           )}
