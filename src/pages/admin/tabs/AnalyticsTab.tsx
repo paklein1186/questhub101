@@ -11,6 +11,7 @@ import {
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DeepAnalyticsSection } from "./DeepAnalyticsSection";
 
 function useEntityCounts() {
   return useQuery({
@@ -309,6 +310,9 @@ export function AnalyticsTab() {
           </div>
         )}
       </div>
+
+      {/* Deep Analytics */}
+      <DeepAnalyticsSection />
     </div>
   );
 }
