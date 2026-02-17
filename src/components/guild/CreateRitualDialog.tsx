@@ -31,11 +31,13 @@ const ICONS: Record<string, any> = {
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  guildId: string;
+  guildId?: string;
+  questId?: string;
   onCreated: () => void;
 }
 
-export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: Props) {
+export function CreateRitualDialog({ open, onOpenChange, guildId, questId, onCreated }: Props) {
+  const entityId = guildId || questId || "";
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const [step, setStep] = useState(0);
@@ -63,8 +65,8 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
       const { data, error } = await supabase
         .from("entity_roles")
         .select("id, name, color")
-        .eq("entity_id", guildId)
-        .eq("entity_type", "guild")
+        .eq("entity_id", entityId)
+        .eq("entity_type", questId ? "quest" : "guild")
         .order("sort_order");
       if (error) throw error;
       return data || [];
@@ -112,8 +114,7 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from("rituals").insert({
-      guild_id: guildId,
+    const insertData: any = {
       title: title.trim(),
       description: description.trim() || null,
       session_type: sessionType,
@@ -128,7 +129,10 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, onCreated }: P
       credit_reward: creditReward || 0,
       recording_enabled: recordingEnabled,
       created_by_user_id: currentUser.id,
-    } as any);
+    };
+    if (guildId) insertData.guild_id = guildId;
+    if (questId) insertData.quest_id = questId;
+    const { error } = await supabase.from("rituals").insert(insertData);
     setSaving(false);
     if (error) {
       toast({ title: "Failed to create ritual", description: error.message, variant: "destructive" });

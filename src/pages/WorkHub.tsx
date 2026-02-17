@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
-import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -21,6 +21,7 @@ import MyRequests from "./MyRequests";
 import MyAvailability from "./MyAvailability";
 import MyCourses from "./MyCourses";
 import { WorkTasksTab } from "@/components/work/WorkTasksTab";
+import { WorkCalendarTab } from "@/components/work/WorkCalendarTab";
 
 import questPattern from "@/assets/patterns/quest-pattern.jpg";
 import guildPattern from "@/assets/patterns/guild-pattern.jpg";
@@ -96,6 +97,7 @@ export default function WorkHub() {
             { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})</> },
             { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
             { value: "bookings", label: t("tabs.bookings") },
+            { value: "calendar", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Calendar</span></> },
             { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
           return <WorkTabsListInner tabs={workTabs} />;
@@ -299,13 +301,14 @@ export default function WorkHub() {
         <TabsContent value="courses"><MyCourses bare /></TabsContent>
         <TabsContent value="availability"><MyAvailability bare /></TabsContent>
         <TabsContent value="bookings"><MyBookings bare /></TabsContent>
+        <TabsContent value="calendar"><WorkCalendarTab /></TabsContent>
         <TabsContent value="requests"><MyRequests bare /></TabsContent>
       </Tabs>
     </PageShell>
   );
 }
 
-const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "drafts"];
+const WORK_DEFAULT_TABS = ["tasks", "quests", "teams", "services", "bookings", "calendar", "drafts"];
 
 function WorkTabsListInner({ tabs }: { tabs: TabDefinition[] }) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("work_hub", WORK_DEFAULT_TABS);

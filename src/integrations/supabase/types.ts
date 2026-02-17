@@ -4242,6 +4242,7 @@ export type Database = {
           min_xp: number | null
           next_occurrence: string | null
           program_segments: Json | null
+          quest_id: string | null
           recording_enabled: boolean
           session_type: Database["public"]["Enums"]["ritual_session_type"]
           title: string
@@ -4268,6 +4269,7 @@ export type Database = {
           min_xp?: number | null
           next_occurrence?: string | null
           program_segments?: Json | null
+          quest_id?: string | null
           recording_enabled?: boolean
           session_type?: Database["public"]["Enums"]["ritual_session_type"]
           title: string
@@ -4294,6 +4296,7 @@ export type Database = {
           min_xp?: number | null
           next_occurrence?: string | null
           program_segments?: Json | null
+          quest_id?: string | null
           recording_enabled?: boolean
           session_type?: Database["public"]["Enums"]["ritual_session_type"]
           title?: string
@@ -4306,6 +4309,13 @@ export type Database = {
             columns: ["guild_id"]
             isOneToOne: false
             referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rituals_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]
