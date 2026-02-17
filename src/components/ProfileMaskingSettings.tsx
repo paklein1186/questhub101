@@ -62,7 +62,7 @@ export function ProfileMaskingSettings() {
       supabase.from("guilds").select("id, name").ilike("name", term).eq("is_deleted", false).limit(5),
       supabase.from("pods").select("id, name").ilike("name", term).eq("is_deleted", false).limit(5),
       supabase.from("companies").select("id, name").ilike("name", term).eq("is_deleted", false).limit(5),
-      supabase.from("profiles").select("user_id, name").ilike("name", term).neq("user_id", userId!).limit(5),
+      supabase.from("profiles_public").select("user_id, name").ilike("name", term).neq("user_id", userId!).limit(5),
       supabase.from("quests").select("id, title").ilike("title", term).eq("is_deleted", false).limit(5),
     ]);
 

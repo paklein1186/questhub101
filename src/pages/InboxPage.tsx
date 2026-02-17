@@ -262,8 +262,8 @@ export default function InboxPage() {
         const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${safeName}`;
         const { error } = await supabase.storage.from("dm-attachments").upload(path, att.file);
         if (error) throw error;
-        const { data: urlData } = supabase.storage.from("dm-attachments").getPublicUrl(path);
-        uploadedFiles.push({ url: urlData.publicUrl, name: att.file.name, type: att.file.type, size: att.file.size });
+        // Store the storage path (not public URL) since bucket is private
+        uploadedFiles.push({ url: path, name: att.file.name, type: att.file.type, size: att.file.size });
       } catch (e: any) {
         toast({ title: "Upload failed", description: `${att.file.name}: ${e?.message}`, variant: "destructive" });
       }
