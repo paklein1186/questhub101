@@ -185,12 +185,12 @@ export default function SharesPage() {
           </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <Button asChild>
-              <Link to="/guilds">
+              <Link to="/explore?tab=entities&sub=guilds">
                 <Users className="h-4 w-4 mr-2" /> Join a {guildSingular}
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to="/quests">
+              <Link to="/explore?tab=quests">
                 <Compass className="h-4 w-4 mr-2" /> Explore {questLabel}
               </Link>
             </Button>
