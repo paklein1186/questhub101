@@ -11,7 +11,9 @@
     "logout": "Se déconnecter",
     "me": "Moi",
     "myHub": "Mon Hub",
-    "myPublicProfile": "Mon profil public"
+    "myPublicProfile": "Mon profil public",
+    "feed": "Fil",
+    "messages": "Messages"
   },
   "common": {
     "save": "Enregistrer",

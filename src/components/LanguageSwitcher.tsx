@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -21,7 +20,6 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
 
   const switchLanguage = async (code: string) => {
     i18n.changeLanguage(code);
-    // Persist to DB if logged in
     if (session?.user?.id) {
       setSaving(true);
       await supabase
@@ -36,12 +34,12 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {variant === "icon" ? (
-          <Button variant="ghost" size="sm" className="px-2 text-muted-foreground hover:text-foreground">
-            <Globe className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="px-2 text-muted-foreground hover:text-foreground gap-1">
+            <span className="text-base leading-none">{current.flag}</span>
           </Button>
         ) : (
           <Button variant="outline" size="sm" className="gap-2">
-            <span>{current.flag}</span>
+            <span className="text-base leading-none">{current.flag}</span>
             <span className="text-sm">{current.label}</span>
           </Button>
         )}
@@ -53,7 +51,7 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "ful
             onClick={() => switchLanguage(lang.code)}
             className={`gap-2 cursor-pointer ${lang.code === current.code ? "bg-primary/10 font-medium" : ""}`}
           >
-            <span>{lang.flag}</span>
+            <span className="text-base">{lang.flag}</span>
             <span>{lang.label}</span>
           </DropdownMenuItem>
         ))}
