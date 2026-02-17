@@ -97,7 +97,7 @@ function useExploreUsers(filters: {
       let query = supabase
         .from("profiles_public")
         .select("*", { count: "exact" })
-        .eq("has_completed_onboarding", true);
+        .not("name", "is", null);
 
       if (filters.search.trim()) {
         const s = `%${filters.search.trim()}%`;
