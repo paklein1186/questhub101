@@ -85,6 +85,138 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          messages: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_hires: {
+        Row: {
+          agent_id: string
+          hired_at: string
+          id: string
+          last_used_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          hired_at?: string
+          id?: string
+          last_used_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          hired_at?: string
+          id?: string
+          last_used_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_hires_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          avatar_url: string | null
+          category: string
+          cost_per_use: number
+          created_at: string
+          creator_user_id: string
+          description: string | null
+          id: string
+          is_featured: boolean
+          is_published: boolean
+          name: string
+          skills: string[] | null
+          system_prompt: string
+          territory_id: string | null
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          category?: string
+          cost_per_use?: number
+          created_at?: string
+          creator_user_id: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          name: string
+          skills?: string[] | null
+          system_prompt: string
+          territory_id?: string | null
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          category?: string
+          cost_per_use?: number
+          created_at?: string
+          creator_user_id?: string
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          is_published?: boolean
+          name?: string
+          skills?: string[] | null
+          system_prompt?: string
+          territory_id?: string | null
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attachments: {
         Row: {
           created_at: string
