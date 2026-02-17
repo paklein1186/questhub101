@@ -2,9 +2,9 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Save, Trash2, Coins, Settings, Puzzle, Calendar,
-  ListChecks, MessageCircle, AlertTriangle, Ban, Loader2, Shield,
-  Users, UserPlus, CreditCard,
+  ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
+  ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
+  Plus, Pencil, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,9 @@ import { Separator } from "@/components/ui/separator";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -59,6 +62,15 @@ export default function QuestSettings() {
   return <QuestSettingsInner questId={quest.id} quest={quest} />;
 }
 
+/* ─── Campaign form state ─── */
+interface CampaignForm {
+  amount: string;
+  type: "CREDITS" | "FIAT";
+  currency: string;
+  status: string;
+}
+const emptyCampaign: CampaignForm = { amount: "0", type: "CREDITS", currency: "EUR", status: "PAID" };
+
 function QuestSettingsInner({ questId, quest }: { questId: string; quest: any }) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -71,12 +83,69 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
 
   const isCancelled = quest.status === "CANCELLED";
 
-  // ── Fundraising state ──
+  // ── Fundraising global settings ──
   const [fundingType, setFundingType] = useState<"CREDITS" | "FIAT">((quest as any).funding_type || "CREDITS");
   const [fundingGoal, setFundingGoal] = useState(String((quest as any).funding_goal_credits ?? ""));
   const [creditBudget, setCreditBudget] = useState(String((quest as any).credit_budget ?? 0));
   const [creditReward, setCreditReward] = useState(String(quest.credit_reward ?? 0));
   const [allowFundraising, setAllowFundraising] = useState((quest as any).allow_fundraising ?? false);
+
+  // ── Campaigns CRUD ──
+  const { data: campaigns = [], isLoading: campaignsLoading } = useQuery({
+    queryKey: ["quest-funding", questId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quest_funding")
+        .select("*")
+        .eq("quest_id", questId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<CampaignForm>(emptyCampaign);
+  const [saving, setSaving] = useState(false);
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyCampaign);
+    setDialogOpen(true);
+  };
+  const openEdit = (c: any) => {
+    setEditingId(c.id);
+    setForm({ amount: String(c.amount), type: c.type, currency: c.currency || "EUR", status: c.status });
+    setDialogOpen(true);
+  };
+  const saveCampaign = async () => {
+    setSaving(true);
+    const payload: any = {
+      amount: Number(form.amount) || 0,
+      type: form.type,
+      currency: form.currency,
+      status: form.status,
+    };
+    if (editingId) {
+      await supabase.from("quest_funding").update(payload).eq("id", editingId);
+      toast({ title: "Campaign updated" });
+    } else {
+      payload.quest_id = questId;
+      payload.funder_user_id = currentUser.id;
+      await supabase.from("quest_funding").insert(payload);
+      toast({ title: "Campaign created" });
+    }
+    qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+    setSaving(false);
+    setDialogOpen(false);
+  };
+  const deleteCampaign = async (id: string) => {
+    if (!confirm("Delete this funding entry?")) return;
+    await supabase.from("quest_funding").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+    toast({ title: "Campaign deleted" });
+  };
 
   // ── Features config state ──
   const defaultFeatures = { rituals: true, subtasks: true, discussion: true };
@@ -105,6 +174,13 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     qc.invalidateQueries({ queryKey: ["quest", questId] });
     qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
     toast({ title: "Features saved!" });
+  };
+
+  const statusColor = (s: string) => {
+    if (s === "PAID") return "bg-green-500/10 text-green-700 border-green-500/30";
+    if (s === "REFUNDED") return "bg-orange-500/10 text-orange-700 border-orange-500/30";
+    if (s === "PENDING") return "bg-yellow-500/10 text-yellow-700 border-yellow-500/30";
+    return "bg-muted text-muted-foreground";
   };
 
   return (
@@ -150,6 +226,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
               {/* ── Fundraising ── */}
               {activeTab === "fundraising" && (
                 <div className="space-y-5 max-w-lg">
+                  {/* Global settings card */}
                   <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                     <h3 className="font-display font-semibold flex items-center gap-2">
                       <Coins className="h-4 w-4 text-primary" /> Fundraising Settings
@@ -184,6 +261,53 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       <Switch id="settingsFundraising" checked={allowFundraising} onCheckedChange={setAllowFundraising} />
                       <label htmlFor="settingsFundraising" className="text-sm font-medium">Allow community fundraising</label>
                     </div>
+                    <Button size="sm" onClick={saveFundraising}>
+                      <Save className="h-4 w-4 mr-1" /> Save Settings
+                    </Button>
+                  </div>
+
+                  {/* Campaigns list */}
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display font-semibold flex items-center gap-2">
+                        <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
+                      </h3>
+                      <Button size="sm" variant="outline" onClick={openCreate}>
+                        <Plus className="h-4 w-4 mr-1" /> New Campaign
+                      </Button>
+                    </div>
+
+                    {campaignsLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                    ) : campaigns.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">No funding campaigns yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {campaigns.map((c: any) => (
+                          <div key={c.id} className="flex items-center justify-between rounded-lg border border-border bg-background p-3 gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-sm">{c.amount} {c.type === "FIAT" ? (c.currency || "EUR") : "Credits"}</span>
+                                <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
+                                {c.refunded_at && <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-700 border-orange-500/30">Refunded</Badge>}
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {new Date(c.created_at).toLocaleDateString()} · {c.type}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(c)}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteCampaign(c.id)}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
                       <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {fundingType === "FIAT" ? "€" : "Credits"}</p>
                       {(quest as any).funding_goal_credits && (
@@ -191,9 +315,6 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       )}
                       <p><strong>Fundraising:</strong> {(quest as any).allow_fundraising ? "Open" : "Closed"}{(quest as any).fundraising_cancelled ? " (Cancelled)" : ""}</p>
                     </div>
-                    <Button size="sm" onClick={saveFundraising}>
-                      <Save className="h-4 w-4 mr-1" /> Save Fundraising Settings
-                    </Button>
                   </div>
                 </div>
               )}
@@ -283,6 +404,59 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           </div>
         </div>
       </div>
+
+      {/* ── Campaign Create/Edit Dialog ── */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit Campaign" : "New Funding Campaign"}</DialogTitle>
+            <DialogDescription>
+              {editingId ? "Update the funding campaign details." : "Create a new funding entry for this quest."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Amount</label>
+              <Input type="number" min={0} value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Type</label>
+                <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CREDITS">Credits</SelectItem>
+                    <SelectItem value="FIAT">Fiat</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Currency</label>
+                <Input value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} placeholder="EUR" />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Status</label>
+              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PAID">Paid</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="REFUNDED">Refunded</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={saveCampaign} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+              {editingId ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }
