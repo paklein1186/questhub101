@@ -24,20 +24,15 @@ import { ProposalEvaluator } from "./ProposalEvaluator";
 interface QuestProposalsProps {
   questId: string;
   questOwnerId: string;
-  escrowCredits: number;
-  fundingGoalCredits?: number | null;
-  allowFundraising: boolean;
   questStatus: string;
   missionBudgetMin?: number | null;
   missionBudgetMax?: number | null;
   paymentType?: string;
-  fundingType?: string;
-  fundraisingCancelled?: boolean;
 }
 
 export function QuestProposals({
-  questId, questOwnerId, escrowCredits, fundingGoalCredits, allowFundraising, questStatus,
-  missionBudgetMin, missionBudgetMax, paymentType, fundingType = "CREDITS", fundraisingCancelled = false,
+  questId, questOwnerId, questStatus,
+  missionBudgetMin, missionBudgetMax, paymentType,
 }: QuestProposalsProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -86,7 +81,20 @@ export function QuestProposals({
     enabled: !!currentUser.id,
   });
 
-  // Funding
+  // Campaigns
+  const { data: campaigns = [] } = useQuery({
+    queryKey: ["quest-campaigns", questId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_campaigns" as any)
+        .select("*")
+        .eq("quest_id", questId)
+        .order("created_at", { ascending: false }) as any;
+      return data ?? [];
+    },
+  });
+
+  // Funding entries (linked to campaigns or legacy)
   const { data: funding = [] } = useQuery({
     queryKey: ["quest-funding", questId],
     queryFn: async () => {
@@ -196,10 +204,6 @@ export function QuestProposals({
 
   // ── Accept proposal ───────────────────────────────────
   const acceptProposal = async (proposal: any) => {
-    if (escrowCredits < proposal.requested_credits) {
-      toast({ title: "Not enough Credits in pot", description: `Need ${proposal.requested_credits} but pot has ${escrowCredits}.`, variant: "destructive" });
-      return;
-    }
     // Grant credits to proposer
     await grantCredits(proposal.proposer_id, {
       type: CREDIT_TX_TYPES.EARNED_ACTION,
@@ -208,12 +212,6 @@ export function QuestProposals({
       relatedEntityType: "Quest",
       relatedEntityId: questId,
     }, true);
-
-    // Decrease escrow
-    await supabase.from("quests").update({
-      escrow_credits: escrowCredits - proposal.requested_credits,
-      status: "ACTIVE" as any,
-    }).eq("id", questId);
 
     // Update proposal status
     await (supabase.from("quest_proposals" as any) as any)
@@ -263,7 +261,7 @@ export function QuestProposals({
   const [fundOpen, setFundOpen] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
 
-  const fundQuest = async (amount: number) => {
+  const fundQuest = async (amount: number, campaign?: any) => {
     if (!currentUser.id || amount <= 0) return;
     const ok = await spendCredits(currentUser.id, {
       type: CREDIT_TX_TYPES.SPENT_FEATURE,
@@ -282,9 +280,12 @@ export function QuestProposals({
       status: "PAID",
     });
 
-    await supabase.from("quests").update({
-      escrow_credits: escrowCredits + amount,
-    }).eq("id", questId);
+    // Update campaign raised_amount if campaign provided
+    if (campaign) {
+      await supabase.from("quest_campaigns" as any).update({
+        raised_amount: (campaign.raised_amount ?? 0) + amount,
+      } as any).eq("id", campaign.id);
+    }
 
     // Fetch quest title for activity log
     const { data: questRow } = await supabase.from("quests").select("title").eq("id", questId).maybeSingle();
@@ -313,6 +314,7 @@ export function QuestProposals({
     }
 
     qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
     qc.invalidateQueries({ queryKey: ["quest", questId] });
     qc.invalidateQueries({ queryKey: ["profile-data"] });
     qc.invalidateQueries({ queryKey: ["plan-limits"] });
@@ -333,106 +335,70 @@ export function QuestProposals({
 
   return (
     <div className="space-y-6">
-      {/* ── Funding progress ──────────────────────────── */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-2">
+      {/* ── Funding Campaigns ──────────────────────────── */}
+      {(campaigns as any[]).length > 0 ? (
+        <div className="space-y-3">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> {fundingType === "FIAT" ? "Fiat Pot (€)" : "Credits Pot"}
-            {fundraisingCancelled && <Badge variant="destructive" className="ml-2 text-xs">Fundraising cancelled</Badge>}
+            <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
           </h3>
-          <span className="text-lg font-bold text-primary">
-            {escrowCredits}{fundingGoalCredits ? ` / ${fundingGoalCredits}` : ""} {fundingType === "FIAT" ? "€" : "Credits"}
-          </span>
-        </div>
-
-        {/* Progress bar — always show if there's a goal, or if there's any escrow */}
-        {fundingGoalCredits && fundingGoalCredits > 0 ? (
-          <div className="space-y-1 mb-3">
-            <Progress value={Math.min(100, (escrowCredits / fundingGoalCredits) * 100)} className="h-2.5" />
-            <p className="text-xs text-muted-foreground text-right">
-              {Math.min(100, Math.round((escrowCredits / fundingGoalCredits) * 100))}% funded
-            </p>
-          </div>
-        ) : escrowCredits > 0 ? (
-          <div className="mb-3">
-            <Progress value={100} className="h-2.5" />
-            <p className="text-xs text-muted-foreground mt-1">No funding goal set</p>
-          </div>
-        ) : null}
-
-        {/* Contributors list */}
-        {funding.length > 0 && (
-          <div className="mb-3 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">{funding.length} contributor{funding.length !== 1 ? "s" : ""}</p>
-            <div className="space-y-1.5 max-h-40 overflow-y-auto">
-              {(funding as any[]).map((f: any) => {
-                const fProfile = funderMap[f.funder_user_id];
-                return (
-                  <div key={f.id} className="flex items-center gap-2 text-sm">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={fProfile?.avatar_url} />
-                      <AvatarFallback className="text-[10px]">{fProfile?.name?.[0] || "?"}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium text-sm truncate flex-1">{fProfile?.name || "Anonymous"}</span>
-                    <Badge variant="secondary" className="text-xs shrink-0">
-                      +{f.amount} Credits
+          {(campaigns as any[]).map((campaign: any) => {
+            const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
+            const isActive = campaign.status === "ACTIVE";
+            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "Credits";
+            return (
+              <div key={campaign.id} className={`rounded-xl border bg-card p-5 ${campaign.status === "CANCELLED" ? "border-destructive/30 opacity-70" : "border-border"}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{campaign.title || "Untitled campaign"}</span>
+                    <Badge variant="outline" className={`text-xs ${campaign.status === "ACTIVE" ? "bg-green-500/10 text-green-700 border-green-500/30" : campaign.status === "COMPLETED" ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-orange-500/10 text-orange-700 border-orange-500/30"}`}>
+                      {campaign.status}
                     </Badge>
-                    <span className="text-[10px] text-muted-foreground shrink-0">
-                      {formatDistanceToNow(new Date(f.created_at), { addSuffix: true })}
-                    </span>
+                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "Credits"}</Badge>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          {allowFundraising && !fundraisingCancelled && currentUser.id && fundingType === "CREDITS" && (
-            <Dialog open={fundOpen} onOpenChange={setFundOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5 mr-1" /> Fund this quest</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Fund Quest with Credits</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-2">
-                  <div className="flex gap-2">
-                    {[5, 10, 20, 50].map(v => (
-                      <Button key={v} variant="outline" size="sm" onClick={() => setFundAmount(String(v))}>{v}</Button>
-                    ))}
-                  </div>
-                  <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
-                  <Button onClick={() => fundQuest(Number(fundAmount) || 0)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
-                    <Coins className="h-4 w-4 mr-1" /> Fund {fundAmount || 0} Credits
-                  </Button>
+                  <span className="text-lg font-bold text-primary">
+                    {campaign.raised_amount} / {campaign.goal_amount} {unit}
+                  </span>
                 </div>
-              </DialogContent>
-            </Dialog>
-          )}
-          {/* Cancel Fundraising & Refund (owner/admin only) */}
-          {isOwner && !fundraisingCancelled && escrowCredits > 0 && fundingType === "CREDITS" && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-destructive hover:bg-destructive/10"
-              onClick={async () => {
-                if (!confirm("Cancel fundraising and refund all contributors? This action cannot be undone.")) return;
-                const { data: refundResult, error } = await supabase.rpc("refund_quest_funding" as any, { _quest_id: questId });
-                if (error) {
-                  toast({ title: "Refund failed", description: error.message, variant: "destructive" });
-                } else {
-                  const result = refundResult?.[0] || refundResult;
-                  toast({ title: "Fundraising cancelled", description: `${result?.refunded_total ?? 0} Credits refunded to ${result?.refunded_count ?? 0} contributor(s).` });
-                  qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
-                  qc.invalidateQueries({ queryKey: ["quest", questId] });
-                }
-              }}
-            >
-              <X className="h-3.5 w-3.5 mr-1" /> Cancel & Refund
-            </Button>
-          )}
+                {campaign.goal_amount > 0 && (
+                  <div className="space-y-1 mb-3">
+                    <Progress value={pct} className="h-2.5" />
+                    <p className="text-xs text-muted-foreground text-right">{pct}% funded</p>
+                  </div>
+                )}
+                {/* Contribute button (only for active credit campaigns) */}
+                {isActive && currentUser.id && campaign.type === "CREDITS" && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5 mr-1" /> Contribute</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader><DialogTitle>Contribute Credits to "{campaign.title}"</DialogTitle></DialogHeader>
+                      <div className="space-y-4 mt-2">
+                        <div className="flex gap-2">
+                          {[5, 10, 20, 50].map(v => (
+                            <Button key={v} variant="outline" size="sm" onClick={() => setFundAmount(String(v))}>{v}</Button>
+                          ))}
+                        </div>
+                        <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
+                        <Button onClick={() => fundQuest(Number(fundAmount) || 0, campaign)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
+                          <Coins className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} Credits
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+                {isActive && campaign.type === "FIAT" && (
+                  <p className="text-xs text-muted-foreground mt-2 italic">Fiat contributions are processed via Stripe checkout.</p>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-xl border border-border bg-card p-5 text-center">
+          <p className="text-sm text-muted-foreground">No funding campaigns configured yet. The quest owner can create campaigns in <span className="font-medium text-foreground">Settings → Fundraising</span>.</p>
+        </div>
+      )}
 
       {/* ── Proposals list ────────────────────────────── */}
       <div className="flex items-center justify-between">
@@ -585,8 +551,7 @@ export function QuestProposals({
                       variant="outline"
                       className="h-8 text-emerald-600 hover:bg-emerald-500/10"
                       onClick={() => acceptProposal(proposal)}
-                      disabled={escrowCredits < proposal.requested_credits}
-                      title={escrowCredits < proposal.requested_credits ? "Not enough Credits in pot" : "Accept proposal"}
+                      title="Accept proposal"
                     >
                       <Check className="h-3.5 w-3.5" />
                     </Button>
