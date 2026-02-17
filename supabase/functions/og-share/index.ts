@@ -1,4 +1,4 @@
-// OG Share — serves OG meta tags for shared links and redirects browsers
+// OG Share — serves OG meta tags for shared links and redirects browsers to changethegame.xyz
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
