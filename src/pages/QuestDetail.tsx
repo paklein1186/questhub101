@@ -1008,7 +1008,13 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6 space-y-6">
-          <FeedSection contextType="QUEST" contextId={quest.id} canPost={isOwner || isParticipant} />
+          <FeedSection
+            contextType="QUEST"
+            contextId={quest.id}
+            canPost={isOwner || isParticipant}
+            initialTerritoryIds={territories.map((t: any) => t.id)}
+            initialTopicIds={topics.map((t: any) => t.id)}
+          />
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>
 

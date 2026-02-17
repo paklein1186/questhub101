@@ -19,6 +19,8 @@ interface GuildDiscussionTabProps {
   isAdmin: boolean;
   isMember: boolean;
   canPost: boolean; // derived from features_config discussionPostPermission
+  initialTerritoryIds?: string[];
+  initialTopicIds?: string[];
 }
 
 const VISIBILITY_LABELS: Record<string, { label: string; icon: typeof Globe }> = {
@@ -27,7 +29,7 @@ const VISIBILITY_LABELS: Record<string, { label: string; icon: typeof Globe }> =
   admins: { label: "Admins only", icon: Shield },
 };
 
-export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canPost }: GuildDiscussionTabProps) {
+export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canPost, initialTerritoryIds, initialTopicIds }: GuildDiscussionTabProps) {
   const { session } = useAuth();
   const isLoggedIn = !!session;
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
@@ -112,6 +114,8 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
           contextType="GUILD_DISCUSSION"
           contextId={guildId}
           showVisibilityPicker
+          initialTerritoryIds={initialTerritoryIds}
+          initialTopicIds={initialTopicIds}
         />
       )}
 

@@ -465,7 +465,7 @@ export default function CompanyDetail() {
 
         {/* Wall */}
         <TabsContent value="wall" className="mt-6 space-y-6">
-          <FeedSection contextType="COMPANY" contextId={company.id} canPost={isMember} showDisplayToggle />
+          <FeedSection contextType="COMPANY" contextId={company.id} canPost={isMember} showDisplayToggle initialTerritoryIds={territories.map((t: any) => t.id)} initialTopicIds={topics.map((t: any) => t.id)} />
         </TabsContent>
 
         {/* Chat & AI */}
