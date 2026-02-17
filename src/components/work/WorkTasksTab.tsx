@@ -821,7 +821,7 @@ export function WorkTasksTab() {
                   <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2.5"></th>
                   <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium">Task</th>
                   <th className="text-left px-2 sm:px-3 py-1.5 sm:py-2.5 font-medium hidden md:table-cell">Source</th>
-                  <th className="text-left px-1.5 md:px-3 py-1.5 sm:py-2.5 font-medium w-[40px] md:w-auto"><span className="hidden md:inline">Status</span></th>
+                  <th className="text-left px-1.5 md:px-3 py-1.5 sm:py-2.5 font-medium w-[40px] md:w-[140px]"><span className="hidden md:inline">Status</span></th>
                   <th className="text-left px-3 py-1.5 sm:py-2.5 font-medium hidden lg:table-cell">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Created</span>
                   </th>
@@ -958,7 +958,7 @@ export function WorkTasksTab() {
                       <td className="px-1.5 md:px-3 py-1.5 md:py-2.5">
                         <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
                           <SelectTrigger className={cn(
-                            "h-5 md:h-6 w-7 md:w-[110px] text-[9px] md:text-[10px] font-medium px-1 md:px-2 py-0 border-none shadow-none rounded-full [&>svg:last-child]:hidden md:[&>svg:last-child]:inline-block",
+                            "h-7 w-8 md:w-[120px] text-[10px] font-medium px-1.5 md:px-2.5 py-0 border-none shadow-none rounded-full gap-1 [&>svg:last-child]:h-3 [&>svg:last-child]:w-3 [&>svg:last-child]:hidden md:[&>svg:last-child]:block [&>svg:last-child]:shrink-0",
                             STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
                           )}>
                             <span className="md:hidden flex items-center justify-center">
@@ -967,7 +967,7 @@ export function WorkTasksTab() {
                               {task.status === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
                               {task.status === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
                             </span>
-                            <span className="hidden md:inline"><SelectValue /></span>
+                            <span className="hidden md:inline truncate"><SelectValue /></span>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
