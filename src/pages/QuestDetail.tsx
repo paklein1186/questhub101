@@ -32,7 +32,8 @@ import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { FeedSection } from "@/components/feed/FeedSection";
-import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
+import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { UnitChat } from "@/components/UnitChat";
@@ -69,6 +70,7 @@ export default function QuestDetail() {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { grantXp, grantCredits, spendCredits } = useXpCredits();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const navigate = useNavigate();
 
@@ -285,6 +287,9 @@ export default function QuestDetail() {
     const credits = Number(editCreditReward) || 0;
     const monType = fiat > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE";
     const isDraft = editStatus === QuestStatus.DRAFT;
+    const previousStatus = quest.status;
+    const isBecomingCompleted = editStatus === QuestStatus.COMPLETED && previousStatus !== QuestStatus.COMPLETED;
+
     await supabase.from("quests").update({
       title: editTitle.trim() || quest.title,
       description: editDesc.trim() || null,
@@ -311,6 +316,60 @@ export default function QuestDetail() {
     await supabase.from("quest_territories").delete().eq("quest_id", quest.id);
     if (editTerritories.length > 0) {
       await supabase.from("quest_territories" as any).insert(editTerritories.map((territory_id) => ({ quest_id: quest.id, territory_id })));
+    }
+
+    // ─── Quest Completion: award XP & credits ───────────────
+    if (isBecomingCompleted) {
+      // Award XP to creator
+      await grantXp(quest.created_by_user_id, {
+        type: XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR,
+        relatedEntityType: "quest",
+        relatedEntityId: quest.id,
+      });
+
+      // Award XP and credit rewards to all participants
+      const activeParticipants = (participants || []).filter(
+        (p: any) => p.status === "ACCEPTED" && p.user_id !== quest.created_by_user_id
+      );
+
+      for (const p of activeParticipants) {
+        // XP for each participant
+        await grantXp(p.user_id, {
+          type: XP_EVENT_TYPES.QUEST_COMPLETED_USER,
+          relatedEntityType: "quest",
+          relatedEntityId: quest.id,
+        }, true);
+      }
+
+      // Distribute credit rewards to all participants (including creator)
+      const creditRewardPerUser = quest.credit_reward;
+      if (creditRewardPerUser > 0) {
+        const allEligible = (participants || []).filter((p: any) => p.status === "ACCEPTED");
+        for (const p of allEligible) {
+          await grantCredits(p.user_id, {
+            type: CREDIT_TX_TYPES.QUEST_REWARD_EARNED,
+            amount: creditRewardPerUser,
+            source: `Quest completed: ${quest.title}`,
+            relatedEntityType: "quest",
+            relatedEntityId: quest.id,
+          }, true);
+        }
+        toast({ title: `${creditRewardPerUser} credits awarded to ${allEligible.length} participant(s)` });
+      }
+
+      // Deduct credit budget from creator if set
+      const creditBudget = Number((quest as any).credit_budget) || 0;
+      if (creditBudget > 0 && currentUser.id) {
+        await spendCredits(currentUser.id, {
+          type: CREDIT_TX_TYPES.QUEST_BUDGET_SPENT,
+          amount: creditBudget,
+          source: `Quest budget: ${quest.title}`,
+          relatedEntityType: "quest",
+          relatedEntityId: quest.id,
+        });
+      }
+
+      toast({ title: "🎉 Quest completed!", description: "XP and rewards have been distributed to all participants." });
     }
 
     qc.invalidateQueries({ queryKey: ["quest", id] });
@@ -344,8 +403,8 @@ export default function QuestDetail() {
         </div>
 
         {/* Mission Budget & Economy Bar */}
-        {((quest as any).mission_budget_min || (quest as any).mission_budget_max || quest.credit_reward > 0) && (
-          <div className="rounded-lg border border-border bg-muted/30 p-4 mb-4 grid gap-3 md:grid-cols-3">
+        {((quest as any).mission_budget_min || (quest as any).mission_budget_max || quest.credit_reward > 0 || (quest as any).credit_budget > 0) && (
+          <div className="rounded-lg border border-border bg-muted/30 p-4 mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             {((quest as any).mission_budget_min || (quest as any).mission_budget_max) && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
@@ -358,11 +417,27 @@ export default function QuestDetail() {
             <div>
               <p className="text-xs text-muted-foreground font-medium">🏆 XP Reward</p>
               <p className="text-lg font-bold text-primary">+{quest.reward_xp} XP</p>
+              <p className="text-[10px] text-muted-foreground">
+                Creator: +{40} XP • Participant: +{30} XP
+              </p>
             </div>
             {quest.credit_reward > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">⚡ Credit Reward</p>
                 <p className="text-lg font-bold text-primary">{quest.credit_reward} Credits</p>
+                <p className="text-[10px] text-muted-foreground">Per participant on completion</p>
+              </div>
+            )}
+            {(quest as any).credit_budget > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">🏦 Credit Budget</p>
+                <p className="text-lg font-bold">{(quest as any).credit_budget} Credits</p>
+                <p className="text-[10px] text-muted-foreground">Funded by quest creator</p>
+              </div>
+            )}
+            {quest.status === "COMPLETED" && (
+              <div className="md:col-span-full">
+                <Badge variant="default" className="bg-green-600 text-white">✅ Completed — Rewards distributed</Badge>
               </div>
             )}
           </div>
