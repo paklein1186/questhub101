@@ -1,7 +1,8 @@
 import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare, Heart } from "lucide-react";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { TerritoryOverviewTab } from "@/components/territory/TerritoryOverviewTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
@@ -10,6 +11,9 @@ import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystem
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useFollow } from "@/hooks/useFollow";
+import { FollowTargetType } from "@/types/enums";
+import { cn } from "@/lib/utils";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();
@@ -20,6 +24,10 @@ export default function TerritoryDetail() {
   const resolvedId = territory?.id;
   const { data: stats } = useTerritoryStats(resolvedId);
   const currentUser = useCurrentUser();
+  const { isFollowing, toggle: toggleFollow, isLoading: followLoading } = useFollow(
+    FollowTargetType.TERRITORY,
+    resolvedId ?? ""
+  );
 
   if (isLoading) {
     return (
@@ -74,7 +82,17 @@ export default function TerritoryDetail() {
                 )}
               </div>
             </div>
-            <div className="ml-auto shrink-0">
+            <div className="ml-auto shrink-0 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={isFollowing ? "secondary" : "default"}
+                onClick={toggleFollow}
+                disabled={followLoading || !resolvedId}
+                className="gap-1.5"
+              >
+                <Heart className={cn("h-3.5 w-3.5", isFollowing && "fill-current")} />
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
               <ShareLinkButton entityType="territory" entityId={territory.id} entityName={territory.name} />
             </div>
           </div>
