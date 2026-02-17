@@ -176,6 +176,7 @@ export default function QuestDetail() {
   const [inviteEmailSending, setInviteEmailSending] = useState(false);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");
+  const [editFundingType, setEditFundingType] = useState<"CREDITS" | "FIAT">("CREDITS");
 
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
@@ -279,6 +280,7 @@ export default function QuestDetail() {
     setEditTerritories(territories.map((t: any) => t.id));
     setEditQuestType((quest as any).quest_type || "ACTION");
     setEditGuildId(quest.guild_id || null);
+    setEditFundingType((quest as any).funding_type || "CREDITS");
     setEditOpen(true);
   };
 
@@ -289,6 +291,7 @@ export default function QuestDetail() {
     const isDraft = editStatus === QuestStatus.DRAFT;
     const previousStatus = quest.status;
     const isBecomingCompleted = editStatus === QuestStatus.COMPLETED && previousStatus !== QuestStatus.COMPLETED;
+    const isBecomingCancelled = editStatus === QuestStatus.CANCELLED && previousStatus !== QuestStatus.CANCELLED;
 
     await supabase.from("quests").update({
       title: editTitle.trim() || quest.title,
@@ -305,6 +308,7 @@ export default function QuestDetail() {
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
       quest_type: editQuestType,
       guild_id: editGuildId || null,
+      funding_type: editFundingType,
     } as any).eq("id", quest.id);
 
     // Update topics: delete old, insert new
@@ -370,6 +374,20 @@ export default function QuestDetail() {
       }
 
       toast({ title: "🎉 Quest completed!", description: "XP and rewards have been distributed to all participants." });
+    }
+
+    // ─── Quest Cancellation: refund all credit funding ──────
+    if (isBecomingCancelled && (quest as any).funding_type === "CREDITS" && (quest as any).escrow_credits > 0) {
+      const { data: refundResult, error: refundError } = await supabase.rpc("refund_quest_funding" as any, {
+        _quest_id: quest.id,
+      });
+      if (refundError) {
+        console.error("Refund error:", refundError.message);
+        toast({ title: "Refund failed", description: refundError.message, variant: "destructive" });
+      } else {
+        const result = refundResult?.[0] || refundResult;
+        toast({ title: "Credits refunded", description: `${result?.refunded_total ?? 0} Credits returned to ${result?.refunded_count ?? 0} contributor(s).` });
+      }
     }
 
     qc.invalidateQueries({ queryKey: ["quest", id] });
@@ -631,9 +649,19 @@ export default function QuestDetail() {
               </div>
               <div className="rounded-lg border border-border p-3 space-y-3">
                 <h4 className="text-sm font-semibold">Budget & Fundraising</h4>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Funding Type</label>
+                  <Select value={editFundingType} onValueChange={(v) => setEditFundingType(v as "CREDITS" | "FIAT")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
+                      <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm font-medium mb-1 block">Credit Budget</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">Credits committed to pot</p></div>
-                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target Credits amount</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">{editFundingType === "CREDITS" ? "Credits committed to pot" : "Euros committed to pot"}</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "Credits" : "€"} amount</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
@@ -913,6 +941,8 @@ export default function QuestDetail() {
             missionBudgetMin={(quest as any).mission_budget_min}
             missionBudgetMax={(quest as any).mission_budget_max}
             paymentType={(quest as any).payment_type}
+            fundingType={(quest as any).funding_type ?? "CREDITS"}
+            fundraisingCancelled={(quest as any).fundraising_cancelled ?? false}
           />
         </TabsContent>
 

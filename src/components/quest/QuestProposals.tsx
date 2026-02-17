@@ -30,11 +30,13 @@ interface QuestProposalsProps {
   missionBudgetMin?: number | null;
   missionBudgetMax?: number | null;
   paymentType?: string;
+  fundingType?: string;
+  fundraisingCancelled?: boolean;
 }
 
 export function QuestProposals({
   questId, questOwnerId, escrowCredits, fundingGoalCredits, allowFundraising, questStatus,
-  missionBudgetMin, missionBudgetMax, paymentType,
+  missionBudgetMin, missionBudgetMax, paymentType, fundingType = "CREDITS", fundraisingCancelled = false,
 }: QuestProposalsProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -330,10 +332,11 @@ export function QuestProposals({
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> Credits Pot
+            <Coins className="h-4 w-4 text-primary" /> {fundingType === "FIAT" ? "Fiat Pot (€)" : "Credits Pot"}
+            {fundraisingCancelled && <Badge variant="destructive" className="ml-2 text-xs">Fundraising cancelled</Badge>}
           </h3>
           <span className="text-lg font-bold text-primary">
-            {escrowCredits}{fundingGoalCredits ? ` / ${fundingGoalCredits}` : ""} Credits
+            {escrowCredits}{fundingGoalCredits ? ` / ${fundingGoalCredits}` : ""} {fundingType === "FIAT" ? "€" : "Credits"}
           </span>
         </div>
 
@@ -380,7 +383,7 @@ export function QuestProposals({
         )}
 
         <div className="flex items-center gap-2">
-          {allowFundraising && currentUser.id && (
+          {allowFundraising && !fundraisingCancelled && currentUser.id && fundingType === "CREDITS" && (
             <Dialog open={fundOpen} onOpenChange={setFundOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5 mr-1" /> Fund this quest</Button>
@@ -400,6 +403,28 @@ export function QuestProposals({
                 </div>
               </DialogContent>
             </Dialog>
+          )}
+          {/* Cancel Fundraising & Refund (owner/admin only) */}
+          {isOwner && !fundraisingCancelled && escrowCredits > 0 && fundingType === "CREDITS" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive hover:bg-destructive/10"
+              onClick={async () => {
+                if (!confirm("Cancel fundraising and refund all contributors? This action cannot be undone.")) return;
+                const { data: refundResult, error } = await supabase.rpc("refund_quest_funding" as any, { _quest_id: questId });
+                if (error) {
+                  toast({ title: "Refund failed", description: error.message, variant: "destructive" });
+                } else {
+                  const result = refundResult?.[0] || refundResult;
+                  toast({ title: "Fundraising cancelled", description: `${result?.refunded_total ?? 0} Credits refunded to ${result?.refunded_count ?? 0} contributor(s).` });
+                  qc.invalidateQueries({ queryKey: ["quest-funding", questId] });
+                  qc.invalidateQueries({ queryKey: ["quest", questId] });
+                }
+              }}
+            >
+              <X className="h-3.5 w-3.5 mr-1" /> Cancel & Refund
+            </Button>
           )}
         </div>
       </div>
