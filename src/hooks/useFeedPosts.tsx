@@ -187,7 +187,72 @@ export function useCreatePost() {
         const { error: topicError } = await supabase
           .from("post_topics")
           .insert(topicRows as any);
-        if (topicError) throw topicError;
+      if (topicError) throw topicError;
+      }
+
+      // ── Fire-and-forget notifications ──
+      try {
+        // Wall post: notify the wall owner
+        if (contextType === "USER" && contextId && contextId !== authorUserId) {
+          const { data: authorProfile } = await supabase
+            .from("profiles")
+            .select("name")
+            .eq("user_id", authorUserId)
+            .single();
+          const authorName = authorProfile?.name || "Someone";
+          await supabase.from("notifications").insert({
+            user_id: contextId,
+            type: "FOLLOWED_USER_NEW_POST",
+            title: "New post on your wall",
+            body: `${authorName} posted on your wall`,
+            related_entity_type: "FEED_POST",
+            related_entity_id: postId,
+            deep_link_url: `/users/${contextId}`,
+          } as any);
+        }
+
+        // Entity post: notify members of the entity (guild, company, pod, quest)
+        const ENTITY_MEMBER_TABLES: Record<string, { table: string; idCol: string; deepPrefix: string }> = {
+          GUILD: { table: "guild_members", idCol: "guild_id", deepPrefix: "/guilds" },
+          GUILD_DISCUSSION: { table: "guild_members", idCol: "guild_id", deepPrefix: "/guilds" },
+          COMPANY: { table: "company_members", idCol: "company_id", deepPrefix: "/companies" },
+          POD: { table: "pod_members", idCol: "pod_id", deepPrefix: "/pods" },
+          QUEST: { table: "quest_members", idCol: "quest_id", deepPrefix: "/quests" },
+        };
+
+        const entityConfig = ENTITY_MEMBER_TABLES[contextType];
+        if (entityConfig && contextId) {
+          const { data: members } = await supabase
+            .from(entityConfig.table as any)
+            .select("user_id")
+            .eq(entityConfig.idCol, contextId)
+            .limit(200);
+
+          if (members && members.length > 0) {
+            const { data: authorProfile } = await supabase
+              .from("profiles")
+              .select("name")
+              .eq("user_id", authorUserId)
+              .single();
+            const authorName = authorProfile?.name || "Someone";
+            const notifRows = (members as any[])
+              .filter((m: any) => m.user_id !== authorUserId)
+              .map((m: any) => ({
+                user_id: m.user_id,
+                type: "FOLLOWED_ENTITY_NEW_POST",
+                title: "New post in your entity",
+                body: `${authorName} published a new post`,
+                related_entity_type: contextType.replace("_DISCUSSION", ""),
+                related_entity_id: contextId,
+                deep_link_url: `${entityConfig.deepPrefix}/${contextId}`,
+              }));
+            if (notifRows.length > 0) {
+              await supabase.from("notifications").insert(notifRows as any);
+            }
+          }
+        }
+      } catch (notifErr) {
+        console.error("[PostNotification] Error:", notifErr);
       }
 
       return postId;

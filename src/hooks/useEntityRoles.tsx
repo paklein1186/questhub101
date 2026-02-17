@@ -114,6 +114,23 @@ export function useEntityRoles(entityType: string, entityId: string | undefined)
     } as any);
     if (error && error.code !== "23505") { toast({ title: "Failed to assign role", variant: "destructive" }); return; }
     invalidate();
+
+    // Fire-and-forget: notify the user about the new role
+    try {
+      const role = rolesQuery.data?.find((r) => r.id === roleId);
+      if (role && entityId) {
+        const entityRoute = entityType === "company" ? "companies" : entityType + "s";
+        supabase.from("notifications").insert({
+          user_id: userId,
+          type: "GUILD_ROLE_CHANGED",
+          title: "New role assigned",
+          body: `You were assigned the "${role.name}" role`,
+          related_entity_type: entityType.toUpperCase(),
+          related_entity_id: entityId,
+          deep_link_url: `/${entityRoute}/${entityId}`,
+        } as any).then(() => {});
+      }
+    } catch { /* silent */ }
   };
 
   const removeRoleAssignment = async (roleId: string, userId: string) => {
