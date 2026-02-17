@@ -20,14 +20,15 @@ export default function BuyXpPage() {
 
   const success = searchParams.get("success") === "true";
   const successBundle = searchParams.get("bundle");
+  const successSessionId = searchParams.get("session_id");
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    if (success && successBundle && !verified && !verifying) {
+    if (success && (successBundle || successSessionId) && !verified && !verifying) {
       setVerifying(true);
       supabase.functions.invoke("verify-credit-purchase", {
-        body: { bundleCode: successBundle },
+        body: { bundleCode: successBundle, sessionId: successSessionId },
       }).then(({ data, error }) => {
         setVerifying(false);
         setVerified(true);
