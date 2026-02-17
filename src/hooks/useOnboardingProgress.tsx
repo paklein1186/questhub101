@@ -58,6 +58,7 @@ export function useOnboardingProgress() {
     contributedTerritory: counts?.hasTerritory ?? false,
     attendedEvent: counts?.hasEvent ?? false,
     addedLanguages: counts?.hasLanguages ?? false,
+    enrichedProfile: !!(profile?.bio && profile.bio.length > 100 && profile?.headline),
   };
 
   // Only show steps that are NOT already covered by the onboarding wizard
@@ -71,6 +72,7 @@ export function useOnboardingProgress() {
       { key: "contributedTerritory" as const, label: "Contribute to a Territory", description: "Add a memory entry (+40 XP)", link: "/explore/territories" },
       { key: "attendedEvent" as const, label: "Attend an Event", description: "Register for a guild event (+20 Credits)", link: "/calendar" },
       { key: "bookedSession" as const, label: "Book a Session", description: "Connect with someone", link: "/explore?tab=services" },
+      { key: "enrichedProfile" as const, label: "Enrich your profile with AI", description: "Let Pulse analyze your resume or LinkedIn (+25 XP)", link: "/profile/enrich" },
     ],
     [],
   );
