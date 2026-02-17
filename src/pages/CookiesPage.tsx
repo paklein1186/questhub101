@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function CookiesPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Cookies Policy" subtitle="Last updated: February 10, 2026">
+    <ContentPageShell title={t("pages.cookies.title")} subtitle={t("pages.cookies.subtitle")}>
       <ContentSection title="1. What Are Cookies">
         <p>Cookies are small text files stored on your device when you visit a website. They help us remember your preferences and improve your experience.</p>
       </ContentSection>

@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function AIEthicsPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="AI Ethics & Transparency" subtitle="Responsible AI for a regenerative world.">
+    <ContentPageShell title={t("pages.aiEthics.title")} subtitle={t("pages.aiEthics.subtitle")}>
       <ContentSection title="Why We Use AI">
         <p>AI amplifies human collaboration, creativity, and coordination. It is never a replacement for human agency or decision-making.</p>
       </ContentSection>

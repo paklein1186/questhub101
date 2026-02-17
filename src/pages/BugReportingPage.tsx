@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function BugReportingPage() {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [steps, setSteps] = useState("");
   const [device, setDevice] = useState("");
@@ -18,7 +20,7 @@ export default function BugReportingPage() {
   };
 
   return (
-    <ContentPageShell title="Bug Reporting" subtitle="Help us improve changethegame.">
+    <ContentPageShell title={t("pages.bugReport.title")} subtitle={t("pages.bugReport.subtitle")}>
       <ContentSection title="Report a Bug">
         <p>If something is broken, confusing or incomplete, we want to know. This platform evolves with your feedback.</p>
       </ContentSection>

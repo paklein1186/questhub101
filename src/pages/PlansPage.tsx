@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Coins, Building2, Sparkles, Eye, ArrowRight, TrendingDown } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -46,6 +47,7 @@ const PLAN_COLORS: Record<string, string> = {
 };
 
 export default function PlansPage() {
+  const { t } = useTranslation();
   const { session } = useAuth();
   const { plan: currentPlan, refresh } = usePlanLimits();
   const { toast } = useToast();
@@ -122,9 +124,9 @@ export default function PlansPage() {
         )}
 
         <div className="text-center mb-10">
-          <h1 className="font-display text-3xl font-bold mb-2">Plans & Pricing</h1>
+          <h1 className="font-display text-3xl font-bold mb-2">{t("pages.plans.title")}</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Choose a plan that fits your level of activity. Credits power platform features — mission budgets stay in euros.
+            {t("pages.plans.subtitle")}
           </p>
         </div>
 

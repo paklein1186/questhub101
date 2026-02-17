@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function QuestsInfoPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Discover Quests" subtitle="Missions, projects, creative acts, and impact initiatives.">
+    <ContentPageShell title={t("pages.questsInfo.title")} subtitle={t("pages.questsInfo.subtitle")}>
       <ContentSection title="What are Quests?">
         <p>Quests are the beating heart of changethegame. They can be:</p>
         <ContentList items={["Personal projects", "Community missions", "Creative journeys", "Impact collaborations", "Guild projects", "Company assignments"]} />

@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function CreateGuildInfoPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Create a Guild" subtitle="Gather people around a shared intention.">
+    <ContentPageShell title={t("pages.createGuild.title")} subtitle={t("pages.createGuild.subtitle")}>
       <ContentSection title="What Guilds Offer">
         <p>Guilds (or collectives) are collaborative groups with:</p>
         <ContentList items={["Quests", "Collaboration tools", "Events", "Services", "Members and roles", "An AI agent for coordination"]} />

@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function GovernancePage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Governance Model" subtitle="Distributed, transparent, evolving.">
+    <ContentPageShell title={t("pages.governance.title")} subtitle={t("pages.governance.subtitle")}>
       <ContentSection title="Guild Governance">
         <p>Guilds operate with configurable membership policies (open, application-based, invite-only), role-based permissions, and AI-assisted decision-making through polls and proposals.</p>
       </ContentSection>

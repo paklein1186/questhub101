@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function AboutPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="About changethegame" subtitle="Human-powered. AI-augmented. Game-changing.">
+    <ContentPageShell title={t("pages.about.title")} subtitle={t("pages.about.subtitle")}>
       <ContentSection title="Our Purpose">
         <p>changethegame exists to help humans collaborate, create, and regenerate the world. We blend collective intelligence, creativity, territories, and AI-powered agents into a single ecosystem where anyone can launch quests, join guilds, offer services, and activate their region or community.</p>
       </ContentSection>

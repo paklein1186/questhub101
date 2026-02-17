@@ -1,18 +1,20 @@
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const CLASS_A_MAILTO =
   "mailto:pa@changethegame.xyz?subject=Class%20A%20Membership%20Application";
 
 export default function CooperativeVenturePage() {
+  const { t } = useTranslation();
   return (
     <PageShell>
       <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4">
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
-          The Cooperative Venture
+          {t("pages.cooperative.title")}
         </h1>
         <p className="text-muted-foreground text-lg mb-12">
-          Become a co-owner of the platform you use.
+          {t("pages.cooperative.subtitle")}
         </p>
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">

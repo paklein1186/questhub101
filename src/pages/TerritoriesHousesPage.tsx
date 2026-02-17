@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function TerritoriesHousesPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Territories & Topics" subtitle="Where geography meets imagination.">
+    <ContentPageShell title={t("pages.territoriesInfo.title")} subtitle={t("pages.territoriesInfo.subtitle")}>
       <ContentSection title="What are Territories?">
         <p>Territories are real-world places where quests, guilds and communities act.</p>
       </ContentSection>

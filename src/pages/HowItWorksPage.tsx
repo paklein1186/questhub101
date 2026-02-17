@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function HowItWorksPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="How changethegame Works" subtitle="A collaborative ecosystem for quests, guilds, territories and AI-powered creativity.">
+    <ContentPageShell title={t("pages.howItWorks.title")} subtitle={t("pages.howItWorks.subtitle")}>
       <ContentSection title="1. Create Your Profile">
         <p>Pick your Houses (interests), choose your Territory, and define your persona (Impact, Creative, or Hybrid).</p>
       </ContentSection>

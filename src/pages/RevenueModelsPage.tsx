@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { PageShell } from "@/components/PageShell";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,6 +64,7 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 export default function RevenueModelsPage() {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("overview");
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -102,9 +104,9 @@ export default function RevenueModelsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="mb-6">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-1">Revenue Models &amp; Economic Framework</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mb-1">{t("pages.revenue.title")}</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Transparency Statement on Economic Structure, Value Circulation, and Sustainability
+            {t("pages.revenue.subtitle")}
           </p>
         </header>
 

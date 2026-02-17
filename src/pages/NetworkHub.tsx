@@ -159,6 +159,7 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
 
 // ─── Main ────────────────────────────────────────────────────
 export default function NetworkHub() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "following";
   const setTab = (t: string) => setSearchParams({ tab: t });
@@ -192,9 +193,9 @@ export default function NetworkHub() {
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Globe className="h-7 w-7 text-primary" /> My Network
+          <Globe className="h-7 w-7 text-primary" /> {t("network.title")}
         </h1>
-        <p className="text-muted-foreground mt-1">Your ecosystem at a glance — people, organizations, and territories connected to you.</p>
+        <p className="text-muted-foreground mt-1">{t("network.subtitle")}</p>
       </div>
 
       <NetworkTabs

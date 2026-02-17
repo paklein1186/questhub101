@@ -6,8 +6,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePersona } from "@/hooks/usePersona";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export default function WhatComesNextPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { persona } = usePersona();
   const [text, setText] = useState("");
@@ -38,10 +40,10 @@ export default function WhatComesNextPage() {
     <PageShell>
       <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4">
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
-          What Comes Next
+          {t("pages.whatComesNext.title")}
         </h1>
         <p className="text-muted-foreground text-lg mb-12">
-          A quiet place to see what is emerging — and contribute to it.
+          {t("pages.whatComesNext.subtitle")}
         </p>
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">

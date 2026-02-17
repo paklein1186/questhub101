@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function CoursesInfoPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Browse Courses" subtitle="Learn, create and evolve with community-powered lessons.">
+    <ContentPageShell title={t("pages.coursesInfo.title")} subtitle={t("pages.coursesInfo.subtitle")}>
       <ContentSection title="What Courses Include">
         <p>Courses allow users and guilds to publish structured learning modules:</p>
         <ContentList items={["Lessons", "Videos", "Files", "Exercises", "Discussions"]} />

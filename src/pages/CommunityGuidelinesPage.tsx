@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function CommunityGuidelinesPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Community Guidelines" subtitle="A safe, creative and regenerative space for all.">
+    <ContentPageShell title={t("pages.community.title")} subtitle={t("pages.community.subtitle")}>
       <ContentSection title="Our Standards">
         <ContentList items={[
           "Respect and kindness in all interactions",

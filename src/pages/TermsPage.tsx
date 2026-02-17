@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function TermsPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Terms of Service" subtitle="Last updated: February 10, 2026">
+    <ContentPageShell title={t("pages.terms.title")} subtitle={t("pages.terms.subtitle")}>
       <ContentSection title="1. Agreement">
         <p>By accessing and using changethegame ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.</p>
       </ContentSection>

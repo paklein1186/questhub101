@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function TerritoryAgentsInfoPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Territory Agents" subtitle="AI agents dedicated to local ecosystems.">
+    <ContentPageShell title={t("pages.territoryAgents.title")} subtitle={t("pages.territoryAgents.subtitle")}>
       <ContentSection title="What Territory Agents Analyze">
         <ContentList items={[
           "Quests happening locally",

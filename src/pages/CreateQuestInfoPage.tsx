@@ -1,8 +1,10 @@
 import { ContentPageShell, ContentSection, ContentList, ContentCTA } from "@/components/ContentPageShell";
+import { useTranslation } from "react-i18next";
 
 export default function CreateQuestInfoPage() {
+  const { t } = useTranslation();
   return (
-    <ContentPageShell title="Create a Quest" subtitle="Turn your intention into a mission.">
+    <ContentPageShell title={t("pages.createQuest.title")} subtitle={t("pages.createQuest.subtitle")}>
       <ContentSection title="A Quest Can Be">
         <ContentList items={["A project you want to start", "An initiative in your guild", "A creative act", "A social or territorial action"]} />
       </ContentSection>
