@@ -39,16 +39,14 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
  * Real browsers are redirected to changethegame.xyz via meta-refresh.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type] || "/" + type + "s";
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
+  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
 }
 
 /**
  * Returns an invite link through the OG-share function.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  const route = ROUTE_MAP[type] || "/" + type + "s";
-  return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}?ref=invite`;
+  return `${SUPABASE_URL}/functions/v1/og-share?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
 }
 
 /**
