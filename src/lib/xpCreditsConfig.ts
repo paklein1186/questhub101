@@ -214,7 +214,10 @@ export const GRACE_PERIOD_DAYS = 30;
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
   moneyDisclaimer: "Mission budgets are in euros. Credits are not used for compensation.",
-  creditsDisclaimer: "Credits are non-convertible internal coordination units. They circulate within the ecosystem and are subject to 1.5% monthly redistribution. They cannot be exchanged for money.",
+  creditsDisclaimer: "Credits are non-convertible internal coordination units. They circulate within the ecosystem and are subject to 1% monthly redistribution. They cannot be exchanged for money.",
   upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use credits.",
-  demurrageNotice: "Inactive credits are gradually redistributed to the ecosystem treasury (1.5%/month).",
+  demurrageNotice: "Inactive credits are gradually redistributed to the ecosystem treasury (1%/month).",
+  creditsNature: "Collaboration fuel — earned through contribution, spent on ecosystem tools.",
+  xpNature: "Reputation & contribution level — earned through participation, never purchased.",
+  sharesNature: "Stewardship participation — long-term commitment to the platform's mission.",
 } as const;
