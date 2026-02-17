@@ -374,7 +374,7 @@ export default function SharesPage() {
                   return (
                     <Link
                       key={s.user_id}
-                      to={`/profile/${s.user_id}`}
+                      to={`/users/${s.user_id}`}
                       className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:bg-muted/50 transition-colors"
                     >
                       <Avatar className="h-10 w-10 shrink-0">
