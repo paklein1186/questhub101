@@ -239,11 +239,14 @@ export default function InboxPage() {
   const MAX_ATTACHMENTS = 10;
   const [attachments, setAttachments] = useState<{ file: File; preview?: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isSendingRef = useRef(false);
 
   const isPulseActive = activeConv && isPulseConversation(activeConv);
 
   const handleSend = async () => {
     if ((!messageText.trim() && attachments.length === 0) || !activeConvId || !userId) return;
+    if (isSendingRef.current) return;
+    isSendingRef.current = true;
     const text = messageText.trim();
     const currentAttachments = [...attachments];
     setMessageText("");
@@ -311,6 +314,7 @@ export default function InboxPage() {
         setPulseLoading(false);
       }
     }
+    isSendingRef.current = false;
   };
 
   const handleAcceptEnrichment = useCallback(async (field: string, value: any) => {
