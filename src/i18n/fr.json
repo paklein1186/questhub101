@@ -577,5 +577,41 @@
     "createGuild": { "title": "Créer une Guilde", "subtitle": "Rassemblez des personnes autour d'une intention partagée." },
     "createCompany": { "title": "Créer une Organisation", "subtitle": "Intégrez votre organisation dans l'écosystème." },
     "networkHub": { "title": "Mon Réseau", "subtitle": "Votre écosystème en un coup d'œil." }
+  },
+  "search": {
+    "placeholder": "Rechercher…",
+    "inputPlaceholder": "Rechercher des personnes, guildes, quêtes, pods, services, organisations…",
+    "noResults": "Aucun résultat trouvé.",
+    "advancedSearch": "Recherche avancée",
+    "advancedSearchFor": "Recherche avancée pour \"{{query}}\"",
+    "users": "Personnes",
+    "guilds": "Guildes",
+    "quests": "Quêtes",
+    "pods": "Pods",
+    "services": "Services",
+    "companies": "Organisations",
+    "territories": "Territoires"
+  },
+  "wizard": {
+    "chooseType": "Choisir le type",
+    "getStarted": "Commencer",
+    "nameAndDetails": "Nom & détails",
+    "topicsAndTerritories": "Thématiques & Territoires",
+    "accessAndVisibility": "Accès & visibilité",
+    "branding": "Image de marque",
+    "reviewAndCreate": "Vérifier & créer",
+    "whatKind": "Quel type d'entité souhaitez-vous créer ?",
+    "haveWebsite": "Avez-vous un site web ?",
+    "pasteUrl": "Collez une URL et nous pré-remplirons les détails de votre entité — nom, description, logo, etc.",
+    "importFromWebsite": "Importer depuis le site web",
+    "importingData": "Import en cours...",
+    "fillManually": "Remplir manuellement",
+    "prefilledFromWebsite": "Pré-rempli depuis le site web — vérifiez et ajustez ci-dessous.",
+    "guild": "Guilde",
+    "guildDesc": "Un collectif ou une communauté de personnes partageant les mêmes idées et travaillant vers des objectifs communs.",
+    "pod": "Pod",
+    "podDesc": "Une micro-équipe ciblée pour un projet ou un sujet d'étude spécifique.",
+    "company": "Organisation traditionnelle",
+    "companyDesc": "Une PME, une association ou une organisation établie rejoignant l'écosystème."
   }
 }

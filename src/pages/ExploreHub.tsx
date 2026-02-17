@@ -36,6 +36,7 @@ const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
 export default function ExploreHub() {
+  const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const isGuest = !currentUser.id;
   const { persona, label } = usePersona();
@@ -69,9 +70,9 @@ export default function ExploreHub() {
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Search className="h-7 w-7 text-primary" /> {label("nav.explore")}
+          <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
         </h1>
-        <p className="text-muted-foreground mt-1">Discover {label("quest.label").toLowerCase()}, entities, {label("service.label_plural").toLowerCase()}, and people.</p>
+        <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${label("quest.label").toLowerCase()}, ${label("service.label_plural").toLowerCase()}` })}</p>
       </div>
 
       <ExploreTabsInner tab={tab} onTabChange={handleTabChange} isGuest={isGuest} isCreative={isCreative} currentUserId={currentUser.id} label={label}>
@@ -98,7 +99,7 @@ export default function ExploreHub() {
             ))}
             </div>
             <Button size="sm" onClick={() => setWizardOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> {label("tabs.createEntity")}
+              <Plus className="h-4 w-4 mr-1" /> {t("tabs.createEntity")}
             </Button>
             <EntityCreationWizard open={wizardOpen} onOpenChange={setWizardOpen} initialKind={wizardKind} />
           </div>
@@ -149,14 +150,14 @@ export default function ExploreHub() {
 
         <TabsContent value="quests">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createQuest")}</Link></Button>
+            <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
           </div>
           <QuestsMarketplace bare />
         </TabsContent>
 
         <TabsContent value="services">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createService")}</Link></Button>
+            <Button size="sm" asChild><Link to="/services/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createService")}</Link></Button>
           </div>
           <ServicesMarketplace bare />
         </TabsContent>
@@ -164,7 +165,7 @@ export default function ExploreHub() {
           {!isGuest && (
             <div className="flex justify-end mb-4">
               <Button size="sm" onClick={() => setJobDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> {label("tabs.postJob")}
+                <Plus className="h-4 w-4 mr-1" /> {t("tabs.postJob")}
               </Button>
             </div>
           )}
@@ -173,7 +174,7 @@ export default function ExploreHub() {
         </TabsContent>
         <TabsContent value="courses">
           <div className="flex justify-end mb-4">
-            <Button size="sm" asChild><Link to="/courses/new"><Plus className="h-4 w-4 mr-1" /> {label("tabs.createCourse")}</Link></Button>
+            <Button size="sm" asChild><Link to="/courses/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createCourse")}</Link></Button>
           </div>
           <CoursesExplore bare />
         </TabsContent>

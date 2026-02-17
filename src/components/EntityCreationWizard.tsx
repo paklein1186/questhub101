@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,23 +36,24 @@ interface EntityCreationWizardProps {
 const STEPS = ["kind", "source", "details", "classify", "policy", "branding", "review"] as const;
 type Step = typeof STEPS[number];
 
-const STEP_LABELS: Record<Step, string> = {
-  kind: "Choose type",
-  source: "Get started",
-  details: "Name & details",
-  classify: "Topics & Territories",
-  policy: "Access & visibility",
-  branding: "Branding",
-  review: "Review & create",
+const STEP_LABEL_KEYS: Record<Step, string> = {
+  kind: "wizard.chooseType",
+  source: "wizard.getStarted",
+  details: "wizard.nameAndDetails",
+  classify: "wizard.topicsAndTerritories",
+  policy: "wizard.accessAndVisibility",
+  branding: "wizard.branding",
+  review: "wizard.reviewAndCreate",
 };
 
-const KIND_CONFIG: Record<EntityKind, { icon: typeof Shield; label: string; description: string; color: string }> = {
-  guild: { icon: Shield, label: "Guild", description: "A collective or community of like-minded people working toward shared goals.", color: "text-emerald-600" },
-  pod: { icon: CircleDot, label: "Pod", description: "A small, focused micro-team for a specific project or study topic.", color: "text-blue-600" },
-  company: { icon: Building2, label: "Traditional Organization", description: "An SME, non-profit, or established organization joining the ecosystem.", color: "text-amber-600" },
+const KIND_CONFIG: Record<EntityKind, { icon: typeof Shield; labelKey: string; descKey: string; color: string }> = {
+  guild: { icon: Shield, labelKey: "wizard.guild", descKey: "wizard.guildDesc", color: "text-emerald-600" },
+  pod: { icon: CircleDot, labelKey: "wizard.pod", descKey: "wizard.podDesc", color: "text-blue-600" },
+  company: { icon: Building2, labelKey: "wizard.company", descKey: "wizard.companyDesc", color: "text-amber-600" },
 };
 
 export function EntityCreationWizard({ open, onOpenChange, initialKind }: EntityCreationWizardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const currentUser = useCurrentUser();
@@ -190,7 +192,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
           messages: [
             {
               role: "user",
-              content: `I'm creating a ${KIND_CONFIG[kind].label} on a collaborative ecosystem platform. 
+              content: `I'm creating a ${t(KIND_CONFIG[kind].labelKey)} on a collaborative ecosystem platform. 
 My mission/purpose: "${mission}"
 
 Based on this, suggest:
@@ -329,7 +331,7 @@ Respond ONLY in this exact JSON format, no markdown:
       case "kind":
         return (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">What kind of entity would you like to create?</p>
+            <p className="text-sm text-muted-foreground">{t("wizard.whatKind")}</p>
             {(Object.entries(KIND_CONFIG) as [EntityKind, typeof KIND_CONFIG["guild"]][]).map(([k, cfg]) => {
               const Icon = cfg.icon;
               return (
@@ -345,8 +347,8 @@ Respond ONLY in this exact JSON format, no markdown:
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-semibold text-sm">{cfg.label}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{cfg.description}</p>
+                    <h3 className="font-display font-semibold text-sm">{t(cfg.labelKey)}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t(cfg.descKey)}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
                 </button>
@@ -359,9 +361,9 @@ Respond ONLY in this exact JSON format, no markdown:
         return (
           <div className="space-y-5">
             <div>
-              <h3 className="font-display font-semibold mb-1">Do you have a website?</h3>
+              <h3 className="font-display font-semibold mb-1">{t("wizard.haveWebsite")}</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Paste a URL and we'll auto-fill your {KIND_CONFIG[kind!].label.toLowerCase()}'s details — name, description, logo, and more.
+                {t("wizard.pasteUrl")}
               </p>
               <div className="space-y-3">
                 <div className="relative">
@@ -380,9 +382,9 @@ Respond ONLY in this exact JSON format, no markdown:
                   disabled={!sourceUrl.trim() || scraping}
                 >
                   {scraping ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Importing data...</>
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("wizard.importingData")}</>
                   ) : (
-                    <><Globe className="h-4 w-4 mr-2" /> Import from website</>
+                    <><Globe className="h-4 w-4 mr-2" /> {t("wizard.importFromWebsite")}</>
                   )}
                 </Button>
               </div>
@@ -393,7 +395,7 @@ Respond ONLY in this exact JSON format, no markdown:
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
+                <span className="bg-background px-2 text-muted-foreground">{t("common.or")}</span>
               </div>
             </div>
 
@@ -402,7 +404,7 @@ Respond ONLY in this exact JSON format, no markdown:
               className="w-full"
               onClick={handleSkipSource}
             >
-              <PenLine className="h-4 w-4 mr-2" /> Fill in manually
+              <PenLine className="h-4 w-4 mr-2" /> {t("wizard.fillManually")}
             </Button>
           </div>
         );
@@ -413,7 +415,7 @@ Respond ONLY in this exact JSON format, no markdown:
             {scraped && (
               <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
                 <Check className="h-3.5 w-3.5 shrink-0" />
-                <span>Pre-filled from website — review and adjust below.</span>
+                <span>{t("wizard.prefilledFromWebsite")}</span>
               </div>
             )}
             <div>
@@ -421,7 +423,7 @@ Respond ONLY in this exact JSON format, no markdown:
               <Input
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder={`Your ${KIND_CONFIG[kind!].label.toLowerCase()} name`}
+                placeholder={t(KIND_CONFIG[kind!].labelKey)}
                 maxLength={80}
               />
             </div>
@@ -539,7 +541,7 @@ Respond ONLY in this exact JSON format, no markdown:
               <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
                 <Hash className="h-3.5 w-3.5" /> Topics
               </label>
-              <p className="text-xs text-muted-foreground mb-2">Select topics that describe your {KIND_CONFIG[kind!].label.toLowerCase()}.</p>
+              <p className="text-xs text-muted-foreground mb-2">{t("wizard.topicsAndTerritories")}</p>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
                 {topics.map(t => (
                   <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
@@ -553,7 +555,7 @@ Respond ONLY in this exact JSON format, no markdown:
               <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" /> Territories
               </label>
-              <p className="text-xs text-muted-foreground mb-2">Where does your {KIND_CONFIG[kind!].label.toLowerCase()} operate?</p>
+              <p className="text-xs text-muted-foreground mb-2">{t("filters.territories")}</p>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
                 {territories.map(t => (
                   <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
@@ -573,7 +575,7 @@ Respond ONLY in this exact JSON format, no markdown:
               <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
                 <Lock className="h-3.5 w-3.5" /> Join policy
               </label>
-              <p className="text-xs text-muted-foreground mb-3">How can people join your {KIND_CONFIG[kind!].label.toLowerCase()}?</p>
+              <p className="text-xs text-muted-foreground mb-3">{t(KIND_CONFIG[kind!].labelKey)}</p>
               <div className="space-y-2">
                 {[
                   { value: GuildJoinPolicy.OPEN, label: "Open", desc: "Anyone can join immediately", icon: Users },
@@ -625,7 +627,7 @@ Respond ONLY in this exact JSON format, no markdown:
             <p className="text-xs text-muted-foreground">
               {scraped && logoUrl
                 ? "We imported a logo from your website. You can replace it or add a banner."
-                : `Upload images to give your ${KIND_CONFIG[kind!].label.toLowerCase()} a unique identity. You can skip this and add them later.`}
+                : t(KIND_CONFIG[kind!].labelKey)}
             </p>
             <ImageUpload
               label="Logo"
@@ -655,7 +657,7 @@ Respond ONLY in this exact JSON format, no markdown:
                 })()}
                 <div>
                   <h3 className="font-display font-semibold">{name || "Untitled"}</h3>
-                  <span className="text-xs text-muted-foreground">{kind && KIND_CONFIG[kind].label}</span>
+                  <span className="text-xs text-muted-foreground">{kind && t(KIND_CONFIG[kind].labelKey)}</span>
                 </div>
               </div>
 
@@ -710,7 +712,7 @@ Respond ONLY in this exact JSON format, no markdown:
               const Icon = KIND_CONFIG[kind].icon;
               return <Icon className={cn("h-5 w-5", KIND_CONFIG[kind].color)} />;
             })()}
-            {STEP_LABELS[step]}
+            {t(STEP_LABEL_KEYS[step])}
           </DialogTitle>
         </DialogHeader>
 
@@ -744,16 +746,16 @@ Respond ONLY in this exact JSON format, no markdown:
         {step !== "kind" && step !== "source" && (
           <div className="flex items-center justify-between pt-2">
             <Button variant="ghost" size="sm" onClick={goBack} disabled={!canGoBack}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Back
+              <ChevronLeft className="h-4 w-4 mr-1" /> {t("common.back")}
             </Button>
             {isLastStep ? (
               <Button onClick={handleSubmit} disabled={!name.trim() || isSubmitting}>
                 {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Check className="h-4 w-4 mr-2" />}
-                Create {kind && KIND_CONFIG[kind].label}
+                Create {kind && t(KIND_CONFIG[kind].labelKey)}
               </Button>
             ) : (
               <Button onClick={goNext} disabled={!canProceed()}>
-                Next <ArrowRight className="h-4 w-4 ml-1" />
+                {t("common.next")} <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             )}
           </div>
