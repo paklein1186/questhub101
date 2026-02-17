@@ -15,6 +15,7 @@ import {
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User, Undo2,
   Calendar, ExternalLink, Search, X, Hash, MapPin, ChevronLeft,
   LayoutList, Columns3, Filter, ArrowDownUp,
+  Circle, CircleDot, Timer, CheckCircle2,
 } from "lucide-react";
 import { WorkTasksKanban } from "@/components/work/WorkTasksKanban";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
@@ -820,7 +821,7 @@ export function WorkTasksTab() {
                   <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2.5"></th>
                   <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium">Task</th>
                   <th className="text-left px-2 sm:px-3 py-1.5 sm:py-2.5 font-medium hidden md:table-cell">Source</th>
-                  <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium w-[80px] sm:w-auto">Status</th>
+                  <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2.5 font-medium w-[40px] sm:w-auto"><span className="hidden sm:inline">Status</span></th>
                   <th className="text-left px-3 py-1.5 sm:py-2.5 font-medium hidden lg:table-cell">
                     <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Created</span>
                   </th>
@@ -957,16 +958,22 @@ export function WorkTasksTab() {
                       <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                         <Select value={task.status} onValueChange={(v) => handleStatusChange(task, v)}>
                           <SelectTrigger className={cn(
-                            "h-5 sm:h-6 w-[72px] sm:w-[110px] text-[9px] sm:text-[10px] font-medium px-1 sm:px-2 py-0 border-none shadow-none rounded-full",
+                            "h-5 sm:h-6 w-7 sm:w-[110px] text-[9px] sm:text-[10px] font-medium px-1 sm:px-2 py-0 border-none shadow-none rounded-full [&>svg:last-child]:hidden sm:[&>svg:last-child]:inline-block",
                             STATUS_COLORS[task.status] || STATUS_COLORS.TODO,
                           )}>
-                            <SelectValue />
+                            <span className="sm:hidden flex items-center justify-center">
+                              {task.status === "BACKLOG" && <Circle className="h-3.5 w-3.5" />}
+                              {task.status === "TODO" && <CircleDot className="h-3.5 w-3.5" />}
+                              {task.status === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
+                              {task.status === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
+                            </span>
+                            <span className="hidden sm:inline"><SelectValue /></span>
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="BACKLOG">BACKLOG</SelectItem>
-                            <SelectItem value="TODO">TO DO NEXT</SelectItem>
-                            <SelectItem value="IN_PROGRESS">IN PROGRESS</SelectItem>
-                            <SelectItem value="DONE">DONE</SelectItem>
+                            <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
+                            <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> To do next</span></SelectItem>
+                            <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> In progress</span></SelectItem>
+                            <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Done</span></SelectItem>
                           </SelectContent>
                         </Select>
                       </td>
