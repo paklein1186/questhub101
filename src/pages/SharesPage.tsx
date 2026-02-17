@@ -207,8 +207,8 @@ export default function SharesPage() {
                   <Shield className="h-5 w-5 text-primary" /> You are a coop-like member
                 </h3>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span>Class A: <strong>{profile.total_shares_a ?? 0}</strong> shares</span>
-                  <span>Class B: <strong>{profile.total_shares_b ?? 0}</strong> shares</span>
+                  {(profile.total_shares_a ?? 0) > 0 && <Badge variant="default" className="text-xs">Guardian</Badge>}
+                  {(profile.total_shares_b ?? 0) > 0 && <Badge variant="secondary" className="text-xs">Steward</Badge>}
                   <span>Governance weight: <strong>{Number(profile.governance_weight).toFixed(2)}</strong></span>
                 </div>
               </div>
@@ -337,7 +337,6 @@ export default function SharesPage() {
                     <th className="text-left p-2 sm:p-3 font-medium">Date</th>
                     <th className="text-left p-2 sm:p-3 font-medium">Class</th>
                     <th className="text-right p-2 sm:p-3 font-medium">Shares</th>
-                    <th className="text-right p-2 sm:p-3 font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -350,7 +349,6 @@ export default function SharesPage() {
                         </Badge>
                       </td>
                       <td className="p-2 sm:p-3 text-right font-medium">{h.number_of_shares}</td>
-                      <td className="p-2 sm:p-3 text-right text-xs sm:text-sm">{Number(h.total_paid).toFixed(2)} €</td>
                     </tr>
                   ))}
                 </tbody>
