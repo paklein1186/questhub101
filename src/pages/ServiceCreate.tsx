@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Check } from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Loader2, Check, CalendarClock, ArrowRight } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +35,26 @@ export default function ServiceCreate() {
   const [selectedTerritoryIds, setSelectedTerritoryIds] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  // Fetch topics and territories
+  // Fetch topics, territories, and global availability
   const { data: topics = [] } = useTopics();
   const { data: territories = [] } = useTerritories();
+
+  // Check if user has any global availability rules
+  const { data: globalRulesCount = 0 } = useQuery({
+    queryKey: ["global-availability-check", user?.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("availability_rules")
+        .select("id", { count: "exact", head: true })
+        .eq("provider_user_id", user!.id)
+        .is("service_id", null)
+        .eq("is_active", true);
+      return count ?? 0;
+    },
+    enabled: !!user?.id && !isEditMode,
+  });
+
+  const hasNoGlobalAvailability = !isEditMode && globalRulesCount === 0;
 
   // Load existing service for editing
   const { data: existingService, isLoading: loadingService } = useQuery({
@@ -177,6 +194,24 @@ export default function ServiceCreate() {
     <PageShell>
       <div className="max-w-xl mx-auto py-10 px-4 space-y-6">
         <h1 className="text-2xl font-display font-bold">{isEditMode ? "Edit Service" : "Create Service"}</h1>
+
+        {hasNoGlobalAvailability && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
+            <CalendarClock className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">No availability slots configured</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                You don't have global availability rules yet. Set up your weekly schedule first so clients can book time with you.
+                A default Mon–Fri 9:00–17:00 schedule will be created for this service, but you can customize it.
+              </p>
+              <Link to="/me/availability">
+                <Button variant="outline" size="sm" className="mt-2 gap-1.5">
+                  Set up availability <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
         <ImageUpload
           label="Cover image"
           description="Add a visual to make your service stand out"
