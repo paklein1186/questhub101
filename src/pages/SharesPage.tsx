@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock, Compass, Handshake } from "lucide-react";
+import { Crown, Shield, Users, Vote, ArrowRight, Loader2, Plus, Minus, Mail, Lock, Compass, Handshake, Check, Building2 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,9 @@ import { Link } from "react-router-dom";
 import { usePersona } from "@/hooks/usePersona";
 import { getLabel } from "@/lib/personaLabels";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { TREASURY_ALLOCATION } from "@/lib/xpCreditsConfig";
 
 const CLASS_A_MAILTO = "mailto:pa@changethegame.xyz?subject=Class%20A%20Membership%20Application";
 
@@ -155,7 +158,7 @@ export default function SharesPage() {
             {t("pages.shares.heading")} <span className="text-primary">changethegame</span>
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
-            changethegame is co-owned by its members. Two share classes exist — strategic (A) and community (B).
+            changethegame is co-owned by its members. Three share classes exist — Guardian (A), Steward (B), and Strategic Partner (C).
             Your voice and vote count through a fair logarithmic system.
           </p>
         </motion.div>
@@ -228,7 +231,7 @@ export default function SharesPage() {
         <Separator />
 
         {/* Share classes */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-3 md:grid-cols-2">
           {/* ═══════ Class A — Application Only ═══════ */}
           <Card className="relative overflow-hidden border-primary/20">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[100%]" />
@@ -320,6 +323,134 @@ export default function SharesPage() {
                   Buy Class B Shares <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
+            </CardContent>
+          </Card>
+          {/* ═══════ Class C — Strategic Partners ═══════ */}
+          <Card className="relative overflow-hidden border-muted-foreground/20 lg:col-span-1 md:col-span-2">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-muted/30 rounded-bl-[100%]" />
+            <CardHeader>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className="bg-muted text-muted-foreground border-0">Class C</Badge>
+                <Badge variant="outline" className="text-[10px]">
+                  <Building2 className="h-3 w-3 mr-0.5" /> Institutional
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  <Lock className="h-3 w-3 mr-0.5" /> By Application
+                </Badge>
+              </div>
+              <CardTitle className="font-display text-xl">Strategic Stewardship</CardTitle>
+              <CardDescription>
+                Designed for institutional partners aligned with the long-term mission of Changethegame.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Purpose */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">What this represents</p>
+                <p className="text-sm text-muted-foreground">
+                  Class C shares reflect structural participation in governance and long-term ecosystem development. Intended for institutional partners, territorial anchors, and long-term ecosystem allies.
+                </p>
+                <p className="text-xs italic text-muted-foreground">This is stewardship, not speculation.</p>
+              </div>
+
+              <Separator />
+
+              {/* Rights */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Rights & access</p>
+                <TooltipProvider>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Governance participation</span>
+                        </TooltipTrigger>
+                        <TooltipContent><p className="max-w-xs text-xs">Governance rights are balanced with XP-based participation to preserve contribution-led legitimacy.</p></TooltipContent>
+                      </Tooltip>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help border-b border-dotted border-muted-foreground/40">Dividend eligibility</span>
+                        </TooltipTrigger>
+                        <TooltipContent><p className="max-w-xs text-xs">Dividends are distributed only when annual surplus allows, after reinvestment and ecosystem allocation.</p></TooltipContent>
+                      </Tooltip>
+                    </li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Visibility as ecosystem partner</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Strategic consultation access</li>
+                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Ecosystem treasury oversight</li>
+                  </ul>
+                </TooltipProvider>
+                <p className="text-xs text-muted-foreground italic mt-1">
+                  Voting weight remains balanced by XP and contribution metrics to preserve merit-based governance.
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Eligibility */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Eligibility</p>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2"><span className="text-foreground">•</span> Minimum strategic alignment review</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground">•</span> Participation in ecosystem initiatives</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground">•</span> Administrative approval</li>
+                  <li className="flex items-start gap-2"><span className="text-foreground">•</span> XP threshold for representatives</li>
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Organisation representatives must hold sufficient XP level to activate governance rights.
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Economic framework */}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Economic framework</p>
+                <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground space-y-2">
+                  <ul className="space-y-1">
+                    <li>• Do not grant operational control</li>
+                    <li>• Are not publicly tradable</li>
+                    <li>• Cannot be exchanged within the platform</li>
+                    <li>• Bound by mission protection clause</li>
+                  </ul>
+                </div>
+                <p className="text-xs font-medium text-foreground mb-1">Annual surplus allocation</p>
+                <div className="space-y-1.5">
+                  {Object.values(TREASURY_ALLOCATION).map((alloc) => (
+                    <div key={alloc.label} className="flex items-center gap-2 text-xs">
+                      <span className="w-8 text-right font-medium text-foreground">{alloc.percent}%</span>
+                      <Progress value={alloc.percent} className="h-2 flex-1" />
+                      <span className="text-muted-foreground">{alloc.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Stewardship commitment */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stewardship commitment</p>
+                <p className="text-sm text-muted-foreground">
+                  By holding Class C shares, partners commit to supporting long-term ecosystem resilience, avoiding extractive influence, respecting territorial autonomy, and protecting mission integrity.
+                </p>
+                <p className="text-xs italic text-muted-foreground">
+                  Changethegame is structured to align capital with contribution and purpose.
+                </p>
+              </div>
+
+              {/* CTA */}
+              <Button className="w-full" variant="outline" asChild>
+                <a href="mailto:pa@changethegame.xyz?subject=Class%20C%20Strategic%20Participation%20Inquiry">
+                  <Mail className="h-4 w-4 mr-2" /> Request Strategic Participation
+                </a>
+              </Button>
+              <p className="text-xs text-muted-foreground text-center italic">
+                Applications are reviewed by the stewardship council.
+              </p>
             </CardContent>
           </Card>
         </div>
