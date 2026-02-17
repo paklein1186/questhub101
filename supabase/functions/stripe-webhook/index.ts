@@ -155,7 +155,6 @@ serve(async (req) => {
 
         console.log(`[WEBHOOK] Event ticket: event=${eventId}, user=${userId}`);
 
-        // Update the registration
         const { data: reg } = await supabase
           .from("guild_event_attendees")
           .select("id, status")
@@ -166,7 +165,6 @@ serve(async (req) => {
           .single();
 
         if (reg) {
-          // Check event acceptance mode
           const { data: event } = await supabase
             .from("guild_events")
             .select("acceptance_mode, max_attendees")
@@ -187,6 +185,59 @@ serve(async (req) => {
 
           console.log(`[WEBHOOK] Event ticket paid for event ${eventId}, user ${userId}, auto=${autoAccept}`);
         }
+      } else if (metadata.type === "booking_payment") {
+        // Booking / service payment
+        const bookingId = metadata.booking_id;
+        const userId = metadata.user_id;
+        const paymentIntentId = session.payment_intent as string;
+
+        console.log(`[WEBHOOK] Booking payment: booking=${bookingId}, user=${userId}`);
+
+        await supabase
+          .from("bookings")
+          .update({
+            payment_status: "PAID",
+            stripe_payment_intent_id: paymentIntentId,
+            status: "CONFIRMED",
+          })
+          .eq("id", bookingId);
+
+        console.log(`[WEBHOOK] Booking ${bookingId} marked as PAID and CONFIRMED`);
+      } else if (metadata.type === "course_purchase") {
+        // Course purchase
+        const courseId = metadata.course_id;
+        const userId = metadata.user_id;
+        const paymentIntentId = session.payment_intent as string;
+
+        console.log(`[WEBHOOK] Course purchase: course=${courseId}, user=${userId}`);
+
+        // Update purchase record
+        await supabase
+          .from("course_purchases")
+          .update({
+            status: "PAID",
+            stripe_payment_intent_id: paymentIntentId,
+          })
+          .eq("course_id", courseId)
+          .eq("user_id", userId)
+          .eq("status", "PENDING");
+
+        // Auto-enroll the user
+        const { data: existingEnrollment } = await supabase
+          .from("course_enrollments")
+          .select("id")
+          .eq("course_id", courseId)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!existingEnrollment) {
+          await supabase.from("course_enrollments").insert({
+            course_id: courseId,
+            user_id: userId,
+          });
+        }
+
+        console.log(`[WEBHOOK] Course ${courseId} purchased and enrolled for user ${userId}`);
       }
     } else if (event.type === "customer.subscription.deleted") {
       // Subscription canceled/expired
