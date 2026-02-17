@@ -187,7 +187,7 @@ export default function ExploreHub() {
           </div>
         </TabsContent>
         <TabsContent value="agents">
-          <AgentsMarketplace />
+          <AgentsMarketplace bare />
         </TabsContent>
         {currentUser.id && (
           <TabsContent value="matchmaker">
