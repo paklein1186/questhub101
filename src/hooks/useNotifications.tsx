@@ -163,7 +163,7 @@ export function linkForNotification(n: Notification): string {
     case NotificationType.XP_GAINED:
       return "/me";
     case NotificationType.ACHIEVEMENT_UNLOCKED:
-      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "ACHIEVEMENT", n.relatedEntityId) : "/milestones";
+      return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "ACHIEVEMENT", n.relatedEntityId) : "/me/milestones";
     case NotificationType.UNIT_PARTNERSHIP_REQUEST:
     case NotificationType.UNIT_PARTNERSHIP_ACCEPTED:
       return n.relatedEntityId ? buildNotifDeepLink(n.relatedEntityType || "GUILD", n.relatedEntityId) : "/work";
@@ -207,7 +207,7 @@ export function linkForNotification(n: Notification): string {
     default: {
       // Handle milestone_completed and other non-enum types
       const typeStr = n.type as string;
-      if (typeStr === "milestone_completed") return "/milestones";
+      if (typeStr === "milestone_completed") return "/me/milestones";
       break;
     }
   }
@@ -262,12 +262,11 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "USER": return `/users/${targetId}`;
     case "GUILD_EVENT": return `/events/${targetId}`;
     case "BOOKING": return `/bookings/${targetId}`;
-    case "ACHIEVEMENT": return `/milestones`;
-    case "milestone": return `/milestones`;
+    case "ACHIEVEMENT": return `/me/milestones`;
+    case "milestone": return `/me/milestones`;
     case "TERRITORY": return `/territories/${targetId}`;
     case "FEED_POST": return `/`; // feed posts don't have individual pages
     case "COMMENT": return `/notifications`; // comments don't have standalone pages
-    case "milestone": return `/milestones`;
     default: return `/notifications`;
   }
 }
@@ -739,7 +738,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       title: "Achievement unlocked!", body: achievementTitle,
       relatedEntityType: relatedEntityType || NotificationEntityType.ACHIEVEMENT,
       relatedEntityId: relatedEntityId || "",
-      deepLinkUrl: deepLinkUrl || "/milestones",
+      deepLinkUrl: deepLinkUrl || "/me/milestones",
     });
   }, [addNotification]);
 
