@@ -36,6 +36,7 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow, format } from "date-fns";
 import { motion } from "framer-motion";
+import { ConfettiSpark } from "@/components/home/ConfettiSpark";
 
 const STATUS_COLORS: Record<string, string> = {
   BACKLOG: "bg-muted/60 text-muted-foreground/70",
@@ -89,6 +90,7 @@ export function WorkTasksTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [editingTitle, setEditingTitle] = useState("");
   const [editingSource, setEditingSource] = useState<string>("");
 
@@ -455,6 +457,7 @@ export function WorkTasksTab() {
       setPendingDone((prev) => { const next = new Map(prev); next.delete(key); return next; });
     }
     if (newStatus === "DONE") {
+      setShowConfetti(true);
       const prevStatus = wasPending ? (pendingDone.get(key)?.prevStatus || task.status) : task.status;
       setPendingDone((prev) => new Map(prev).set(key, { task, prevStatus }));
       const timer = setTimeout(() => commitDone(task), 5000);
@@ -1241,7 +1244,8 @@ export function WorkTasksTab() {
             </div>
           )}
         </DialogContent>
-      </Dialog>
+    </Dialog>
+      {showConfetti && <ConfettiSpark onDone={() => setShowConfetti(false)} />}
     </div>
   );
 }
