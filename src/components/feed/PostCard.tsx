@@ -352,7 +352,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
     : post.content;
 
   const handleCopyLink = () => {
-    const url = `${window.location.origin}/feed?post=${post.id}`;
+    const url = `https://changethegame.xyz/feed?post=${post.id}`;
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
   };
 
