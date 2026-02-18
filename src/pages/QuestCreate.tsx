@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -171,6 +171,7 @@ export default function QuestCreate() {
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
   const [paymentType, setPaymentType] = useState("INVOICE");
   const [questType, setQuestType] = useState("ACTION");
+  const [websiteUrl, setWebsiteUrl] = useState("");
 
   // Co-hosts state
   const primaryEntityType = effectiveGuildId ? "GUILD" as const : effectiveCompanyId ? "COMPANY" as const : undefined;
@@ -309,6 +310,7 @@ export default function QuestCreate() {
         .insert({
           title: title.trim(),
           description: description.trim() || null,
+          website_url: websiteUrl.trim() || null,
           cover_image_url: coverImageUrl || null,
           status: finalStatus as any,
           monetization_type: monType as any,
@@ -784,6 +786,21 @@ export default function QuestCreate() {
           <div>
             <Label htmlFor="desc">Description</Label>
             <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what this quest is about…" className="mt-1" rows={4} />
+          </div>
+
+          <div>
+            <Label htmlFor="websiteUrl" className="flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5" /> Link / Website URL
+            </Label>
+            <Input
+              id="websiteUrl"
+              type="url"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+              placeholder="https://…"
+              className="mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Optional link displayed on the quest page</p>
           </div>
 
           <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />

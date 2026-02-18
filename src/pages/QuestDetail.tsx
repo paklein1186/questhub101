@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -227,6 +227,7 @@ export default function QuestDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState("");
   const [editStatus, setEditStatus] = useState<QuestStatus>(QuestStatus.OPEN);
   const [editCoverImageUrl, setEditCoverImageUrl] = useState<string | undefined>();
   const [editCoverFocalY, setEditCoverFocalY] = useState(50);
@@ -344,6 +345,7 @@ export default function QuestDetail() {
   const openEditQuest = () => {
     setEditTitle(quest.title);
     setEditDesc(quest.description || "");
+    setEditWebsiteUrl((quest as any).website_url || "");
     setEditStatus(quest.status as QuestStatus);
     setEditCoverImageUrl(quest.cover_image_url ?? undefined);
     setEditCoverFocalY((quest as any).cover_focal_y ?? 50);
@@ -372,6 +374,7 @@ export default function QuestDetail() {
     await supabase.from("quests").update({
       title: editTitle.trim() || quest.title,
       description: editDesc.trim() || null,
+      website_url: editWebsiteUrl.trim() || null,
       status: editStatus as any,
       is_draft: isDraft,
       cover_image_url: editCoverImageUrl || null,
@@ -603,6 +606,17 @@ export default function QuestDetail() {
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{quest.description}</p>
           </div>
         )}
+        {(quest as any).website_url && (
+          <a
+            href={(quest as any).website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mt-2"
+          >
+            <Globe className="h-4 w-4 shrink-0" />
+            <span className="truncate max-w-xs">{(quest as any).website_url.replace(/^https?:\/\//, "")}</span>
+          </a>
+        )}
         <div className="flex flex-wrap gap-1.5 mt-3">
           {topics.map((t: any) => <Badge key={t.id} variant="secondary">{t.name}</Badge>)}
           {territories.map((t: any) => <Badge key={t.id} variant="outline">{t.name}</Badge>)}
@@ -707,6 +721,16 @@ export default function QuestDetail() {
                   />
                 </div>
                 <Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} maxLength={500} className="resize-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Link / Website URL</label>
+                <Input
+                  value={editWebsiteUrl}
+                  onChange={e => setEditWebsiteUrl(e.target.value)}
+                  placeholder="https://…"
+                  type="url"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Optional link displayed on the quest page</p>
               </div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
               <div><label className="text-sm font-medium mb-1 block">Status</label>
