@@ -1662,6 +1662,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          body_html: string
+          cta_label: string | null
+          cta_url: string | null
+          description: string | null
+          id: string
+          key: string
+          label: string
+          subject: string
+          updated_at: string
+          updated_by_user_id: string | null
+        }
+        Insert: {
+          body_html: string
+          cta_label?: string | null
+          cta_url?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          label: string
+          subject: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Update: {
+          body_html?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          label?: string
+          subject?: string
+          updated_at?: string
+          updated_by_user_id?: string | null
+        }
+        Relationships: []
+      }
       entity_member_roles: {
         Row: {
           created_at: string

@@ -78,6 +78,7 @@ const clusters: NavCluster[] = [
     superadminOnly: true,
     items: [
       { to: "/admin/system/super-mode", label: "Super Admin Mode", icon: ShieldAlert },
+      { to: "/admin/system/email-templates", label: "Email Templates", icon: Mail },
       { to: "/admin/system/feature-toggles", label: "Feature Toggles", icon: ToggleLeft },
       { to: "/admin/system/roles", label: "Users & Roles", icon: UsersIcon },
       { to: "/admin/system/houses", label: "Topics & Territories", icon: Hash },
