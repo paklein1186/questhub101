@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowBigUp, MessageSquare } from "lucide-react";
+import { ArrowBigUp, MessageSquare, Link2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
@@ -53,6 +53,12 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowComments(true);
+  };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/feed?post=${post.id}`;
+    navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
   };
 
   const contentLines = size === "small" ? 2 : size === "medium" ? 3 : 5;
@@ -149,6 +155,13 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
           >
             <MessageSquare className="h-3.5 w-3.5" />
             {commentCount}
+          </button>
+          <button
+            onClick={handleCopyLink}
+            title="Copy link"
+            className="ml-auto flex items-center justify-center rounded-full bg-white/20 text-white p-1.5 backdrop-blur-sm hover:bg-white/30 transition-colors"
+          >
+            <Link2 className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
