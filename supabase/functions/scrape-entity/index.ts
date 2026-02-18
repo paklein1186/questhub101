@@ -40,26 +40,97 @@ function getMetaContent(html: string, property: string): string | null {
 }
 
 function extractFavicon(html: string, baseUrl: string): string | null {
-  // Look for <link rel="icon" ...> or <link rel="shortcut icon" ...>
   const iconMatch = html.match(/<link[^>]+rel=["'](?:shortcut\s+)?icon["'][^>]+href=["']([^"']+)["']/i)
     || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut\s+)?icon["']/i);
   if (iconMatch?.[1]) {
-    try {
-      return new URL(iconMatch[1], baseUrl).href;
-    } catch { /* ignore */ }
+    try { return new URL(iconMatch[1], baseUrl).href; } catch { /* ignore */ }
   }
-  // Look for apple-touch-icon
   const appleMatch = html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i)
     || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon["']/i);
   if (appleMatch?.[1]) {
+    try { return new URL(appleMatch[1], baseUrl).href; } catch { /* ignore */ }
+  }
+  try { return new URL("/favicon.ico", baseUrl).href; } catch { return null; }
+}
+
+/** Strip HTML tags and collapse whitespace; return a plain-text snippet. */
+function htmlToText(html: string, maxChars = 12_000): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxChars);
+}
+
+/**
+ * Rank internal links by how "informative" they are for entity identification.
+ * Returns up to `limit` unique same-origin URLs, sorted by priority.
+ */
+const HIGH_VALUE_SLUGS = [
+  "about", "mission", "vision", "values", "team", "who-we-are", "our-story",
+  "what-we-do", "approach", "impact", "program", "project", "work",
+  "manifesto", "philosophy", "strategy", "sector", "focus",
+];
+
+function extractInternalLinks(html: string, baseUrl: string, limit = 4): string[] {
+  const origin = new URL(baseUrl).origin;
+  const seen = new Set<string>();
+  const priority: string[] = [];
+  const fallback: string[] = [];
+
+  // Match all <a href="...">
+  const linkRe = /<a[^>]+href=["']([^"'#?][^"']*?)["']/gi;
+  let m: RegExpExecArray | null;
+  while ((m = linkRe.exec(html)) !== null) {
+    let href = m[1].trim();
     try {
-      return new URL(appleMatch[1], baseUrl).href;
+      const abs = new URL(href, baseUrl).href;
+      // same origin only, skip files
+      if (!abs.startsWith(origin)) continue;
+      if (/\.(pdf|jpg|jpeg|png|gif|svg|css|js|ico|xml|zip)(\?|$)/i.test(abs)) continue;
+      const path = new URL(abs).pathname.toLowerCase();
+      if (path === "/" || path === "") continue;
+      if (seen.has(abs)) continue;
+      seen.add(abs);
+
+      const isHighValue = HIGH_VALUE_SLUGS.some(slug => path.includes(slug));
+      if (isHighValue) priority.push(abs);
+      else fallback.push(abs);
     } catch { /* ignore */ }
   }
-  // Default favicon
+
+  // Interleave priority first, fill remaining from fallback
+  const result: string[] = [];
+  for (const u of priority) {
+    if (result.length >= limit) break;
+    result.push(u);
+  }
+  for (const u of fallback) {
+    if (result.length >= limit) break;
+    result.push(u);
+  }
+  return result;
+}
+
+/** Fetch a URL with a short timeout; return HTML text or null on failure. */
+async function fetchPage(url: string, timeoutMs = 6000): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return new URL("/favicon.ico", baseUrl).href;
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "ChangeTheGame-Bot/1.0" },
+      redirect: "follow",
+    });
+    clearTimeout(timer);
+    if (!res.ok) { await res.text(); return null; }
+    const text = await res.text();
+    return text.slice(0, 1_000_000);
   } catch {
+    clearTimeout(timer);
     return null;
   }
 }
@@ -83,11 +154,8 @@ function inferSector(text: string): string | null {
   return null;
 }
 
-// Extract up to 8 topic/territory keyword suggestions from page text
 function inferTopicKeywords(text: string): string[] {
   const lower = text.toLowerCase();
-
-  // Broad keyword groups → canonical label shown in the UI
   const topicMap: [string, string[]][] = [
     ["AI & Machine Learning", ["artificial intelligence", "machine learning", "deep learning", "neural network", "llm", "generative ai"]],
     ["Technology", ["software", "saas", "cloud", "developer", "api", "open source", "devops", "cybersecurity"]],
@@ -105,7 +173,6 @@ function inferTopicKeywords(text: string): string[] {
     ["Media & Communication", ["media", "journalism", "content creation", "podcast", "newsletter", "publishing"]],
     ["Mobility & Urban", ["mobility", "urban", "transportation", "smart city", "logistics", "infrastructure"]],
   ];
-
   const matches: string[] = [];
   for (const [label, words] of topicMap) {
     if (words.some(w => lower.includes(w))) {
@@ -116,11 +183,8 @@ function inferTopicKeywords(text: string): string[] {
   return matches;
 }
 
-// Extract territory/geographic keywords from text
 function inferTerritoryKeywords(text: string): string[] {
   const lower = text.toLowerCase();
-
-  // Common geographic / regional markers
   const regionMap: [string, string[]][] = [
     ["Africa", ["africa", "african", "sub-saharan", "west africa", "east africa", "north africa"]],
     ["Asia", ["asia", "asian", "southeast asia", "south asia", "east asia", "pacific rim"]],
@@ -131,7 +195,6 @@ function inferTerritoryKeywords(text: string): string[] {
     ["Oceania", ["oceania", "australia", "new zealand", "pacific islands"]],
     ["Global", ["global", "worldwide", "international", "cross-border", "transnational"]],
   ];
-
   const matches: string[] = [];
   for (const [label, words] of regionMap) {
     if (words.some(w => lower.includes(w))) {
@@ -174,9 +237,6 @@ serve(async (req) => {
       });
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
     let result = {
       name: null as string | null,
       description: null as string | null,
@@ -185,59 +245,89 @@ serve(async (req) => {
       url: url,
       suggestedTopics: [] as string[],
       suggestedTerritories: [] as string[],
+      pagesVisited: 1,
     };
 
-    try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        headers: { "User-Agent": "ChangeTheGame-Bot/1.0" },
-        redirect: "follow",
+    // ── Step 1: Fetch the homepage ───────────────────────────────────────────
+    const homeHtml = await fetchPage(url);
+    if (!homeHtml) {
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const text = await res.text();
-      const html = text.slice(0, 1_500_000);
-      const finalUrl = res.url || url;
-
-      const titleTag = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const ogTitle = getMetaContent(html, "og:title");
-      const ogDesc = getMetaContent(html, "og:description") || getMetaContent(html, "description");
-      const ogImage = getMetaContent(html, "og:image");
-      const siteName = getMetaContent(html, "og:site_name");
-
-      result.name = siteName || ogTitle || titleTag?.[1]?.trim() || null;
-      result.description = ogDesc || null;
-
-      // Prefer og:image, fallback to favicon
-      if (ogImage) {
-        try { result.logo = new URL(ogImage, finalUrl).href; } catch { result.logo = ogImage; }
-      } else {
-        result.logo = extractFavicon(html, finalUrl);
-      }
-
-      // Infer sector + topic/territory suggestions from combined text
-      const combined = [result.name, result.description, ogTitle, titleTag?.[1]].filter(Boolean).join(" ");
-      // Also use a snippet of the page body for richer signal (strip HTML tags)
-      const bodySnippet = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 8000);
-      const fullText = combined + " " + bodySnippet;
-
-      result.sector = inferSector(combined);
-      result.suggestedTopics = inferTopicKeywords(fullText);
-      result.suggestedTerritories = inferTerritoryKeywords(fullText);
-      result.url = finalUrl;
-    } catch {
-      clearTimeout(timeout);
     }
+
+    const finalUrl = url; // fetchPage follows redirects internally; use as-is
+    const titleTag = homeHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const ogTitle = getMetaContent(homeHtml, "og:title");
+    const ogDesc = getMetaContent(homeHtml, "og:description") || getMetaContent(homeHtml, "description");
+    const ogImage = getMetaContent(homeHtml, "og:image");
+    const siteName = getMetaContent(homeHtml, "og:site_name");
+
+    result.name = siteName || ogTitle || titleTag?.[1]?.trim() || null;
+    result.description = ogDesc || null;
+    result.url = finalUrl;
+
+    if (ogImage) {
+      try { result.logo = new URL(ogImage, finalUrl).href; } catch { result.logo = ogImage; }
+    } else {
+      result.logo = extractFavicon(homeHtml, finalUrl);
+    }
+
+    // ── Step 2: Discover & fetch additional pages in parallel ────────────────
+    // First try well-known slug paths directly (most reliable)
+    const wellKnownPaths = [
+      "/about", "/about-us", "/mission", "/vision", "/values",
+      "/who-we-are", "/our-story", "/team", "/what-we-do", "/impact",
+    ];
+    const origin = new URL(url).origin;
+    const wellKnownUrls = wellKnownPaths.map(p => origin + p);
+
+    // Then extract links from the homepage HTML
+    const linkedUrls = extractInternalLinks(homeHtml, url, 6);
+
+    // Merge: prioritise well-known paths, deduplicate, take up to 4
+    const seen = new Set<string>([url]);
+    const candidates: string[] = [];
+    for (const u of [...wellKnownUrls, ...linkedUrls]) {
+      if (!seen.has(u) && candidates.length < 4) {
+        seen.add(u);
+        candidates.push(u);
+      }
+    }
+
+    // Fetch all candidates concurrently (each has its own 6 s timeout)
+    const extraHtmls = await Promise.all(candidates.map(u => fetchPage(u, 6000)));
+
+    // ── Step 3: Build a combined corpus from all pages ───────────────────────
+    const allText = [
+      htmlToText(homeHtml, 12_000),
+      ...extraHtmls
+        .filter((h): h is string => h !== null)
+        .map(h => htmlToText(h, 8_000)),
+    ].join(" ");
+
+    result.pagesVisited = 1 + extraHtmls.filter(Boolean).length;
+
+    // Improve description if OG desc was missing / too short
+    if (!result.description || result.description.length < 40) {
+      // Try to grab first meaningful paragraph from homepage body
+      const paraMatch = homeHtml.match(/<p[^>]*>([\s\S]{60,600}?)<\/p>/i);
+      if (paraMatch) {
+        const cleaned = paraMatch[1].replace(/<[^>]+>/g, "").trim();
+        if (cleaned.length > 40) result.description = cleaned.slice(0, 300);
+      }
+    }
+
+    // ── Step 4: Infer metadata from combined corpus ──────────────────────────
+    const metaText = [result.name, result.description, ogTitle, titleTag?.[1]].filter(Boolean).join(" ");
+    result.sector = inferSector(metaText + " " + allText.slice(0, 4000));
+    result.suggestedTopics = inferTopicKeywords(allText);
+    result.suggestedTerritories = inferTerritoryKeywords(allText);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch {
     return new Response(JSON.stringify({ error: "Failed to scrape" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
