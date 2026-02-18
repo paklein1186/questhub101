@@ -65,6 +65,11 @@ const TARGET_QUERY_PARAMS: Record<string, string> = {
   quest_update: "?tab=updates",
 };
 
+// Target types that use a fully custom URL builder (not path-based)
+const TARGET_CUSTOM_URL: Record<string, (id: string) => string> = {
+  feed_post: (id) => `/feed?post=${id}`,
+};
+
 type ActivityEntry = {
   id: string;
   actor_user_id: string;
@@ -218,6 +223,14 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
   const Icon = config.icon;
   const targetRoute = entry.target_type ? TARGET_ROUTES[entry.target_type] : null;
   const targetSuffix = entry.target_type ? (TARGET_QUERY_PARAMS[entry.target_type] || "") : "";
+  const customUrlBuilder = entry.target_type ? TARGET_CUSTOM_URL[entry.target_type] : null;
+  const targetHref = entry.resolved_link_id
+    ? customUrlBuilder
+      ? customUrlBuilder(entry.resolved_link_id)
+      : targetRoute
+        ? `${targetRoute}/${entry.resolved_link_id}${targetSuffix}`
+        : null
+    : null;
   const timeAgo = formatDistanceToNow(new Date(entry.created_at), { addSuffix: true });
 
   return (
@@ -237,9 +250,9 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
             {entry.actor_name}
           </Link>
           <span className="text-muted-foreground"> {config.verb} </span>
-          {entry.target_name && targetRoute && entry.resolved_link_id ? (
+          {entry.target_name && targetHref ? (
             <Link
-              to={`${targetRoute}/${entry.resolved_link_id}${targetSuffix}`}
+              to={targetHref}
               className="font-medium hover:text-primary transition-colors"
             >
               {entry.target_name.length > 60
