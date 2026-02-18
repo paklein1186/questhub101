@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare, CreditCard, ExternalLink } from "lucide-react";
+import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare, CreditCard, ExternalLink, Lightbulb } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { formatDistanceToNow } from "date-fns";
 import { ProposalEvaluator } from "./ProposalEvaluator";
+import { QuestNeedsManager } from "./QuestNeedsManager";
 
 interface QuestProposalsProps {
   questId: string;
@@ -335,6 +336,14 @@ export function QuestProposals({
 
   return (
     <div className="space-y-6">
+      {/* ── Quest Needs ────────────────────────────────── */}
+      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+        <h3 className="font-display font-semibold flex items-center gap-2 text-sm">
+          <Lightbulb className="h-4 w-4 text-primary" /> What this quest needs
+        </h3>
+        <QuestNeedsManager questId={questId} questOwnerId={questOwnerId} readOnly />
+      </div>
+
       {/* ── Funding Campaigns ──────────────────────────── */}
       {(campaigns as any[]).length > 0 ? (
         <div className="space-y-3">

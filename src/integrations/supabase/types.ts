@@ -3705,6 +3705,50 @@ export type Database = {
           },
         ]
       }
+      quest_needs: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by_user_id: string
+          description: string | null
+          id: string
+          quest_id: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by_user_id: string
+          description?: string | null
+          id?: string
+          quest_id: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by_user_id?: string
+          description?: string | null
+          id?: string
+          quest_id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_needs_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_participants: {
         Row: {
           created_at: string

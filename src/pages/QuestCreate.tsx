@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe } from "lucide-react";
+import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -804,6 +804,18 @@ export default function QuestCreate() {
           </div>
 
           <ImageUpload label="Cover Image" currentImageUrl={coverImageUrl} onChange={setCoverImageUrl} aspectRatio="16/9" />
+
+          {/* Needs */}
+          <div className="rounded-lg border border-border p-4 space-y-3">
+            <div>
+              <label className="text-sm font-semibold flex items-center gap-1.5">
+                <Lightbulb className="h-4 w-4 text-primary" /> Needs <span className="text-muted-foreground font-normal">(optional)</span>
+              </label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                You can add specific needs (skills, tools, volunteers…) after creating the quest via its Settings page.
+              </p>
+            </div>
+          </div>
 
           {/* Mission Budget (Euros) */}
           <div className="rounded-lg border border-border p-4 space-y-4">

@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
-  Plus, Pencil, X,
+  Plus, Pencil, X, Lightbulb,
 } from "lucide-react";
+import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -26,6 +27,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const TABS = [
   { key: "fundraising", label: "Fundraising", icon: Coins },
+  { key: "needs", label: "Needs", icon: Lightbulb },
   { key: "features", label: "Features", icon: Puzzle },
   { key: "danger", label: "Danger Zone", icon: AlertTriangle },
 ];
@@ -327,6 +329,24 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       )}
                       <p><strong>Fundraising:</strong> {(quest as any).allow_fundraising ? "Open" : "Closed"}{(quest as any).fundraising_cancelled ? " (Cancelled)" : ""}</p>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Needs ── */}
+              {activeTab === "needs" && (
+                <div className="space-y-5 max-w-lg">
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                    <div>
+                      <h3 className="font-display font-semibold flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-primary" /> Quest Needs
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        List what this quest requires — skills, volunteers, tools, funding, partnerships…
+                        These will be displayed in the Contributions tab for visitors.
+                      </p>
+                    </div>
+                    <QuestNeedsManager questId={questId} questOwnerId={quest.created_by_user_id} />
                   </div>
                 </div>
               )}
