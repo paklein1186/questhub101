@@ -50,7 +50,7 @@ function prefKeyForType(type: string): string | null {
   return null;
 }
 
-const BASE_URL = "https://questhub101.lovable.app";
+const BASE_URL = "https://changethegame.xyz";
 
 async function sendEmailViaResend(to: string, subject: string, html: string) {
   const resendKey = Deno.env.get("RESEND_API_KEY");
