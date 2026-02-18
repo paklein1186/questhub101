@@ -61,6 +61,54 @@ const updateIcons: Record<string, typeof Sparkles> = {
   GENERAL: MessageCircle,
 };
 
+function QuestFollowersSection({ questId, participantUserIds }: { questId: string; participantUserIds: string[] }) {
+  const { data: followers = [] } = useQuery({
+    queryKey: ["quest-followers-overview", questId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("target_id", questId)
+        .eq("target_type", "QUEST")
+        .limit(200);
+      const ids = (data ?? []).map((f) => f.follower_id);
+      if (ids.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", ids)
+        .not("name", "is", null);
+      return (profiles ?? []) as { user_id: string; name: string; avatar_url: string | null }[];
+    },
+    enabled: !!questId,
+  });
+
+  const nonParticipantFollowers = followers.filter((f) => !participantUserIds.includes(f.user_id));
+
+  if (nonParticipantFollowers.length === 0) return null;
+
+  return (
+    <div className="mt-2">
+      <h3 className="font-display font-semibold flex items-center gap-2 mb-3 text-sm">
+        <Heart className="h-4 w-4 text-muted-foreground" />
+        <span>Following this Quest</span>
+        <Badge variant="secondary" className="text-[10px]">{nonParticipantFollowers.length}</Badge>
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {nonParticipantFollowers.map((f) => (
+          <Link key={f.user_id} to={`/users/${f.user_id}`} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/30 transition-all">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={f.avatar_url ?? undefined} />
+              <AvatarFallback className="text-[10px]">{f.name?.[0]}</AvatarFallback>
+            </Avatar>
+            <span className="text-xs font-medium">{f.name}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function QuestDetail() {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -984,6 +1032,9 @@ export default function QuestDetail() {
               </Link>
             ))}
           </div>
+
+          {/* Quest Followers (excluding participants) */}
+          <QuestFollowersSection questId={quest.id} participantUserIds={(participants || []).map((p: any) => p.user_id)} />
 
           {/* Attached Entities (hosts) */}
           {resolvedHosts && resolvedHosts.length > 0 && (
