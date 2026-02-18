@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send, Shield } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send, Shield, Link2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -351,8 +351,13 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
     ? translatedText
     : post.content;
 
+  const handleCopyLink = () => {
+    const url = `${window.location.origin}/feed?post=${post.id}`;
+    navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
+  };
+
   return (
-    <div id={`post-${post.id}`} className="rounded-xl border border-border bg-card p-4 space-y-3">
+    <div id={`post-${post.id}`} className="group rounded-xl border border-border bg-card p-4 space-y-3">
       {/* Reshare indicator */}
       {post.reshared_post_id && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground -mt-1 mb-1">
@@ -584,6 +589,17 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
             </DropdownMenu>
           )}
         </TooltipProvider>
+
+        {/* Share link — right-aligned */}
+        <div className="ml-auto">
+          <button
+            onClick={handleCopyLink}
+            title="Copy link to post"
+            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+          >
+            <Link2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Quote post dialog */}

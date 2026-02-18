@@ -1,12 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Loader2, Shield, Users, Building2, CircleDot, Compass, Heart,
+  Loader2, Shield, Building2, CircleDot, Compass, Heart,
   Star, MessageSquare, GraduationCap, CalendarCheck, UserPlus,
   Rss, FileText, Activity, ChevronDown,
 } from "lucide-react";
@@ -23,21 +22,21 @@ const ACTION_CONFIG: Record<string, {
   pod_joined:         { icon: CircleDot,     verb: "joined pod",              color: "text-violet-500" },
   quest_joined:       { icon: Compass,       verb: "joined quest",            color: "text-amber-500" },
   quest_highlighted:  { icon: Star,          verb: "highlighted quest",       color: "text-yellow-500" },
-  followed:           { icon: UserPlus,      verb: "followed",               color: "text-pink-500" },
+  followed:           { icon: UserPlus,      verb: "followed",                color: "text-pink-500" },
   post_created:       { icon: FileText,      verb: "published a post",        color: "text-primary" },
   post_upvoted:       { icon: Heart,         verb: "liked a post",            color: "text-rose-500" },
-  comment_created:    { icon: MessageSquare,  verb: "commented on",            color: "text-sky-500" },
+  comment_created:    { icon: MessageSquare, verb: "commented on",            color: "text-sky-500" },
   course_enrolled:    { icon: GraduationCap, verb: "enrolled in course",      color: "text-indigo-500" },
   event_registered:   { icon: CalendarCheck, verb: "registered for event",    color: "text-teal-500" },
   quest_funded:       { icon: Compass,       verb: "funded quest",            color: "text-emerald-600" },
 };
 
 const FILTER_OPTIONS = [
-  { key: "all",          label: "All" },
-  { key: "social",       label: "Social" },
-  { key: "membership",   label: "Membership" },
-  { key: "content",      label: "Content" },
-  { key: "engagement",   label: "Engagement" },
+  { key: "all",        label: "All" },
+  { key: "social",     label: "Social" },
+  { key: "membership", label: "Membership" },
+  { key: "content",    label: "Content" },
+  { key: "engagement", label: "Engagement" },
 ] as const;
 
 const FILTER_ACTIONS: Record<string, string[]> = {
@@ -48,17 +47,22 @@ const FILTER_ACTIONS: Record<string, string[]> = {
 };
 
 const TARGET_ROUTES: Record<string, string> = {
-  guild: "/guilds",
-  company: "/companies",
-  pod: "/pods",
-  quest: "/quests",
+  guild:        "/guilds",
+  company:      "/companies",
+  pod:          "/pods",
+  quest:        "/quests",
   quest_update: "/quests",
-  feed_post: "/feed",
-  course: "/courses",
-  service: "/services",
-  user: "/users",
-  territory: "/territories",
-  topic: "/topics",
+  feed_post:    "/feed",
+  course:       "/courses",
+  service:      "/services",
+  user:         "/users",
+  territory:    "/territories",
+  topic:        "/topics",
+};
+
+// Extra query params appended to the link per target type
+const TARGET_QUERY_PARAMS: Record<string, string> = {
+  quest_update: "?tab=updates",
 };
 
 type ActivityEntry = {
@@ -67,7 +71,7 @@ type ActivityEntry = {
   action_type: string;
   target_type: string | null;
   target_id: string | null;
-  resolved_link_id: string | null; // resolved ID used for routing (e.g. quest_id for quest_update)
+  resolved_link_id: string | null;
   target_name: string | null;
   metadata: any;
   created_at: string;
@@ -96,7 +100,6 @@ export default function NetworkActivityTab() {
 
       const { data, error } = await query;
       if (error) throw error;
-
       if (!data?.length) return [] as ActivityEntry[];
 
       // Fetch actor profiles
@@ -214,6 +217,7 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
   };
   const Icon = config.icon;
   const targetRoute = entry.target_type ? TARGET_ROUTES[entry.target_type] : null;
+  const targetSuffix = entry.target_type ? (TARGET_QUERY_PARAMS[entry.target_type] || "") : "";
   const timeAgo = formatDistanceToNow(new Date(entry.created_at), { addSuffix: true });
 
   return (
@@ -235,7 +239,7 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
           <span className="text-muted-foreground"> {config.verb} </span>
           {entry.target_name && targetRoute && entry.resolved_link_id ? (
             <Link
-              to={`${targetRoute}/${entry.resolved_link_id}`}
+              to={`${targetRoute}/${entry.resolved_link_id}${targetSuffix}`}
               className="font-medium hover:text-primary transition-colors"
             >
               {entry.target_name.length > 60
