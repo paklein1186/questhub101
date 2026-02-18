@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -53,6 +53,7 @@ import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
+import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -731,6 +732,14 @@ export default function QuestDetail() {
                   type="url"
                 />
                 <p className="text-xs text-muted-foreground mt-1">Optional link displayed on the quest page</p>
+              </div>
+              {/* Needs section in edit dialog */}
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <label className="text-sm font-medium flex items-center gap-1.5">
+                  <Lightbulb className="h-3.5 w-3.5 text-primary" /> Quest Needs
+                </label>
+                <p className="text-xs text-muted-foreground -mt-1">Add/edit needs in the <strong>Settings → Needs</strong> tab for a full editor.</p>
+                <QuestNeedsManager questId={quest.id} questOwnerId={quest.created_by_user_id} />
               </div>
               <ImageUpload label="Cover Image" currentImageUrl={editCoverImageUrl} onChange={setEditCoverImageUrl} onFocalPointChange={setEditCoverFocalY} focalPoint={editCoverFocalY} aspectRatio="16/9" />
               <div><label className="text-sm font-medium mb-1 block">Status</label>
