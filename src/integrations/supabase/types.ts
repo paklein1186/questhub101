@@ -4050,6 +4050,7 @@ export type Database = {
           title: string
           universe_visibility: string
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           allow_fundraising?: boolean
@@ -4091,6 +4092,7 @@ export type Database = {
           title: string
           universe_visibility?: string
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           allow_fundraising?: boolean
@@ -4132,6 +4134,7 @@ export type Database = {
           title?: string
           universe_visibility?: string
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: [
           {

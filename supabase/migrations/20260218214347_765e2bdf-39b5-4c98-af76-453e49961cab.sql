@@ -1,0 +1,1 @@
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS website_url TEXT;
