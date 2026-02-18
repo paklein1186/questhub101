@@ -723,16 +723,16 @@ export default function UserProfile() {
 
             {/* Stat badges */}
             <div className="flex flex-wrap gap-3">
-              <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />
-              <StatCard icon={Users} label="Following people" count={followingCount} onClick={() => setFollowDialogMode("following")} />
-              <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />
-              <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />
-              <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />
-              <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />
-              <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />
-              <StatCard icon={CircleDot} label="Pods" count={filteredPods.length} onClick={() => setListDialog("pods")} />
-              <StatCard icon={Building2} label="Organizations" count={filteredCompanies.length} onClick={() => setListDialog("companies")} />
-              <StatCard icon={Briefcase} label={serviceLabel} count={filteredServices.length} onClick={() => setListDialog("services")} />
+              {followersCount > 0 && <StatCard icon={UserPlus} label="Followers" count={followersCount} onClick={() => setFollowDialogMode("followers")} />}
+              {followingCount > 0 && <StatCard icon={Users} label="Following people" count={followingCount} onClick={() => setFollowDialogMode("following")} />}
+              {filteredQuestsCreated.length > 0 && <StatCard icon={Compass} label="Quests created" count={filteredQuestsCreated.length} onClick={() => setListDialog("quests-created")} />}
+              {filteredQuestsJoined.length > 0 && <StatCard icon={Compass} label="Quests joined" count={filteredQuestsJoined.length} onClick={() => setListDialog("quests-joined")} />}
+              {filteredGuilds.length > 0 && <StatCard icon={Shield} label="Guilds" count={filteredGuilds.length} onClick={() => setListDialog("guilds")} />}
+              {followedGuildsCount > 0 && <StatCard icon={Shield} label="Guilds followed" count={followedGuildsCount} onClick={() => setFollowedEntityDialog("GUILD")} />}
+              {followedQuestsCount > 0 && <StatCard icon={Compass} label="Quests followed" count={followedQuestsCount} onClick={() => setFollowedEntityDialog("QUEST")} />}
+              {filteredPods.length > 0 && <StatCard icon={CircleDot} label="Pods" count={filteredPods.length} onClick={() => setListDialog("pods")} />}
+              {filteredCompanies.length > 0 && <StatCard icon={Building2} label="Organizations" count={filteredCompanies.length} onClick={() => setListDialog("companies")} />}
+              {filteredServices.length > 0 && <StatCard icon={Briefcase} label={serviceLabel} count={filteredServices.length} onClick={() => setListDialog("services")} />}
             </div>
 
 
