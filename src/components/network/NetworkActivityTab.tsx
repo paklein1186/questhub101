@@ -56,6 +56,7 @@ const TARGET_ROUTES: Record<string, string> = {
   service: "/services",
   user: "/users",
   territory: "/territories",
+  topic: "/topics",
 };
 
 type ActivityEntry = {
