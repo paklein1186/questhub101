@@ -141,23 +141,48 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
     ctaLabel = "View your wallet";
   }
 
-  const html = `
-<div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto; padding: 32px 16px; color: #2d2d2d;">
-  <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #8b7355; margin-bottom: 24px;">changethegame</p>
-  
-  <h2 style="font-size: 22px; font-weight: normal; margin-bottom: 16px;">Hey ${recipientName},</h2>
-  
-  <p style="line-height: 1.6; margin-bottom: 8px; font-weight: 600;">${title}</p>
-  ${body ? `<p style="line-height: 1.6; color: #555; margin-bottom: 20px;">${body}</p>` : ""}
-  ${extraHtml}
-  
-  <p style="margin: 24px 0;">
-    <a href="${deepLink}" style="display: inline-block; padding: 12px 24px; background: #7c5c3e; color: white; text-decoration: none; border-radius: 4px; font-weight: 600;">${ctaLabel}</a>
-  </p>
-  
-  <hr style="border: none; border-top: 1px solid #e5ddd0; margin: 32px 0 16px;" />
-  <p style="font-size: 13px; color: #8b7355;">You're receiving this because email notifications are enabled. <a href="${BASE_URL}/settings" style="color: #8b7355;">Manage preferences</a></p>
-</div>`;
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header -->
+    <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
+      <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
+    </div>
+
+    <!-- Card -->
+    <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 8px;">Hey ${recipientName},</h2>
+      <p style="font-size:16px;font-weight:600;color:hsl(250,30%,8%);line-height:1.5;margin:16px 0 8px;">${title}</p>
+      ${body ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:0 0 20px;">${body}</p>` : ""}
+      ${extraHtml}
+
+      <div style="margin-top:28px;">
+        <a href="${deepLink}"
+           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+          ${ctaLabel}
+        </a>
+      </div>
+
+      <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
+      <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
+        You're receiving this because email notifications are enabled.
+        <a href="${BASE_URL}/settings?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+    </p>
+  </div>
+</body>
+</html>`;
 
   return { subject, html };
 }

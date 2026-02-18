@@ -24,31 +24,69 @@ interface EmailTemplate {
   updated_at: string;
 }
 
-// ─── Design tokens (shared wrapper style) ────────────────────
+// ─── Design tokens — mirrors the actual platform email style ──
+// These match the values used in send-notification-email edge function
+// and the platform's HSL design system (--primary: 262 83% 58%)
 const DEFAULT_DESIGN = {
-  primaryColor: "#6b5b3e",
+  primaryColor: "hsl(262, 83%, 58%)",
+  primaryDark: "hsl(262, 83%, 48%)",
+  accentColor: "hsl(330, 70%, 56%)",
   backgroundColor: "#ffffff",
-  textColor: "#2d2d2d",
-  mutedColor: "#8b7355",
-  fontFamily: "Georgia, 'Times New Roman', serif",
+  wrapperBackground: "hsl(250, 30%, 98%)",
+  textColor: "hsl(250, 30%, 8%)",
+  mutedColor: "hsl(250, 12%, 46%)",
+  borderColor: "hsl(250, 18%, 90%)",
+  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   brandName: "changethegame",
-  footerText: "You're receiving this because you're part of our learning community. Together, we grow. 🌱",
+  preferencesUrl: "https://questhub101.lovable.app/settings?tab=notifications",
+  footerText: "You're receiving this because email notifications are enabled.",
 };
 
 function buildPreviewHtml(template: EmailTemplate, design: typeof DEFAULT_DESIGN) {
-  return `
-<div style="font-family:${design.fontFamily};max-width:560px;margin:0 auto;padding:32px 16px;color:${design.textColor};background:${design.backgroundColor};">
-  <p style="font-size:12px;text-transform:uppercase;letter-spacing:2px;color:${design.mutedColor};margin-bottom:24px;">${design.brandName}</p>
-  ${template.body_html}
-  ${template.cta_label && template.cta_url ? `
-  <p style="margin-top:24px;">
-    <a href="${template.cta_url}" style="display:inline-block;background:${design.primaryColor};color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-family:sans-serif;">
-      ${template.cta_label}
-    </a>
-  </p>` : ""}
-  <hr style="border:none;border-top:1px solid #e5ddd0;margin:32px 0 16px;" />
-  <p style="font-size:13px;color:${design.mutedColor};">${design.footerText}</p>
-</div>`;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:${design.wrapperBackground};font-family:${design.fontFamily};">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header bar -->
+    <div style="background:${design.primaryColor};border-radius:12px 12px 0 0;padding:20px 28px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">${design.brandName}</div>
+    </div>
+
+    <!-- Card body -->
+    <div style="background:${design.backgroundColor};border:1px solid ${design.borderColor};border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
+      ${template.body_html}
+
+      ${template.cta_label && template.cta_url ? `
+      <div style="margin-top:28px;">
+        <a href="${template.cta_url}"
+           style="display:inline-block;background:${design.primaryColor};color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;letter-spacing:0.2px;">
+          ${template.cta_label}
+        </a>
+      </div>` : ""}
+
+      <!-- Divider -->
+      <hr style="border:none;border-top:1px solid ${design.borderColor};margin:32px 0 20px;" />
+
+      <!-- Footer -->
+      <p style="font-size:12px;color:${design.mutedColor};line-height:1.6;margin:0;">
+        ${design.footerText}
+        <a href="${design.preferencesUrl}" style="color:${design.primaryColor};text-decoration:underline;">Manage preferences</a>
+      </p>
+    </div>
+
+    <!-- Bottom space -->
+    <p style="text-align:center;font-size:11px;color:${design.mutedColor};margin-top:16px;">
+      © 2025 changethegame · <a href="https://questhub101.lovable.app" style="color:${design.mutedColor};">changethegame.xyz</a>
+    </p>
+  </div>
+</body>
+</html>`;
 }
 
 // ─── Design Sidebar ───────────────────────────────────────────
@@ -69,12 +107,16 @@ function DesignPanel({ design, onChange }: { design: typeof DEFAULT_DESIGN; onCh
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
         <Palette className="h-3.5 w-3.5" /> Design Tokens
       </p>
-      {field("Primary Color", "primaryColor")}
-      {field("Background Color", "backgroundColor")}
+      {field("Primary Color (header + CTA)", "primaryColor")}
+      {field("Accent Color", "accentColor")}
+      {field("Card Background", "backgroundColor")}
+      {field("Page Background", "wrapperBackground")}
       {field("Text Color", "textColor")}
-      {field("Muted/Brand Color", "mutedColor")}
+      {field("Muted Color", "mutedColor")}
+      {field("Border Color", "borderColor")}
       {field("Font Family", "fontFamily")}
       {field("Brand Name", "brandName")}
+      {field("Preferences URL", "preferencesUrl")}
       <div className="space-y-1">
         <label className="text-xs font-medium text-muted-foreground">Footer Text</label>
         <Textarea
@@ -174,20 +216,22 @@ function TemplateEditor({
       )}
 
       {showPreview ? (
-        /* Live HTML preview */
+        /* Live HTML preview — rendered as full email */
         <div className="rounded-lg border border-border overflow-hidden">
-          <div className="bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground border-b border-border">
-            Subject: <span className="font-medium text-foreground">{subject}</span>
+          <div className="bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground border-b border-border flex items-center gap-2">
+            <span className="font-medium text-foreground">Subject:</span> {subject}
           </div>
-          <div className="p-4 bg-white">
+          <div className="bg-muted/20">
             <iframe
               srcDoc={buildPreviewHtml(previewTemplate, design)}
-              className="w-full min-h-[420px] border-0"
+              className="w-full border-0"
+              style={{ height: "520px" }}
               title="Email preview"
-              sandbox=""
+              sandbox="allow-same-origin"
             />
           </div>
         </div>
+
       ) : (
         /* Edit fields */
         <div className="space-y-4">
