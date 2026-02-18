@@ -193,10 +193,12 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
         }
 
         setScraped(true);
+        const pages = data.pagesVisited ?? 1;
+        const pagesMsg = pages > 1 ? `Visited ${pages} pages. ` : "";
         const matched = (data.suggestedTopics?.length || data.suggestedTerritories?.length)
-          ? " Topics & territories were pre-selected too."
+          ? "Topics & territories were pre-selected too."
           : "";
-        toast({ title: "Website data imported!", description: `Review and adjust the pre-filled fields.${matched}` });
+        toast({ title: "Website data imported!", description: `${pagesMsg}${matched || "Review and adjust the pre-filled fields."}` });
       }
     } catch (err) {
       console.error("Scrape error:", err);
