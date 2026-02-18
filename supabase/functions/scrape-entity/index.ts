@@ -83,6 +83,65 @@ function inferSector(text: string): string | null {
   return null;
 }
 
+// Extract up to 8 topic/territory keyword suggestions from page text
+function inferTopicKeywords(text: string): string[] {
+  const lower = text.toLowerCase();
+
+  // Broad keyword groups → canonical label shown in the UI
+  const topicMap: [string, string[]][] = [
+    ["AI & Machine Learning", ["artificial intelligence", "machine learning", "deep learning", "neural network", "llm", "generative ai"]],
+    ["Technology", ["software", "saas", "cloud", "developer", "api", "open source", "devops", "cybersecurity"]],
+    ["Sustainability", ["sustainability", "circular economy", "net zero", "carbon", "climate change", "renewable energy", "biodiversity"]],
+    ["Education", ["education", "learning", "e-learning", "curriculum", "pedagogy", "training", "mentoring", "bootcamp"]],
+    ["Health & Wellbeing", ["health", "wellness", "mental health", "biotech", "medtech", "pharma", "healthcare"]],
+    ["Finance & Impact Investing", ["finance", "fintech", "impact investing", "venture capital", "crowdfunding", "defi", "blockchain"]],
+    ["Creative Arts", ["art", "design", "music", "film", "photography", "animation", "game", "fashion"]],
+    ["Social Impact", ["social impact", "nonprofit", "ngo", "humanitarian", "community development", "social enterprise"]],
+    ["Agriculture & Food", ["agriculture", "food", "farming", "agroecology", "food security", "urban farming"]],
+    ["Governance & Policy", ["governance", "policy", "regulation", "democracy", "civic", "public sector"]],
+    ["Research & Science", ["research", "science", "laboratory", "academic", "innovation", "r&d"]],
+    ["Community Building", ["community", "co-op", "cooperative", "collective", "network", "peer-to-peer"]],
+    ["Entrepreneurship", ["startup", "entrepreneur", "founder", "accelerator", "incubator", "growth hacking"]],
+    ["Media & Communication", ["media", "journalism", "content creation", "podcast", "newsletter", "publishing"]],
+    ["Mobility & Urban", ["mobility", "urban", "transportation", "smart city", "logistics", "infrastructure"]],
+  ];
+
+  const matches: string[] = [];
+  for (const [label, words] of topicMap) {
+    if (words.some(w => lower.includes(w))) {
+      matches.push(label);
+      if (matches.length >= 5) break;
+    }
+  }
+  return matches;
+}
+
+// Extract territory/geographic keywords from text
+function inferTerritoryKeywords(text: string): string[] {
+  const lower = text.toLowerCase();
+
+  // Common geographic / regional markers
+  const regionMap: [string, string[]][] = [
+    ["Africa", ["africa", "african", "sub-saharan", "west africa", "east africa", "north africa"]],
+    ["Asia", ["asia", "asian", "southeast asia", "south asia", "east asia", "pacific rim"]],
+    ["Europe", ["europe", "european", "eu", "eurozone", "western europe", "eastern europe"]],
+    ["Latin America", ["latin america", "latam", "south america", "central america", "caribbean"]],
+    ["Middle East", ["middle east", "mena", "gulf", "arab world"]],
+    ["North America", ["north america", "usa", "united states", "canada", "american"]],
+    ["Oceania", ["oceania", "australia", "new zealand", "pacific islands"]],
+    ["Global", ["global", "worldwide", "international", "cross-border", "transnational"]],
+  ];
+
+  const matches: string[] = [];
+  for (const [label, words] of regionMap) {
+    if (words.some(w => lower.includes(w))) {
+      matches.push(label);
+      if (matches.length >= 3) break;
+    }
+  }
+  return matches;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -118,7 +177,15 @@ serve(async (req) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    let result = { name: null as string | null, description: null as string | null, logo: null as string | null, sector: null as string | null, url: url };
+    let result = {
+      name: null as string | null,
+      description: null as string | null,
+      logo: null as string | null,
+      sector: null as string | null,
+      url: url,
+      suggestedTopics: [] as string[],
+      suggestedTerritories: [] as string[],
+    };
 
     try {
       const res = await fetch(url, {
@@ -154,9 +221,15 @@ serve(async (req) => {
         result.logo = extractFavicon(html, finalUrl);
       }
 
-      // Infer sector from combined text
+      // Infer sector + topic/territory suggestions from combined text
       const combined = [result.name, result.description, ogTitle, titleTag?.[1]].filter(Boolean).join(" ");
+      // Also use a snippet of the page body for richer signal (strip HTML tags)
+      const bodySnippet = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 8000);
+      const fullText = combined + " " + bodySnippet;
+
       result.sector = inferSector(combined);
+      result.suggestedTopics = inferTopicKeywords(fullText);
+      result.suggestedTerritories = inferTerritoryKeywords(fullText);
       result.url = finalUrl;
     } catch {
       clearTimeout(timeout);

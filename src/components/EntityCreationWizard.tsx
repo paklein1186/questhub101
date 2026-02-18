@@ -100,6 +100,8 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
   const [isDraft, setIsDraft] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [bannerUrl, setBannerUrl] = useState<string | undefined>();
+  const [scrapedTopicIds, setScrapedTopicIds] = useState<string[]>([]);
+  const [scrapedTerritoryIds, setScrapedTerritoryIds] = useState<string[]>([]);
 
   const resetState = useCallback(() => {
     setKind(initialKind ?? null);
@@ -110,6 +112,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
     setQuestId("none"); setPodTopicId("none");
     setOrgType(""); setCompanySize(CompanySize.SME);
     setSelectedTopicIds([]); setSelectedTerritoryIds([]);
+    setScrapedTopicIds([]); setScrapedTerritoryIds([]);
     setJoinPolicy(GuildJoinPolicy.OPEN); setUniverseVisibility("both");
     setIsDraft(false); setLogoUrl(undefined); setBannerUrl(undefined);
     setIsSubmitting(false); setAiLoading(false);
@@ -160,9 +163,40 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
         if (data.name && !name) setName(data.name);
         if (data.description && !description) setDescription(data.description);
         if (data.logo) setLogoUrl(data.logo);
-        // sector from scrape is discarded (redundant with topics)
+
+        // Match suggested topic keywords against existing topics (fuzzy name match)
+        if (data.suggestedTopics?.length && topics.length) {
+          const matchedTopicIds = topics
+            .filter(t => data.suggestedTopics.some((kw: string) =>
+              t.name.toLowerCase().includes(kw.toLowerCase()) ||
+              kw.toLowerCase().includes(t.name.toLowerCase())
+            ))
+            .map(t => t.id);
+          if (matchedTopicIds.length) {
+            setSelectedTopicIds(matchedTopicIds);
+            setScrapedTopicIds(matchedTopicIds);
+          }
+        }
+
+        // Match suggested territory keywords against existing territories
+        if (data.suggestedTerritories?.length && territories.length) {
+          const matchedTerritoryIds = territories
+            .filter(t => data.suggestedTerritories.some((kw: string) =>
+              t.name.toLowerCase().includes(kw.toLowerCase()) ||
+              kw.toLowerCase().includes(t.name.toLowerCase())
+            ))
+            .map(t => t.id);
+          if (matchedTerritoryIds.length) {
+            setSelectedTerritoryIds(matchedTerritoryIds);
+            setScrapedTerritoryIds(matchedTerritoryIds);
+          }
+        }
+
         setScraped(true);
-        toast({ title: "Website data imported!", description: "Review and adjust the pre-filled fields." });
+        const matched = (data.suggestedTopics?.length || data.suggestedTerritories?.length)
+          ? " Topics & territories were pre-selected too."
+          : "";
+        toast({ title: "Website data imported!", description: `Review and adjust the pre-filled fields.${matched}` });
       }
     } catch (err) {
       console.error("Scrape error:", err);
@@ -534,18 +568,29 @@ Respond ONLY in this exact JSON format, no markdown:
       case "classify":
         return (
           <div className="space-y-5">
+            {(scrapedTopicIds.length > 0 || scrapedTerritoryIds.length > 0) && (
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs text-primary">
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                <span>Pre-selected based on your website — adjust as needed.</span>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
                 <Hash className="h-3.5 w-3.5" /> Topics
               </label>
               <p className="text-xs text-muted-foreground mb-2">{t("wizard.topicsAndTerritories")}</p>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                {topics.map(t => (
-                  <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={selectedTopicIds.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
-                    <span className="text-sm">{t.name}</span>
-                  </label>
-                ))}
+                {topics.map(topic => {
+                  const isSelected = selectedTopicIds.includes(topic.id);
+                  const isSuggested = scrapedTopicIds.includes(topic.id);
+                  return (
+                    <label key={topic.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox checked={isSelected} onCheckedChange={() => toggleTopic(topic.id)} />
+                      <span className={cn("text-sm", isSuggested && "font-medium text-primary")}>{topic.name}</span>
+                      {isSuggested && <Sparkles className="h-3 w-3 text-primary" />}
+                    </label>
+                  );
+                })}
               </div>
             </div>
             <div>
@@ -554,12 +599,17 @@ Respond ONLY in this exact JSON format, no markdown:
               </label>
               <p className="text-xs text-muted-foreground mb-2">{t("filters.territories")}</p>
               <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                {territories.map(t => (
-                  <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={selectedTerritoryIds.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                    <span className="text-sm">{t.name}</span>
-                  </label>
-                ))}
+                {territories.map(territory => {
+                  const isSelected = selectedTerritoryIds.includes(territory.id);
+                  const isSuggested = scrapedTerritoryIds.includes(territory.id);
+                  return (
+                    <label key={territory.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <Checkbox checked={isSelected} onCheckedChange={() => toggleTerritory(territory.id)} />
+                      <span className={cn("text-sm", isSuggested && "font-medium text-primary")}>{territory.name}</span>
+                      {isSuggested && <Sparkles className="h-3 w-3 text-primary" />}
+                    </label>
+                  );
+                })}
               </div>
             </div>
           </div>
