@@ -55,19 +55,7 @@ export default function FeedHub() {
   const [searchParams] = useSearchParams();
 
   // Scroll to a specific post when linked from notifications
-  useEffect(() => {
-    const postId = searchParams.get("post");
-    if (!postId) return;
-    const timeout = setTimeout(() => {
-      const el = document.getElementById(`post-${postId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.classList.add("ring-2", "ring-primary/50");
-        setTimeout(() => el.classList.remove("ring-2", "ring-primary/50"), 3000);
-      }
-    }, 500);
-    return () => clearTimeout(timeout);
-  }, [searchParams]);
+  const postId = searchParams.get("post");
 
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
   const [displayMode, setDisplayMode] = useState<FeedDisplayMode>("list");
@@ -172,6 +160,24 @@ export default function FeedHub() {
     },
     staleTime: 20_000,
   });
+
+  // Scroll-to-post deep-link: retry until the post element appears in the DOM
+  useEffect(() => {
+    if (!postId || isLoading) return;
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.getElementById(`post-${postId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-primary/50");
+        setTimeout(() => el.classList.remove("ring-2", "ring-primary/50"), 3000);
+      } else if (attempts < 10) {
+        attempts++;
+        setTimeout(tryScroll, 300);
+      }
+    };
+    setTimeout(tryScroll, 300);
+  }, [postId, isLoading]);
 
   // Client-side filtering
   const filtered = useMemo(() => {
