@@ -42,6 +42,16 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
   const images = (post.post_attachments || []).filter((a) => a.type === "IMAGE");
   const firstImage = images[0];
 
+  // Link attachment for thumbnail fallback
+  const linkAttachment = (post.post_attachments || []).find((a) => a.type === "LINK" || a.type === "VIDEO_LINK");
+  const linkThumbnail = linkAttachment?.thumbnail_url || (linkAttachment?.embed_meta as any)?.image || null;
+  const linkTitle = linkAttachment?.file_name || (linkAttachment?.embed_meta as any)?.title || null;
+
+  // The best thumbnail: image attachment > link thumbnail
+  const thumbnailSrc = firstImage
+    ? (firstImage.thumbnail_url || firstImage.url)
+    : linkThumbnail || null;
+
   const handleUpvote = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleUpvote.mutate(
@@ -71,11 +81,11 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
       <div className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20">
         {/* Thumbnail area */}
         <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-52 max-h-52"}`}>
-          {firstImage ? (
+          {thumbnailSrc ? (
             <>
               <img
-                src={firstImage.thumbnail_url || firstImage.url}
-                alt=""
+                src={thumbnailSrc}
+                alt={linkTitle || ""}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
