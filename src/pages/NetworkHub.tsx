@@ -161,7 +161,7 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
 export default function NetworkHub() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") || "following";
+  const tab = searchParams.get("tab") || "activity";
   const setTab = (t: string) => setSearchParams({ tab: t });
   const currentUser = useCurrentUser();
   const { persona, label } = usePersona();
