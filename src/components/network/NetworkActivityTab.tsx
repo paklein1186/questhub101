@@ -67,6 +67,7 @@ type ActivityEntry = {
   action_type: string;
   target_type: string | null;
   target_id: string | null;
+  resolved_link_id: string | null; // resolved ID used for routing (e.g. quest_id for quest_update)
   target_name: string | null;
   metadata: any;
   created_at: string;
@@ -109,10 +110,29 @@ export default function NetworkActivityTab() {
         (profiles ?? []).map((p: any) => [p.user_id, p])
       );
 
+      // Resolve quest_update target_ids → actual quest_id
+      const questUpdateIds = data
+        .filter((a: any) => a.target_type === "quest_update" && a.target_id)
+        .map((a: any) => a.target_id);
+
+      const questUpdateMap = new Map<string, string>();
+      if (questUpdateIds.length > 0) {
+        const { data: updates } = await supabase
+          .from("quest_updates")
+          .select("id, quest_id")
+          .in("id", questUpdateIds);
+        (updates ?? []).forEach((u: any) => questUpdateMap.set(u.id, u.quest_id));
+      }
+
       return data.map((a: any) => {
         const profile = profileMap.get(a.actor_user_id);
+        const resolved_link_id =
+          a.target_type === "quest_update"
+            ? (questUpdateMap.get(a.target_id) ?? a.target_id)
+            : a.target_id;
         return {
           ...a,
+          resolved_link_id,
           actor_name: profile?.name || "Someone",
           actor_avatar: profile?.avatar_url,
         } as ActivityEntry;
@@ -213,9 +233,9 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
             {entry.actor_name}
           </Link>
           <span className="text-muted-foreground"> {config.verb} </span>
-          {entry.target_name && targetRoute && entry.target_id ? (
+          {entry.target_name && targetRoute && entry.resolved_link_id ? (
             <Link
-              to={`${targetRoute}/${entry.target_id}`}
+              to={`${targetRoute}/${entry.resolved_link_id}`}
               className="font-medium hover:text-primary transition-colors"
             >
               {entry.target_name.length > 60
