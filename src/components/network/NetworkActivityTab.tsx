@@ -53,6 +53,7 @@ const TARGET_ROUTES: Record<string, string> = {
   quest:        "/quests",
   quest_update: "/quests",
   feed_post:    "/feed",
+  post:         "/feed",
   course:       "/courses",
   service:      "/services",
   user:         "/users",
@@ -68,6 +69,7 @@ const TARGET_QUERY_PARAMS: Record<string, string> = {
 // Target types that use a fully custom URL builder (not path-based)
 const TARGET_CUSTOM_URL: Record<string, (id: string) => string> = {
   feed_post: (id) => `/feed?post=${id}`,
+  post:      (id) => `/feed?post=${id}`,
 };
 
 type ActivityEntry = {
