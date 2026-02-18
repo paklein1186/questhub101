@@ -57,7 +57,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/feed?post=${post.id}`;
+    const url = `https://changethegame.xyz/feed?post=${post.id}`;
     navigator.clipboard.writeText(url).then(() => toast.success("Link copied!"));
   };
 
