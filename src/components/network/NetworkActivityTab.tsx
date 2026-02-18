@@ -52,6 +52,8 @@ const TARGET_ROUTES: Record<string, string> = {
   company: "/companies",
   pod: "/pods",
   quest: "/quests",
+  quest_update: "/quests",
+  feed_post: "/feed",
   course: "/courses",
   service: "/services",
   user: "/users",
