@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send, Shield, Link2 } from "lucide-react";
+import { Trash2, ExternalLink, FileText, Download, Film, ArrowBigUp, Loader2, Globe, Compass, MessageSquare, Pencil, Check, X as XIcon, Languages, Repeat2, Send, Shield, Link2, ImagePlus, Paperclip } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -9,10 +10,10 @@ import { useDeletePost, useEditPost, useCreatePost, type FeedPostWithAttachments
 import { renderMentions } from "@/components/MentionTextarea";
 import { renderPostContent } from "@/lib/renderPostContent";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
-import { formatFileSize } from "@/lib/postHelpers";
+import { formatFileSize, parseVideoUrl, isImageFile, MAX_FILE_SIZE, MAX_ATTACHMENTS_PER_POST, ACCEPTED_IMAGE_TYPES, ACCEPTED_DOC_TYPES } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAutoTranslatePost } from "@/hooks/useAutoTranslatePost";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,6 +25,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
+
+interface PendingEditFile {
+  file: File;
+  previewUrl: string;
+  type: "IMAGE" | "DOCUMENT";
+}
+
+interface PendingEditLink {
+  url: string;
+  type: "LINK" | "VIDEO_LINK";
+  meta?: Record<string, any>;
+  loading?: boolean;
+}
 
 const CONTENT_CHAR_LIMIT = 1000;
 
@@ -215,6 +229,16 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
   const [isResharing, setIsResharing] = useState(false);
   const { translatedText, isTranslating, isTranslated, needsTranslation } = useAutoTranslatePost(post.id, post.content);
 
+  // Edit attachment state
+  const [editFiles, setEditFiles] = useState<PendingEditFile[]>([]);
+  const [editLink, setEditLink] = useState<PendingEditLink | null>(null);
+  const [editLinkUrl, setEditLinkUrl] = useState("");
+  const [showEditLinkInput, setShowEditLinkInput] = useState(false);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
+  const [editUploading, setEditUploading] = useState(false);
+  const editImgRef = useRef<HTMLInputElement>(null);
+  const editDocRef = useRef<HTMLInputElement>(null);
+
   // Comment count
   const { data: commentCount = 0 } = useQuery({
     queryKey: ["post-comment-count", post.id],
@@ -248,28 +272,112 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
     );
   };
 
-  const handleSaveEdit = () => {
-    editPost.mutate(
-      {
+  const uploadEditFile = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop() ?? "bin";
+    const safeName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]/g, "-")
+      .slice(0, 80);
+    const path = `${currentUser.id}/${Date.now()}-${safeName}.${ext}`;
+    const { error } = await supabase.storage.from("post-uploads").upload(path, file, { contentType: file.type });
+    if (error) throw error;
+    const { data } = supabase.storage.from("post-uploads").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const addEditFiles = (fileList: FileList | null, forceType?: "IMAGE" | "DOCUMENT") => {
+    if (!fileList) return;
+    const newFiles: PendingEditFile[] = [];
+    for (const file of Array.from(fileList)) {
+      if (file.size > MAX_FILE_SIZE) { toast.error(`${file.name} exceeds 50 MB limit`); continue; }
+      if (editFiles.length + newFiles.length >= MAX_ATTACHMENTS_PER_POST) { toast.error(`Max ${MAX_ATTACHMENTS_PER_POST} files`); break; }
+      const type = forceType || (isImageFile(file.type) ? "IMAGE" : "DOCUMENT");
+      newFiles.push({ file, previewUrl: URL.createObjectURL(file), type });
+    }
+    setEditFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const fetchEditLinkPreview = async (url: string) => {
+    const video = parseVideoUrl(url);
+    if (video) {
+      setEditLink({ url, type: "VIDEO_LINK", meta: { provider: video.provider, videoId: video.videoId, embedUrl: video.embedUrl, thumbnailUrl: video.thumbnailUrl } });
+      setShowEditLinkInput(false);
+      setEditLinkUrl("");
+      return;
+    }
+    setEditLink({ url, type: "LINK", loading: true });
+    setShowEditLinkInput(false);
+    setEditLinkUrl("");
+    try {
+      const { data } = await supabase.functions.invoke("link-preview", { body: { url } });
+      setEditLink({ url, type: "LINK", meta: data ?? {} });
+    } catch {
+      setEditLink({ url, type: "LINK", meta: {} });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    setEditUploading(true);
+    try {
+      const newAttachments: Omit<PostAttachment, "id" | "post_id" | "created_at">[] = [];
+      for (const pf of editFiles) {
+        const url = await uploadEditFile(pf.file);
+        newAttachments.push({
+          type: pf.type,
+          url,
+          thumbnail_url: pf.type === "IMAGE" ? url : null,
+          file_name: pf.file.name,
+          file_size_bytes: pf.file.size,
+          mime_type: pf.file.type,
+          embed_provider: null,
+          embed_meta: null,
+          sort_order: (post.post_attachments?.length ?? 0) + newAttachments.length,
+        });
+      }
+      if (editLink) {
+        newAttachments.push({
+          type: editLink.type,
+          url: editLink.url,
+          thumbnail_url: editLink.meta?.image || editLink.meta?.thumbnailUrl || null,
+          file_name: null,
+          file_size_bytes: null,
+          mime_type: null,
+          embed_provider: editLink.type === "VIDEO_LINK" ? (editLink.meta?.provider ?? null) : null,
+          embed_meta: editLink.meta ? editLink.meta as any : null,
+          sort_order: (post.post_attachments?.length ?? 0) + newAttachments.length,
+        });
+      }
+
+      await editPost.mutateAsync({
         postId: post.id,
         content: editContent.trim(),
         territoryIds: editTerritoryIds,
         topicIds: editTopicIds,
-      },
-      {
-        onSuccess: () => {
-          setEditing(false);
-          toast.success("Post updated");
-        },
-        onError: () => toast.error("Failed to update post"),
-      }
-    );
+        newAttachments,
+        removedAttachmentIds,
+      });
+      setEditing(false);
+      setEditFiles([]);
+      setEditLink(null);
+      setRemovedAttachmentIds([]);
+      toast.success("Post updated");
+    } catch {
+      toast.error("Failed to update post");
+    } finally {
+      setEditUploading(false);
+    }
   };
 
   const handleCancelEdit = () => {
     setEditContent(post.content || "");
+    setEditFiles([]);
+    setEditLink(null);
+    setRemovedAttachmentIds([]);
     setEditing(false);
   };
+
 
   // The original post to reshare — skip resharing a reshare, go to the root
   const reshareTargetId = post.reshared_post_id ? post.reshared_post_id : post.id;
@@ -420,21 +528,126 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
             className="min-h-[80px] text-sm"
             maxLength={2000}
           />
+
+          {/* Existing attachments (removable) */}
+          {(post.post_attachments || []).filter(a => !removedAttachmentIds.includes(a.id)).length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground font-medium">Existing attachments</p>
+              {(post.post_attachments || [])
+                .filter(a => !removedAttachmentIds.includes(a.id))
+                .map(a => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                    {a.type === "IMAGE" ? (
+                      <img src={a.thumbnail_url || a.url} alt="" className="h-8 w-12 rounded object-cover shrink-0" />
+                    ) : a.type === "DOCUMENT" ? (
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
+                    <span className="truncate flex-1 text-xs">{a.file_name || a.url}</span>
+                    <button onClick={() => setRemovedAttachmentIds(prev => [...prev, a.id])}>
+                      <XIcon className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {/* New image previews */}
+          {editFiles.filter(f => f.type === "IMAGE").length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {editFiles.map((f, i) => f.type === "IMAGE" && (
+                <div key={i} className="relative group rounded-lg overflow-hidden aspect-video bg-muted">
+                  <img src={f.previewUrl} alt="" className="w-full h-full object-cover" />
+                  <button onClick={() => setEditFiles(prev => { URL.revokeObjectURL(prev[i].previewUrl); return prev.filter((_, idx) => idx !== i); })}
+                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <XIcon className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* New document chips */}
+          {editFiles.filter(f => f.type === "DOCUMENT").length > 0 && (
+            <div className="space-y-1">
+              {editFiles.map((f, i) => f.type === "DOCUMENT" && (
+                <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                  <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate flex-1 text-xs">{f.file.name}</span>
+                  <span className="text-xs text-muted-foreground">{formatFileSize(f.file.size)}</span>
+                  <button onClick={() => setEditFiles(prev => { URL.revokeObjectURL(prev[i].previewUrl); return prev.filter((_, idx) => idx !== i); })}>
+                    <XIcon className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* New link preview */}
+          {editLink && (
+            <div className="relative rounded-lg border border-border bg-muted/30 p-3 pr-8">
+              {editLink.loading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Fetching…</div>
+              ) : editLink.type === "VIDEO_LINK" ? (
+                <div className="flex items-center gap-2 text-sm"><Film className="h-4 w-4 text-muted-foreground" /><span className="truncate">{editLink.url}</span></div>
+              ) : (
+                <div className="space-y-0.5">
+                  {editLink.meta?.title && <p className="text-sm font-medium line-clamp-1">{editLink.meta.title}</p>}
+                  <p className="text-xs text-muted-foreground truncate">{editLink.url}</p>
+                </div>
+              )}
+              <button onClick={() => setEditLink(null)} className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-background/80 flex items-center justify-center">
+                <XIcon className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          {/* Link URL input */}
+          {showEditLinkInput && (
+            <div className="flex gap-2">
+              <Input value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)} placeholder="https://…" className="flex-1 h-8 text-sm"
+                onKeyDown={e => { if (e.key === "Enter") { try { new URL(editLinkUrl.trim()); fetchEditLinkPreview(editLinkUrl.trim()); } catch { toast.error("Invalid URL"); } } }} />
+              <Button size="sm" className="h-8" onClick={() => { try { new URL(editLinkUrl.trim()); fetchEditLinkPreview(editLinkUrl.trim()); } catch { toast.error("Invalid URL"); } }}>Add</Button>
+              <Button size="sm" variant="ghost" className="h-8" onClick={() => { setShowEditLinkInput(false); setEditLinkUrl(""); }}><XIcon className="h-4 w-4" /></Button>
+            </div>
+          )}
+
           <OntologyPicker
             selectedTerritoryIds={editTerritoryIds}
             selectedTopicIds={editTopicIds}
             onTerritoriesChange={setEditTerritoryIds}
             onTopicsChange={setEditTopicIds}
           />
-          <div className="flex items-center gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={editPost.isPending}>
-              <XIcon className="h-3.5 w-3.5 mr-1" /> Cancel
-            </Button>
-            <Button size="sm" onClick={handleSaveEdit} disabled={editPost.isPending || !editContent.trim()}>
-              {editPost.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
-              Save
-            </Button>
+
+          {/* Attachment toolbar */}
+          <div className="flex items-center justify-between border-t border-border pt-2">
+            <div className="flex gap-1">
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => editImgRef.current?.click()} disabled={editFiles.length >= MAX_ATTACHMENTS_PER_POST}>
+                <ImagePlus className="h-3.5 w-3.5 mr-1" /> Image
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => editDocRef.current?.click()} disabled={editFiles.length >= MAX_ATTACHMENTS_PER_POST}>
+                <Paperclip className="h-3.5 w-3.5 mr-1" /> File
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => setShowEditLinkInput(true)} disabled={!!editLink}>
+                <Link2 className="h-3.5 w-3.5 mr-1" /> URL
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={editUploading || editPost.isPending}>
+                <XIcon className="h-3.5 w-3.5 mr-1" /> Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveEdit} disabled={editUploading || editPost.isPending}>
+                {(editUploading || editPost.isPending) ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Check className="h-3.5 w-3.5 mr-1" />}
+                Save
+              </Button>
+            </div>
           </div>
+
+          <input ref={editImgRef} type="file" accept={ACCEPTED_IMAGE_TYPES} multiple className="hidden"
+            onChange={e => { addEditFiles(e.target.files, "IMAGE"); e.target.value = ""; }} />
+          <input ref={editDocRef} type="file" accept={ACCEPTED_DOC_TYPES} multiple className="hidden"
+            onChange={e => { addEditFiles(e.target.files, "DOCUMENT"); e.target.value = ""; }} />
         </div>
       ) : post.content ? (
         <TruncatedContent

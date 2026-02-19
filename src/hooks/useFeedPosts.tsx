@@ -273,11 +273,15 @@ export function useEditPost() {
       content,
       territoryIds,
       topicIds,
+      newAttachments,
+      removedAttachmentIds,
     }: {
       postId: string;
       content: string;
       territoryIds?: string[];
       topicIds?: string[];
+      newAttachments?: Omit<PostAttachment, "id" | "post_id" | "created_at">[];
+      removedAttachmentIds?: string[];
     }) => {
       const { error } = await supabase
         .from("feed_posts")
@@ -291,6 +295,20 @@ export function useEditPost() {
         .delete()
         .eq("entity_type", "feed_post")
         .eq("entity_id", postId);
+
+      // Remove deleted attachments
+      if (removedAttachmentIds && removedAttachmentIds.length > 0) {
+        await supabase
+          .from("post_attachments")
+          .delete()
+          .in("id", removedAttachmentIds);
+      }
+
+      // Insert new attachments
+      if (newAttachments && newAttachments.length > 0) {
+        const rows = newAttachments.map((a) => ({ ...a, post_id: postId }));
+        await supabase.from("post_attachments").insert(rows as any);
+      }
 
       // Sync territories if provided
       if (territoryIds !== undefined) {
@@ -314,6 +332,7 @@ export function useEditPost() {
       qc.invalidateQueries({ queryKey: ["feed-posts"] });
       qc.invalidateQueries({ queryKey: ["profile-wall-feed"] });
       qc.invalidateQueries({ queryKey: ["following-feed"] });
+      qc.invalidateQueries({ queryKey: ["territory-posts"] });
       qc.invalidateQueries({ queryKey: ["post-translation", variables.postId] });
     },
   });
