@@ -369,7 +369,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                         <DialogTrigger asChild>
                           <Button size="sm"><UserPlus className="h-4 w-4 mr-1" /> Invite</Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="sm:max-w-xl overflow-visible">
                           <DialogHeader><DialogTitle>Invite a member</DialogTitle></DialogHeader>
                           <div className="space-y-3 mt-2">
                             <UserSearchInput

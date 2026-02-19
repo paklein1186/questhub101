@@ -617,7 +617,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     <Section title={`Members (${members.length})`} icon={<Users className="h-5 w-5" />}><span /></Section>
                     <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                       <DialogTrigger asChild><Button size="sm"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button></DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="sm:max-w-xl overflow-visible">
                         <DialogHeader><DialogTitle>Add Member</DialogTitle></DialogHeader>
                         <div className="space-y-4 mt-2">
                           <div>

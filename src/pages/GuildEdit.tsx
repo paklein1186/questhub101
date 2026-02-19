@@ -256,7 +256,7 @@ function GuildEditForm({ guildId }: { guildId: string }) {
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline"><UserPlus className="h-4 w-4 mr-1" /> Add member</Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-xl overflow-visible">
                   <DialogHeader><DialogTitle>Add Member</DialogTitle></DialogHeader>
                   <div className="space-y-4 mt-2">
                     <Select value={inviteUserId} onValueChange={setInviteUserId}>
