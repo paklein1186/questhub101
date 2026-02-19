@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { renderMentions } from "@/components/MentionTextarea";
+import { renderPostContent } from "@/lib/renderPostContent";
 
 interface NetworkItem {
   id: string;
@@ -277,13 +278,13 @@ export function FollowingActivity() {
                     </span>
                   </div>
                   {item.content && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {renderMentions(
+                    <div className="text-xs text-muted-foreground line-clamp-2">
+                      {renderPostContent(
                         item.content.length > 140
                           ? item.content.slice(0, 140) + "…"
                           : item.content
                       )}
-                    </p>
+                    </div>
                   )}
                 </>
               ) : (

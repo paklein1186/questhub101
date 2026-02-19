@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import ImageLightbox from "@/components/ImageLightbox";
 import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
+import { renderPostContent } from "@/lib/renderPostContent";
 import { processMentions } from "@/lib/mentionNotifications";
 import { useNotifications, stripMentionTokens } from "@/hooks/useNotifications";
 import {
@@ -320,7 +321,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                 </div>
               ) : (
                 <>
-                  <p className="text-sm mt-1 text-foreground/90">{renderMentions(comment.content)}</p>
+                  <div className="text-sm mt-1 text-foreground/90">{renderPostContent(comment.content)}</div>
                   {(comment as any).image_url && (
                     <div className="block mt-2 cursor-pointer" onClick={() => setLightboxSrc((comment as any).image_url)}>
                       <img src={(comment as any).image_url} alt="Comment attachment" className="rounded-md max-h-64 max-w-full object-cover border border-border hover:opacity-90 transition-opacity" />
