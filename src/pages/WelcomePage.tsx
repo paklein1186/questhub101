@@ -7,6 +7,8 @@ import {
 import logoImg from "@/assets/logo.png";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { LandingLanguageSwitcher } from "@/components/LandingLanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -16,71 +18,72 @@ const fadeUp = {
   }),
 };
 
-const personas = [
-  {
-    key: "creative",
-    icon: Palette,
-    emoji: "✨",
-    title: "I'm a Creator",
-    subtitle: "Artist, writer, musician, filmmaker, designer, performer",
-    tagline: "Start creations, join circles, share skill sessions",
-    path: "/landing/creative",
-    gradient: "from-purple-500/15 to-pink-500/10",
-    accentClass: "text-purple-500",
-    borderHover: "hover:border-purple-400/50",
-  },
-  {
-    key: "impact",
-    icon: Shield,
-    emoji: "🌍",
-    title: "I'm an Impact Builder",
-    subtitle: "Consultant, facilitator, practitioner, ecosystem builder",
-    tagline: "Launch missions, join guilds, offer services",
-    path: "/landing/impact",
-    gradient: "from-emerald-500/15 to-teal-500/10",
-    accentClass: "text-emerald-500",
-    borderHover: "hover:border-emerald-400/50",
-  },
-  {
-    key: "hybrid",
-    icon: Blend,
-    emoji: "⚡",
-    title: "I'm Both",
-    subtitle: "Creative meets strategic — I bridge imagination and structure",
-    tagline: "Quests, guilds, services & sessions — your way",
-    path: "/landing/hybrid",
-    gradient: "from-amber-500/15 to-orange-500/10",
-    accentClass: "text-amber-500",
-    borderHover: "hover:border-amber-400/50",
-  },
-  {
-    key: "organization",
-    icon: Target,
-    emoji: "🏛️",
-    title: "I represent an organization",
-    subtitle: "Public institution, company, university, foundation, or NGO",
-    tagline: "Contribute, collaborate, launch initiatives in the ecosystem",
-    path: "/organizations",
-    gradient: "from-blue-500/15 to-indigo-500/10",
-    accentClass: "text-blue-500",
-    borderHover: "hover:border-blue-400/50",
-  },
-  {
-    key: "browse",
-    icon: Compass,
-    emoji: "🔭",
-    title: "Just Exploring",
-    subtitle: "I want to see what's here before choosing",
-    tagline: "Browse quests, communities, and services",
-    path: "/landing/browse",
-    gradient: "from-sky-500/15 to-blue-500/10",
-    accentClass: "text-sky-500",
-    borderHover: "hover:border-sky-400/50",
-  },
-];
-
 export default function WelcomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const personas = [
+    {
+      key: "creative",
+      icon: Palette,
+      emoji: "✨",
+      title: t("landing.welcome.personas.creative.title"),
+      subtitle: t("landing.welcome.personas.creative.subtitle"),
+      tagline: t("landing.welcome.personas.creative.tagline"),
+      path: "/landing/creative",
+      gradient: "from-purple-500/15 to-pink-500/10",
+      accentClass: "text-purple-500",
+      borderHover: "hover:border-purple-400/50",
+    },
+    {
+      key: "impact",
+      icon: Shield,
+      emoji: "🌍",
+      title: t("landing.welcome.personas.impact.title"),
+      subtitle: t("landing.welcome.personas.impact.subtitle"),
+      tagline: t("landing.welcome.personas.impact.tagline"),
+      path: "/landing/impact",
+      gradient: "from-emerald-500/15 to-teal-500/10",
+      accentClass: "text-emerald-500",
+      borderHover: "hover:border-emerald-400/50",
+    },
+    {
+      key: "hybrid",
+      icon: Blend,
+      emoji: "⚡",
+      title: t("landing.welcome.personas.hybrid.title"),
+      subtitle: t("landing.welcome.personas.hybrid.subtitle"),
+      tagline: t("landing.welcome.personas.hybrid.tagline"),
+      path: "/landing/hybrid",
+      gradient: "from-amber-500/15 to-orange-500/10",
+      accentClass: "text-amber-500",
+      borderHover: "hover:border-amber-400/50",
+    },
+    {
+      key: "organization",
+      icon: Target,
+      emoji: "🏛️",
+      title: t("landing.welcome.personas.organization.title"),
+      subtitle: t("landing.welcome.personas.organization.subtitle"),
+      tagline: t("landing.welcome.personas.organization.tagline"),
+      path: "/organizations",
+      gradient: "from-blue-500/15 to-indigo-500/10",
+      accentClass: "text-blue-500",
+      borderHover: "hover:border-blue-400/50",
+    },
+    {
+      key: "browse",
+      icon: Compass,
+      emoji: "🔭",
+      title: t("landing.welcome.personas.browse.title"),
+      subtitle: t("landing.welcome.personas.browse.subtitle"),
+      tagline: t("landing.welcome.personas.browse.tagline"),
+      path: "/landing/browse",
+      gradient: "from-sky-500/15 to-blue-500/10",
+      accentClass: "text-sky-500",
+      borderHover: "hover:border-sky-400/50",
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -91,11 +94,12 @@ export default function WelcomePage() {
             <img src={logoImg} alt="changethegame" className="h-6 w-6" /> changethegame
           </div>
           <nav className="flex items-center gap-2">
+            <LandingLanguageSwitcher />
             <button
               onClick={() => navigate("/login")}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
             >
-              Log in
+              {t("landing.welcome.login")}
             </button>
           </nav>
         </div>
@@ -111,13 +115,13 @@ export default function WelcomePage() {
             className="text-center mb-12 md:mb-16"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-5">
-              <Sparkles className="h-3 w-3" /> Human-powered · AI-augmented · Game-changing
+              <Sparkles className="h-3 w-3" />{t("landing.welcome.tagline")}
             </div>
             <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-[1.15] mb-4">
-              What brings you here?
+              {t("landing.welcome.question")}
             </h1>
             <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-              Choose your path — we'll shape your experience around it.
+              {t("landing.welcome.sub")}
             </p>
           </motion.div>
 
@@ -150,7 +154,7 @@ export default function WelcomePage() {
                     {p.tagline}
                   </p>
                   <div className={`flex items-center gap-1 text-xs font-medium ${p.accentClass} opacity-0 group-hover:opacity-100 transition-opacity`}>
-                    Discover <ArrowRight className="h-3 w-3" />
+                    {t("landing.welcome.discover")} <ArrowRight className="h-3 w-3" />
                   </div>
                 </div>
               </motion.button>
@@ -163,7 +167,7 @@ export default function WelcomePage() {
             transition={{ delay: 0.8 }}
             className="text-center text-xs text-muted-foreground mt-8"
           >
-            You can always change your path later in your settings.
+            {t("landing.welcome.changeLater")}
           </motion.p>
         </div>
       </section>
