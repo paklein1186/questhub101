@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useDeletePost, useEditPost, useCreatePost, type FeedPostWithAttachments, type PostAttachment } from "@/hooks/useFeedPosts";
 import { renderMentions } from "@/components/MentionTextarea";
+import { renderPostContent } from "@/lib/renderPostContent";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { formatFileSize } from "@/lib/postHelpers";
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +34,10 @@ function TruncatedContent({ content, maxChars = CONTENT_CHAR_LIMIT }: { content:
 
   return (
     <div className="space-y-1">
-      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-        {renderMentions(displayed)}
+      <div className="text-sm leading-relaxed">
+        {renderPostContent(displayed)}
         {needsTruncation && !expanded && "…"}
-      </p>
+      </div>
       {needsTruncation && (
         <button
           onClick={() => setExpanded(!expanded)}
@@ -162,9 +163,9 @@ function EmbeddedPost({ post }: { post: FeedPostWithAttachments }) {
         </span>
       </div>
       {post.content && (
-        <p className="text-sm leading-relaxed whitespace-pre-wrap line-clamp-4">
-          {renderMentions(post.content)}
-        </p>
+        <div className="text-sm leading-relaxed line-clamp-4">
+          {renderPostContent(post.content)}
+        </div>
       )}
       {images.length > 0 && (
         <div className="flex gap-1.5 overflow-hidden rounded-md">

@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
 import { renderMentions } from "@/components/MentionTextarea";
+import { renderPostContent } from "@/lib/renderPostContent";
 import { toast } from "sonner";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -132,9 +133,9 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
 
           {/* Post text */}
           {post.content && (
-            <p className={`text-sm leading-relaxed text-foreground/90 ${size === "small" ? "line-clamp-2" : size === "medium" ? "line-clamp-3" : "line-clamp-4"}`}>
-              {stripMentions(post.content).slice(0, 500)}
-            </p>
+            <div className={`text-sm leading-relaxed text-foreground/90 ${size === "small" ? "line-clamp-2" : size === "medium" ? "line-clamp-3" : "line-clamp-4"}`}>
+              {renderPostContent(stripMentions(post.content).slice(0, 500))}
+            </div>
           )}
         </div>
 
@@ -192,7 +193,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
               </span>
             </div>
             {post.content && (
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{renderMentions(post.content)}</p>
+              <div className="text-sm leading-relaxed">{renderPostContent(post.content)}</div>
             )}
           </div>
           <CommentThread targetType={CommentTargetType.FEED_POST} targetId={post.id} />
