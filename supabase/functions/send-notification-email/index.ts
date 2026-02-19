@@ -173,7 +173,7 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
       <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
       <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
         You're receiving this because email notifications are enabled.
-        <a href="${BASE_URL}/settings?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
+        <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
       </p>
     </div>
 

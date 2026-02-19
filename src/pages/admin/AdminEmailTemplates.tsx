@@ -38,7 +38,7 @@ const DEFAULT_DESIGN = {
   borderColor: "hsl(250, 18%, 90%)",
   fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   brandName: "changethegame",
-  preferencesUrl: "https://questhub101.lovable.app/settings?tab=notifications",
+  preferencesUrl: "https://changethegame.xyz/me?tab=notifications",
   footerText: "You're receiving this because email notifications are enabled.",
 };
 
