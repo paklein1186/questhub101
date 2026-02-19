@@ -340,8 +340,14 @@ export function CompanyJobsTab({ companyId, isAdmin }: Props) {
 
               <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
                 <span>Posted {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
-                {job.document_url && (
-                  <a href={job.document_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline">
+              {job.document_url && (
+                  <a
+                    href={job.document_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-primary hover:underline"
+                    onClick={(e) => { window.open(job.document_url, "_blank", "noopener,noreferrer"); e.preventDefault(); }}
+                  >
                     <FileText className="h-3 w-3" /> {job.document_name || "Document"} <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 )}
