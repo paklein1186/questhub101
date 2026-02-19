@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, X, Loader2, UserPlus, MessageSquareWarning, Vote,
-  Shield, Building2, Users, Eye, ExternalLink,
+  Shield, Building2, Users, Eye, ExternalLink, Handshake,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -190,7 +190,49 @@ function useActiveDecisions(entities: AdminEntity[]) {
   });
 }
 
-// ─── Entity link helper ─────────────────────────────────────
+// ─── Hook: pending partnership requests targeting admin entities ──
+function usePendingPartnerships(entities: AdminEntity[]) {
+  return useQuery({
+    queryKey: ["dashboard-partnerships", entities.map(e => e.entityId).join(",")],
+    enabled: entities.length > 0,
+    queryFn: async () => {
+      const entityIds = entities.map(e => e.entityId);
+      const entityMap = Object.fromEntries(entities.map(e => [e.entityId, e]));
+
+      // Fetch partnerships where one of admin entities is the target AND status is PENDING
+      const { data, error } = await supabase
+        .from("partnerships")
+        .select("*")
+        .in("to_entity_id", entityIds)
+        .eq("status", "PENDING")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      const rows = data || [];
+
+      // Resolve from-entity names
+      const fromKeys = [...new Set(rows.map(r => `${(r as any).from_entity_type}:${(r as any).from_entity_id}`))];
+      const guildIds = fromKeys.filter(k => k.startsWith("GUILD:")).map(k => k.split(":")[1]);
+      const companyIds = fromKeys.filter(k => k.startsWith("COMPANY:")).map(k => k.split(":")[1]);
+
+      const nameMap: Record<string, { name: string; logo_url: string | null }> = {};
+      const [guildsRes, companiesRes] = await Promise.all([
+        guildIds.length ? supabase.from("guilds").select("id, name, logo_url").in("id", guildIds) : { data: [] },
+        companyIds.length ? supabase.from("companies").select("id, name, logo_url").in("id", companyIds) : { data: [] },
+      ]);
+      (guildsRes.data || []).forEach((g: any) => { nameMap[`GUILD:${g.id}`] = { name: g.name, logo_url: g.logo_url }; });
+      (companiesRes.data || []).forEach((c: any) => { nameMap[`COMPANY:${c.id}`] = { name: c.name, logo_url: c.logo_url }; });
+
+      return rows.map((p: any) => ({
+        ...p,
+        toEntity: entityMap[p.to_entity_id],
+        fromEntityName: nameMap[`${p.from_entity_type}:${p.from_entity_id}`]?.name || "Unknown",
+        fromEntityLogo: nameMap[`${p.from_entity_type}:${p.from_entity_id}`]?.logo_url || null,
+      }));
+    },
+  });
+}
+
 function entityPath(type: string, id: string) {
   if (type === "company") return `/companies/${id}`;
   return `/${type}s/${id}`;
@@ -215,8 +257,9 @@ export default function NetworkDashboardTab() {
   const { data: pendingApps = [], isLoading: loadingApps } = usePendingApplications(adminEntities);
   const { data: reportData, isLoading: loadingReports } = useAdminReports(adminEntities);
   const { data: decisions = [], isLoading: loadingDecisions } = useActiveDecisions(adminEntities);
+  const { data: pendingPartnerships = [], isLoading: loadingPartnerships } = usePendingPartnerships(adminEntities);
 
-  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions;
+  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships;
 
   if (isLoading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -237,10 +280,14 @@ export default function NetworkDashboardTab() {
   return (
     <div className="space-y-8">
       {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card><CardContent className="py-4 text-center">
           <p className="text-2xl font-bold text-primary">{pendingApps.length}</p>
           <p className="text-xs text-muted-foreground">Pending Applications</p>
+        </CardContent></Card>
+        <Card><CardContent className="py-4 text-center">
+          <p className="text-2xl font-bold text-amber-500">{pendingPartnerships.length}</p>
+          <p className="text-xs text-muted-foreground">Partnership Requests</p>
         </CardContent></Card>
         <Card><CardContent className="py-4 text-center">
           <p className="text-2xl font-bold text-destructive">{totalReports}</p>
@@ -254,6 +301,9 @@ export default function NetworkDashboardTab() {
 
       {/* Pending Applications */}
       <PendingApplicationsSection apps={pendingApps} currentUserId={currentUser.id} />
+
+      {/* Partnership Requests */}
+      <PendingPartnershipsSection partnerships={pendingPartnerships} />
 
       {/* Reports */}
       <SectionShell
@@ -472,5 +522,85 @@ function PendingApplicationsSection({ apps, currentUserId }: { apps: PendingApp[
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// ─── Pending Partnerships Section ───────────────────────────
+function PendingPartnershipsSection({ partnerships }: { partnerships: any[] }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [acting, setActing] = useState<string | null>(null);
+
+  const handleAction = async (partnershipId: string, status: "ACCEPTED" | "DECLINED") => {
+    setActing(partnershipId);
+    const { error } = await supabase
+      .from("partnerships")
+      .update({ status, updated_at: new Date().toISOString() } as any)
+      .eq("id", partnershipId);
+
+    if (error) {
+      toast({ title: "Failed to update", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: status === "ACCEPTED" ? "Partnership accepted ✓" : "Partnership declined" });
+      qc.invalidateQueries({ queryKey: ["dashboard-partnerships"] });
+      qc.invalidateQueries({ queryKey: ["partnerships"] });
+    }
+    setActing(null);
+  };
+
+  return (
+    <SectionShell
+      icon={Handshake}
+      title="Partnership Requests"
+      count={partnerships.length}
+      emptyMsg="No pending partnership requests for your entities."
+    >
+      <div className="space-y-2">
+        {partnerships.map((p: any) => (
+          <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={p.fromEntityLogo || undefined} />
+                  <AvatarFallback className="text-[8px]">{p.fromEntityName?.[0] || "?"}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">{p.fromEntityName}</span>
+                <span className="text-xs text-muted-foreground">→</span>
+                {p.toEntity && (
+                  <EntityChip entityType={p.toEntity.entityType} entityId={p.toEntity.entityId} entityName={p.toEntity.entityName} logoUrl={p.toEntity.logoUrl} />
+                )}
+              </div>
+              {p.partnership_type && (
+                <Badge variant="outline" className="text-[10px] mt-1">{p.partnership_type}</Badge>
+              )}
+              {p.notes && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{p.notes}</p>}
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
+              </p>
+            </div>
+            <div className="flex gap-1.5 flex-shrink-0">
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                disabled={acting === p.id}
+                onClick={() => handleAction(p.id, "ACCEPTED")}
+              >
+                {acting === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+                Accept
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                disabled={acting === p.id}
+                onClick={() => handleAction(p.id, "DECLINED")}
+              >
+                <X className="h-3 w-3 mr-1" /> Decline
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </SectionShell>
   );
 }
