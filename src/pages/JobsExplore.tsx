@@ -266,7 +266,7 @@ export default function JobsExplore({ bare }: Props) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-primary hover:underline"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); window.open(job.document_url, "_blank", "noopener,noreferrer"); e.preventDefault(); }}
                     >
                       <FileText className="h-3 w-3" /> View doc <ExternalLink className="h-2.5 w-2.5" />
                     </a>
