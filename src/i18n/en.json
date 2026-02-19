@@ -627,5 +627,84 @@
     "terms": "Terms",
     "contact": "Contact",
     "tagline": "Human-powered. AI-augmented. Community-owned."
+  },
+  "landing": {
+    "badge": "Regeneration · Impact · Community",
+    "heroTitle1": "Human-powered.",
+    "heroTitle2": "AI-augmented.",
+    "heroTitle3": "Game-changing.",
+    "heroSubtitle": "Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.",
+    "joinGamechanger": "Join as a Gamechanger",
+    "joinEcosystem": "Join as an Ecosystem Builder",
+    "exploreFirst": "Explore first",
+    "howItWorks": "How it works",
+    "step": "Step {{n}}",
+    "steps": {
+      "profile": { "title": "Create your profile", "desc": "Choose your topics (Houses) and territories to shape your experience." },
+      "quests": { "title": "Join or create quests", "desc": "Find meaningful missions and form pods to collaborate on impact projects." },
+      "guilds": { "title": "Connect with guilds & peers", "desc": "Join guilds, follow companies, and grow your regenerative network." },
+      "services": { "title": "Offer your expertise", "desc": "List services, get booked, and earn XP for your contributions." }
+    },
+    "forWhom": "Who is it for?",
+    "forWhomSub": "Whether you're a practitioner, a network facilitator, or a company with impact ambitions — there's a place for you.",
+    "personas": {
+      "gamechangers": {
+        "title": "Gamechangers",
+        "subtitle": "Consultants, facilitators, practitioners",
+        "p1": "Find meaningful missions aligned with your values",
+        "p2": "Share knowledge and build your reputation",
+        "p3": "Earn XP and track your contribution index",
+        "cta": "Sign up as Gamechanger"
+      },
+      "ecosystemBuilders": {
+        "title": "Ecosystem Builders",
+        "subtitle": "Guilds, networks, third spaces",
+        "p1": "Structure quests and coordinate action",
+        "p2": "Host pods for peer learning groups",
+        "p3": "Curate a vibrant learning network",
+        "cta": "Create a guild"
+      },
+      "companies": {
+        "title": "Companies & Institutions",
+        "subtitle": "Organisations with impact ambitions",
+        "p1": "Post impact quests to find collaborators",
+        "p2": "Book experts for your projects",
+        "p3": "Support territories and build credibility",
+        "cta": "Post a quest as a company"
+      }
+    },
+    "featuredQuests": "Featured Quests",
+    "featuredQuestsSub": "Open missions waiting for your contribution.",
+    "noFeaturedQuests": "No featured quests yet.",
+    "seeAllQuests": "See all quests",
+    "topicHouses": "Topic Houses",
+    "topicHousesSub": "Browse thematic communities shaping the future.",
+    "browseTopics": "Browse all topics",
+    "trustTitle": "Trust & Learning",
+    "trustSub": "Your contributions build a visible reputation — no résumé needed.",
+    "trust": {
+      "xp": { "title": "XP & Contribution Index", "desc": "Earn experience points for every quest you complete and service you deliver." },
+      "achievements": { "title": "Achievements", "desc": "Unlock badges for milestones — your track record speaks for itself." },
+      "pods": { "title": "Pods", "desc": "Small learning & action groups that keep you accountable and connected." }
+    },
+    "ctaTitle": "Ready to make an impact?",
+    "ctaSub": "Join a growing network of changemakers across territories.",
+    "createAccount": "Create your account",
+    "explorePlatform": "Explore the platform",
+    "welcome": {
+      "tagline": "Human-powered · AI-augmented · Game-changing",
+      "question": "What brings you here?",
+      "sub": "Choose your path — we'll shape your experience around it.",
+      "changeLater": "You can always change your path later in your settings.",
+      "discover": "Discover",
+      "login": "Log in",
+      "personas": {
+        "creative": { "title": "I'm a Creator", "subtitle": "Artist, writer, musician, filmmaker, designer, performer", "tagline": "Start creations, join circles, share skill sessions" },
+        "impact": { "title": "I'm an Impact Builder", "subtitle": "Consultant, facilitator, practitioner, ecosystem builder", "tagline": "Launch missions, join guilds, offer services" },
+        "hybrid": { "title": "I'm Both", "subtitle": "Creative meets strategic — I bridge imagination and structure", "tagline": "Quests, guilds, services & sessions — your way" },
+        "organization": { "title": "I represent an organization", "subtitle": "Public institution, company, university, foundation, or NGO", "tagline": "Contribute, collaborate, launch initiatives in the ecosystem" },
+        "browse": { "title": "Just Exploring", "subtitle": "I want to see what's here before choosing", "tagline": "Browse quests, communities, and services" }
+      }
+    }
   }
 }

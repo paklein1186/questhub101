@@ -14,48 +14,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { LandingAIGuide } from "@/components/home/LandingAIGuide";
 import { SiteFooter } from "@/components/SiteFooter";
+import { LandingLanguageSwitcher } from "@/components/LandingLanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5 } }),
 };
-
-const steps = [
-  { icon: UserPlus, title: "Create your profile", desc: "Choose your topics (Houses) and territories to shape your experience." },
-  { icon: Compass, title: "Join or create quests", desc: "Find meaningful missions and form pods to collaborate on impact projects." },
-  { icon: Handshake, title: "Connect with guilds & peers", desc: "Join guilds, follow companies, and grow your regenerative network." },
-  { icon: Briefcase, title: "Offer your expertise", desc: "List services, get booked, and earn XP for your contributions." },
-];
-
-const personas = [
-  {
-    icon: Lightbulb,
-    title: "Gamechangers",
-    subtitle: "Consultants, facilitators, practitioners",
-    points: ["Find meaningful missions aligned with your values", "Share knowledge and build your reputation", "Earn XP and track your contribution index"],
-    cta: "Sign up as Gamechanger",
-    href: "/welcome?role=gamechanger",
-    accent: "primary",
-  },
-  {
-    icon: Shield,
-    title: "Ecosystem Builders",
-    subtitle: "Guilds, networks, third spaces",
-    points: ["Structure quests and coordinate action", "Host pods for peer learning groups", "Curate a vibrant learning network"],
-    cta: "Create a guild",
-    href: "/welcome?role=ecosystem",
-    accent: "accent",
-  },
-  {
-    icon: Building2,
-    title: "Companies & Institutions",
-    subtitle: "Organisations with impact ambitions",
-    points: ["Post impact quests to find collaborators", "Book experts for your projects", "Support territories and build credibility"],
-    cta: "Post a quest as a company",
-    href: "/welcome",
-    accent: "warning",
-  },
-];
 
 function useFeaturedQuests() {
   return useQuery({
@@ -92,8 +57,64 @@ function useLandingTopics() {
 }
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   const { data: sampleQuests = [], isLoading: loadingQuests } = useFeaturedQuests();
   const { data: sampleTopics = [], isLoading: loadingTopics } = useLandingTopics();
+
+  const steps = [
+    { icon: UserPlus, title: t("landing.steps.profile.title"), desc: t("landing.steps.profile.desc") },
+    { icon: Compass, title: t("landing.steps.quests.title"), desc: t("landing.steps.quests.desc") },
+    { icon: Handshake, title: t("landing.steps.guilds.title"), desc: t("landing.steps.guilds.desc") },
+    { icon: Briefcase, title: t("landing.steps.services.title"), desc: t("landing.steps.services.desc") },
+  ];
+
+  const personas = [
+    {
+      icon: Lightbulb,
+      title: t("landing.personas.gamechangers.title"),
+      subtitle: t("landing.personas.gamechangers.subtitle"),
+      points: [
+        t("landing.personas.gamechangers.p1"),
+        t("landing.personas.gamechangers.p2"),
+        t("landing.personas.gamechangers.p3"),
+      ],
+      cta: t("landing.personas.gamechangers.cta"),
+      href: "/welcome?role=gamechanger",
+      accent: "primary",
+    },
+    {
+      icon: Shield,
+      title: t("landing.personas.ecosystemBuilders.title"),
+      subtitle: t("landing.personas.ecosystemBuilders.subtitle"),
+      points: [
+        t("landing.personas.ecosystemBuilders.p1"),
+        t("landing.personas.ecosystemBuilders.p2"),
+        t("landing.personas.ecosystemBuilders.p3"),
+      ],
+      cta: t("landing.personas.ecosystemBuilders.cta"),
+      href: "/welcome?role=ecosystem",
+      accent: "accent",
+    },
+    {
+      icon: Building2,
+      title: t("landing.personas.companies.title"),
+      subtitle: t("landing.personas.companies.subtitle"),
+      points: [
+        t("landing.personas.companies.p1"),
+        t("landing.personas.companies.p2"),
+        t("landing.personas.companies.p3"),
+      ],
+      cta: t("landing.personas.companies.cta"),
+      href: "/welcome",
+      accent: "warning",
+    },
+  ];
+
+  const trustItems = [
+    { icon: Star, title: t("landing.trust.xp.title"), desc: t("landing.trust.xp.desc") },
+    { icon: Award, title: t("landing.trust.achievements.title"), desc: t("landing.trust.achievements.desc") },
+    { icon: BookOpen, title: t("landing.trust.pods.title"), desc: t("landing.trust.pods.desc") },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -105,14 +126,15 @@ export default function LandingPage() {
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">changethegame</span>
           </Link>
           <nav className="flex items-center gap-2">
+            <LandingLanguageSwitcher />
             <Button size="sm" variant="ghost" asChild>
-              <Link to="/explore"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
+              <Link to="/explore"><Compass className="h-4 w-4 mr-1" />{t("nav.explore")}</Link>
             </Button>
             <Button size="sm" variant="ghost" asChild>
-              <Link to="/login">Log in</Link>
+              <Link to="/login">{t("nav.login")}</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link to="/welcome">Sign up</Link>
+              <Link to="/welcome">{t("nav.signup")}</Link>
             </Button>
           </nav>
         </div>
@@ -124,7 +146,7 @@ export default function LandingPage() {
         <div className="container py-24 md:py-36 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
-              <Sprout className="h-3 w-3 mr-1" /> Regeneration · Impact · Community
+              <Sprout className="h-3 w-3 mr-1" />{t("landing.badge")}
             </Badge>
           </motion.div>
           <motion.h1
@@ -133,9 +155,9 @@ export default function LandingPage() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.05]"
           >
-            Human-powered.{" "}
-            <span className="bg-clip-text text-transparent gradient-primary">AI-augmented.</span>{" "}
-            <span className="bg-clip-text text-transparent gradient-cool">Game-changing.</span>
+            {t("landing.heroTitle1")}{" "}
+            <span className="bg-clip-text text-transparent gradient-primary">{t("landing.heroTitle2")}</span>{" "}
+            <span className="bg-clip-text text-transparent gradient-cool">{t("landing.heroTitle3")}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -143,7 +165,7 @@ export default function LandingPage() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto"
           >
-            Discover quests, join guilds, and share your expertise in a regenerative ecosystem built for changemakers.
+            {t("landing.heroSubtitle")}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -152,15 +174,15 @@ export default function LandingPage() {
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" asChild className="gap-2 gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
-              <Link to="/welcome?role=gamechanger"><Lightbulb className="h-4 w-4" /> Join as a Gamechanger</Link>
+              <Link to="/welcome?role=gamechanger"><Lightbulb className="h-4 w-4" />{t("landing.joinGamechanger")}</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground rounded-full hover:scale-105 transition-transform">
-              <Link to="/welcome?role=ecosystem"><Shield className="h-4 w-4" /> Join as an Ecosystem Builder</Link>
+              <Link to="/welcome?role=ecosystem"><Shield className="h-4 w-4" />{t("landing.joinEcosystem")}</Link>
             </Button>
           </motion.div>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="mt-4">
             <Button variant="link" asChild className="text-muted-foreground">
-              <Link to="/explore">Explore first <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+              <Link to="/explore">{t("landing.exploreFirst")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
             </Button>
           </motion.div>
         </div>
@@ -169,7 +191,7 @@ export default function LandingPage() {
       {/* ─── How it works ─── */}
       <section className="border-t border-border/50 bg-muted/30">
         <div className="container py-20 md:py-28">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-14">How it works</h2>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-14">{t("landing.howItWorks")}</h2>
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
               <motion.div key={step.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
@@ -178,7 +200,7 @@ export default function LandingPage() {
                 <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mb-5 shadow-playful group-hover:scale-110 transition-transform duration-300">
                   <step.icon className="h-7 w-7 text-white" />
                 </div>
-                <p className="text-xs font-semibold text-muted-foreground mb-1">Step {i + 1}</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-1">{t("landing.step", { n: i + 1 })}</p>
                 <h3 className="font-display font-semibold text-lg mb-1">{step.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
               </motion.div>
@@ -190,10 +212,8 @@ export default function LandingPage() {
       {/* ─── For whom? ─── */}
       <section className="border-t border-border">
         <div className="container py-16 md:py-24">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4">Who is it for?</h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-lg mx-auto">
-            Whether you're a practitioner, a network facilitator, or a company with impact ambitions — there's a place for you.
-          </p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4">{t("landing.forWhom")}</h2>
+          <p className="text-center text-muted-foreground mb-12 max-w-lg mx-auto">{t("landing.forWhomSub")}</p>
           <div className="grid gap-6 md:grid-cols-3">
             {personas.map((p, i) => (
               <motion.div key={p.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
@@ -232,14 +252,14 @@ export default function LandingPage() {
             {/* Featured quests */}
             <div>
               <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" /> Featured Quests
+                <Target className="h-5 w-5 text-primary" />{t("landing.featuredQuests")}
               </h2>
-              <p className="text-sm text-muted-foreground mb-5">Open missions waiting for your contribution.</p>
+              <p className="text-sm text-muted-foreground mb-5">{t("landing.featuredQuestsSub")}</p>
               <div className="space-y-3">
                 {loadingQuests ? (
                   Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)
                 ) : sampleQuests.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No featured quests yet.</p>
+                  <p className="text-sm text-muted-foreground">{t("landing.noFeaturedQuests")}</p>
                 ) : (
                   sampleQuests.map((q, i) => (
                     <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
@@ -257,25 +277,25 @@ export default function LandingPage() {
                 )}
               </div>
               <Button variant="ghost" size="sm" asChild className="mt-4">
-                <Link to="/explore">See all quests <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                <Link to="/explore">{t("landing.seeAllQuests")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
             </div>
 
             {/* Topic houses */}
             <div>
               <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-accent" /> Topic Houses
+                <Layers className="h-5 w-5 text-accent" />{t("landing.topicHouses")}
               </h2>
-              <p className="text-sm text-muted-foreground mb-5">Browse thematic communities shaping the future.</p>
+              <p className="text-sm text-muted-foreground mb-5">{t("landing.topicHousesSub")}</p>
               <div className="flex flex-wrap gap-2">
                 {loadingTopics ? (
                   Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)
                 ) : (
-                  sampleTopics.map((t, i) => (
-                    <motion.div key={t.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                      <Link to={`/topics/${t.slug}`}>
+                  sampleTopics.map((t2, i) => (
+                    <motion.div key={t2.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/topics/${t2.slug}`}>
                         <Badge variant="secondary" className="px-3 py-1.5 text-sm hover:bg-accent/10 hover:text-accent transition-colors cursor-pointer">
-                          {t.name}
+                          {t2.name}
                         </Badge>
                       </Link>
                     </motion.div>
@@ -283,7 +303,7 @@ export default function LandingPage() {
                 )}
               </div>
               <Button variant="ghost" size="sm" asChild className="mt-6">
-                <Link to="/explore">Browse all topics <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+                <Link to="/explore">{t("landing.browseTopics")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
             </div>
           </div>
@@ -296,16 +316,10 @@ export default function LandingPage() {
       {/* ─── Trust & learning ─── */}
       <section className="border-t border-border">
         <div className="container py-16 md:py-24 text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-4">Trust & Learning</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto mb-10">
-            Your contributions build a visible reputation — no résumé needed.
-          </p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-4">{t("landing.trustTitle")}</h2>
+          <p className="text-muted-foreground max-w-lg mx-auto mb-10">{t("landing.trustSub")}</p>
           <div className="grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
-            {[
-              { icon: Star, title: "XP & Contribution Index", desc: "Earn experience points for every quest you complete and service you deliver." },
-              { icon: Award, title: "Achievements", desc: "Unlock badges for milestones — your track record speaks for itself." },
-              { icon: BookOpen, title: "Pods", desc: "Small learning & action groups that keep you accountable and connected." },
-            ].map((item, i) => (
+            {trustItems.map((item, i) => (
               <motion.div key={item.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
                 className="rounded-2xl border border-border/60 bg-card p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
               >
@@ -321,14 +335,14 @@ export default function LandingPage() {
       {/* ─── Final CTA ─── */}
       <section className="border-t border-border/50 gradient-hero">
         <div className="container py-16 text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to make an impact?</h2>
-          <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">{t("landing.ctaTitle")}</h2>
+          <p className="text-muted-foreground mb-6">{t("landing.ctaSub")}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild className="gradient-primary border-0 text-white rounded-full shadow-playful hover:scale-105 transition-transform">
-              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">{t("landing.createAccount")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="rounded-full hover:scale-105 transition-transform">
-              <Link to="/explore">Explore the platform</Link>
+              <Link to="/explore">{t("landing.explorePlatform")}</Link>
             </Button>
           </div>
         </div>

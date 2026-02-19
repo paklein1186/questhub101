@@ -627,5 +627,84 @@
     "terms": "Conditions",
     "contact": "Contact",
     "tagline": "Porté par l'humain. Augmenté par l'IA. Propriété de la communauté."
+  },
+  "landing": {
+    "badge": "Régénération · Impact · Communauté",
+    "heroTitle1": "Porté par l'humain.",
+    "heroTitle2": "Augmenté par l'IA.",
+    "heroTitle3": "Qui change la donne.",
+    "heroSubtitle": "Découvrez des quêtes, rejoignez des guildes et partagez votre expertise dans un écosystème régénératif pour les acteurs du changement.",
+    "joinGamechanger": "Rejoindre en tant que Gamechanger",
+    "joinEcosystem": "Rejoindre en tant que Bâtisseur d'écosystème",
+    "exploreFirst": "Explorer d'abord",
+    "howItWorks": "Comment ça marche",
+    "step": "Étape {{n}}",
+    "steps": {
+      "profile": { "title": "Créez votre profil", "desc": "Choisissez vos thèmes (Maisons) et territoires pour façonner votre expérience." },
+      "quests": { "title": "Rejoignez ou créez des quêtes", "desc": "Trouvez des missions porteuses de sens et formez des pods pour collaborer." },
+      "guilds": { "title": "Connectez-vous aux guildes & pairs", "desc": "Rejoignez des guildes, suivez des organisations et développez votre réseau régénératif." },
+      "services": { "title": "Offrez votre expertise", "desc": "Proposez des services, soyez réservé·e et gagnez des XP pour vos contributions." }
+    },
+    "forWhom": "Pour qui ?",
+    "forWhomSub": "Que vous soyez praticien·ne, facilitateur·rice de réseau ou entreprise à impact — il y a une place pour vous.",
+    "personas": {
+      "gamechangers": {
+        "title": "Gamechangers",
+        "subtitle": "Consultants, facilitateurs, praticiens",
+        "p1": "Trouvez des missions en accord avec vos valeurs",
+        "p2": "Partagez vos connaissances et construisez votre réputation",
+        "p3": "Gagnez des XP et suivez votre indice de contribution",
+        "cta": "S'inscrire comme Gamechanger"
+      },
+      "ecosystemBuilders": {
+        "title": "Bâtisseurs d'écosystèmes",
+        "subtitle": "Guildes, réseaux, tiers-lieux",
+        "p1": "Structurez des quêtes et coordonnez l'action",
+        "p2": "Animez des pods pour des groupes d'apprentissage par les pairs",
+        "p3": "Faites vivre un réseau d'apprentissage dynamique",
+        "cta": "Créer une guilde"
+      },
+      "companies": {
+        "title": "Entreprises & Institutions",
+        "subtitle": "Organisations à ambitions d'impact",
+        "p1": "Publiez des quêtes d'impact pour trouver des collaborateurs",
+        "p2": "Réservez des experts pour vos projets",
+        "p3": "Soutenez des territoires et renforcez votre crédibilité",
+        "cta": "Publier une quête en tant qu'entreprise"
+      }
+    },
+    "featuredQuests": "Quêtes à la une",
+    "featuredQuestsSub": "Des missions ouvertes qui attendent votre contribution.",
+    "noFeaturedQuests": "Aucune quête à la une pour le moment.",
+    "seeAllQuests": "Voir toutes les quêtes",
+    "topicHouses": "Maisons Thématiques",
+    "topicHousesSub": "Parcourez les communautés thématiques qui façonnent l'avenir.",
+    "browseTopics": "Parcourir tous les thèmes",
+    "trustTitle": "Confiance & Apprentissage",
+    "trustSub": "Vos contributions construisent une réputation visible — sans CV.",
+    "trust": {
+      "xp": { "title": "XP & Indice de contribution", "desc": "Gagnez des points d'expérience pour chaque quête accomplie et service rendu." },
+      "achievements": { "title": "Succès", "desc": "Débloquez des badges pour vos jalons — votre parcours parle pour vous." },
+      "pods": { "title": "Pods", "desc": "Petits groupes d'apprentissage et d'action qui vous gardent engagé·e et connecté·e." }
+    },
+    "ctaTitle": "Prêt·e à avoir un impact ?",
+    "ctaSub": "Rejoignez un réseau croissant d'acteurs du changement à travers les territoires.",
+    "createAccount": "Créez votre compte",
+    "explorePlatform": "Explorer la plateforme",
+    "welcome": {
+      "tagline": "Porté par l'humain · Augmenté par l'IA · Qui change la donne",
+      "question": "Qu'est-ce qui vous amène ici ?",
+      "sub": "Choisissez votre chemin — nous adapterons votre expérience.",
+      "changeLater": "Vous pouvez toujours changer de chemin plus tard dans vos paramètres.",
+      "discover": "Découvrir",
+      "login": "Se connecter",
+      "personas": {
+        "creative": { "title": "Je suis Créateur·rice", "subtitle": "Artiste, écrivain·e, musicien·ne, cinéaste, designer, performeur·se", "tagline": "Lancez des créations, rejoignez des cercles, partagez vos savoir-faire" },
+        "impact": { "title": "Je bâtis l'impact", "subtitle": "Consultant·e, facilitateur·rice, praticien·ne, bâtisseur·se d'écosystème", "tagline": "Lancez des missions, rejoignez des guildes, proposez des services" },
+        "hybrid": { "title": "Je suis les deux", "subtitle": "Créatif rencontre stratégique — je connecte imagination et structure", "tagline": "Quêtes, guildes, services & sessions — à votre façon" },
+        "organization": { "title": "Je représente une organisation", "subtitle": "Institution publique, entreprise, université, fondation ou ONG", "tagline": "Contribuez, collaborez, lancez des initiatives dans l'écosystème" },
+        "browse": { "title": "J'explore", "subtitle": "Je veux voir ce qu'il y a avant de choisir", "tagline": "Parcourez les quêtes, communautés et services" }
+      }
+    }
   }
 }
