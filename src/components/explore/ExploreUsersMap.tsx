@@ -3,10 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { XpLevelBadge } from "@/components/XpLevelBadge";
-import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 
 // Fix default marker icon path issue with bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -16,17 +12,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-interface MapUser {
+/** Lowest-level territory assignment for a user on the map */
+export interface MapUserEntry {
   user_id: string;
   name: string;
   avatar_url: string | null;
   headline: string | null;
-  xp: number;
-  territories: { id: string; name: string; latitude?: number; longitude?: number }[];
+  territory_name: string;
+  lat: number;
+  lng: number;
 }
 
 interface Props {
-  users: MapUser[];
+  entries: MapUserEntry[];
   isLoggedIn: boolean;
 }
 
@@ -45,46 +43,46 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#14b8a6"];
 
-function createDotIcon(color: string) {
+function createDotIcon(color: string, count: number) {
+  if (count <= 1) {
+    return L.divIcon({
+      className: "",
+      html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
+    });
+  }
+  const size = Math.min(12 + count * 2, 32);
   return L.divIcon({
     className: "",
-    html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;">${count}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 }
 
-export function ExploreUsersMap({ users, isLoggedIn }: Props) {
+export function ExploreUsersMap({ entries, isLoggedIn }: Props) {
   const navigate = useNavigate();
 
-  // Group users by territory coordinate (cluster users at the same territory)
+  // Group entries by territory coordinate
   const markers = useMemo(() => {
-    const result: {
-      lat: number;
-      lng: number;
-      territoryName: string;
-      users: MapUser[];
-    }[] = [];
+    const coordMap = new Map<string, { lat: number; lng: number; territoryName: string; users: MapUserEntry[] }>();
 
-    const coordMap = new Map<string, { lat: number; lng: number; territoryName: string; users: MapUser[] }>();
-
-    for (const user of users) {
-      for (const t of user.territories) {
-        if (t.latitude == null || t.longitude == null) continue;
-        const key = `${t.latitude.toFixed(4)},${t.longitude.toFixed(4)}`;
-        if (!coordMap.has(key)) {
-          coordMap.set(key, { lat: t.latitude, lng: t.longitude, territoryName: t.name, users: [] });
-        }
-        const entry = coordMap.get(key)!;
-        if (!entry.users.some(u => u.user_id === user.user_id)) {
-          entry.users.push(user);
-        }
+    for (const entry of entries) {
+      const key = `${entry.lat.toFixed(4)},${entry.lng.toFixed(4)}`;
+      if (!coordMap.has(key)) {
+        coordMap.set(key, { lat: entry.lat, lng: entry.lng, territoryName: entry.territory_name, users: [] });
+      }
+      const bucket = coordMap.get(key)!;
+      if (!bucket.users.some(u => u.user_id === entry.user_id)) {
+        bucket.users.push(entry);
       }
     }
 
+    const result: typeof coordMap extends Map<string, infer V> ? V[] : never = [];
     coordMap.forEach((v) => result.push(v));
     return result;
-  }, [users]);
+  }, [entries]);
 
   const positions = useMemo<[number, number][]>(
     () => markers.map((m) => [m.lat, m.lng]),
@@ -101,12 +99,7 @@ export function ExploreUsersMap({ users, isLoggedIn }: Props) {
 
   return (
     <div className="rounded-xl overflow-hidden border border-border" style={{ height: 500 }}>
-      <MapContainer
-        center={[20, 0]}
-        zoom={2}
-        className="h-full w-full"
-        scrollWheelZoom
-      >
+      <MapContainer center={[20, 0]} zoom={2} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -116,12 +109,14 @@ export function ExploreUsersMap({ users, isLoggedIn }: Props) {
           <Marker
             key={`${marker.lat}-${marker.lng}`}
             position={[marker.lat, marker.lng]}
-            icon={createDotIcon(COLORS[idx % COLORS.length])}
+            icon={createDotIcon(COLORS[idx % COLORS.length], marker.users.length)}
           >
             <Popup maxWidth={280} minWidth={200}>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                <p className="font-semibold text-xs text-muted-foreground mb-1">{marker.territoryName}</p>
-                {marker.users.slice(0, 10).map((u) => (
+              <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                <p className="font-semibold text-xs text-muted-foreground mb-1">
+                  📍 {marker.territoryName} · {marker.users.length} {marker.users.length === 1 ? "person" : "people"}
+                </p>
+                {marker.users.slice(0, 15).map((u) => (
                   <button
                     key={u.user_id}
                     onClick={() => isLoggedIn && navigate(`/users/${u.user_id}`)}
@@ -140,8 +135,8 @@ export function ExploreUsersMap({ users, isLoggedIn }: Props) {
                     </div>
                   </button>
                 ))}
-                {marker.users.length > 10 && (
-                  <p className="text-[10px] text-muted-foreground text-center">+{marker.users.length - 10} more</p>
+                {marker.users.length > 15 && (
+                  <p className="text-[10px] text-muted-foreground text-center">+{marker.users.length - 15} more</p>
                 )}
               </div>
             </Popup>
