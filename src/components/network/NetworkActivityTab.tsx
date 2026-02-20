@@ -134,6 +134,41 @@ export default function NetworkActivityTab() {
         (updates ?? []).forEach((u: any) => questUpdateMap.set(u.id, u.quest_id));
       }
 
+      // Resolve missing target_name for followed entries
+      const missingNameEntries = data.filter(
+        (a: any) => !a.target_name && a.target_id && a.target_type
+      );
+      const nameMap = new Map<string, string>();
+
+      if (missingNameEntries.length > 0) {
+        const byType: Record<string, string[]> = {};
+        for (const e of missingNameEntries) {
+          const t = e.target_type as string;
+          if (!byType[t]) byType[t] = [];
+          if (!byType[t].includes(e.target_id)) byType[t].push(e.target_id);
+        }
+
+        const fetchNames = async (table: string, ids: string[], nameCol = "name", idCol = "id") => {
+          if (!ids.length) return;
+          const { data: rows } = await supabase.from(table as any).select(`${idCol}, ${nameCol}`).in(idCol, ids);
+          for (const row of rows ?? []) {
+            nameMap.set((row as any)[idCol], (row as any)[nameCol]);
+          }
+        };
+
+        const namePromises: Promise<void>[] = [];
+        if (byType.user) namePromises.push(fetchNames("profiles", byType.user, "name", "user_id"));
+        if (byType.guild) namePromises.push(fetchNames("guilds", byType.guild));
+        if (byType.company) namePromises.push(fetchNames("companies", byType.company));
+        if (byType.quest) namePromises.push(fetchNames("quests", byType.quest, "title"));
+        if (byType.pod) namePromises.push(fetchNames("pods", byType.pod));
+        if (byType.service) namePromises.push(fetchNames("services", byType.service, "title"));
+        if (byType.course) namePromises.push(fetchNames("courses", byType.course, "title"));
+        if (byType.territory) namePromises.push(fetchNames("territories", byType.territory));
+        if (byType.topic) namePromises.push(fetchNames("topics", byType.topic));
+        await Promise.all(namePromises);
+      }
+
       return data.map((a: any) => {
         const profile = profileMap.get(a.actor_user_id);
         const resolved_link_id =
@@ -143,6 +178,7 @@ export default function NetworkActivityTab() {
         return {
           ...a,
           resolved_link_id,
+          target_name: a.target_name || nameMap.get(a.target_id) || null,
           actor_name: profile?.name || "Someone",
           actor_avatar: profile?.avatar_url,
         } as ActivityEntry;
