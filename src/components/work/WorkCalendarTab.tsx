@@ -13,8 +13,12 @@ import {
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
   Telescope, Network, PartyPopper, Shield, Compass, Globe,
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from "date-fns";
+import {
+  format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday,
+  addMonths, subMonths, addDays, subDays, addWeeks, subWeeks, startOfWeek, endOfWeek,
+} from "date-fns";
 import { useState } from "react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualConfig";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 import { Separator } from "@/components/ui/separator";
@@ -70,6 +74,8 @@ export function WorkCalendarTab() {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hiddenCalendars, setHiddenCalendars] = useState<Set<string>>(new Set());
+  type ViewMode = "day" | "3day" | "week" | "month";
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
   // Fetch guild events user is attending
   const { data: myEventAttendances = [] } = useQuery({
     queryKey: ["my-event-attendances", currentUser.id],
@@ -202,25 +208,70 @@ export function WorkCalendarTab() {
     [events, hiddenCalendars]
   );
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Compute visible days based on view mode
+  const visibleDays = useMemo(() => {
+    if (viewMode === "month") {
+      return eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
+    }
+    if (viewMode === "week") {
+      const ws = startOfWeek(currentMonth, { weekStartsOn: 1 });
+      const we = endOfWeek(currentMonth, { weekStartsOn: 1 });
+      return eachDayOfInterval({ start: ws, end: we });
+    }
+    if (viewMode === "3day") {
+      return eachDayOfInterval({ start: currentMonth, end: addDays(currentMonth, 2) });
+    }
+    return [currentMonth];
+  }, [currentMonth, viewMode]);
+
+  const gridCols = viewMode === "month" || viewMode === "week" ? 7 : viewMode === "3day" ? 3 : 1;
+
+  const navigateBack = () => {
+    if (viewMode === "month") setCurrentMonth(subMonths(currentMonth, 1));
+    else if (viewMode === "week") setCurrentMonth(subWeeks(currentMonth, 1));
+    else if (viewMode === "3day") setCurrentMonth(subDays(currentMonth, 3));
+    else setCurrentMonth(subDays(currentMonth, 1));
+  };
+  const navigateForward = () => {
+    if (viewMode === "month") setCurrentMonth(addMonths(currentMonth, 1));
+    else if (viewMode === "week") setCurrentMonth(addWeeks(currentMonth, 1));
+    else if (viewMode === "3day") setCurrentMonth(addDays(currentMonth, 3));
+    else setCurrentMonth(addDays(currentMonth, 1));
+  };
+
+  const headerLabel = viewMode === "month"
+    ? format(currentMonth, "MMMM yyyy")
+    : viewMode === "week"
+      ? `${format(visibleDays[0], "MMM d")} – ${format(visibleDays[6], "MMM d, yyyy")}`
+      : viewMode === "3day"
+        ? `${format(visibleDays[0], "MMM d")} – ${format(visibleDays[2], "MMM d")}`
+        : format(currentMonth, "EEEE, MMMM d, yyyy");
 
   const eventsForDay = (day: Date) => filteredEvents.filter((e) => isSameDay(new Date(e.date), day));
 
+  const monthStartOffset = viewMode === "month" ? (startOfMonth(currentMonth).getDay() + 6) % 7 : 0;
+  const showWeekdayHeaders = viewMode === "month" || viewMode === "week";
+  const minCellH = viewMode === "month" ? "min-h-[80px]" : viewMode === "day" ? "min-h-[200px]" : "min-h-[120px]";
+  const maxVisible = viewMode === "month" ? 3 : 10;
+
   return (
     <div className="space-y-6">
-      {/* Month navigation */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-          ← Previous
-        </Button>
-        <h3 className="font-display font-semibold text-lg">
-          {format(currentMonth, "MMMM yyyy")}
-        </h3>
-        <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-          Next →
-        </Button>
+      {/* Navigation + View Switcher */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={navigateBack}>← Previous</Button>
+          <h3 className="font-display font-semibold text-lg whitespace-nowrap">{headerLabel}</h3>
+          <Button variant="ghost" size="sm" onClick={navigateForward}>Next →</Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setCurrentMonth(new Date())}>Today</Button>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} size="sm">
+            <ToggleGroupItem value="day" className="text-xs h-7 px-2.5">Day</ToggleGroupItem>
+            <ToggleGroupItem value="3day" className="text-xs h-7 px-2.5">3 Days</ToggleGroupItem>
+            <ToggleGroupItem value="week" className="text-xs h-7 px-2.5">Week</ToggleGroupItem>
+            <ToggleGroupItem value="month" className="text-xs h-7 px-2.5">Month</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       </div>
 
       {/* Source calendar filters */}
@@ -246,50 +297,52 @@ export function WorkCalendarTab() {
       )}
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-px bg-border rounded-xl overflow-hidden">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">
-            {d}
-          </div>
+      <div className="grid gap-px bg-border rounded-xl overflow-hidden" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}>
+        {/* Day headers */}
+        {showWeekdayHeaders && (viewMode === "week"
+          ? visibleDays.map((d) => (
+              <div key={`hdr-${d.toISOString()}`} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{format(d, "EEE d")}</div>
+            ))
+          : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+              <div key={d} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{d}</div>
+            ))
+        )}
+        {viewMode === "3day" && visibleDays.map((d) => (
+          <div key={`hdr-${d.toISOString()}`} className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{format(d, "EEE, MMM d")}</div>
         ))}
-        {/* Offset for first day of month */}
-        {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, i) => (
-          <div key={`empty-${i}`} className="bg-card p-2 min-h-[80px]" />
+        {viewMode === "day" && (
+          <div className="bg-muted p-2 text-center text-xs font-medium text-muted-foreground">{format(currentMonth, "EEEE, MMM d")}</div>
+        )}
+        {/* Month view offset */}
+        {viewMode === "month" && Array.from({ length: monthStartOffset }).map((_, i) => (
+          <div key={`empty-${i}`} className={`bg-card p-2 ${minCellH}`} />
         ))}
-        {days.map((day) => {
+        {visibleDays.map((day) => {
           const dayEvents = eventsForDay(day);
           const today = isToday(day);
           return (
-            <div key={day.toISOString()} className={`bg-card p-1.5 min-h-[80px] ${today ? "ring-2 ring-primary ring-inset" : ""}`}>
-              <span className={`text-xs font-medium ${today ? "text-primary" : "text-foreground"}`}>
-                {format(day, "d")}
-              </span>
+            <div key={day.toISOString()} className={`bg-card p-1.5 ${minCellH} ${today ? "ring-2 ring-primary ring-inset" : ""}`}>
+              {viewMode === "month" && (
+                <span className={`text-xs font-medium ${today ? "text-primary" : "text-foreground"}`}>{format(day, "d")}</span>
+              )}
               <div className="mt-0.5 space-y-0.5">
-                {dayEvents.slice(0, 3).map((evt) => {
-                  const Icon = evt.type === "external"
-                    ? Globe
-                    : evt.type === "ritual" && evt.sessionType
-                      ? getSessionIcon(evt.sessionType)
-                      : Calendar;
+                {dayEvents.slice(0, maxVisible).map((evt) => {
+                  const Icon = evt.type === "external" ? Globe : evt.type === "ritual" && evt.sessionType ? getSessionIcon(evt.sessionType) : Calendar;
                   return (
                     <div
                       key={evt.id}
                       className={`text-[10px] rounded px-1 py-0.5 truncate cursor-default flex items-center gap-0.5 ${
-                        evt.type === "external"
-                          ? "bg-secondary/60 text-secondary-foreground"
-                          : evt.type === "ritual"
-                            ? "bg-primary/10 text-primary"
-                            : "bg-accent text-accent-foreground"
+                        evt.type === "external" ? "bg-secondary/60 text-secondary-foreground" : evt.type === "ritual" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"
                       }`}
                       title={`${evt.title} — ${format(new Date(evt.date), "HH:mm")} (${evt.entityName})`}
                     >
                       <Icon className="h-2.5 w-2.5 shrink-0" />
-                      <span className="truncate">{evt.title}</span>
+                      <span className="truncate">{viewMode !== "month" ? `${format(new Date(evt.date), "HH:mm")} ${evt.title}` : evt.title}</span>
                     </div>
                   );
                 })}
-                {dayEvents.length > 3 && (
-                  <span className="text-[9px] text-muted-foreground">+{dayEvents.length - 3} more</span>
+                {dayEvents.length > maxVisible && (
+                  <span className="text-[9px] text-muted-foreground">+{dayEvents.length - maxVisible} more</span>
                 )}
               </div>
             </div>
