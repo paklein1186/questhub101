@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Hash, Sparkles, ArrowLeft, Heart, Compass, Shield } from "lucide-react";
+import { getTopicIcon } from "@/lib/topicIcons";
 import { useTopicBySlug, useQuestsForTopic, useGuildsForTopic } from "@/hooks/useEntityQueries";
 import { TopicOverviewTab } from "@/components/topic/TopicOverviewTab";
 import { TopicEcosystemTab } from "@/components/topic/TopicEcosystemTab";
@@ -47,7 +48,7 @@ export default function TopicHouse() {
   }
 
   const isCreativeUniverse = persona === "CREATIVE";
-  const TopicIcon = isCreativeUniverse ? Sparkles : Hash;
+  const TopicIcon = topic?.slug ? getTopicIcon(topic.slug) : (isCreativeUniverse ? Sparkles : Hash);
   const typeLabel = isCreativeUniverse ? "House" : "Topic";
 
   const quests = (topicQuests || []).filter((q: any) => !q.is_draft);
