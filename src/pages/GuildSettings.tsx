@@ -48,6 +48,7 @@ import { sendInviteNotification } from "@/lib/inviteNotification";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { useNotifications } from "@/hooks/useNotifications";
+import { SourceRoleTransfer } from "@/components/guild/SourceRoleTransfer";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -586,6 +587,13 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       <Save className="h-4 w-4 mr-2" /> Save governance settings
                     </Button>
                   </Section>
+
+                  <SourceRoleTransfer
+                    entityType="guild"
+                    entityId={guildId}
+                    members={members}
+                    currentUserId={currentUser.id}
+                  />
                 </div>
               )}
 

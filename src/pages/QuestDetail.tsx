@@ -32,6 +32,7 @@ import { formatDistanceToNow } from "date-fns";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { FeedSection } from "@/components/feed/FeedSection";
+import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
 import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
@@ -1222,12 +1223,18 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="discussion" className="mt-6 space-y-6">
-          <FeedSection
-            contextType="QUEST"
-            contextId={quest.id}
-            canPost={isOwner || isParticipant}
+          <GuildDiscussionTab
+            guildId={quest.guild_id || quest.id}
+            guildName={guild?.name || quest.title}
+            isAdmin={isOwner}
+            isMember={isParticipant || false}
+            canPost={isOwner || isParticipant || false}
             initialTerritoryIds={territories.map((t: any) => t.id)}
             initialTopicIds={topics.map((t: any) => t.id)}
+            scopeType="QUEST"
+            scopeId={quest.id}
+            membership={isOwner ? { role: "ADMIN" } : isParticipant ? { role: "MEMBER" } : undefined}
+            currentUserId={currentUser.id}
           />
           <CommentThread targetType={CommentTargetType.QUEST} targetId={quest.id} />
         </TabsContent>

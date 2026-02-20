@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories, useCreateGuild, useCreatePod, useQuests } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { SUGGESTED_DEFAULT_ROLES } from "@/lib/permissions";
 import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums";
 import { normalizeUrl } from "@/components/SocialLinks";
 import { useQueryClient } from "@tanstack/react-query";
@@ -292,6 +293,48 @@ Respond ONLY in this exact JSON format, no markdown:
           logo_url: logoUrl || guild.logo_url,
           banner_url: bannerUrl || null,
         }).eq("id", guild.id);
+
+        // Create suggested default roles
+        const rolesToInsert = SUGGESTED_DEFAULT_ROLES.map((r) => ({
+          entity_type: "guild",
+          entity_id: guild.id,
+          name: r.name,
+          color: r.color,
+          is_default: r.is_default,
+          sort_order: r.sort_order,
+        }));
+        await supabase.from("entity_roles").insert(rolesToInsert as any);
+
+        // Assign "Source" role to the creator
+        const { data: createdRoles } = await supabase
+          .from("entity_roles")
+          .select("id")
+          .eq("entity_type", "guild")
+          .eq("entity_id", guild.id)
+          .eq("name", "Source")
+          .eq("is_default", true)
+          .single();
+        if (createdRoles && currentUser.id) {
+          await supabase.from("entity_member_roles").insert({
+            entity_role_id: createdRoles.id,
+            user_id: currentUser.id,
+          } as any);
+        }
+
+        // Create default discussion room
+        await supabase.from("discussion_rooms").insert({
+          scope_type: "GUILD",
+          scope_id: guild.id,
+          name: "General",
+          description: "Default discussion room",
+          audience_type: "MEMBERS",
+          can_post_audience_type: "MEMBERS",
+          can_reply_audience_type: "MEMBERS",
+          can_manage_audience_type: "ADMINS_ONLY",
+          created_by_user_id: currentUser.id,
+          is_default: true,
+          sort_order: 0,
+        } as any);
 
         toast({ title: "Guild created!", description: `${name} is ready.` });
         handleOpenChange(false);
