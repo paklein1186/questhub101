@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   CalendarSync, RefreshCw, Loader2, CheckCircle, AlertTriangle,
-  Unplug, ExternalLink, Calendar,
+  Unplug, ExternalLink, Calendar, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -39,12 +40,22 @@ interface CalendarConnection {
   created_at: string;
 }
 
+interface SubCalendar {
+  id: string;
+  name: string;
+  isEnabled: boolean;
+}
+
 export function CalendarSyncTab() {
   const { user } = useAuth();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [connecting, setConnecting] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [expandedConnections, setExpandedConnections] = useState<Set<string>>(new Set());
+  const [loadingSubCals, setLoadingSubCals] = useState<Set<string>>(new Set());
+  const [subCalendars, setSubCalendars] = useState<Record<string, SubCalendar[]>>({});
+  const [togglingSubCal, setTogglingSubCal] = useState<string | null>(null);
 
   const { data: connections = [], isLoading } = useQuery({
     queryKey: ["calendar-connections", user?.id],
@@ -71,6 +82,81 @@ export function CalendarSyncTab() {
   const getConnection = (provider: string) =>
     connections.find((c) => c.provider === provider);
 
+  const fetchSubCalendars = async (connectionId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    setLoadingSubCals(prev => new Set(prev).add(connectionId));
+    try {
+      const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-sync`;
+      const response = await fetch(funcUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "list-calendars", connectionId }),
+      });
+      const data = await response.json();
+      if (data.calendars) {
+        setSubCalendars(prev => ({ ...prev, [connectionId]: data.calendars }));
+      }
+    } catch (err: any) {
+      toast({ title: "Failed to load subcalendars", description: err.message, variant: "destructive" });
+    } finally {
+      setLoadingSubCals(prev => { const n = new Set(prev); n.delete(connectionId); return n; });
+    }
+  };
+
+  const toggleExpand = async (connectionId: string) => {
+    setExpandedConnections(prev => {
+      const next = new Set(prev);
+      if (next.has(connectionId)) {
+        next.delete(connectionId);
+      } else {
+        next.add(connectionId);
+        // Fetch subcalendars if not loaded yet
+        if (!subCalendars[connectionId]) {
+          fetchSubCalendars(connectionId);
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSubCalendar = async (connectionId: string, calId: string, enabled: boolean) => {
+    const key = `${connectionId}::${calId}`;
+    setTogglingSubCal(key);
+    try {
+      // Optimistic update
+      setSubCalendars(prev => ({
+        ...prev,
+        [connectionId]: (prev[connectionId] || []).map(c =>
+          c.id === calId ? { ...c, isEnabled: enabled } : c
+        ),
+      }));
+
+      await (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .update({ is_enabled: enabled })
+        .eq("user_id", user!.id)
+        .eq("connection_id", connectionId)
+        .eq("source_calendar_id", calId);
+    } catch (err: any) {
+      toast({ title: "Failed to update preference", variant: "destructive" });
+      // Revert
+      setSubCalendars(prev => ({
+        ...prev,
+        [connectionId]: (prev[connectionId] || []).map(c =>
+          c.id === calId ? { ...c, isEnabled: !enabled } : c
+        ),
+      }));
+    } finally {
+      setTogglingSubCal(null);
+    }
+  };
+
   const handleConnect = async (provider: string) => {
     setConnecting(provider);
     try {
@@ -79,9 +165,7 @@ export function CalendarSyncTab() {
         toast({ title: "Please log in first", variant: "destructive" });
         return;
       }
-
       const redirectUri = `${window.location.origin}/me?tab=calendar`;
-
       const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-oauth?action=auth-url&provider=${provider}&redirect_uri=${encodeURIComponent(redirectUri)}`;
       const response = await fetch(funcUrl, {
         headers: {
@@ -89,14 +173,11 @@ export function CalendarSyncTab() {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
       });
-
       const data = await response.json();
       if (data.error) {
         toast({ title: "Connection failed", description: data.error, variant: "destructive" });
         return;
       }
-
-      // Redirect to OAuth provider
       window.location.href = data.url;
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -109,7 +190,6 @@ export function CalendarSyncTab() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-
       const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-oauth?action=disconnect`;
       await fetch(funcUrl, {
         method: "POST",
@@ -120,7 +200,6 @@ export function CalendarSyncTab() {
         },
         body: JSON.stringify({ provider }),
       });
-
       qc.invalidateQueries({ queryKey: ["calendar-connections"] });
       qc.invalidateQueries({ queryKey: ["calendar-busy-count"] });
       toast({ title: `${provider === "google" ? "Google Calendar" : "Outlook"} disconnected` });
@@ -134,7 +213,6 @@ export function CalendarSyncTab() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-
       const funcUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-sync`;
       const response = await fetch(funcUrl, {
         method: "POST",
@@ -145,11 +223,11 @@ export function CalendarSyncTab() {
         },
         body: JSON.stringify({ action: "pull" }),
       });
-
       const data = await response.json();
       qc.invalidateQueries({ queryKey: ["calendar-connections"] });
       qc.invalidateQueries({ queryKey: ["calendar-busy-count"] });
-      toast({ title: "Calendar synced", description: `${data.synced || 0} events imported` });
+      qc.invalidateQueries({ queryKey: ["my-external-calendar-events"] });
+      toast({ title: "Calendar synced", description: `${data.synced || 0} events imported (only from enabled subcalendars)` });
     } catch (err: any) {
       toast({ title: "Sync failed", description: err.message, variant: "destructive" });
     } finally {
@@ -182,13 +260,7 @@ export function CalendarSyncTab() {
           </p>
         </div>
         {hasAnyConnection && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSync}
-            disabled={syncing}
-            className="shrink-0"
-          >
+          <Button variant="outline" size="sm" onClick={handleSync} disabled={syncing} className="shrink-0">
             {syncing ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
             Sync now
           </Button>
@@ -216,12 +288,12 @@ export function CalendarSyncTab() {
         {PROVIDERS.map((provider) => {
           const conn = getConnection(provider.id);
           const isConnected = !!conn;
+          const isExpanded = conn ? expandedConnections.has(conn.id) : false;
+          const isLoadingSubs = conn ? loadingSubCals.has(conn.id) : false;
+          const subs = conn ? subCalendars[conn.id] || [] : [];
 
           return (
-            <div
-              key={provider.id}
-              className="rounded-xl border border-border p-4 space-y-3"
-            >
+            <div key={provider.id} className="rounded-xl border border-border p-4 space-y-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{provider.icon}</span>
@@ -239,22 +311,12 @@ export function CalendarSyncTab() {
                 </div>
 
                 {isConnected ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDisconnect(provider.id)}
-                    className="text-destructive hover:text-destructive shrink-0"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleDisconnect(provider.id)} className="text-destructive hover:text-destructive shrink-0">
                     <Unplug className="h-4 w-4 mr-1" />
                     Disconnect
                   </Button>
                 ) : (
-                  <Button
-                    size="sm"
-                    onClick={() => handleConnect(provider.id)}
-                    disabled={connecting === provider.id}
-                    className="shrink-0"
-                  >
+                  <Button size="sm" onClick={() => handleConnect(provider.id)} disabled={connecting === provider.id} className="shrink-0">
                     {connecting === provider.id ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
                     ) : (
@@ -267,7 +329,7 @@ export function CalendarSyncTab() {
 
               {/* Connected details */}
               {conn && (
-                <div className="pl-10 space-y-2">
+                <div className="pl-10 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Two-way sync</span>
                     <Switch
@@ -288,6 +350,54 @@ export function CalendarSyncTab() {
                       <span>{conn.sync_error}</span>
                     </div>
                   )}
+
+                  {/* Subcalendar selector */}
+                  <button
+                    onClick={() => toggleExpand(conn.id)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    Choose which subcalendars to sync
+                  </button>
+
+                  {isExpanded && (
+                    <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                      {isLoadingSubs ? (
+                        <div className="space-y-2">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className="flex items-center justify-between">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-5 w-9 rounded-full" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : subs.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No subcalendars found.</p>
+                      ) : (
+                        <>
+                          <p className="text-[11px] text-muted-foreground mb-1">
+                            Only enabled subcalendars will block your service availability and appear on your Work calendar.
+                          </p>
+                          {subs.map(sub => {
+                            const key = `${conn.id}::${sub.id}`;
+                            return (
+                              <div key={sub.id} className="flex items-center justify-between py-1">
+                                <span className="text-xs truncate max-w-[200px] sm:max-w-none">{sub.name}</span>
+                                <Switch
+                                  checked={sub.isEnabled}
+                                  disabled={togglingSubCal === key}
+                                  onCheckedChange={(v) => handleToggleSubCalendar(conn.id, sub.id, v)}
+                                />
+                              </div>
+                            );
+                          })}
+                          <p className="text-[10px] text-muted-foreground mt-2">
+                            Changes take effect on next sync. Click "Sync now" to apply immediately.
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -301,8 +411,9 @@ export function CalendarSyncTab() {
       <div className="rounded-xl bg-muted/50 p-4 space-y-2">
         <h4 className="text-sm font-medium">How Calendar Sync works</h4>
         <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside">
-          <li><strong>Read:</strong> External busy events are imported and automatically block matching time slots in your service availability.</li>
+          <li><strong>Read:</strong> External busy events from enabled subcalendars are imported and automatically block matching time slots in your service availability.</li>
           <li><strong>Write:</strong> When a booking is confirmed for one of your services, it's automatically pushed to your connected calendar.</li>
+          <li>You can choose which subcalendars to sync — only enabled ones will block your availability.</li>
           <li>Events are synced for the next 30 days and refreshed each time you sync.</li>
           <li>Your calendar data is securely stored and never shared with other users.</li>
         </ul>

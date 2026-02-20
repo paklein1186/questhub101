@@ -653,6 +653,47 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_subcalendar_preferences: {
+        Row: {
+          connection_id: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          source_calendar_id: string
+          source_calendar_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          source_calendar_id: string
+          source_calendar_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          source_calendar_id?: string
+          source_calendar_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_subcalendar_preferences_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_mentions: {
         Row: {
           comment_id: string
