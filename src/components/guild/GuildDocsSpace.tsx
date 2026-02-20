@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, FileText, Pin, PinOff, Trash2, Pencil, ArrowLeft, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { NotionEditor } from "./NotionEditor";
-import { GoogleDriveEmbed } from "./GoogleDriveEmbed";
+import { ExternalLinksPanel, type ExternalLinkItem } from "./ExternalLinksPanel";
 
 interface GuildDocsSpaceProps {
   guildId: string;
@@ -38,9 +38,9 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSavedHtml = useRef<string>("");
 
-  // Google Drive URL
-  const { data: driveUrl = "" } = useQuery({
-    queryKey: ["guild-drive-url", guildId],
+  // External links stored in features_config
+  const { data: externalLinks = [] } = useQuery<ExternalLinkItem[]>({
+    queryKey: ["guild-external-links", guildId],
     queryFn: async () => {
       const { data } = await supabase
         .from("guilds")
@@ -48,12 +48,12 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         .eq("id", guildId)
         .single();
       const cfg = (data?.features_config as any) || {};
-      return (cfg.drive_folder_url as string) || "";
+      return (cfg.external_links as ExternalLinkItem[]) || [];
     },
     enabled: isMember,
   });
 
-  const updateDriveUrl = async (url: string) => {
+  const updateExternalLinks = async (links: ExternalLinkItem[]) => {
     const { data: guild } = await supabase
       .from("guilds")
       .select("features_config")
@@ -62,9 +62,9 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     const cfg = ((guild?.features_config as any) || {});
     await supabase
       .from("guilds")
-      .update({ features_config: { ...cfg, drive_folder_url: url } } as any)
+      .update({ features_config: { ...cfg, external_links: links } } as any)
       .eq("id", guildId);
-    qc.invalidateQueries({ queryKey: ["guild-drive-url", guildId] });
+    qc.invalidateQueries({ queryKey: ["guild-external-links", guildId] });
   };
 
   // Docs list
@@ -251,7 +251,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
   // ── Docs list view ──
   return (
     <div className="space-y-6">
-      <GoogleDriveEmbed driveUrl={driveUrl} onUrlChange={updateDriveUrl} canEdit={isAdmin} />
+      <ExternalLinksPanel links={externalLinks} onLinksChange={updateExternalLinks} canEdit={isAdmin} />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
