@@ -6,7 +6,7 @@ import { PostCard } from "@/components/feed/PostCard";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, MessageSquare, Lock, Globe, Shield, Pin, Hash, Settings2 } from "lucide-react";
+import { Loader2, MessageSquare, Lock, Globe, Shield, Pin, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { usePermissionContext } from "@/hooks/usePermissionContext";
 import { evaluateRoomPermissions, AUDIENCE_LABELS, type AudienceType } from "@/lib/permissions";
 import { RoomCreationDialog } from "@/components/guild/RoomCreationDialog";
+import { RoomSettingsDialog } from "@/components/guild/RoomSettingsDialog";
 import { cn } from "@/lib/utils";
 
 interface GuildDiscussionTabProps {
@@ -61,7 +62,7 @@ export function GuildDiscussionTab({
   const { toast } = useToast();
 
   const effectiveScopeId = scopeId || guildId;
-  const { rooms, isLoading: roomsLoading, createRoom, deleteRoom } = useDiscussionRooms(scopeType, effectiveScopeId);
+  const { rooms, isLoading: roomsLoading, createRoom, updateRoom, deleteRoom } = useDiscussionRooms(scopeType, effectiveScopeId);
   const { roles: entityRoles } = useEntityRoles("guild", guildId);
   const permCtx = usePermissionContext(guildId, userId, membership || (isMember ? { role: isAdmin ? "ADMIN" : "MEMBER" } : undefined));
 
@@ -107,10 +108,26 @@ export function GuildDiscussionTab({
   };
 
   const contextType = scopeType === "QUEST" ? "QUEST_DISCUSSION" : "GUILD_DISCUSSION";
+  const isDefaultRoom = selectedRoom?.is_default ?? false;
 
   const { data: posts = [], isLoading } = useQuery<FeedPostWithAttachments[]>({
-    queryKey: ["guild-discussion", effectiveScopeId, selectedRoomId],
+    queryKey: ["guild-discussion", effectiveScopeId, selectedRoomId, isDefaultRoom],
     queryFn: async () => {
+      // For the default room, also include legacy posts (room_id is null) and GUILD context posts
+      if (isDefaultRoom) {
+        // Fetch room-specific + legacy posts in one go using OR filter
+        const { data, error } = await supabase
+          .from("feed_posts")
+          .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
+          .or(`and(context_type.eq.${contextType},context_id.eq.${effectiveScopeId},room_id.eq.${selectedRoomId}),and(context_type.in.(GUILD,${contextType}),context_id.eq.${effectiveScopeId},room_id.is.null)`)
+          .eq("is_deleted", false)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (error) throw error;
+        const result = (data ?? []) as unknown as FeedPostWithAttachments[];
+        return await enrichPosts(result);
+      }
+
       let query = supabase
         .from("feed_posts")
         .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
@@ -126,26 +143,26 @@ export function GuildDiscussionTab({
 
       const { data, error } = await query;
       if (error) throw error;
-
       const result = (data ?? []) as unknown as FeedPostWithAttachments[];
-
-      // Fetch author profiles
-      const authorIds = [...new Set(result.map((p) => p.author_user_id))];
-      if (authorIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles_public")
-          .select("user_id, name, avatar_url")
-          .in("user_id", authorIds);
-        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
-        for (const post of result) {
-          post.author = profileMap.get(post.author_user_id) as any;
-        }
-      }
-
-      return result;
+      return await enrichPosts(result);
     },
     enabled: !!selectedRoomId || rooms.length === 0,
   });
+
+  async function enrichPosts(result: FeedPostWithAttachments[]) {
+    const authorIds = [...new Set(result.map((p) => p.author_user_id))];
+    if (authorIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
+        .in("user_id", authorIds);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+      for (const post of result) {
+        post.author = profileMap.get(post.author_user_id) as any;
+      }
+    }
+    return result;
+  }
 
   // Filter posts by visibility based on user role
   const visiblePosts = useMemo(() => {
@@ -168,26 +185,38 @@ export function GuildDiscussionTab({
       {/* Room Selector */}
       {visibleRooms.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {visibleRooms.map((room) => (
-            <button
-              key={room.id}
-              onClick={() => setSelectedRoomId(room.id)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border",
-                selectedRoomId === room.id
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-muted-foreground border-border hover:border-primary/30"
-              )}
-            >
-              <Hash className="h-3.5 w-3.5" />
-              {room.name}
-              {room.audience_type !== "MEMBERS" && room.audience_type !== "PUBLIC" && (
-                <Badge variant="outline" className="text-[9px] px-1 py-0 ml-0.5">
-                  {AUDIENCE_LABELS[room.audience_type as AudienceType]}
-                </Badge>
-              )}
-            </button>
-          ))}
+          {visibleRooms.map((room) => {
+            const roomP = evaluateRoomPermissions(room, permCtx);
+            return (
+              <div key={room.id} className="flex items-center">
+                <button
+                  onClick={() => setSelectedRoomId(room.id)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border",
+                    selectedRoomId === room.id
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-card text-muted-foreground border-border hover:border-primary/30"
+                  )}
+                >
+                  <Hash className="h-3.5 w-3.5" />
+                  {room.name}
+                  {room.audience_type !== "MEMBERS" && room.audience_type !== "PUBLIC" && (
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 ml-0.5">
+                      {AUDIENCE_LABELS[room.audience_type as AudienceType]}
+                    </Badge>
+                  )}
+                  {roomP.canManage && (
+                    <RoomSettingsDialog
+                      room={room}
+                      roles={entityRoles}
+                      onUpdate={(id, updates) => { updateRoom(id, updates); }}
+                      onDelete={(id) => { deleteRoom(id); setSelectedRoomId(null); }}
+                    />
+                  )}
+                </button>
+              </div>
+            );
+          })}
           {(isAdmin || permCtx.isSource) && (
             <RoomCreationDialog
               roles={entityRoles}
@@ -218,26 +247,7 @@ export function GuildDiscussionTab({
       )}
 
       {visiblePosts.length > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {selectedRoom && roomPerms.canManage && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground"
-                onClick={() => {
-                  if (selectedRoom.is_default) {
-                    toast({ title: "Cannot delete the default room", variant: "destructive" });
-                  } else if (window.confirm(`Delete room "${selectedRoom.name}"?`)) {
-                    deleteRoom(selectedRoom.id);
-                    setSelectedRoomId(null);
-                  }
-                }}
-              >
-                <Settings2 className="h-3.5 w-3.5 mr-1" /> Room settings
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center justify-end">
           <FeedSortControl value={sortMode} onChange={setSortMode} />
         </div>
       )}

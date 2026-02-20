@@ -46,7 +46,7 @@ import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
-import { FeedSection } from "@/components/feed/FeedSection";
+// FeedSection removed — Agora content merged into Discussions #General room
 import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
@@ -345,12 +345,12 @@ export default function GuildDetail() {
         {(() => {
           const allTabs: TabDefinition[] = [
             { value: "overview", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Overview</span></> },
-            { value: "discussion", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Posts</span></>, visible: !!(fc as any).discussionTab && ((fc as any).discussionAccess === "public" || isMember) },
+            { value: "discussion", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Discussions</span></>, visible: !!(fc as any).discussionTab && ((fc as any).discussionAccess === "public" || isMember) },
             { value: "members", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Members</span> ({members.length})</> },
             { value: "quests", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Quests</span> ({quests.length})</> },
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "decisions", label: <><Vote className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Decisions</span></>, visible: isMember },
-            { value: "wall", label: <>Agora</> },
+            /* Agora tab removed — content merged into Discussions #General room */
             { value: "ai-chat", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Chat & AI</span></>, visible: isMember },
             { value: "board", label: <><LayoutGrid className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Board</span></>, visible: isMember && !!(fc as any).kanbanBoard },
             { value: "docs", label: <><FileText className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Docs</span></>, visible: isMember && !!(fc as any).docsSpace },
@@ -675,9 +675,7 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="wall" className="mt-6 space-y-6">
-          <FeedSection contextType="GUILD" contextId={guild.id} canPost={isMember} showDisplayToggle initialTerritoryIds={territories.map((t: any) => t.id)} initialTopicIds={topics.map((t: any) => t.id)} />
-        </TabsContent>
+        {/* Agora tab removed — posts now live in Discussions #General room */}
 
         {isMember && (
           <TabsContent value="ai-chat" className="mt-6">
