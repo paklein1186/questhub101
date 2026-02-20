@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import {
   Calendar, Clock, Video, Users, CalendarPlus,
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
-  Telescope, Network, PartyPopper, Shield, Compass,
+  Telescope, Network, PartyPopper, Shield, Compass, Globe,
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from "date-fns";
 import { useState } from "react";
@@ -53,9 +53,10 @@ interface CalendarEvent {
   occurrenceId?: string;
   title: string;
   date: string;
+  endDate?: string;
   durationMinutes: number;
-  type: "event" | "ritual";
-  entityType: "guild" | "quest";
+  type: "event" | "ritual" | "external";
+  entityType: "guild" | "quest" | "external";
   entityId: string;
   entityName: string;
   visioLink?: string;
@@ -90,6 +91,19 @@ export function WorkCalendarTab() {
         .select("occurrence_id, status, ritual_occurrences(id, scheduled_at, visio_link, ritual_id, rituals(id, title, duration_minutes, session_type, guild_id, quest_id, guilds(name), quests(title)))")
         .eq("user_id", currentUser.id!)
         .neq("status", "declined");
+      return data || [];
+    },
+    enabled: !!currentUser.id,
+  });
+
+  // Fetch synced external calendar events (Google / Outlook)
+  const { data: externalEvents = [] } = useQuery({
+    queryKey: ["my-external-calendar-events", currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("calendar_busy_events")
+        .select("id, summary, start_at, end_at, connection_id, calendar_connections(provider)")
+        .eq("user_id", currentUser.id!);
       return data || [];
     },
     enabled: !!currentUser.id,
@@ -136,8 +150,27 @@ export function WorkCalendarTab() {
       });
     });
 
+    externalEvents.forEach((ext: any) => {
+      if (!ext.start_at || !ext.end_at) return;
+      const start = new Date(ext.start_at).getTime();
+      const end = new Date(ext.end_at).getTime();
+      const durationMin = Math.max(Math.round((end - start) / 60000), 1);
+      const provider = (ext.calendar_connections as any)?.provider || "google";
+      items.push({
+        id: `ext-${ext.id}`,
+        title: ext.summary || "(No title)",
+        date: ext.start_at,
+        endDate: ext.end_at,
+        durationMinutes: durationMin,
+        type: "external",
+        entityType: "external",
+        entityId: "",
+        entityName: provider === "outlook" ? "Outlook" : "Google Calendar",
+      });
+    });
+
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [myEventAttendances, myRitualAttendances]);
+  }, [myEventAttendances, myRitualAttendances, externalEvents]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -181,16 +214,20 @@ export function WorkCalendarTab() {
               </span>
               <div className="mt-0.5 space-y-0.5">
                 {dayEvents.slice(0, 3).map((evt) => {
-                  const Icon = evt.type === "ritual" && evt.sessionType
-                    ? getSessionIcon(evt.sessionType)
-                    : evt.type === "event" ? Calendar : Calendar;
+                  const Icon = evt.type === "external"
+                    ? Globe
+                    : evt.type === "ritual" && evt.sessionType
+                      ? getSessionIcon(evt.sessionType)
+                      : Calendar;
                   return (
                     <div
                       key={evt.id}
                       className={`text-[10px] rounded px-1 py-0.5 truncate cursor-default flex items-center gap-0.5 ${
-                        evt.type === "ritual"
-                          ? "bg-primary/10 text-primary"
-                          : "bg-accent text-accent-foreground"
+                        evt.type === "external"
+                          ? "bg-secondary/60 text-secondary-foreground"
+                          : evt.type === "ritual"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-accent text-accent-foreground"
                       }`}
                       title={`${evt.title} — ${format(new Date(evt.date), "HH:mm")} (${evt.entityName})`}
                     >
@@ -218,27 +255,36 @@ export function WorkCalendarTab() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {events.filter((e) => new Date(e.date) >= new Date()).slice(0, 12).map((evt) => {
-              const Icon = evt.type === "ritual" && evt.sessionType
-                ? getSessionIcon(evt.sessionType)
-                : Calendar;
-              const route = evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
+              const Icon = evt.type === "external"
+                ? Globe
+                : evt.type === "ritual" && evt.sessionType
+                  ? getSessionIcon(evt.sessionType)
+                  : Calendar;
+              const route = evt.entityType === "external" ? "" : evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
               return (
                 <Card key={evt.id} className="group hover:scale-[1.01] transition-transform">
                   <CardContent className="p-4 flex flex-col gap-3">
                     {/* Header row */}
                     <div className="flex items-start gap-3">
-                      <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
-                        <Icon className={`h-5 w-5 ${evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
+                      <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "external" ? "bg-secondary/60" : evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
+                        <Icon className={`h-5 w-5 ${evt.type === "external" ? "text-secondary-foreground" : evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{evt.title}</p>
-                        <Link to={route} className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5">
-                          {evt.entityType === "guild" ? <Shield className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
-                          {evt.entityName}
-                        </Link>
+                        {evt.entityType !== "external" ? (
+                          <Link to={route} className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5">
+                            {evt.entityType === "guild" ? <Shield className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
+                            {evt.entityName}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-muted-foreground inline-flex items-center gap-0.5 mt-0.5">
+                            <Globe className="h-3 w-3" />
+                            {evt.entityName}
+                          </span>
+                        )}
                       </div>
                       <Badge variant="outline" className="text-[10px] shrink-0 capitalize">
-                        {evt.type}
+                        {evt.type === "external" ? evt.entityName : evt.type}
                       </Badge>
                     </div>
 
