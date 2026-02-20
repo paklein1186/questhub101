@@ -85,9 +85,10 @@ const PILLARS = [
   },
 ];
 
-export default function ProductVisionPage() {
+export default function ProductVisionPage({ embedded }: { embedded?: boolean }) {
   return (
     <ContentPageShell
+      embedded={embedded}
       title="Product Vision 2026"
       subtitle="The cooperative platform that turns people, communities and territories into engines of transformation."
     >

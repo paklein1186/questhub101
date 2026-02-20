@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-export default function ContactPage() {
+export default function ContactPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,7 +21,7 @@ export default function ContactPage() {
   };
 
   return (
-    <ContentPageShell title={t("pages.contact.title")} subtitle={t("pages.contact.subtitle")}>
+    <ContentPageShell embedded={embedded} title={t("pages.contact.title")} subtitle={t("pages.contact.subtitle")}>
       <ContentSection title="Reach Out">
         <p>Have a question, request or issue? We respond to all messages.</p>
       </ContentSection>

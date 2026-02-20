@@ -1,14 +1,13 @@
 import { PageShell } from "@/components/PageShell";
 import { useTranslation } from "react-i18next";
 
-export default function ManifestoPage() {
+export default function ManifestoPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
-  return (
-    <PageShell>
-      <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4">
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
-          {t("pages.manifesto.title")}
-        </h1>
+  const content = (
+    <div className={embedded ? "max-w-2xl mx-auto px-4" : "max-w-2xl mx-auto py-12 sm:py-20 px-4"}>
+      <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
+        {t("pages.manifesto.title")}
+      </h1>
         <p className="text-muted-foreground text-lg mb-12">
           {t("pages.manifesto.subtitle")}
         </p>
@@ -45,6 +44,7 @@ export default function ManifestoPage() {
           </div>
         </div>
       </div>
-    </PageShell>
   );
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }

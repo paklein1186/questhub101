@@ -9,9 +9,19 @@ interface ContentPageShellProps {
   children: React.ReactNode;
   backTo?: string;
   backLabel?: string;
+  embedded?: boolean;
 }
 
-export function ContentPageShell({ title, subtitle, children, backTo = "/", backLabel = "Back" }: ContentPageShellProps) {
+export function ContentPageShell({ title, subtitle, children, backTo = "/", backLabel = "Back", embedded }: ContentPageShellProps) {
+  if (embedded) {
+    return (
+      <article className="max-w-3xl mx-auto">
+        <h1 className="font-display text-2xl font-bold mb-2">{title}</h1>
+        {subtitle && <p className="text-muted-foreground mb-6">{subtitle}</p>}
+        <div className="space-y-8">{children}</div>
+      </article>
+    );
+  }
   return (
     <PageShell>
       <Button variant="ghost" size="sm" asChild className="mb-4">

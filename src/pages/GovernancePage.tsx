@@ -6,13 +6,13 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { canVote, canPropose, isStewardEligible } from "@/lib/governanceConfig";
 import { GOVERNANCE_XP_TIERS } from "@/lib/xpCreditsConfig";
 
-export default function GovernancePage() {
+export default function GovernancePage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { userLevel } = usePlanLimits();
 
   return (
-    <ContentPageShell title="Cooperative Governance" subtitle="Changethegame combines marketplace activity with cooperative stewardship.">
+    <ContentPageShell embedded={embedded} title="Cooperative Governance" subtitle="Changethegame combines marketplace activity with cooperative stewardship.">
       <ContentSection title="How Governance Rights Are Unlocked">
         <p className="text-muted-foreground mb-4">
           Governance rights are unlocked by XP level, participation history, and shareholding.

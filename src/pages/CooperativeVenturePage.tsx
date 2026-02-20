@@ -13,10 +13,9 @@ const CLASS_A_MAILTO =
 const CLASS_C_MAILTO =
   "mailto:pa@changethegame.xyz?subject=Class%20C%20Strategic%20Participation";
 
-export default function CooperativeVenturePage() {
-  return (
-    <PageShell>
-      <div className="max-w-3xl mx-auto py-12 sm:py-20 px-4 space-y-20">
+export default function CooperativeVenturePage({ embedded }: { embedded?: boolean }) {
+  const content = (
+    <div className={embedded ? "max-w-3xl mx-auto px-4 space-y-20" : "max-w-3xl mx-auto py-12 sm:py-20 px-4 space-y-20"}>
 
         {/* Hero */}
         <section className="space-y-5">
@@ -357,6 +356,7 @@ export default function CooperativeVenturePage() {
         </section>
 
       </div>
-    </PageShell>
   );
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }
