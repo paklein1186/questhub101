@@ -134,6 +134,37 @@ The description should:
 Return ONLY valid JSON: { "text": "the event description" }`;
         break;
 
+      case "rewrite_title":
+        userPrompt = `Rewrite and improve this title for a ${context.entityType || "quest"}.
+${sharedContext}
+Current title: "${context.currentText || ""}"
+Keywords/notes from user: "${context.keywords || ""}"
+
+Rules:
+- Keep it under 80 characters
+- Make it compelling, clear, and action-oriented
+- If the current text is just a few keywords, expand them into a proper title
+- If the current text is already a title, improve it
+
+Return ONLY valid JSON: { "text": "the improved title" }`;
+        break;
+
+      case "rewrite_description":
+        userPrompt = `Rewrite and improve this description for a ${context.entityType || "quest"}.
+${sharedContext}
+Title: "${context.title || ""}"
+Current description: "${context.currentText || ""}"
+Keywords/notes from user: "${context.keywords || ""}"
+
+Rules:
+- Keep it 50-200 words
+- If the current text is just keywords or a rough sentence, expand into a proper description
+- Make it clear, engaging, and actionable
+- For quest subtasks, keep it shorter (1-3 sentences)
+
+Return ONLY valid JSON: { "text": "the improved description" }`;
+        break;
+
       default:
         return new Response(JSON.stringify({ error: `Unknown type: ${type}` }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },

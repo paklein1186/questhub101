@@ -5,12 +5,14 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
+import { AIWriterButton } from "@/components/AIWriterButton";
 
 interface QuestSubtasksProps {
   questId: string;
@@ -32,6 +34,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
   const { toast } = useToast();
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [showDescField, setShowDescField] = useState(false);
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -78,11 +82,12 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     const { error } = await supabase.from("quest_subtasks" as any).insert({
       quest_id: questId,
       title: newTitle.trim(),
+      description: newDescription.trim() || null,
       order_index: subtasks.length,
       assignee_user_id: currentUser.id || null,
     } as any);
     if (error) { toast({ title: "Failed to add subtask", variant: "destructive" }); }
-    else { setNewTitle(""); qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }); }
+    else { setNewTitle(""); setNewDescription(""); setShowDescField(false); qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }); }
     setAdding(false);
   };
 
@@ -266,17 +271,56 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
       </div>
 
       {canManage && (
-        <div className="flex gap-2">
-          <Input
-            placeholder="Add a subtask…"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addSubtask()}
-            className="h-8 text-sm"
-          />
-          <Button size="sm" onClick={addSubtask} disabled={!newTitle.trim() || adding} className="h-8">
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add
-          </Button>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a subtask…"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !showDescField && addSubtask()}
+              className="h-8 text-sm"
+            />
+            <Button size="sm" onClick={addSubtask} disabled={!newTitle.trim() || adding} className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1" /> Add
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <AIWriterButton
+              type="rewrite_title"
+              context={{ entityType: "subtask" }}
+              currentText={newTitle}
+              onAccept={(text) => setNewTitle(text)}
+              label="AI title"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => setShowDescField(!showDescField)}
+            >
+              {showDescField ? "Hide description" : "+ Description"}
+            </Button>
+          </div>
+          {showDescField && (
+            <div>
+              <Textarea
+                placeholder="Subtask description (optional)…"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="text-sm"
+                rows={2}
+              />
+              <AIWriterButton
+                type="rewrite_description"
+                context={{ entityType: "subtask", title: newTitle }}
+                currentText={newDescription}
+                onAccept={(text) => setNewDescription(text)}
+                label="AI description"
+                className="mt-1"
+              />
+            </div>
+          )}
         </div>
       )}
 

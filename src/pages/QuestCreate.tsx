@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
+import { AIWriterButton } from "@/components/AIWriterButton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -592,6 +593,14 @@ export default function QuestCreate() {
           <div>
             <Label htmlFor="title">Title *</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Quest title" className="mt-1" />
+            <AIWriterButton
+              type="rewrite_title"
+              context={{ entityType: "quest", keywords: aiKeywords }}
+              currentText={title}
+              onAccept={(text) => setTitle(text)}
+              label="Rewrite title with AI"
+              className="mt-1"
+            />
           </div>
 
           <div>
@@ -786,6 +795,14 @@ export default function QuestCreate() {
           <div>
             <Label htmlFor="desc">Description</Label>
             <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what this quest is about…" className="mt-1" rows={4} />
+            <AIWriterButton
+              type="rewrite_description"
+              context={{ entityType: "quest", title, keywords: aiKeywords }}
+              currentText={description}
+              onAccept={(text) => setDescription(text)}
+              label="Rewrite description with AI"
+              className="mt-1"
+            />
           </div>
 
           <div>
