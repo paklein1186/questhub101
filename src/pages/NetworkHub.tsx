@@ -76,8 +76,8 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
     { value: "dashboard", label: <><LayoutDashboard className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Dashboard</span></> },
     { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.people")} ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
     { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.entities")} ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
-    { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.territoriesAndTopics")}</span><span className="sm:hidden">{t("tabs.areas")}</span></> },
-    { value: "houses", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Houses</span></>, visible: isCreativeOrHybrid },
+    { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Territories</span><span className="sm:hidden">{t("tabs.areas")}</span></> },
+    { value: "houses", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Topics & Houses</span></>, visible: isCreativeOrHybrid },
     { value: "leaderboard", label: <><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.leaderboard")}</span></> },
   ];
 
