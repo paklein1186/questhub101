@@ -252,6 +252,11 @@ export default function NetworkActivityTab() {
   );
 }
 
+/** Strip @[Label](type:id) mention syntax to plain Label text */
+function stripMentionSyntax(text: string): string {
+  return text.replace(/@\[([^\]]+)\]\([^)]+\)/g, "$1");
+}
+
 function ActivityRow({ entry }: { entry: ActivityEntry }) {
   const config = ACTION_CONFIG[entry.action_type] || {
     icon: Rss,
@@ -270,6 +275,7 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
         : null
     : null;
   const timeAgo = formatDistanceToNow(new Date(entry.created_at), { addSuffix: true });
+  const displayName = entry.target_name ? stripMentionSyntax(entry.target_name) : null;
 
   return (
     <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-muted/40 transition-colors group">
@@ -288,20 +294,20 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
             {entry.actor_name}
           </Link>
           <span className="text-muted-foreground"> {config.verb} </span>
-          {entry.target_name && targetHref ? (
+          {displayName && targetHref ? (
             <Link
               to={targetHref}
               className="font-medium hover:text-primary transition-colors"
             >
-              {entry.target_name.length > 60
-                ? entry.target_name.slice(0, 60) + "…"
-                : entry.target_name}
+              {displayName.length > 60
+                ? displayName.slice(0, 60) + "…"
+                : displayName}
             </Link>
-          ) : entry.target_name ? (
+          ) : displayName ? (
             <span className="font-medium">
-              {entry.target_name.length > 60
-                ? entry.target_name.slice(0, 60) + "…"
-                : entry.target_name}
+              {displayName.length > 60
+                ? displayName.slice(0, 60) + "…"
+                : displayName}
             </span>
           ) : null}
         </p>
