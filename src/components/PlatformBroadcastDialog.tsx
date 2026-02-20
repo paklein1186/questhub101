@@ -15,8 +15,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BroadcastAudiencePicker, type AudienceSegment } from "@/components/broadcast/BroadcastAudiencePicker";
 import { BroadcastToolbar } from "@/components/broadcast/BroadcastToolbar";
 import { BroadcastAttachment } from "@/components/broadcast/BroadcastAttachment";
+import logoImg from "@/assets/logo.png";
 
-const SENDER_LABEL = "changethegame Platform";
+const SENDER_LABEL = "changethegame";
 
 async function resolveRecipientIds(
   segments: AudienceSegment[],
@@ -293,7 +294,11 @@ export function PlatformBroadcastDialog() {
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="space-y-4 pb-2">
             <p className="text-sm text-muted-foreground">
-              Send an official message from <strong>{SENDER_LABEL}</strong>.
+              Send an official message from{" "}
+              <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+                <img src={logoImg} alt="changethegame" className="h-4 w-4 rounded-sm inline-block" />
+                {SENDER_LABEL}
+              </span>.
               Each recipient receives it in their inbox with an email notification.
             </p>
 
