@@ -139,6 +139,7 @@ import ProfileEnrichment from "./pages/ProfileEnrichment";
 import SharesPage from "./pages/SharesPage";
 import RevenueModelsPage from "./pages/RevenueModelsPage";
 import CreditEconomyPage from "./pages/CreditEconomyPage";
+import UseCasesPage from "./pages/UseCasesPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryDetail";
 import InboxPage from "./pages/InboxPage";
@@ -252,6 +253,7 @@ const App = () => (
                 <Route path="/what-comes-next" element={<WhatComesNextPage />} />
                 <Route path="/revenue-models" element={<RevenueModelsPage />} />
                 <Route path="/credit-economy" element={<CreditEconomyPage />} />
+                <Route path="/use-cases" element={<UseCasesPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/agents" element={<AgentsMarketplace />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
