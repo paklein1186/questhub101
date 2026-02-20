@@ -8,6 +8,7 @@ const VISION_LINKS = [
   { labelKey: "footer.cooperative", href: "/cooperative" },
   { labelKey: "footer.whatComesNext", href: "/what-comes-next" },
   { labelKey: "footer.useCases", href: "/use-cases" },
+  { labelKey: "footer.features", href: "/features" },
 ];
 
 const ECOSYSTEM_LINKS = [
