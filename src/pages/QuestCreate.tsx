@@ -625,6 +625,7 @@ export default function QuestCreate() {
               onChange={(e) => setQuestStatus(e.target.value)}
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
+              <option value="IDEA">Idea</option>
               <option value="OPEN">Open</option>
               <option value="OPEN_FOR_PROPOSALS">Open for proposals</option>
               <option value="IN_PROGRESS">In progress</option>
