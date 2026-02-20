@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostComposer } from "@/components/feed/PostComposer";
@@ -6,21 +6,32 @@ import { PostCard } from "@/components/feed/PostCard";
 import { FeedSortControl, type FeedSortMode } from "@/components/feed/FeedSortControl";
 import { usePostUpvotes } from "@/hooks/usePostUpvote";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, MessageSquare, Lock, Globe, Shield, Pin } from "lucide-react";
+import { Loader2, MessageSquare, Lock, Globe, Shield, Pin, Hash, Settings2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { sortPosts } from "@/lib/feedSort";
 import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
+import { useDiscussionRooms, type DiscussionRoom } from "@/hooks/useDiscussionRooms";
+import { useEntityRoles } from "@/hooks/useEntityRoles";
+import { usePermissionContext } from "@/hooks/usePermissionContext";
+import { evaluateRoomPermissions, AUDIENCE_LABELS, type AudienceType } from "@/lib/permissions";
+import { RoomCreationDialog } from "@/components/guild/RoomCreationDialog";
+import { cn } from "@/lib/utils";
 
 interface GuildDiscussionTabProps {
   guildId: string;
   guildName: string;
   isAdmin: boolean;
   isMember: boolean;
-  canPost: boolean; // derived from features_config discussionPostPermission
+  canPost: boolean;
   initialTerritoryIds?: string[];
   initialTopicIds?: string[];
+  /** For quest-level discussion */
+  scopeType?: "GUILD" | "QUEST";
+  scopeId?: string;
+  membership?: { role: string };
+  currentUserId?: string;
 }
 
 const VISIBILITY_LABELS: Record<string, { label: string; icon: typeof Globe }> = {
@@ -29,12 +40,48 @@ const VISIBILITY_LABELS: Record<string, { label: string; icon: typeof Globe }> =
   admins: { label: "Admins only", icon: Shield },
 };
 
-export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canPost, initialTerritoryIds, initialTopicIds }: GuildDiscussionTabProps) {
+export function GuildDiscussionTab({
+  guildId,
+  guildName,
+  isAdmin,
+  isMember,
+  canPost,
+  initialTerritoryIds,
+  initialTopicIds,
+  scopeType = "GUILD",
+  scopeId,
+  membership,
+  currentUserId: externalUserId,
+}: GuildDiscussionTabProps) {
   const { session } = useAuth();
   const isLoggedIn = !!session;
+  const userId = externalUserId || session?.user?.id;
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
   const qc = useQueryClient();
   const { toast } = useToast();
+
+  const effectiveScopeId = scopeId || guildId;
+  const { rooms, isLoading: roomsLoading, createRoom, deleteRoom } = useDiscussionRooms(scopeType, effectiveScopeId);
+  const { roles: entityRoles } = useEntityRoles("guild", guildId);
+  const permCtx = usePermissionContext(guildId, userId, membership || (isMember ? { role: isAdmin ? "ADMIN" : "MEMBER" } : undefined));
+
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+
+  // Auto-select first room
+  useEffect(() => {
+    if (rooms.length > 0 && !selectedRoomId) {
+      const defaultRoom = rooms.find((r) => r.is_default) || rooms[0];
+      setSelectedRoomId(defaultRoom.id);
+    }
+  }, [rooms, selectedRoomId]);
+
+  const selectedRoom = rooms.find((r) => r.id === selectedRoomId);
+  const roomPerms = selectedRoom ? evaluateRoomPermissions(selectedRoom, permCtx) : { canView: true, canPost: canPost, canReply: true, canManage: isAdmin };
+
+  // Visible rooms based on permissions
+  const visibleRooms = useMemo(() => {
+    return rooms.filter((room) => evaluateRoomPermissions(room, permCtx).canView);
+  }, [rooms, permCtx]);
 
   // Fetch guild features_config for highlighted posts
   const { data: guildConfig } = useQuery({
@@ -59,17 +106,25 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
     toast({ title: current.includes(postId) ? "Post unhighlighted" : "Post highlighted in Overview" });
   };
 
+  const contextType = scopeType === "QUEST" ? "QUEST_DISCUSSION" : "GUILD_DISCUSSION";
+
   const { data: posts = [], isLoading } = useQuery<FeedPostWithAttachments[]>({
-    queryKey: ["guild-discussion", guildId],
+    queryKey: ["guild-discussion", effectiveScopeId, selectedRoomId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("feed_posts")
         .select("*, post_attachments(*), post_territories(territory_id, territories(id, name, slug)), post_topics(topic_id, topics(id, name, slug))")
-        .eq("context_type", "GUILD_DISCUSSION")
-        .eq("context_id", guildId)
+        .eq("context_type", contextType)
+        .eq("context_id", effectiveScopeId)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(50);
+
+      if (selectedRoomId) {
+        query = query.eq("room_id", selectedRoomId);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
       const result = (data ?? []) as unknown as FeedPostWithAttachments[];
@@ -89,6 +144,7 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
 
       return result;
     },
+    enabled: !!selectedRoomId || rooms.length === 0,
   });
 
   // Filter posts by visibility based on user role
@@ -109,31 +165,97 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
 
   return (
     <div className="space-y-4">
-      {isLoggedIn && canPost && (
+      {/* Room Selector */}
+      {visibleRooms.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {visibleRooms.map((room) => (
+            <button
+              key={room.id}
+              onClick={() => setSelectedRoomId(room.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap border",
+                selectedRoomId === room.id
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-muted-foreground border-border hover:border-primary/30"
+              )}
+            >
+              <Hash className="h-3.5 w-3.5" />
+              {room.name}
+              {room.audience_type !== "MEMBERS" && room.audience_type !== "PUBLIC" && (
+                <Badge variant="outline" className="text-[9px] px-1 py-0 ml-0.5">
+                  {AUDIENCE_LABELS[room.audience_type as AudienceType]}
+                </Badge>
+              )}
+            </button>
+          ))}
+          {(isAdmin || permCtx.isSource) && (
+            <RoomCreationDialog
+              roles={entityRoles}
+              onSubmit={(roomData) => {
+                if (userId) {
+                  createRoom({ ...roomData, created_by_user_id: userId });
+                }
+              }}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Room description */}
+      {selectedRoom?.description && (
+        <p className="text-xs text-muted-foreground">{selectedRoom.description}</p>
+      )}
+
+      {isLoggedIn && roomPerms.canPost && (
         <PostComposer
-          contextType="GUILD_DISCUSSION"
-          contextId={guildId}
+          contextType={contextType}
+          contextId={effectiveScopeId}
           showVisibilityPicker
           initialTerritoryIds={initialTerritoryIds}
           initialTopicIds={initialTopicIds}
+          roomId={selectedRoomId || undefined}
         />
       )}
 
       {visiblePosts.length > 0 && (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {selectedRoom && roomPerms.canManage && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                onClick={() => {
+                  if (selectedRoom.is_default) {
+                    toast({ title: "Cannot delete the default room", variant: "destructive" });
+                  } else if (window.confirm(`Delete room "${selectedRoom.name}"?`)) {
+                    deleteRoom(selectedRoom.id);
+                    setSelectedRoomId(null);
+                  }
+                }}
+              >
+                <Settings2 className="h-3.5 w-3.5 mr-1" /> Room settings
+              </Button>
+            )}
+          </div>
           <FeedSortControl value={sortMode} onChange={setSortMode} />
         </div>
       )}
 
-      {isLoading ? (
+      {isLoading || roomsLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : !roomPerms.canView ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Lock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">You don't have access to this room</p>
         </div>
       ) : sortedPosts.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No discussions in {guildName} yet</p>
-          {canPost && <p className="text-xs mt-1">Start a conversation!</p>}
+          <p className="text-sm">No discussions in {selectedRoom?.name || guildName} yet</p>
+          {roomPerms.canPost && <p className="text-xs mt-1">Start a conversation!</p>}
         </div>
       ) : (
         <div className="space-y-4">
@@ -144,7 +266,7 @@ export function GuildDiscussionTab({ guildId, guildName, isAdmin, isMember, canP
             return (
               <div key={post.id} className="relative">
                 <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
-                  {isAdmin && (
+                  {isAdmin && scopeType === "GUILD" && (
                     <Button
                       variant={isHighlighted ? "default" : "outline"}
                       size="icon"

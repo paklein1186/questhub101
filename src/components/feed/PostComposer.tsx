@@ -52,9 +52,11 @@ interface PostComposerProps {
   initialTerritoryIds?: string[];
   /** Pre-populate topic chips from parent entity */
   initialTopicIds?: string[];
+  /** Discussion room ID */
+  roomId?: string;
 }
 
-export function PostComposer({ contextType, contextId, showVisibilityPicker = false, initialTerritoryIds, initialTopicIds }: PostComposerProps) {
+export function PostComposer({ contextType, contextId, showVisibilityPicker = false, initialTerritoryIds, initialTopicIds, roomId }: PostComposerProps) {
   const currentUser = useCurrentUser();
   const { user: authUser } = useAuth();
   const createPost = useCreatePost();
@@ -214,6 +216,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         territoryIds: selectedTerritoryIds,
         topicIds: selectedTopicIds,
         visibility: showVisibilityPicker ? visibility : "public",
+        roomId,
       });
 
       // Reset
