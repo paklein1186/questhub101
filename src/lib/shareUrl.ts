@@ -27,7 +27,8 @@ export type ShareEntityType =
   | "course"
   | "profile"
   | "territory"
-  | "pod";
+  | "pod"
+  | "topic";
 
 const ROUTE_MAP: Record<ShareEntityType, string> = {
   quest: "/quests",
@@ -39,6 +40,7 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
   profile: "/users",
   territory: "/territories",
   pod: "/pods",
+  topic: "/topics",
 };
 
 /**

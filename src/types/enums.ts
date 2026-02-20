@@ -201,6 +201,7 @@ export enum FollowTargetType {
   COURSE = "COURSE",
   EVENT = "EVENT",
   TERRITORY = "TERRITORY",
+  TOPIC = "TOPIC",
 }
 
 export enum PodType {
