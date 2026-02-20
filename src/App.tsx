@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
@@ -127,6 +127,9 @@ import BugReportingPage from "./pages/BugReportingPage";
 import ManifestoPage from "./pages/ManifestoPage";
 import CooperativeVenturePage from "./pages/CooperativeVenturePage";
 import WhatComesNextPage from "./pages/WhatComesNextPage";
+import VisionHub from "./pages/VisionHub";
+import EcosystemHub from "./pages/EcosystemHub";
+import LegalHub from "./pages/LegalHub";
 import CreativeLanding from "./pages/CreativeLanding";
 import HybridLanding from "./pages/HybridLanding";
 import ImpactLanding from "./pages/ImpactLanding";
@@ -223,13 +226,10 @@ const App = () => (
                 <Route path="/events/:id/edit" element={<RequireAuth><EventEdit /></RequireAuth>} />
                 <Route path="/events/:id/settings" element={<RequireAuth><EventSettings /></RequireAuth>} />
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/cookies" element={<CookiesPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                 <Route path="/support" element={<SupportPage />} />
-                <Route path="/contact" element={<ContactPage />} />
                 <Route path="/security" element={<SecurityPage />} />
                 <Route path="/explore/quests-info" element={<QuestsInfoPage />} />
                 <Route path="/explore/guilds-info" element={<GuildsInfoPage />} />
@@ -246,16 +246,22 @@ const App = () => (
                 <Route path="/ai/territory-agents-info" element={<TerritoryAgentsInfoPage />} />
                 <Route path="/ai-ethics" element={<AIEthicsPage />} />
                 <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
-                <Route path="/governance" element={<GovernancePage />} />
+                <Route path="/governance" element={<Navigate to="/ecosystem?tab=governance" replace />} />
                 <Route path="/roadmap" element={<RoadmapPage />} />
                 <Route path="/bugs" element={<BugReportingPage />} />
-                <Route path="/manifesto" element={<ManifestoPage />} />
-                <Route path="/cooperative" element={<CooperativeVenturePage />} />
-                <Route path="/what-comes-next" element={<WhatComesNextPage />} />
-                <Route path="/revenue-models" element={<RevenueModelsPage />} />
-                <Route path="/credit-economy" element={<CreditEconomyPage />} />
-                <Route path="/use-cases" element={<UseCasesPage />} />
-                <Route path="/features" element={<ProductVisionPage />} />
+                <Route path="/manifesto" element={<Navigate to="/vision?tab=manifesto" replace />} />
+                <Route path="/cooperative" element={<Navigate to="/vision?tab=cooperative" replace />} />
+                <Route path="/what-comes-next" element={<Navigate to="/vision?tab=what-comes-next" replace />} />
+                <Route path="/revenue-models" element={<Navigate to="/ecosystem?tab=revenue" replace />} />
+                <Route path="/credit-economy" element={<Navigate to="/ecosystem?tab=credits" replace />} />
+                <Route path="/use-cases" element={<Navigate to="/vision?tab=use-cases" replace />} />
+                <Route path="/features" element={<Navigate to="/vision?tab=features" replace />} />
+                <Route path="/vision" element={<VisionHub />} />
+                <Route path="/ecosystem" element={<EcosystemHub />} />
+                <Route path="/legal" element={<LegalHub />} />
+                <Route path="/terms" element={<Navigate to="/legal?tab=terms" replace />} />
+                <Route path="/privacy" element={<Navigate to="/legal?tab=privacy" replace />} />
+                <Route path="/contact" element={<Navigate to="/legal?tab=contact" replace />} />
                 <Route path="/guides" element={<GuidesPage />} />
                 <Route path="/agents" element={<AgentsMarketplace />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
