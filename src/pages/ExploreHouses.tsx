@@ -27,6 +27,7 @@ interface TopicRow {
   id: string;
   name: string;
   slug: string;
+  universe_type?: string;
 }
 
 const PAGE_SIZE = 20;
@@ -39,7 +40,7 @@ function useAllTopics() {
     queryFn: async () => {
       const { data } = await supabase
         .from("topics")
-        .select("id, name, slug")
+        .select("id, name, slug, universe_type")
         .eq("is_deleted", false)
         .order("name");
       return (data ?? []) as TopicRow[];
@@ -321,13 +322,15 @@ export default function ExploreHouses({ bare }: Props) {
        <div>
          <div className="flex items-center justify-between mb-4">
            <div>
-             <h2 className="font-display text-xl font-semibold">
-               {effectiveUniverse === "creative" ? "Explore by Creative Topics" : effectiveUniverse === "impact" ? "Explore by Topics" : "Explore by Topics"}
-             </h2>
-             <p className="text-sm text-muted-foreground mt-1">
-               {effectiveUniverse === "creative"
-                 ? "Choose a creative realm to discover studios, ensembles, and projects"
-                 : "Choose a theme to discover quests, guilds, services, and events"}
+              <h2 className="font-display text-xl font-semibold">
+                {effectiveUniverse === "creative" ? "Explore by Houses" : effectiveUniverse === "impact" ? "Explore by Topics" : "Explore by Houses & Topics"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {effectiveUniverse === "creative"
+                  ? "Choose a creative House to discover studios, ensembles, and projects"
+                  : effectiveUniverse === "impact"
+                  ? "Choose a theme to discover quests, guilds, services, and events"
+                  : "Browse creative Houses and impact Topics together"}
              </p>
            </div>
            {selectedSlugs.length > 0 && (
@@ -342,10 +345,14 @@ export default function ExploreHouses({ bare }: Props) {
              {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
            </div>
          ) : (
-           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-             {(allTopics ?? []).map(t => {
-               const isSelected = selectedSlugs.includes(t.slug);
-               const houseDef = HOUSE_DEFINITIONS[t.slug];
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {(allTopics ?? []).filter(t => {
+                if (effectiveUniverse === "both") return true;
+                if (effectiveUniverse === "creative") return t.universe_type === "creative";
+                return t.universe_type === "impact";
+              }).map(t => {
+                const isSelected = selectedSlugs.includes(t.slug);
+                const houseDef = HOUSE_DEFINITIONS[t.slug];
                const icon = houseDef ? getHouseIcon(t.slug) : "🏠";
                const label = getTopicLabel(t);
 
@@ -410,13 +417,15 @@ export default function ExploreHouses({ bare }: Props) {
       {!hasSelection ? (
         <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
           <Boxes className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-          <p className="font-display font-semibold text-lg">Pick one or more Topics to explore</p>
+          <p className="font-display font-semibold text-lg">
+            {effectiveUniverse === "creative" ? "Pick one or more Houses to explore" : effectiveUniverse === "impact" ? "Pick one or more Topics to explore" : "Pick one or more Houses or Topics to explore"}
+          </p>
           <p className="text-sm text-muted-foreground mt-1">
             {effectiveUniverse === "creative"
-              ? "Topics are creative realms that group circles, creations, and collaborators."
+              ? "Houses are creative realms that group circles, creations, and collaborators."
               : effectiveUniverse === "impact"
               ? "Topics are thematic lenses that group missions, guilds, and services."
-              : "Topics are thematic lenses that group quests, guilds, users, and more."}
+              : "Houses and Topics are thematic lenses that group quests, guilds, users, and more."}
           </p>
         </div>
       ) : (
