@@ -75,7 +75,7 @@ function CreateQuestButton() {
   );
 }
 
-export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
+export default function QuestsMarketplace({ bare, statusFilter: externalStatusFilter }: { bare?: boolean; statusFilter?: string }) {
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hideCompleted, setHideCompleted] = useState(true);
 
@@ -92,12 +92,21 @@ export default function QuestsMarketplace({ bare }: { bare?: boolean }) {
     (q.quest_topics ?? []).map((qt: any) => qt.topic_id)
   );
 
+  const effectiveStatusFilter = externalStatusFilter || filters.status;
+
   const filtered = applySortBy(preFiltered.filter((q) => {
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
     if (hideCompleted && (q.status === "COMPLETED" || q.status === "CANCELLED")) return false;
+    const qStatus = q.status as string;
+    // When showing ideas specifically, only show IDEA status
+    if (externalStatusFilter === "IDEA" && qStatus !== "IDEA") return false;
+    // When showing open quests for Jobs subtab
+    if (externalStatusFilter === "OPEN_OR_PROPOSALS" && qStatus !== "OPEN" && qStatus !== "OPEN_FOR_PROPOSALS") return false;
+    // When NOT showing ideas, hide IDEA quests
+    if (!externalStatusFilter && qStatus === "IDEA") return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
-    if (filters.status !== "all" && q.status !== filters.status) return false;
+    if (effectiveStatusFilter !== "all" && !externalStatusFilter && qStatus !== effectiveStatusFilter) return false;
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     if (filters.questType !== "all" && (q as any).quest_type !== filters.questType) return false;
     return true;

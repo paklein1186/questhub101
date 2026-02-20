@@ -16,6 +16,7 @@ export enum GuildMemberRole {
 }
 
 export enum QuestStatus {
+  IDEA = "IDEA",
   DRAFT = "DRAFT",
   OPEN = "OPEN",
   OPEN_FOR_PROPOSALS = "OPEN_FOR_PROPOSALS",

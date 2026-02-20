@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -152,7 +152,7 @@ export default function ExploreHub() {
           <div className="flex justify-end mb-4">
             <Button size="sm" asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> {t("tabs.createQuest")}</Link></Button>
           </div>
-          <QuestsMarketplace bare />
+          <QuestsSubTabs />
         </TabsContent>
 
         <TabsContent value="services">
@@ -169,7 +169,7 @@ export default function ExploreHub() {
               </Button>
             </div>
           )}
-          <JobsExplore bare />
+          <JobsSubTabs />
           {!isGuest && <AddJobDialog open={jobDialogOpen} onOpenChange={setJobDialogOpen} />}
         </TabsContent>
         <TabsContent value="courses">
@@ -224,5 +224,43 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
       </div>
       {children}
     </Tabs>
+  );
+}
+
+function QuestsSubTabs() {
+  const [sub, setSub] = useState<"quests" | "ideas">("quests");
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>Quests</Button>
+        <Button variant={sub === "ideas" ? "default" : "outline"} size="sm" onClick={() => setSub("ideas")}>
+          <Lightbulb className="h-3.5 w-3.5 mr-1" /> Ideas
+        </Button>
+      </div>
+      {sub === "quests" && <QuestsMarketplace bare />}
+      {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
+    </div>
+  );
+}
+
+function JobsSubTabs() {
+  const [sub, setSub] = useState<"positions" | "quests" | "ideas">("positions");
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        <Button variant={sub === "positions" ? "default" : "outline"} size="sm" onClick={() => setSub("positions")}>
+          <Briefcase className="h-3.5 w-3.5 mr-1" /> Open Positions
+        </Button>
+        <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>
+          <Swords className="h-3.5 w-3.5 mr-1" /> Quests
+        </Button>
+        <Button variant={sub === "ideas" ? "default" : "outline"} size="sm" onClick={() => setSub("ideas")}>
+          <Lightbulb className="h-3.5 w-3.5 mr-1" /> Ideas
+        </Button>
+      </div>
+      {sub === "positions" && <JobsExplore bare />}
+      {sub === "quests" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
+      {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
+    </div>
   );
 }

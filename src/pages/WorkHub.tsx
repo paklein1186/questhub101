@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams, Link } from "react-router-dom";
-import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar } from "lucide-react";
+import { Briefcase, FileEdit, Plus, CalendarDays, MoreHorizontal, ListTodo, Calendar, Lightbulb } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -61,6 +61,8 @@ export default function WorkHub() {
   const { data: myCompanies } = useMyCompanyMemberships(currentUser.id || "");
 
   const questsList = myQuests || [];
+  const ideasList = questsList.filter((qp: any) => (qp.quests?.status as string) === "IDEA");
+  const nonIdeaQuests = questsList.filter((qp: any) => (qp.quests?.status as string) !== "IDEA");
   const podsList = myPods || [];
   const servicesList = myServices || [];
   const guildsList = myGuilds || [];
@@ -93,7 +95,8 @@ export default function WorkHub() {
         {(() => {
           const workTabs: TabDefinition[] = [
             { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.tasks")}</span></> },
-            { value: "quests", label: <><span className="hidden sm:inline">{t("work.myQuests")}</span><span className="sm:hidden">{t("explore.quests")}</span> ({questsList.length})</> },
+            { value: "quests", label: <><span className="hidden sm:inline">{t("work.myQuests")}</span><span className="sm:hidden">{t("explore.quests")}</span> ({nonIdeaQuests.length})</> },
+            { value: "ideas", label: <><Lightbulb className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Ideas</span> ({ideasList.length})</> },
             { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})</> },
             { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
             { value: "bookings", label: t("tabs.bookings") },
@@ -110,7 +113,7 @@ export default function WorkHub() {
 
         {/* ── Quests ── */}
         <TabsContent value="quests">
-          {questsList.length === 0 && (
+          {nonIdeaQuests.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Compass className="h-10 w-10 text-muted-foreground/40 mb-3" />
               <p className="text-muted-foreground mb-4">No quests yet. Start your first quest!</p>
@@ -118,7 +121,7 @@ export default function WorkHub() {
             </div>
           )}
           <div className="grid gap-3 md:grid-cols-2">
-            {questsList.map((qp: any, i: number) => (
+            {nonIdeaQuests.map((qp: any, i: number) => (
               <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <Link to={`/quests/${qp.quest_id}`} className="flex gap-3 rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
                   <Thumb src={qp.quests?.cover_image_url} fallback={questPattern} alt={qp.quests?.title || "Quest"} />
@@ -132,6 +135,35 @@ export default function WorkHub() {
                       <Badge variant="outline" className="text-[10px] capitalize">{qp.status.toLowerCase()}</Badge>
                       {qp.quests?.company_id && <Badge className="bg-accent text-accent-foreground border-0 text-[10px]"><Building2 className="h-2.5 w-2.5 mr-0.5" />Client</Badge>}
                     </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </TabsContent>
+
+        {/* ── Ideas ── */}
+        <TabsContent value="ideas">
+          {ideasList.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Lightbulb className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-muted-foreground mb-4">No ideas yet. Create a quest with "Idea" status to get started!</p>
+              <Button asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Idea</Link></Button>
+            </div>
+          )}
+          <div className="grid gap-3 md:grid-cols-2">
+            {ideasList.map((qp: any, i: number) => (
+              <motion.div key={qp.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                <Link to={`/quests/${qp.quest_id}`} className="flex gap-3 rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 hover:border-amber-400/50 transition-all">
+                  <Thumb src={qp.quests?.cover_image_url} fallback={questPattern} alt={qp.quests?.title || "Idea"} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-display font-semibold truncate">{qp.quests?.title}</h4>
+                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-400/30 shrink-0 gap-1">
+                        <Lightbulb className="h-2.5 w-2.5" /> Idea
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{qp.quests?.description}</p>
                   </div>
                 </Link>
               </motion.div>
