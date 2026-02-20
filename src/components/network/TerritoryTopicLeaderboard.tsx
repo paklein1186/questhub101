@@ -156,7 +156,7 @@ function TopicTile({ item, index }: { item: TopicLeaderboardItem; index: number 
       transition={{ delay: index * 0.04 }}
     >
       <Link
-        to={`/explore?topics=${item.slug}`}
+        to={`/topics/${item.slug}`}
         className="group block rounded-2xl border border-border bg-card p-4 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer"
       >
         <div className="flex items-start gap-3 mb-3">
