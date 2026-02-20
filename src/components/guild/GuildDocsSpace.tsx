@@ -5,11 +5,12 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, FileText, Pin, PinOff, Trash2, Pencil, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { NotionEditor } from "./NotionEditor";
+import { GoogleDriveEmbed } from "./GoogleDriveEmbed";
 
 interface GuildDocsSpaceProps {
   guildId: string;
@@ -31,6 +32,35 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
+  // Google Drive URL stored as guild metadata
+  const { data: driveUrl = "" } = useQuery({
+    queryKey: ["guild-drive-url", guildId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guilds")
+        .select("features_config")
+        .eq("id", guildId)
+        .single();
+      const cfg = (data?.features_config as any) || {};
+      return (cfg.drive_folder_url as string) || "";
+    },
+    enabled: isMember,
+  });
+
+  const updateDriveUrl = async (url: string) => {
+    const { data: guild } = await supabase
+      .from("guilds")
+      .select("features_config")
+      .eq("id", guildId)
+      .single();
+    const cfg = ((guild?.features_config as any) || {});
+    await supabase
+      .from("guilds")
+      .update({ features_config: { ...cfg, drive_folder_url: url } } as any)
+      .eq("id", guildId);
+    qc.invalidateQueries({ queryKey: ["guild-drive-url", guildId] });
+  };
+
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["guild-docs", guildId],
     queryFn: async () => {
@@ -41,7 +71,6 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         .order("is_pinned", { ascending: false })
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      // Fetch author profiles
       const userIds = [...new Set((data || []).map((d: any) => d.created_by_user_id))];
       let profileMap = new Map();
       if (userIds.length > 0) {
@@ -141,23 +170,17 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         <p className="text-xs text-muted-foreground">
           By {viewingDoc.author?.name} · Updated {formatDistanceToNow(new Date(viewingDoc.updated_at), { addSuffix: true })}
         </p>
+
         {editing ? (
           <div className="space-y-3">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="min-h-[300px] font-mono text-sm resize-y"
-              placeholder="Write your document content in markdown…"
-            />
+            <NotionEditor content={editContent} onChange={setEditContent} editable placeholder="Write your document…" />
             <div className="flex gap-2">
               <Button onClick={saveEdit}>Save</Button>
               <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
             </div>
           </div>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-border bg-card p-4 min-h-[200px] whitespace-pre-wrap">
-            {viewingDoc.content || <span className="text-muted-foreground italic">No content yet.</span>}
-          </div>
+          <NotionEditor content={viewingDoc.content || ""} onChange={() => {}} editable={false} />
         )}
       </div>
     );
@@ -165,56 +188,58 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
 
   // Docs list view
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-display font-semibold">Documents ({docs.length})</h3>
-        {isMember && (
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-1" /> New Document
-          </Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      {/* Google Drive embed */}
+      <GoogleDriveEmbed driveUrl={driveUrl} onUrlChange={updateDriveUrl} canEdit={isAdmin} />
 
-      <div className="space-y-2">
-        {docs.map((doc: any) => (
-          <div
-            key={doc.id}
-            onClick={() => openDoc(doc)}
-            className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all cursor-pointer"
-          >
-            <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                {doc.is_pinned && <Pin className="h-3 w-3 text-primary shrink-0" />}
-                <p className="text-sm font-medium truncate">{doc.title}</p>
+      {/* Wiki documents */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display font-semibold">Wiki ({docs.length})</h3>
+          {isMember && (
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> New Page
+            </Button>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          {docs.map((doc: any) => (
+            <div
+              key={doc.id}
+              onClick={() => openDoc(doc)}
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all cursor-pointer"
+            >
+              <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {doc.is_pinned && <Pin className="h-3 w-3 text-primary shrink-0" />}
+                  <p className="text-sm font-medium truncate">{doc.title}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  By {doc.author?.name} · {formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true })}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                By {doc.author?.name} · {formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true })}
-              </p>
             </div>
-          </div>
-        ))}
-        {docs.length === 0 && <p className="text-muted-foreground text-sm">No documents yet. Create the first one!</p>}
+          ))}
+          {docs.length === 0 && <p className="text-muted-foreground text-sm">No pages yet. Create the first one!</p>}
+        </div>
       </div>
 
+      {/* Create doc dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>New Document</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>New Page</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
               <label className="text-sm font-medium mb-1 block">Title</label>
-              <Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="Document title" maxLength={200} />
+              <Input value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="Page title" maxLength={200} />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Content (markdown)</label>
-              <Textarea
-                value={docContent}
-                onChange={(e) => setDocContent(e.target.value)}
-                className="min-h-[200px] font-mono text-sm resize-y"
-                placeholder="Start writing…"
-              />
+              <label className="text-sm font-medium mb-1 block">Content</label>
+              <NotionEditor content={docContent} onChange={setDocContent} editable placeholder="Start writing…" />
             </div>
-            <Button onClick={createDoc} disabled={!docTitle.trim()} className="w-full">Create Document</Button>
+            <Button onClick={createDoc} disabled={!docTitle.trim()} className="w-full">Create Page</Button>
           </div>
         </DialogContent>
       </Dialog>
