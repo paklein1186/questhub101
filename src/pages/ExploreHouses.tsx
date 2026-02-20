@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
-import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase, ExternalLink } from "lucide-react";
+import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase, ExternalLink, Sparkles, MapPin } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/PageShell";
@@ -46,6 +46,30 @@ function useAllTopics() {
       return (data ?? []) as TopicRow[];
     },
     staleTime: 300_000,
+  });
+}
+
+/** Per-topic stats for card display */
+function usePerTopicStats(topicIds: string[]) {
+  return useQuery({
+    queryKey: ["houses-per-topic-stats", topicIds],
+    enabled: topicIds.length > 0,
+    queryFn: async () => {
+      const [userRows, questRows, guildRows, companyRows] = await Promise.all([
+        supabase.from("user_topics").select("topic_id").in("topic_id", topicIds),
+        supabase.from("quest_topics").select("topic_id").in("topic_id", topicIds),
+        supabase.from("guild_topics").select("topic_id").in("topic_id", topicIds),
+        supabase.from("company_topics").select("topic_id").in("topic_id", topicIds),
+      ]);
+      const counts: Record<string, { users: number; quests: number; guilds: number; companies: number }> = {};
+      topicIds.forEach(id => { counts[id] = { users: 0, quests: 0, guilds: 0, companies: 0 }; });
+      (userRows.data ?? []).forEach((r: any) => { if (counts[r.topic_id]) counts[r.topic_id].users++; });
+      (questRows.data ?? []).forEach((r: any) => { if (counts[r.topic_id]) counts[r.topic_id].quests++; });
+      (guildRows.data ?? []).forEach((r: any) => { if (counts[r.topic_id]) counts[r.topic_id].guilds++; });
+      (companyRows.data ?? []).forEach((r: any) => { if (counts[r.topic_id]) counts[r.topic_id].companies++; });
+      return counts;
+    },
+    staleTime: 120_000,
   });
 }
 
@@ -292,6 +316,10 @@ export default function ExploreHouses({ bare }: Props) {
     navigate(`/explore?tab=quests&houses=${slug}`);
   };
 
+  // All topic IDs for per-card stats
+  const allTopicIds = useMemo(() => (allTopics ?? []).map(t => t.id), [allTopics]);
+  const { data: perTopicStats } = usePerTopicStats(allTopicIds);
+
   // Data hooks
   const { data: stats } = useTopicStats(selectedIds);
   const { data: quests, isLoading: questsLoading } = useFilteredQuests(selectedIds, matchAll);
@@ -340,37 +368,71 @@ export default function ExploreHouses({ bare }: Props) {
            )}
          </div>
 
-         {topicsLoading ? (
-           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-             {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
-           </div>
-         ) : (
-            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {(allTopics ?? []).filter(t => {
-                if (effectiveUniverse === "both") return true;
-                if (effectiveUniverse === "creative") return t.universe_type === "creative";
-                return t.universe_type === "impact";
-              }).map(t => {
-                const isSelected = selectedSlugs.includes(t.slug);
-                const houseDef = HOUSE_DEFINITIONS[t.slug];
-               const icon = houseDef ? getHouseIcon(t.slug) : "🏠";
-               const label = getTopicLabel(t);
+          {topicsLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-36 rounded-xl" />)}
+            </div>
+          ) : (
+             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+               {(allTopics ?? []).filter(t => {
+                 if (effectiveUniverse === "both") return true;
+                 if (effectiveUniverse === "creative") return t.universe_type === "creative";
+                 return t.universe_type === "impact";
+               }).map(t => {
+                 const houseDef = HOUSE_DEFINITIONS[t.slug];
+                 const icon = houseDef ? getHouseIcon(t.slug) : "🏷️";
+                 const label = getTopicLabel(t);
+                 const s = perTopicStats?.[t.id] ?? { users: 0, quests: 0, guilds: 0, companies: 0 };
+                 const totalEntities = s.guilds + s.companies;
+                 const isHouse = t.universe_type === "creative";
 
                  return (
                    <Link
                      key={t.id}
                      to={`/topics/${t.slug}`}
-                     className={`group relative px-3 py-2 rounded-lg border transition-all duration-150 text-sm font-medium flex items-center gap-2 justify-center hover:shadow-sm border-border bg-card text-foreground hover:border-primary/30 hover:bg-accent/50`}
+                     className="group rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-md transition-all"
                    >
-                     <span className="text-base shrink-0">{icon}</span>
-                     <span className="truncate">{label}</span>
-                     <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                     <div className="flex items-start gap-3 mb-3">
+                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl shrink-0">
+                         {icon}
+                       </div>
+                       <div className="min-w-0">
+                         <h3 className="font-display font-semibold text-base truncate group-hover:text-primary transition-colors">{label}</h3>
+                         <p className="text-xs text-muted-foreground flex items-center gap-1">
+                           {isHouse ? <Sparkles className="h-3 w-3" /> : <Hash className="h-3 w-3" />}
+                           {isHouse ? "House" : "Topic"}
+                         </p>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-3 mb-3">
+                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                         <Compass className="h-3.5 w-3.5 text-primary" /> {s.quests}
+                       </span>
+                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                         <Users className="h-3.5 w-3.5 text-primary" /> {s.users}
+                       </span>
+                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                         <Building2 className="h-3.5 w-3.5 text-primary" /> {totalEntities}
+                       </span>
+                     </div>
+                     {(s.quests > 0 || s.users > 0) && (
+                       <p className="text-xs text-muted-foreground flex items-start gap-1">
+                         <Sparkles className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                         <span>
+                           {s.quests > 0 ? `${s.quests} active quest${s.quests !== 1 ? "s" : ""}` : ""}
+                           {s.quests > 0 && totalEntities > 0 ? ", " : ""}
+                           {totalEntities > 0 ? `${totalEntities} entit${totalEntities !== 1 ? "ies" : "y"}` : ""}
+                           {(s.quests > 0 || totalEntities > 0) && s.users > 0 ? ", " : ""}
+                           {s.users > 0 ? `${s.users} people` : ""}
+                         </span>
+                       </p>
+                     )}
                    </Link>
                  );
-             })}
-           </div>
-         )}
-       </div>
+               })}
+             </div>
+          )}
+        </div>
 
       {/* Selected chips + mode toggle */}
       {selectedSlugs.length > 0 && (
