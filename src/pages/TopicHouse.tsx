@@ -1,239 +1,129 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Hash, Star, Users, Shield, Compass, Zap, Crown, Plus, X, Brain, BookOpen } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PageShell } from "@/components/PageShell";
-import { CommentThread } from "@/components/CommentThread";
-import { TerritoryIntelligencePanel } from "@/components/TerritoryIntelligencePanel";
-import { TerritoryMemoryTab } from "@/components/territory/TerritoryMemoryTab";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Hash, Sparkles, ArrowLeft, Heart, Compass, Shield } from "lucide-react";
+import { useTopicBySlug, useQuestsForTopic, useGuildsForTopic } from "@/hooks/useEntityQueries";
+import { TopicOverviewTab } from "@/components/topic/TopicOverviewTab";
+import { TopicEcosystemTab } from "@/components/topic/TopicEcosystemTab";
+import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useFollow } from "@/hooks/useFollow";
 import { usePersona } from "@/hooks/usePersona";
-import { useToast } from "@/hooks/use-toast";
-import { CommentTargetType } from "@/types/enums";
-import { useTopicBySlug, useTopicStewards, useTopicFeatures, useQuestsForTopic, useGuildsForTopic } from "@/hooks/useEntityQueries";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { useQuery } from "@tanstack/react-query";
+import { FollowTargetType } from "@/types/enums";
+import { cn } from "@/lib/utils";
 
 export default function TopicHouse() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "overview";
   const { data: topic, isLoading } = useTopicBySlug(slug);
-  const { data: stewards } = useTopicStewards(topic?.id);
-  const { data: features } = useTopicFeatures(topic?.id);
   const { data: topicQuests } = useQuestsForTopic(topic?.id);
   const { data: topicGuilds } = useGuildsForTopic(topic?.id);
   const currentUser = useCurrentUser();
   const { persona } = usePersona();
-  const { toast } = useToast();
-  const qc = useQueryClient();
-  const [featureQuestId, setFeatureQuestId] = useState("");
-  const [featureGuildId, setFeatureGuildId] = useState("");
+  const { isFollowing, toggle: toggleFollow, isLoading: followLoading } = useFollow(
+    FollowTargetType.TOPIC,
+    topic?.id ?? ""
+  );
 
-  const isLoggedIn = !!currentUser.id;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
-  // Check if user is a territory member
-  const { data: isMember = false } = useQuery({
-    queryKey: ["user-territory-member", topic?.id, currentUser.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_territories")
-        .select("id")
-        .eq("territory_id", topic!.id)
-        .eq("user_id", currentUser.id)
-        .limit(1);
-      return (data?.length ?? 0) > 0;
-    },
-    enabled: !!topic?.id && isLoggedIn,
-  });
+  if (!topic) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Hash className="h-10 w-10 text-muted-foreground" />
+        <p className="text-muted-foreground">Topic not found</p>
+        <Link to="/explore" className="text-sm text-primary hover:underline">← Back to Explore</Link>
+      </div>
+    );
+  }
 
-  if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
-  if (!topic) return <PageShell><p>Topic not found.</p></PageShell>;
+  const isCreativeUniverse = persona === "CREATIVE";
+  const TopicIcon = isCreativeUniverse ? Sparkles : Hash;
+  const typeLabel = isCreativeUniverse ? "House" : "Topic";
 
-  const isSteward = (stewards || []).some((s: any) => s.user_id === currentUser.id);
-  const allFeatures = features || [];
-  const quests = (topicQuests || []) as any[];
-  const guilds = (topicGuilds || []) as any[];
+  const quests = (topicQuests || []).filter((q: any) => !q.is_draft);
+  const guilds = (topicGuilds || []).filter((g: any) => !g.is_draft);
 
-  const featuredQuestIds = allFeatures.filter(f => f.target_type === "QUEST").map(f => f.target_id);
-  const featuredGuildIds = allFeatures.filter(f => f.target_type === "GUILD").map(f => f.target_id);
-  const featuredQuests = quests.filter(q => featuredQuestIds.includes(q.id));
-  const featuredGuilds = guilds.filter(g => featuredGuildIds.includes(g.id));
-  const unfeaturedQuests = quests.filter(q => !featuredQuestIds.includes(q.id) && !q.is_draft);
-  const unfeaturedGuilds = guilds.filter(g => !featuredGuildIds.includes(g.id) && !g.is_draft);
-
-  const addFeature = async (targetType: string, targetId: string) => {
-    if (!targetId) return;
-    await supabase.from("topic_features").insert({ topic_id: topic.id, target_type: targetType, target_id: targetId, added_by_user_id: currentUser.id });
-    qc.invalidateQueries({ queryKey: ["topic-features", topic.id] });
-    setFeatureQuestId(""); setFeatureGuildId("");
-    toast({ title: "Featured!" });
+  const setTab = (t: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (t === "overview") next.delete("tab"); else next.set("tab", t);
+      return next;
+    }, { replace: true });
   };
-
-  const removeFeature = async (featureId: string) => {
-    toast({ title: "Removed from featured" });
-  };
-
-  // Persona-adaptive tab label
-  const memoryTabLabel = persona === "CREATIVE" ? "Lore" : persona === "IMPACT" ? "Intelligence" : "Knowledge";
 
   return (
-    <PageShell>
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Back
-      </Button>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        {/* Back link */}
+        <button
+          onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
+        </button>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-2">
-          <Hash className="h-7 w-7 text-primary" /> {topic.name}
-          <Badge variant="secondary" className="ml-2">House</Badge>
-        </h1>
-
-        <div className="mt-4">
-          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5 mb-2"><Crown className="h-4 w-4" /> Stewards & Curators</h3>
-          <div className="flex flex-wrap gap-3">
-            {(stewards || []).map((s: any) => (
-              <Link key={s.id} to={`/users/${s.user_id}`} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 hover:border-primary/30 transition-all">
-                <Avatar className="h-7 w-7"><AvatarImage src={s.user?.avatar_url} /><AvatarFallback>{s.user?.name?.[0]}</AvatarFallback></Avatar>
-                <span className="text-sm font-medium">{s.user?.name}</span>
-                <Badge variant="outline" className="text-[10px] capitalize">{s.role.toLowerCase()}</Badge>
-              </Link>
-            ))}
-            {(stewards || []).length === 0 && <p className="text-sm text-muted-foreground">No stewards assigned yet.</p>}
+        {/* Header */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <TopicIcon className="h-6 w-6 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-display font-bold text-foreground">{topic.name}</h1>
+                <Badge variant="secondary" className="text-xs">{typeLabel}</Badge>
+              </div>
+              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                {quests.length > 0 && (
+                  <span className="flex items-center gap-1"><Compass className="h-3 w-3" /> {quests.length} quests</span>
+                )}
+                {guilds.length > 0 && (
+                  <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> {guilds.length} guilds</span>
+                )}
+              </div>
+            </div>
+            <div className="ml-auto shrink-0 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={isFollowing ? "secondary" : "default"}
+                onClick={toggleFollow}
+                disabled={followLoading || !topic.id}
+                className="gap-1.5"
+              >
+                <Heart className={cn("h-3.5 w-3.5", isFollowing && "fill-current")} />
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+              <ShareLinkButton entityType="topic" entityId={topic.slug || topic.id} entityName={topic.name} />
+            </div>
           </div>
         </div>
-      </motion.div>
 
-      <Tabs defaultValue="featured">
-        <TabsList>
-          <TabsTrigger value="featured"><Star className="h-3.5 w-3.5 mr-1" /> Featured ({featuredQuests.length + featuredGuilds.length})</TabsTrigger>
-          <TabsTrigger value="quests"><Compass className="h-3.5 w-3.5 mr-1" /> Quests ({quests.length})</TabsTrigger>
-          <TabsTrigger value="guilds"><Shield className="h-3.5 w-3.5 mr-1" /> Guilds ({guilds.length})</TabsTrigger>
-          <TabsTrigger value="memory"><BookOpen className="h-3.5 w-3.5 mr-1" /> {memoryTabLabel}</TabsTrigger>
-          <TabsTrigger value="intelligence"><Brain className="h-3.5 w-3.5 mr-1" /> AI Analysis</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
-        </TabsList>
+        {/* Tabs */}
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="featured" className="mt-6 space-y-6">
-          <h3 className="font-display font-semibold text-lg">Featured in this House</h3>
-          {featuredQuests.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Compass className="h-3.5 w-3.5" /> Featured Quests</h4>
-              <div className="grid gap-3 md:grid-cols-2">
-                {featuredQuests.map((quest: any) => (
-                  <div key={quest.id} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
-                    <Link to={`/quests/${quest.id}`} className="flex-1 hover:text-primary transition-colors">
-                      <h4 className="font-display font-semibold">{quest.title}</h4>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{quest.description}</p>
-                      <span className="flex items-center gap-1 text-xs font-semibold text-primary mt-1"><Zap className="h-3 w-3" /> {quest.reward_xp} XP</span>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {featuredGuilds.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1"><Shield className="h-3.5 w-3.5" /> Featured Guilds</h4>
-              <div className="grid gap-3 md:grid-cols-2">
-                {featuredGuilds.map((guild: any) => (
-                  <div key={guild.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                    <Link to={`/guilds/${guild.id}`} className="flex items-center gap-3 flex-1 hover:text-primary transition-colors">
-                      {guild.logo_url && <img src={guild.logo_url} className="h-10 w-10 rounded-lg" alt="" />}
-                      <div><h4 className="font-display font-semibold">{guild.name}</h4><p className="text-sm text-muted-foreground line-clamp-1">{guild.description}</p></div>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {featuredQuests.length === 0 && featuredGuilds.length === 0 && <p className="text-muted-foreground py-6 text-center">No featured items in this House yet.</p>}
-          {isSteward && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-4">
-              <h4 className="font-display font-semibold flex items-center gap-2"><Crown className="h-4 w-4 text-primary" /> Curation Actions</h4>
-              {unfeaturedQuests.length > 0 && (
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="text-sm font-medium mb-1 block">Feature a Quest</label>
-                    <Select value={featureQuestId} onValueChange={setFeatureQuestId}>
-                      <SelectTrigger><SelectValue placeholder="Select quest" /></SelectTrigger>
-                      <SelectContent>{unfeaturedQuests.map((q: any) => <SelectItem key={q.id} value={q.id}>{q.title}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <Button size="sm" onClick={() => addFeature("QUEST", featureQuestId)} disabled={!featureQuestId}><Plus className="h-4 w-4 mr-1" /> Feature</Button>
-                </div>
-              )}
-              {unfeaturedGuilds.length > 0 && (
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="text-sm font-medium mb-1 block">Feature a Guild</label>
-                    <Select value={featureGuildId} onValueChange={setFeatureGuildId}>
-                      <SelectTrigger><SelectValue placeholder="Select guild" /></SelectTrigger>
-                      <SelectContent>{unfeaturedGuilds.map((g: any) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                  <Button size="sm" onClick={() => addFeature("GUILD", featureGuildId)} disabled={!featureGuildId}><Plus className="h-4 w-4 mr-1" /> Feature</Button>
-                </div>
-              )}
-            </div>
-          )}
-        </TabsContent>
+          <TabsContent value="overview" className="mt-6">
+            <TopicOverviewTab topicId={topic.id} topicName={topic.name} />
+          </TabsContent>
 
-        <TabsContent value="quests" className="mt-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            {quests.filter((q: any) => !q.is_draft).map((quest: any) => (
-              <Link key={quest.id} to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-display font-semibold">{quest.title}</h4>
-                  <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-3.5 w-3.5" /> {quest.reward_xp}</span>
-                </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>
-                <div className="flex gap-1.5 mt-2">
-                  {featuredQuestIds.includes(quest.id) && <Badge className="bg-warning/10 text-warning border-0 text-[10px]"><Star className="h-2.5 w-2.5 mr-0.5" />House featured</Badge>}
-                  <Badge variant="outline" className="text-[10px] capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
-                </div>
-              </Link>
-            ))}
-            {quests.length === 0 && <p className="col-span-full text-center text-muted-foreground py-8">No quests in this topic.</p>}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="guilds" className="mt-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            {guilds.filter((g: any) => !g.is_draft).map((guild: any) => (
-              <Link key={guild.id} to={`/guilds/${guild.id}`} className="block rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-3">
-                  {guild.logo_url && <img src={guild.logo_url} className="h-10 w-10 rounded-lg" alt="" />}
-                  <div><h4 className="font-display font-semibold">{guild.name}</h4><p className="text-sm text-muted-foreground line-clamp-1">{guild.description}</p></div>
-                </div>
-                {featuredGuildIds.includes(guild.id) && <Badge className="bg-warning/10 text-warning border-0 text-[10px] mt-2"><Star className="h-2.5 w-2.5 mr-0.5" />House featured</Badge>}
-              </Link>
-            ))}
-            {guilds.length === 0 && <p className="col-span-full text-center text-muted-foreground py-8">No guilds in this topic.</p>}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="memory" className="mt-6">
-          <TerritoryMemoryTab
-            territoryId={topic.id}
-            territoryName={topic.name}
-            isMember={isMember || isSteward}
-          />
-        </TabsContent>
-
-        <TabsContent value="intelligence" className="mt-6">
-          <TerritoryIntelligencePanel territoryId={topic.id} territoryName={topic.name} />
-        </TabsContent>
-
-        <TabsContent value="discussion" className="mt-6">
-          <CommentThread targetType={CommentTargetType.GUILD} targetId={topic.id} />
-        </TabsContent>
-      </Tabs>
-    </PageShell>
+          <TabsContent value="ecosystem" className="mt-6">
+            <TopicEcosystemTab topicId={topic.id} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 }
