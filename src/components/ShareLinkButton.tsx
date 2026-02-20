@@ -23,7 +23,7 @@ export function ShareLinkButton({ entityType, entityId, entityName, size = "sm",
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(ogUrl);
+      await navigator.clipboard.writeText(displayUrl);
       setCopied(true);
       toast({ title: "Link copied!", description: entityName ? `Share "${entityName}" with anyone.` : "Share this link with anyone." });
       setTimeout(() => setCopied(false), 2000);
