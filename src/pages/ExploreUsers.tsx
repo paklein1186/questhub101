@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").then(m => ({ default: m.ExploreUsersMap })));
+import type { MapUserEntry } from "@/components/explore/ExploreUsersMap";
 import { PageShell } from "@/components/PageShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -176,6 +177,103 @@ function useExploreUsers(filters: {
   });
 }
 
+// Territory level priority — lower index = more local
+const LEVEL_PRIORITY: Record<string, number> = {
+  TOWN: 0, LOCALITY: 1, PROVINCE: 2, REGION: 3, NATIONAL: 4, OTHER: 5, CONTINENT: 6, GLOBAL: 7,
+};
+
+/** Fetch ALL users with their lowest-level territories for the map (unpaginated). */
+function useExploreUsersMap(filters: {
+  search: string;
+  role: string;
+  topicIds: string[];
+  territoryIds: string[];
+}, enabled: boolean) {
+  return useQuery({
+    queryKey: ["explore-users-map", filters],
+    enabled,
+    queryFn: async (): Promise<MapUserEntry[]> => {
+      let topicUserIds: string[] | null = null;
+      let territoryUserIds: string[] | null = null;
+
+      if (filters.topicIds.length > 0) {
+        const { data } = await supabase.from("user_topics").select("user_id").in("topic_id", filters.topicIds);
+        topicUserIds = [...new Set((data ?? []).map(d => d.user_id))];
+        if (topicUserIds.length === 0) return [];
+      }
+      if (filters.territoryIds.length > 0) {
+        const { data } = await supabase.from("user_territories").select("user_id").in("territory_id", filters.territoryIds);
+        territoryUserIds = [...new Set((data ?? []).map(d => d.user_id))];
+        if (territoryUserIds.length === 0) return [];
+      }
+
+      let allowedUserIds: string[] | null = null;
+      if (topicUserIds && territoryUserIds) {
+        const set = new Set(territoryUserIds);
+        allowedUserIds = topicUserIds.filter(id => set.has(id));
+        if (allowedUserIds.length === 0) return [];
+      } else {
+        allowedUserIds = topicUserIds ?? territoryUserIds;
+      }
+
+      let query = supabase.from("profiles_public").select("user_id, name, avatar_url, headline, role").not("name", "is", null);
+      if (filters.search.trim()) {
+        const s = `%${filters.search.trim()}%`;
+        query = query.or(`name.ilike.${s},headline.ilike.${s}`);
+      }
+      if (filters.role && filters.role !== "all") query = query.eq("role", filters.role);
+      if (allowedUserIds) query = query.in("user_id", allowedUserIds);
+      query = query.limit(1000);
+
+      const { data: profiles } = await query;
+      if (!profiles || profiles.length === 0) return [];
+
+      const userIds = profiles.map(p => p.user_id).filter(Boolean) as string[];
+
+      const { data: utRows } = await supabase
+        .from("user_territories")
+        .select("user_id, territory_id, territories(id, name, latitude, longitude, level)")
+        .in("user_id", userIds);
+
+      // Group territories per user
+      const userTerritories: Record<string, { name: string; lat: number; lng: number; level: string }[]> = {};
+      for (const row of (utRows ?? []) as any[]) {
+        const t = row.territories;
+        if (!t || t.latitude == null || t.longitude == null) continue;
+        const uid = row.user_id as string;
+        if (!userTerritories[uid]) userTerritories[uid] = [];
+        userTerritories[uid].push({ name: t.name, lat: t.latitude, lng: t.longitude, level: t.level ?? "OTHER" });
+      }
+
+      // For each user, keep only the lowest-level territories
+      const profileMap: Record<string, typeof profiles[0]> = {};
+      for (const p of profiles) if (p.user_id) profileMap[p.user_id] = p;
+
+      const entries: MapUserEntry[] = [];
+      for (const [uid, terrs] of Object.entries(userTerritories)) {
+        const minPriority = Math.min(...terrs.map(t => LEVEL_PRIORITY[t.level] ?? 5));
+        const lowest = terrs.filter(t => (LEVEL_PRIORITY[t.level] ?? 5) === minPriority);
+        const profile = profileMap[uid];
+        if (!profile) continue;
+        for (const t of lowest) {
+          entries.push({
+            user_id: uid,
+            name: profile.name ?? "Unknown",
+            avatar_url: profile.avatar_url ?? null,
+            headline: profile.headline ?? null,
+            territory_name: t.name,
+            lat: t.lat,
+            lng: t.lng,
+          });
+        }
+      }
+
+      return entries;
+    },
+    staleTime: 60_000,
+  });
+}
+
 // ─── Component ───────────────────────────────────────────────
 
 export default function ExploreUsers({ bare }: { bare?: boolean }) {
@@ -205,6 +303,14 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
     sort,
     page,
   });
+
+  // Map data — all users, lowest-level territories, only fetched when map is active
+  const { data: mapEntries, isLoading: mapLoading } = useExploreUsersMap({
+    search,
+    role: filters.role,
+    topicIds: effectiveTopicIds,
+    territoryIds: filters.territoryIds,
+  }, viewMode === "map");
 
   const users = data?.users ?? [];
   const total = data?.total ?? 0;
@@ -265,27 +371,27 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
         {isLoading ? "Loading…" : `${total} user${total !== 1 ? "s" : ""} found`}
       </p>
 
-      {isLoading ? (
+      {isLoading || (viewMode === "map" && mapLoading) ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 rounded-xl" />
+            <Skeleton key={i} className={viewMode === "map" ? "h-[500px] rounded-xl col-span-full" : "h-48 rounded-xl"} />
           ))}
         </div>
+      ) : viewMode === "map" ? (
+        <Suspense fallback={<Skeleton className="h-[500px] rounded-xl" />}>
+          <ExploreUsersMap entries={mapEntries ?? []} isLoggedIn={isLoggedIn} />
+        </Suspense>
       ) : users.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <Users className="h-10 w-10 mx-auto mb-3 opacity-40" />
           <p className="font-medium">No humans found</p>
           <p className="text-sm mt-1">Try adjusting your filters or search query.</p>
         </div>
-      ) : viewMode === "map" ? (
-        <Suspense fallback={<Skeleton className="h-[500px] rounded-xl" />}>
-          <ExploreUsersMap users={users} isLoggedIn={isLoggedIn} />
-        </Suspense>
       ) : (
         <UserCardGrid users={users} isLoggedIn={isLoggedIn} />
       )}
 
-      {totalPages > 1 && (
+      {viewMode === "grid" && totalPages > 1 && (
         <div className="flex justify-center gap-2 pt-4">
           <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</Button>
           <span className="flex items-center text-sm text-muted-foreground px-3">Page {page + 1} of {totalPages}</span>
