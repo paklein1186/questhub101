@@ -76,23 +76,52 @@ async function getValidToken(supabase: any, conn: any): Promise<string | null> {
 }
 
 async function fetchGoogleEvents(accessToken: string, timeMin: string, timeMax: string) {
-  const params = new URLSearchParams({
-    timeMin, timeMax,
-    singleEvents: "true",
-    orderBy: "startTime",
-    maxResults: "250",
-  });
-  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, {
+  // First, list all calendars the user has access to
+  const calListRes = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!res.ok) throw new Error(`Google API error: ${res.status}`);
-  const data = await res.json();
-  return (data.items || []).map((e: any) => ({
-    externalId: e.id,
-    summary: e.summary || "(No title)",
-    startAt: e.start?.dateTime || e.start?.date,
-    endAt: e.end?.dateTime || e.end?.date,
-  }));
+  
+  let calendarIds: string[] = ["primary"];
+  if (calListRes.ok) {
+    const calListData = await calListRes.json();
+    calendarIds = (calListData.items || [])
+      .filter((cal: any) => !cal.deleted && cal.selected !== false)
+      .map((cal: any) => cal.id);
+    if (calendarIds.length === 0) calendarIds = ["primary"];
+  }
+
+  const allEvents: any[] = [];
+
+  for (const calId of calendarIds) {
+    try {
+      const params = new URLSearchParams({
+        timeMin, timeMax,
+        singleEvents: "true",
+        orderBy: "startTime",
+        maxResults: "250",
+      });
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?${params}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!res.ok) {
+        console.warn(`Google calendar ${calId} returned ${res.status}, skipping`);
+        continue;
+      }
+      const data = await res.json();
+      for (const e of (data.items || [])) {
+        allEvents.push({
+          externalId: `${calId}::${e.id}`,
+          summary: e.summary || "(No title)",
+          startAt: e.start?.dateTime || e.start?.date,
+          endAt: e.end?.dateTime || e.end?.date,
+        });
+      }
+    } catch (err) {
+      console.warn(`Error fetching calendar ${calId}:`, err);
+    }
+  }
+
+  return allEvents;
 }
 
 async function fetchOutlookEvents(accessToken: string, timeMin: string, timeMax: string) {
