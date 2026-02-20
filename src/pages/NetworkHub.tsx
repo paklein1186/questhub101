@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -10,6 +10,7 @@ import {
 import { useTabOrder } from "@/hooks/useTabOrder";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ExploreHouses from "./ExploreHouses";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +62,11 @@ function SectionHeader({ icon: Icon, title, count, seeMoreTo }: { icon: any; tit
   );
 }
 
-const NETWORK_DEFAULT_TABS = ["activity", "dashboard", "following", "overview", "people", "entities", "territories", "leaderboard"];
+const NETWORK_DEFAULT_TABS = ["activity", "dashboard", "following", "overview", "people", "entities", "territories", "houses", "leaderboard"];
 
-function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser }: any) {
+function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeople, loadingGuilds, loadingPods, loadingCompanies, overviewSections, guildMemberships, companyMemberships, podMemberships, myTerritories, myTopics, territoryActivity, label, entitySub, setEntitySub, currentUser, persona }: any) {
   const { orderedTabs, saveOrder, resetOrder, isCustomized } = useTabOrder("network_hub", NETWORK_DEFAULT_TABS);
+  const isCreativeOrHybrid = persona === "CREATIVE" || persona === "HYBRID";
 
   const { t } = useTranslation();
   const tabDefs: TabDefinition[] = [
@@ -75,6 +77,7 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
     { value: "people", label: <><Users className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.people")} ({people.length})</span><span className="sm:hidden">{people.length}</span></> },
     { value: "entities", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.entities")} ({totalEntities})</span><span className="sm:hidden">{totalEntities}</span></> },
     { value: "territories", label: <><MapPin className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.territoriesAndTopics")}</span><span className="sm:hidden">{t("tabs.areas")}</span></> },
+    { value: "houses", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Houses</span></>, visible: isCreativeOrHybrid },
     { value: "leaderboard", label: <><Trophy className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.leaderboard")}</span></> },
   ];
 
@@ -144,6 +147,10 @@ function NetworkTabs({ tab, setTab, people, totalEntities, isLoading, loadingPeo
 
       <TabsContent value="territories" className="mt-0">
         <TerritoryTopicLeaderboard />
+      </TabsContent>
+
+      <TabsContent value="houses" className="mt-0">
+        <ExploreHouses bare />
       </TabsContent>
 
       <TabsContent value="activity" className="mt-0">
@@ -219,6 +226,7 @@ export default function NetworkHub() {
         entitySub={entitySub}
         setEntitySub={setEntitySub}
         currentUser={currentUser}
+        persona={persona}
       />
     </PageShell>
   );
@@ -300,7 +308,7 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
            {topics.length > 0 && (
              <div className="flex flex-wrap gap-1.5">
                {topics.map((t: any) => (
-                  <Link key={t.id} to={`/explore?tab=houses&houses=${t.slug || t.id}`}>
+                  <Link key={t.id} to={`/topics/${t.slug || t.id}`}>
                     <Badge variant="outline" className="text-xs hover:border-primary/40 transition-colors"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>
                  </Link>
                ))}

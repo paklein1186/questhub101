@@ -364,9 +364,17 @@ export default function Onboarding() {
       const allTopicIds = new Set(selectedTopics);
       suggestedHouses.filter(h => h.accepted).forEach(h => allTopicIds.add(h.topicId));
       if (allTopicIds.size > 0) {
+        const topicIdArray = Array.from(allTopicIds);
         await supabase.from("user_topics").insert(
-          Array.from(allTopicIds).map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
+          topicIdArray.map((topicId) => ({ user_id: authUser.id, topic_id: topicId }))
         );
+        // Auto-follow all selected topics
+        const followRows = topicIdArray.map((topicId) => ({
+          follower_id: authUser.id,
+          target_type: "TOPIC",
+          target_id: topicId,
+        }));
+        await supabase.from("follows").upsert(followRows as any, { onConflict: "follower_id,target_type,target_id", ignoreDuplicates: true });
       }
 
       await supabase.from("user_territories").delete().eq("user_id", authUser.id);
