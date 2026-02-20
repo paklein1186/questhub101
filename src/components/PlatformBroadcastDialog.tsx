@@ -163,82 +163,82 @@ export function PlatformBroadcastDialog() {
       const total = recipientIds.length;
       let sent = 0;
       let failed = 0;
-      const BATCH_SIZE = 5;
 
-      for (let i = 0; i < recipientIds.length; i += BATCH_SIZE) {
-        const batch = recipientIds.slice(i, i + BATCH_SIZE);
+      for (let idx = 0; idx < recipientIds.length; idx++) {
+        const recipientId = recipientIds[idx];
+        try {
+          const { data: conv, error: convError } = await supabase
+            .from("conversations")
+            .insert({
+              title: subject.trim() || `Message from ${SENDER_LABEL}`,
+              is_group: false,
+              created_by: userId,
+              sender_label: SENDER_LABEL,
+              sender_entity_type: "platform",
+              sender_entity_id: null,
+            } as any)
+            .select("id")
+            .single();
 
-        await Promise.all(
-          batch.map(async (recipientId) => {
-            try {
-              const { data: conv, error: convError } = await supabase
-                .from("conversations")
-                .insert({
-                  title: subject.trim() || `Message from ${SENDER_LABEL}`,
-                  is_group: false,
-                  created_by: userId,
-                  sender_label: SENDER_LABEL,
-                  sender_entity_type: "platform",
-                  sender_entity_id: null,
-                } as any)
-                .select("id")
-                .single();
+          if (convError || !conv) {
+            console.error("Conv insert failed for", recipientId, convError);
+            failed++;
+            await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
+          } else {
+            const allIds = [...new Set([userId, recipientId])];
+            await supabase
+              .from("conversation_participants")
+              .insert(allIds.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
 
-              if (convError || !conv) { failed++; await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId); return; }
+            const { data: msg } = await supabase
+              .from("direct_messages")
+              .insert({
+                conversation_id: conv.id,
+                sender_id: userId,
+                content: messageBody,
+                sender_label: SENDER_LABEL,
+              } as any)
+              .select("id")
+              .single();
 
-              const allIds = [...new Set([userId, recipientId])];
-              await supabase
-                .from("conversation_participants")
-                .insert(allIds.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
+            await supabase
+              .from("conversations")
+              .update({ updated_at: new Date().toISOString() })
+              .eq("id", conv.id);
 
-              const { data: msg } = await supabase
-                .from("direct_messages")
-                .insert({
-                  conversation_id: conv.id,
-                  sender_id: userId,
+            // Mark recipient as sent
+            await supabase
+              .from("broadcast_recipients" as any)
+              .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
+              .eq("broadcast_id", broadcastId)
+              .eq("user_id", recipientId);
+
+            // Fire email notification (non-blocking)
+            fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  messageId: msg?.id,
+                  conversationId: conv.id,
+                  senderId: userId,
                   content: messageBody,
-                  sender_label: SENDER_LABEL,
-                } as any)
-                .select("id")
-                .single();
+                  senderLabel: SENDER_LABEL,
+                }),
+              }
+            ).catch(() => {});
 
-              await supabase
-                .from("conversations")
-                .update({ updated_at: new Date().toISOString() })
-                .eq("id", conv.id);
-
-              // Mark recipient as sent
-              await supabase
-                .from("broadcast_recipients" as any)
-                .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
-                .eq("broadcast_id", broadcastId)
-                .eq("user_id", recipientId);
-
-              fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
-                {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    messageId: msg?.id,
-                    conversationId: conv.id,
-                    senderId: userId,
-                    content: messageBody,
-                    senderLabel: SENDER_LABEL,
-                  }),
-                }
-              ).catch(() => {});
-
-              sent++;
-            } catch {
-              failed++;
-              await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
-            }
-          })
-        );
+            sent++;
+          }
+        } catch (e) {
+          console.error("Broadcast send error for", recipientId, e);
+          failed++;
+          try { await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId); } catch { /* ignore */ }
+        }
 
         setProgress(Math.round(((sent + failed) / total) * 100));
         setStats({ total, sent, failed });

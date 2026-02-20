@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Megaphone, ChevronDown, ChevronRight, Users, CheckCircle2, XCircle, Eye, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Megaphone, ChevronDown, ChevronRight, Users, CheckCircle2, XCircle, Eye, Clock, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +17,9 @@ interface BroadcastRow {
   sender_entity_type: string;
   subject: string | null;
   content: string;
+  link_url: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
   total_recipients: number;
   total_sent: number;
   total_failed: number;
@@ -28,12 +32,13 @@ interface RecipientRow {
   status: string;
   delivered_at: string | null;
   read_at: string | null;
-  profile?: { display_name: string | null; email: string | null };
+  profile?: { name: string | null; email: string | null };
 }
 
 export function BroadcastHistoryPanel() {
   const { session } = useAuth();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [previewBroadcast, setPreviewBroadcast] = useState<BroadcastRow | null>(null);
 
   const { data: broadcasts, isLoading } = useQuery({
     queryKey: ["broadcast-history"],
@@ -60,12 +65,12 @@ export function BroadcastHistoryPanel() {
 
       const rows = (data ?? []) as unknown as RecipientRow[];
 
-      // Fetch profile names
+      // Fetch profile names — column is "name", not "display_name"
       const userIds = rows.map((r) => r.user_id);
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, display_name, email")
+          .select("id, name, email")
           .in("id", userIds);
 
         const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
@@ -123,13 +128,14 @@ export function BroadcastHistoryPanel() {
               <TableHead className="text-center">Sent</TableHead>
               <TableHead className="text-center">Failed</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead className="w-8" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {broadcasts.map((b) => {
               const isExpanded = expandedId === b.id;
               return (
-                <>
+                <> 
                   <TableRow
                     key={b.id}
                     className="cursor-pointer"
@@ -150,15 +156,26 @@ export function BroadcastHistoryPanel() {
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                       {format(new Date(b.created_at), "MMM d, HH:mm")}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => { e.stopPropagation(); setPreviewBroadcast(b); }}
+                        title="View message"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                   {isExpanded && (
                     <TableRow key={`${b.id}-detail`}>
-                      <TableCell colSpan={7} className="bg-muted/30 p-0">
-                        <ScrollArea className="max-h-64">
+                      <TableCell colSpan={8} className="bg-muted/30 p-0">
+                        <ScrollArea className="max-h-80">
                           <Table>
                             <TableHeader>
                               <TableRow>
                                 <TableHead>Recipient</TableHead>
+                                <TableHead>Email</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Delivered</TableHead>
                                 <TableHead>Read</TableHead>
@@ -167,8 +184,11 @@ export function BroadcastHistoryPanel() {
                             <TableBody>
                               {recipients?.map((r) => (
                                 <TableRow key={r.id}>
-                                  <TableCell className="text-sm">
-                                    {r.profile?.display_name || r.profile?.email || r.user_id.slice(0, 8)}
+                                  <TableCell className="text-sm font-medium">
+                                    {r.profile?.name || r.user_id.slice(0, 8)}
+                                  </TableCell>
+                                  <TableCell className="text-xs text-muted-foreground">
+                                    {r.profile?.email || "—"}
                                   </TableCell>
                                   <TableCell>{statusBadge(r.status)}</TableCell>
                                   <TableCell className="text-xs text-muted-foreground">
@@ -188,7 +208,7 @@ export function BroadcastHistoryPanel() {
                               ))}
                               {(!recipients || recipients.length === 0) && (
                                 <TableRow>
-                                  <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-4">
+                                  <TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-4">
                                     Loading recipients…
                                   </TableCell>
                                 </TableRow>
@@ -205,6 +225,28 @@ export function BroadcastHistoryPanel() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Message preview dialog */}
+      <Dialog open={!!previewBroadcast} onOpenChange={(o) => { if (!o) setPreviewBroadcast(null); }}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" />
+              {previewBroadcast?.subject || "Broadcast Message"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-xs text-muted-foreground flex items-center gap-3">
+            <span>From: {previewBroadcast?.sender_label}</span>
+            <span>{previewBroadcast && format(new Date(previewBroadcast.created_at), "MMM d, yyyy · HH:mm")}</span>
+            <Badge variant="outline" className="gap-1"><Users className="h-3 w-3" />{previewBroadcast?.total_recipients}</Badge>
+          </div>
+          <ScrollArea className="flex-1 mt-3">
+            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm">
+              {previewBroadcast?.content}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
