@@ -23,7 +23,6 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-  DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -621,6 +620,11 @@ export function WorkTasksTab() {
     ...participantQuests.filter((q: any) => !myQuests.some((mq: any) => mq.id === q.id)).map((q: any) => ({ id: q.id, title: q.title, guildName: q.guilds?.name || null, guildLogo: q.guilds?.logo_url || null })),
   ];
 
+  // Quest picker dialog state
+  const [questPickerOpen, setQuestPickerOpen] = useState(false);
+  const [questPickerTask, setQuestPickerTask] = useState<UnifiedTask | null>(null);
+  const [questPickerSearch, setQuestPickerSearch] = useState("");
+
   const backlogCount = unified.filter((t) => t.status === "BACKLOG").length;
   const todoCount = unified.filter((t) => t.status === "TODO").length;
   const inProgressCount = unified.filter((t) => t.status === "IN_PROGRESS").length;
@@ -1073,21 +1077,9 @@ export function WorkTasksTab() {
                                     <Rocket className="h-3.5 w-3.5 mr-2" /> Convert to Quest
                                   </DropdownMenuItem>
                                   {allQuestsForPicker.length > 0 && (
-                                    <DropdownMenuSub>
-                                      <DropdownMenuSubTrigger>
-                                        <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
-                                      </DropdownMenuSubTrigger>
-                                      <DropdownMenuSubContent>
-                                        {allQuestsForPicker.map((q) => (
-                                          <DropdownMenuItem key={q.id} onClick={() => convertToSubtask(task, q.id)} className="flex flex-col items-start gap-0.5">
-                                            <span className="text-sm">{q.title}</span>
-                                            {q.guildName && (
-                                              <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-muted-foreground" />
-                                            )}
-                                          </DropdownMenuItem>
-                                        ))}
-                                      </DropdownMenuSubContent>
-                                    </DropdownMenuSub>
+                                    <DropdownMenuItem onClick={() => { setQuestPickerTask(task); setQuestPickerOpen(true); setQuestPickerSearch(""); }}>
+                                      <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
+                                    </DropdownMenuItem>
                                   )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -1245,6 +1237,55 @@ export function WorkTasksTab() {
           )}
         </DialogContent>
     </Dialog>
+      {/* Quest picker dialog for attaching tasks */}
+      <Dialog open={questPickerOpen} onOpenChange={(open) => { setQuestPickerOpen(open); if (!open) { setQuestPickerTask(null); setQuestPickerSearch(""); } }}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
+              Attach to Quest
+            </DialogTitle>
+            <DialogDescription>
+              Choose a quest to attach "{questPickerTask?.title}" as a subtask.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative mb-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search quests…"
+              value={questPickerSearch}
+              onChange={(e) => setQuestPickerSearch(e.target.value)}
+              className="h-8 text-sm pl-8"
+              autoFocus
+            />
+          </div>
+          <div className="flex-1 overflow-y-auto min-h-0 max-h-[50vh]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allQuestsForPicker
+                .filter((q) => !questPickerSearch.trim() || q.title.toLowerCase().includes(questPickerSearch.toLowerCase()) || (q.guildName && q.guildName.toLowerCase().includes(questPickerSearch.toLowerCase())))
+                .map((q) => (
+                  <button
+                    key={q.id}
+                    onClick={() => {
+                      if (questPickerTask) convertToSubtask(questPickerTask, q.id);
+                      setQuestPickerOpen(false);
+                      setQuestPickerTask(null);
+                    }}
+                    className="text-left rounded-lg border border-border p-3 hover:bg-accent/50 hover:border-primary/30 transition-all"
+                  >
+                    <p className="text-sm font-medium line-clamp-2">{q.title}</p>
+                    {q.guildName && (
+                      <GuildColorLabel name={q.guildName} logoUrl={q.guildLogo} className="text-[10px] mt-1" />
+                    )}
+                  </button>
+                ))}
+            </div>
+            {allQuestsForPicker.filter((q) => !questPickerSearch.trim() || q.title.toLowerCase().includes(questPickerSearch.toLowerCase())).length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">No quests match your search.</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       {showConfetti && <ConfettiSpark onDone={() => setShowConfetti(false)} />}
     </div>
   );
