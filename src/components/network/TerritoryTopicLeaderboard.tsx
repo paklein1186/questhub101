@@ -234,27 +234,18 @@ export default function TerritoryTopicLeaderboard() {
       {/* Header */}
       <div>
         <h2 className="font-display text-xl font-semibold flex items-center gap-2">
-          <Compass className="h-5 w-5 text-primary" /> Territories & Topics
+          <Compass className="h-5 w-5 text-primary" /> Territories
         </h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Explore active territories and trending topics across the ecosystem.
+          Explore active territories across the ecosystem.
         </p>
       </div>
 
-      <Tabs value={sub} onValueChange={(v) => { setSub(v as any); setViewMode("grid"); }}>
+      <div>
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <TabsList>
-            <TabsTrigger value="territories">
-              <MapPin className="h-3.5 w-3.5 mr-1" /> Territories ({territories.length})
-            </TabsTrigger>
-            <TabsTrigger value="topics">
-              <Hash className="h-3.5 w-3.5 mr-1" /> Topics ({topics.length})
-            </TabsTrigger>
-          </TabsList>
 
           <div className="flex items-center gap-2">
-            {/* View toggle for territories */}
-            {sub === "territories" && (
+            {/* View toggle */}
               <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
                 <Button
                   size="sm"
@@ -275,10 +266,9 @@ export default function TerritoryTopicLeaderboard() {
                   <Map className="h-3.5 w-3.5" />
                 </Button>
               </div>
-            )}
 
             {/* Sort controls */}
-            {sub === "territories" && viewMode === "grid" && (
+            {viewMode === "grid" && (
               <div className="flex items-center gap-1">
                 <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                 <Button
@@ -299,40 +289,11 @@ export default function TerritoryTopicLeaderboard() {
                 </Button>
               </div>
             )}
-            {sub === "topics" && (
-              <div className="flex items-center gap-1">
-                <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-                <Button
-                  size="sm"
-                  variant={topSort === "activity" ? "secondary" : "ghost"}
-                  className="h-7 text-xs"
-                  onClick={() => setTopSort("activity")}
-                >
-                  Most active
-                </Button>
-                <Button
-                  size="sm"
-                  variant={topSort === "territories" ? "secondary" : "ghost"}
-                  className="h-7 text-xs"
-                  onClick={() => setTopSort("territories")}
-                >
-                  Most territories
-                </Button>
-                <Button
-                  size="sm"
-                  variant={topSort === "name" ? "secondary" : "ghost"}
-                  className="h-7 text-xs"
-                  onClick={() => setTopSort("name")}
-                >
-                  A–Z
-                </Button>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Territories */}
-        <TabsContent value="territories" className="mt-5">
+        <div className="mt-5">
           {loadingT ? (
             <div className="flex justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -368,28 +329,8 @@ export default function TerritoryTopicLeaderboard() {
               )}
             </AnimatePresence>
           )}
-        </TabsContent>
-
-        {/* Topics grid */}
-        <TabsContent value="topics" className="mt-5">
-          {loadingTopics ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : sortedTopics.length === 0 ? (
-            <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
-              <Hash className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-              <p className="text-muted-foreground">No topics found yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {sortedTopics.map((t, i) => (
-                <TopicTile key={t.id} item={t} index={i} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
