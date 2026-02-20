@@ -137,7 +137,7 @@ export function WorkTasksTab() {
         .select("id, title, status, created_at, reward_xp, guild_id, priority, guilds(name, logo_url)")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
-        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE", "COMPLETED"])
+        .in("status", ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -333,19 +333,19 @@ export function WorkTasksTab() {
   }
 
   for (const q of participantQuests) {
-    if (!myQuests.some((mq: any) => mq.id === q.id)) {
-      const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
-      if (hasActive) continue; // Option B for participant quests too
-      unified.push({
-        id: q.id, title: q.title,
-        status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
-        source: "quest", sourceLabel: "Collaborator", sourceId: q.id, createdAt: q.created_at,
-        priority: ((q as any).priority as Priority) || "NONE",
-        guildId: (q as any).guild_id || null,
-        guildName: (q as any).guilds?.name || null,
-        guildLogo: (q as any).guilds?.logo_url || null,
-      });
-    }
+    if (myQuests.some((mq: any) => mq.id === q.id)) continue;
+    if (["COMPLETED", "CANCELLED", "DONE"].includes(q.status)) continue;
+    const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
+    if (hasActive) continue;
+    unified.push({
+      id: q.id, title: q.title,
+      status: q.status === "ACTIVE" ? "IN_PROGRESS" : "TODO",
+      source: "quest", sourceLabel: "Collaborator", sourceId: q.id, createdAt: q.created_at,
+      priority: ((q as any).priority as Priority) || "NONE",
+      guildId: (q as any).guild_id || null,
+      guildName: (q as any).guilds?.name || null,
+      guildLogo: (q as any).guilds?.logo_url || null,
+    });
   }
 
   for (const s of mySubtasks) {

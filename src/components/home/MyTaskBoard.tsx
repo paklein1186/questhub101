@@ -441,6 +441,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   ];
 
   for (const q of allQuestsList) {
+    // Skip quests that are done, completed or cancelled
+    const questStatus = (q as any).status;
+    if (["COMPLETED", "CANCELLED", "DONE"].includes(questStatus)) continue;
+
     const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
     if (hasActive) continue; // Option B: hide parent quest, show subtasks instead
 
