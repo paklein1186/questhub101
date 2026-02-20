@@ -66,7 +66,7 @@ export default function TopicHouse() {
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Back link */}
         <button
-          onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
+          onClick={() => navigate("/explore?tab=houses")}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
