@@ -568,6 +568,8 @@ export type Database = {
           end_at: string
           external_event_id: string | null
           id: string
+          source_calendar_id: string | null
+          source_calendar_name: string | null
           start_at: string
           summary: string | null
           user_id: string
@@ -578,6 +580,8 @@ export type Database = {
           end_at: string
           external_event_id?: string | null
           id?: string
+          source_calendar_id?: string | null
+          source_calendar_name?: string | null
           start_at: string
           summary?: string | null
           user_id: string
@@ -588,6 +592,8 @@ export type Database = {
           end_at?: string
           external_event_id?: string | null
           id?: string
+          source_calendar_id?: string | null
+          source_calendar_name?: string | null
           start_at?: string
           summary?: string | null
           user_id?: string

@@ -61,13 +61,15 @@ interface CalendarEvent {
   entityName: string;
   visioLink?: string;
   sessionType?: string;
+  sourceCalendarId?: string;
+  sourceCalendarName?: string;
 }
 
 export function WorkCalendarTab() {
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
-
+  const [hiddenCalendars, setHiddenCalendars] = useState<Set<string>>(new Set());
   // Fetch guild events user is attending
   const { data: myEventAttendances = [] } = useQuery({
     queryKey: ["my-event-attendances", currentUser.id],
@@ -102,7 +104,7 @@ export function WorkCalendarTab() {
     queryFn: async () => {
       const { data } = await supabase
         .from("calendar_busy_events")
-        .select("id, summary, start_at, end_at, connection_id, calendar_connections(provider)")
+        .select("id, summary, start_at, end_at, connection_id, source_calendar_id, source_calendar_name, calendar_connections(provider)")
         .eq("user_id", currentUser.id!);
       return data || [];
     },
@@ -166,17 +168,45 @@ export function WorkCalendarTab() {
         entityType: "external",
         entityId: "",
         entityName: provider === "outlook" ? "Outlook" : "Google Calendar",
+        sourceCalendarId: ext.source_calendar_id || undefined,
+        sourceCalendarName: ext.source_calendar_name || undefined,
       });
     });
 
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [myEventAttendances, myRitualAttendances, externalEvents]);
 
+  // Derive unique source calendars for filter UI
+  const sourceCalendars = useMemo(() => {
+    const map = new Map<string, string>();
+    events.forEach((e) => {
+      if (e.sourceCalendarId) {
+        map.set(e.sourceCalendarId, e.sourceCalendarName || e.sourceCalendarId);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [events]);
+
+  const toggleCalendar = (calId: string) => {
+    setHiddenCalendars((prev) => {
+      const next = new Set(prev);
+      if (next.has(calId)) next.delete(calId);
+      else next.add(calId);
+      return next;
+    });
+  };
+
+  // Filtered events (hide toggled-off calendars)
+  const filteredEvents = useMemo(() =>
+    events.filter((e) => !e.sourceCalendarId || !hiddenCalendars.has(e.sourceCalendarId)),
+    [events, hiddenCalendars]
+  );
+
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const eventsForDay = (day: Date) => events.filter((e) => isSameDay(new Date(e.date), day));
+  const eventsForDay = (day: Date) => filteredEvents.filter((e) => isSameDay(new Date(e.date), day));
 
   return (
     <div className="space-y-6">
@@ -192,6 +222,28 @@ export function WorkCalendarTab() {
           Next →
         </Button>
       </div>
+
+      {/* Source calendar filters */}
+      {sourceCalendars.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Calendars:</span>
+          {sourceCalendars.map((cal) => {
+            const isHidden = hiddenCalendars.has(cal.id);
+            return (
+              <Button
+                key={cal.id}
+                size="sm"
+                variant={isHidden ? "outline" : "secondary"}
+                className={`h-7 text-xs gap-1.5 ${isHidden ? "opacity-50" : ""}`}
+                onClick={() => toggleCalendar(cal.id)}
+              >
+                <div className={`h-2 w-2 rounded-full ${isHidden ? "bg-muted-foreground" : "bg-primary"}`} />
+                {cal.name}
+              </Button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-px bg-border rounded-xl overflow-hidden">
@@ -250,11 +302,11 @@ export function WorkCalendarTab() {
         <h4 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" /> Upcoming
         </h4>
-        {events.filter((e) => new Date(e.date) >= new Date()).length === 0 ? (
+        {filteredEvents.filter((e) => new Date(e.date) >= new Date()).length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">No upcoming events or rituals you're attending.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {events.filter((e) => new Date(e.date) >= new Date()).slice(0, 12).map((evt) => {
+            {filteredEvents.filter((e) => new Date(e.date) >= new Date()).slice(0, 12).map((evt) => {
               const Icon = evt.type === "external"
                 ? Globe
                 : evt.type === "ritual" && evt.sessionType

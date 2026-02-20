@@ -81,18 +81,19 @@ async function fetchGoogleEvents(accessToken: string, timeMin: string, timeMax: 
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   
-  let calendarIds: string[] = ["primary"];
+  interface CalInfo { id: string; name: string }
+  let calendars: CalInfo[] = [{ id: "primary", name: "Primary" }];
   if (calListRes.ok) {
     const calListData = await calListRes.json();
-    calendarIds = (calListData.items || [])
+    calendars = (calListData.items || [])
       .filter((cal: any) => !cal.deleted && cal.selected !== false)
-      .map((cal: any) => cal.id);
-    if (calendarIds.length === 0) calendarIds = ["primary"];
+      .map((cal: any) => ({ id: cal.id, name: cal.summaryOverride || cal.summary || cal.id }));
+    if (calendars.length === 0) calendars = [{ id: "primary", name: "Primary" }];
   }
 
   const allEvents: any[] = [];
 
-  for (const calId of calendarIds) {
+  for (const cal of calendars) {
     try {
       const params = new URLSearchParams({
         timeMin, timeMax,
@@ -100,24 +101,26 @@ async function fetchGoogleEvents(accessToken: string, timeMin: string, timeMax: 
         orderBy: "startTime",
         maxResults: "250",
       });
-      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?${params}`, {
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?${params}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       if (!res.ok) {
-        console.warn(`Google calendar ${calId} returned ${res.status}, skipping`);
+        console.warn(`Google calendar ${cal.id} returned ${res.status}, skipping`);
         continue;
       }
       const data = await res.json();
       for (const e of (data.items || [])) {
         allEvents.push({
-          externalId: `${calId}::${e.id}`,
+          externalId: `${cal.id}::${e.id}`,
           summary: e.summary || "(No title)",
           startAt: e.start?.dateTime || e.start?.date,
           endAt: e.end?.dateTime || e.end?.date,
+          sourceCalendarId: cal.id,
+          sourceCalendarName: cal.name,
         });
       }
     } catch (err) {
-      console.warn(`Error fetching calendar ${calId}:`, err);
+      console.warn(`Error fetching calendar ${cal.id}:`, err);
     }
   }
 
@@ -244,6 +247,8 @@ serve(async (req) => {
                 summary: (e.summary || "").slice(0, 200),
                 start_at: e.startAt,
                 end_at: e.endAt,
+                source_calendar_id: e.sourceCalendarId || null,
+                source_calendar_name: (e.sourceCalendarName || "").slice(0, 200) || null,
               }));
             if (rows.length > 0) {
               await supabase.from("calendar_busy_events").insert(rows);
