@@ -36,7 +36,7 @@ const PAGE_SIZE = 20;
 
 function useAllTopics() {
   return useQuery({
-    queryKey: ["houses-all-topics"],
+    queryKey: ["houses-all-topics-v2"],
     queryFn: async () => {
       const { data } = await supabase
         .from("topics")
