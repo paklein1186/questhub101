@@ -615,11 +615,15 @@
     "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
   },
   "footer": {
+    "vision": "Vision",
+    "ecosystem": "Ecosystem",
+    "legal": "Legal",
     "culture": "Culture",
     "transparency": "Transparency",
     "manifesto": "Manifesto",
     "cooperative": "The Coop-like Venture",
     "whatComesNext": "What Comes Next",
+    "useCases": "Use Cases",
     "revenueModels": "Revenue Models",
     "creditEconomy": "Credit Economy",
     "governance": "Governance",

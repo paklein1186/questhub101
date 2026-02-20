@@ -615,11 +615,15 @@
     "companyDesc": "Une PME, une association ou une organisation établie rejoignant l'écosystème."
   },
   "footer": {
+    "vision": "Vision",
+    "ecosystem": "Écosystème",
+    "legal": "Légal",
     "culture": "Culture",
     "transparency": "Transparence",
     "manifesto": "Manifeste",
     "cooperative": "L'Aventure Coop-like",
     "whatComesNext": "Et maintenant ?",
+    "useCases": "Cas d'usage",
     "revenueModels": "Modèles de revenus",
     "creditEconomy": "Économie des Crédits",
     "governance": "Gouvernance",
