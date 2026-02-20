@@ -47,7 +47,18 @@ export function FollowersDialog({ open, onOpenChange, targetId, targetType, mode
           territoryUserIds = (utData ?? []).map((u: any) => u.user_id);
         }
 
-        const allIds = [...new Set([...followerIds, ...territoryUserIds])];
+        // For topics, also include user_topics
+        let topicUserIds: string[] = [];
+        if (targetType === "TOPIC") {
+          const { data: utData } = await supabase
+            .from("user_topics")
+            .select("user_id")
+            .eq("topic_id", targetId)
+            .limit(200);
+          topicUserIds = (utData ?? []).map((u: any) => u.user_id);
+        }
+
+        const allIds = [...new Set([...followerIds, ...territoryUserIds, ...topicUserIds])];
         if (allIds.length === 0) return [];
         const { data: profiles } = await supabase
           .from("profiles")
