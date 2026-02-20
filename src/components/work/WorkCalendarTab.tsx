@@ -83,7 +83,18 @@ export function WorkCalendarTab() {
     } catch { return new Set(); }
   });
   type ViewMode = "day" | "3day" | "week" | "month";
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    try {
+      const stored = localStorage.getItem("ctg-calendar-view-mode");
+      if (stored && ["day", "3day", "week", "month"].includes(stored)) return stored as ViewMode;
+    } catch {}
+    return "month";
+  });
+
+  const handleSetViewMode = useCallback((v: ViewMode) => {
+    setViewMode(v);
+    try { localStorage.setItem("ctg-calendar-view-mode", v); } catch {}
+  }, []);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   // Fetch guild events user is attending
   const { data: myEventAttendances = [] } = useQuery({
@@ -275,7 +286,7 @@ export function WorkCalendarTab() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setCurrentMonth(new Date())}>Today</Button>
-          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as ViewMode)} size="sm">
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && handleSetViewMode(v as ViewMode)} size="sm">
             <ToggleGroupItem value="day" className="text-xs h-7 px-2.5">Day</ToggleGroupItem>
             <ToggleGroupItem value="3day" className="text-xs h-7 px-2.5">3 Days</ToggleGroupItem>
             <ToggleGroupItem value="week" className="text-xs h-7 px-2.5">Week</ToggleGroupItem>
