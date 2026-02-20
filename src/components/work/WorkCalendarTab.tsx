@@ -208,66 +208,77 @@ export function WorkCalendarTab() {
         })}
       </div>
 
-      {/* Upcoming list */}
+      {/* Upcoming event tiles */}
       <div>
         <h4 className="font-display font-semibold text-sm mb-3 flex items-center gap-2">
           <Clock className="h-4 w-4 text-primary" /> Upcoming
         </h4>
-        {events.filter((e) => new Date(e.date) >= new Date()).length === 0 && (
+        {events.filter((e) => new Date(e.date) >= new Date()).length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">No upcoming events or rituals you're attending.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {events.filter((e) => new Date(e.date) >= new Date()).slice(0, 12).map((evt) => {
+              const Icon = evt.type === "ritual" && evt.sessionType
+                ? getSessionIcon(evt.sessionType)
+                : Calendar;
+              const route = evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
+              return (
+                <Card key={evt.id} className="group hover:scale-[1.01] transition-transform">
+                  <CardContent className="p-4 flex flex-col gap-3">
+                    {/* Header row */}
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
+                        <Icon className={`h-5 w-5 ${evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{evt.title}</p>
+                        <Link to={route} className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5">
+                          {evt.entityType === "guild" ? <Shield className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
+                          {evt.entityName}
+                        </Link>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0 capitalize">
+                        {evt.type}
+                      </Badge>
+                    </div>
+
+                    {/* Date & duration */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 shrink-0" />
+                      <span>{format(new Date(evt.date), "EEE, MMM d · HH:mm")}</span>
+                      <span className="text-muted-foreground/60">·</span>
+                      <span>{evt.durationMinutes} min</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1.5 mt-auto pt-1 border-t border-border">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => generateIcs(evt.title, evt.date, evt.durationMinutes, evt.visioLink)}
+                      >
+                        <CalendarPlus className="h-3 w-3" /> Export
+                      </Button>
+                      <div className="flex-1" />
+                      {evt.type === "ritual" && evt.occurrenceId ? (
+                        <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => navigate(`/ritual-call/${evt.occurrenceId}`)}>
+                          <Video className="h-3 w-3" /> Join
+                        </Button>
+                      ) : evt.visioLink ? (
+                        <Button size="sm" variant="default" className="h-7 text-xs gap-1" asChild>
+                          <a href={evt.visioLink} target="_blank" rel="noopener noreferrer">
+                            <Video className="h-3 w-3" /> Join
+                          </a>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         )}
-        <div className="space-y-2">
-          {events.filter((e) => new Date(e.date) >= new Date()).slice(0, 20).map((evt) => {
-            const Icon = evt.type === "ritual" && evt.sessionType
-              ? getSessionIcon(evt.sessionType)
-              : Calendar;
-            const route = evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
-            return (
-              <Card key={evt.id}>
-                <CardContent className="py-3 flex items-center gap-3 flex-wrap">
-                  <div className={`p-2 rounded-lg shrink-0 ${evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
-                    <Icon className={`h-4 w-4 ${evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{evt.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(evt.date), "EEE, MMM d · HH:mm")} · {evt.durationMinutes} min
-                    </p>
-                    <Link to={route} className="text-[10px] text-primary hover:underline">
-                      {evt.entityType === "guild" ? <Shield className="h-2.5 w-2.5 inline mr-0.5" /> : <Compass className="h-2.5 w-2.5 inline mr-0.5" />}
-                      {evt.entityName}
-                    </Link>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="outline" className="text-[10px]">
-                      {evt.type}
-                    </Badge>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => generateIcs(evt.title, evt.date, evt.durationMinutes, evt.visioLink)}
-                      title="Add to calendar"
-                    >
-                      <CalendarPlus className="h-3.5 w-3.5" />
-                    </Button>
-                    {evt.type === "ritual" && evt.occurrenceId ? (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/ritual-call/${evt.occurrenceId}`)}>
-                        <Video className="h-3 w-3 mr-1" /> Join
-                      </Button>
-                    ) : evt.visioLink ? (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" asChild>
-                        <a href={evt.visioLink} target="_blank" rel="noopener noreferrer">
-                          <Video className="h-3 w-3 mr-1" /> Join
-                        </a>
-                      </Button>
-                    ) : null}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
       </div>
 
       {/* Calendar Sync (Google / Outlook) */}
