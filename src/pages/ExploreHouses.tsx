@@ -21,6 +21,7 @@ import {
   getHouseIcon,
   getHousesPageCopy,
 } from "@/lib/universeMapping";
+import { getTopicIcon } from "@/lib/topicIcons";
 
 // ─── Types ──────────────────────────────────────────────────
 interface TopicRow {
@@ -379,29 +380,28 @@ export default function ExploreHouses({ bare }: Props) {
                  if (effectiveUniverse === "creative") return t.universe_type === "creative";
                  return t.universe_type === "impact";
                }).map(t => {
-                 const houseDef = HOUSE_DEFINITIONS[t.slug];
-                 const icon = houseDef ? getHouseIcon(t.slug) : "🏷️";
-                 const label = getTopicLabel(t);
-                 const s = perTopicStats?.[t.id] ?? { users: 0, quests: 0, guilds: 0, companies: 0 };
-                 const totalEntities = s.guilds + s.companies;
-                 const isHouse = t.universe_type === "creative";
+                  const TopicLucideIcon = getTopicIcon(t.slug);
+                  const label = getTopicLabel(t);
+                  const s = perTopicStats?.[t.id] ?? { users: 0, quests: 0, guilds: 0, companies: 0 };
+                  const totalEntities = s.guilds + s.companies;
+                  const isHouse = t.universe_type === "creative";
 
                  return (
-                   <Link
-                     key={t.id}
-                     to={`/topics/${t.slug}`}
-                     className="group rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-md transition-all"
-                   >
-                     <div className="flex items-start gap-3 mb-3">
-                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-2xl shrink-0">
-                         {icon}
-                       </div>
-                       <div className="min-w-0">
-                         <h3 className="font-display font-semibold text-base truncate group-hover:text-primary transition-colors">{label}</h3>
-                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                           {isHouse ? <Sparkles className="h-3 w-3" /> : <Hash className="h-3 w-3" />}
-                           {isHouse ? "House" : "Topic"}
-                         </p>
+                    <Link
+                      key={t.id}
+                      to={`/topics/${t.slug}`}
+                      className="group rounded-xl border border-border bg-card p-5 hover:border-primary/30 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                          <TopicLucideIcon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-display font-semibold text-base truncate group-hover:text-primary transition-colors">{label}</h3>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            {isHouse ? <Sparkles className="h-3 w-3" /> : <Hash className="h-3 w-3" />}
+                            {isHouse ? "House" : "Topic"}
+                          </p>
                        </div>
                      </div>
                      <div className="flex items-center gap-3 mb-3">
