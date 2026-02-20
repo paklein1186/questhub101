@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Users, Search, ArrowUpDown, Sparkles } from "lucide-react";
+import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").then(m => ({ default: m.ExploreUsersMap })));
 import { PageShell } from "@/components/PageShell";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +37,7 @@ interface ExploreUser {
   persona_type: string;
   created_at: string;
   topics: { id: string; name: string }[];
-  territories: { id: string; name: string }[];
+  territories: { id: string; name: string; latitude?: number; longitude?: number }[];
 }
 
 const PAGE_SIZE = 24;
@@ -130,21 +133,26 @@ function useExploreUsers(filters: {
 
       const [topicsRes, terrRes] = await Promise.all([
         supabase.from("user_topics").select("user_id, topic_id, topics(id, name)").in("user_id", userIds),
-        supabase.from("user_territories").select("user_id, territory_id, territories(id, name)").in("user_id", userIds),
+        supabase.from("user_territories").select("user_id, territory_id, territories(id, name, latitude, longitude)").in("user_id", userIds),
       ]);
 
-      const topicMap = new Map<string, { id: string; name: string }[]>();
+      const topicMap: Record<string, { id: string; name: string }[]> = {};
       (topicsRes.data ?? []).forEach((row: any) => {
         const uid = row.user_id;
-        if (!topicMap.has(uid)) topicMap.set(uid, []);
-        if (row.topics) topicMap.get(uid)!.push({ id: row.topics.id, name: row.topics.name });
+        if (!topicMap[uid]) topicMap[uid] = [];
+        if (row.topics) topicMap[uid].push({ id: row.topics.id, name: row.topics.name });
       });
 
-      const terrMap = new Map<string, { id: string; name: string }[]>();
+      const terrMap: Record<string, { id: string; name: string; latitude?: number; longitude?: number }[]> = {};
       (terrRes.data ?? []).forEach((row: any) => {
         const uid = row.user_id;
-        if (!terrMap.has(uid)) terrMap.set(uid, []);
-        if (row.territories) terrMap.get(uid)!.push({ id: row.territories.id, name: row.territories.name });
+        if (!terrMap[uid]) terrMap[uid] = [];
+        if (row.territories) terrMap[uid].push({
+          id: row.territories.id,
+          name: row.territories.name,
+          latitude: row.territories.latitude ?? undefined,
+          longitude: row.territories.longitude ?? undefined,
+        });
       });
 
       const users: ExploreUser[] = profiles.map((p) => ({
@@ -158,8 +166,8 @@ function useExploreUsers(filters: {
         xp: p.xp ?? 0,
         persona_type: (p as any).persona_type ?? "UNSET",
         created_at: p.created_at ?? "",
-        topics: topicMap.get(p.user_id ?? "") ?? [],
-        territories: terrMap.get(p.user_id ?? "") ?? [],
+        topics: topicMap[p.user_id ?? ""] ?? [],
+        territories: terrMap[p.user_id ?? ""] ?? [],
       }));
 
       return { users, total: count ?? 0 };
@@ -171,6 +179,7 @@ function useExploreUsers(filters: {
 // ─── Component ───────────────────────────────────────────────
 
 export default function ExploreUsers({ bare }: { bare?: boolean }) {
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(0);
@@ -224,6 +233,10 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
             <SelectItem value="newest">Newest</SelectItem>
           </SelectContent>
         </Select>
+        <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "grid" | "map")} className="border rounded-md">
+          <ToggleGroupItem value="grid" aria-label="Grid view" className="px-2.5"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+          <ToggleGroupItem value="map" aria-label="Map view" className="px-2.5"><Map className="h-4 w-4" /></ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       <ExploreFilters
@@ -264,6 +277,10 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
           <p className="font-medium">No humans found</p>
           <p className="text-sm mt-1">Try adjusting your filters or search query.</p>
         </div>
+      ) : viewMode === "map" ? (
+        <Suspense fallback={<Skeleton className="h-[500px] rounded-xl" />}>
+          <ExploreUsersMap users={users} isLoggedIn={isLoggedIn} />
+        </Suspense>
       ) : (
         <UserCardGrid users={users} isLoggedIn={isLoggedIn} />
       )}
