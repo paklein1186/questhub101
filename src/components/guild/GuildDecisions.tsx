@@ -26,6 +26,10 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { AudiencePicker } from "@/components/guild/AudiencePicker";
+import { useEntityRoles, type EntityRole } from "@/hooks/useEntityRoles";
+import type { AudienceType, PermissionContext } from "@/lib/permissions";
+import { evaluateDecisionPermissions } from "@/lib/permissions";
 
 /* ───────── Types ───────── */
 type DecisionType = "POLL" | "VOTE_SIMPLE" | "MULTI_OPTION" | "CONSENT";
@@ -55,7 +59,7 @@ const STATUS_COLORS: Record<DecisionStatus, string> = {
 };
 
 /* ───────── Component ───────── */
-export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig }: Props) {
+export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig, permissionContext }: Props & { permissionContext?: import("@/lib/permissions").PermissionContext }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -136,6 +140,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
               memberCount={memberCount}
               guildId={guildId}
               onRefresh={() => qc.invalidateQueries({ queryKey: ["guild-decisions", guildId] })}
+              permissionContext={permissionContext}
             />
           </motion.div>
         ))}
@@ -153,6 +158,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 /* ═══════════ Create Form ═══════════ */
 function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; userId: string; onCreated: () => void }) {
   const { toast } = useToast();
+  const { roles: entityRoles } = useEntityRoles("guild", guildId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [decisionType, setDecisionType] = useState<DecisionType>("VOTE_SIMPLE");
@@ -165,6 +171,14 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
   const [allowVoteChange, setAllowVoteChange] = useState(true);
   const [multiSelect, setMultiSelect] = useState(false);
   const [saveAsDraft, setSaveAsDraft] = useState(false);
+
+  // Audience permission states
+  const [visibilityAudience, setVisibilityAudience] = useState<AudienceType>("MEMBERS");
+  const [visibilityRoleIds, setVisibilityRoleIds] = useState<string[]>([]);
+  const [voteAudience, setVoteAudience] = useState<AudienceType>("MEMBERS");
+  const [voteRoleIds, setVoteRoleIds] = useState<string[]>([]);
+  const [manageAudience, setManageAudience] = useState<AudienceType>("ADMINS_ONLY");
+  const [manageRoleIds, setManageRoleIds] = useState<string[]>([]);
 
   const needsOptions = decisionType === "MULTI_OPTION" || decisionType === "POLL";
 
@@ -192,6 +206,12 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
         allow_comments: allowComments,
         allow_vote_change: allowVoteChange,
         multi_select: multiSelect,
+        visibility_audience_type: visibilityAudience,
+        allowed_visibility_role_ids: visibilityRoleIds.length > 0 ? visibilityRoleIds : null,
+        can_vote_audience_type: voteAudience,
+        allowed_vote_role_ids: voteRoleIds.length > 0 ? voteRoleIds : null,
+        can_manage_decision_audience_type: manageAudience,
+        can_manage_decision_role_ids: manageRoleIds.length > 0 ? manageRoleIds : null,
       } as any);
       if (error) throw error;
     },
@@ -260,6 +280,36 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
 
       <Separator />
 
+      {/* Audience Pickers */}
+      <div className="space-y-3 rounded-lg border border-border p-3">
+        <h4 className="text-sm font-semibold">Permissions</h4>
+        <AudiencePicker
+          label="Who can see this decision?"
+          value={visibilityAudience}
+          onChange={setVisibilityAudience}
+          roles={entityRoles}
+          selectedRoleIds={visibilityRoleIds}
+          onRoleIdsChange={setVisibilityRoleIds}
+        />
+        <AudiencePicker
+          label="Who can vote?"
+          value={voteAudience}
+          onChange={setVoteAudience}
+          roles={entityRoles}
+          selectedRoleIds={voteRoleIds}
+          onRoleIdsChange={setVoteRoleIds}
+        />
+        <AudiencePicker
+          label="Who can manage (close, edit outcome)?"
+          value={manageAudience}
+          onChange={setManageAudience}
+          allowedTypes={["ADMINS_ONLY", "SELECTED_ROLES", "OPERATIONS_TEAM"]}
+          roles={entityRoles}
+          selectedRoleIds={manageRoleIds}
+          onRoleIdsChange={setManageRoleIds}
+        />
+      </div>
+
       <div className="flex items-center gap-2"><Switch checked={saveAsDraft} onCheckedChange={setSaveAsDraft} /><span className="text-sm">Save as draft (don't open yet)</span></div>
 
       <Button onClick={() => save.mutate()} disabled={!title.trim() || save.isPending} className="w-full">
@@ -271,8 +321,8 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
 }
 
 /* ═══════════ Decision Card ═══════════ */
-function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUserRole, memberCount, guildId, onRefresh }: {
-  decision: any; isAdmin: boolean; isMember: boolean; currentUserId: string; currentUserRole?: string; memberCount: number; guildId: string; onRefresh: () => void;
+function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUserRole, memberCount, guildId, onRefresh, permissionContext }: {
+  decision: any; isAdmin: boolean; isMember: boolean; currentUserId: string; currentUserRole?: string; memberCount: number; guildId: string; onRefresh: () => void; permissionContext?: import("@/lib/permissions").PermissionContext;
 }) {
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
@@ -285,9 +335,14 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
   const isOpen = status === "OPEN" && (!d.closes_at || !isPast(new Date(d.closes_at)));
   const isScheduled = status === "OPEN" && d.opens_at && isFuture(new Date(d.opens_at));
 
-  // Eligible?
-  const eligibleRoles = Array.isArray(d.eligible_roles) ? d.eligible_roles : ["MEMBER", "ADMIN"];
-  const canVote = isMember && isOpen && !isScheduled && eligibleRoles.includes(currentUserRole || "MEMBER");
+  // Use permission evaluator if context is available, otherwise fall back to legacy
+  const decisionPerms = permissionContext
+    ? evaluateDecisionPermissions(d, permissionContext)
+    : null;
+  const canVote = decisionPerms
+    ? decisionPerms.canVote && isOpen && !isScheduled
+    : isMember && isOpen && !isScheduled && (Array.isArray(d.eligible_roles) ? d.eligible_roles : ["MEMBER", "ADMIN"]).includes(currentUserRole || "MEMBER");
+  const canManageDecision = decisionPerms ? decisionPerms.canManage : isAdmin;
 
   // Fetch votes
   const { data: votes = [] } = useQuery({
@@ -354,7 +409,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
                 <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
                   <p className="text-xs font-medium text-primary mb-1">📋 Outcome</p>
                   <p className="text-sm">{d.outcome_summary}</p>
-                  {isAdmin && <Button variant="ghost" size="sm" className="mt-1" onClick={() => { setOutcomeEdit(true); setOutcomeTxt(d.outcome_summary); }}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>}
+                  {canManageDecision && <Button variant="ghost" size="sm" className="mt-1" onClick={() => { setOutcomeEdit(true); setOutcomeTxt(d.outcome_summary); }}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>}
                 </div>
               )}
 
@@ -393,7 +448,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
               )}
 
               {/* Admin controls */}
-              {isAdmin && (
+              {canManageDecision && (
                 <div className="flex flex-wrap gap-2 pt-2">
                   {status === "DRAFT" && <Button size="sm" onClick={() => updateStatus("OPEN")}><Check className="h-3.5 w-3.5 mr-1" /> Open Now</Button>}
                   {(status === "OPEN" || shouldBeClosedByTime) && <Button size="sm" variant="outline" onClick={() => updateStatus("CLOSED")}><X className="h-3.5 w-3.5 mr-1" /> Close</Button>}
