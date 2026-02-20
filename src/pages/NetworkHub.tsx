@@ -287,7 +287,7 @@ function OverviewCompanies({ memberships }: { memberships: any[] }) {
 function OverviewTerritories({ territories, topics, activity }: { territories: any[]; topics: any[]; activity: any }) {
   return (
     <div>
-      <SectionHeader icon={MapPin} title="Territories & Topics around you" seeMoreTo="/network?tab=territories" />
+      <SectionHeader icon={MapPin} title="Territories around you" seeMoreTo="/network?tab=territories" />
       {territories.length === 0 && topics.length === 0 ? (
         <EmptyState icon={MapPin} message="Add territories and topics in your profile settings." cta="Edit profile" to="/profile/edit" />
       ) : (
@@ -507,24 +507,6 @@ function TerritoriesTab({ territories, topics, activity, loadingT, loadingH }: {
         )}
       </div>
 
-      {/* Houses */}
-      <div>
-        <SectionHeader icon={Hash} title="Your topics" count={topics.length} />
-        {topics.length === 0 ? (
-          <EmptyState icon={Hash} message="Add topics in your profile settings." cta="Edit profile" to="/profile/edit" />
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {topics.map((t: any) => (
-              <Link key={t.id} to={`/explore?tab=houses&houses=${t.slug || t.id}`}>
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-lg border border-border bg-card px-4 py-2.5 hover:border-primary/30 transition-all">
-                  <span className="text-sm font-medium flex items-center gap-1.5"><Hash className="h-3.5 w-3.5 text-primary" />{t.name}</span>
-                </motion.div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
