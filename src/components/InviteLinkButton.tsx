@@ -30,7 +30,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(ogUrl);
+      await navigator.clipboard.writeText(displayUrl);
       setCopied(true);
       toast({ title: "Link copied!", description: `Share this link to invite people to "${entityName}"` });
       setTimeout(() => setCopied(false), 2000);
