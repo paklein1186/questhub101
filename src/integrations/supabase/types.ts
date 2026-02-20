@@ -1499,6 +1499,11 @@ export type Database = {
         Row: {
           allow_comments: boolean
           allow_vote_change: boolean
+          allowed_visibility_role_ids: string[] | null
+          allowed_vote_role_ids: string[] | null
+          can_manage_decision_audience_type: string
+          can_manage_decision_role_ids: string[] | null
+          can_vote_audience_type: string
           closes_at: string | null
           created_at: string
           created_by: string
@@ -1520,10 +1525,16 @@ export type Database = {
           thread_id: string | null
           updated_at: string
           visibility: string
+          visibility_audience_type: string
         }
         Insert: {
           allow_comments?: boolean
           allow_vote_change?: boolean
+          allowed_visibility_role_ids?: string[] | null
+          allowed_vote_role_ids?: string[] | null
+          can_manage_decision_audience_type?: string
+          can_manage_decision_role_ids?: string[] | null
+          can_vote_audience_type?: string
           closes_at?: string | null
           created_at?: string
           created_by: string
@@ -1545,10 +1556,16 @@ export type Database = {
           thread_id?: string | null
           updated_at?: string
           visibility?: string
+          visibility_audience_type?: string
         }
         Update: {
           allow_comments?: boolean
           allow_vote_change?: boolean
+          allowed_visibility_role_ids?: string[] | null
+          allowed_vote_role_ids?: string[] | null
+          can_manage_decision_audience_type?: string
+          can_manage_decision_role_ids?: string[] | null
+          can_vote_audience_type?: string
           closes_at?: string | null
           created_at?: string
           created_by?: string
@@ -1570,6 +1587,7 @@ export type Database = {
           thread_id?: string | null
           updated_at?: string
           visibility?: string
+          visibility_audience_type?: string
         }
         Relationships: [
           {
@@ -1663,6 +1681,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      discussion_rooms: {
+        Row: {
+          allowed_role_ids: string[] | null
+          audience_type: string
+          can_manage_audience_type: string
+          can_manage_role_ids: string[] | null
+          can_post_audience_type: string
+          can_reply_audience_type: string
+          created_at: string
+          created_by_user_id: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          scope_id: string
+          scope_type: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_role_ids?: string[] | null
+          audience_type?: string
+          can_manage_audience_type?: string
+          can_manage_role_ids?: string[] | null
+          can_post_audience_type?: string
+          can_reply_audience_type?: string
+          created_at?: string
+          created_by_user_id: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          scope_id: string
+          scope_type: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_role_ids?: string[] | null
+          audience_type?: string
+          can_manage_audience_type?: string
+          can_manage_role_ids?: string[] | null
+          can_post_audience_type?: string
+          can_reply_audience_type?: string
+          created_at?: string
+          created_by_user_id?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          scope_id?: string
+          scope_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       ecosystem_treasury_allocations: {
         Row: {
@@ -1902,6 +1977,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           reshared_post_id: string | null
+          room_id: string | null
           updated_at: string
           upvote_count: number
           visibility: string
@@ -1916,6 +1992,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           reshared_post_id?: string | null
+          room_id?: string | null
           updated_at?: string
           upvote_count?: number
           visibility?: string
@@ -1930,6 +2007,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           reshared_post_id?: string | null
+          room_id?: string | null
           updated_at?: string
           upvote_count?: number
           visibility?: string
@@ -1940,6 +2018,13 @@ export type Database = {
             columns: ["reshared_post_id"]
             isOneToOne: false
             referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_posts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "discussion_rooms"
             referencedColumns: ["id"]
           },
         ]

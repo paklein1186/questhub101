@@ -118,6 +118,7 @@ export function useCreatePost() {
       topicIds = [],
       visibility = "public",
       resharedPostId,
+      roomId,
     }: {
       authorUserId: string;
       contextType: string;
@@ -128,6 +129,7 @@ export function useCreatePost() {
       topicIds?: string[];
       visibility?: string;
       resharedPostId?: string;
+      roomId?: string;
     }) => {
       // Create the post
       const { data: post, error: postError } = await supabase
@@ -139,6 +141,7 @@ export function useCreatePost() {
           content: content || null,
           visibility,
           reshared_post_id: resharedPostId || null,
+          room_id: roomId || null,
         } as any)
         .select("id")
         .single();
