@@ -101,12 +101,53 @@ export default function ServiceDetail() {
     enabled: !!unitId && (ownerType === "GUILD" || ownerType === "COMPANY"),
   });
 
+  const providerUserId = svc?.provider_user_id;
+  // Fetch provider's calendar busy events (only from enabled subcalendars)
+  const providerIdForBusy = providerUserId || null;
+  const { data: providerBusyEvents = [] } = useQuery({
+    queryKey: ["provider-calendar-busy", providerIdForBusy],
+    queryFn: async () => {
+      if (!providerIdForBusy) return [];
+      // Fetch busy events joined with subcalendar preferences to filter enabled only
+      const { data: busyEvents } = await supabase
+        .from("calendar_busy_events")
+        .select("start_at, end_at, source_calendar_id, connection_id")
+        .eq("user_id", providerIdForBusy);
+
+      if (!busyEvents || busyEvents.length === 0) return [];
+
+      // Fetch subcalendar preferences for this provider
+      const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
+      const { data: prefs } = await (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .select("source_calendar_id, is_enabled, connection_id")
+        .eq("user_id", providerIdForBusy)
+        .in("connection_id", connectionIds);
+
+      // Build a set of disabled subcalendars
+      const disabledSet = new Set<string>();
+      if (prefs && prefs.length > 0) {
+        for (const p of prefs) {
+          if (!p.is_enabled) {
+            disabledSet.add(`${p.connection_id}::${p.source_calendar_id}`);
+          }
+        }
+      }
+
+      // Filter out events from disabled subcalendars
+      return busyEvents.filter(e => {
+        if (!e.source_calendar_id) return true; // no source = include
+        return !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`);
+      });
+    },
+    enabled: !!providerIdForBusy,
+  });
+
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
   const svcTerrs = (svc as any)?.service_territories?.map((st: any) => st.territories).filter(Boolean) || [];
   const guildMemberRole = guild ? ((guild as any).guild_members || []).find((gm: any) => gm.user_id === currentUser.id)?.role : null;
   const canManage = svc ? canManageServiceSync(currentUser.id, currentUser.email, svc as any, guildMemberRole) : false;
   const isOwnService = canManage;
-  const providerUserId = svc?.provider_user_id;
 
   const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
 
@@ -116,13 +157,13 @@ export default function ServiceDetail() {
     const end = new Date(start); end.setDate(end.getDate() + 6);
 
     if (isUnitService) {
-      // Use unit availability
       return generateUnitSlots(
         unitAvailability ?? null,
         svc.duration_minutes,
         start.toISOString().split("T")[0],
         end.toISOString().split("T")[0],
         (unitBookingsData || []).map((b: any) => ({ start_date_time: b.start_date_time, end_date_time: b.end_date_time, status: b.status })),
+        providerBusyEvents.map((e: any) => ({ start_at: e.start_at, end_at: e.end_at })),
       );
     }
 
@@ -134,9 +175,10 @@ export default function ServiceDetail() {
       svc.duration_minutes,
       start.toISOString().split("T")[0],
       end.toISOString().split("T")[0],
-      svc.id
+      svc.id,
+      providerBusyEvents.map((e: any) => ({ start_at: e.start_at, end_at: e.end_at })),
     );
-  }, [providerUserId, svc?.id, svc?.duration_minutes, weekOffset, rules, exceptions, providerBookings, isUnitService, unitAvailability, unitBookingsData]);
+  }, [providerUserId, svc?.id, svc?.duration_minutes, weekOffset, rules, exceptions, providerBookings, isUnitService, unitAvailability, unitBookingsData, providerBusyEvents]);
 
   const slotsByDate = useMemo(() => {
     const groups: Record<string, TimeSlot[]> = {};

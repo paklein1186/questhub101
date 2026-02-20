@@ -27,6 +27,7 @@ export function generateSlots(
   startDate: string,
   endDate: string,
   serviceId?: string,
+  calendarBusyEvents: { start_at: string; end_at: string }[] = [],
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
   const start = new Date(startDate);
@@ -92,6 +93,14 @@ export function generateSlots(
         });
 
         if (!overlaps) {
+          // Check against external calendar busy events
+          const calBusy = calendarBusyEvents.some(e => {
+            const eStart = new Date(e.start_at);
+            const eEnd = new Date(e.end_at);
+            return slotStart < eEnd && slotEnd > eStart;
+          });
+          if (calBusy) continue;
+
           const fmt = (date: Date) =>
             `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
           slots.push({
