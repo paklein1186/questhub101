@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useCollaborativeDoc } from "@/hooks/useCollaborativeDoc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, FileText, Pin, PinOff, Trash2, Pencil, ArrowLeft } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, FileText, Pin, PinOff, Trash2, Pencil, ArrowLeft, Users } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { NotionEditor } from "./NotionEditor";
 import { GoogleDriveEmbed } from "./GoogleDriveEmbed";
@@ -28,11 +29,16 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
   const [docContent, setDocContent] = useState("");
 
   const [viewingDoc, setViewingDoc] = useState<any>(null);
-  const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
 
-  // Google Drive URL stored as guild metadata
+  // Collaborative Yjs doc
+  const { ydoc, activeUsers } = useCollaborativeDoc(viewingDoc?.id ?? null);
+  const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastSavedHtml = useRef<string>("");
+
+  // Google Drive URL
   const { data: driveUrl = "" } = useQuery({
     queryKey: ["guild-drive-url", guildId],
     queryFn: async () => {
@@ -61,6 +67,7 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     qc.invalidateQueries({ queryKey: ["guild-drive-url", guildId] });
   };
 
+  // Docs list
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["guild-docs", guildId],
     queryFn: async () => {
@@ -82,6 +89,37 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     enabled: isMember,
   });
 
+  // Auto-save every 5 seconds when viewing a doc
+  const editorHtmlRef = useRef("");
+  const handleEditorChange = useCallback((html: string) => {
+    editorHtmlRef.current = html;
+  }, []);
+
+  const saveDoc = useCallback(async () => {
+    if (!viewingDoc) return;
+    const html = editorHtmlRef.current;
+    if (html === lastSavedHtml.current) return; // No changes
+
+    setIsSaving(true);
+    await supabase.from("guild_docs" as any).update({
+      content: html,
+      updated_by_user_id: currentUser.id,
+      updated_at: new Date().toISOString(),
+    } as any).eq("id", viewingDoc.id);
+    lastSavedHtml.current = html;
+    setIsSaving(false);
+  }, [viewingDoc, currentUser.id]);
+
+  useEffect(() => {
+    if (!viewingDoc) return;
+    autoSaveRef.current = setInterval(saveDoc, 5000);
+    return () => {
+      // Save on close
+      saveDoc();
+      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+    };
+  }, [viewingDoc, saveDoc]);
+
   const createDoc = async () => {
     if (!docTitle.trim()) return;
     const { error } = await supabase.from("guild_docs" as any).insert({
@@ -90,10 +128,10 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
       content: docContent,
       created_by_user_id: currentUser.id,
     } as any);
-    if (error) { toast({ title: "Failed to create doc", variant: "destructive" }); return; }
+    if (error) { toast({ title: "Failed to create page", variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
     setDocTitle(""); setDocContent(""); setCreateOpen(false);
-    toast({ title: "Document created" });
+    toast({ title: "Page created" });
   };
 
   const togglePin = async (doc: any) => {
@@ -106,58 +144,80 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     await supabase.from("guild_docs" as any).delete().eq("id", docId);
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
     setViewingDoc(null);
-    toast({ title: "Document deleted" });
+    toast({ title: "Page deleted" });
   };
 
-  const saveEdit = async () => {
-    if (!editTitle.trim()) return;
+  const saveTitle = async () => {
+    if (!editTitle.trim() || !viewingDoc) return;
     await supabase.from("guild_docs" as any).update({
       title: editTitle.trim(),
-      content: editContent,
       updated_by_user_id: currentUser.id,
       updated_at: new Date().toISOString(),
     } as any).eq("id", viewingDoc.id);
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
-    setViewingDoc({ ...viewingDoc, title: editTitle, content: editContent });
-    setEditing(false);
-    toast({ title: "Document updated" });
+    setViewingDoc({ ...viewingDoc, title: editTitle.trim() });
+    setEditingTitle(false);
   };
 
   const openDoc = (doc: any) => {
+    // Save current doc before switching
+    if (viewingDoc) saveDoc();
     setViewingDoc(doc);
     setEditTitle(doc.title);
-    setEditContent(doc.content || "");
-    setEditing(false);
+    editorHtmlRef.current = doc.content || "";
+    lastSavedHtml.current = doc.content || "";
+    setEditingTitle(false);
   };
 
   if (!isMember) return <p className="text-sm text-muted-foreground">Join the guild to view documents.</p>;
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading docs…</p>;
 
-  // Doc detail view
+  // ── Doc detail view (always-editable collaborative pad) ──
   if (viewingDoc) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => setViewingDoc(null)}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back to docs
-        </Button>
-        <div className="flex items-center justify-between">
-          {editing ? (
-            <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="text-lg font-bold" />
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => { saveDoc(); setViewingDoc(null); qc.invalidateQueries({ queryKey: ["guild-docs", guildId] }); }}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          </Button>
+          <div className="flex-1" />
+          {/* Active collaborators */}
+          {activeUsers.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="flex -space-x-1.5">
+                {activeUsers.slice(0, 4).map((u, i) => (
+                  <Avatar key={i} className="h-6 w-6 border-2 border-background">
+                    <AvatarFallback className="text-[9px] font-bold text-white" style={{ backgroundColor: u.color }}>
+                      {u.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">{activeUsers.length} editing</span>
+            </div>
+          )}
+        </div>
+
+        {/* Title */}
+        <div className="flex items-center gap-2">
+          {editingTitle ? (
+            <div className="flex items-center gap-2 flex-1">
+              <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="text-xl font-bold font-display" onKeyDown={(e) => e.key === "Enter" && saveTitle()} />
+              <Button size="sm" onClick={saveTitle}>Save</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
+            </div>
           ) : (
-            <h2 className="font-display text-xl font-bold flex items-center gap-2">
+            <h2 className="font-display text-xl font-bold flex items-center gap-2 cursor-pointer group flex-1" onClick={() => isMember && setEditingTitle(true)}>
               {viewingDoc.is_pinned && <Pin className="h-4 w-4 text-primary" />}
               {viewingDoc.title}
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </h2>
           )}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 shrink-0">
             {isAdmin && (
               <Button size="sm" variant="ghost" onClick={() => togglePin(viewingDoc)}>
                 {viewingDoc.is_pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
-              </Button>
-            )}
-            {isMember && !editing && (
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-                <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
               </Button>
             )}
             {(isAdmin || viewingDoc.created_by_user_id === currentUser.id) && (
@@ -167,32 +227,32 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
             )}
           </div>
         </div>
+
         <p className="text-xs text-muted-foreground">
           By {viewingDoc.author?.name} · Updated {formatDistanceToNow(new Date(viewingDoc.updated_at), { addSuffix: true })}
+          {isSaving && <span className="ml-2 text-primary">• Saving…</span>}
         </p>
 
-        {editing ? (
-          <div className="space-y-3">
-            <NotionEditor content={editContent} onChange={setEditContent} editable placeholder="Write your document…" />
-            <div className="flex gap-2">
-              <Button onClick={saveEdit}>Save</Button>
-              <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
-            </div>
-          </div>
-        ) : (
-          <NotionEditor content={viewingDoc.content || ""} onChange={() => {}} editable={false} />
-        )}
+        {/* Always-editable collaborative editor */}
+        <NotionEditor
+          content={viewingDoc.content || ""}
+          onChange={handleEditorChange}
+          onSave={saveDoc}
+          editable={isMember}
+          placeholder="Start writing together…"
+          ydoc={ydoc}
+          activeUsers={activeUsers}
+          isSaving={isSaving}
+        />
       </div>
     );
   }
 
-  // Docs list view
+  // ── Docs list view ──
   return (
     <div className="space-y-6">
-      {/* Google Drive embed */}
       <GoogleDriveEmbed driveUrl={driveUrl} onUrlChange={updateDriveUrl} canEdit={isAdmin} />
 
-      {/* Wiki documents */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold">Wiki ({docs.length})</h3>
@@ -226,7 +286,6 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
         </div>
       </div>
 
-      {/* Create doc dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>New Page</DialogTitle></DialogHeader>
