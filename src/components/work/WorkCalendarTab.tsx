@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,9 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualConfig";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 const SESSION_ICONS: Record<string, any> = {
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale, Telescope, Network, PartyPopper,
@@ -73,9 +76,15 @@ export function WorkCalendarTab() {
   const currentUser = useCurrentUser();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [hiddenCalendars, setHiddenCalendars] = useState<Set<string>>(new Set());
+  const [hiddenCalendars, setHiddenCalendars] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("ctg-hidden-calendars");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
   type ViewMode = "day" | "3day" | "week" | "month";
   const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   // Fetch guild events user is attending
   const { data: myEventAttendances = [] } = useQuery({
     queryKey: ["my-event-attendances", currentUser.id],
@@ -198,6 +207,7 @@ export function WorkCalendarTab() {
       const next = new Set(prev);
       if (next.has(calId)) next.delete(calId);
       else next.add(calId);
+      localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(next)));
       return next;
     });
   };
@@ -329,16 +339,18 @@ export function WorkCalendarTab() {
                 {dayEvents.slice(0, maxVisible).map((evt) => {
                   const Icon = evt.type === "external" ? Globe : evt.type === "ritual" && evt.sessionType ? getSessionIcon(evt.sessionType) : Calendar;
                   return (
-                    <div
+                    <button
                       key={evt.id}
-                      className={`text-[10px] rounded px-1 py-0.5 truncate cursor-default flex items-center gap-0.5 ${
+                      type="button"
+                      onClick={() => setSelectedEvent(evt)}
+                      className={`text-[10px] rounded px-1 py-0.5 truncate cursor-pointer flex items-center gap-0.5 text-left w-full hover:opacity-80 transition-opacity ${
                         evt.type === "external" ? "bg-secondary/60 text-secondary-foreground" : evt.type === "ritual" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"
                       }`}
                       title={`${evt.title} — ${format(new Date(evt.date), "HH:mm")} (${evt.entityName})`}
                     >
                       <Icon className="h-2.5 w-2.5 shrink-0" />
                       <span className="truncate">{viewMode !== "month" ? `${format(new Date(evt.date), "HH:mm")} ${evt.title}` : evt.title}</span>
-                    </div>
+                    </button>
                   );
                 })}
                 {dayEvents.length > maxVisible && (
@@ -435,6 +447,103 @@ export function WorkCalendarTab() {
       {/* Calendar Sync (Google / Outlook) */}
       <Separator />
       <CalendarSyncTab />
+
+      {/* Event detail dialog */}
+      <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
+        <DialogContent className="max-w-md">
+          {selectedEvent && (() => {
+            const evt = selectedEvent;
+            const Icon = evt.type === "external" ? Globe : evt.type === "ritual" && evt.sessionType ? getSessionIcon(evt.sessionType) : Calendar;
+            const route = evt.entityType === "external" ? "" : evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
+            return (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "external" ? "bg-secondary/60" : evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
+                      <Icon className={`h-5 w-5 ${evt.type === "external" ? "text-secondary-foreground" : evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <DialogTitle className="text-base">{evt.title}</DialogTitle>
+                      <DialogDescription className="mt-0.5">
+                        {evt.entityType !== "external" ? evt.entityName : (evt.sourceCalendarName || evt.entityName)}
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-3 mt-2">
+                  {/* Date & time */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span>{format(new Date(evt.date), "EEEE, MMMM d, yyyy")}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span>
+                      {format(new Date(evt.date), "HH:mm")}
+                      {evt.endDate ? ` – ${format(new Date(evt.endDate), "HH:mm")}` : ` (${evt.durationMinutes} min)`}
+                    </span>
+                  </div>
+
+                  {/* Source calendar */}
+                  {evt.sourceCalendarName && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">{evt.sourceCalendarName}</span>
+                    </div>
+                  )}
+
+                  {/* Type badge */}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {evt.type === "external" ? evt.entityName : evt.type}
+                    </Badge>
+                    {evt.sessionType && (
+                      <Badge variant="secondary" className="text-xs capitalize">{evt.sessionType.replace(/_/g, " ")}</Badge>
+                    )}
+                  </div>
+
+                  {/* Entity link */}
+                  {evt.entityType !== "external" && route && (
+                    <Link
+                      to={route}
+                      className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                      onClick={() => setSelectedEvent(null)}
+                    >
+                      {evt.entityType === "guild" ? <Shield className="h-3.5 w-3.5" /> : <Compass className="h-3.5 w-3.5" />}
+                      Go to {evt.entityName}
+                    </Link>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs gap-1"
+                    onClick={() => generateIcs(evt.title, evt.date, evt.durationMinutes, evt.visioLink)}
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" /> Export .ics
+                  </Button>
+                  <div className="flex-1" />
+                  {evt.type === "ritual" && evt.occurrenceId ? (
+                    <Button size="sm" variant="default" className="text-xs gap-1" onClick={() => { setSelectedEvent(null); navigate(`/ritual-call/${evt.occurrenceId}`); }}>
+                      <Video className="h-3.5 w-3.5" /> Join call
+                    </Button>
+                  ) : evt.visioLink ? (
+                    <Button size="sm" variant="default" className="text-xs gap-1" asChild>
+                      <a href={evt.visioLink} target="_blank" rel="noopener noreferrer">
+                        <Video className="h-3.5 w-3.5" /> Join call
+                      </a>
+                    </Button>
+                  ) : null}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
