@@ -1,0 +1,1 @@
+ALTER TYPE quest_status ADD VALUE IF NOT EXISTS 'IDEA';
