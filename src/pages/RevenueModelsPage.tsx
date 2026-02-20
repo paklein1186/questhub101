@@ -63,7 +63,7 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
-export default function RevenueModelsPage() {
+export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("overview");
@@ -95,8 +95,8 @@ export default function RevenueModelsPage() {
     return () => observer.disconnect();
   }, []);
 
-  return (
-    <PageShell>
+  const content = (
+    <>
       {/* SEO */}
       <title>Revenue Models &amp; Economic Framework — changethegame</title>
       <meta name="description" content="Explanation of ownership, monetary flows, credits, and reputation systems within the platform." />
@@ -398,6 +398,8 @@ export default function RevenueModelsPage() {
 
         <div className="h-16" />
       </div>
-    </PageShell>
+    </>
   );
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }

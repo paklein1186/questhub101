@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-export default function WhatComesNextPage() {
+export default function WhatComesNextPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { persona } = usePersona();
@@ -36,10 +36,9 @@ export default function WhatComesNextPage() {
     }
   };
 
-  return (
-    <PageShell>
-      <div className="max-w-2xl mx-auto py-12 sm:py-20 px-4">
-        <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
+  const content = (
+    <div className={embedded ? "max-w-2xl mx-auto px-4" : "max-w-2xl mx-auto py-12 sm:py-20 px-4"}>
+      <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground mb-2">
           {t("pages.whatComesNext.title")}
         </h1>
         <p className="text-muted-foreground text-lg mb-12">
@@ -89,6 +88,7 @@ export default function WhatComesNextPage() {
           </Button>
         </div>
       </div>
-    </PageShell>
   );
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }

@@ -100,9 +100,10 @@ const AUDIENCE_COLORS: Record<string, string> = {
   "Co-owners": "bg-accent/40 text-accent-foreground",
 };
 
-export default function UseCasesPage() {
+export default function UseCasesPage({ embedded }: { embedded?: boolean }) {
   return (
     <ContentPageShell
+      embedded={embedded}
       title="10 Use Cases"
       subtitle="How changethegame supports freelancers, organizations, collectives, territories, ecosystem builders, citizens & communities."
     >

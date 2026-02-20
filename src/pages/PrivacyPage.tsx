@@ -1,10 +1,10 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
 import { useTranslation } from "react-i18next";
 
-export default function PrivacyPage() {
+export default function PrivacyPage({ embedded }: { embedded?: boolean }) {
   const { t } = useTranslation();
   return (
-    <ContentPageShell title={t("pages.privacy.title")} subtitle={t("pages.privacy.subtitle")}>
+    <ContentPageShell embedded={embedded} title={t("pages.privacy.title")} subtitle={t("pages.privacy.subtitle")}>
       <p className="text-muted-foreground leading-relaxed mb-6">We collect only the data necessary to provide the platform and its collaborative features. We never sell your data. AI agents operate with strict boundaries and unit-specific context.</p>
 
       <ContentSection title="1. Information We Collect">

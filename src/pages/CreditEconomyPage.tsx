@@ -27,9 +27,9 @@ function CalloutBox({ children }: { children: React.ReactNode }) {
 
 const decay = simulateDecay(1000, 12);
 
-export default function CreditEconomyPage() {
-  return (
-    <PageShell>
+export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) {
+  const content = (
+    <>
       <title>Hybrid Sovereign Economy — changethegame</title>
       <meta name="description" content="How the four-layer value system works: Fiat, Credits, XP, and Shares. A hybrid regenerative coordination layer." />
 
@@ -194,8 +194,10 @@ export default function CreditEconomyPage() {
 
         <div className="h-16" />
       </div>
-    </PageShell>
+    </>
   );
+  if (embedded) return content;
+  return <PageShell>{content}</PageShell>;
 }
 
 function AllocationBar({ label, percent }: { label: string; percent: number }) {
