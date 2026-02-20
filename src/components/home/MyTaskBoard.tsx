@@ -162,7 +162,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [editingSource, setEditingSource] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [entityFilter, setEntityFilter] = useState<Set<string>>(new Set()); // empty = show all
+  const [entityFilter, setEntityFilterRaw] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem(`taskboard-entity-filter-${userId}`);
+      if (stored) return new Set(JSON.parse(stored) as string[]);
+    } catch {}
+    return new Set<string>();
+  });
+  const setEntityFilter = (valOrFn: Set<string> | ((prev: Set<string>) => Set<string>)) => {
+    setEntityFilterRaw((prev) => {
+      const next = typeof valOrFn === "function" ? valOrFn(prev) : valOrFn;
+      try { localStorage.setItem(`taskboard-entity-filter-${userId}`, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
 
   const [showConfetti, setShowConfetti] = useState(false);
 
