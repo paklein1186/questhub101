@@ -164,78 +164,78 @@ export function PlatformBroadcastDialog() {
       let sent = 0;
       let failed = 0;
 
+      // Create ONE conversation for the entire broadcast
+      const { data: conv, error: convError } = await supabase
+        .from("conversations")
+        .insert({
+          title: subject.trim() || `Broadcast from ${SENDER_LABEL}`,
+          is_group: true,
+          created_by: userId,
+          sender_label: SENDER_LABEL,
+          sender_entity_type: "platform",
+          sender_entity_id: null,
+        } as any)
+        .select("id")
+        .single();
+
+      if (convError || !conv) throw convError ?? new Error("Failed to create conversation");
+
+      // Add sender + all recipients as participants
+      const allParticipantIds = [userId, ...recipientIds];
+      const participantRows = allParticipantIds.map((uid) => ({ conversation_id: conv.id, user_id: uid }));
+      // Insert in batches of 500 to avoid payload limits
+      for (let i = 0; i < participantRows.length; i += 500) {
+        await supabase.from("conversation_participants").insert(participantRows.slice(i, i + 500));
+      }
+
+      // Send the single message
+      const { data: msg } = await supabase
+        .from("direct_messages")
+        .insert({
+          conversation_id: conv.id,
+          sender_id: userId,
+          content: messageBody,
+          sender_label: SENDER_LABEL,
+        } as any)
+        .select("id")
+        .single();
+
+      await supabase
+        .from("conversations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", conv.id);
+
+      // Mark all recipients as sent and fire email notifications
       for (let idx = 0; idx < recipientIds.length; idx++) {
         const recipientId = recipientIds[idx];
         try {
-          const { data: conv, error: convError } = await supabase
-            .from("conversations")
-            .insert({
-              title: subject.trim() || `Message from ${SENDER_LABEL}`,
-              is_group: false,
-              created_by: userId,
-              sender_label: SENDER_LABEL,
-              sender_entity_type: "platform",
-              sender_entity_id: null,
-            } as any)
-            .select("id")
-            .single();
+          await supabase
+            .from("broadcast_recipients" as any)
+            .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
+            .eq("broadcast_id", broadcastId)
+            .eq("user_id", recipientId);
 
-          if (convError || !conv) {
-            console.error("Conv insert failed for", recipientId, convError);
-            failed++;
-            await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
-          } else {
-            const allIds = [...new Set([userId, recipientId])];
-            await supabase
-              .from("conversation_participants")
-              .insert(allIds.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
-
-            const { data: msg } = await supabase
-              .from("direct_messages")
-              .insert({
-                conversation_id: conv.id,
-                sender_id: userId,
+          // Fire email notification (non-blocking)
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                messageId: msg?.id,
+                conversationId: conv.id,
+                senderId: userId,
                 content: messageBody,
-                sender_label: SENDER_LABEL,
-              } as any)
-              .select("id")
-              .single();
+                senderLabel: SENDER_LABEL,
+              }),
+            }
+          ).catch(() => {});
 
-            await supabase
-              .from("conversations")
-              .update({ updated_at: new Date().toISOString() })
-              .eq("id", conv.id);
-
-            // Mark recipient as sent
-            await supabase
-              .from("broadcast_recipients" as any)
-              .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
-              .eq("broadcast_id", broadcastId)
-              .eq("user_id", recipientId);
-
-            // Fire email notification (non-blocking)
-            fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  messageId: msg?.id,
-                  conversationId: conv.id,
-                  senderId: userId,
-                  content: messageBody,
-                  senderLabel: SENDER_LABEL,
-                }),
-              }
-            ).catch(() => {});
-
-            sent++;
-          }
-        } catch (e) {
-          console.error("Broadcast send error for", recipientId, e);
+          sent++;
+        } catch {
           failed++;
           try { await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId); } catch { /* ignore */ }
         }

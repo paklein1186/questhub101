@@ -68,49 +68,53 @@ export function BroadcastMessageDialog({
       );
     }
 
+    // Create ONE conversation for the entire broadcast
+    const { data: conv, error: convError } = await supabase
+      .from("conversations")
+      .insert({
+        title: `Broadcast from ${senderLabel}`,
+        is_group: true,
+        created_by: userId,
+        sender_label: senderLabel,
+        sender_entity_type: "guild",
+        sender_entity_id: guildId,
+      } as any)
+      .select("id")
+      .single();
+
+    if (convError || !conv) {
+      toast({ title: "Broadcast failed", description: "Could not create conversation.", variant: "destructive" });
+      setSending(false);
+      return;
+    }
+
+    // Add sender + all recipients as participants
+    const allParticipantIds = [userId, ...recipientIds];
+    const participantRows = allParticipantIds.map((uid) => ({ conversation_id: conv.id, user_id: uid }));
+    for (let i = 0; i < participantRows.length; i += 500) {
+      await supabase.from("conversation_participants").insert(participantRows.slice(i, i + 500));
+    }
+
+    // Send single message
+    const { data: msg } = await supabase
+      .from("direct_messages")
+      .insert({
+        conversation_id: conv.id,
+        sender_id: userId,
+        content: content.trim(),
+        sender_label: senderLabel,
+      } as any)
+      .select("id")
+      .single();
+
+    await supabase
+      .from("conversations")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", conv.id);
+
+    // Mark all recipients as sent and fire email notifications
     for (const recipientId of recipientIds) {
       try {
-        const { data: conv, error: convError } = await supabase
-          .from("conversations")
-          .insert({
-            title: `Message from ${senderLabel}`,
-            is_group: false,
-            created_by: userId,
-            sender_label: senderLabel,
-            sender_entity_type: "guild",
-            sender_entity_id: guildId,
-          } as any)
-          .select("id")
-          .single();
-
-        if (convError || !conv) {
-          failed++;
-          if (broadcastId) await supabase.from("broadcast_recipients" as any).update({ status: "failed" }).eq("broadcast_id", broadcastId).eq("user_id", recipientId);
-          continue;
-        }
-
-        const allIds = [...new Set([userId, recipientId])];
-        await supabase
-          .from("conversation_participants")
-          .insert(allIds.map((uid) => ({ conversation_id: conv.id, user_id: uid })));
-
-        const { data: msg } = await supabase
-          .from("direct_messages")
-          .insert({
-            conversation_id: conv.id,
-            sender_id: userId,
-            content: content.trim(),
-            sender_label: senderLabel,
-          } as any)
-          .select("id")
-          .single();
-
-        await supabase
-          .from("conversations")
-          .update({ updated_at: new Date().toISOString() })
-          .eq("id", conv.id);
-
-        // Mark recipient as sent
         if (broadcastId) {
           await supabase
             .from("broadcast_recipients" as any)
