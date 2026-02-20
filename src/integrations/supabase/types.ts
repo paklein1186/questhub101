@@ -6375,6 +6375,7 @@ export type Database = {
         | "ACTIVE"
         | "CANCELLED"
         | "DRAFT"
+        | "IDEA"
       ritual_access_type:
         | "PUBLIC"
         | "MEMBERS"
@@ -6558,6 +6559,7 @@ export const Constants = {
         "ACTIVE",
         "CANCELLED",
         "DRAFT",
+        "IDEA",
       ],
       ritual_access_type: [
         "PUBLIC",
