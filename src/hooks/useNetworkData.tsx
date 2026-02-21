@@ -204,6 +204,80 @@ export function useMyTopics(userId: string) {
   });
 }
 
+/** Map entries for followed users — lowest-level territory per user */
+const LEVEL_PRIORITY: Record<string, number> = {
+  TOWN: 0, LOCALITY: 1, PROVINCE: 2, REGION: 3, NATIONAL: 4, OTHER: 5, CONTINENT: 6, GLOBAL: 7,
+};
+
+export function useFollowedUsersMap(userId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["network-people-map", userId],
+    enabled: !!userId && enabled,
+    queryFn: async () => {
+      if (!userId) return [];
+
+      // Get followed user IDs
+      const { data: follows } = await supabase
+        .from("follows")
+        .select("target_id")
+        .eq("follower_id", userId)
+        .eq("target_type", "USER");
+
+      const followedIds = (follows ?? []).map(f => f.target_id);
+      if (followedIds.length === 0) return [];
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url, headline")
+        .in("user_id", followedIds);
+      if (!profiles || profiles.length === 0) return [];
+
+      const userIds = profiles.map(p => p.user_id).filter(Boolean) as string[];
+
+      // Fetch territories with coords
+      const { data: utRows } = await supabase
+        .from("user_territories")
+        .select("user_id, territory_id, territories(id, name, latitude, longitude, level)")
+        .in("user_id", userIds);
+
+      const userTerritories: Record<string, { name: string; lat: number; lng: number; level: string }[]> = {};
+      for (const row of (utRows ?? []) as any[]) {
+        const t = row.territories;
+        if (!t || t.latitude == null || t.longitude == null) continue;
+        const uid = row.user_id as string;
+        if (!userTerritories[uid]) userTerritories[uid] = [];
+        userTerritories[uid].push({ name: t.name, lat: t.latitude, lng: t.longitude, level: t.level ?? "OTHER" });
+      }
+
+      const profileMap: Record<string, typeof profiles[0]> = {};
+      for (const p of profiles) if (p.user_id) profileMap[p.user_id] = p;
+
+      const entries: { user_id: string; name: string; avatar_url: string | null; headline: string | null; territory_name: string; lat: number; lng: number }[] = [];
+      for (const [uid, terrs] of Object.entries(userTerritories)) {
+        const minPriority = Math.min(...terrs.map(t => LEVEL_PRIORITY[t.level] ?? 5));
+        const lowest = terrs.filter(t => (LEVEL_PRIORITY[t.level] ?? 5) === minPriority);
+        const profile = profileMap[uid];
+        if (!profile) continue;
+        for (const t of lowest) {
+          entries.push({
+            user_id: uid,
+            name: profile.name ?? "Unknown",
+            avatar_url: profile.avatar_url ?? null,
+            headline: profile.headline ?? null,
+            territory_name: t.name,
+            lat: t.lat,
+            lng: t.lng,
+          });
+        }
+      }
+
+      return entries;
+    },
+    staleTime: 120_000,
+  });
+}
+
 /** Territory activity counts */
 export function useTerritoryActivity(territoryIds: string[]) {
   return useQuery({
