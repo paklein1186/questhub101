@@ -5,7 +5,7 @@ import {
   Users, Building2, Shield, MapPin, Sparkles, Compass,
   Loader2, Globe, Plus, CircleDot, Briefcase, Settings,
   ArrowRight, Hash, Rss, Trophy, Activity,
-  LayoutDashboard,
+  LayoutDashboard, LayoutGrid,
 } from "lucide-react";
 import { useTabOrder } from "@/hooks/useTabOrder";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
@@ -33,8 +33,11 @@ import NetworkActivityTab from "@/components/network/NetworkActivityTab";
 import {
   useMyGuildMemberships, useMyCompanyMemberships, useMyPodMemberships,
   usePeopleInOrbit, useMyTerritories, useMyTopics, useTerritoryActivity,
+  useFollowedUsersMap,
 } from "@/hooks/useNetworkData";
 import { FollowOnHoverButton, useFollowedUserIds } from "@/components/FollowOnHoverButton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function EmptyState({ icon: Icon, message, cta, to }: { icon: any; message: string; cta: string; to: string }) {
   return (
@@ -321,8 +324,14 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
 }
 
 // ─── People tab ──────────────────────────────────────────────
+const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").then(m => ({ default: m.ExploreUsersMap })));
+
 function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
   const [sort, setSort] = useState<"interactions" | "recent">("interactions");
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const currentUser = useCurrentUser();
+
+  const { data: mapEntries, isLoading: mapLoading } = useFollowedUsersMap(currentUser.id, viewMode === "map");
 
   const sorted = useMemo(() => {
     const arr = [...people];
@@ -339,12 +348,26 @@ function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{people.length} people in your orbit</p>
-        <div className="flex gap-1">
-          <Button size="sm" variant={sort === "interactions" ? "default" : "outline"} onClick={() => setSort("interactions")} className="text-xs h-7">Most shared</Button>
-          <Button size="sm" variant={sort === "recent" ? "default" : "outline"} onClick={() => setSort("recent")} className="text-xs h-7">Recent</Button>
+        <div className="flex gap-2">
+          <div className="flex gap-1">
+            <Button size="sm" variant={sort === "interactions" ? "default" : "outline"} onClick={() => setSort("interactions")} className="text-xs h-7">Most shared</Button>
+            <Button size="sm" variant={sort === "recent" ? "default" : "outline"} onClick={() => setSort("recent")} className="text-xs h-7">Recent</Button>
+          </div>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "grid" | "map")} className="border rounded-md">
+            <ToggleGroupItem value="grid" aria-label="Grid view" className="px-2 h-7"><LayoutGrid className="h-3.5 w-3.5" /></ToggleGroupItem>
+            <ToggleGroupItem value="map" aria-label="Map view" className="px-2 h-7"><MapPin className="h-3.5 w-3.5" /></ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
-      {sorted.length === 0 ? (
+      {viewMode === "map" ? (
+        mapLoading ? (
+          <Skeleton className="h-[500px] rounded-xl" />
+        ) : (
+          <Suspense fallback={<Skeleton className="h-[500px] rounded-xl" />}>
+            <ExploreUsersMap entries={mapEntries ?? []} isLoggedIn={true} />
+          </Suspense>
+        )
+      ) : sorted.length === 0 ? (
         <EmptyState icon={Users} message="Join guilds, organizations or quests to build your network." cta="Explore" to="/explore" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
