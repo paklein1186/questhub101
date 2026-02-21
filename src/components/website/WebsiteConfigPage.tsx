@@ -11,8 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Trash2, GripVertical, Globe, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Globe, Eye, EyeOff } from "lucide-react";
 import { WebsitePageEditor } from "./WebsitePageEditor";
+import { getDefaultTemplate } from "@/lib/websiteTemplates";
 
 interface WebsiteConfigPageProps {
   ownerType: "user" | "guild" | "territory" | "program";
@@ -57,6 +58,8 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
     themeMode: "solar" as string,
     primaryColor: "",
     accentColor: "",
+    fontHeading: "",
+    fontBody: "",
     isPublished: false,
   });
 
@@ -71,6 +74,8 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
         themeMode: theme.mode || "solar",
         primaryColor: theme.primaryColor || "",
         accentColor: theme.accentColor || "",
+        fontHeading: theme.fontHeading || "",
+        fontBody: theme.fontBody || "",
         isPublished: website.is_published || false,
       });
     }
@@ -78,11 +83,11 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
 
   const upsertWebsite = useMutation({
     mutationFn: async () => {
-      const theme = {
-        mode: form.themeMode,
-        ...(form.primaryColor && { primaryColor: form.primaryColor }),
-        ...(form.accentColor && { accentColor: form.accentColor }),
-      };
+      const theme: Record<string, string> = { mode: form.themeMode };
+      if (form.primaryColor) theme.primaryColor = form.primaryColor;
+      if (form.accentColor) theme.accentColor = form.accentColor;
+      if (form.fontHeading) theme.fontHeading = form.fontHeading;
+      if (form.fontBody) theme.fontBody = form.fontBody;
 
       if (website) {
         const { error } = await supabase
@@ -98,22 +103,61 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
           .eq("id", website.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("websites").insert({
-          owner_type: ownerType,
-          owner_id: ownerId,
-          title: form.title,
-          slug: form.slug,
-          subtitle: form.subtitle || null,
-          description: form.description || null,
-          theme,
-          is_published: form.isPublished,
-        });
+        // Create website
+        const { data: newSite, error } = await supabase
+          .from("websites")
+          .insert({
+            owner_type: ownerType,
+            owner_id: ownerId,
+            title: form.title,
+            slug: form.slug,
+            subtitle: form.subtitle || null,
+            description: form.description || null,
+            theme,
+            is_published: form.isPublished,
+          })
+          .select("id")
+          .single();
         if (error) throw error;
+
+        // Scaffold default pages + sections from template
+        const template = getDefaultTemplate(ownerType);
+        for (let pi = 0; pi < template.length; pi++) {
+          const pageDef = template[pi];
+          const { data: newPage, error: pErr } = await supabase
+            .from("website_pages")
+            .insert({
+              website_id: newSite.id,
+              slug: pageDef.slug,
+              title: pageDef.title,
+              page_type: pageDef.page_type,
+              sort_order: pi,
+            })
+            .select("id")
+            .single();
+          if (pErr || !newPage) continue;
+
+          const sectionRows = pageDef.sections.map((s, si) => ({
+            page_id: newPage.id,
+            type: s.type,
+            title: s.title || null,
+            subtitle: s.subtitle || null,
+            body_markdown: s.body_markdown || null,
+            source: s.source as string,
+            layout: s.layout || null,
+            filters: (s.filters as any) || null,
+            sort_order: si,
+          }));
+          if (sectionRows.length > 0) {
+            await supabase.from("website_sections").insert(sectionRows);
+          }
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["website", ownerType, ownerId] });
-      toast.success("Website saved");
+      queryClient.invalidateQueries({ queryKey: ["website-pages"] });
+      toast.success(website ? "Website saved" : "Website created with default pages");
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -140,6 +184,8 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
 
   const deletePage = useMutation({
     mutationFn: async (pageId: string) => {
+      // Delete sections first, then the page
+      await supabase.from("website_sections").delete().eq("page_id", pageId);
       const { error } = await supabase.from("website_pages").delete().eq("id", pageId);
       if (error) throw error;
     },
@@ -217,14 +263,30 @@ export function WebsiteConfigPage({ ownerType, ownerId }: WebsiteConfigPageProps
             )}
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Heading Font</Label>
+              <Input value={form.fontHeading} onChange={(e) => setForm((f) => ({ ...f, fontHeading: e.target.value }))} placeholder="Space Grotesk" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Body Font</Label>
+              <Input value={form.fontBody} onChange={(e) => setForm((f) => ({ ...f, fontBody: e.target.value }))} placeholder="Inter" />
+            </div>
+          </div>
+
           <div className="flex items-center gap-3">
             <Switch checked={form.isPublished} onCheckedChange={(v) => setForm((f) => ({ ...f, isPublished: v }))} />
             <Label>Publish website (make public API available)</Label>
           </div>
 
-          <Button onClick={() => upsertWebsite.mutate()} disabled={!form.title || !form.slug}>
-            {website ? "Save Changes" : "Create Website"}
+          <Button onClick={() => upsertWebsite.mutate()} disabled={!form.title || !form.slug || upsertWebsite.isPending}>
+            {upsertWebsite.isPending ? "Saving…" : website ? "Save Changes" : "Create Website"}
           </Button>
+          {!website && (
+            <p className="text-xs text-muted-foreground">
+              Creating will scaffold default pages based on the {ownerType === "user" ? "individual" : ownerType} template.
+            </p>
+          )}
         </CardContent>
       </Card>
 
