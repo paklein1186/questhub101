@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
-  Plus, Pencil, X, Lightbulb,
+  Plus, Pencil, X, Lightbulb, Globe,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
+import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -29,6 +30,7 @@ const TABS = [
   { key: "fundraising", label: "Fundraising", icon: Coins },
   { key: "needs", label: "Needs", icon: Lightbulb },
   { key: "features", label: "Features", icon: Puzzle },
+  { key: "web", label: "Web Visibility", icon: Globe },
   { key: "danger", label: "Danger Zone", icon: AlertTriangle },
 ];
 
@@ -379,6 +381,21 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     </div>
                     <Button onClick={saveFeatures} size="sm"><Save className="h-4 w-4 mr-1" /> Save Features</Button>
                   </div>
+                </div>
+              )}
+
+              {/* ── Web Visibility ── */}
+              {activeTab === "web" && (
+                <div className="space-y-5 max-w-lg">
+                  <WebVisibilityEditor
+                    entityId={questId}
+                    entityTable="quests"
+                    initialVisibility={(quest as any).public_visibility || "private"}
+                    initialScopes={(quest as any).web_scopes || []}
+                    initialTags={(quest as any).web_tags || []}
+                    initialFeaturedOrder={(quest as any).featured_order ?? null}
+                    onSaved={() => qc.invalidateQueries({ queryKey: ["quest-settings", questId] })}
+                  />
                 </div>
               )}
 
