@@ -347,15 +347,37 @@ async function handleSiteFeed(url: URL): Promise<Response> {
     let services: Record<string, unknown>[] = [];
     if (ownerType !== "territory") {
       if (ownerType === "company") {
-        // Include directly-owned services AND member-owned services
+        // Include directly-owned services AND services from members with Admin/Operations entity roles
         const direct = await sfQuery(supabaseUrl, serviceKey, "services", `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`);
-        const members = await sfQuery(supabaseUrl, serviceKey, "company_members", `company_id=eq.${ownerId}&select=user_id`);
-        let memberSvcs: Record<string, unknown>[] = [];
-        if (members.length > 0) {
-          const uids = members.map(m => m.user_id).join(",");
-          memberSvcs = await sfQuery(supabaseUrl, serviceKey, "services", `provider_user_id=in.(${uids})&is_deleted=eq.false&is_active=eq.true`);
+
+        // Get entity roles for Admin/Operations
+        const entityRoles = await sfQuery(supabaseUrl, serviceKey, "entity_roles", `entity_type=eq.company&entity_id=eq.${ownerId}`);
+        const qualifyingRoleIds = entityRoles.filter(r => r.name === "Admin" || r.name === "Operations").map(r => r.id);
+
+        // Get user ids with qualifying roles
+        let roleUserIds: string[] = [];
+        if (qualifyingRoleIds.length > 0) {
+          const roleAssignments = await sfQuery(supabaseUrl, serviceKey, "entity_member_roles", `entity_role_id=in.(${qualifyingRoleIds.join(",")})`);
+          roleUserIds = roleAssignments.map(r => String(r.user_id));
         }
-        const allSvcs = [...direct, ...memberSvcs];
+
+        // Also include structural admin members
+        const members = await sfQuery(supabaseUrl, serviceKey, "company_members", `company_id=eq.${ownerId}`);
+        const adminMemberIds = members.filter(m => ["admin", "owner", "ADMIN"].includes(String(m.role))).map(m => String(m.user_id));
+
+        const eligibleIds = [...new Set([...roleUserIds, ...adminMemberIds])];
+
+        let memberSvcs: Record<string, unknown>[] = [];
+        if (eligibleIds.length > 0) {
+          memberSvcs = await sfQuery(supabaseUrl, serviceKey, "services", `provider_user_id=in.(${eligibleIds.join(",")})&is_deleted=eq.false&is_active=eq.true`);
+        }
+
+        // Apply per-service visibility overrides
+        const visOverrides = await sfQuery(supabaseUrl, serviceKey, "company_service_visibility", `company_id=eq.${ownerId}`);
+        const visMap = new Map(visOverrides.map(v => [String(v.service_id), v.is_visible]));
+        const filteredMemberSvcs = memberSvcs.filter(s => visMap.get(String(s.id)) !== false);
+
+        const allSvcs = [...direct, ...filteredMemberSvcs];
         const seen = new Set<unknown>();
         services = allSvcs.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return vis(r, fp.services); }).map(r => mapItem(r, "service"));
       } else {

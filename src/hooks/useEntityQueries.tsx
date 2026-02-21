@@ -274,10 +274,9 @@ export function useCompanyMembersWithProfiles(companyId: string | undefined) {
 }
 
 // ─── Services for company ────────────────────────────────────
-// Returns company-owned services PLUS accepted-member services that either:
-//  a) share at least one topic with the company, OR
-//  b) have no topics assigned (treated as uncategorized → always visible)
-// Deduplicated by service id.
+// Returns company-owned services PLUS member services from users with
+// Admin or Operations entity roles. Filters out services explicitly
+// hidden via company_service_visibility. Deduplicated by service id.
 export function useServicesForCompany(companyId: string | undefined) {
   return useQuery({
     queryKey: ["services-for-company", companyId],
@@ -291,47 +290,70 @@ export function useServicesForCompany(companyId: string | undefined) {
         .eq("is_deleted", false);
       if (ownedErr) throw ownedErr;
 
-      // 2. Get accepted member user ids
+      // 2. Get entity roles for this company (Admin + Operations)
+      const { data: entityRolesRows } = await supabase
+        .from("entity_roles")
+        .select("id, name")
+        .eq("entity_type", "company")
+        .eq("entity_id", companyId!);
+      const qualifyingRoleIds = (entityRolesRows ?? [])
+        .filter((r) => r.name === "Admin" || r.name === "Operations")
+        .map((r) => r.id);
+
+      // 3. Get user ids assigned to those roles
+      let roleUserIds: string[] = [];
+      if (qualifyingRoleIds.length > 0) {
+        const { data: memberRoleRows } = await supabase
+          .from("entity_member_roles")
+          .select("user_id")
+          .in("entity_role_id", qualifyingRoleIds);
+        roleUserIds = [...new Set((memberRoleRows ?? []).map((mr) => mr.user_id))];
+      }
+
+      // Also include company_members with admin/owner structural role
       const { data: membersRows } = await supabase
         .from("company_members")
-        .select("user_id")
+        .select("user_id, role")
         .eq("company_id", companyId!);
-      const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
+      const adminMemberIds = (membersRows ?? [])
+        .filter((m) => ["admin", "owner", "ADMIN"].includes(m.role))
+        .map((m) => m.user_id);
 
-      if (memberUserIds.length === 0) return (companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
+      const eligibleUserIds = [...new Set([...roleUserIds, ...adminMemberIds])];
 
-      // 3. Get ALL active, non-draft services from members
+      if (eligibleUserIds.length === 0) return (companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
+
+      // 4. Get active services from eligible members
       const { data: allMemberServices } = await supabase
         .from("services")
         .select("*")
-        .in("provider_user_id", memberUserIds)
+        .in("provider_user_id", eligibleUserIds)
         .eq("is_deleted", false)
         .eq("is_active", true);
 
       if (!allMemberServices || allMemberServices.length === 0) return (companyOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null }));
 
-      // 4. Get company topic ids
+      // 5. Get company topic ids for topic matching
       const { data: companyTopics } = await supabase
         .from("company_topics")
         .select("topic_id")
         .eq("company_id", companyId!);
       const topicIds = (companyTopics ?? []).map((ct) => ct.topic_id);
 
-      // 5. Get service topic assignments for all member services
+      // 6. Get service topic assignments
       const memberServiceIds = allMemberServices.map((s) => s.id);
       const { data: serviceTopicRows } = await supabase
         .from("service_topics")
         .select("service_id, topic_id")
         .in("service_id", memberServiceIds);
 
-      // Build a map: serviceId → set of topic ids
       const serviceTopicMap = new Map<string, Set<string>>();
       for (const row of serviceTopicRows ?? []) {
         if (!serviceTopicMap.has(row.service_id)) serviceTopicMap.set(row.service_id, new Set());
         serviceTopicMap.get(row.service_id)!.add(row.topic_id);
       }
 
-      // 6. Filter: include services that have NO topics (uncategorized) OR share at least one topic with company
+      // 7. Filter by topic match
       const topicIdSet = new Set(topicIds);
       const matchingMemberServices = allMemberServices.filter((s) => {
         const sTopics = serviceTopicMap.get(s.id);
@@ -342,8 +364,21 @@ export function useServicesForCompany(companyId: string | undefined) {
         return false;
       });
 
-      // 7. Fetch profile names for member services
-      const uniqueProviderIds = [...new Set(matchingMemberServices.map((s) => s.provider_user_id).filter(Boolean))];
+      // 8. Apply per-service visibility overrides
+      const { data: visibilityRows } = await supabase
+        .from("company_service_visibility")
+        .select("service_id, is_visible")
+        .eq("company_id", companyId!);
+      const visibilityMap = new Map<string, boolean>();
+      for (const v of visibilityRows ?? []) visibilityMap.set(v.service_id, v.is_visible);
+
+      const visibleMemberServices = matchingMemberServices.filter((s) => {
+        const override = visibilityMap.get(s.id);
+        return override !== false; // default visible unless explicitly hidden
+      });
+
+      // 9. Fetch profile names
+      const uniqueProviderIds = [...new Set(visibleMemberServices.map((s) => s.provider_user_id).filter(Boolean))];
       const profileMap = new Map<string, string>();
       if (uniqueProviderIds.length > 0) {
         const { data: profiles } = await supabase
@@ -355,9 +390,9 @@ export function useServicesForCompany(companyId: string | undefined) {
         }
       }
 
-      // 8. Deduplicate by id and attach provider name
+      // 10. Deduplicate and attach provider name
       const ownedIds = new Set((companyOwned ?? []).map((s) => s.id));
-      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id)).map((s) => ({
+      const extra = visibleMemberServices.filter((s) => !ownedIds.has(s.id)).map((s) => ({
         ...s,
         _provider_name: s.provider_user_id ? profileMap.get(s.provider_user_id) ?? null : null,
       }));

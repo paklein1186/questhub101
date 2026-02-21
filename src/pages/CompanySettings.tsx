@@ -1,11 +1,11 @@
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, UserPlus, Shield, Users, Briefcase,
   CreditCard, Hash, MapPin, Building2, Globe, Crown, Plus, Tag,
   Zap, Clock, Settings, ClipboardList, Handshake, CalendarDays,
-  ShieldCheck, ChevronUp, ChevronDown, Loader2,
+  ShieldCheck, ChevronUp, ChevronDown, Loader2, ShoppingBag, Eye, EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ import {
 } from "@/hooks/useEntityQueries";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
@@ -59,6 +59,7 @@ const TABS = [
   { key: "roles", label: "Custom Roles", icon: Tag },
   { key: "quests", label: "Quests", icon: Zap },
   { key: "activity", label: "Services & Bookings", icon: Briefcase },
+  { key: "services-visibility", label: "Services Display", icon: ShoppingBag },
   { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
@@ -505,6 +506,12 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                 </div>
               )}
 
+
+              {/* ── Services Display ── */}
+              {activeTab === "services-visibility" && (
+                <CompanyServicesVisibilityTab companyId={companyId} />
+              )}
+
               {/* ── Availability ── */}
               {activeTab === "availability" && (
                 <div className="space-y-5 max-w-lg">
@@ -564,6 +571,160 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
         </div>
       </div>
     </PageShell>
+  );
+}
+
+// ─── Services Visibility Tab ─────────────────────────────────
+function CompanyServicesVisibilityTab({ companyId }: { companyId: string }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+
+  // Get all eligible member services (Admin/Operations role members)
+  const { data: entityRolesRows } = useQuery({
+    queryKey: ["entity-roles-for-svc-vis", companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("entity_roles")
+        .select("id, name")
+        .eq("entity_type", "company")
+        .eq("entity_id", companyId);
+      return data ?? [];
+    },
+  });
+
+  const qualifyingRoleIds = (entityRolesRows ?? [])
+    .filter((r) => r.name === "Admin" || r.name === "Operations")
+    .map((r) => r.id);
+
+  const { data: roleUserRows } = useQuery({
+    queryKey: ["role-users-for-svc-vis", companyId, qualifyingRoleIds],
+    queryFn: async () => {
+      if (qualifyingRoleIds.length === 0) return [];
+      const { data } = await supabase
+        .from("entity_member_roles")
+        .select("user_id")
+        .in("entity_role_id", qualifyingRoleIds);
+      return data ?? [];
+    },
+    enabled: qualifyingRoleIds.length > 0,
+  });
+
+  const { data: structuralAdmins } = useQuery({
+    queryKey: ["structural-admins-svc-vis", companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_members")
+        .select("user_id, role")
+        .eq("company_id", companyId);
+      return (data ?? []).filter((m) => ["admin", "owner", "ADMIN"].includes(m.role));
+    },
+  });
+
+  const eligibleUserIds = [...new Set([
+    ...(roleUserRows ?? []).map((r) => r.user_id),
+    ...(structuralAdmins ?? []).map((m) => m.user_id),
+  ])];
+
+  const { data: memberServices } = useQuery({
+    queryKey: ["member-services-for-vis", companyId, eligibleUserIds],
+    queryFn: async () => {
+      if (eligibleUserIds.length === 0) return [];
+      const { data } = await supabase
+        .from("services")
+        .select("id, title, provider_user_id, is_active, is_draft, price_amount")
+        .in("provider_user_id", eligibleUserIds)
+        .eq("is_deleted", false)
+        .eq("is_active", true);
+      return data ?? [];
+    },
+    enabled: eligibleUserIds.length > 0,
+  });
+
+  // Get provider names
+  const providerIds = [...new Set((memberServices ?? []).map((s) => s.provider_user_id).filter(Boolean))];
+  const { data: providerProfiles } = useQuery({
+    queryKey: ["provider-profiles-svc-vis", providerIds],
+    queryFn: async () => {
+      if (providerIds.length === 0) return [];
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name")
+        .in("user_id", providerIds as string[]);
+      return data ?? [];
+    },
+    enabled: providerIds.length > 0,
+  });
+  const profileMap = new Map((providerProfiles ?? []).map((p) => [p.user_id, p.name]));
+
+  // Get current visibility overrides
+  const { data: visibilityRows, refetch: refetchVis } = useQuery({
+    queryKey: ["company-service-visibility", companyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("company_service_visibility")
+        .select("service_id, is_visible")
+        .eq("company_id", companyId);
+      return data ?? [];
+    },
+  });
+  const visMap = new Map((visibilityRows ?? []).map((v) => [v.service_id, v.is_visible]));
+
+  const toggleVisibility = async (serviceId: string, currentlyVisible: boolean) => {
+    const newVisible = !currentlyVisible;
+    const { error } = await supabase
+      .from("company_service_visibility")
+      .upsert(
+        { company_id: companyId, service_id: serviceId, is_visible: newVisible } as any,
+        { onConflict: "company_id,service_id" }
+      );
+    if (error) {
+      toast({ title: "Failed to update visibility", variant: "destructive" });
+      return;
+    }
+    refetchVis();
+    qc.invalidateQueries({ queryKey: ["services-for-company", companyId] });
+    toast({ title: newVisible ? "Service shown" : "Service hidden" });
+  };
+
+  const services = memberServices ?? [];
+
+  return (
+    <div className="space-y-5 max-w-lg">
+      <Section title="Member Services Display" icon={<ShoppingBag className="h-5 w-5" />}>
+        <p className="text-sm text-muted-foreground mb-4">
+          Services from members with <strong>Admin</strong> or <strong>Operations</strong> roles are eligible to appear on your organization page. Toggle each service on or off.
+        </p>
+        {services.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No eligible member services found. Assign the <strong>Admin</strong> or <strong>Operations</strong> role to members in the Custom Roles tab to display their services.</p>
+        ) : (
+          <div className="space-y-2">
+            {services.map((svc) => {
+              const isVisible = visMap.get(svc.id) !== false;
+              return (
+                <div key={svc.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{svc.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      by {profileMap.get(svc.provider_user_id ?? "") ?? "Unknown"}
+                      {svc.price_amount != null && ` · €${svc.price_amount}`}
+                    </p>
+                  </div>
+                  <Button
+                    variant={isVisible ? "outline" : "ghost"}
+                    size="sm"
+                    className="shrink-0 gap-1.5"
+                    onClick={() => toggleVisibility(svc.id, isVisible)}
+                  >
+                    {isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                    {isVisible ? "Shown" : "Hidden"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+    </div>
   );
 }
 
