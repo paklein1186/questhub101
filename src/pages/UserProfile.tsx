@@ -754,15 +754,13 @@ export default function UserProfile() {
               const highlightedQuests = filteredQuestsCreated
                 .concat(filteredQuestsJoined.map((qm: any) => qm.quest).filter(Boolean))
                 .filter((q: any) => q && highlightedQuestIds.includes(q.id));
-              const hasHighlights = highlightedQuests.length > 0 || filteredServices.length > 0;
-              if (!hasHighlights) return null;
+              if (highlightedQuests.length === 0) return null;
 
-              // Interleave: highlighted quests first, then services, max 6
+              // Only show explicitly highlighted quests, max 6
               type HighlightItem = { type: "quest" | "service"; data: any };
-              const items: HighlightItem[] = [
-                ...highlightedQuests.map((q: any) => ({ type: "quest" as const, data: q })),
-                ...filteredServices.map((s: any) => ({ type: "service" as const, data: s })),
-              ].slice(0, 6);
+              const items: HighlightItem[] = highlightedQuests
+                .map((q: any) => ({ type: "quest" as const, data: q }))
+                .slice(0, 6);
 
               return (
                 <section>
