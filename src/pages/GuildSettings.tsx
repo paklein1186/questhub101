@@ -51,6 +51,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { SourceRoleTransfer } from "@/components/guild/SourceRoleTransfer";
 import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
+import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -874,7 +875,10 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
 
               {/* ── Website ── */}
               {activeTab === "website" && (
-                <WebsiteConfigPage ownerType="guild" ownerId={guildId} />
+                <div className="space-y-6">
+                  <SiteCodeManager ownerType="guild" ownerId={guildId} />
+                  <WebsiteConfigPage ownerType="guild" ownerId={guildId} />
+                </div>
               )}
 
             </motion.div>
