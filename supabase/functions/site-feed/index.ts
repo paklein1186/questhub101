@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
     const requiredScope: Record<string, string> = {
       user: "personal_site",
       guild: "guild_site",
+      company: "guild_site",
       territory: "territory_site",
       program: "program_site",
     };
@@ -138,6 +139,23 @@ Deno.serve(async (req) => {
           createdAt: data.created_at, updatedAt: data.updated_at,
         };
       }
+    } else if (ownerType === "company") {
+      const { data } = await sb.from("companies").select("*").eq("id", ownerId).eq("is_deleted", false).maybeSingle();
+      if (data) {
+        owner = {
+          type: "company", id: data.id, slug: data.id,
+          displayName: data.name || "",
+          shortBio: data.description ? data.description.slice(0, 300) : null,
+          longBioMarkdown: data.description || null,
+          avatarUrl: data.logo_url || null, coverImageUrl: data.banner_url || null,
+          websiteUrl: data.website_url || null,
+          ctgProfileUrl: `${BASE_URL}/companies/${data.id}`,
+          orgType: data.org_type || "company", webTags: data.web_tags || [],
+          webScopes: data.web_scopes || [],
+          publicVisibility: data.public_visibility || "private",
+          createdAt: data.created_at, updatedAt: data.updated_at,
+        };
+      }
     }
 
     if (!owner) {
@@ -148,8 +166,8 @@ Deno.serve(async (req) => {
 
     // 3. Load content collections
     let services: Record<string, unknown>[] = [];
-    if (ownerType === "user" || ownerType === "guild") {
-      const field = ownerType === "user" ? "provider_user_id" : "provider_guild_id";
+    if (ownerType === "user" || ownerType === "guild" || ownerType === "company") {
+      const field = ownerType === "user" ? "provider_user_id" : ownerType === "company" ? "company_id" : "provider_guild_id";
       const { data } = await sb.from("services").select("*").eq(field, ownerId).eq("is_deleted", false).eq("is_active", true);
       services = visibleItems(data || []).map((r) => ({
         ...mapItem(r, "service"),
@@ -159,8 +177,8 @@ Deno.serve(async (req) => {
     }
 
     let quests: Record<string, unknown>[] = [];
-    if (ownerType === "user" || ownerType === "guild") {
-      const field = ownerType === "user" ? "created_by_user_id" : "guild_id";
+    if (ownerType === "user" || ownerType === "guild" || ownerType === "company") {
+      const field = ownerType === "user" ? "created_by_user_id" : ownerType === "company" ? "company_id" : "guild_id";
       const { data } = await sb.from("quests").select("*").eq(field, ownerId).eq("is_deleted", false);
       quests = visibleItems(data || []).map((r) => ({
         ...mapItem(r, "quest"), progressPercent: null,
