@@ -324,7 +324,7 @@ function OverviewTerritories({ territories, topics, activity }: { territories: a
 }
 
 // ─── People tab ──────────────────────────────────────────────
-const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").then(m => ({ default: m.ExploreUsersMap })));
+const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").catch(() => window.location.reload() as never).then(m => ({ default: m.ExploreUsersMap })));
 
 function PeopleTab({ people, loading }: { people: any[]; loading: boolean }) {
   const [sort, setSort] = useState<"interactions" | "recent">("interactions");

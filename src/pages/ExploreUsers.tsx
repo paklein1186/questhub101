@@ -5,7 +5,7 @@ import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map } from "lucide-re
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").then(m => ({ default: m.ExploreUsersMap })));
+const ExploreUsersMap = lazy(() => import("@/components/explore/ExploreUsersMap").catch(() => window.location.reload() as never).then(m => ({ default: m.ExploreUsersMap })));
 import type { MapUserEntry } from "@/components/explore/ExploreUsersMap";
 import { PageShell } from "@/components/PageShell";
 import { Input } from "@/components/ui/input";
