@@ -165,51 +165,62 @@ export function PlatformBroadcastDialog() {
       let sent = 0;
       let failed = 0;
 
-      // Create ONE conversation for the entire broadcast
-      const { data: conv, error: convError } = await supabase
-        .from("conversations")
-        .insert({
-          title: subject.trim() || `Broadcast from ${SENDER_LABEL}`,
-          is_group: true,
-          created_by: userId,
-          sender_label: SENDER_LABEL,
-          sender_entity_type: "platform",
-          sender_entity_id: null,
-        } as any)
-        .select("id")
-        .single();
+      // Create individual 1-on-1 conversations per recipient.
+      // The sender is only added as participant to the FIRST conversation
+      // so they see the broadcast once in their own inbox.
+      let firstConvId: string | null = null;
+      let firstMsgId: string | null = null;
 
-      if (convError || !conv) throw convError ?? new Error("Failed to create conversation");
-
-      // Add sender + all recipients as participants
-      const allParticipantIds = [userId, ...recipientIds];
-      const participantRows = allParticipantIds.map((uid) => ({ conversation_id: conv.id, user_id: uid }));
-      // Insert in batches of 500 to avoid payload limits
-      for (let i = 0; i < participantRows.length; i += 500) {
-        await supabase.from("conversation_participants").insert(participantRows.slice(i, i + 500));
-      }
-
-      // Send the single message
-      const { data: msg } = await supabase
-        .from("direct_messages")
-        .insert({
-          conversation_id: conv.id,
-          sender_id: userId,
-          content: messageBody,
-          sender_label: SENDER_LABEL,
-        } as any)
-        .select("id")
-        .single();
-
-      await supabase
-        .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", conv.id);
-
-      // Mark all recipients as sent and fire email notifications
       for (let idx = 0; idx < recipientIds.length; idx++) {
         const recipientId = recipientIds[idx];
+        const isFirst = idx === 0;
+
         try {
+          // Create a conversation for this recipient
+          const { data: conv, error: convError } = await supabase
+            .from("conversations")
+            .insert({
+              title: subject.trim() || `Broadcast from ${SENDER_LABEL}`,
+              is_group: false,
+              created_by: userId,
+              sender_label: SENDER_LABEL,
+              sender_entity_type: "platform",
+              sender_entity_id: null,
+            } as any)
+            .select("id")
+            .single();
+
+          if (convError || !conv) throw convError ?? new Error("Failed to create conversation");
+
+          // Add recipient as participant (always)
+          const participants = [{ conversation_id: conv.id, user_id: recipientId }];
+          // Add sender only to the first conversation
+          if (isFirst) {
+            participants.push({ conversation_id: conv.id, user_id: userId });
+            firstConvId = conv.id;
+          }
+          await supabase.from("conversation_participants").insert(participants);
+
+          // Send message in this conversation
+          const { data: msg } = await supabase
+            .from("direct_messages")
+            .insert({
+              conversation_id: conv.id,
+              sender_id: userId,
+              content: messageBody,
+              sender_label: SENDER_LABEL,
+            } as any)
+            .select("id")
+            .single();
+
+          if (isFirst) firstMsgId = msg?.id ?? null;
+
+          await supabase
+            .from("conversations")
+            .update({ updated_at: new Date().toISOString() })
+            .eq("id", conv.id);
+
+          // Mark recipient as sent
           await supabase
             .from("broadcast_recipients" as any)
             .update({ status: "sent", conversation_id: conv.id, delivered_at: new Date().toISOString() })
