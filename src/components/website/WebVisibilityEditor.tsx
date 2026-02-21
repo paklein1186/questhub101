@@ -83,6 +83,28 @@ export function WebVisibilityEditor({
   const [featuredOrder, setFeaturedOrder] = useState(initialFeaturedOrder);
   const [override, setOverride] = useState(initialOverride);
   const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  // Fetch current values from DB on mount
+  useEffect(() => {
+    const load = async () => {
+      const idCol = entityTable === "profiles" ? "user_id" : "id";
+      const { data } = await (supabase as any)
+        .from(entityTable)
+        .select("public_visibility, web_scopes, web_tags, featured_order, web_visibility_override")
+        .eq(idCol, entityId)
+        .maybeSingle();
+      if (data) {
+        setVisibility(data.public_visibility || "private");
+        setScopes(data.web_scopes || []);
+        setTags(data.web_tags || []);
+        setFeaturedOrder(data.featured_order ?? null);
+        setOverride(data.web_visibility_override || "inherit");
+      }
+      setLoaded(true);
+    };
+    load();
+  }, [entityTable, entityId]);
 
   const toggleScope = (v: string) =>
     setScopes(prev => prev.includes(v) ? prev.filter(s => s !== v) : [...prev, v]);
@@ -115,6 +137,10 @@ export function WebVisibilityEditor({
       onSaved?.();
     }
   };
+
+  if (!loaded) {
+    return <div className="rounded-xl border border-border bg-card p-5 animate-pulse h-32" />;
+  }
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 space-y-5">
