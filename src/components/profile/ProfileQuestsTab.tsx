@@ -8,9 +8,12 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Star, Search, Coins, Filter } from "lucide-react";
+import { Plus, Star, Search, Coins, Filter, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -53,6 +56,8 @@ export function ProfileQuestsTab({
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [highlightsOpen, setHighlightsOpen] = useState(false);
+  const [highlightSearch, setHighlightSearch] = useState("");
 
   // Fetch highlighted quest IDs
   const { data: highlightedIds = [] } = useQuery({
@@ -123,10 +128,17 @@ export function ProfileQuestsTab({
     <div className="space-y-8">
       {/* ─── Highlighted Section ─── */}
       <section>
-        <h3 className="font-display font-semibold mb-3 flex items-center gap-2">
-          <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-          Highlighted quests ({highlighted.length})
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+            Highlighted quests ({highlighted.length})
+          </h3>
+          {isOwnProfile && (
+            <Button size="sm" variant="outline" onClick={() => setHighlightsOpen(true)}>
+              <Pencil className="h-3.5 w-3.5 mr-1" /> Edit Highlights
+            </Button>
+          )}
+        </div>
         {highlighted.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">
             {isOwnProfile ? "Star quests to feature them on your profile." : "No highlighted quests yet."}
@@ -139,6 +151,77 @@ export function ProfileQuestsTab({
           </div>
         )}
       </section>
+
+      {/* ─── Edit Highlights Dialog ─── */}
+      {isOwnProfile && (
+        <Dialog open={highlightsOpen} onOpenChange={setHighlightsOpen}>
+          <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-amber-500 fill-amber-500" /> Edit Highlights
+              </DialogTitle>
+              <DialogDescription>
+                Click the star to feature or remove quests from your profile highlights.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="relative mb-2">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search quests…"
+                value={highlightSearch}
+                onChange={(e) => setHighlightSearch(e.target.value)}
+                className="h-9 text-sm pl-8"
+              />
+            </div>
+            <div className="overflow-y-auto flex-1 -mx-1 px-1 space-y-1">
+              {(() => {
+                const hs = highlightSearch.toLowerCase();
+                const filtered = allQuests.filter((q) =>
+                  !hs || q.title?.toLowerCase().includes(hs)
+                );
+                // Sort: highlighted first, then alphabetical
+                const sorted = [...filtered].sort((a, b) => {
+                  const aH = highlightSet.has(a.id) ? 0 : 1;
+                  const bH = highlightSet.has(b.id) ? 0 : 1;
+                  if (aH !== bH) return aH - bH;
+                  return (a.title || "").localeCompare(b.title || "");
+                });
+                if (sorted.length === 0) {
+                  return <p className="text-sm text-muted-foreground py-4 text-center">No quests found.</p>;
+                }
+                return sorted.map((q) => {
+                  const isH = highlightSet.has(q.id);
+                  const st = STATUS_LABELS[q.status];
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => toggleHighlight(q.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent/50",
+                        isH && "bg-amber-500/5"
+                      )}
+                    >
+                      <Star className={cn(
+                        "h-4 w-4 shrink-0 transition-colors",
+                        isH ? "text-amber-500 fill-amber-500" : "text-muted-foreground/30"
+                      )} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{q.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
+                            {st?.label || q.status}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground capitalize">{q.source}</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* ─── All Quests Table ─── */}
       <section>
