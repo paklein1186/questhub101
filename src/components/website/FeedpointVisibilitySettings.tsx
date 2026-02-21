@@ -1,18 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Rss, Eye, EyeOff, Settings2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 
 /* ─── Types ─── */
 
 type UnitType = "services" | "quests" | "guilds" | "partner_entities" | "posts";
 
-type FeedpointMode = "none" | "all" | "custom";
+type MassMode = "private" | "public" | "custom";
 
 const UNIT_TYPES: { key: UnitType; label: string; unitTable?: string }[] = [
   { key: "services", label: "Services", unitTable: "services" },
@@ -23,7 +21,7 @@ const UNIT_TYPES: { key: UnitType; label: string; unitTable?: string }[] = [
 ];
 
 interface Props {
-  ownerType: "user" | "guild" | "company";
+  ownerType: "user" | "guild" | "company" | "territory";
   ownerId: string;
 }
 
@@ -32,15 +30,22 @@ interface Props {
 function getOwnerConfig(ownerType: string) {
   if (ownerType === "user") return { table: "profiles", idCol: "user_id" };
   if (ownerType === "guild") return { table: "guilds", idCol: "id" };
+  if (ownerType === "territory") return { table: "territories", idCol: "id" };
   return { table: "companies", idCol: "id" };
 }
 
 function getOwnerField(ownerType: string, unitType: UnitType): string | null {
   if (unitType === "services") {
-    return ownerType === "user" ? "provider_user_id" : ownerType === "guild" ? "provider_guild_id" : "company_id";
+    if (ownerType === "user") return "provider_user_id";
+    if (ownerType === "guild") return "provider_guild_id";
+    if (ownerType === "company") return "company_id";
+    return null;
   }
   if (unitType === "quests") {
-    return ownerType === "user" ? "created_by_user_id" : ownerType === "guild" ? "guild_id" : "company_id";
+    if (ownerType === "user") return "created_by_user_id";
+    if (ownerType === "guild") return "guild_id";
+    if (ownerType === "company") return "company_id";
+    return null;
   }
   if (unitType === "posts") {
     return ownerType === "user" ? "author_user_id" : null;
@@ -52,16 +57,33 @@ function getOwnerField(ownerType: string, unitType: UnitType): string | null {
 
 export function FeedpointVisibilitySettings({ ownerType, ownerId }: Props) {
   const { table, idCol } = getOwnerConfig(ownerType);
-  
+
   const [defaults, setDefaults] = useState<Record<UnitType, boolean>>({
     services: false, quests: false, guilds: false, partner_entities: false, posts: false,
   });
-  const [overrideCounts, setOverrideCounts] = useState<Record<UnitType, number>>({
-    services: 0, quests: 0, guilds: 0, partner_entities: 0, posts: 0,
+  const [itemsByType, setItemsByType] = useState<Record<UnitType, any[]>>({
+    services: [], quests: [], guilds: [], partner_entities: [], posts: [],
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [manageType, setManageType] = useState<UnitType | null>(null);
+  const [expandedType, setExpandedType] = useState<UnitType | null>(null);
+
+  const loadItems = useCallback(async (unitType: UnitType) => {
+    const ut = UNIT_TYPES.find(u => u.key === unitType);
+    if (!ut?.unitTable) return [];
+    const field = getOwnerField(ownerType, unitType);
+    if (!field) return [];
+    const titleField = unitType === "posts" ? "content" : "title";
+    let query = (supabase as any)
+      .from(ut.unitTable)
+      .select(`id, ${titleField}, web_visibility_override`)
+      .eq(field, ownerId);
+    if (unitType !== "posts") {
+      query = query.eq("is_deleted", false);
+    }
+    const { data } = await query.limit(200);
+    return data || [];
+  }, [ownerType, ownerId]);
 
   useEffect(() => {
     const load = async () => {
@@ -80,58 +102,105 @@ export function FeedpointVisibilitySettings({ ownerType, ownerId }: Props) {
           posts: data.feedpoint_default_posts ?? false,
         });
       }
-      const counts: Record<UnitType, number> = { services: 0, quests: 0, guilds: 0, partner_entities: 0, posts: 0 };
+
+      // Load all items for types that have tables
+      const newItems: Record<UnitType, any[]> = { services: [], quests: [], guilds: [], partner_entities: [], posts: [] };
       for (const ut of UNIT_TYPES) {
-        if (!ut.unitTable) continue;
-        const field = getOwnerField(ownerType, ut.key);
-        if (!field) continue;
-        const { count } = await (supabase as any)
-          .from(ut.unitTable)
-          .select("id", { count: "exact", head: true })
-          .eq(field, ownerId)
-          .neq("web_visibility_override", "inherit");
-        counts[ut.key] = count ?? 0;
+        if (ut.unitTable) {
+          newItems[ut.key] = await loadItems(ut.key);
+        }
       }
-      setOverrideCounts(counts);
+      setItemsByType(newItems);
       setLoading(false);
     };
     load();
-  }, [ownerId, ownerType, table, idCol]);
+  }, [ownerId, ownerType, table, idCol, loadItems]);
 
-  const getMode = (unitType: UnitType): FeedpointMode => {
-    if (overrideCounts[unitType] > 0) return "custom";
-    return defaults[unitType] ? "all" : "none";
+  /* Compute mass mode for a unit type */
+  const getMode = (unitType: UnitType): MassMode => {
+    const items = itemsByType[unitType];
+    if (!items || items.length === 0) {
+      return defaults[unitType] ? "public" : "private";
+    }
+    const hasOverrides = items.some(i => i.web_visibility_override && i.web_visibility_override !== "inherit");
+    if (hasOverrides) return "custom";
+    return defaults[unitType] ? "public" : "private";
   };
 
-  const handleSetMode = async (unitType: UnitType, mode: "none" | "all") => {
-    const newDefaults = { ...defaults, [unitType]: mode === "all" };
-    setDefaults(newDefaults);
-    
+  /* Set mass mode: Public or Private — reset all overrides */
+  const handleSetMode = async (unitType: UnitType, mode: "private" | "public") => {
     setSaving(true);
+    const isPublic = mode === "public";
+    const newDefaults = { ...defaults, [unitType]: isPublic };
+    setDefaults(newDefaults);
+
     const colName = `feedpoint_default_${unitType}`;
-    const { error } = await (supabase as any)
+    await (supabase as any)
       .from(table)
-      .update({ [colName]: mode === "all" })
+      .update({ [colName]: isPublic })
       .eq(idCol, ownerId);
-    
-    if (error) {
-      toast.error(error.message);
-    } else {
-      const ut = UNIT_TYPES.find(u => u.key === unitType);
-      if (ut?.unitTable && overrideCounts[unitType] > 0) {
-        const field = getOwnerField(ownerType, unitType);
-        if (field) {
-          await (supabase as any)
-            .from(ut.unitTable)
-            .update({ web_visibility_override: "inherit" })
-            .eq(field, ownerId)
-            .neq("web_visibility_override", "inherit");
-          setOverrideCounts(prev => ({ ...prev, [unitType]: 0 }));
-        }
+
+    // Reset all item overrides to "inherit"
+    const ut = UNIT_TYPES.find(u => u.key === unitType);
+    if (ut?.unitTable) {
+      const field = getOwnerField(ownerType, unitType);
+      if (field) {
+        await (supabase as any)
+          .from(ut.unitTable)
+          .update({ web_visibility_override: "inherit" })
+          .eq(field, ownerId)
+          .neq("web_visibility_override", "inherit");
       }
-      toast.success(`${unitType} visibility updated`);
     }
+
+    // Update local state
+    setItemsByType(prev => ({
+      ...prev,
+      [unitType]: prev[unitType].map(i => ({ ...i, web_visibility_override: "inherit" })),
+    }));
+
+    if (expandedType === unitType) setExpandedType(null);
+    toast.success(`${UNIT_TYPES.find(u => u.key === unitType)?.label} visibility set to ${mode}`);
     setSaving(false);
+  };
+
+  /* Toggle individual item override */
+  const handleItemToggle = async (unitType: UnitType, itemId: string, makeVisible: boolean) => {
+    const ut = UNIT_TYPES.find(u => u.key === unitType);
+    if (!ut?.unitTable) return;
+
+    const defaultVisible = defaults[unitType];
+    // If making visible and default is already visible → set inherit; otherwise force_visible
+    // If hiding and default is hidden → set inherit; otherwise force_hidden
+    let newOverride: string;
+    if (makeVisible) {
+      newOverride = defaultVisible ? "inherit" : "force_visible";
+    } else {
+      newOverride = defaultVisible ? "force_hidden" : "inherit";
+    }
+
+    await (supabase as any)
+      .from(ut.unitTable)
+      .update({ web_visibility_override: newOverride })
+      .eq("id", itemId);
+
+    setItemsByType(prev => ({
+      ...prev,
+      [unitType]: prev[unitType].map(i =>
+        i.id === itemId ? { ...i, web_visibility_override: newOverride } : i
+      ),
+    }));
+  };
+
+  const getEffectiveVisibility = (item: any, unitType: UnitType): boolean => {
+    const override = item.web_visibility_override || "inherit";
+    if (override === "force_visible") return true;
+    if (override === "force_hidden") return false;
+    return defaults[unitType];
+  };
+
+  const getItemLabel = (item: any): string => {
+    return item.title || item.name || (item.content ? item.content.slice(0, 60) + "…" : "Untitled");
   };
 
   if (loading) {
@@ -156,190 +225,133 @@ export function FeedpointVisibilitySettings({ ownerType, ownerId }: Props) {
       <div className="space-y-3">
         {UNIT_TYPES.map(ut => {
           const mode = getMode(ut.key);
+          const items = itemsByType[ut.key];
+          const isExpanded = expandedType === ut.key;
+
           return (
-            <div key={ut.key} className="rounded-lg border border-border bg-background p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{ut.label}</span>
+            <div key={ut.key} className="rounded-lg border border-border bg-background overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{ut.label}</span>
+                    {mode === "custom" && (
+                      <Badge variant="secondary" className="text-xs">Custom</Badge>
+                    )}
+                    {items.length > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        ({items.filter(i => getEffectiveVisibility(i, ut.key)).length}/{items.length} visible)
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => handleSetMode(ut.key, "private")}
+                    disabled={saving}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all ${
+                      mode === "private"
+                        ? "bg-destructive/10 text-destructive border-destructive/30"
+                        : "border-border hover:border-foreground/50 text-muted-foreground"
+                    }`}
+                  >
+                    <EyeOff className="h-3.5 w-3.5" /> Hide all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSetMode(ut.key, "public")}
+                    disabled={saving}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all ${
+                      mode === "public"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border hover:border-foreground/50 text-muted-foreground"
+                    }`}
+                  >
+                    <Eye className="h-3.5 w-3.5" /> Show all
+                  </button>
                   {mode === "custom" && (
-                    <Badge variant="secondary" className="text-xs">Custom mix</Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedType(isExpanded ? null : ut.key)}
+                      className="ml-auto"
+                    >
+                      <Settings2 className="h-3.5 w-3.5 mr-1" />
+                      {isExpanded ? "Collapse" : "Manage items"}
+                    </Button>
+                  )}
+                  {mode !== "custom" && ut.unitTable && items.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setExpandedType(isExpanded ? null : ut.key)}
+                      className="ml-auto text-muted-foreground"
+                    >
+                      <Settings2 className="h-3.5 w-3.5 mr-1" />
+                      {isExpanded ? "Collapse" : "Edit per item"}
+                    </Button>
                   )}
                 </div>
-                {mode === "custom" && ut.unitTable && (
-                  <Button variant="ghost" size="sm" onClick={() => setManageType(ut.key)}>
-                    <Settings2 className="h-3.5 w-3.5 mr-1" /> Manage
-                  </Button>
-                )}
-              </div>
-              
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => handleSetMode(ut.key, "none")}
-                  disabled={saving}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all ${
-                    mode === "none"
-                      ? "bg-destructive/10 text-destructive border-destructive/30"
-                      : "border-border hover:border-foreground/50 text-muted-foreground"
-                  }`}
-                >
-                  <EyeOff className="h-3.5 w-3.5" /> Hide all
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSetMode(ut.key, "all")}
-                  disabled={saving}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition-all ${
-                    mode === "all"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border hover:border-foreground/50 text-muted-foreground"
-                  }`}
-                >
-                  <Eye className="h-3.5 w-3.5" /> Show all
-                </button>
-                {mode === "custom" && (
-                  <span className="flex items-center px-3 py-1.5 rounded-full border border-accent bg-accent/10 text-accent-foreground text-sm">
-                    <Settings2 className="h-3.5 w-3.5 mr-1" /> Custom mix
-                    <span className="text-xs text-muted-foreground ml-1">({overrideCounts[ut.key]} override{overrideCounts[ut.key] !== 1 ? "s" : ""})</span>
-                  </span>
+
+                {!ut.unitTable && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    This type doesn't support per-item overrides yet.
+                  </p>
                 )}
               </div>
 
-              {!ut.unitTable && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  This type doesn't support per-item overrides yet.
-                </p>
+              {/* Inline item management */}
+              {isExpanded && ut.unitTable && (
+                <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-1.5">
+                  {items.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No {ut.label.toLowerCase()} found.
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Default: <strong>{defaults[ut.key] ? "Show all" : "Hide all"}</strong>. Toggle individual items to override.
+                      </p>
+                      {items.map(item => {
+                        const isVisible = getEffectiveVisibility(item, ut.key);
+                        const override = item.web_visibility_override || "inherit";
+                        const isOverridden = override !== "inherit";
+                        return (
+                          <div
+                            key={item.id}
+                            className={`flex items-center justify-between rounded-lg border px-3 py-2 ${
+                              isOverridden ? "border-primary/30 bg-primary/5" : "border-border bg-card"
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1 mr-3">
+                              <p className="text-sm font-medium truncate">{getItemLabel(item)}</p>
+                              {isOverridden && (
+                                <p className="text-xs text-primary">
+                                  Manually {isVisible ? "shown" : "hidden"}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                {isVisible ? "Visible" : "Hidden"}
+                              </span>
+                              <Switch
+                                checked={isVisible}
+                                onCheckedChange={(checked) => handleItemToggle(ut.key, item.id, checked)}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
               )}
             </div>
           );
         })}
       </div>
-
-      {manageType && (
-        <ManageOverridesDialog
-          ownerType={ownerType}
-          ownerId={ownerId}
-          unitType={manageType}
-          defaultVisible={defaults[manageType]}
-          onClose={() => {
-            const closingType = manageType;
-            setManageType(null);
-            const ut = UNIT_TYPES.find(u => u.key === closingType);
-            if (ut?.unitTable) {
-              const field = getOwnerField(ownerType, closingType);
-              if (field) {
-                (supabase as any)
-                  .from(ut.unitTable)
-                  .select("id", { count: "exact", head: true })
-                  .eq(field, ownerId)
-                  .neq("web_visibility_override", "inherit")
-                  .then(({ count }: any) => {
-                    setOverrideCounts(prev => ({ ...prev, [closingType]: count ?? 0 }));
-                  });
-              }
-            }
-          }}
-        />
-      )}
     </div>
-  );
-}
-
-/* ─── Manage Overrides Dialog ─── */
-
-function ManageOverridesDialog({
-  ownerType, ownerId, unitType, defaultVisible, onClose,
-}: {
-  ownerType: string; ownerId: string; unitType: UnitType; defaultVisible: boolean; onClose: () => void;
-}) {
-  const ut = UNIT_TYPES.find(u => u.key === unitType)!;
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      if (!ut.unitTable) return;
-      const field = getOwnerField(ownerType, unitType);
-      if (!field) return;
-      
-      const titleField = unitType === "posts" ? "content" : "title";
-      let query = (supabase as any)
-        .from(ut.unitTable)
-        .select(`id, ${titleField}, web_visibility_override`)
-        .eq(field, ownerId);
-      // Only add is_deleted filter for tables that have it
-      if (unitType !== "posts") {
-        query = query.eq("is_deleted", false);
-      }
-      const { data } = await query.limit(100);
-      setItems(data || []);
-      setLoading(false);
-    };
-    load();
-  }, [ownerType, ownerId, unitType]);
-
-  const updateOverride = async (itemId: string, override: string) => {
-    if (!ut.unitTable) return;
-    await (supabase as any)
-      .from(ut.unitTable)
-      .update({ web_visibility_override: override })
-      .eq("id", itemId);
-    setItems(prev => prev.map(i => i.id === itemId ? { ...i, web_visibility_override: override } : i));
-  };
-
-  const getEffective = (item: any): boolean => {
-    if (item.web_visibility_override === "force_visible") return true;
-    if (item.web_visibility_override === "force_hidden") return false;
-    return defaultVisible;
-  };
-
-  const getItemLabel = (item: any): string => {
-    return item.title || item.name || (item.content ? item.content.slice(0, 60) + "…" : "Untitled");
-  };
-
-  return (
-    <Dialog open onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Manage {ut.label} visibility</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground mb-3">
-          Default: <strong>{defaultVisible ? "Show all" : "Hide all"}</strong>. Override individual items below.
-        </p>
-        {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin" /></div>
-        ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            You don't have any {ut.label.toLowerCase()} yet.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {items.map(item => {
-              const effective = getEffective(item);
-              const overrideVal = item.web_visibility_override || "inherit";
-              return (
-                <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
-                  <div className="min-w-0 flex-1 mr-3">
-                    <p className="text-sm font-medium truncate">{getItemLabel(item)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {effective ? "✅ Visible" : "🚫 Hidden"}
-                    </p>
-                  </div>
-                  <select
-                    value={overrideVal}
-                    onChange={e => updateOverride(item.id, e.target.value)}
-                    className="text-xs border border-border rounded px-2 py-1 bg-background"
-                  >
-                    <option value="inherit">Inherit ({defaultVisible ? "visible" : "hidden"})</option>
-                    <option value="force_visible">Always show</option>
-                    <option value="force_hidden">Always hide</option>
-                  </select>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
   );
 }
