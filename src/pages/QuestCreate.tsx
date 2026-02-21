@@ -379,6 +379,14 @@ export default function QuestCreate() {
           created_by_user_id: currentUser.id,
         } as any);
 
+        // Also insert into quest_affiliations for the primary entity
+        await supabase.from("quest_affiliations" as any).insert({
+          quest_id: quest.id,
+          entity_type: primaryEntityType,
+          entity_id: primaryEntityId,
+          created_by_user_id: currentUser.id,
+        } as any);
+
         if (selectedCoHosts.length > 0) {
           await supabase.from("quest_hosts").insert(
             selectedCoHosts.map(ch => ({
@@ -386,6 +394,16 @@ export default function QuestCreate() {
               entity_type: ch.entityType,
               entity_id: ch.entityId,
               role: "CO_HOST",
+              created_by_user_id: currentUser.id,
+            })) as any
+          );
+
+          // Also insert co-hosts into quest_affiliations
+          await supabase.from("quest_affiliations" as any).insert(
+            selectedCoHosts.map(ch => ({
+              quest_id: quest.id,
+              entity_type: ch.entityType,
+              entity_id: ch.entityId,
               created_by_user_id: currentUser.id,
             })) as any
           );

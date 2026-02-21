@@ -130,6 +130,30 @@ export default function QuestDetail() {
   const { data: allTopicsList } = useTopics();
   const { data: allTerritoriesList } = useTerritories();
 
+  // Fetch multi-affiliations
+  const { data: questAffiliations = [] } = useQuery({
+    queryKey: ["quest-affiliations-overview", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_affiliations" as any)
+        .select("id, entity_type, entity_id")
+        .eq("quest_id", id!);
+      const rows = (data ?? []) as any[];
+      const results: { id: string; entity_type: string; entity_id: string; name: string; logo_url: string | null; link: string }[] = [];
+      for (const row of rows) {
+        if (row.entity_type === "GUILD") {
+          const { data: g } = await supabase.from("guilds").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
+          if (g) results.push({ id: row.id, entity_type: "GUILD", entity_id: g.id, name: g.name, logo_url: g.logo_url, link: `/guilds/${g.id}` });
+        } else {
+          const { data: c } = await supabase.from("companies").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
+          if (c) results.push({ id: row.id, entity_type: "COMPANY", entity_id: c.id, name: c.name, logo_url: c.logo_url, link: `/companies/${c.id}` });
+        }
+      }
+      return results;
+    },
+    enabled: !!id,
+  });
+
   // Highlighted quest star
   const { data: highlightedIds = [] } = useQuery({
     queryKey: ["highlighted-quests", currentUser.id],
@@ -388,7 +412,6 @@ export default function QuestDetail() {
       allow_fundraising: editAllowFundraising,
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
       quest_type: editQuestType,
-      guild_id: editGuildId || null,
       funding_type: editFundingType,
     } as any).eq("id", quest.id);
 
@@ -768,25 +791,12 @@ export default function QuestDetail() {
                   </SelectContent>
                 </Select>
               </div>
-              {myAdminGuilds.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium mb-1 block">
-                    <Building2 className="h-3.5 w-3.5 inline mr-1" /> Attached Guild
-                  </label>
-                  <Select value={editGuildId || "__none__"} onValueChange={v => setEditGuildId(v === "__none__" ? null : v)}>
-                    <SelectTrigger><SelectValue placeholder="No guild" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">No guild (independent quest)</SelectItem>
-                      {myAdminGuilds.map((g: any) => (
-                        <SelectItem key={g.id} value={g.id}>
-                          {g.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">Move this quest to another guild you manage</p>
-                </div>
-              )}
+              <div>
+                <label className="text-sm font-medium mb-1 block">
+                  <Building2 className="h-3.5 w-3.5 inline mr-1" /> Entity Affiliations
+                </label>
+                <p className="text-xs text-muted-foreground">Manage affiliations in the <strong>Settings → Affiliations</strong> tab for multi-entity support.</p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
@@ -1095,29 +1105,24 @@ export default function QuestDetail() {
               </div>
             </div>
           )}
-          {/* Fallback: entity attached but no quest_hosts row */}
-          {(!resolvedHosts || resolvedHosts.length === 0) && quest.guild_id && (quest as any).guilds && (
+          {/* Affiliated entities */}
+          {questAffiliations.length > 0 && (
             <div className="mt-6">
-              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Guild</h3>
-              <Link to={`/guilds/${quest.guild_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all w-fit">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={(quest as any).guilds.logo_url} />
-                  <AvatarFallback>{(quest as any).guilds.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <p className="text-sm font-medium">{(quest as any).guilds.name}</p>
-              </Link>
-            </div>
-          )}
-          {(!resolvedHosts || resolvedHosts.length === 0) && quest.company_id && (quest as any).companies && (
-            <div className="mt-6">
-              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Company</h3>
-              <Link to={`/companies/${quest.company_id}`} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all w-fit">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={(quest as any).companies.logo_url} />
-                  <AvatarFallback>{(quest as any).companies.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <p className="text-sm font-medium">{(quest as any).companies.name}</p>
-              </Link>
+              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Affiliated Entities</h3>
+              <div className="flex flex-wrap gap-2">
+                {questAffiliations.map((aff) => (
+                  <Link key={aff.id} to={aff.link} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={aff.logo_url ?? undefined} />
+                      <AvatarFallback>{aff.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">{aff.name}</p>
+                      <Badge variant="outline" className="text-[10px]">{aff.entity_type === "GUILD" ? "Guild" : "Organization"}</Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
