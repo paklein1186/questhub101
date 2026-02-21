@@ -42,23 +42,6 @@ Deno.serve(async (req) => {
 
     const { owner_type: ownerType, owner_id: ownerId } = sc;
 
-    const requiredScope: Record<string, string> = {
-      user: "personal_site",
-      guild: "guild_site",
-      company: "guild_site",
-      territory: "territory_site",
-      program: "program_site",
-    };
-    const scope = requiredScope[ownerType] || "personal_site";
-
-    const visibleItems = (items: Record<string, unknown>[]) =>
-      items.filter(
-        (i) =>
-          i.public_visibility !== "private" &&
-          Array.isArray(i.web_scopes) &&
-          (i.web_scopes as string[]).includes(scope)
-      );
-
     const BASE_URL = "https://changethegame.xyz";
     const buildCtgUrl = (type: string, row: Record<string, unknown>) => {
       const slug = row.slug || row.id;
@@ -93,11 +76,22 @@ Deno.serve(async (req) => {
       updatedAt: row.updated_at,
     });
 
-    // 2. Build owner object
+    // 2. Load owner + feedpoint defaults
     let owner: Record<string, unknown> | null = null;
+    let fpDefaults = {
+      services: false, quests: false, guilds: false, partner_entities: false, posts: false,
+    };
+
     if (ownerType === "user") {
       const { data } = await sb.from("profiles").select("*").eq("user_id", ownerId).maybeSingle();
       if (data) {
+        fpDefaults = {
+          services: data.feedpoint_default_services ?? false,
+          quests: data.feedpoint_default_quests ?? false,
+          guilds: data.feedpoint_default_guilds ?? false,
+          partner_entities: data.feedpoint_default_partner_entities ?? false,
+          posts: data.feedpoint_default_posts ?? false,
+        };
         owner = {
           type: "user", id: data.user_id, slug: data.slug || data.user_id,
           displayName: data.name || "", shortBio: data.headline || null,
@@ -113,6 +107,13 @@ Deno.serve(async (req) => {
     } else if (ownerType === "guild") {
       const { data } = await sb.from("guilds").select("*").eq("id", ownerId).eq("is_deleted", false).maybeSingle();
       if (data) {
+        fpDefaults = {
+          services: data.feedpoint_default_services ?? false,
+          quests: data.feedpoint_default_quests ?? false,
+          guilds: data.feedpoint_default_guilds ?? false,
+          partner_entities: data.feedpoint_default_partner_entities ?? false,
+          posts: data.feedpoint_default_posts ?? false,
+        };
         owner = {
           type: "guild", id: data.id, slug: data.slug || data.id,
           displayName: data.name || "",
@@ -142,6 +143,13 @@ Deno.serve(async (req) => {
     } else if (ownerType === "company") {
       const { data } = await sb.from("companies").select("*").eq("id", ownerId).eq("is_deleted", false).maybeSingle();
       if (data) {
+        fpDefaults = {
+          services: data.feedpoint_default_services ?? false,
+          quests: data.feedpoint_default_quests ?? false,
+          guilds: data.feedpoint_default_guilds ?? false,
+          partner_entities: data.feedpoint_default_partner_entities ?? false,
+          posts: data.feedpoint_default_posts ?? false,
+        };
         owner = {
           type: "company", id: data.id, slug: data.id,
           displayName: data.name || "",
@@ -164,25 +172,37 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3. Load content collections
+    // 3. Effective visibility filter using defaults + overrides
+    const isEffectivelyVisible = (item: Record<string, unknown>, defaultVisible: boolean): boolean => {
+      const override = item.web_visibility_override as string || "inherit";
+      if (override === "force_visible") return true;
+      if (override === "force_hidden") return false;
+      return defaultVisible;
+    };
+
+    // 4. Load content collections
     let services: Record<string, unknown>[] = [];
     if (ownerType === "user" || ownerType === "guild" || ownerType === "company") {
       const field = ownerType === "user" ? "provider_user_id" : ownerType === "company" ? "company_id" : "provider_guild_id";
       const { data } = await sb.from("services").select("*").eq(field, ownerId).eq("is_deleted", false).eq("is_active", true);
-      services = visibleItems(data || []).map((r) => ({
-        ...mapItem(r, "service"),
-        priceHint: r.price_amount ? `${r.price_amount} ${r.price_currency || "EUR"}` : null,
-        durationHint: r.duration_minutes ? `${r.duration_minutes} min` : null,
-      }));
+      services = (data || [])
+        .filter((r: Record<string, unknown>) => isEffectivelyVisible(r, fpDefaults.services))
+        .map((r: Record<string, unknown>) => ({
+          ...mapItem(r, "service"),
+          priceHint: r.price_amount ? `${r.price_amount} ${r.price_currency || "EUR"}` : null,
+          durationHint: r.duration_minutes ? `${r.duration_minutes} min` : null,
+        }));
     }
 
     let quests: Record<string, unknown>[] = [];
     if (ownerType === "user" || ownerType === "guild" || ownerType === "company") {
       const field = ownerType === "user" ? "created_by_user_id" : ownerType === "company" ? "company_id" : "guild_id";
       const { data } = await sb.from("quests").select("*").eq(field, ownerId).eq("is_deleted", false);
-      quests = visibleItems(data || []).map((r) => ({
-        ...mapItem(r, "quest"), progressPercent: null,
-      }));
+      quests = (data || [])
+        .filter((r: Record<string, unknown>) => isEffectivelyVisible(r, fpDefaults.quests))
+        .map((r: Record<string, unknown>) => ({
+          ...mapItem(r, "quest"), progressPercent: null,
+        }));
     }
 
     let guilds: Record<string, unknown>[] = [];
@@ -191,7 +211,9 @@ Deno.serve(async (req) => {
       if (memberships && memberships.length > 0) {
         const guildIds = memberships.map((m: Record<string, unknown>) => m.guild_id);
         const { data } = await sb.from("guilds").select("*").in("id", guildIds).eq("is_deleted", false);
-        guilds = visibleItems(data || []).map((r) => ({ ...mapItem(r, "guild", "name") }));
+        guilds = (data || [])
+          .filter((r: Record<string, unknown>) => isEffectivelyVisible(r, fpDefaults.guilds))
+          .map((r: Record<string, unknown>) => ({ ...mapItem(r, "guild", "name") }));
       }
     }
 
@@ -201,7 +223,7 @@ Deno.serve(async (req) => {
       if (uts && uts.length > 0) {
         const tIds = uts.map((t: Record<string, unknown>) => t.territory_id);
         const { data } = await sb.from("territories").select("*").in("id", tIds).eq("is_deleted", false);
-        territories = visibleItems(data || []).map((r) => ({ ...mapItem(r, "territory", "name") }));
+        territories = (data || []).map((r: Record<string, unknown>) => ({ ...mapItem(r, "territory", "name") }));
       }
     }
 

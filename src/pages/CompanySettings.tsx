@@ -49,6 +49,7 @@ import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
+import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -564,7 +565,10 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
 
               {/* ── Website ── */}
               {activeTab === "website" && (
-                <SiteCodeManager ownerType="company" ownerId={companyId} />
+                <div className="space-y-6">
+                  <FeedpointVisibilitySettings ownerType="company" ownerId={companyId} />
+                  <SiteCodeManager ownerType="company" ownerId={companyId} />
+                </div>
               )}
 
             </motion.div>

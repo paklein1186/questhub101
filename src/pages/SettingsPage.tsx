@@ -57,6 +57,7 @@ import { ProfileMaskingSettings } from "@/components/ProfileMaskingSettings";
 import { ActivityHistoryTab } from "@/components/ActivityHistoryTab";
 import { StripeConnectSection } from "@/components/StripeConnectSection";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
+import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 
 
 const TABS = [
@@ -792,7 +793,12 @@ export default function SettingsPage() {
               {activeTab === "history" && <ActivityHistoryTab />}
 
               {/* ── Website ── */}
-              {activeTab === "website" && <SiteCodeManager ownerType="user" ownerId={currentUser.id} />}
+              {activeTab === "website" && (
+                <div className="space-y-6">
+                  <FeedpointVisibilitySettings ownerType="user" ownerId={currentUser.id} />
+                  <SiteCodeManager ownerType="user" ownerId={currentUser.id} />
+                </div>
+              )}
 
             </motion.div>
           </div>
