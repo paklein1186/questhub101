@@ -2,13 +2,14 @@ import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare, Heart } from "lucide-react";
+import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare, Heart, Globe } from "lucide-react";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { TerritoryOverviewTab } from "@/components/territory/TerritoryOverviewTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
+import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
@@ -109,6 +110,11 @@ export default function TerritoryDetail() {
             <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
+            {currentUser?.id && (
+              <TabsTrigger value="website" className="gap-1">
+                <Globe className="h-3 w-3" /> Website
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -130,6 +136,12 @@ export default function TerritoryDetail() {
           <TabsContent value="contribute" className="mt-6">
             <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
+
+          {currentUser?.id && resolvedId && (
+            <TabsContent value="website" className="mt-6">
+              <WebsiteConfigPage ownerType="territory" ownerId={resolvedId} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
