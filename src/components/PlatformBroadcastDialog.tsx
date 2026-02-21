@@ -259,7 +259,7 @@ export function PlatformBroadcastDialog() {
       // Update broadcast totals
       await supabase
         .from("broadcast_messages" as any)
-        .update({ total_sent: sent, total_failed: failed })
+        .update({ total_sent: sent, total_failed: failed, sender_conversation_id: firstConvId })
         .eq("id", broadcastId);
 
       toast({
