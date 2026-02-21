@@ -155,6 +155,7 @@ import AgentsMarketplace from "./pages/AgentsMarketplace";
 import AgentDetail from "./pages/AgentDetail";
 import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
+import PublicBooking from "./pages/PublicBooking";
 
 const queryClient = new QueryClient();
 
@@ -269,6 +270,7 @@ const App = () => (
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
                 <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
                 <Route path="/site/:websiteSlug/:pageSlug" element={<PublicWebsite />} />
+                <Route path="/book/:id" element={<PublicBooking />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />

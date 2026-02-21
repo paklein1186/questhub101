@@ -65,3 +65,10 @@ export function getDisplayUrl(type: ShareEntityType, id: string): string {
   const route = ROUTE_MAP[type] || "/" + type + "s";
   return `${PRODUCTION_DOMAIN}${route}/${encodeURIComponent(id)}`;
 }
+
+/**
+ * Returns the public booking URL for a service (shareable with guests).
+ */
+export function getBookingUrl(serviceId: string): string {
+  return `${PRODUCTION_DOMAIN}/book/${encodeURIComponent(serviceId)}`;
+}
