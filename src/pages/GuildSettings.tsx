@@ -6,7 +6,7 @@ import {
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin, Tag,
   AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
-  ChevronUp, ChevronDown,
+  ChevronUp, ChevronDown, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SourceRoleTransfer } from "@/components/guild/SourceRoleTransfer";
+import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -64,6 +65,7 @@ const TABS = [
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Unit Wallet", icon: CreditCard },
+  { key: "website", label: "Website", icon: Globe },
 ];
 
 export default function GuildSettings() {
@@ -857,6 +859,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
               {/* ── Partnerships ── */}
               {activeTab === "partnerships" && (
                 <PartnershipsTab entityType="GUILD" entityId={guildId} isAdmin={true} />
+              )}
+
+              {/* ── Website ── */}
+              {activeTab === "website" && (
+                <WebsiteConfigPage ownerType="guild" ownerId={guildId} />
               )}
 
             </motion.div>
