@@ -107,7 +107,7 @@ export function SiteCodeManager({ ownerType, ownerId }: Props) {
 
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const feedUrl = siteCode && !siteCode.revoked
-    ? `https://${projectId}.supabase.co/functions/v1/site-feed?code=${siteCode.code}`
+    ? `https://${projectId}.supabase.co/functions/v1/public-website/site-feed?code=${siteCode.code}`
     : null;
 
   if (loading) {
