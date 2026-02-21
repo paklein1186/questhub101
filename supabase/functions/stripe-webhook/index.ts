@@ -238,6 +238,37 @@ serve(async (req) => {
         }
 
         console.log(`[WEBHOOK] Course ${courseId} purchased and enrolled for user ${userId}`);
+      } else if (metadata.type === "share_purchase") {
+        // Share purchase — record shareholding after payment
+        const userId = metadata.user_id;
+        const shareClass = metadata.share_class;
+        const quantity = parseInt(metadata.quantity || "0", 10);
+        const pricePerShare = parseFloat(metadata.price_per_share || "0");
+        const paymentIntentId = session.payment_intent as string;
+
+        console.log(`[WEBHOOK] Share purchase: user=${userId}, class=${shareClass}, qty=${quantity}`);
+
+        // Idempotency: check if this payment was already processed
+        const { data: existingShare } = await supabase
+          .from("shareholdings")
+          .select("id")
+          .eq("stripe_payment_intent_id", paymentIntentId)
+          .maybeSingle();
+
+        if (!existingShare && quantity > 0) {
+          await supabase.from("shareholdings").insert({
+            user_id: userId,
+            share_class: shareClass,
+            number_of_shares: quantity,
+            purchase_price_per_share: pricePerShare,
+            total_paid: quantity * pricePerShare,
+            stripe_payment_intent_id: paymentIntentId,
+          });
+
+          console.log(`[WEBHOOK] Shareholding recorded: ${quantity}x Class ${shareClass} for user ${userId}`);
+        } else if (existingShare) {
+          console.log(`[WEBHOOK] Share purchase already processed for payment ${paymentIntentId}, skipping`);
+        }
       }
     } else if (event.type === "customer.subscription.deleted") {
       // Subscription canceled/expired
