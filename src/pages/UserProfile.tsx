@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
   Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
-  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2, Map as MapIcon,
+  Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2, Map as MapIcon, Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -358,6 +358,19 @@ export default function UserProfile() {
         .select("target_id, target_type")
         .eq("user_id", id!);
       return (data ?? []) as { target_id: string; target_type: string }[];
+    },
+    enabled: !!id,
+  });
+
+  // Highlighted quest IDs for profile overview
+  const { data: highlightedQuestIds = [] } = useQuery({
+    queryKey: ["highlighted-quests", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("highlighted_quests" as any)
+        .select("quest_id")
+        .eq("user_id", id!);
+      return (data || []).map((h: any) => h.quest_id as string);
     },
     enabled: !!id,
   });
@@ -736,40 +749,58 @@ export default function UserProfile() {
             </div>
 
 
-            {/* Featured items */}
-            {(filteredQuestsCreated.length > 0 || filteredServices.length > 0) && (
-              <section>
-                <h3 className="font-display font-semibold mb-3">Highlights</h3>
-                <div className="grid gap-3 md:grid-cols-3">
-              {filteredQuestsCreated.slice(0, 2).map((q: any) => (
-                    <Link key={q.id} to={`/quests/${q.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
-                      <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
-                      <div className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
-                        <h4 className="font-display font-semibold truncate">{q.title}</h4>
-                        <Badge variant="outline" className="text-[10px] capitalize mt-1">{(q.status || "draft").toLowerCase().replace("_", " ")}</Badge>
-                      </div>
-                    </Link>
-                  ))}
-                  {filteredServices.slice(0, 2).map((s: any) => (
-                    <Link key={s.id} to={`/services/${s.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
-                      {s.image_url && (
-                        <div className="h-24 bg-muted">
-                          <img src={s.image_url} alt={s.title} className="w-full h-full object-cover" />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("service.label", persona)}</p>
-                        <h4 className="font-display font-semibold truncate">{s.title}</h4>
-                        {s.price_amount != null && (
-                          <Badge variant="secondary" className="text-[10px] mt-1">{s.price_amount === 0 ? "Free" : `€${s.price_amount}`}</Badge>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
+            {/* Featured items — highlighted quests + services */}
+            {(() => {
+              const highlightedQuests = filteredQuestsCreated
+                .concat(filteredQuestsJoined.map((qm: any) => qm.quest).filter(Boolean))
+                .filter((q: any) => q && highlightedQuestIds.includes(q.id));
+              const hasHighlights = highlightedQuests.length > 0 || filteredServices.length > 0;
+              if (!hasHighlights) return null;
+
+              // Interleave: highlighted quests first, then services, max 6
+              type HighlightItem = { type: "quest" | "service"; data: any };
+              const items: HighlightItem[] = [
+                ...highlightedQuests.map((q: any) => ({ type: "quest" as const, data: q })),
+                ...filteredServices.map((s: any) => ({ type: "service" as const, data: s })),
+              ].slice(0, 6);
+
+              return (
+                <section>
+                  <h3 className="font-display font-semibold mb-3 flex items-center gap-2">
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" /> Highlights
+                  </h3>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {items.map((item) =>
+                      item.type === "quest" ? (
+                        <Link key={item.data.id} to={`/quests/${item.data.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                          <UnitCoverImage type="QUEST" imageUrl={item.data.cover_image_url} height="h-24" />
+                          <div className="p-4">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
+                            <h4 className="font-display font-semibold truncate">{item.data.title}</h4>
+                            <Badge variant="outline" className="text-[10px] capitalize mt-1">{(item.data.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                          </div>
+                        </Link>
+                      ) : (
+                        <Link key={item.data.id} to={`/services/${item.data.id}`} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all">
+                          {item.data.image_url && (
+                            <div className="h-24 bg-muted">
+                              <img src={item.data.image_url} alt={item.data.title} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{getLabel("service.label", persona)}</p>
+                            <h4 className="font-display font-semibold truncate">{item.data.title}</h4>
+                            {item.data.price_amount != null && (
+                              <Badge variant="secondary" className="text-[10px] mt-1">{item.data.price_amount === 0 ? "Free" : `€${item.data.price_amount}`}</Badge>
+                            )}
+                          </div>
+                        </Link>
+                      )
+                    )}
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* Own profile: continue where left off */}
             {isOwnProfile && (
