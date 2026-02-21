@@ -70,6 +70,7 @@ export function BroadcastMessageDialog({
 
     // Create individual 1-on-1 conversations per recipient.
     // Sender is only added to the FIRST conversation so they see it once.
+    let firstConvId: string | null = null;
     for (let idx = 0; idx < recipientIds.length; idx++) {
       const recipientId = recipientIds[idx];
       const isFirst = idx === 0;
@@ -93,6 +94,7 @@ export function BroadcastMessageDialog({
         const participants = [{ conversation_id: conv.id, user_id: recipientId }];
         if (isFirst) {
           participants.push({ conversation_id: conv.id, user_id: userId });
+          firstConvId = conv.id;
         }
         await supabase.from("conversation_participants").insert(participants);
 
@@ -151,7 +153,7 @@ export function BroadcastMessageDialog({
 
     // Update broadcast totals
     if (broadcastId) {
-      await supabase.from("broadcast_messages" as any).update({ total_sent: sent, total_failed: failed }).eq("id", broadcastId);
+      await supabase.from("broadcast_messages" as any).update({ total_sent: sent, total_failed: failed, sender_conversation_id: firstConvId }).eq("id", broadcastId);
     }
 
     toast({

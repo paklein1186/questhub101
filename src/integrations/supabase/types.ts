@@ -468,6 +468,7 @@ export type Database = {
           created_at: string
           id: string
           link_url: string | null
+          sender_conversation_id: string | null
           sender_entity_id: string | null
           sender_entity_type: string | null
           sender_label: string | null
@@ -485,6 +486,7 @@ export type Database = {
           created_at?: string
           id?: string
           link_url?: string | null
+          sender_conversation_id?: string | null
           sender_entity_id?: string | null
           sender_entity_type?: string | null
           sender_label?: string | null
@@ -502,6 +504,7 @@ export type Database = {
           created_at?: string
           id?: string
           link_url?: string | null
+          sender_conversation_id?: string | null
           sender_entity_id?: string | null
           sender_entity_type?: string | null
           sender_label?: string | null
@@ -511,7 +514,15 @@ export type Database = {
           total_recipients?: number
           total_sent?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_messages_sender_conversation_id_fkey"
+            columns: ["sender_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       broadcast_recipients: {
         Row: {
