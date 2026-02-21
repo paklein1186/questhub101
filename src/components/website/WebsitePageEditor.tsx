@@ -18,6 +18,8 @@ const PAGE_TYPES = [
   { value: "projects", label: "Projects" },
   { value: "community", label: "Community" },
   { value: "program", label: "Program" },
+  { value: "contact", label: "Contact" },
+  { value: "learning", label: "Learning & Events" },
   { value: "custom", label: "Custom" },
 ];
 
