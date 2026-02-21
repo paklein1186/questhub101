@@ -156,9 +156,27 @@ Deno.serve(async (req: Request) => {
 
     let quests: Record<string, unknown>[] = [];
     if (ownerType !== "territory") {
+      // Legacy: quests directly owned
       const f = ownerType === "user" ? "created_by_user_id" : ownerType === "company" ? "company_id" : "guild_id";
-      const d = await dbQuery(supabaseUrl, serviceKey, "quests", `${f}=eq.${ownerId}&is_deleted=eq.false`);
-      quests = d.filter(r => vis(r, fp.quests)).map(r => mapItem(r, "quest"));
+      const directQuests = await dbQuery(supabaseUrl, serviceKey, "quests", `${f}=eq.${ownerId}&is_deleted=eq.false`);
+
+      // New: quests linked via quest_affiliations
+      let affiliatedQuests: Record<string, unknown>[] = [];
+      if (ownerType === "guild" || ownerType === "company") {
+        const afType = ownerType === "guild" ? "GUILD" : "COMPANY";
+        const afs = await dbQuery(supabaseUrl, serviceKey, "quest_affiliations",
+          `entity_type=eq.${afType}&entity_id=eq.${ownerId}&select=quest_id`);
+        if (afs.length > 0) {
+          const qIds = afs.map(a => a.quest_id).join(",");
+          affiliatedQuests = await dbQuery(supabaseUrl, serviceKey, "quests",
+            `id=in.(${qIds})&is_deleted=eq.false`);
+        }
+      }
+
+      // Merge & deduplicate
+      const allQuests = [...directQuests, ...affiliatedQuests];
+      const seenQ = new Set<unknown>();
+      quests = allQuests.filter(r => { if (seenQ.has(r.id)) return false; seenQ.add(r.id); return vis(r, fp.quests); }).map(r => mapItem(r, "quest"));
     }
 
     let guilds: Record<string, unknown>[] = [];
