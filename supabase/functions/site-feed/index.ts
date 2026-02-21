@@ -123,8 +123,11 @@ Deno.serve(async (req: Request) => {
 
     let services: Record<string, unknown>[] = [];
     if (ownerType !== "territory") {
-      const f = ownerType === "user" ? "provider_user_id" : ownerType === "company" ? "company_id" : "provider_guild_id";
-      const d = await dbQuery(supabaseUrl, serviceKey, "services", `${f}=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`);
+      let svcParams: string;
+      if (ownerType === "user") svcParams = `provider_user_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      else if (ownerType === "company") svcParams = `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      else svcParams = `provider_guild_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      const d = await dbQuery(supabaseUrl, serviceKey, "services", svcParams);
       services = d.filter(r => vis(r, fp.services)).map(r => mapItem(r, "service"));
     }
 

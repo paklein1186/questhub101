@@ -12,6 +12,13 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url);
+
+  // ── site-feed route: /public-website/site-feed?code=xxx ──
+  const isSiteFeed = url.pathname.replace(/^\/public-website\/?/, "").startsWith("site-feed");
+  if (isSiteFeed) {
+    return handleSiteFeed(url);
+  }
+
   const pathParts = url.pathname.replace(/^\/public-website\/?/, "").split("/").filter(Boolean);
 
   // Routes:
@@ -249,4 +256,127 @@ function json(data: any, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+// ── site-feed handler (mirrors supabase/functions/site-feed logic) ──
+
+async function sfQuery(sbUrl: string, key: string, table: string, params: string): Promise<Record<string, unknown>[]> {
+  const res = await fetch(`${sbUrl}/rest/v1/${table}?${params}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`DB ${res.status}: ${t}`); }
+  return res.json();
+}
+
+async function sfSingle(sbUrl: string, key: string, table: string, params: string): Promise<Record<string, unknown> | null> {
+  const res = await fetch(`${sbUrl}/rest/v1/${table}?${params}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "application/vnd.pgrst.object+json" },
+  });
+  if (res.status === 406) return null;
+  if (!res.ok) { const t = await res.text(); throw new Error(`DB ${res.status}: ${t}`); }
+  return res.json();
+}
+
+async function handleSiteFeed(url: URL): Promise<Response> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const code = url.searchParams.get("code");
+    if (!code) return json({ error: "Missing ?code= parameter" }, 400);
+
+    const sc = await sfSingle(supabaseUrl, serviceKey, "site_codes",
+      `code=eq.${encodeURIComponent(code)}&revoked=eq.false`);
+    if (!sc) return json({ error: "Invalid or revoked site code" }, 404);
+
+    const ownerType = String(sc.owner_type);
+    const ownerId = String(sc.owner_id);
+    const BASE = "https://changethegame.xyz";
+
+    const mapItem = (r: Record<string, unknown>, eType: string, tf = "title") => ({
+      entityType: eType, id: r.id, slug: r.slug || null,
+      title: r[tf] || r.name || "",
+      shortDescription: r.description ? String(r.description).slice(0, 300) : null,
+      coverImageUrl: r.cover_image_url || r.logo_url || r.banner_url || null,
+      webTags: r.web_tags || [], webScopes: r.web_scopes || [],
+      featuredOrder: r.featured_order, createdAt: r.created_at, updatedAt: r.updated_at,
+    });
+
+    let owner: Record<string, unknown> | null = null;
+    let fp = { services: false, quests: false, guilds: false, partner_entities: false, posts: false };
+
+    if (ownerType === "user") {
+      const d = await sfSingle(supabaseUrl, serviceKey, "profiles", `user_id=eq.${ownerId}`);
+      if (d) {
+        fp = { services: !!d.feedpoint_default_services, quests: !!d.feedpoint_default_quests,
+          guilds: !!d.feedpoint_default_guilds, partner_entities: !!d.feedpoint_default_partner_entities,
+          posts: !!d.feedpoint_default_posts };
+        owner = { type: "user", id: d.user_id, displayName: d.name || "",
+          avatarUrl: d.avatar_url || null, ctgProfileUrl: BASE + "/u/" + (d.slug || d.user_id) };
+      }
+    } else if (ownerType === "guild") {
+      const d = await sfSingle(supabaseUrl, serviceKey, "guilds", `id=eq.${ownerId}&is_deleted=eq.false`);
+      if (d) {
+        fp = { services: !!d.feedpoint_default_services, quests: !!d.feedpoint_default_quests,
+          guilds: !!d.feedpoint_default_guilds, partner_entities: !!d.feedpoint_default_partner_entities,
+          posts: !!d.feedpoint_default_posts };
+        owner = { type: "guild", id: d.id, displayName: d.name || "",
+          avatarUrl: d.logo_url || null, ctgProfileUrl: BASE + "/guilds/" + (d.slug || d.id) };
+      }
+    } else if (ownerType === "company") {
+      const d = await sfSingle(supabaseUrl, serviceKey, "companies", `id=eq.${ownerId}&is_deleted=eq.false`);
+      if (d) {
+        fp = { services: !!d.feedpoint_default_services, quests: !!d.feedpoint_default_quests,
+          guilds: !!d.feedpoint_default_guilds, partner_entities: !!d.feedpoint_default_partner_entities,
+          posts: !!d.feedpoint_default_posts };
+        owner = { type: "company", id: d.id, displayName: d.name || "",
+          avatarUrl: d.logo_url || null, ctgProfileUrl: BASE + "/companies/" + d.id };
+      }
+    } else if (ownerType === "territory") {
+      const d = await sfSingle(supabaseUrl, serviceKey, "territories", `id=eq.${ownerId}&is_deleted=eq.false`);
+      if (d) { owner = { type: "territory", id: d.id, displayName: d.name || "" }; }
+    }
+
+    if (!owner) return json({ error: "Owner not found" }, 404);
+
+    const vis = (item: Record<string, unknown>, def: boolean) => {
+      const o = String(item.web_visibility_override || "inherit");
+      return o === "force_visible" ? true : o === "force_hidden" ? false : def;
+    };
+
+    let services: Record<string, unknown>[] = [];
+    if (ownerType !== "territory") {
+      let svcParams: string;
+      if (ownerType === "user") svcParams = `provider_user_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      else if (ownerType === "company") svcParams = `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      else svcParams = `provider_guild_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
+      const d = await sfQuery(supabaseUrl, serviceKey, "services", svcParams);
+      services = d.filter(r => vis(r, fp.services)).map(r => mapItem(r, "service"));
+    }
+
+    let quests: Record<string, unknown>[] = [];
+    if (ownerType !== "territory") {
+      const f = ownerType === "user" ? "created_by_user_id" : ownerType === "company" ? "company_id" : "guild_id";
+      const d = await sfQuery(supabaseUrl, serviceKey, "quests", `${f}=eq.${ownerId}&is_deleted=eq.false`);
+      quests = d.filter(r => vis(r, fp.quests)).map(r => mapItem(r, "quest"));
+    }
+
+    let guilds: Record<string, unknown>[] = [];
+    if (ownerType === "user") {
+      const mem = await sfQuery(supabaseUrl, serviceKey, "guild_members", `user_id=eq.${ownerId}&select=guild_id`);
+      if (mem.length > 0) {
+        const ids = mem.map(m => m.guild_id).join(",");
+        const d = await sfQuery(supabaseUrl, serviceKey, "guilds", `id=in.(${ids})&is_deleted=eq.false`);
+        guilds = d.filter(r => vis(r, fp.guilds)).map(r => mapItem(r, "guild", "name"));
+      }
+    }
+
+    return json({
+      owner, services, quests, guilds, programs: [], territories: [], events: [],
+      meta: { generatedAt: new Date().toISOString(), ownerType, ownerId },
+    });
+  } catch (err) {
+    console.error("site-feed error:", err);
+    return json({ error: "Internal error", detail: String(err) }, 500);
+  }
 }
