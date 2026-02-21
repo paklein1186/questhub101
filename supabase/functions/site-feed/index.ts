@@ -123,12 +123,22 @@ Deno.serve(async (req: Request) => {
 
     let services: Record<string, unknown>[] = [];
     if (ownerType !== "territory") {
-      let svcParams: string;
-      if (ownerType === "user") svcParams = `provider_user_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
-      else if (ownerType === "company") svcParams = `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
-      else svcParams = `provider_guild_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`;
-      const d = await dbQuery(supabaseUrl, serviceKey, "services", svcParams);
-      services = d.filter(r => vis(r, fp.services)).map(r => mapItem(r, "service"));
+      if (ownerType === "company") {
+        const direct = await dbQuery(supabaseUrl, serviceKey, "services", `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`);
+        const members = await dbQuery(supabaseUrl, serviceKey, "company_members", `company_id=eq.${ownerId}&select=user_id`);
+        let memberSvcs: Record<string, unknown>[] = [];
+        if (members.length > 0) {
+          const uids = members.map(m => m.user_id).join(",");
+          memberSvcs = await dbQuery(supabaseUrl, serviceKey, "services", `provider_user_id=in.(${uids})&is_deleted=eq.false&is_active=eq.true`);
+        }
+        const allSvcs = [...direct, ...memberSvcs];
+        const seen = new Set<unknown>();
+        services = allSvcs.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return vis(r, fp.services); }).map(r => mapItem(r, "service"));
+      } else {
+        const f = ownerType === "user" ? "provider_user_id" : "provider_guild_id";
+        const d = await dbQuery(supabaseUrl, serviceKey, "services", `${f}=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`);
+        services = d.filter(r => vis(r, fp.services)).map(r => mapItem(r, "service"));
+      }
     }
 
     let quests: Record<string, unknown>[] = [];
