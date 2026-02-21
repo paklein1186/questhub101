@@ -44,7 +44,7 @@ const OVERRIDE_OPTIONS = [
 
 /* ─── Types ─── */
 
-type EntityTable = "quests" | "services" | "guilds" | "companies";
+type EntityTable = "quests" | "services" | "guilds" | "companies" | "profiles";
 
 interface OwnerContext {
   ownerType: string;
@@ -96,7 +96,8 @@ export function WebVisibilityEditor({
 
   const save = async () => {
     setSaving(true);
-    const { error } = await supabase
+    const idCol = entityTable === "profiles" ? "user_id" : "id";
+    const { error } = await (supabase as any)
       .from(entityTable)
       .update({
         public_visibility: visibility,
@@ -105,7 +106,7 @@ export function WebVisibilityEditor({
         featured_order: featuredOrder,
         web_visibility_override: override,
       } as any)
-      .eq("id", entityId);
+      .eq(idCol, entityId);
     setSaving(false);
     if (error) {
       toast.error(error.message);
