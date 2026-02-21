@@ -66,6 +66,7 @@ const TABS = [
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Unit Wallet", icon: CreditCard },
+  { key: "website", label: "Website", icon: Globe },
 ];
 
 export default function GuildSettings() {
@@ -871,6 +872,10 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 <PartnershipsTab entityType="GUILD" entityId={guildId} isAdmin={true} />
               )}
 
+              {/* ── Website ── */}
+              {activeTab === "website" && (
+                <SiteCodeManager ownerType="guild" ownerId={guildId} />
+              )}
 
 
             </motion.div>
