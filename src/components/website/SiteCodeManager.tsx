@@ -7,7 +7,7 @@ import { Copy, RefreshCw, XCircle, CheckCircle, Globe, Key, ExternalLink } from 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type OwnerType = "user" | "guild" | "territory" | "program";
+type OwnerType = "user" | "guild" | "company" | "territory" | "program";
 
 interface Props {
   ownerType: OwnerType;
