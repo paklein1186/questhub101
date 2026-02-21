@@ -858,6 +858,7 @@ export type Database = {
           credits_balance: number
           deleted_at: string | null
           description: string | null
+          featured_order: number | null
           id: string
           instagram_url: string | null
           is_deleted: boolean
@@ -867,12 +868,15 @@ export type Database = {
           mission_statement: string | null
           name: string
           org_type: string | null
+          public_visibility: string
           scale_category: string | null
           sector: string | null
           size: string | null
           twitter_url: string | null
           universe_visibility: string
           updated_at: string
+          web_scopes: string[]
+          web_tags: string[]
           website_url: string | null
         }
         Insert: {
@@ -883,6 +887,7 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          featured_order?: number | null
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -892,12 +897,15 @@ export type Database = {
           mission_statement?: string | null
           name: string
           org_type?: string | null
+          public_visibility?: string
           scale_category?: string | null
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[]
+          web_tags?: string[]
           website_url?: string | null
         }
         Update: {
@@ -908,6 +916,7 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          featured_order?: number | null
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -917,12 +926,15 @@ export type Database = {
           mission_statement?: string | null
           name?: string
           org_type?: string | null
+          public_visibility?: string
           scale_category?: string | null
           sector?: string | null
           size?: string | null
           twitter_url?: string | null
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[]
+          web_tags?: string[]
           website_url?: string | null
         }
         Relationships: []
