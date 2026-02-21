@@ -3804,6 +3804,41 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_affiliations: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          entity_id: string
+          entity_type: string
+          id: string
+          quest_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          quest_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          quest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_affiliations_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_campaigns: {
         Row: {
           created_at: string

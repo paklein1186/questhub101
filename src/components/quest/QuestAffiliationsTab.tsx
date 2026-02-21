@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link2, X, Save, Loader2 } from "lucide-react";
+import { Link2, X, Save, Loader2, Shield, Building2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,13 +16,46 @@ interface Props {
   quest: any;
 }
 
+interface Affiliation {
+  id: string;
+  entity_type: "GUILD" | "COMPANY";
+  entity_id: string;
+  name: string;
+  logo_url: string | null;
+}
+
 export function QuestAffiliationsTab({ questId, quest }: Props) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
-  const [selectedGuildId, setSelectedGuildId] = useState<string>(quest.guild_id || "");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(quest.company_id || "");
+  const [addEntityType, setAddEntityType] = useState<"GUILD" | "COMPANY">("GUILD");
+  const [addEntityId, setAddEntityId] = useState<string>("");
+
+  // Fetch current affiliations with resolved names
+  const { data: affiliations = [], isLoading } = useQuery({
+    queryKey: ["quest-affiliations", questId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quest_affiliations" as any)
+        .select("id, entity_type, entity_id")
+        .eq("quest_id", questId);
+      if (error) throw error;
+      const rows = (data ?? []) as any[];
+      // Resolve names
+      const results: Affiliation[] = [];
+      for (const row of rows) {
+        if (row.entity_type === "GUILD") {
+          const { data: g } = await supabase.from("guilds").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
+          if (g) results.push({ id: row.id, entity_type: "GUILD", entity_id: g.id, name: g.name, logo_url: g.logo_url });
+        } else {
+          const { data: c } = await supabase.from("companies").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
+          if (c) results.push({ id: row.id, entity_type: "COMPANY", entity_id: c.id, name: c.name, logo_url: c.logo_url });
+        }
+      }
+      return results;
+    },
+  });
 
   // Fetch guilds where current user is a member
   const { data: myGuilds = [] } = useQuery({
@@ -55,20 +89,59 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
     enabled: !!currentUser.id,
   });
 
-  const saveAffiliations = async () => {
+  const availableEntities = addEntityType === "GUILD"
+    ? myGuilds.filter((g: any) => !affiliations.some(a => a.entity_type === "GUILD" && a.entity_id === g.id))
+    : myCompanies.filter((c: any) => !affiliations.some(a => a.entity_type === "COMPANY" && a.entity_id === c.id));
+
+  const addAffiliation = async () => {
+    if (!addEntityId) return;
     setSaving(true);
-    const { error } = await supabase.from("quests").update({
-      guild_id: selectedGuildId || null,
-      company_id: selectedCompanyId || null,
-    }).eq("id", questId);
+    const { error } = await supabase.from("quest_affiliations" as any).insert({
+      quest_id: questId,
+      entity_type: addEntityType,
+      entity_id: addEntityId,
+      created_by_user_id: currentUser.id,
+    } as any);
     if (error) {
-      toast({ title: "Error saving affiliations", description: error.message, variant: "destructive" });
+      toast({ title: "Error adding affiliation", description: error.message, variant: "destructive" });
     } else {
+      // Also update legacy guild_id/company_id for backward compat (use first of each type)
+      await syncLegacyIds();
+      qc.invalidateQueries({ queryKey: ["quest-affiliations", questId] });
       qc.invalidateQueries({ queryKey: ["quest", questId] });
-      qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
-      toast({ title: "Affiliations saved" });
+      toast({ title: "Affiliation added" });
+      setAddEntityId("");
     }
     setSaving(false);
+  };
+
+  const removeAffiliation = async (affiliationId: string) => {
+    setSaving(true);
+    const { error } = await supabase.from("quest_affiliations" as any).delete().eq("id", affiliationId);
+    if (error) {
+      toast({ title: "Error removing affiliation", description: error.message, variant: "destructive" });
+    } else {
+      await syncLegacyIds();
+      qc.invalidateQueries({ queryKey: ["quest-affiliations", questId] });
+      qc.invalidateQueries({ queryKey: ["quest", questId] });
+      toast({ title: "Affiliation removed" });
+    }
+    setSaving(false);
+  };
+
+  // Keep legacy guild_id/company_id in sync (first of each type, or null)
+  const syncLegacyIds = async () => {
+    const { data: allAffs } = await supabase
+      .from("quest_affiliations" as any)
+      .select("entity_type, entity_id")
+      .eq("quest_id", questId);
+    const rows = (allAffs ?? []) as any[];
+    const firstGuild = rows.find(r => r.entity_type === "GUILD")?.entity_id || null;
+    const firstCompany = rows.find(r => r.entity_type === "COMPANY")?.entity_id || null;
+    await supabase.from("quests").update({
+      guild_id: firstGuild,
+      company_id: firstCompany,
+    } as any).eq("id", questId);
   };
 
   return (
@@ -79,82 +152,83 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
             <Link2 className="h-4 w-4 text-primary" /> Entity Affiliations
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Attach this quest to a Guild or Organization so it appears on their profile.
+            Attach this quest to one or more Guilds or Organizations so it appears on their profile.
           </p>
         </div>
 
-        {/* Guild picker */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium block">Guild</label>
-          <div className="flex items-center gap-2">
-            <Select value={selectedGuildId} onValueChange={setSelectedGuildId}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="No guild attached" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">None</SelectItem>
-                {myGuilds.map((g: any) => (
-                  <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedGuildId && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSelectedGuildId("")}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+        {/* Current affiliations */}
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
           </div>
-          {myGuilds.length === 0 && (
-            <p className="text-xs text-muted-foreground">You are not a member of any guild yet.</p>
-          )}
-        </div>
-
-        {/* Company picker */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium block">Traditional Organization</label>
-          <div className="flex items-center gap-2">
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="No organization attached" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">None</SelectItem>
-                {myCompanies.map((c: any) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedCompanyId && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setSelectedCompanyId("")}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          {myCompanies.length === 0 && (
-            <p className="text-xs text-muted-foreground">You are not a member of any organization yet.</p>
-          )}
-        </div>
-
-        {/* Current affiliations display */}
-        {(selectedGuildId || selectedCompanyId) && (
-          <div className="flex flex-wrap gap-2">
-            {selectedGuildId && (
-              <Badge variant="secondary" className="gap-1">
-                Guild: {myGuilds.find((g: any) => g.id === selectedGuildId)?.name || "Selected"}
-              </Badge>
-            )}
-            {selectedCompanyId && (
-              <Badge variant="secondary" className="gap-1">
-                Org: {myCompanies.find((c: any) => c.id === selectedCompanyId)?.name || "Selected"}
-              </Badge>
-            )}
+        ) : affiliations.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">No entities attached yet. This quest is independent.</p>
+        ) : (
+          <div className="space-y-2">
+            {affiliations.map((aff) => (
+              <div key={aff.id} className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={aff.logo_url ?? undefined} />
+                    <AvatarFallback className="text-xs">
+                      {aff.entity_type === "GUILD" ? <Shield className="h-3.5 w-3.5" /> : <Building2 className="h-3.5 w-3.5" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{aff.name}</p>
+                    <Badge variant="outline" className="text-[10px]">
+                      {aff.entity_type === "GUILD" ? "Guild" : "Organization"}
+                    </Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeAffiliation(aff.id)}
+                  disabled={saving}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
         )}
 
-        <Button size="sm" onClick={saveAffiliations} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
-          Save Affiliations
-        </Button>
+        {/* Add new affiliation */}
+        <div className="space-y-3 pt-2 border-t border-border">
+          <p className="text-sm font-medium">Add affiliation</p>
+          <div className="flex gap-2">
+            <Select value={addEntityType} onValueChange={(v) => { setAddEntityType(v as "GUILD" | "COMPANY"); setAddEntityId(""); }}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="GUILD">Guild</SelectItem>
+                <SelectItem value="COMPANY">Organization</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={addEntityId} onValueChange={setAddEntityId}>
+              <SelectTrigger className="flex-1">
+                <SelectValue placeholder={`Select a ${addEntityType === "GUILD" ? "guild" : "organization"}…`} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEntities.map((e: any) => (
+                  <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                ))}
+                {availableEntities.length === 0 && (
+                  <p className="text-xs text-muted-foreground p-2">
+                    {addEntityType === "GUILD" ? "No more guilds available" : "No more organizations available"}
+                  </p>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button size="sm" onClick={addAffiliation} disabled={saving || !addEntityId}>
+            {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
+            Add
+          </Button>
+        </div>
       </div>
     </div>
   );
