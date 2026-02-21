@@ -3569,6 +3569,7 @@ export type Database = {
           current_plan_code: string | null
           demurrage_exempt: boolean
           email: string
+          featured_order: number | null
           filter_by_houses: boolean
           governance_weight: number
           has_completed_onboarding: boolean
@@ -3590,6 +3591,7 @@ export type Database = {
           persona_source: string | null
           persona_type: string
           preferred_language: string
+          public_visibility: string
           pulse_nudge_sent: boolean
           role: string
           stripe_account_id: string | null
@@ -3599,6 +3601,8 @@ export type Database = {
           twitter_url: string | null
           updated_at: string
           user_id: string
+          web_scopes: string[]
+          web_tags: string[]
           website_url: string | null
           xp: number
           xp_level: number
@@ -3614,6 +3618,7 @@ export type Database = {
           current_plan_code?: string | null
           demurrage_exempt?: boolean
           email?: string
+          featured_order?: number | null
           filter_by_houses?: boolean
           governance_weight?: number
           has_completed_onboarding?: boolean
@@ -3635,6 +3640,7 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           preferred_language?: string
+          public_visibility?: string
           pulse_nudge_sent?: boolean
           role?: string
           stripe_account_id?: string | null
@@ -3644,6 +3650,8 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           user_id: string
+          web_scopes?: string[]
+          web_tags?: string[]
           website_url?: string | null
           xp?: number
           xp_level?: number
@@ -3659,6 +3667,7 @@ export type Database = {
           current_plan_code?: string | null
           demurrage_exempt?: boolean
           email?: string
+          featured_order?: number | null
           filter_by_houses?: boolean
           governance_weight?: number
           has_completed_onboarding?: boolean
@@ -3680,6 +3689,7 @@ export type Database = {
           persona_source?: string | null
           persona_type?: string
           preferred_language?: string
+          public_visibility?: string
           pulse_nudge_sent?: boolean
           role?: string
           stripe_account_id?: string | null
@@ -3689,6 +3699,8 @@ export type Database = {
           twitter_url?: string | null
           updated_at?: string
           user_id?: string
+          web_scopes?: string[]
+          web_tags?: string[]
           website_url?: string | null
           xp?: number
           xp_level?: number
@@ -4853,6 +4865,36 @@ export type Database = {
         }
         Relationships: []
       }
+      site_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          owner_id: string
+          owner_type: string
+          revoked: boolean
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          owner_type: string
+          revoked?: boolean
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          owner_type?: string
+          revoked?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       starred_excerpt_reports: {
         Row: {
           created_at: string
@@ -5124,6 +5166,7 @@ export type Database = {
         Row: {
           created_at: string
           deleted_at: string | null
+          featured_order: number | null
           geojson: Json | null
           id: string
           is_deleted: boolean
@@ -5132,14 +5175,18 @@ export type Database = {
           longitude: number | null
           name: string
           parent_id: string | null
+          public_visibility: string
           slug: string | null
           stats: Json | null
           summary: string | null
           updated_at: string
+          web_scopes: string[]
+          web_tags: string[]
         }
         Insert: {
           created_at?: string
           deleted_at?: string | null
+          featured_order?: number | null
           geojson?: Json | null
           id?: string
           is_deleted?: boolean
@@ -5148,14 +5195,18 @@ export type Database = {
           longitude?: number | null
           name: string
           parent_id?: string | null
+          public_visibility?: string
           slug?: string | null
           stats?: Json | null
           summary?: string | null
           updated_at?: string
+          web_scopes?: string[]
+          web_tags?: string[]
         }
         Update: {
           created_at?: string
           deleted_at?: string | null
+          featured_order?: number | null
           geojson?: Json | null
           id?: string
           is_deleted?: boolean
@@ -5164,10 +5215,13 @@ export type Database = {
           longitude?: number | null
           name?: string
           parent_id?: string | null
+          public_visibility?: string
           slug?: string | null
           stats?: Json | null
           summary?: string | null
           updated_at?: string
+          web_scopes?: string[]
+          web_tags?: string[]
         }
         Relationships: [
           {
