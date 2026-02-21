@@ -5304,6 +5304,11 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           featured_order: number | null
+          feedpoint_default_guilds: boolean
+          feedpoint_default_partner_entities: boolean
+          feedpoint_default_posts: boolean
+          feedpoint_default_quests: boolean
+          feedpoint_default_services: boolean
           geojson: Json | null
           id: string
           is_deleted: boolean
@@ -5324,6 +5329,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           geojson?: Json | null
           id?: string
           is_deleted?: boolean
@@ -5344,6 +5354,11 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           geojson?: Json | null
           id?: string
           is_deleted?: boolean

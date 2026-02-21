@@ -38,7 +38,8 @@ function getOwnerField(ownerType: string, unitType: UnitType): string | null {
   if (unitType === "services") {
     if (ownerType === "user") return "provider_user_id";
     if (ownerType === "guild") return "provider_guild_id";
-    if (ownerType === "company") return "company_id";
+    // Companies use owner_type+owner_id pattern (no company_id column on services)
+    if (ownerType === "company") return "__company_composite__";
     return null;
   }
   if (unitType === "quests") {
@@ -74,14 +75,49 @@ export function FeedpointVisibilitySettings({ ownerType, ownerId }: Props) {
     const field = getOwnerField(ownerType, unitType);
     if (!field) return [];
     const titleField = unitType === "posts" ? "content" : "title";
-    let query = (supabase as any)
-      .from(ut.unitTable)
-      .select(`id, ${titleField}, web_visibility_override`)
-      .eq(field, ownerId);
+
+    let query;
+    if (field === "__company_composite__") {
+      // Services owned by companies use owner_type+owner_id
+      query = (supabase as any)
+        .from(ut.unitTable)
+        .select(`id, ${titleField}, web_visibility_override`)
+        .eq("owner_type", "company")
+        .eq("owner_id", ownerId);
+    } else {
+      query = (supabase as any)
+        .from(ut.unitTable)
+        .select(`id, ${titleField}, web_visibility_override`)
+        .eq(field, ownerId);
+    }
+
     if (unitType !== "posts") {
       query = query.eq("is_deleted", false);
     }
     const { data } = await query.limit(200);
+
+    // Also load quests via quest_affiliations for guilds/companies
+    if (unitType === "quests" && (ownerType === "guild" || ownerType === "company")) {
+      const afType = ownerType === "guild" ? "GUILD" : "COMPANY";
+      const { data: afs } = await (supabase as any)
+        .from("quest_affiliations")
+        .select("quest_id")
+        .eq("entity_type", afType)
+        .eq("entity_id", ownerId);
+      if (afs && afs.length > 0) {
+        const existingIds = new Set((data || []).map((d: any) => d.id));
+        const extraIds = afs.map((a: any) => a.quest_id).filter((id: string) => !existingIds.has(id));
+        if (extraIds.length > 0) {
+          const { data: extraQuests } = await (supabase as any)
+            .from("quests")
+            .select(`id, title, web_visibility_override`)
+            .in("id", extraIds)
+            .eq("is_deleted", false);
+          return [...(data || []), ...(extraQuests || [])];
+        }
+      }
+    }
+
     return data || [];
   }, [ownerType, ownerId]);
 
@@ -140,16 +176,43 @@ export function FeedpointVisibilitySettings({ ownerType, ownerId }: Props) {
       .update({ [colName]: isPublic })
       .eq(idCol, ownerId);
 
-    // Reset all item overrides to "inherit"
+    // Reset all item overrides to "inherit" (catch both non-inherit AND null values)
     const ut = UNIT_TYPES.find(u => u.key === unitType);
     if (ut?.unitTable) {
       const field = getOwnerField(ownerType, unitType);
       if (field) {
-        await (supabase as any)
-          .from(ut.unitTable)
-          .update({ web_visibility_override: "inherit" })
-          .eq(field, ownerId)
-          .neq("web_visibility_override", "inherit");
+        if (field === "__company_composite__") {
+          await (supabase as any)
+            .from(ut.unitTable)
+            .update({ web_visibility_override: "inherit" })
+            .eq("owner_type", "company")
+            .eq("owner_id", ownerId)
+            .or("web_visibility_override.neq.inherit,web_visibility_override.is.null");
+        } else {
+          await (supabase as any)
+            .from(ut.unitTable)
+            .update({ web_visibility_override: "inherit" })
+            .eq(field, ownerId)
+            .or("web_visibility_override.neq.inherit,web_visibility_override.is.null");
+        }
+
+        // Also reset affiliated quests
+        if (unitType === "quests" && (ownerType === "guild" || ownerType === "company")) {
+          const afType = ownerType === "guild" ? "GUILD" : "COMPANY";
+          const { data: afs } = await (supabase as any)
+            .from("quest_affiliations")
+            .select("quest_id")
+            .eq("entity_type", afType)
+            .eq("entity_id", ownerId);
+          if (afs && afs.length > 0) {
+            const qIds = afs.map((a: any) => a.quest_id);
+            await (supabase as any)
+              .from("quests")
+              .update({ web_visibility_override: "inherit" })
+              .in("id", qIds)
+              .or("web_visibility_override.neq.inherit,web_visibility_override.is.null");
+          }
+        }
       }
     }
 
