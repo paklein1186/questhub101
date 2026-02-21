@@ -877,6 +877,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
               {activeTab === "website" && (
                 <div className="space-y-6">
                   <FeedpointVisibilitySettings ownerType="guild" ownerId={guildId} />
+                  <WebVisibilityEditor entityTable="guilds" entityId={guildId} />
                   <SiteCodeManager ownerType="guild" ownerId={guildId} />
                 </div>
               )}

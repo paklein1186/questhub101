@@ -62,7 +62,6 @@ const TABS = [
   { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
-  { key: "web_visibility", label: "Web Visibility", icon: Globe },
   { key: "billing", label: "Billing", icon: CreditCard },
   { key: "website", label: "Website", icon: Globe },
 ];
@@ -531,18 +530,6 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                 </div>
               )}
 
-              {/* ── Web Visibility ── */}
-              {activeTab === "web_visibility" && (
-                <div className="space-y-6 max-w-lg">
-                  <Section title="Web Visibility" icon={<Globe className="h-5 w-5" />}>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Control how this organization appears on public websites generated from the platform.
-                    </p>
-                    <WebVisibilityEditor entityTable="companies" entityId={companyId} />
-                  </Section>
-                </div>
-              )}
-
               {/* ── Billing ── */}
               {activeTab === "billing" && (
                 <div className="space-y-6 max-w-lg">
@@ -567,6 +554,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
               {activeTab === "website" && (
                 <div className="space-y-6">
                   <FeedpointVisibilitySettings ownerType="company" ownerId={companyId} />
+                  <WebVisibilityEditor entityTable="companies" entityId={companyId} />
                   <SiteCodeManager ownerType="company" ownerId={companyId} />
                 </div>
               )}
