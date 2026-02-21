@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { WebsiteItemSelector } from "./WebsiteItemSelector";
+import { PLACEMENT_TAGS } from "./WebVisibilityEditor";
 
 const SECTION_TYPES = [
   { value: "hero", label: "Hero" },
@@ -140,18 +141,35 @@ export function WebsiteSectionEditor({ section, pageId, ownerType, ownerId }: Pr
           {source === "auto" && (
             <div className="space-y-2 p-3 bg-muted/50 rounded-md">
               <Label className="text-xs font-medium">Auto Filters</Label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div className="space-y-1">
-                  <Label className="text-xs">Web Tags (comma-separated)</Label>
-                  <Input
-                    value={(filters.webTags || []).join(", ")}
-                    onChange={(e) => setFilters((f: any) => ({
-                      ...f,
-                      webTags: e.target.value.split(",").map((t: string) => t.trim()).filter(Boolean),
-                    }))}
-                    className="h-8 text-sm"
-                    placeholder="portfolio, flagship"
-                  />
+                  <Label className="text-xs">Web Tags</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PLACEMENT_TAGS.map(tag => {
+                      const active = (filters.webTags || []).includes(tag.value);
+                      return (
+                        <button
+                          key={tag.value}
+                          type="button"
+                          onClick={() => setFilters((f: any) => {
+                            const current: string[] = f.webTags || [];
+                            const next = active
+                              ? current.filter((t: string) => t !== tag.value)
+                              : [...current, tag.value];
+                            return { ...f, webTags: next };
+                          })}
+                          className={`px-2 py-0.5 rounded-full border text-xs transition-all ${
+                            active
+                              ? "bg-accent text-accent-foreground border-accent"
+                              : "border-border hover:border-foreground/50 text-muted-foreground"
+                          }`}
+                          title={tag.desc}
+                        >
+                          {tag.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Limit</Label>
@@ -159,7 +177,7 @@ export function WebsiteSectionEditor({ section, pageId, ownerType, ownerId }: Pr
                     type="number"
                     value={filters.limit || ""}
                     onChange={(e) => setFilters((f: any) => ({ ...f, limit: e.target.value ? parseInt(e.target.value) : undefined }))}
-                    className="h-8 text-sm"
+                    className="h-8 text-sm w-24"
                     placeholder="10"
                   />
                 </div>

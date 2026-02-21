@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
+import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 
 export default function ServiceCreate() {
   const navigate = useNavigate();
@@ -324,6 +325,17 @@ export default function ServiceCreate() {
               </div>
             )}
           </div>
+        )}
+
+        {isEditMode && editId && existingService && (
+          <WebVisibilityEditor
+            entityId={editId}
+            entityTable="services"
+            initialVisibility={(existingService as any).public_visibility || "private"}
+            initialScopes={(existingService as any).web_scopes || []}
+            initialTags={(existingService as any).web_tags || []}
+            initialFeaturedOrder={(existingService as any).featured_order ?? null}
+          />
         )}
         <Button onClick={() => saveMutation.mutate()} disabled={!title.trim() || saveMutation.isPending} className="w-full" size="lg">
           {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}

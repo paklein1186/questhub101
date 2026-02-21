@@ -50,6 +50,7 @@ import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SourceRoleTransfer } from "@/components/guild/SourceRoleTransfer";
 import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
+import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -466,6 +467,16 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     />
                     <p className="text-xs text-muted-foreground mt-2">Links are saved when you click "Save identity" above.</p>
                   </Section>
+
+                  <WebVisibilityEditor
+                    entityId={guildId}
+                    entityTable="guilds"
+                    initialVisibility={(guild as any).public_visibility || "private"}
+                    initialScopes={(guild as any).web_scopes || []}
+                    initialTags={(guild as any).web_tags || []}
+                    initialFeaturedOrder={(guild as any).featured_order ?? null}
+                    onSaved={() => qc.invalidateQueries({ queryKey: ["guild-settings", guildId] })}
+                  />
                 </div>
               )}
 
