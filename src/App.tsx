@@ -154,6 +154,7 @@ import CalendarPage from "./pages/CalendarPage";
 import AgentsMarketplace from "./pages/AgentsMarketplace";
 import AgentDetail from "./pages/AgentDetail";
 import DocumentRedirect from "./pages/DocumentRedirect";
+import PublicWebsite from "./pages/PublicWebsite";
 
 const queryClient = new QueryClient();
 
@@ -266,6 +267,8 @@ const App = () => (
                 <Route path="/agents" element={<AgentsMarketplace />} />
                 <Route path="/agents/:id" element={<AgentDetail />} />
                 <Route path="/documents/:id" element={<DocumentRedirect />} />
+                <Route path="/site/:websiteSlug" element={<PublicWebsite />} />
+                <Route path="/site/:websiteSlug/:pageSlug" element={<PublicWebsite />} />
 
                 {/* Protected pages */}
                 <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
