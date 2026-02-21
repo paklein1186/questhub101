@@ -2404,6 +2404,7 @@ export type Database = {
           credits_balance: number
           deleted_at: string | null
           description: string | null
+          featured_order: number | null
           features_config: Json
           id: string
           instagram_url: string | null
@@ -2414,10 +2415,13 @@ export type Database = {
           linkedin_url: string | null
           logo_url: string | null
           name: string
+          public_visibility: string
           twitter_url: string | null
           type: Database["public"]["Enums"]["guild_type"]
           universe_visibility: string
           updated_at: string
+          web_scopes: string[] | null
+          web_tags: string[] | null
           website_url: string | null
         }
         Insert: {
@@ -2428,6 +2432,7 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          featured_order?: number | null
           features_config?: Json
           id?: string
           instagram_url?: string | null
@@ -2438,10 +2443,13 @@ export type Database = {
           linkedin_url?: string | null
           logo_url?: string | null
           name: string
+          public_visibility?: string
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
           website_url?: string | null
         }
         Update: {
@@ -2452,6 +2460,7 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          featured_order?: number | null
           features_config?: Json
           id?: string
           instagram_url?: string | null
@@ -2462,10 +2471,13 @@ export type Database = {
           linkedin_url?: string | null
           logo_url?: string | null
           name?: string
+          public_visibility?: string
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
           website_url?: string | null
         }
         Relationships: []
@@ -4210,6 +4222,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           escrow_credits: number
+          featured_order: number | null
           features_config: Json
           funding_goal_credits: number | null
           funding_type: string
@@ -4230,6 +4243,7 @@ export type Database = {
           price_currency: string
           price_fiat: number
           priority: string
+          public_visibility: string
           quest_type: string
           reward_currency: string
           reward_xp: number
@@ -4237,6 +4251,8 @@ export type Database = {
           title: string
           universe_visibility: string
           updated_at: string
+          web_scopes: string[] | null
+          web_tags: string[] | null
           website_url: string | null
         }
         Insert: {
@@ -4252,6 +4268,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           escrow_credits?: number
+          featured_order?: number | null
           features_config?: Json
           funding_goal_credits?: number | null
           funding_type?: string
@@ -4272,6 +4289,7 @@ export type Database = {
           price_currency?: string
           price_fiat?: number
           priority?: string
+          public_visibility?: string
           quest_type?: string
           reward_currency?: string
           reward_xp?: number
@@ -4279,6 +4297,8 @@ export type Database = {
           title: string
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
           website_url?: string | null
         }
         Update: {
@@ -4294,6 +4314,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           escrow_credits?: number
+          featured_order?: number | null
           features_config?: Json
           funding_goal_credits?: number | null
           funding_type?: string
@@ -4314,6 +4335,7 @@ export type Database = {
           price_currency?: string
           price_fiat?: number
           priority?: string
+          public_visibility?: string
           quest_type?: string
           reward_currency?: string
           reward_xp?: number
@@ -4321,6 +4343,8 @@ export type Database = {
           title?: string
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
           website_url?: string | null
         }
         Relationships: [
@@ -4693,6 +4717,7 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           duration_minutes: number | null
+          featured_order: number | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -4707,10 +4732,13 @@ export type Database = {
           price_currency: string
           provider_guild_id: string | null
           provider_user_id: string | null
+          public_visibility: string
           stripe_price_id: string | null
           title: string
           universe_visibility: string
           updated_at: string
+          web_scopes: string[] | null
+          web_tags: string[] | null
         }
         Insert: {
           boost_expires_at?: string | null
@@ -4718,6 +4746,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           duration_minutes?: number | null
+          featured_order?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -4732,10 +4761,13 @@ export type Database = {
           price_currency?: string
           provider_guild_id?: string | null
           provider_user_id?: string | null
+          public_visibility?: string
           stripe_price_id?: string | null
           title: string
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
         }
         Update: {
           boost_expires_at?: string | null
@@ -4743,6 +4775,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           duration_minutes?: number | null
+          featured_order?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -4757,10 +4790,13 @@ export type Database = {
           price_currency?: string
           provider_guild_id?: string | null
           provider_user_id?: string | null
+          public_visibility?: string
           stripe_price_id?: string | null
           title?: string
           universe_visibility?: string
           updated_at?: string
+          web_scopes?: string[] | null
+          web_tags?: string[] | null
         }
         Relationships: [
           {
@@ -6025,6 +6061,145 @@ export type Database = {
           updated_at?: string
           user_id?: string
           work_state?: string
+        }
+        Relationships: []
+      }
+      website_pages: {
+        Row: {
+          created_at: string
+          id: string
+          page_type: string
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_type?: string
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_type?: string
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_pages_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_sections: {
+        Row: {
+          body_markdown: string | null
+          created_at: string
+          filters: Json | null
+          id: string
+          layout: string | null
+          page_id: string
+          selected_ids: string[] | null
+          sort_order: number
+          source: string
+          subtitle: string | null
+          title: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          body_markdown?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          layout?: string | null
+          page_id: string
+          selected_ids?: string[] | null
+          sort_order?: number
+          source?: string
+          subtitle?: string | null
+          title?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          body_markdown?: string | null
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          layout?: string | null
+          page_id?: string
+          selected_ids?: string[] | null
+          sort_order?: number
+          source?: string
+          subtitle?: string | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_sections_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "website_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      websites: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          owner_id: string
+          owner_type: string
+          slug: string
+          subtitle: string | null
+          theme: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          owner_id: string
+          owner_type: string
+          slug: string
+          subtitle?: string | null
+          theme?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          owner_id?: string
+          owner_type?: string
+          slug?: string
+          subtitle?: string | null
+          theme?: Json
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

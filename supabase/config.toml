@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.reconcile-credits]
 verify_jwt = false
+
+[functions.public-website]
+verify_jwt = false

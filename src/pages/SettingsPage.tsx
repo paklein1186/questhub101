@@ -56,6 +56,7 @@ import { CalendarSyncTab } from "@/components/CalendarSyncTab";
 import { ProfileMaskingSettings } from "@/components/ProfileMaskingSettings";
 import { ActivityHistoryTab } from "@/components/ActivityHistoryTab";
 import { StripeConnectSection } from "@/components/StripeConnectSection";
+import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
 
 const TABS = [
   { key: "profile", label: "settings.profile", icon: UserCircle },
@@ -77,6 +78,7 @@ const TABS = [
   { key: "referrals", label: "settings.referrals", icon: UserCircle },
   { key: "apps", label: "settings.apps", icon: Plug },
   { key: "history", label: "Activity History", icon: History },
+  { key: "website", label: "Website", icon: Globe },
 ];
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -787,6 +789,9 @@ export default function SettingsPage() {
 
               {/* ── Activity History ── */}
               {activeTab === "history" && <ActivityHistoryTab />}
+
+              {/* ── Website ── */}
+              {activeTab === "website" && <WebsiteConfigPage ownerType="user" ownerId={currentUser.id} />}
 
             </motion.div>
           </div>
