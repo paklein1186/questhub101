@@ -49,7 +49,6 @@ import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { useNotifications } from "@/hooks/useNotifications";
 import { SourceRoleTransfer } from "@/components/guild/SourceRoleTransfer";
-import { WebsiteConfigPage } from "@/components/website/WebsiteConfigPage";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 
@@ -67,7 +66,6 @@ const TABS = [
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "billing", label: "Unit Wallet", icon: CreditCard },
-  { key: "website", label: "Website", icon: Globe },
 ];
 
 export default function GuildSettings() {
@@ -873,13 +871,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 <PartnershipsTab entityType="GUILD" entityId={guildId} isAdmin={true} />
               )}
 
-              {/* ── Website ── */}
-              {activeTab === "website" && (
-                <div className="space-y-6">
-                  <SiteCodeManager ownerType="guild" ownerId={guildId} />
-                  <WebsiteConfigPage ownerType="guild" ownerId={guildId} />
-                </div>
-              )}
+
 
             </motion.div>
           </div>
