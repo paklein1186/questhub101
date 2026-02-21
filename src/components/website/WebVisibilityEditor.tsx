@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,21 @@ const PLACEMENT_TAGS = [
 const SCOPE_VALUES = WEB_SCOPES.map(s => s.value);
 const TAG_VALUES = PLACEMENT_TAGS.map(t => t.value);
 
+const OVERRIDE_OPTIONS = [
+  { value: "inherit", label: "Inherit from owner default" },
+  { value: "force_visible", label: "Always show on my website" },
+  { value: "force_hidden", label: "Hide this item from my website" },
+] as const;
+
 /* ─── Types ─── */
 
 type EntityTable = "quests" | "services" | "guilds" | "companies";
+
+interface OwnerContext {
+  ownerType: string;
+  ownerName: string;
+  defaultVisible: boolean;
+}
 
 interface Props {
   entityId: string;
@@ -47,6 +59,8 @@ interface Props {
   initialScopes?: string[];
   initialTags?: string[];
   initialFeaturedOrder?: number | null;
+  initialOverride?: string;
+  ownerContext?: OwnerContext;
   onSaved?: () => void;
 }
 
@@ -59,12 +73,15 @@ export function WebVisibilityEditor({
   initialScopes = [],
   initialTags = [],
   initialFeaturedOrder = null,
+  initialOverride = "inherit",
+  ownerContext,
   onSaved,
 }: Props) {
   const [visibility, setVisibility] = useState(initialVisibility);
   const [scopes, setScopes] = useState<string[]>(initialScopes);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [featuredOrder, setFeaturedOrder] = useState(initialFeaturedOrder);
+  const [override, setOverride] = useState(initialOverride);
   const [saving, setSaving] = useState(false);
 
   const toggleScope = (v: string) =>
@@ -73,7 +90,9 @@ export function WebVisibilityEditor({
   const toggleTag = (v: string) =>
     setTags(prev => prev.includes(v) ? prev.filter(t => t !== v) : [...prev, v]);
 
-  const flagshipCount = tags.filter(t => t === "flagship").length;
+  const effectiveVisible = override === "force_visible" ? true :
+    override === "force_hidden" ? false :
+    ownerContext?.defaultVisible ?? false;
 
   const save = async () => {
     setSaving(true);
@@ -84,6 +103,7 @@ export function WebVisibilityEditor({
         web_scopes: scopes,
         web_tags: tags,
         featured_order: featuredOrder,
+        web_visibility_override: override,
       } as any)
       .eq("id", entityId);
     setSaving(false);
@@ -105,6 +125,44 @@ export function WebVisibilityEditor({
           Control how this item appears on public CTG-powered websites.
         </p>
       </div>
+
+      {/* Per-item override */}
+      {ownerContext && (
+        <div className="space-y-2 rounded-lg border border-border bg-background p-4">
+          <Label className="flex items-center gap-1.5 text-sm font-medium">
+            <Eye className="h-3.5 w-3.5" /> Web visibility on your website
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Website owner: <strong>{ownerContext.ownerName}</strong> — Default for {entityTable}: <strong>{ownerContext.defaultVisible ? "Show all" : "Hide all"}</strong>
+          </p>
+          <div className="space-y-1.5 mt-2">
+            {OVERRIDE_OPTIONS.map(opt => {
+              const isActive = override === opt.value;
+              let sublabel = "";
+              if (opt.value === "inherit") {
+                sublabel = `(currently: ${effectiveVisible ? "Visible" : "Hidden"} on website)`;
+              } else if (opt.value === "force_visible") {
+                sublabel = "Force this item to be visible via the website feedpoint, even if hidden by default.";
+              } else {
+                sublabel = "Hide this item from the website feedpoint, even if visible by default.";
+              }
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setOverride(opt.value)}
+                  className={`w-full text-left rounded-lg border-2 p-3 transition-all ${
+                    isActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+                  }`}
+                >
+                  <p className="text-sm font-medium">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground">{sublabel}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Public visibility */}
       <div className="space-y-2">

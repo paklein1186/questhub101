@@ -859,6 +859,11 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           featured_order: number | null
+          feedpoint_default_guilds: boolean
+          feedpoint_default_partner_entities: boolean
+          feedpoint_default_posts: boolean
+          feedpoint_default_quests: boolean
+          feedpoint_default_services: boolean
           id: string
           instagram_url: string | null
           is_deleted: boolean
@@ -877,6 +882,7 @@ export type Database = {
           updated_at: string
           web_scopes: string[]
           web_tags: string[]
+          web_visibility_override: string
           website_url: string | null
         }
         Insert: {
@@ -888,6 +894,11 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -906,6 +917,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[]
           web_tags?: string[]
+          web_visibility_override?: string
           website_url?: string | null
         }
         Update: {
@@ -917,6 +929,11 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -935,6 +952,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[]
           web_tags?: string[]
+          web_visibility_override?: string
           website_url?: string | null
         }
         Relationships: []
@@ -2004,6 +2022,7 @@ export type Database = {
           updated_at: string
           upvote_count: number
           visibility: string
+          web_visibility_override: string
         }
         Insert: {
           author_user_id: string
@@ -2019,6 +2038,7 @@ export type Database = {
           updated_at?: string
           upvote_count?: number
           visibility?: string
+          web_visibility_override?: string
         }
         Update: {
           author_user_id?: string
@@ -2034,6 +2054,7 @@ export type Database = {
           updated_at?: string
           upvote_count?: number
           visibility?: string
+          web_visibility_override?: string
         }
         Relationships: [
           {
@@ -2418,6 +2439,11 @@ export type Database = {
           description: string | null
           featured_order: number | null
           features_config: Json
+          feedpoint_default_guilds: boolean
+          feedpoint_default_partner_entities: boolean
+          feedpoint_default_posts: boolean
+          feedpoint_default_quests: boolean
+          feedpoint_default_services: boolean
           id: string
           instagram_url: string | null
           is_approved: boolean
@@ -2434,6 +2460,7 @@ export type Database = {
           updated_at: string
           web_scopes: string[] | null
           web_tags: string[] | null
+          web_visibility_override: string
           website_url: string | null
         }
         Insert: {
@@ -2446,6 +2473,11 @@ export type Database = {
           description?: string | null
           featured_order?: number | null
           features_config?: Json
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -2462,6 +2494,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
           website_url?: string | null
         }
         Update: {
@@ -2474,6 +2507,11 @@ export type Database = {
           description?: string | null
           featured_order?: number | null
           features_config?: Json
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -2490,6 +2528,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
           website_url?: string | null
         }
         Relationships: []
@@ -3570,6 +3609,11 @@ export type Database = {
           demurrage_exempt: boolean
           email: string
           featured_order: number | null
+          feedpoint_default_guilds: boolean
+          feedpoint_default_partner_entities: boolean
+          feedpoint_default_posts: boolean
+          feedpoint_default_quests: boolean
+          feedpoint_default_services: boolean
           filter_by_houses: boolean
           governance_weight: number
           has_completed_onboarding: boolean
@@ -3619,6 +3663,11 @@ export type Database = {
           demurrage_exempt?: boolean
           email?: string
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           filter_by_houses?: boolean
           governance_weight?: number
           has_completed_onboarding?: boolean
@@ -3668,6 +3717,11 @@ export type Database = {
           demurrage_exempt?: boolean
           email?: string
           featured_order?: number | null
+          feedpoint_default_guilds?: boolean
+          feedpoint_default_partner_entities?: boolean
+          feedpoint_default_posts?: boolean
+          feedpoint_default_quests?: boolean
+          feedpoint_default_services?: boolean
           filter_by_houses?: boolean
           governance_weight?: number
           has_completed_onboarding?: boolean
@@ -4277,6 +4331,7 @@ export type Database = {
           updated_at: string
           web_scopes: string[] | null
           web_tags: string[] | null
+          web_visibility_override: string
           website_url: string | null
         }
         Insert: {
@@ -4323,6 +4378,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
           website_url?: string | null
         }
         Update: {
@@ -4369,6 +4425,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
           website_url?: string | null
         }
         Relationships: [
@@ -4763,6 +4820,7 @@ export type Database = {
           updated_at: string
           web_scopes: string[] | null
           web_tags: string[] | null
+          web_visibility_override: string
         }
         Insert: {
           boost_expires_at?: string | null
@@ -4792,6 +4850,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
         }
         Update: {
           boost_expires_at?: string | null
@@ -4821,6 +4880,7 @@ export type Database = {
           updated_at?: string
           web_scopes?: string[] | null
           web_tags?: string[] | null
+          web_visibility_override?: string
         }
         Relationships: [
           {
