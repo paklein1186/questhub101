@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
+import { BookingLinkButton } from "@/components/BookingLinkButton";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -342,6 +343,7 @@ export default function ServiceDetail() {
         </div>
         <div className="flex flex-wrap gap-2 mb-6">
           <ShareLinkButton entityType="service" entityId={svc.id} entityName={svc.title} />
+          <BookingLinkButton serviceId={svc.id} serviceName={svc.title} />
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
           {canManage && (
             <>

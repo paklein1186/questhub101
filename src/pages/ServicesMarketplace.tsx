@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2, Briefcase } from "lucide-react";
+import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2, Briefcase, CalendarClock } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -121,43 +121,50 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
             const svcTerrs = ((svc as any).service_territories ?? []).map((st: any) => st.territories).filter(Boolean);
             return (
               <motion.div key={svc.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
-                <Link to={`/services/${svc.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
-                  <UnitCoverImage type="SERVICE" imageUrl={svc.image_url} name={svc.title} height="h-32" />
-                  <div className="p-5">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-display font-semibold text-lg">{svc.title}</h3>
-                      {svc.price_amount != null && (
-                        <Badge className="bg-primary/10 text-primary border-0 shrink-0">
-                          <Euro className="h-3 w-3 mr-0.5" />
-                          {svc.price_amount === 0 ? "Free" : `${svc.price_amount}`}
-                        </Badge>
-                      )}
+                <div className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">
+                  <Link to={`/services/${svc.id}`} className="block">
+                    <UnitCoverImage type="SERVICE" imageUrl={svc.image_url} name={svc.title} height="h-32" />
+                    <div className="p-5 pb-2">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-display font-semibold text-lg">{svc.title}</h3>
+                        {svc.price_amount != null && (
+                          <Badge className="bg-primary/10 text-primary border-0 shrink-0">
+                            <Euro className="h-3 w-3 mr-0.5" />
+                            {svc.price_amount === 0 ? "Free" : `${svc.price_amount}`}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{svc.description}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        {ownerType === "GUILD" && guild ? (
+                          <span className="flex items-center gap-1">
+                            <Shield className="h-3 w-3 text-primary" />
+                            <Avatar className="h-5 w-5 rounded"><AvatarImage src={guild.logo_url} /><AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback></Avatar>
+                            <span className="font-medium text-foreground">{guild.name}</span>
+                          </span>
+                        ) : provider ? (
+                          <span className="flex items-center gap-1">
+                            <Avatar className="h-5 w-5"><AvatarImage src={provider.avatar_url} /><AvatarFallback className="text-[10px]">{provider.name?.[0]}</AvatarFallback></Avatar>
+                            <span className="font-medium text-foreground">{provider.name}</span>
+                          </span>
+                        ) : null}
+                        {svc.duration_minutes && (
+                          <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {svc.duration_minutes} min</span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {svcTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                        {svcTopics.length > 5 && <Badge variant="secondary" className="text-[10px] text-muted-foreground">+{svcTopics.length - 5}</Badge>}
+                        {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{svc.description}</p>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      {ownerType === "GUILD" && guild ? (
-                        <span className="flex items-center gap-1">
-                          <Shield className="h-3 w-3 text-primary" />
-                          <Avatar className="h-5 w-5 rounded"><AvatarImage src={guild.logo_url} /><AvatarFallback className="text-[10px] rounded">{guild.name?.[0]}</AvatarFallback></Avatar>
-                          <span className="font-medium text-foreground">{guild.name}</span>
-                        </span>
-                      ) : provider ? (
-                        <span className="flex items-center gap-1">
-                          <Avatar className="h-5 w-5"><AvatarImage src={provider.avatar_url} /><AvatarFallback className="text-[10px]">{provider.name?.[0]}</AvatarFallback></Avatar>
-                          <span className="font-medium text-foreground">{provider.name}</span>
-                        </span>
-                      ) : null}
-                      {svc.duration_minutes && (
-                        <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {svc.duration_minutes} min</span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {svcTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                      {svcTopics.length > 5 && <Badge variant="secondary" className="text-[10px] text-muted-foreground">+{svcTopics.length - 5}</Badge>}
-                      {svcTerrs.map((t: any) => <Badge key={t.id} variant="outline" className="text-[10px]"><MapPin className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
-                    </div>
+                  </Link>
+                  <div className="px-5 pb-3">
+                    <Link to={`/book/${svc.id}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <CalendarClock className="h-3 w-3" /> Public booking page
+                    </Link>
                   </div>
-                </Link>
+                </div>
               </motion.div>
             );
           })}
