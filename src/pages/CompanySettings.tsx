@@ -47,6 +47,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
+import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -59,6 +60,7 @@ const TABS = [
   { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
   { key: "documents", label: "Documents", icon: Briefcase },
+  { key: "web_visibility", label: "Web Visibility", icon: Globe },
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -522,6 +524,18 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                     <div className="mt-4">
                       <AttachmentUpload targetType={AttachmentTargetType.COMPANY} targetId={companyId} />
                     </div>
+                  </Section>
+                </div>
+              )}
+
+              {/* ── Web Visibility ── */}
+              {activeTab === "web_visibility" && (
+                <div className="space-y-6 max-w-lg">
+                  <Section title="Web Visibility" icon={<Globe className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Control how this organization appears on public websites generated from the platform.
+                    </p>
+                    <WebVisibilityEditor entityTable="companies" entityId={companyId} />
                   </Section>
                 </div>
               )}

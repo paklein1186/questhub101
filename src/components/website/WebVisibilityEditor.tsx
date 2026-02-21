@@ -38,7 +38,7 @@ const TAG_VALUES = PLACEMENT_TAGS.map(t => t.value);
 
 /* ─── Types ─── */
 
-type EntityTable = "quests" | "services" | "guilds";
+type EntityTable = "quests" | "services" | "guilds" | "companies";
 
 interface Props {
   entityId: string;
