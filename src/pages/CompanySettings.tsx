@@ -564,7 +564,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
 
               {/* ── Website ── */}
               {activeTab === "website" && (
-                <SiteCodeManager ownerType="guild" ownerId={companyId} />
+                <SiteCodeManager ownerType="company" ownerId={companyId} />
               )}
 
             </motion.div>

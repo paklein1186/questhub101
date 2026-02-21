@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.public-website]
 verify_jwt = false
+
+[functions.site-feed]
+verify_jwt = false

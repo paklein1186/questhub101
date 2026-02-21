@@ -105,8 +105,9 @@ export function SiteCodeManager({ ownerType, ownerId }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const feedUrl = siteCode && !siteCode.revoked
-    ? `https://www.changethegame.xyz/functions/v1/site-feed?code=${siteCode.code}`
+    ? `https://${projectId}.supabase.co/functions/v1/site-feed?code=${siteCode.code}`
     : null;
 
   if (loading) {
