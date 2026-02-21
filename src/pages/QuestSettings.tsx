@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
-  Plus, Pencil, X, Lightbulb, Globe,
+  Plus, Pencil, X, Lightbulb, Globe, Link2,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
+import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const TABS = [
+  { key: "affiliations", label: "Affiliations", icon: Link2 },
   { key: "fundraising", label: "Fundraising", icon: Coins },
   { key: "needs", label: "Needs", icon: Lightbulb },
   { key: "features", label: "Features", icon: Puzzle },
@@ -83,7 +85,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
   const qc = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("tab") || "fundraising";
+  const activeTab = searchParams.get("tab") || "affiliations";
   const setActiveTab = (tab: string) => setSearchParams({ tab });
 
   const isCancelled = quest.status === "CANCELLED";
@@ -228,6 +230,11 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           {/* Content */}
           <div className="flex-1 min-w-0">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+
+              {/* ── Affiliations ── */}
+              {activeTab === "affiliations" && (
+                <QuestAffiliationsTab questId={questId} quest={quest} />
+              )}
 
               {/* ── Fundraising ── */}
               {activeTab === "fundraising" && (
