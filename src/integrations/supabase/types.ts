@@ -1036,6 +1036,48 @@ export type Database = {
           },
         ]
       }
+      company_service_visibility: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_visible: boolean
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_visible?: boolean
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_service_visibility_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_service_visibility_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_territories: {
         Row: {
           company_id: string

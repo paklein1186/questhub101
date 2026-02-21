@@ -125,13 +125,26 @@ Deno.serve(async (req: Request) => {
     if (ownerType !== "territory") {
       if (ownerType === "company") {
         const direct = await dbQuery(supabaseUrl, serviceKey, "services", `owner_type=eq.company&owner_id=eq.${ownerId}&is_deleted=eq.false&is_active=eq.true`);
-        const members = await dbQuery(supabaseUrl, serviceKey, "company_members", `company_id=eq.${ownerId}&select=user_id`);
-        let memberSvcs: Record<string, unknown>[] = [];
-        if (members.length > 0) {
-          const uids = members.map(m => m.user_id).join(",");
-          memberSvcs = await dbQuery(supabaseUrl, serviceKey, "services", `provider_user_id=in.(${uids})&is_deleted=eq.false&is_active=eq.true`);
+        // Get entity roles for Admin/Operations
+        const entityRoles = await dbQuery(supabaseUrl, serviceKey, "entity_roles", `entity_type=eq.company&entity_id=eq.${ownerId}`);
+        const qualRoleIds = entityRoles.filter(r => r.name === "Admin" || r.name === "Operations").map(r => r.id);
+        let roleUserIds: string[] = [];
+        if (qualRoleIds.length > 0) {
+          const ra = await dbQuery(supabaseUrl, serviceKey, "entity_member_roles", `entity_role_id=in.(${qualRoleIds.join(",")})`);
+          roleUserIds = ra.map(r => String(r.user_id));
         }
-        const allSvcs = [...direct, ...memberSvcs];
+        const members = await dbQuery(supabaseUrl, serviceKey, "company_members", `company_id=eq.${ownerId}`);
+        const adminIds = members.filter(m => ["admin", "owner", "ADMIN"].includes(String(m.role))).map(m => String(m.user_id));
+        const eligibleIds = [...new Set([...roleUserIds, ...adminIds])];
+        let memberSvcs: Record<string, unknown>[] = [];
+        if (eligibleIds.length > 0) {
+          memberSvcs = await dbQuery(supabaseUrl, serviceKey, "services", `provider_user_id=in.(${eligibleIds.join(",")})&is_deleted=eq.false&is_active=eq.true`);
+        }
+        // Apply visibility overrides
+        const visOvr = await dbQuery(supabaseUrl, serviceKey, "company_service_visibility", `company_id=eq.${ownerId}`);
+        const visM = new Map(visOvr.map(v => [String(v.service_id), v.is_visible]));
+        const filteredMSvcs = memberSvcs.filter(s => visM.get(String(s.id)) !== false);
+        const allSvcs = [...direct, ...filteredMSvcs];
         const seen = new Set<unknown>();
         services = allSvcs.filter(r => { if (seen.has(r.id)) return false; seen.add(r.id); return vis(r, fp.services); }).map(r => mapItem(r, "service"));
       } else {
