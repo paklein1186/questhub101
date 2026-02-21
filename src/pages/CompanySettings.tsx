@@ -48,6 +48,7 @@ import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
+import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -62,6 +63,7 @@ const TABS = [
   { key: "documents", label: "Documents", icon: Briefcase },
   { key: "web_visibility", label: "Web Visibility", icon: Globe },
   { key: "billing", label: "Billing", icon: CreditCard },
+  { key: "website", label: "Website", icon: Globe },
 ];
 
 export default function CompanySettings() {
@@ -558,6 +560,11 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
               {/* ── Partnerships ── */}
               {activeTab === "partnerships" && (
                 <PartnershipsTab entityType="COMPANY" entityId={companyId} isAdmin={true} />
+              )}
+
+              {/* ── Website ── */}
+              {activeTab === "website" && (
+                <SiteCodeManager ownerType="guild" ownerId={companyId} />
               )}
 
             </motion.div>
