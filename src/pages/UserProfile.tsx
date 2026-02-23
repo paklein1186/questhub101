@@ -45,6 +45,7 @@ import { ProfileListDialog } from "@/components/ProfileListDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { TrustTab } from "@/components/trust/TrustTab";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -660,6 +661,7 @@ export default function UserProfile() {
           <TabsTrigger value="services">{serviceLabel}</TabsTrigger>
           <TabsTrigger value="territories"><Globe className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           <TabsTrigger value="entities">Entities</TabsTrigger>
+          <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
