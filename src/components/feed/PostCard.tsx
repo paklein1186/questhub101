@@ -131,7 +131,13 @@ function LinkPreview({ attachment }: { attachment: PostAttachment }) {
     <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg border border-border bg-muted/30 overflow-hidden hover:border-primary/30 transition-all">
       <div className="flex gap-3">
         {(attachment.thumbnail_url || meta?.image) && (
-          <img src={attachment.thumbnail_url || meta?.image} alt="" className="w-28 h-24 object-cover shrink-0" loading="lazy" />
+          <img
+            src={attachment.thumbnail_url || meta?.image}
+            alt=""
+            className="w-28 h-24 object-cover shrink-0"
+            loading="lazy"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
         )}
         <div className="flex-1 min-w-0 p-3">
           {meta?.title && <p className="text-sm font-medium line-clamp-1">{meta.title}</p>}
