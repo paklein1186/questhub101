@@ -1006,6 +1006,11 @@ export default function UserProfile() {
           </div>
         </TabsContent>
 
+        {/* ─── Trust ─── */}
+        <TabsContent value="trust" className="mt-6">
+          <TrustTab nodeType={TrustNodeType.PROFILE} nodeId={profile.userId} />
+        </TabsContent>
+
         {/* ─── Matchmaker ─── */}
         {isOwnProfile && (
           <TabsContent value="matchmaker">
