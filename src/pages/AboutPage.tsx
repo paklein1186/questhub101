@@ -3,48 +3,36 @@ import { useTranslation } from "react-i18next";
 
 export default function AboutPage() {
   const { t } = useTranslation();
+  const valuesList = t("aboutPage.valuesList", { returnObjects: true }) as string[];
+  const whatYouCanDoList = t("aboutPage.whatYouCanDoList", { returnObjects: true }) as string[];
+
   return (
     <ContentPageShell title={t("pages.about.title")} subtitle={t("pages.about.subtitle")}>
-      <ContentSection title="Our Purpose">
-        <p>changethegame exists to help humans collaborate, create, and regenerate the world. We blend collective intelligence, creativity, territories, and AI-powered agents into a single ecosystem where anyone can launch quests, join guilds, offer services, and activate their region or community.</p>
+      <ContentSection title={t("aboutPage.purpose")}>
+        <p>{t("aboutPage.purposeText")}</p>
       </ContentSection>
 
-      <ContentSection title="What We Stand For">
-        <ContentList items={[
-          "Regeneration over extraction",
-          "Collaboration over competition",
-          "Collective intelligence over silos",
-          "Territories as living ecosystems",
-          "Creativity as a force for transformation",
-          "AI as an amplifier of human agency",
-        ]} />
+      <ContentSection title={t("aboutPage.values")}>
+        <ContentList items={Array.isArray(valuesList) ? valuesList : []} />
       </ContentSection>
 
-      <ContentSection title="What You Can Do Here">
-        <ContentList items={[
-          "Launch or join quests",
-          "Create or join guilds and collectives",
-          "Offer services or skill sessions",
-          "Start or join companies",
-          "Explore territories, people, and ideas",
-          "Learn with courses, sessions, and events",
-          "Collaborate with AI agents dedicated to each unit",
-        ]} />
+      <ContentSection title={t("aboutPage.whatYouCanDo")}>
+        <ContentList items={Array.isArray(whatYouCanDoList) ? whatYouCanDoList : []} />
       </ContentSection>
 
-      <ContentSection title="Trust & Reputation">
-        <p>Reputation on changethegame isn't based on likes or self-reported CVs. It's built on the <strong>Open Trust Graph</strong> — a system where real people attest to real contributions. Trust edges carry scores, evidence, and tags, and they decay over time to stay relevant. This ensures that the people, guilds, and organisations you see have been genuinely vouched for.</p>
+      <ContentSection title={t("aboutPage.trustTitle")}>
+        <p>{t("aboutPage.trustText")}</p>
       </ContentSection>
 
-      <ContentSection title="Our Vision">
-        <p>A world where people, organizations, and territories collaborate fluidly to build a regenerative, creative and inclusive future — one quest at a time.</p>
+      <ContentSection title={t("aboutPage.visionTitle")}>
+        <p>{t("aboutPage.visionText")}</p>
       </ContentSection>
 
       <ContentCTA links={[
-        { label: "How it works", href: "/how-it-works" },
-        { label: "Open Trust Graph", href: "/ecosystem?tab=trust" },
-        { label: "Governance model", href: "/governance" },
-        { label: "Roadmap & Changelog", href: "/roadmap" },
+        { label: t("aboutPage.ctaHowItWorks"), href: "/how-it-works" },
+        { label: t("aboutPage.ctaTrustGraph"), href: "/ecosystem?tab=trust" },
+        { label: t("aboutPage.ctaGovernance"), href: "/governance" },
+        { label: t("aboutPage.ctaRoadmap"), href: "/roadmap" },
       ]} />
     </ContentPageShell>
   );

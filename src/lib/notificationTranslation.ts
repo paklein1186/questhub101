@@ -124,6 +124,18 @@ export function translateNotificationBody(n: Notification, t: TFunction): string
     return t("notifications.bodies.applicationRejected", { entity: rejectedMatch[1] });
   }
 
+  // "Do you still vouch for X?"
+  const trustRenewalMatch = body.match(/^Do you still vouch for (.+)\?/);
+  if (trustRenewalMatch) {
+    return t("notifications.bodies.trustRenewalDue", { name: trustRenewalMatch[1] });
+  }
+
+  // "Your trust attestation for X has expired"
+  const trustOutdatedMatch = body.match(/^Your trust attestation for (.+) has expired/);
+  if (trustOutdatedMatch) {
+    return t("notifications.bodies.trustEdgeOutdated", { name: trustOutdatedMatch[1] });
+  }
+
   // No pattern matched — return original body
   return body;
 }

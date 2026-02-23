@@ -3,59 +3,60 @@ import { useTranslation } from "react-i18next";
 
 export default function HowItWorksPage() {
   const { t } = useTranslation();
+  const step2Items = t("howItWorksPage.step2Items", { returnObjects: true }) as string[];
+  const step3Items = t("howItWorksPage.step3Items", { returnObjects: true }) as string[];
+  const step4Items = t("howItWorksPage.step4Items", { returnObjects: true }) as string[];
+  const step7Items = t("howItWorksPage.step7Items", { returnObjects: true }) as string[];
+  const step9Items = t("howItWorksPage.step9Items", { returnObjects: true }) as string[];
+
   return (
     <ContentPageShell title={t("pages.howItWorks.title")} subtitle={t("pages.howItWorks.subtitle")}>
-      <ContentSection title="1. Create Your Profile">
-        <p>Pick your Houses (interests), choose your Territory, and define your persona (Impact, Creative, or Hybrid).</p>
+      <ContentSection title={t("howItWorksPage.step1Title")}>
+        <p>{t("howItWorksPage.step1Text")}</p>
       </ContentSection>
 
-      <ContentSection title="2. Launch or Join Quests">
-        <p>Quests are missions, projects, or creative endeavors. You can:</p>
-        <ContentList items={["Start your own", "Join quests from others", "Propose contributions", "Fund quests with credits"]} />
+      <ContentSection title={t("howItWorksPage.step2Title")}>
+        <p>{t("howItWorksPage.step2Text")}</p>
+        <ContentList items={Array.isArray(step2Items) ? step2Items : []} />
       </ContentSection>
 
-      <ContentSection title="3. Join or Create Guilds">
-        <p>Guilds (or collectives) are communities united around shared themes. They offer:</p>
-        <ContentList items={["Internal tools (chat, docs, kanban, events)", "Shared quests", "Services", "Governance tools"]} />
+      <ContentSection title={t("howItWorksPage.step3Title")}>
+        <p>{t("howItWorksPage.step3Text")}</p>
+        <ContentList items={Array.isArray(step3Items) ? step3Items : []} />
       </ContentSection>
 
-      <ContentSection title="4. Offer or Book Services">
-        <p>Turn your skills into bookable sessions. Includes:</p>
-        <ContentList items={["Skill sessions (creative)", "Expertise services (impact)", "Calendars & bookings", "Optional monetization / credits"]} />
+      <ContentSection title={t("howItWorksPage.step4Title")}>
+        <p>{t("howItWorksPage.step4Text")}</p>
+        <ContentList items={Array.isArray(step4Items) ? step4Items : []} />
       </ContentSection>
 
-      <ContentSection title="5. Companies & Pods">
-        <p>Companies represent your professional world. Pods are small, temporary groups created for specific quests or collaborations.</p>
+      <ContentSection title={t("howItWorksPage.step5Title")}>
+        <p>{t("howItWorksPage.step5Text")}</p>
       </ContentSection>
 
-      <ContentSection title="6. Territories & Houses">
-        <p>Territories anchor action in the real world. Houses represent topics, themes, interests and expertise.</p>
+      <ContentSection title={t("howItWorksPage.step6Title")}>
+        <p>{t("howItWorksPage.step6Text")}</p>
       </ContentSection>
 
-      <ContentSection title="7. AI Agents Everywhere">
-        <p>Every guild, quest, company or territory comes with an AI agent that:</p>
-        <ContentList items={["Helps coordinate", "Gives suggestions", "Creates summaries", "Proposes collaborators", "Drafts text", "Connects dots"]} />
+      <ContentSection title={t("howItWorksPage.step7Title")}>
+        <p>{t("howItWorksPage.step7Text")}</p>
+        <ContentList items={Array.isArray(step7Items) ? step7Items : []} />
       </ContentSection>
 
-      <ContentSection title="8. Credits, XP & Reputation">
-        <p>Earn XP from quests, collaborations and contributions. Earn credits from system activities or purchases. Use credits to fund quests, proposals, or services.</p>
+      <ContentSection title={t("howItWorksPage.step8Title")}>
+        <p>{t("howItWorksPage.step8Text")}</p>
       </ContentSection>
 
-      <ContentSection title="9. The Open Trust Graph">
-        <p>Your reputation is built through trust attestations — not vanity metrics. When someone vouches for you, they create a TrustEdge with a score, tags, and optional evidence. These edges are visible on your profile and feed into your XP and credit rewards. Trust decays over time and must be periodically renewed, keeping the ecosystem honest and up to date.</p>
-        <ContentList items={[
-          "Give and receive trust attestations across all entity types",
-          "Scores from 1–5 with tags, notes, and evidence links",
-          "Anti-gaming: weekly limits, cooldowns, and reciprocal penalties",
-          "Public edges are available via an open API (JSON-LD compatible)",
-        ]} />
+      <ContentSection title={t("howItWorksPage.step9Title")}>
+        <p>{t("howItWorksPage.step9Text")}</p>
+        <ContentList items={Array.isArray(step9Items) ? step9Items : []} />
       </ContentSection>
 
       <ContentCTA links={[
-        { label: "Create a quest", href: "/quests/new" },
-        { label: "Join a guild", href: "/explore?tab=guilds" },
-        { label: "Open Trust Graph", href: "/ecosystem?tab=trust" },
-        { label: "Explore people", href: "/explore/users" },
+        { label: t("howItWorksPage.ctaCreateQuest"), href: "/quests/new" },
+        { label: t("howItWorksPage.ctaJoinGuild"), href: "/explore?tab=guilds" },
+        { label: t("howItWorksPage.ctaTrustGraph"), href: "/ecosystem?tab=trust" },
+        { label: t("howItWorksPage.ctaExplorePeople"), href: "/explore/users" },
       ]} />
     </ContentPageShell>
   );
