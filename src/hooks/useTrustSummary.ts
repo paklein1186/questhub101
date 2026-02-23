@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type TrustNodeType = Database["public"]["Enums"]["trust_node_type"];
 
 export interface TrustSummary {
   trustScoreGlobal: number;
@@ -39,7 +42,7 @@ function computeSummary(edges: { score: number; tags: string[] | null; last_conf
   };
 }
 
-export function useTrustSummary(nodeType: string, nodeId: string | undefined) {
+export function useTrustSummary(nodeType: TrustNodeType, nodeId: string | undefined) {
   return useQuery({
     queryKey: ["trust-summary", nodeType, nodeId],
     enabled: !!nodeId,
@@ -58,7 +61,7 @@ export function useTrustSummary(nodeType: string, nodeId: string | undefined) {
 }
 
 /** Batch fetch trust summaries for multiple nodes of the same type */
-export function useTrustSummaryBatch(nodeType: string, nodeIds: string[]) {
+export function useTrustSummaryBatch(nodeType: TrustNodeType, nodeIds: string[]) {
   return useQuery({
     queryKey: ["trust-summary-batch", nodeType, nodeIds.sort().join(",")],
     enabled: nodeIds.length > 0,
