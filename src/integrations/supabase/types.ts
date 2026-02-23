@@ -2398,6 +2398,48 @@ export type Database = {
           },
         ]
       }
+      guild_service_visibility: {
+        Row: {
+          created_at: string
+          guild_id: string
+          id: string
+          is_visible: boolean
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          guild_id: string
+          id?: string
+          is_visible?: boolean
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string
+          id?: string
+          is_visible?: boolean
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_service_visibility_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guild_service_visibility_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_territories: {
         Row: {
           guild_id: string

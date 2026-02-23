@@ -6,7 +6,7 @@ import {
   Users, Briefcase, Settings, CreditCard, Pencil, Plus, Euro,
   Clock, Video, ToggleLeft, ToggleRight, Crown, Hash, MapPin, Tag,
   AlertCircle, Check, Loader2, ClipboardList, X, Handshake, Vote,
-  ChevronUp, ChevronDown, Globe,
+  ChevronUp, ChevronDown, Globe, Eye, EyeOff, ShoppingBag, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,7 @@ const TABS = [
   { key: "members", label: "Members & Roles", icon: Users },
   { key: "roles", label: "Custom Roles", icon: Tag },
   { key: "services", label: "Services", icon: Briefcase },
+  { key: "services-display", label: "Services Display", icon: Briefcase },
   { key: "availability", label: "Availability", icon: CalendarDays },
   { key: "defaults", label: "Quests & Pods Defaults", icon: Settings },
   { key: "partnerships", label: "Partnerships", icon: Handshake },
@@ -786,6 +787,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                 </div>
               )}
 
+              {/* ── Services Display ── */}
+              {activeTab === "services-display" && (
+                <GuildServicesDisplayTab guildId={guildId} members={members} />
+              )}
+
               {/* ── Availability ── */}
               {activeTab === "availability" && (
                 <div className="space-y-5 max-w-lg">
@@ -950,5 +956,132 @@ function GuildFeatureSuggestionBox({ guildId, userId }: { guildId: string; userI
         {sending ? "Sending…" : "Submit suggestion"}
       </Button>
     </Section>
+  );
+}
+
+/** Services Display settings — toggle visibility of member services with search */
+function GuildServicesDisplayTab({ guildId, members }: { guildId: string; members: any[] }) {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+
+  const memberUserIds = members.map((m: any) => m.user_id);
+  const { data: memberServices } = useQuery({
+    queryKey: ["guild-member-services-display", guildId, memberUserIds],
+    queryFn: async () => {
+      if (memberUserIds.length === 0) return [];
+      const { data } = await supabase
+        .from("services")
+        .select("id, title, description, price_amount, provider_user_id, is_active")
+        .in("provider_user_id", memberUserIds)
+        .eq("is_deleted", false)
+        .eq("is_active", true);
+      return data ?? [];
+    },
+    enabled: memberUserIds.length > 0,
+  });
+
+  const providerIds = [...new Set((memberServices ?? []).map((s: any) => s.provider_user_id).filter(Boolean))];
+  const { data: providerProfiles } = useQuery({
+    queryKey: ["provider-profiles-guild-svc-vis", providerIds],
+    queryFn: async () => {
+      if (providerIds.length === 0) return [];
+      const { data } = await supabase.from("profiles").select("user_id, name").in("user_id", providerIds as string[]);
+      return data ?? [];
+    },
+    enabled: providerIds.length > 0,
+  });
+  const profileMap = new Map((providerProfiles ?? []).map((p: any) => [p.user_id, p.name]));
+
+  const { data: visibilityRows, refetch: refetchVis } = useQuery({
+    queryKey: ["guild-service-visibility", guildId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guild_service_visibility")
+        .select("service_id, is_visible")
+        .eq("guild_id", guildId);
+      return data ?? [];
+    },
+  });
+  const visMap = new Map((visibilityRows ?? []).map((v: any) => [v.service_id, v.is_visible]));
+
+  const toggleVisibility = async (serviceId: string, currentlyVisible: boolean) => {
+    const newVisible = !currentlyVisible;
+    const { error } = await supabase
+      .from("guild_service_visibility")
+      .upsert(
+        { guild_id: guildId, service_id: serviceId, is_visible: newVisible } as any,
+        { onConflict: "guild_id,service_id" }
+      );
+    if (error) {
+      toast({ title: "Failed to update visibility", variant: "destructive" });
+      return;
+    }
+    refetchVis();
+    qc.invalidateQueries({ queryKey: ["services-for-guild", guildId] });
+    toast({ title: newVisible ? "Service shown" : "Service hidden" });
+  };
+
+  const services = memberServices ?? [];
+  const filtered = search.trim()
+    ? services.filter((s: any) => {
+        const q = search.toLowerCase();
+        const providerName = profileMap.get(s.provider_user_id) ?? "";
+        return s.title.toLowerCase().includes(q) || providerName.toLowerCase().includes(q);
+      })
+    : services;
+
+  return (
+    <div className="space-y-5 max-w-lg">
+      <Section title="Member Services Display" icon={<ShoppingBag className="h-5 w-5" />}>
+        <p className="text-sm text-muted-foreground mb-4">
+          Services from guild members are eligible to appear on the guild's Services tab. Toggle each service on or off.
+        </p>
+
+        {services.length > 3 && (
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search services or providers…"
+              className="pl-9"
+            />
+          </div>
+        )}
+
+        {services.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No eligible member services found.</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No services match your search.</p>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map((svc: any) => {
+              const isVisible = visMap.get(svc.id) !== false;
+              return (
+                <div key={svc.id} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{svc.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      by {profileMap.get(svc.provider_user_id ?? "") ?? "Unknown"}
+                      {svc.price_amount != null && ` · €${svc.price_amount}`}
+                    </p>
+                  </div>
+                  <Button
+                    variant={isVisible ? "outline" : "ghost"}
+                    size="sm"
+                    className="shrink-0 gap-1.5"
+                    onClick={() => toggleVisibility(svc.id, isVisible)}
+                  >
+                    {isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                    {isVisible ? "Shown" : "Hidden"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+    </div>
   );
 }

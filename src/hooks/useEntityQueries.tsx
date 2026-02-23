@@ -533,12 +533,22 @@ export function useServicesForGuild(guildId: string | undefined, showMemberServi
         }
       }
 
-      // 8. Deduplicate by id and attach provider name
+      // 8. Apply per-service visibility overrides
+      const { data: visibilityRows } = await supabase
+        .from("guild_service_visibility")
+        .select("service_id, is_visible")
+        .eq("guild_id", guildId!);
+      const visMap = new Map((visibilityRows ?? []).map((v: any) => [v.service_id, v.is_visible]));
+
+      // 9. Deduplicate by id, filter by visibility, and attach provider name
       const ownedIds = new Set((guildOwned ?? []).map((s) => s.id));
-      const extra = matchingMemberServices.filter((s) => !ownedIds.has(s.id)).map((s) => ({
-        ...s,
-        _provider_name: s.provider_user_id ? profileMap.get(s.provider_user_id) ?? null : null,
-      }));
+      const extra = matchingMemberServices
+        .filter((s) => !ownedIds.has(s.id))
+        .filter((s) => visMap.get(s.id) !== false)
+        .map((s) => ({
+          ...s,
+          _provider_name: s.provider_user_id ? profileMap.get(s.provider_user_id) ?? null : null,
+        }));
       return [...(guildOwned ?? []).map((s) => ({ ...s, _provider_name: null as string | null })), ...extra];
     },
     enabled: !!guildId,
