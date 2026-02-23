@@ -61,19 +61,27 @@ export function useEntityRoles(entityType: string, entityId: string | undefined)
 
   const ensureSourceRole = async () => {
     if (!entityId) return;
-    const roles = rolesQuery.data || [];
-    const hasSource = roles.some((r) => r.is_default && r.name === "Source");
-    if (!hasSource) {
-      await supabase.from("entity_roles").insert({
-        entity_type: entityType,
-        entity_id: entityId,
-        name: "Source",
-        color: "#6366f1",
-        is_default: true,
-        sort_order: 0,
-      } as any);
-      invalidate();
-    }
+    // Query DB directly to avoid race conditions with stale cache
+    const { data: existing } = await supabase
+      .from("entity_roles")
+      .select("id")
+      .eq("entity_type", entityType)
+      .eq("entity_id", entityId)
+      .eq("name", "Source")
+      .eq("is_default", true)
+      .limit(1);
+    if (existing && existing.length > 0) return;
+    const { error } = await supabase.from("entity_roles").insert({
+      entity_type: entityType,
+      entity_id: entityId,
+      name: "Source",
+      color: "#6366f1",
+      is_default: true,
+      sort_order: 0,
+    } as any);
+    // Ignore unique constraint violations (concurrent insert)
+    if (error && error.code !== "23505") return;
+    invalidate();
   };
 
   const addRole = async (name: string, color: string) => {
