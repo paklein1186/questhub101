@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Bell, Check, CheckCheck, MessageSquare, ThumbsUp, Users, Megaphone,
   CalendarCheck, UserPlus, Zap, Trophy, Shield, Radio, ChevronDown,
@@ -15,10 +16,12 @@ import { useUserRoles } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationType } from "@/types/enums";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { translateNotificationTitle, translateNotificationBody } from "@/lib/notificationTranslation";
 
 const typeIcons: Record<string, typeof MessageSquare> = {
   [NotificationType.COMMENT]: MessageSquare,
