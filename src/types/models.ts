@@ -73,6 +73,13 @@ export interface User extends SoftDeletable {
   questParticipants?: QuestParticipant[];
   userTopics?: UserTopic[];
   userTerritories?: UserTerritory[];
+  // XP specializations (Trust Graph)
+  stewardshipXp?: number;
+  makerXp?: number;
+  resourceCatalystXp?: number;
+  communityXp?: number;
+  techCommonsXp?: number;
+  xpPending?: number;
 }
 
 export interface Guild extends SoftDeletable, Draftable {
