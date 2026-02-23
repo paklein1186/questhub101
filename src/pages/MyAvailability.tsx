@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Clock, Plus, Trash2, CalendarOff, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,40 @@ import {
 } from "@/hooks/useEntityQueries";
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/* Buffered time input – edits locally, saves on blur */
+function BufferedTimeInput({ value, onSave, className }: { value: string; onSave: (v: string) => void; className?: string }) {
+  const [local, setLocal] = useState(value);
+  // sync from server when not focused
+  const [focused, setFocused] = useState(false);
+  const displayed = focused ? local : value;
+  return (
+    <Input
+      type="time"
+      value={displayed}
+      className={className}
+      onFocus={() => { setFocused(true); setLocal(value); }}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => { setFocused(false); if (local !== value) onSave(local); }}
+    />
+  );
+}
+
+function BufferedDateInput({ value, onSave, className }: { value: string; onSave: (v: string) => void; className?: string }) {
+  const [local, setLocal] = useState(value);
+  const [focused, setFocused] = useState(false);
+  const displayed = focused ? local : value;
+  return (
+    <Input
+      type="date"
+      value={displayed}
+      className={className}
+      onFocus={() => { setFocused(true); setLocal(value); }}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => { setFocused(false); if (local !== value) onSave(local); }}
+    />
+  );
+}
 
 export default function MyAvailability({ bare }: { bare?: boolean }) {
   const currentUser = useCurrentUser();
@@ -64,9 +98,9 @@ export default function MyAvailability({ bare }: { bare?: boolean }) {
             <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
             <SelectContent>{WEEKDAYS.map((d, idx) => <SelectItem key={idx} value={String(idx)}>{d}</SelectItem>)}</SelectContent>
           </Select>
-          <Input type="time" value={rule.start_time} onChange={(e) => updateRule.mutate({ id: rule.id, start_time: e.target.value })} className="w-[120px]" />
+          <BufferedTimeInput value={rule.start_time} onSave={(v) => updateRule.mutate({ id: rule.id, start_time: v })} className="w-[120px]" />
           <span className="text-muted-foreground">–</span>
-          <Input type="time" value={rule.end_time} onChange={(e) => updateRule.mutate({ id: rule.id, end_time: e.target.value })} className="w-[120px]" />
+          <BufferedTimeInput value={rule.end_time} onSave={(v) => updateRule.mutate({ id: rule.id, end_time: v })} className="w-[120px]" />
           <div className="flex items-center gap-2">
             <Switch checked={rule.is_active} onCheckedChange={(v) => updateRule.mutate({ id: rule.id, is_active: v })} />
             <span className="text-xs text-muted-foreground">{rule.is_active ? "Active" : "Off"}</span>
@@ -79,7 +113,6 @@ export default function MyAvailability({ bare }: { bare?: boolean }) {
       <Button variant="outline" size="sm" onClick={() => addRule(serviceId)}><Plus className="h-4 w-4 mr-1" /> Add rule</Button>
     </div>
   );
-
   return (
     <PageShell bare={bare}>
       <div className="mb-6">
@@ -120,16 +153,16 @@ export default function MyAvailability({ bare }: { bare?: boolean }) {
             {allExceptions.map((exc, i) => (
               <motion.div key={exc.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                 className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3">
-                <Input type="date" value={exc.date} onChange={(e) => updateException.mutate({ id: exc.id, date: e.target.value })} className="w-[160px]" />
+                <BufferedDateInput value={exc.date} onSave={(v) => updateException.mutate({ id: exc.id, date: v })} className="w-[160px]" />
                 <Badge variant={exc.is_available ? "default" : "destructive"} className="cursor-pointer"
                   onClick={() => updateException.mutate({ id: exc.id, is_available: !exc.is_available })}>
                   {exc.is_available ? <><CalendarCheck className="h-3 w-3 mr-1" /> Available</> : <><CalendarOff className="h-3 w-3 mr-1" /> Blocked</>}
                 </Badge>
                 {exc.is_available && (
                   <>
-                    <Input type="time" value={exc.start_time || "09:00"} onChange={(e) => updateException.mutate({ id: exc.id, start_time: e.target.value })} className="w-[120px]" />
+                    <BufferedTimeInput value={exc.start_time || "09:00"} onSave={(v) => updateException.mutate({ id: exc.id, start_time: v })} className="w-[120px]" />
                     <span className="text-muted-foreground">–</span>
-                    <Input type="time" value={exc.end_time || "17:00"} onChange={(e) => updateException.mutate({ id: exc.id, end_time: e.target.value })} className="w-[120px]" />
+                    <BufferedTimeInput value={exc.end_time || "17:00"} onSave={(v) => updateException.mutate({ id: exc.id, end_time: v })} className="w-[120px]" />
                   </>
                 )}
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteException.mutate(exc.id)}>
