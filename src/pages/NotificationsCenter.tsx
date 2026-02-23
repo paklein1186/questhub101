@@ -358,7 +358,7 @@ export default function NotificationsCenter() {
             variant="outline"
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
           >
-            <ChevronDown className="h-4 w-4 mr-1" /> Load more
+            <ChevronDown className="h-4 w-4 mr-1" /> {t("notifications.loadMore")}
           </Button>
         </div>
       )}
