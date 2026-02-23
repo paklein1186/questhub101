@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.ics-feed]
 verify_jwt = false
+
+[functions.trust-graph-public]
+verify_jwt = false
