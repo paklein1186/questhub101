@@ -47,6 +47,7 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
 import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
+import { TrustTab } from "@/components/trust/TrustTab";
 
 export default function CompanyDetail() {
   const navigate = useNavigate();
@@ -251,6 +252,7 @@ export default function CompanyDetail() {
           <TabsTrigger value="services"><Briefcase className="h-4 w-4 mr-1" /> Services ({services.length})</TabsTrigger>
           <TabsTrigger value="jobs"><Briefcase className="h-4 w-4 mr-1" /> Jobs ({(companyJobs ?? []).length})</TabsTrigger>
           <TabsTrigger value="partnerships"><Handshake className="h-4 w-4 mr-1" /> Partners</TabsTrigger>
+          <TabsTrigger value="trust"><Shield className="h-4 w-4 mr-1" /> Trust</TabsTrigger>
           <TabsTrigger value="wall">Wall</TabsTrigger>
           {isMember && <TabsTrigger value="ai-chat"><Bot className="h-4 w-4 mr-1" /> Chat & AI</TabsTrigger>}
         </TabsList>

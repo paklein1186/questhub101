@@ -57,6 +57,7 @@ import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
+import { TrustTab } from "@/components/trust/TrustTab";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -907,7 +908,7 @@ export default function QuestDetail() {
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
             {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
-            
+            <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

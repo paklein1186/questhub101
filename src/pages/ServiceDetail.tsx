@@ -58,6 +58,7 @@ async function insertBookingNotification(params: {
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { canManageServiceSync } from "@/lib/serviceOwnership";
+import { TrustTab } from "@/components/trust/TrustTab";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
