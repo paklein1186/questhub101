@@ -150,12 +150,12 @@ const typeCategories: { label: string; types: NotificationType[] }[] = [
 
 const PAGE_SIZE = 20;
 
-function dayLabel(dateStr: string): string {
+function dayLabel(dateStr: string, t: ReturnType<typeof useTranslation>["t"], lang: string): string {
   try {
     const d = parseISO(dateStr);
-    if (isToday(d)) return "Today";
-    if (isYesterday(d)) return "Yesterday";
-    return format(d, "EEEE, MMMM d");
+    if (isToday(d)) return t("notifications.today");
+    if (isYesterday(d)) return t("notifications.yesterday");
+    return format(d, "EEEE, MMMM d", { locale: lang === "fr" ? fr : enUS });
   } catch {
     return "Earlier";
   }
