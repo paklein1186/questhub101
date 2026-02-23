@@ -6,10 +6,12 @@ import { lazy, Suspense } from "react";
 const RevenueModelsPage = lazy(() => import("@/pages/RevenueModelsPage"));
 const CreditEconomyPage = lazy(() => import("@/pages/CreditEconomyPage"));
 const GovernancePage = lazy(() => import("@/pages/GovernancePage"));
+const TrustGraphPage = lazy(() => import("@/pages/TrustGraphPage"));
 
 const TABS = [
   { value: "revenue", label: "Revenue Models" },
   { value: "credits", label: "Credit Economy" },
+  { value: "trust", label: "Trust Graph" },
   { value: "governance", label: "Governance" },
 ] as const;
 
@@ -33,6 +35,7 @@ export default function EcosystemHub() {
           <Suspense fallback={<div className="py-12 text-center text-muted-foreground text-sm">Loading…</div>}>
             <TabsContent value="revenue"><RevenueModelsPage embedded /></TabsContent>
             <TabsContent value="credits"><CreditEconomyPage embedded /></TabsContent>
+            <TabsContent value="trust"><TrustGraphPage embedded /></TabsContent>
             <TabsContent value="governance"><GovernancePage embedded /></TabsContent>
           </Suspense>
         </Tabs>
