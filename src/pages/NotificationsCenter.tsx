@@ -280,7 +280,8 @@ export default function NotificationsCenter() {
             {group.items.map((notification, i) => {
               const Icon = typeIcons[notification.type] || Bell;
               const iconColor = typeColors[notification.type] || "text-muted-foreground";
-              const message = notification.body || notification.title || (notification.data as any)?.message || "You have a notification.";
+              const translatedTitle = translateNotificationTitle(notification, t);
+              const translatedBody = translateNotificationBody(notification, t);
               const link = notification.deepLinkUrl || linkForNotification(notification);
 
               return (
@@ -306,15 +307,15 @@ export default function NotificationsCenter() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className={cn("text-xs font-semibold", notification.isRead ? "text-muted-foreground" : "text-foreground")}>
-                          {notification.title}
+                          {translatedTitle}
                         </span>
                         {!notification.isRead && (
                           <span className="h-2 w-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      {notification.body && notification.body !== notification.title && (
+                      {translatedBody && translatedBody !== translatedTitle && (
                         <p className={cn("text-sm", notification.isRead ? "text-muted-foreground" : "text-foreground")}>
-                          {notification.body}
+                          {translatedBody}
                         </p>
                       )}
                       {notification.createdAt && (
