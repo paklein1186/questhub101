@@ -36,9 +36,20 @@ serve(async (req) => {
   // --- End auth check ---
 
   try {
-    const { entityType, entityId } = await req.json();
-    if (!entityType || !entityId) {
-      return new Response(JSON.stringify({ error: "entityType and entityId required" }), {
+    const body = await req.json();
+    const entityType = typeof body.entityType === "string" ? body.entityType : "";
+    const entityId = typeof body.entityId === "string" ? body.entityId : "";
+
+    const allowedEntityTypes = new Set(["GUILD", "QUEST", "POD", "TERRITORY"]);
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    if (!allowedEntityTypes.has(entityType)) {
+      return new Response(JSON.stringify({ error: "entityType must be GUILD, QUEST, POD, or TERRITORY" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!uuidRegex.test(entityId)) {
+      return new Response(JSON.stringify({ error: "Invalid entityId format" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

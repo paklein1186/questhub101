@@ -27,12 +27,35 @@ serve(async (req) => {
       });
     }
 
-    const { agentId, messages } = await req.json();
-    if (!agentId || !messages?.length) {
-      return new Response(JSON.stringify({ error: "agentId and messages required" }), {
+    const body = await req.json();
+    const agentId = typeof body.agentId === "string" ? body.agentId : "";
+    const messages = Array.isArray(body.messages) ? body.messages : [];
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(agentId)) {
+      return new Response(JSON.stringify({ error: "Invalid agentId format" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Validate messages array
+    if (!messages.length || messages.length > 50) {
+      return new Response(JSON.stringify({ error: "messages must contain 1-50 items" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const allowedRoles = new Set(["user", "assistant", "system"]);
+    for (const m of messages) {
+      if (typeof m.role !== "string" || !allowedRoles.has(m.role) || typeof m.content !== "string" || m.content.length === 0 || m.content.length > 10000) {
+        return new Response(JSON.stringify({ error: "Invalid message format: each must have role (user|assistant|system) and content (1-10000 chars)" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Fetch agent

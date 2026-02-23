@@ -26,11 +26,37 @@ serve(async (req) => {
       });
     }
 
-    const { agentId, unitType, unitId, messages } = await req.json();
-    if (!agentId || !unitType || !unitId || !messages?.length) {
-      return new Response(JSON.stringify({ error: "agentId, unitType, unitId, and messages required" }), {
+    const body = await req.json();
+    const agentId = typeof body.agentId === "string" ? body.agentId : "";
+    const unitType = typeof body.unitType === "string" ? body.unitType : "";
+    const unitId = typeof body.unitId === "string" ? body.unitId : "";
+    const messages = Array.isArray(body.messages) ? body.messages : [];
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const allowedUnitTypes = new Set(["guild", "pod", "quest"]);
+
+    if (!uuidRegex.test(agentId) || !uuidRegex.test(unitId)) {
+      return new Response(JSON.stringify({ error: "Invalid agentId or unitId format" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    if (!allowedUnitTypes.has(unitType)) {
+      return new Response(JSON.stringify({ error: "unitType must be guild, pod, or quest" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!messages.length || messages.length > 50) {
+      return new Response(JSON.stringify({ error: "messages must contain 1-50 items" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const allowedRoles = new Set(["user", "assistant", "system"]);
+    for (const m of messages) {
+      if (typeof m.role !== "string" || !allowedRoles.has(m.role) || typeof m.content !== "string" || m.content.length === 0 || m.content.length > 10000) {
+        return new Response(JSON.stringify({ error: "Invalid message format" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const adminClient = createClient(
