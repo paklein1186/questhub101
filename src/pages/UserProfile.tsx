@@ -22,6 +22,7 @@ import { CommentTargetType, FollowTargetType, ReportTargetType, TrustNodeType } 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ReportButton } from "@/components/ReportButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
+import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { useFollow } from "@/hooks/useFollow";
 import { useBlock } from "@/hooks/useBlock";
 import { useProfileData, type ProfileData } from "@/hooks/useProfileData";
