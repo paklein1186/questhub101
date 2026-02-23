@@ -18,6 +18,7 @@ changethegame is a web-based ecosystem where individuals and organisations colla
 - **Houses (Topics)**: Thematic categories (e.g. Circular Economy, Social Innovation) that organise content and people.
 - **Companies / Organisations**: Entities that post quests, hire experts, and support territories.
 - **XP & Contribution Index**: A reputation system based on verified contributions, not self-reported CVs.
+- **Open Trust Graph**: A polymorphic attestation system where users vouch for each other with scored, tagged, evidence-backed TrustEdges. Anti-gaming safeguards and periodic renewal keep trust fresh and honest.
 - **Courses**: Educational content created by guilds, companies, or individuals.
 
 ## Who is it for?
