@@ -214,9 +214,9 @@ export default function NotificationsCenter() {
     <PageShell>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Bell className="h-7 w-7 text-primary" /> Notifications
+          <Bell className="h-7 w-7 text-primary" /> {t("notifications.pageTitle")}
           {unreadCount > 0 && (
-            <Badge className="bg-destructive text-destructive-foreground ml-2">{unreadCount} unread</Badge>
+            <Badge className="bg-destructive text-destructive-foreground ml-2">{t("notifications.unread", { count: unreadCount })}</Badge>
           )}
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
