@@ -31,7 +31,19 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { mode, bundleCode, planStripePriceId, shareClass, quantity, pricePerShare } = await req.json();
+    const body = await req.json();
+    const allowedModes = new Set(["credit_bundle", "xp_bundle", "subscription", "shares"]);
+    const mode = typeof body.mode === "string" ? body.mode : "";
+    if (!allowedModes.has(mode)) {
+      return new Response(JSON.stringify({ error: "Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', or 'shares'." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const bundleCode = typeof body.bundleCode === "string" ? body.bundleCode : "";
+    const planStripePriceId = typeof body.planStripePriceId === "string" ? body.planStripePriceId : "";
+    const shareClass = typeof body.shareClass === "string" ? body.shareClass : "";
+    const quantity = typeof body.quantity === "number" ? body.quantity : (Number(body.quantity) || 0);
+    const pricePerShare = typeof body.pricePerShare === "number" ? body.pricePerShare : (Number(body.pricePerShare) || 0);
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -122,8 +134,9 @@ serve(async (req) => {
       if (shareClass !== "B") {
         throw new Error("Class A shares require manual application. Please contact pa@changethegame.xyz");
       }
-      const qty = Math.max(1, Math.min(100, Number(quantity) || 1));
-      const unitPrice = Number(pricePerShare) || 10;
+      const qty = Math.max(1, Math.min(100, Math.floor(quantity) || 1));
+      // Server-enforced price — ignore client-supplied pricePerShare to prevent manipulation
+      const unitPrice = 10;
       const totalAmount = qty * unitPrice * 100; // cents
 
       const session = await stripe.checkout.sessions.create({
