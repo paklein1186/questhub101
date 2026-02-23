@@ -41,9 +41,20 @@ export default function HowItWorksPage() {
         <p>Earn XP from quests, collaborations and contributions. Earn credits from system activities or purchases. Use credits to fund quests, proposals, or services.</p>
       </ContentSection>
 
+      <ContentSection title="9. The Open Trust Graph">
+        <p>Your reputation is built through trust attestations — not vanity metrics. When someone vouches for you, they create a TrustEdge with a score, tags, and optional evidence. These edges are visible on your profile and feed into your XP and credit rewards. Trust decays over time and must be periodically renewed, keeping the ecosystem honest and up to date.</p>
+        <ContentList items={[
+          "Give and receive trust attestations across all entity types",
+          "Scores from 1–5 with tags, notes, and evidence links",
+          "Anti-gaming: weekly limits, cooldowns, and reciprocal penalties",
+          "Public edges are available via an open API (JSON-LD compatible)",
+        ]} />
+      </ContentSection>
+
       <ContentCTA links={[
         { label: "Create a quest", href: "/quests/new" },
         { label: "Join a guild", href: "/explore?tab=guilds" },
+        { label: "Open Trust Graph", href: "/ecosystem?tab=trust" },
         { label: "Explore people", href: "/explore/users" },
       ]} />
     </ContentPageShell>

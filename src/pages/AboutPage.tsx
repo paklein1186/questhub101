@@ -32,12 +32,17 @@ export default function AboutPage() {
         ]} />
       </ContentSection>
 
+      <ContentSection title="Trust & Reputation">
+        <p>Reputation on changethegame isn't based on likes or self-reported CVs. It's built on the <strong>Open Trust Graph</strong> — a system where real people attest to real contributions. Trust edges carry scores, evidence, and tags, and they decay over time to stay relevant. This ensures that the people, guilds, and organisations you see have been genuinely vouched for.</p>
+      </ContentSection>
+
       <ContentSection title="Our Vision">
         <p>A world where people, organizations, and territories collaborate fluidly to build a regenerative, creative and inclusive future — one quest at a time.</p>
       </ContentSection>
 
       <ContentCTA links={[
         { label: "How it works", href: "/how-it-works" },
+        { label: "Open Trust Graph", href: "/ecosystem?tab=trust" },
         { label: "Governance model", href: "/governance" },
         { label: "Roadmap & Changelog", href: "/roadmap" },
       ]} />
