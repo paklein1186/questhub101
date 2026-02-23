@@ -48,6 +48,7 @@ import { FacilitatorPanel } from "@/components/FacilitatorPanel";
 import { MemoryEnginePanel } from "@/components/MemoryEnginePanel";
 // FeedSection removed — Agora content merged into Discussions #General room
 import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
+import { ServicesList } from "@/components/ServicesList";
 import { GuildDecisions } from "@/components/guild/GuildDecisions";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
@@ -617,6 +618,47 @@ export default function GuildDetail() {
               </>
             )}
           </EntityQuestsFilters>
+        </TabsContent>
+
+        {/* Services */}
+        <TabsContent value="services" className="mt-6 space-y-3">
+          {isMember && (
+            <Dialog open={createSvcOpen} onOpenChange={setCreateSvcOpen}>
+              <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create Service</Button></DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>{editSvcId ? "Edit Service" : "Create Guild Service"}</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-2">
+                  <div><label className="text-sm font-medium mb-1 block">Title</label><Input value={svcTitle} onChange={e => setSvcTitle(e.target.value)} placeholder="e.g. Coaching Session" maxLength={120} /></div>
+                  <div><label className="text-sm font-medium mb-1 block">Description</label><Textarea value={svcDesc} onChange={e => setSvcDesc(e.target.value)} maxLength={500} className="resize-none" /></div>
+                  <ImageUpload label="Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={e => setSvcDuration(e.target.value)} min={15} max={480} /></div>
+                    <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={e => setSvcPrice(e.target.value)} min={0} step={5} /></div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Location type</label>
+                    <Select value={svcLocationType} onValueChange={v => setSvcLocationType(v as OnlineLocationType)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={OnlineLocationType.JITSI}>Jitsi</SelectItem>
+                        <SelectItem value={OnlineLocationType.ZOOM}>Zoom</SelectItem>
+                        <SelectItem value={OnlineLocationType.OTHER}>Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center justify-between"><label className="text-sm font-medium">Save as draft</label><Switch checked={svcDraft} onCheckedChange={setSvcDraft} /></div>
+                  <Button onClick={editSvcId ? updateGuildService : createGuildService} disabled={!svcTitle.trim()} className="w-full">{editSvcId ? "Update" : "Create"}</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          <ServicesList services={services} isAdmin={isAdmin} onToggleActive={async (svc: any) => {
+            const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
+            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
+          }} onDelete={async (svc: any) => {
+            const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
+            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-guild", id] }); toast({ title: "Service deleted" }); }
+          }} />
         </TabsContent>
 
         {/* Human Interactions — clustered subtabs */}
