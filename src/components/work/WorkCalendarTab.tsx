@@ -21,6 +21,7 @@ import { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualConfig";
 import { CalendarSyncTab } from "@/components/CalendarSyncTab";
+import { IcsFeedsManager } from "@/components/IcsFeedsManager";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -96,6 +97,7 @@ export function WorkCalendarTab() {
     try { localStorage.setItem("ctg-calendar-view-mode", v); } catch {}
   }, []);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
   // Fetch guild events user is attending
   const { data: myEventAttendances = [] } = useQuery({
     queryKey: ["my-event-attendances", currentUser.id],
@@ -285,6 +287,9 @@ export function WorkCalendarTab() {
           <Button variant="ghost" size="sm" onClick={navigateForward}>Next →</Button>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setSyncModalOpen(true)}>
+            <CalendarPlus className="h-3.5 w-3.5" /> Sync
+          </Button>
           <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setCurrentMonth(new Date())}>Today</Button>
           <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && handleSetViewMode(v as ViewMode)} size="sm">
             <ToggleGroupItem value="day" className="text-xs h-7 px-2.5">Day</ToggleGroupItem>
@@ -553,6 +558,44 @@ export function WorkCalendarTab() {
               </>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* Sync modal */}
+      <Dialog open={syncModalOpen} onOpenChange={setSyncModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarPlus className="h-5 w-5 text-primary" />
+              Sync with your calendar
+            </DialogTitle>
+            <DialogDescription>
+              Import events from your external calendars, or export your CTG events via ICS feeds.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 mt-2">
+            {/* Existing Google/Outlook sync */}
+            <div>
+              <h4 className="text-sm font-medium mb-2">Import from external calendar</h4>
+              <CalendarSyncTab />
+            </div>
+
+            <Separator />
+
+            {/* ICS export feeds */}
+            <div>
+              <h4 className="text-sm font-medium mb-2">Subscribe from your calendar (ICS)</h4>
+              <IcsFeedsManager compact />
+              <Link
+                to="/me?tab=calendar"
+                className="text-xs text-primary hover:underline mt-2 inline-block"
+                onClick={() => setSyncModalOpen(false)}
+              >
+                Advanced options → Settings
+              </Link>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

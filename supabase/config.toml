@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.website-feed]
 verify_jwt = false
+
+[functions.ics-feed]
+verify_jwt = false

@@ -2646,6 +2646,42 @@ export type Database = {
           },
         ]
       }
+      ics_feeds: {
+        Row: {
+          created_at: string
+          filters: Json | null
+          id: string
+          is_active: boolean
+          label: string
+          owner_user_id: string
+          token: string
+          type: Database["public"]["Enums"]["ics_feed_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          owner_user_id: string
+          token?: string
+          type?: Database["public"]["Enums"]["ics_feed_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          owner_user_id?: string
+          token?: string
+          type?: Database["public"]["Enums"]["ics_feed_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_position_territories: {
         Row: {
           id: string
@@ -6810,6 +6846,11 @@ export type Database = {
       guild_join_policy: "OPEN" | "APPROVAL_REQUIRED" | "INVITE_ONLY"
       guild_member_role: "ADMIN" | "MEMBER"
       guild_type: "GUILD" | "NETWORK" | "COLLECTIVE"
+      ics_feed_type:
+        | "PERSONAL_ALL"
+        | "PERSONAL_ONLY_BOOKINGS"
+        | "PERSONAL_ONLY_RITUALS"
+        | "CUSTOM"
       monetization_type: "FREE" | "PAID" | "MIXED"
       pod_member_role: "HOST" | "MEMBER"
       pod_type: "QUEST_POD" | "STUDY_POD"
@@ -6994,6 +7035,12 @@ export const Constants = {
       guild_join_policy: ["OPEN", "APPROVAL_REQUIRED", "INVITE_ONLY"],
       guild_member_role: ["ADMIN", "MEMBER"],
       guild_type: ["GUILD", "NETWORK", "COLLECTIVE"],
+      ics_feed_type: [
+        "PERSONAL_ALL",
+        "PERSONAL_ONLY_BOOKINGS",
+        "PERSONAL_ONLY_RITUALS",
+        "CUSTOM",
+      ],
       monetization_type: ["FREE", "PAID", "MIXED"],
       pod_member_role: ["HOST", "MEMBER"],
       pod_type: ["QUEST_POD", "STUDY_POD"],
