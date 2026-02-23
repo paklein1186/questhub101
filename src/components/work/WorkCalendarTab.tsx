@@ -83,6 +83,35 @@ export function WorkCalendarTab() {
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch { return new Set(); }
   });
+
+  // Load DB subcalendar preferences and sync to local state on mount
+  const { data: dbSubcalPrefs } = useQuery({
+    queryKey: ["subcalendar-prefs", currentUser.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .select("source_calendar_id, is_enabled, connection_id")
+        .eq("user_id", currentUser.id!);
+      return data || [];
+    },
+    enabled: !!currentUser.id,
+  });
+
+  // Sync DB prefs into local state once loaded
+  useEffect(() => {
+    if (!dbSubcalPrefs || dbSubcalPrefs.length === 0) return;
+    const dbHidden = new Set<string>();
+    for (const p of dbSubcalPrefs) {
+      if (!p.is_enabled) dbHidden.add(p.source_calendar_id);
+    }
+    if (dbHidden.size > 0) {
+      setHiddenCalendars(prev => {
+        const merged = new Set([...prev, ...dbHidden]);
+        localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(merged)));
+        return merged;
+      });
+    }
+  }, [dbSubcalPrefs]);
   type ViewMode = "day" | "3day" | "week" | "month";
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     try {
