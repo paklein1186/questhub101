@@ -169,6 +169,36 @@ export function WorkCalendarTab() {
     enabled: !!currentUser.id,
   });
 
+  // One-time: seed DB from localStorage hidden calendars that have no DB record yet
+  const [dbSeeded, setDbSeeded] = useState(false);
+  useEffect(() => {
+    if (dbSeeded || !currentUser.id || !externalEvents.length) return;
+    if (hiddenCalendars.size === 0) { setDbSeeded(true); return; }
+    const meta = new Map<string, { connectionId: string; name: string }>();
+    externalEvents.forEach((ext: any) => {
+      if (ext.source_calendar_id && ext.connection_id) {
+        meta.set(ext.source_calendar_id, { connectionId: ext.connection_id, name: ext.source_calendar_name || ext.source_calendar_id });
+      }
+    });
+    const dbCalIds = new Set((dbSubcalPrefs || []).map((p: any) => p.source_calendar_id));
+    const toSeed = Array.from(hiddenCalendars).filter(calId => !dbCalIds.has(calId) && meta.has(calId));
+    if (toSeed.length > 0) {
+      const rows = toSeed.map(calId => ({
+        user_id: currentUser.id,
+        connection_id: meta.get(calId)!.connectionId,
+        source_calendar_id: calId,
+        source_calendar_name: meta.get(calId)!.name,
+        is_enabled: false,
+        updated_at: new Date().toISOString(),
+      }));
+      (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .upsert(rows, { onConflict: "user_id,connection_id,source_calendar_id" })
+        .then(() => {});
+    }
+    setDbSeeded(true);
+  }, [currentUser.id, externalEvents, hiddenCalendars, dbSubcalPrefs, dbSeeded]);
+
   // Normalize into CalendarEvent[]
   const events: CalendarEvent[] = useMemo(() => {
     const items: CalendarEvent[] = [];
