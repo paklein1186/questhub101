@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { AdminEntityEditor } from "@/components/AdminEntityEditor";
 import { PlatformBroadcastDialog } from "@/components/PlatformBroadcastDialog";
 import { BroadcastHistoryPanel } from "@/components/broadcast/BroadcastHistoryPanel";
+import { CreditTransfersMonitor } from "@/components/admin/CreditTransfersMonitor";
 
 export default function AdminSuperMode() {
   const [maskPII, setMaskPII] = useState(false);
@@ -34,6 +35,8 @@ export default function AdminSuperMode() {
       <BroadcastHistoryPanel />
 
       <AdminEntityEditor maskPII={maskPII} />
+
+      <CreditTransfersMonitor />
     </div>
   );
 }
