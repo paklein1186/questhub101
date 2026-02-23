@@ -149,12 +149,12 @@ export async function preCheckTrustEdge(
   const { count: pairCount } = await supabase
     .from("trust_edges")
     .select("id", { count: "exact", head: true })
-    .eq("from_node_type", fromNodeType)
+    .eq("from_node_type", fromNodeType as any)
     .eq("from_node_id", fromNodeId)
-    .eq("to_node_type", toNodeType)
+    .eq("to_node_type", toNodeType as any)
     .eq("to_node_id", toNodeId)
-    .eq("edge_type", edgeType)
-    .eq("status", "active")
+    .eq("edge_type", edgeType as any)
+    .eq("status", "active" as any)
     .gte("created_at", sixMonthsAgo.toISOString());
 
   const hasPairCooldown = (pairCount ?? 0) > 0;
