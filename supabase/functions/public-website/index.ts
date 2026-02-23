@@ -405,10 +405,12 @@ async function handleSiteFeed(url: URL): Promise<Response> {
     } else if (ownerType === "company" || ownerType === "guild") {
       // Fetch partner guilds from partnerships table
       const entityType = ownerType === "company" ? "COMPANY" : "GUILD";
+      console.log("[site-feed] Fetching partnerships for", entityType, ownerId);
       const fromP = await sfQuery(supabaseUrl, serviceKey, "partnerships",
         `from_entity_type=eq.${entityType}&from_entity_id=eq.${ownerId}&status=eq.ACCEPTED`);
       const toP = await sfQuery(supabaseUrl, serviceKey, "partnerships",
         `to_entity_type=eq.${entityType}&to_entity_id=eq.${ownerId}&status=eq.ACCEPTED`);
+      console.log("[site-feed] fromP count:", fromP.length, "toP count:", toP.length);
       
       // Collect partner guild IDs from both sides
       const partnerGuildIds = new Set<string>();
@@ -418,11 +420,14 @@ async function handleSiteFeed(url: URL): Promise<Response> {
       for (const p of toP) {
         if (String(p.from_entity_type) === "GUILD") partnerGuildIds.add(String(p.from_entity_id));
       }
+      console.log("[site-feed] partnerGuildIds:", [...partnerGuildIds]);
       
       if (partnerGuildIds.size > 0) {
         const ids = [...partnerGuildIds].join(",");
         const d = await sfQuery(supabaseUrl, serviceKey, "guilds", `id=in.(${ids})&is_deleted=eq.false`);
+        console.log("[site-feed] fetched guilds count:", d.length, "fp.guilds:", fp.guilds);
         guilds = d.filter(r => vis(r, fp.guilds)).map(r => mapItem(r, "guild", "name"));
+        console.log("[site-feed] final guilds count:", guilds.length);
       }
     }
 
