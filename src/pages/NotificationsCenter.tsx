@@ -200,13 +200,13 @@ export default function NotificationsCenter() {
     const groups: { label: string; items: typeof sorted }[] = [];
     const visible = sorted.slice(0, visibleCount);
     for (const n of visible) {
-      const label = dayLabel(n.createdAt);
+      const label = dayLabel(n.createdAt, t, lang);
       const existing = groups.find((g) => g.label === label);
       if (existing) existing.items.push(n);
       else groups.push({ label, items: [n] });
     }
     return groups;
-  }, [sorted, visibleCount]);
+  }, [sorted, visibleCount, t, lang]);
 
   const hasMore = visibleCount < sorted.length;
 
