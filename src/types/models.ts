@@ -27,6 +27,10 @@ import {
   CoursePurchaseStatus,
   GuildJoinPolicy,
   GuildApplicationStatus,
+  TrustNodeType,
+  TrustEdgeType,
+  TrustVisibility,
+  TrustStatus,
 } from "./enums";
 
 // ─── Soft Delete Mixin ──────────────────────────────────────
@@ -660,4 +664,27 @@ export interface CourseTerritory {
   id: string;
   courseId: string;
   territoryId: string;
+}
+
+// ─── Trust Graph ────────────────────────────────────────────
+export interface TrustEdge {
+  id: string;
+  fromNodeType: TrustNodeType;
+  fromNodeId: string;
+  toNodeType: TrustNodeType;
+  toNodeId: string;
+  edgeType: TrustEdgeType;
+  tags: string[];
+  score: number;
+  note?: string;
+  evidenceUrl?: string;
+  visibility: TrustVisibility;
+  contextQuestId?: string;
+  contextGuildId?: string;
+  contextTerritoryId?: string;
+  status: TrustStatus;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastConfirmedAt?: string;
 }

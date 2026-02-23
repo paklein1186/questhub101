@@ -306,3 +306,32 @@ export enum GuildApplicationStatus {
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
+
+export enum TrustNodeType {
+  PROFILE = "profile",
+  GUILD = "guild",
+  QUEST = "quest",
+  SERVICE = "service",
+  PARTNER_ENTITY = "partner_entity",
+  TERRITORY = "territory",
+}
+
+export enum TrustEdgeType {
+  SKILL_TRUST = "skill_trust",
+  RELIABILITY = "reliability",
+  COLLABORATION = "collaboration",
+  STEWARDSHIP = "stewardship",
+  FINANCIAL_TRUST = "financial_trust",
+}
+
+export enum TrustVisibility {
+  PUBLIC = "public",
+  NETWORK = "network",
+  PRIVATE = "private",
+}
+
+export enum TrustStatus {
+  ACTIVE = "active",
+  OUTDATED = "outdated",
+  RETRACTED = "retracted",
+}
