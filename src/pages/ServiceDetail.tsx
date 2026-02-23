@@ -390,6 +390,11 @@ export default function ServiceDetail() {
         )}
 
         <div className="mt-8 pt-6 border-t border-border">
+          <h3 className="font-display font-semibold mb-4 flex items-center gap-2"><Shield className="h-5 w-5" /> Trust</h3>
+          <TrustTab nodeType={TrustNodeType.SERVICE} nodeId={svc.id} />
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border">
           <h3 className="font-display font-semibold mb-4">Discussion</h3>
           <CommentThread targetType={CommentTargetType.SERVICE} targetId={svc.id} />
         </div>
