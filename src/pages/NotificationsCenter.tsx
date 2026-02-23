@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Bell, Check, CheckCheck, MessageSquare, ThumbsUp, Users, Megaphone,
   CalendarCheck, UserPlus, Zap, Trophy, Shield, Radio, ChevronDown,
@@ -15,10 +16,12 @@ import { useUserRoles } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { NotificationType } from "@/types/enums";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { translateNotificationTitle, translateNotificationBody } from "@/lib/notificationTranslation";
 
 const typeIcons: Record<string, typeof MessageSquare> = {
   [NotificationType.COMMENT]: MessageSquare,
@@ -147,12 +150,12 @@ const typeCategories: { label: string; types: NotificationType[] }[] = [
 
 const PAGE_SIZE = 20;
 
-function dayLabel(dateStr: string): string {
+function dayLabel(dateStr: string, t: ReturnType<typeof useTranslation>["t"], lang: string): string {
   try {
     const d = parseISO(dateStr);
-    if (isToday(d)) return "Today";
-    if (isYesterday(d)) return "Yesterday";
-    return format(d, "EEEE, MMMM d");
+    if (isToday(d)) return t("notifications.today");
+    if (isYesterday(d)) return t("notifications.yesterday");
+    return format(d, "EEEE, MMMM d", { locale: lang === "fr" ? fr : enUS });
   } catch {
     return "Earlier";
   }
@@ -161,6 +164,8 @@ function dayLabel(dateStr: string): string {
 export default function NotificationsCenter() {
   const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotifications();
   const { session } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { isAdmin: showAdminTabs } = useUserRoles(session?.user?.id);
   const [readFilter, setReadFilter] = useState<"all" | "unread" | "admin" | "system">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -195,13 +200,13 @@ export default function NotificationsCenter() {
     const groups: { label: string; items: typeof sorted }[] = [];
     const visible = sorted.slice(0, visibleCount);
     for (const n of visible) {
-      const label = dayLabel(n.createdAt);
+      const label = dayLabel(n.createdAt, t, lang);
       const existing = groups.find((g) => g.label === label);
       if (existing) existing.items.push(n);
       else groups.push({ label, items: [n] });
     }
     return groups;
-  }, [sorted, visibleCount]);
+  }, [sorted, visibleCount, t, lang]);
 
   const hasMore = visibleCount < sorted.length;
 
@@ -209,9 +214,9 @@ export default function NotificationsCenter() {
     <PageShell>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Bell className="h-7 w-7 text-primary" /> Notifications
+          <Bell className="h-7 w-7 text-primary" /> {t("notifications.pageTitle")}
           {unreadCount > 0 && (
-            <Badge className="bg-destructive text-destructive-foreground ml-2">{unreadCount} unread</Badge>
+            <Badge className="bg-destructive text-destructive-foreground ml-2">{t("notifications.unread", { count: unreadCount })}</Badge>
           )}
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
@@ -226,7 +231,7 @@ export default function NotificationsCenter() {
                   readFilter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                {f === "admin" ? "Admin" : f === "system" ? "System" : f === "unread" ? "Unread" : "All"}
+                {f === "admin" ? t("notifications.admin") : f === "system" ? t("notifications.system") : f === "unread" ? t("notifications.unreadLabel") : t("notifications.all")}
               </button>
             ))}
           </div>
@@ -235,19 +240,19 @@ export default function NotificationsCenter() {
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[150px] h-9">
               <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="Filter type" />
+              <SelectValue placeholder={t("notifications.filterType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="all">{t("notifications.allTypes")}</SelectItem>
               {typeCategories.map((cat) => (
-                <SelectItem key={cat.label} value={cat.label}>{cat.label}</SelectItem>
+                <SelectItem key={cat.label} value={cat.label}>{t(`notifications.categories.${cat.label}`, cat.label)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           {unreadCount > 0 && (
             <Button variant="outline" size="sm" onClick={markAllAsRead}>
-              <CheckCheck className="h-4 w-4 mr-1" /> Mark all read
+              <CheckCheck className="h-4 w-4 mr-1" /> {t("notifications.markAllRead")}
             </Button>
           )}
 
@@ -263,7 +268,7 @@ export default function NotificationsCenter() {
         <div className="text-center py-16">
           <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground">
-            {readFilter === "unread" ? "No unread notifications." : "No notifications yet."}
+            {readFilter === "unread" ? t("notifications.noUnread") : t("notifications.noNotifications")}
           </p>
         </div>
       )}
@@ -275,7 +280,8 @@ export default function NotificationsCenter() {
             {group.items.map((notification, i) => {
               const Icon = typeIcons[notification.type] || Bell;
               const iconColor = typeColors[notification.type] || "text-muted-foreground";
-              const message = notification.body || notification.title || (notification.data as any)?.message || "You have a notification.";
+              const translatedTitle = translateNotificationTitle(notification, t);
+              const translatedBody = translateNotificationBody(notification, t);
               const link = notification.deepLinkUrl || linkForNotification(notification);
 
               return (
@@ -301,15 +307,15 @@ export default function NotificationsCenter() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className={cn("text-xs font-semibold", notification.isRead ? "text-muted-foreground" : "text-foreground")}>
-                          {notification.title}
+                          {translatedTitle}
                         </span>
                         {!notification.isRead && (
                           <span className="h-2 w-2 rounded-full bg-primary" />
                         )}
                       </div>
-                      {notification.body && notification.body !== notification.title && (
+                      {translatedBody && translatedBody !== translatedTitle && (
                         <p className={cn("text-sm", notification.isRead ? "text-muted-foreground" : "text-foreground")}>
-                          {notification.body}
+                          {translatedBody}
                         </p>
                       )}
                       {notification.createdAt && (
@@ -352,7 +358,7 @@ export default function NotificationsCenter() {
             variant="outline"
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
           >
-            <ChevronDown className="h-4 w-4 mr-1" /> Load more
+            <ChevronDown className="h-4 w-4 mr-1" /> {t("notifications.loadMore")}
           </Button>
         </div>
       )}
