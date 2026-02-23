@@ -240,12 +240,12 @@ export default function NotificationsCenter() {
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[150px] h-9">
               <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="Filter type" />
+              <SelectValue placeholder={t("notifications.filterType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="all">{t("notifications.allTypes")}</SelectItem>
               {typeCategories.map((cat) => (
-                <SelectItem key={cat.label} value={cat.label}>{cat.label}</SelectItem>
+                <SelectItem key={cat.label} value={cat.label}>{t(`notifications.categories.${cat.label}`, cat.label)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
