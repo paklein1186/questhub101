@@ -1,6 +1,21 @@
 import { TrustNodeType } from "@/types/enums";
 import { supabase } from "@/integrations/supabase/client";
 
+// ─── XP Specialization categories ───────────────────────────
+const SPEC_MAP: Record<string, string> = {
+  governance: "stewardship", stewardship: "stewardship", facilitation: "stewardship",
+  agroecology: "maker", construction: "maker", heritage: "maker", crafts: "maker",
+  fundraising: "resource_catalyst", financial: "resource_catalyst",
+  community: "community", hospitality: "community", mediation: "community",
+  digital: "tech_commons", data: "tech_commons", ai: "tech_commons", product: "tech_commons",
+};
+
+export type XpSpecialization = "stewardship" | "maker" | "resource_catalyst" | "community" | "tech_commons";
+
+export function classifyTagSpecialization(tag: string): XpSpecialization | null {
+  return (SPEC_MAP[tag.toLowerCase()] as XpSpecialization) ?? null;
+}
+
 // ─── Types ──────────────────────────────────────────────────
 export interface TrustScores {
   trustScoreGlobal: number;
