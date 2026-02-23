@@ -252,7 +252,7 @@ export default function NotificationsCenter() {
 
           {unreadCount > 0 && (
             <Button variant="outline" size="sm" onClick={markAllAsRead}>
-              <CheckCheck className="h-4 w-4 mr-1" /> Mark all read
+              <CheckCheck className="h-4 w-4 mr-1" /> {t("notifications.markAllRead")}
             </Button>
           )}
 
