@@ -1105,26 +1105,6 @@ export default function QuestDetail() {
               </div>
             </div>
           )}
-          {/* Affiliated entities */}
-          {questAffiliations.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-display font-semibold flex items-center gap-2 mb-3"><Building2 className="h-4 w-4" /> Affiliated Entities</h3>
-              <div className="flex flex-wrap gap-2">
-                {questAffiliations.map((aff) => (
-                  <Link key={aff.id} to={aff.link} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={aff.logo_url ?? undefined} />
-                      <AvatarFallback>{aff.name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{aff.name}</p>
-                      <Badge variant="outline" className="text-[10px]">{aff.entity_type === "GUILD" ? "Guild" : "Organization"}</Badge>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="proposals" className="mt-6">
