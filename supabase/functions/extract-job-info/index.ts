@@ -6,51 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/** Naive text extraction from a PDF binary buffer.
- *  Works for PDFs that embed text streams (most modern PDFs). */
-function extractTextFromPdf(bytes: Uint8Array): string {
-  const raw = new TextDecoder("latin1").decode(bytes);
-  const textChunks: string[] = [];
-
-  // Extract text between BT ... ET blocks (PDF text objects)
-  const btEtRegex = /BT\s([\s\S]*?)ET/g;
-  let match;
-  while ((match = btEtRegex.exec(raw)) !== null) {
-    const block = match[1];
-    // Extract strings in parentheses (Tj / TJ operators)
-    const strRegex = /\(([^)]*)\)/g;
-    let strMatch;
-    while ((strMatch = strRegex.exec(block)) !== null) {
-      if (strMatch[1].trim()) textChunks.push(strMatch[1]);
-    }
-    // Extract hex strings < ... >
-    const hexRegex = /<([0-9a-fA-F]+)>/g;
-    let hexMatch;
-    while ((hexMatch = hexRegex.exec(block)) !== null) {
-      const hex = hexMatch[1];
-      let str = "";
-      for (let i = 0; i < hex.length; i += 2) {
-        str += String.fromCharCode(parseInt(hex.substring(i, i + 2), 16));
-      }
-      if (str.trim()) textChunks.push(str);
-    }
-  }
-
-  // Fallback: if no BT/ET blocks found, try to grab readable ASCII
-  if (textChunks.length === 0) {
-    const asciiRegex = /[\x20-\x7E]{10,}/g;
-    let asciiMatch;
-    while ((asciiMatch = asciiRegex.exec(raw)) !== null) {
-      textChunks.push(asciiMatch[0]);
-    }
-  }
-
-  return textChunks.join(" ").slice(0, 15000);
-}
-
 /** Extract readable text from an HTML page */
 function extractTextFromHtml(html: string): string {
-  // Remove scripts, styles, tags
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -59,6 +16,16 @@ function extractTextFromHtml(html: string): string {
     .trim()
     .slice(0, 15000);
 }
+
+const SYSTEM_PROMPT = `You are a job posting information extractor. Given text from a job description document or webpage, extract the following fields. Return ONLY a valid JSON object with these keys:
+- "title": string (job title)
+- "description": string (job description, summarized to max 1500 chars)
+- "organization_name": string (name of the recruiting organization/company/association) or null
+- "contract_type": one of "full-time", "part-time", "contract", "freelance", "internship", "volunteer" or null
+- "remote_policy": one of "on-site", "remote", "hybrid" or null
+- "location": string (city, country) or null
+
+If a field cannot be determined, set it to null. Return ONLY the JSON, no markdown, no explanation.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -86,7 +53,9 @@ serve(async (req) => {
 
     // Fetch the content
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    let isPdf = false;
+    let pdfBase64 = "";
     let contentText = "";
 
     try {
@@ -105,26 +74,37 @@ serve(async (req) => {
       }
 
       const contentType = res.headers.get("content-type") || "";
+      const urlLower = sourceUrl.toLowerCase();
 
-      if (contentType.includes("application/pdf")) {
+      if (contentType.includes("application/pdf") || urlLower.endsWith(".pdf")) {
+        // Send PDF directly to Gemini as multimodal input
         const bytes = new Uint8Array(await res.arrayBuffer());
-        contentText = extractTextFromPdf(bytes);
+        // Convert to base64
+        let binary = "";
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, i + chunkSize);
+          binary += String.fromCharCode(...chunk);
+        }
+        pdfBase64 = btoa(binary);
+        isPdf = true;
+        console.log("PDF detected, size:", bytes.length, "base64 length:", pdfBase64.length);
       } else if (contentType.includes("text/html") || web_url) {
         const html = await res.text();
         contentText = extractTextFromHtml(html);
       } else {
-        // Try as plain text
         contentText = (await res.text()).slice(0, 15000);
       }
     } catch (e) {
       clearTimeout(timeout);
+      console.error("Fetch error:", e);
       return new Response(
         JSON.stringify({ error: "Could not fetch document" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!contentText || contentText.trim().length < 20) {
+    if (!isPdf && (!contentText || contentText.trim().length < 20)) {
       return new Response(
         JSON.stringify({
           error: "Could not extract enough text from the document",
@@ -134,7 +114,38 @@ serve(async (req) => {
       );
     }
 
-    // Call AI to extract structured job info
+    // Build AI request - use multimodal for PDFs, text for others
+    let messages: any[];
+    if (isPdf) {
+      messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
+            {
+              type: "file",
+              file: {
+                filename: "job_description.pdf",
+                file_data: `data:application/pdf;base64,${pdfBase64}`,
+              },
+            },
+            {
+              type: "text",
+              text: "Extract job information from this PDF document.",
+            },
+          ],
+        },
+      ];
+    } else {
+      messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `Extract job information from this document:\n\n${contentText}`,
+        },
+      ];
+    }
+
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -145,24 +156,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `You are a job posting information extractor. Given text from a job description document or webpage, extract the following fields. Return ONLY a valid JSON object with these keys:
-- "title": string (job title)
-- "description": string (job description, summarized to max 1500 chars)
-- "organization_name": string (name of the recruiting organization/company/association) or null
-- "contract_type": one of "full-time", "part-time", "contract", "freelance", "internship", "volunteer" or null
-- "remote_policy": one of "on-site", "remote", "hybrid" or null
-- "location": string (city, country) or null
-
-If a field cannot be determined, set it to null. Return ONLY the JSON, no markdown, no explanation.`,
-            },
-            {
-              role: "user",
-              content: `Extract job information from this document:\n\n${contentText}`,
-            },
-          ],
+          messages,
           temperature: 0.1,
           max_tokens: 2000,
         }),
@@ -170,7 +164,8 @@ If a field cannot be determined, set it to null. Return ONLY the JSON, no markdo
     );
 
     if (!aiRes.ok) {
-      console.error("AI error:", await aiRes.text());
+      const errText = await aiRes.text();
+      console.error("AI error:", errText);
       return new Response(
         JSON.stringify({ error: "AI extraction failed", extracted: {} }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -180,7 +175,6 @@ If a field cannot be determined, set it to null. Return ONLY the JSON, no markdo
     const aiData = await aiRes.json();
     const raw = aiData.choices?.[0]?.message?.content || "{}";
 
-    // Parse the JSON response (strip markdown fences if any)
     let extracted: Record<string, unknown> = {};
     try {
       const cleaned = raw.replace(/```json\s*/g, "").replace(/```/g, "").trim();
