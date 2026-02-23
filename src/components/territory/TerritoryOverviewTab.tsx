@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { TerritorySynthesis } from "./TerritorySynthesis";
+import { TerritoryLocationMap } from "./TerritoryLocationMap";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ChevronUp, ChevronDown, ArrowLeftRight } from "lucide-react";
 import { FollowersDialog } from "@/components/FollowersDialog";
@@ -182,6 +183,7 @@ async function getDescendantTerritoryIds(territoryId: string): Promise<string[]>
 export function TerritoryOverviewTab({ territoryId, territoryName }: Props) {
   return (
     <div className="space-y-6">
+      <TerritoryLocationMap territoryId={territoryId} />
       <div className="grid gap-4 grid-cols-2">
         <TerritoryConnectedHumans territoryId={territoryId} />
         <TerritoryExclusiveFollowers territoryId={territoryId} />
