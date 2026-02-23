@@ -244,12 +244,44 @@ export function WorkCalendarTab() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [events]);
 
+  // Build a map: sourceCalendarId → { connectionId, name } from external events
+  const sourceCalendarMeta = useMemo(() => {
+    const map = new Map<string, { connectionId: string; name: string }>();
+    externalEvents.forEach((ext: any) => {
+      if (ext.source_calendar_id && ext.connection_id) {
+        map.set(ext.source_calendar_id, {
+          connectionId: ext.connection_id,
+          name: ext.source_calendar_name || ext.source_calendar_id,
+        });
+      }
+    });
+    return map;
+  }, [externalEvents]);
+
   const toggleCalendar = (calId: string) => {
     setHiddenCalendars((prev) => {
       const next = new Set(prev);
-      if (next.has(calId)) next.delete(calId);
-      else next.add(calId);
+      const willBeHidden = !next.has(calId);
+      if (willBeHidden) next.add(calId);
+      else next.delete(calId);
       localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(next)));
+
+      // Persist to DB for slot generation filtering
+      const meta = sourceCalendarMeta.get(calId);
+      if (meta && currentUser.id) {
+        (supabase as any)
+          .from("calendar_subcalendar_preferences")
+          .upsert({
+            user_id: currentUser.id,
+            connection_id: meta.connectionId,
+            source_calendar_id: calId,
+            source_calendar_name: meta.name,
+            is_enabled: !willBeHidden,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id,connection_id,source_calendar_id" })
+          .then(() => {});
+      }
+
       return next;
     });
   };
