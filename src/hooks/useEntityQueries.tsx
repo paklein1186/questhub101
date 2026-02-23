@@ -353,16 +353,18 @@ export function useServicesForCompany(companyId: string | undefined) {
         serviceTopicMap.get(row.service_id)!.add(row.topic_id);
       }
 
-      // 7. Filter by topic match
+      // 7. Filter by topic match (skip if company has no topics – show all member services)
       const topicIdSet = new Set(topicIds);
-      const matchingMemberServices = allMemberServices.filter((s) => {
-        const sTopics = serviceTopicMap.get(s.id);
-        if (!sTopics || sTopics.size === 0) return true;
-        for (const t of sTopics) {
-          if (topicIdSet.has(t)) return true;
-        }
-        return false;
-      });
+      const matchingMemberServices = topicIdSet.size === 0
+        ? allMemberServices
+        : allMemberServices.filter((s) => {
+            const sTopics = serviceTopicMap.get(s.id);
+            if (!sTopics || sTopics.size === 0) return true;
+            for (const t of sTopics) {
+              if (topicIdSet.has(t)) return true;
+            }
+            return false;
+          });
 
       // 8. Apply per-service visibility overrides
       const { data: visibilityRows } = await supabase
