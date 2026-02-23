@@ -60,6 +60,7 @@ import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { TrustNodeType } from "@/types/enums";
+import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
@@ -548,6 +549,10 @@ export default function GuildDetail() {
 
 
         <TabsContent value="members" className="mt-6 space-y-4">
+          <TopTrustedMembers
+            memberIds={memberUserIds}
+            relevantTags={(guild.guild_topics || []).map((gt: any) => gt.topics?.name).filter(Boolean)}
+          />
           {isAdmin && (
             <>
               <EntityApplicationsTab entityType="guild" entityId={guild.id} currentUserId={currentUser.id} />
