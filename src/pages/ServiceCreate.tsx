@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Loader2, Check, CalendarClock, ArrowRight } from "lucide-react";
+import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -212,6 +213,20 @@ export default function ServiceCreate() {
               </Link>
             </div>
           </div>
+        )}
+        {/* URL Scrape Panel */}
+        {!isEditMode && (
+          <UrlScrapePanel
+            topics={topics}
+            territories={territories}
+            onApply={({ title: t, description: d, coverImage, topicIds, territoryIds }) => {
+              if (t && !title.trim()) setTitle(t);
+              if (d && !description.trim()) setDescription(d);
+              if (coverImage && !imageUrl) setImageUrl(coverImage);
+              if (topicIds.length) setSelectedTopicIds(prev => [...new Set([...prev, ...topicIds])]);
+              if (territoryIds.length) setSelectedTerritoryIds(prev => [...new Set([...prev, ...territoryIds])]);
+            }}
+          />
         )}
         <ImageUpload
           label="Cover image"

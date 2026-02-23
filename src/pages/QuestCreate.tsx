@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
+import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -606,6 +607,19 @@ export default function QuestCreate() {
             </div>
           </Card>
         )}
+
+        {/* URL Scrape Panel */}
+        <UrlScrapePanel
+          topics={topics ?? []}
+          territories={territories ?? []}
+          onApply={({ title: t, description: d, coverImage, topicIds, territoryIds }) => {
+            if (t && !title.trim()) setTitle(t);
+            if (d && !description.trim()) setDescription(d);
+            if (coverImage && !coverImageUrl) setCoverImageUrl(coverImage);
+            if (topicIds.length) setSelectedTopics(prev => [...new Set([...prev, ...topicIds])]);
+            if (territoryIds.length) setSelectedTerritories(prev => [...new Set([...prev, ...territoryIds])]);
+          }}
+        />
 
         <div className="space-y-5">
           <div>
