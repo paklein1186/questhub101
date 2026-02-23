@@ -208,6 +208,7 @@ export default function CompanyDetail() {
                 )
               )}
               <ShareLinkButton entityType="company" entityId={company.id} entityName={company.name} />
+              {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.PARTNER_ENTITY} targetNodeId={company.id} targetName={company.name} />}
               {isAdmin && (
                 <>
                   <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>

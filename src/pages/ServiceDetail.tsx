@@ -343,6 +343,7 @@ export default function ServiceDetail() {
         </div>
         <div className="flex flex-wrap gap-2 mb-6">
           <ShareLinkButton entityType="service" entityId={svc.id} entityName={svc.title} />
+          <GiveTrustButton targetNodeType={TrustNodeType.SERVICE} targetNodeId={svc.id} targetName={svc.title} />
           <BookingLinkButton serviceId={svc.id} serviceName={svc.title} />
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
           {canManage && (

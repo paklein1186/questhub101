@@ -18,7 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { PageShell } from "@/components/PageShell";
 import { CommentThread } from "@/components/CommentThread";
 import { ProfileWallSection } from "@/components/feed/ProfileWallSection";
-import { CommentTargetType, FollowTargetType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, ReportTargetType, TrustNodeType } from "@/types/enums";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ReportButton } from "@/components/ReportButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
@@ -570,6 +570,7 @@ export default function UserProfile() {
                     </Button>
                   )}
                   <ShareLinkButton entityType="profile" entityId={profile.userId} entityName={profile.name} />
+                  {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.PROFILE} targetNodeId={profile.userId} targetName={profile.name} />}
                   {isLoggedIn && <ReportButton targetType={ReportTargetType.USER} targetId={profile.userId} />}
                 </div>
               )}
