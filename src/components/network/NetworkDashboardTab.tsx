@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, X, Loader2, UserPlus, MessageSquareWarning, Vote,
-  Shield, Building2, Users, Eye, ExternalLink, Handshake,
+  Shield, Building2, Users, Eye, ExternalLink, Handshake, RefreshCw,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { TrustRenewalWidget } from "@/components/trust/TrustRenewalWidget";
 
 // ─── Helpers ────────────────────────────────────────────────
 function SectionShell({ icon: Icon, title, count, children, emptyMsg }: {
@@ -267,10 +268,13 @@ export default function NetworkDashboardTab() {
 
   if (adminEntities.length === 0) {
     return (
-      <div className="text-center py-16 space-y-3">
-        <Shield className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-        <p className="text-muted-foreground">You're not an admin of any entity yet.</p>
-        <p className="text-xs text-muted-foreground">Create or join a guild, pod, or organization to see your admin dashboard here.</p>
+      <div className="space-y-8">
+        <TrustRenewalWidget />
+        <div className="text-center py-16 space-y-3">
+          <Shield className="h-10 w-10 text-muted-foreground/40 mx-auto" />
+          <p className="text-muted-foreground">You're not an admin of any entity yet.</p>
+          <p className="text-xs text-muted-foreground">Create or join a guild, pod, or organization to see your admin dashboard here.</p>
+        </div>
       </div>
     );
   }
@@ -279,6 +283,9 @@ export default function NetworkDashboardTab() {
 
   return (
     <div className="space-y-8">
+      {/* Trust renewal widget — visible to all users */}
+      <TrustRenewalWidget />
+
       {/* Summary bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card><CardContent className="py-4 text-center">
