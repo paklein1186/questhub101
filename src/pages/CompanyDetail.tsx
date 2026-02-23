@@ -48,6 +48,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
 import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 
 export default function CompanyDetail() {
   const navigate = useNavigate();
@@ -342,6 +343,10 @@ export default function CompanyDetail() {
 
         {/* Members */}
         <TabsContent value="members" className="mt-6 space-y-4">
+          <TopTrustedMembers
+            memberIds={(membersData || []).map((m: any) => m.user_id)}
+            relevantTags={(company.company_topics || []).map((ct: any) => ct.topics?.name).filter(Boolean)}
+          />
           {isAdmin && (
             <EntityApplicationsTab entityType="company" entityId={company.id} currentUserId={currentUser.id} />
           )}
