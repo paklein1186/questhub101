@@ -71,7 +71,9 @@ export function useQuestParticipants(questId: string | undefined) {
         .select("user_id, name, avatar_url")
         .in("user_id", userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
-      return data.map(p => ({ ...p, user: profileMap.get(p.user_id) }));
+      return data
+        .filter(p => profileMap.has(p.user_id))
+        .map(p => ({ ...p, user: profileMap.get(p.user_id) }));
     },
     enabled: !!questId,
   });
