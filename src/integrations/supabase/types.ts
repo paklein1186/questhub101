@@ -3722,6 +3722,7 @@ export type Database = {
           allow_wall_comments: boolean
           avatar_url: string | null
           bio: string | null
+          community_xp: number
           contribution_index: number
           created_at: string
           credits_balance: number
@@ -3749,6 +3750,7 @@ export type Database = {
           lifetime_credits_spent: number
           linkedin_url: string | null
           location: string | null
+          maker_xp: number
           milestone_popups_enabled: boolean
           name: string
           persona_confidence: number | null
@@ -3757,11 +3759,16 @@ export type Database = {
           preferred_language: string
           public_visibility: string
           pulse_nudge_sent: boolean
+          resource_catalyst_xp: number
           role: string
+          stewardship_xp: number
           stripe_account_id: string | null
           stripe_onboarding_complete: boolean
+          tech_commons_xp: number
           total_shares_a: number
           total_shares_b: number
+          trust_xp_granted_this_month: number
+          trust_xp_month_key: string
           twitter_url: string | null
           updated_at: string
           user_id: string
@@ -3770,12 +3777,14 @@ export type Database = {
           website_url: string | null
           xp: number
           xp_level: number
+          xp_pending: number
           xp_recent_12m: number
         }
         Insert: {
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
+          community_xp?: number
           contribution_index?: number
           created_at?: string
           credits_balance?: number
@@ -3803,6 +3812,7 @@ export type Database = {
           lifetime_credits_spent?: number
           linkedin_url?: string | null
           location?: string | null
+          maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null
@@ -3811,11 +3821,16 @@ export type Database = {
           preferred_language?: string
           public_visibility?: string
           pulse_nudge_sent?: boolean
+          resource_catalyst_xp?: number
           role?: string
+          stewardship_xp?: number
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
+          tech_commons_xp?: number
           total_shares_a?: number
           total_shares_b?: number
+          trust_xp_granted_this_month?: number
+          trust_xp_month_key?: string
           twitter_url?: string | null
           updated_at?: string
           user_id: string
@@ -3824,12 +3839,14 @@ export type Database = {
           website_url?: string | null
           xp?: number
           xp_level?: number
+          xp_pending?: number
           xp_recent_12m?: number
         }
         Update: {
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
+          community_xp?: number
           contribution_index?: number
           created_at?: string
           credits_balance?: number
@@ -3857,6 +3874,7 @@ export type Database = {
           lifetime_credits_spent?: number
           linkedin_url?: string | null
           location?: string | null
+          maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
           persona_confidence?: number | null
@@ -3865,11 +3883,16 @@ export type Database = {
           preferred_language?: string
           public_visibility?: string
           pulse_nudge_sent?: boolean
+          resource_catalyst_xp?: number
           role?: string
+          stewardship_xp?: number
           stripe_account_id?: string | null
           stripe_onboarding_complete?: boolean
+          tech_commons_xp?: number
           total_shares_a?: number
           total_shares_b?: number
+          trust_xp_granted_this_month?: number
+          trust_xp_month_key?: string
           twitter_url?: string | null
           updated_at?: string
           user_id?: string
@@ -3878,6 +3901,7 @@ export type Database = {
           website_url?: string | null
           xp?: number
           xp_level?: number
+          xp_pending?: number
           xp_recent_12m?: number
         }
         Relationships: []
@@ -6887,6 +6911,13 @@ export type Database = {
         Returns: {
           refunded_count: number
           refunded_total: number
+        }[]
+      }
+      release_pending_trust_xp: {
+        Args: never
+        Returns: {
+          total_released: number
+          users_processed: number
         }[]
       }
       set_user_role:
