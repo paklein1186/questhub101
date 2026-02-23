@@ -870,6 +870,8 @@
       "APPLICATION_APPROVED": "Candidature approuvée !",
       "APPLICATION_REJECTED": "Candidature refusée",
       "CREDIT_RECEIVED": "Crédits reçus",
+      "TRUST_RENEWAL_DUE": "Renouvellement de confiance",
+      "TRUST_EDGE_OUTDATED": "Attestation de confiance expirée",
       "milestone_completed": "Étape franchie"
     },
     "bodies": {
