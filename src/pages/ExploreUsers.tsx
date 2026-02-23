@@ -1,7 +1,7 @@
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map } from "lucide-react";
+import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -24,6 +24,7 @@ import { redactName } from "@/lib/publicMode";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { FollowOnHoverButton, useFollowedUserIds } from "@/components/FollowOnHoverButton";
+import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
 
 // ─── Types ───────────────────────────────────────────────────
 interface ExploreUser {
@@ -421,11 +422,12 @@ export default function ExploreUsers({ bare }: { bare?: boolean }) {
 function UserCardGrid({ users, isLoggedIn }: { users: ExploreUser[]; isLoggedIn: boolean }) {
   const userIds = useMemo(() => users.map(u => u.user_id), [users]);
   const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
+  const { data: trustMap } = useTrustSummaryBatch("profile", userIds);
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {users.map((u) => (
-        <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} isFollowed={followedIds.has(u.user_id)} />
+        <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} isFollowed={followedIds.has(u.user_id)} trustSummary={trustMap?.[u.user_id]} />
       ))}
     </div>
   );
@@ -433,7 +435,7 @@ function UserCardGrid({ users, isLoggedIn }: { users: ExploreUser[]; isLoggedIn:
 
 // ─── User Card ───────────────────────────────────────────────
 
-function UserCard({ user, isLoggedIn, isFollowed = false }: { user: ExploreUser; isLoggedIn: boolean; isFollowed?: boolean }) {
+function UserCard({ user, isLoggedIn, isFollowed = false, trustSummary }: { user: ExploreUser; isLoggedIn: boolean; isFollowed?: boolean; trustSummary?: import("@/hooks/useTrustSummary").TrustSummary }) {
   const displayName = isLoggedIn ? user.name : redactName(user.name);
   const personaLabel = PERSONA_LABELS[user.persona_type];
 
@@ -462,12 +464,31 @@ function UserCard({ user, isLoggedIn, isFollowed = false }: { user: ExploreUser;
             <Badge variant="outline" className="text-[10px] mt-1">{ROLE_LABELS[user.role] ?? user.role}</Badge>
           )}
         </div>
-      {isLoggedIn && user.xp > 0 && (
-          <XpLevelBadge level={computeLevelFromXp(user.xp)} xp={user.xp} compact />
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {isLoggedIn && user.xp > 0 && (
+            <XpLevelBadge level={computeLevelFromXp(user.xp)} xp={user.xp} compact />
+          )}
+          {trustSummary && trustSummary.publicAttestationCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary">
+              <Shield className="h-3 w-3" />
+              {trustSummary.trustScoreGlobal}
+            </span>
+          )}
+        </div>
       </div>
+      {/* Trust tags */}
+      {trustSummary && trustSummary.topTags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {trustSummary.topTags.slice(0, 2).map((tag) => (
+            <Badge key={tag} variant="outline" className="text-[9px] px-1 py-0 h-4 bg-primary/5 border-primary/20">{tag}</Badge>
+          ))}
+          {trustSummary.publicAttestationCount > 0 && (
+            <span className="text-[9px] text-muted-foreground">· {trustSummary.publicAttestationCount} attestation{trustSummary.publicAttestationCount !== 1 ? "s" : ""}</span>
+          )}
+        </div>
+      )}
       {user.topics.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-3">
+        <div className="flex flex-wrap gap-1 mt-2">
           {user.topics.slice(0, 3).map((t) => (
             <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0 bg-muted/50">{t.name}</Badge>
           ))}

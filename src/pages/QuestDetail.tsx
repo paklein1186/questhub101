@@ -58,6 +58,7 @@ import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } fro
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -973,6 +974,12 @@ export default function QuestDetail() {
         </div>
 
         <TabsContent value="overview" className="mt-6 space-y-6">
+          {/* Top trusted participants */}
+          <TopTrustedMembers
+            memberIds={(participants || []).map((p: any) => p.user_id)}
+            relevantTags={(quest.quest_topics || []).map((qt: any) => qt.topics?.name).filter(Boolean)}
+          />
+
           {/* Co-hosts management */}
           {(quest.guild_id || quest.company_id) && resolvedHosts && (
             <QuestCoHostsManager

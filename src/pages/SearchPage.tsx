@@ -12,6 +12,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
 import { useQuery } from "@tanstack/react-query";
+import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
+import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
 
 const TYPE_META: Record<SearchResultType, { label: string; icon: typeof Users; color: string }> = {
   USER: { label: "Users", icon: Users, color: "text-blue-600" },
@@ -60,6 +62,28 @@ export default function SearchPage() {
     }
     return map;
   }, [filtered]);
+
+  // Map search result types to trust node types
+  const TRUST_NODE_MAP: Record<string, string> = { USER: "profile", GUILD: "guild", QUEST: "quest", SERVICE: "service", COMPANY: "partner_entity" };
+  const trustableIds = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const r of filtered) {
+      const nodeType = TRUST_NODE_MAP[r.type];
+      if (nodeType) {
+        if (!map[nodeType]) map[nodeType] = [];
+        map[nodeType].push(r.id);
+      }
+    }
+    return map;
+  }, [filtered]);
+
+  const { data: profileTrust } = useTrustSummaryBatch("profile", trustableIds["profile"] ?? []);
+  const { data: guildTrust } = useTrustSummaryBatch("guild", trustableIds["guild"] ?? []);
+  const { data: questTrust } = useTrustSummaryBatch("quest", trustableIds["quest"] ?? []);
+  const { data: serviceTrust } = useTrustSummaryBatch("service", trustableIds["service"] ?? []);
+  const { data: companyTrust } = useTrustSummaryBatch("partner_entity", trustableIds["partner_entity"] ?? []);
+
+  const allTrust = useMemo(() => ({ ...profileTrust, ...guildTrust, ...questTrust, ...serviceTrust, ...companyTrust }), [profileTrust, guildTrust, questTrust, serviceTrust, companyTrust]);
 
   return (
     <PageShell>
@@ -137,12 +161,13 @@ export default function SearchPage() {
                         <Card className="hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
                           <CardContent className="p-0 flex items-stretch gap-0">
                             <UnitCoverImage type={item.type as UnitType} imageUrl={(item as any).imageUrl} logoUrl={(item as any).logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
-                            <div className="p-4 min-w-0 flex flex-col justify-center">
+                             <div className="p-4 min-w-0 flex flex-col justify-center flex-1">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <Badge variant="outline" className="text-[10px] shrink-0">{item.type}</Badge>
                               </div>
                               <p className="font-medium truncate">{item.title}</p>
                               {item.subtitle && <p className="text-sm text-muted-foreground truncate">{item.subtitle}</p>}
+                              <TrustSummaryBadge summary={allTrust[item.id]} variant="full" />
                             </div>
                           </CardContent>
                         </Card>

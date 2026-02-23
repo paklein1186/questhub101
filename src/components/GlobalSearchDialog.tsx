@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
+import { Search, Shield } from "lucide-react";
 import {
   CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { globalSearch, type SearchResult, type SearchResultType } from "@/lib/search";
+import { useTrustSummaryBatch } from "@/hooks/useTrustSummary";
 
 const TYPE_I18N_KEYS: Record<SearchResultType, string> = {
   USER: "search.users",
@@ -68,6 +69,23 @@ export function GlobalSearchDialog() {
     return map;
   })();
 
+  const TRUST_NODE_MAP: Record<string, string> = { USER: "profile", GUILD: "guild", QUEST: "quest", SERVICE: "service", COMPANY: "partner_entity" };
+  const trustableIds = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const r of results) {
+      const nt = TRUST_NODE_MAP[r.type];
+      if (nt) { if (!map[nt]) map[nt] = []; map[nt].push(r.id); }
+    }
+    return map;
+  }, [results]);
+
+  const { data: profileTrust } = useTrustSummaryBatch("profile", trustableIds["profile"] ?? []);
+  const { data: guildTrust } = useTrustSummaryBatch("guild", trustableIds["guild"] ?? []);
+  const { data: questTrust } = useTrustSummaryBatch("quest", trustableIds["quest"] ?? []);
+  const { data: serviceTrust } = useTrustSummaryBatch("service", trustableIds["service"] ?? []);
+  const { data: companyTrust } = useTrustSummaryBatch("partner_entity", trustableIds["partner_entity"] ?? []);
+  const allTrust = useMemo(() => ({ ...profileTrust, ...guildTrust, ...questTrust, ...serviceTrust, ...companyTrust }), [profileTrust, guildTrust, questTrust, serviceTrust, companyTrust]);
+
   const handleSelect = useCallback(
     (url: string) => {
       setOpen(false);
@@ -120,9 +138,15 @@ export function GlobalSearchDialog() {
                     {t(TYPE_I18N_KEYS[item.type])}
                   </Badge>
                   <span className="font-medium">{item.title}</span>
-                  {item.subtitle && (
+                   {item.subtitle && (
                     <span className="ml-2 text-muted-foreground text-xs truncate max-w-[200px]">
                       {item.subtitle}
+                    </span>
+                  )}
+                  {allTrust[item.id] && allTrust[item.id].publicAttestationCount > 0 && (
+                    <span className="ml-auto flex items-center gap-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400 shrink-0">
+                      <Shield className="h-3 w-3" />
+                      {allTrust[item.id].trustScoreGlobal}
                     </span>
                   )}
                 </CommandItem>

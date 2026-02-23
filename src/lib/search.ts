@@ -8,6 +8,9 @@ export interface SearchResult {
   title: string;
   subtitle?: string;
   url: string;
+  trustScore?: number;
+  trustTopTags?: string[];
+  trustCount?: number;
 }
 
 export interface SearchFilters {
