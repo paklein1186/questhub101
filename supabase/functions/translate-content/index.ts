@@ -91,7 +91,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a professional translator. Translate the following text to ${targetLangName}. Return ONLY the translated text, nothing else. Preserve any markdown formatting. Keep proper nouns, brand names, and technical terms unchanged.`,
+            content: `You are a professional translator. Translate the following text to ${targetLangName}. Return ONLY the translated text, nothing else. Preserve any markdown formatting. Keep proper nouns, brand names, and technical terms unchanged. CRITICAL: Preserve all @mention tokens exactly as they appear. They follow the format @[Name](type:id) — do NOT modify, translate, or remove these tokens. Copy them verbatim into the translated output.`,
           },
           { role: "user", content: text },
         ],
