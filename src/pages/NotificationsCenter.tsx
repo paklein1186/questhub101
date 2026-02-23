@@ -164,6 +164,8 @@ function dayLabel(dateStr: string, t: ReturnType<typeof useTranslation>["t"], la
 export default function NotificationsCenter() {
   const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotifications();
   const { session } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { isAdmin: showAdminTabs } = useUserRoles(session?.user?.id);
   const [readFilter, setReadFilter] = useState<"all" | "unread" | "admin" | "system">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
