@@ -231,7 +231,7 @@ export default function NotificationsCenter() {
                   readFilter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                {f === "admin" ? "Admin" : f === "system" ? "System" : f === "unread" ? "Unread" : "All"}
+                {f === "admin" ? t("notifications.admin") : f === "system" ? t("notifications.system") : f === "unread" ? t("notifications.unreadLabel") : t("notifications.all")}
               </button>
             ))}
           </div>
