@@ -268,7 +268,7 @@ export default function NotificationsCenter() {
         <div className="text-center py-16">
           <Bell className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
           <p className="text-muted-foreground">
-            {readFilter === "unread" ? "No unread notifications." : "No notifications yet."}
+            {readFilter === "unread" ? t("notifications.noUnread") : t("notifications.noNotifications")}
           </p>
         </div>
       )}
