@@ -5908,6 +5908,94 @@ export type Database = {
         }
         Relationships: []
       }
+      trust_edges: {
+        Row: {
+          context_guild_id: string | null
+          context_quest_id: string | null
+          context_territory_id: string | null
+          created_at: string
+          created_by: string
+          edge_type: Database["public"]["Enums"]["trust_edge_type"]
+          evidence_url: string | null
+          from_node_id: string
+          from_node_type: Database["public"]["Enums"]["trust_node_type"]
+          id: string
+          last_confirmed_at: string | null
+          note: string | null
+          score: number
+          status: Database["public"]["Enums"]["trust_status"]
+          tags: string[] | null
+          to_node_id: string
+          to_node_type: Database["public"]["Enums"]["trust_node_type"]
+          updated_at: string
+          visibility: Database["public"]["Enums"]["trust_visibility"]
+        }
+        Insert: {
+          context_guild_id?: string | null
+          context_quest_id?: string | null
+          context_territory_id?: string | null
+          created_at?: string
+          created_by: string
+          edge_type: Database["public"]["Enums"]["trust_edge_type"]
+          evidence_url?: string | null
+          from_node_id: string
+          from_node_type: Database["public"]["Enums"]["trust_node_type"]
+          id?: string
+          last_confirmed_at?: string | null
+          note?: string | null
+          score?: number
+          status?: Database["public"]["Enums"]["trust_status"]
+          tags?: string[] | null
+          to_node_id: string
+          to_node_type: Database["public"]["Enums"]["trust_node_type"]
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["trust_visibility"]
+        }
+        Update: {
+          context_guild_id?: string | null
+          context_quest_id?: string | null
+          context_territory_id?: string | null
+          created_at?: string
+          created_by?: string
+          edge_type?: Database["public"]["Enums"]["trust_edge_type"]
+          evidence_url?: string | null
+          from_node_id?: string
+          from_node_type?: Database["public"]["Enums"]["trust_node_type"]
+          id?: string
+          last_confirmed_at?: string | null
+          note?: string | null
+          score?: number
+          status?: Database["public"]["Enums"]["trust_status"]
+          tags?: string[] | null
+          to_node_id?: string
+          to_node_type?: Database["public"]["Enums"]["trust_node_type"]
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["trust_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trust_edges_context_guild_id_fkey"
+            columns: ["context_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trust_edges_context_quest_id_fkey"
+            columns: ["context_quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trust_edges_context_territory_id_fkey"
+            columns: ["context_territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       unit_agents: {
         Row: {
           admitted_at: string
@@ -6897,6 +6985,21 @@ export type Database = {
         | "PROVINCE"
         | "CONTINENT"
         | "GLOBAL"
+      trust_edge_type:
+        | "skill_trust"
+        | "reliability"
+        | "collaboration"
+        | "stewardship"
+        | "financial_trust"
+      trust_node_type:
+        | "profile"
+        | "guild"
+        | "quest"
+        | "service"
+        | "partner_entity"
+        | "territory"
+      trust_status: "active" | "outdated" | "retracted"
+      trust_visibility: "public" | "network" | "private"
       xp_transaction_type:
         | "PURCHASE"
         | "ACTION_SPEND"
@@ -7092,6 +7195,23 @@ export const Constants = {
         "CONTINENT",
         "GLOBAL",
       ],
+      trust_edge_type: [
+        "skill_trust",
+        "reliability",
+        "collaboration",
+        "stewardship",
+        "financial_trust",
+      ],
+      trust_node_type: [
+        "profile",
+        "guild",
+        "quest",
+        "service",
+        "partner_entity",
+        "territory",
+      ],
+      trust_status: ["active", "outdated", "retracted"],
+      trust_visibility: ["public", "network", "private"],
       xp_transaction_type: [
         "PURCHASE",
         "ACTION_SPEND",
