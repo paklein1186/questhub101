@@ -58,6 +58,7 @@ import { ActivityHistoryTab } from "@/components/ActivityHistoryTab";
 import { StripeConnectSection } from "@/components/StripeConnectSection";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
+import { IcsFeedsManager } from "@/components/IcsFeedsManager";
 
 
 const TABS = [
@@ -782,7 +783,13 @@ export default function SettingsPage() {
               )}
 
               {/* ── Calendar Sync ── */}
-              {activeTab === "calendar" && <CalendarSyncTab />}
+              {activeTab === "calendar" && (
+                <div className="space-y-8">
+                  <CalendarSyncTab />
+                  <Separator />
+                  <IcsFeedsManager />
+                </div>
+              )}
 
               {/* ── Connected Apps ── */}
               {activeTab === "apps" && (
