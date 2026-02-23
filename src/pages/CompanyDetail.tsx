@@ -5,7 +5,7 @@ import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
   Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake, ListChecks,
-  LayoutList, LayoutGrid,
+  LayoutList, LayoutGrid, Shield,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
