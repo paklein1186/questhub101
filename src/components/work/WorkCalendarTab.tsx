@@ -83,6 +83,36 @@ export function WorkCalendarTab() {
       return stored ? new Set(JSON.parse(stored)) : new Set();
     } catch { return new Set(); }
   });
+
+  // Load DB subcalendar preferences and sync to local state on mount
+  const { data: dbSubcalPrefs } = useQuery({
+    queryKey: ["subcalendar-prefs", currentUser.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .select("source_calendar_id, is_enabled, connection_id")
+        .eq("user_id", currentUser.id!);
+      return data || [];
+    },
+    enabled: !!currentUser.id,
+  });
+
+  // Sync DB prefs into local state once loaded
+  useEffect(() => {
+    if (!dbSubcalPrefs || dbSubcalPrefs.length === 0) return;
+    const dbHidden = new Set<string>();
+    for (const p of dbSubcalPrefs) {
+      if (!p.is_enabled) dbHidden.add(p.source_calendar_id);
+    }
+    if (dbHidden.size > 0) {
+      setHiddenCalendars(prev => {
+        const merged = new Set([...prev, ...dbHidden]);
+        localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(merged)));
+        return merged;
+      });
+    }
+  }, [dbSubcalPrefs]);
+
   type ViewMode = "day" | "3day" | "week" | "month";
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     try {
@@ -138,6 +168,36 @@ export function WorkCalendarTab() {
     },
     enabled: !!currentUser.id,
   });
+
+  // One-time: seed DB from localStorage hidden calendars that have no DB record yet
+  const [dbSeeded, setDbSeeded] = useState(false);
+  useEffect(() => {
+    if (dbSeeded || !currentUser.id || !externalEvents.length) return;
+    if (hiddenCalendars.size === 0) { setDbSeeded(true); return; }
+    const meta = new Map<string, { connectionId: string; name: string }>();
+    externalEvents.forEach((ext: any) => {
+      if (ext.source_calendar_id && ext.connection_id) {
+        meta.set(ext.source_calendar_id, { connectionId: ext.connection_id, name: ext.source_calendar_name || ext.source_calendar_id });
+      }
+    });
+    const dbCalIds = new Set((dbSubcalPrefs || []).map((p: any) => p.source_calendar_id));
+    const toSeed = Array.from(hiddenCalendars).filter(calId => !dbCalIds.has(calId) && meta.has(calId));
+    if (toSeed.length > 0) {
+      const rows = toSeed.map(calId => ({
+        user_id: currentUser.id,
+        connection_id: meta.get(calId)!.connectionId,
+        source_calendar_id: calId,
+        source_calendar_name: meta.get(calId)!.name,
+        is_enabled: false,
+        updated_at: new Date().toISOString(),
+      }));
+      (supabase as any)
+        .from("calendar_subcalendar_preferences")
+        .upsert(rows, { onConflict: "user_id,connection_id,source_calendar_id" })
+        .then(() => {});
+    }
+    setDbSeeded(true);
+  }, [currentUser.id, externalEvents, hiddenCalendars, dbSubcalPrefs, dbSeeded]);
 
   // Normalize into CalendarEvent[]
   const events: CalendarEvent[] = useMemo(() => {
@@ -215,12 +275,44 @@ export function WorkCalendarTab() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [events]);
 
+  // Build a map: sourceCalendarId → { connectionId, name } from external events
+  const sourceCalendarMeta = useMemo(() => {
+    const map = new Map<string, { connectionId: string; name: string }>();
+    externalEvents.forEach((ext: any) => {
+      if (ext.source_calendar_id && ext.connection_id) {
+        map.set(ext.source_calendar_id, {
+          connectionId: ext.connection_id,
+          name: ext.source_calendar_name || ext.source_calendar_id,
+        });
+      }
+    });
+    return map;
+  }, [externalEvents]);
+
   const toggleCalendar = (calId: string) => {
     setHiddenCalendars((prev) => {
       const next = new Set(prev);
-      if (next.has(calId)) next.delete(calId);
-      else next.add(calId);
+      const willBeHidden = !next.has(calId);
+      if (willBeHidden) next.add(calId);
+      else next.delete(calId);
       localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(next)));
+
+      // Persist to DB for slot generation filtering
+      const meta = sourceCalendarMeta.get(calId);
+      if (meta && currentUser.id) {
+        (supabase as any)
+          .from("calendar_subcalendar_preferences")
+          .upsert({
+            user_id: currentUser.id,
+            connection_id: meta.connectionId,
+            source_calendar_id: calId,
+            source_calendar_name: meta.name,
+            is_enabled: !willBeHidden,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id,connection_id,source_calendar_id" })
+          .then(() => {});
+      }
+
       return next;
     });
   };
