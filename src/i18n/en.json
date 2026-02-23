@@ -782,6 +782,8 @@
       "APPLICATION_APPROVED": "Application approved!",
       "APPLICATION_REJECTED": "Application not accepted",
       "CREDIT_RECEIVED": "Credits received",
+      "TRUST_RENEWAL_DUE": "Trust renewal due",
+      "TRUST_EDGE_OUTDATED": "Trust attestation expired",
       "milestone_completed": "Milestone completed"
     },
     "bodies": {
@@ -798,7 +800,9 @@
       "upvotedPost": "{{actor}} upvoted your post",
       "wantsToJoin": "{{applicant}} wants to join {{entity}}",
       "applicationApproved": "Your application to join {{entity}} was approved!",
-      "applicationRejected": "Your application to join {{entity}} was not accepted"
+      "applicationRejected": "Your application to join {{entity}} was not accepted",
+      "trustRenewalDue": "Do you still vouch for {{name}}? Renew or retract your attestation.",
+      "trustEdgeOutdated": "Your trust attestation for {{name}} has expired. You can reactivate it from your network dashboard."
     },
     "categories": {
       "Quests": "Quests",
