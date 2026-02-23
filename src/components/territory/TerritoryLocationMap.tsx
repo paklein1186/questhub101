@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -6,7 +6,14 @@ import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+
+// Fix default marker icons (Leaflet + bundler issue)
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 /* ── helpers ── */
 
@@ -56,6 +63,8 @@ const userIcon = new L.DivIcon({
 function FitView({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   useEffect(() => {
+    // Fix grey tiles by forcing a resize recalculation
+    setTimeout(() => map.invalidateSize(), 100);
     map.setView(center, zoom, { animate: false });
   }, [center, zoom, map]);
   return null;
@@ -170,7 +179,6 @@ export function TerritoryLocationMap({ territoryId }: Props) {
         zoom={zoomForLevel(territory!.level ?? undefined)}
         scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
-        className="z-0"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
