@@ -98,3 +98,109 @@ function roundRecord(rec: Record<string, number>): Record<string, number> {
   }
   return out;
 }
+
+// ─── Pre-validation helpers ─────────────────────────────────
+
+export interface TrustEdgePreCheck {
+  canCreate: boolean;
+  publicThisWeek: number;
+  hasPairCooldown: boolean;
+  isReciprocalRecent: boolean;
+  warnings: string[];
+}
+
+export async function preCheckTrustEdge(
+  creatorId: string,
+  fromNodeType: string,
+  fromNodeId: string,
+  toNodeType: string,
+  toNodeId: string,
+  edgeType: string,
+  visibility: string
+): Promise<TrustEdgePreCheck> {
+  const warnings: string[] = [];
+  let canCreate = true;
+
+  // 1. Public weekly limit
+  let publicThisWeek = 0;
+  if (visibility === "public") {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from("trust_edges")
+      .select("id", { count: "exact", head: true })
+      .eq("created_by", creatorId)
+      .eq("visibility", "public")
+      .gte("created_at", weekStart.toISOString());
+
+    publicThisWeek = count ?? 0;
+    if (publicThisWeek >= 3) {
+      warnings.push("You've reached your limit of 3 public attestations this week. Switch to network or private visibility, or wait until next week.");
+      canCreate = false;
+    }
+  }
+
+  // 2. Pair cooldown (6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const { count: pairCount } = await supabase
+    .from("trust_edges")
+    .select("id", { count: "exact", head: true })
+    .eq("from_node_type", fromNodeType as any)
+    .eq("from_node_id", fromNodeId)
+    .eq("to_node_type", toNodeType as any)
+    .eq("to_node_id", toNodeId)
+    .eq("edge_type", edgeType as any)
+    .eq("status", "active" as any)
+    .gte("created_at", sixMonthsAgo.toISOString());
+
+  const hasPairCooldown = (pairCount ?? 0) > 0;
+  if (hasPairCooldown) {
+    warnings.push("You already have an active attestation of this type for this entity from the last 6 months.");
+    canCreate = false;
+  }
+
+  // 3. Reciprocal within 48h
+  let isReciprocalRecent = false;
+  if (fromNodeType === "profile" && toNodeType === "profile") {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setHours(twoDaysAgo.getHours() - 48);
+
+    const { count: recipCount } = await supabase
+      .from("trust_edges")
+      .select("id", { count: "exact", head: true })
+      .eq("from_node_type", "profile")
+      .eq("from_node_id", toNodeId)
+      .eq("to_node_type", "profile")
+      .eq("to_node_id", fromNodeId)
+      .eq("status", "active")
+      .gte("created_at", twoDaysAgo.toISOString());
+
+    isReciprocalRecent = (recipCount ?? 0) > 0;
+    if (isReciprocalRecent) {
+      warnings.push("This person attested trust in you within the last 48 hours. XP rewards will be halved unless you provide an evidence URL.");
+    }
+  }
+
+  return { canCreate, publicThisWeek, hasPairCooldown, isReciprocalRecent, warnings };
+}
+
+// ─── Error parser for DB constraint exceptions ──────────────
+export function parseTrustEdgeError(errorMessage: string): string {
+  if (errorMessage.includes("TRUST_LIMIT_PUBLIC_WEEKLY:")) {
+    return errorMessage.split("TRUST_LIMIT_PUBLIC_WEEKLY:")[1];
+  }
+  if (errorMessage.includes("TRUST_LIMIT_PAIR_COOLDOWN:")) {
+    return errorMessage.split("TRUST_LIMIT_PAIR_COOLDOWN:")[1];
+  }
+  if (errorMessage.includes("Score must be between")) {
+    return "Score must be between 1 and 5.";
+  }
+  if (errorMessage.includes("Note must be 300")) {
+    return "Note must be 300 characters or fewer.";
+  }
+  return "Failed to create trust attestation. Please try again.";
+}
