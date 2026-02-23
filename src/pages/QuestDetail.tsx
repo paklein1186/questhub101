@@ -1273,6 +1273,10 @@ export default function QuestDetail() {
             <GuildRitualsTab questId={quest.id} isAdmin={isOwner} isMember={isParticipant || false} />
           </TabsContent>
         )}
+
+        <TabsContent value="trust" className="mt-6">
+          <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
+        </TabsContent>
         
       </Tabs>
 

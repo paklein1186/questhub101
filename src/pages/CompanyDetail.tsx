@@ -335,6 +335,11 @@ export default function CompanyDetail() {
           <PartnershipsTab entityType="COMPANY" entityId={company.id} isAdmin={isAdmin} />
         </TabsContent>
 
+        {/* Trust */}
+        <TabsContent value="trust" className="mt-6">
+          <TrustTab nodeType={TrustNodeType.PARTNER_ENTITY} nodeId={company.id} />
+        </TabsContent>
+
         {/* Members */}
         <TabsContent value="members" className="mt-6 space-y-4">
           {isAdmin && (

@@ -542,6 +542,10 @@ export default function GuildDetail() {
           <PartnershipsTab entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
         </TabsContent>
 
+        <TabsContent value="trust" className="mt-6">
+          <TrustTab nodeType={TrustNodeType.GUILD} nodeId={guild.id} />
+        </TabsContent>
+
 
         <TabsContent value="members" className="mt-6 space-y-4">
           {isAdmin && (
