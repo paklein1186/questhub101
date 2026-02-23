@@ -5932,6 +5932,35 @@ export type Database = {
         }
         Relationships: []
       }
+      trust_edge_useful_marks: {
+        Row: {
+          created_at: string
+          id: string
+          trust_edge_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          trust_edge_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          trust_edge_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trust_edge_useful_marks_trust_edge_id_fkey"
+            columns: ["trust_edge_id"]
+            isOneToOne: false
+            referencedRelation: "trust_edges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trust_edges: {
         Row: {
           context_guild_id: string | null
@@ -5939,19 +5968,23 @@ export type Database = {
           context_territory_id: string | null
           created_at: string
           created_by: string
+          creator_credit_granted: boolean
           edge_type: Database["public"]["Enums"]["trust_edge_type"]
           evidence_url: string | null
           from_node_id: string
           from_node_type: Database["public"]["Enums"]["trust_node_type"]
           id: string
           last_confirmed_at: string | null
+          mutual_credit_granted: boolean
           note: string | null
+          renewal_credit_granted: boolean
           score: number
           status: Database["public"]["Enums"]["trust_status"]
           tags: string[] | null
           to_node_id: string
           to_node_type: Database["public"]["Enums"]["trust_node_type"]
           updated_at: string
+          useful_credit_granted: boolean
           visibility: Database["public"]["Enums"]["trust_visibility"]
         }
         Insert: {
@@ -5960,19 +5993,23 @@ export type Database = {
           context_territory_id?: string | null
           created_at?: string
           created_by: string
+          creator_credit_granted?: boolean
           edge_type: Database["public"]["Enums"]["trust_edge_type"]
           evidence_url?: string | null
           from_node_id: string
           from_node_type: Database["public"]["Enums"]["trust_node_type"]
           id?: string
           last_confirmed_at?: string | null
+          mutual_credit_granted?: boolean
           note?: string | null
+          renewal_credit_granted?: boolean
           score?: number
           status?: Database["public"]["Enums"]["trust_status"]
           tags?: string[] | null
           to_node_id: string
           to_node_type: Database["public"]["Enums"]["trust_node_type"]
           updated_at?: string
+          useful_credit_granted?: boolean
           visibility?: Database["public"]["Enums"]["trust_visibility"]
         }
         Update: {
@@ -5981,19 +6018,23 @@ export type Database = {
           context_territory_id?: string | null
           created_at?: string
           created_by?: string
+          creator_credit_granted?: boolean
           edge_type?: Database["public"]["Enums"]["trust_edge_type"]
           evidence_url?: string | null
           from_node_id?: string
           from_node_type?: Database["public"]["Enums"]["trust_node_type"]
           id?: string
           last_confirmed_at?: string | null
+          mutual_credit_granted?: boolean
           note?: string | null
+          renewal_credit_granted?: boolean
           score?: number
           status?: Database["public"]["Enums"]["trust_status"]
           tags?: string[] | null
           to_node_id?: string
           to_node_type?: Database["public"]["Enums"]["trust_node_type"]
           updated_at?: string
+          useful_credit_granted?: boolean
           visibility?: Database["public"]["Enums"]["trust_visibility"]
         }
         Relationships: [
