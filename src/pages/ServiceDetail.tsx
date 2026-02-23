@@ -59,6 +59,8 @@ import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
 import { canManageServiceSync } from "@/lib/serviceOwnership";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { useTrustSummary } from "@/hooks/useTrustSummary";
+import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -74,6 +76,7 @@ export default function ServiceDetail() {
   const [weekOffset, setWeekOffset] = useState(0);
 
   const { data: provider } = usePublicProfile(svc?.provider_user_id ?? undefined);
+  const { data: providerTrust } = useTrustSummary("profile", svc?.provider_user_id ?? undefined);
   const { data: guild } = useGuildById(svc?.provider_guild_id ?? undefined);
   const ownerType = (svc as any)?.owner_type || "USER";
   const companyId = ownerType === "COMPANY" ? (svc as any)?.owner_id : undefined;
@@ -327,6 +330,7 @@ export default function ServiceDetail() {
               <Avatar className="h-6 w-6"><AvatarImage src={provider.avatar_url ?? undefined} /><AvatarFallback>{provider.name?.[0]}</AvatarFallback></Avatar>
               <span className="font-medium">Offered by <span className="text-foreground">{provider.name}</span></span>
               {provider.xp != null && <XpLevelBadge level={computeLevelFromXp(provider.xp)} compact />}
+              <TrustSummaryBadge summary={providerTrust} variant="compact" />
             </Link>
           ) : null}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
