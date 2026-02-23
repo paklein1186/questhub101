@@ -36,9 +36,9 @@ import {
 
 // ─── Step config ──────────────────────────────────────────────
 // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=people, 8=project, 9=service, 10=done
-const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "People to Follow", "Proud Project", "Skill Session", "Get Started"];
-// Impact: 0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=people, 6=project, 7=service, 8=done
-const STEP_LABELS_IMPACT = ["Intention", "Identity", "Languages", "Your Work", "Review Suggestions", "People to Follow", "Project", "Offering", "Get Started"];
+const STEP_LABELS_CREATIVE = ["Creative Path", "Houses of Art", "Creative Ground", "Your Territory", "Creative Essence", "Languages", "Your Circles & Work", "Review Suggestions", "People to Follow", "Proud Project", "Skill Session", "Get Started"];
+// Impact: 0=intention, 1=identity, 2=territory, 3=languages, 4=affiliations, 5=review, 6=people, 7=project, 8=service, 9=done
+const STEP_LABELS_IMPACT = ["Intention", "Identity", "Your Territory", "Languages", "Your Work", "Review Suggestions", "People to Follow", "Project", "Offering", "Get Started"];
 
 const INTENTION_OPTIONS = [
   { key: "impact", label: "Make impact / collaborate", icon: Heart, desc: "Work on missions & social-impact projects" },
@@ -142,6 +142,7 @@ export default function Onboarding() {
 
   // Languages step
   const [spokenLangCodes, setSpokenLangCodes] = useState<string[]>(["en"]);
+  const [territorySearch, setTerritorySearch] = useState("");
   const { saveSpokenLanguages } = useSpokenLanguages();
 
   // Fetch existing guilds & companies for affiliations step
@@ -554,22 +555,24 @@ export default function Onboarding() {
   };
 
   // ─── Step indices ─────────────────────────────────────────
-  // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=project, 8=service, 9=done
-  // Impact:  0=intention, 1=identity, 2=languages, 3=affiliations, 4=review, 5=project, 6=service, 7=done
+  // Creative: 0=entry, 1=houses, 2=ground, 3=territory, 4=essence, 5=languages, 6=affiliations, 7=review, 8=people, 9=project, 10=service, 11=done
+  // Impact:  0=intention, 1=identity, 2=territory, 3=languages, 4=affiliations, 5=review, 6=people, 7=project, 8=service, 9=done
 
-  const CREATIVE_LANG_STEP = 4;
-  const CREATIVE_AFF_STEP = 5;
-  const CREATIVE_REVIEW_STEP = 6;
-  const CREATIVE_PEOPLE_STEP = 7;
-  const CREATIVE_PROJECT_STEP = 8;
-  const CREATIVE_SERVICE_STEP = 9;
+  const CREATIVE_TERRITORY_STEP = 3;
+  const CREATIVE_LANG_STEP = 5;
+  const CREATIVE_AFF_STEP = 6;
+  const CREATIVE_REVIEW_STEP = 7;
+  const CREATIVE_PEOPLE_STEP = 8;
+  const CREATIVE_PROJECT_STEP = 9;
+  const CREATIVE_SERVICE_STEP = 10;
 
-  const IMPACT_LANG_STEP = 2;
-  const IMPACT_AFF_STEP = 3;
-  const IMPACT_REVIEW_STEP = 4;
-  const IMPACT_PEOPLE_STEP = 5;
-  const IMPACT_PROJECT_STEP = 6;
-  const IMPACT_SERVICE_STEP = 7;
+  const IMPACT_TERRITORY_STEP = 2;
+  const IMPACT_LANG_STEP = 3;
+  const IMPACT_AFF_STEP = 4;
+  const IMPACT_REVIEW_STEP = 5;
+  const IMPACT_PEOPLE_STEP = 6;
+  const IMPACT_PROJECT_STEP = 7;
+  const IMPACT_SERVICE_STEP = 8;
 
   // Fetch suggested people based on shared topics/territories
   const fetchSuggestedPeople = useCallback(async () => {
@@ -679,7 +682,7 @@ export default function Onboarding() {
 
   const currentStepLabel = stepLabels[step] || "";
   const isLastStep = step === lastStepIndex;
-  const progressSteps = isCreativePath ? 10 : 8; // excluding final "done" step
+  const progressSteps = isCreativePath ? 11 : 9; // excluding final "done" step
 
   // Determine which step content to render
   const renderCreativeStep = () => {
@@ -687,14 +690,15 @@ export default function Onboarding() {
       case 0: return renderEntryChoice();
       case 1: return renderHousesOfArt();
       case 2: return renderCreativeGround();
-      case 3: return renderCreativeEssence();
-      case 4: return renderLanguagesStep();
-      case 5: return renderAffiliationsInput();
-      case 6: return renderAffiliationsReview();
-      case 7: return renderSuggestedPeople(true);
-      case 8: return renderProject(true);
-      case 9: return renderService(true);
-      case 10: return renderDone(true);
+      case 3: return renderTerritoryStep(true);
+      case 4: return renderCreativeEssence();
+      case 5: return renderLanguagesStep();
+      case 6: return renderAffiliationsInput();
+      case 7: return renderAffiliationsReview();
+      case 8: return renderSuggestedPeople(true);
+      case 9: return renderProject(true);
+      case 10: return renderService(true);
+      case 11: return renderDone(true);
       default: return null;
     }
   };
@@ -703,13 +707,14 @@ export default function Onboarding() {
     switch (step) {
       case 0: return renderEntryChoice();
       case 1: return renderIdentity();
-      case 2: return renderLanguagesStep();
-      case 3: return renderAffiliationsInput();
-      case 4: return renderAffiliationsReview();
-      case 5: return renderSuggestedPeople(false);
-      case 6: return renderProject(false);
-      case 7: return renderService(false);
-      case 8: return renderDone(false);
+      case 2: return renderTerritoryStep(false);
+      case 3: return renderLanguagesStep();
+      case 4: return renderAffiliationsInput();
+      case 5: return renderAffiliationsReview();
+      case 6: return renderSuggestedPeople(false);
+      case 7: return renderProject(false);
+      case 8: return renderService(false);
+      case 9: return renderDone(false);
       default: return null;
     }
   };
@@ -905,38 +910,7 @@ export default function Onboarding() {
           <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
         </div>
 
-        <div>
-          <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-accent" /> Location
-          </label>
-          <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Berlin, Germany" maxLength={100} />
-        </div>
 
-        <div>
-          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-accent" /> Places of resonance
-          </label>
-          <div className="flex items-center gap-2 mb-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
-            <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
-          </div>
-          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-            {dbTerritories.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
-                className={cn(
-                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
-                  selectedTerritories.includes(t.id)
-                    ? "border-accent bg-accent text-accent-foreground"
-                    : "border-border hover:border-accent/40"
-                )}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     );
   }
@@ -1017,38 +991,6 @@ export default function Onboarding() {
           <p className="text-xs text-muted-foreground mt-1">A short tagline visible on your profile</p>
         </div>
 
-        <div>
-          <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-accent" /> Location
-          </label>
-          <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Paris, France" maxLength={100} />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-accent" /> Territory (where you live)
-          </label>
-          <div className="flex items-center gap-2 mb-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
-            <AddTerritoryDialog onCreated={(id) => setSelectedTerritories((p) => [...p, id])} />
-          </div>
-          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-            {dbTerritories.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
-                className={cn(
-                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
-                  selectedTerritories.includes(t.id)
-                    ? "border-accent bg-accent text-accent-foreground"
-                    : "border-border hover:border-accent/40"
-                )}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div>
           <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
@@ -1095,6 +1037,73 @@ export default function Onboarding() {
             />
             <span className="text-xs text-muted-foreground">{bio.length}/1300</span>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Territory Step (shared) ─────────────────────────────
+  function renderTerritoryStep(creative: boolean) {
+    const filtered = territorySearch.trim()
+      ? dbTerritories.filter(t => t.name.toLowerCase().includes(territorySearch.toLowerCase()))
+      : dbTerritories;
+
+    return (
+      <div className="space-y-5 overflow-y-auto max-h-[500px] pr-1">
+        <div>
+          <h2 className="font-display text-2xl font-bold">
+            {creative ? "Your places of resonance 🌍" : "Where are you based? 📍"}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {creative
+              ? "Which territories inspire you or feel like home for your creation?"
+              : "Select the territories you live in, work in, or care about."}
+          </p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> Location
+          </label>
+          <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Paris, France" maxLength={100} />
+          <p className="text-xs text-muted-foreground mt-1">Free-text location visible on your profile</p>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1.5 block flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5 text-accent" /> {creative ? "Places of resonance" : "Territories"}
+          </label>
+          <Input
+            value={territorySearch}
+            onChange={(e) => setTerritorySearch(e.target.value)}
+            placeholder="Search territories…"
+            maxLength={80}
+            className="mb-2"
+          />
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0} className="text-xs h-7">Clear</Button>
+            <AddTerritoryDialog onCreated={(id) => { setSelectedTerritories((p) => [...p, id]); setTerritorySearch(""); }} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+            {filtered.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
+                className={cn(
+                  "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
+                  selectedTerritories.includes(t.id)
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-border hover:border-accent/40"
+                )}
+              >
+                {t.name}
+              </button>
+            ))}
+            {filtered.length === 0 && territorySearch.trim() && (
+              <p className="text-xs text-muted-foreground py-2">No territories match "{territorySearch}". Use "Add new Territory" above.</p>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5">{selectedTerritories.length} selected</p>
         </div>
       </div>
     );
