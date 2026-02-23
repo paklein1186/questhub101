@@ -888,7 +888,9 @@
       "upvotedPost": "{{actor}} a voté votre publication",
       "wantsToJoin": "{{applicant}} veut rejoindre {{entity}}",
       "applicationApproved": "Votre candidature pour rejoindre {{entity}} a été approuvée !",
-      "applicationRejected": "Votre candidature pour rejoindre {{entity}} n'a pas été acceptée"
+      "applicationRejected": "Votre candidature pour rejoindre {{entity}} n'a pas été acceptée",
+      "trustRenewalDue": "Voulez-vous toujours vous porter garant pour {{name}} ? Renouvelez ou retirez votre attestation.",
+      "trustEdgeOutdated": "Votre attestation de confiance pour {{name}} a expiré. Vous pouvez la réactiver depuis votre tableau de bord réseau."
     },
     "categories": {
       "Quests": "Quêtes",
