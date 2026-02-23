@@ -5978,6 +5978,7 @@ export type Database = {
           mutual_credit_granted: boolean
           note: string | null
           renewal_credit_granted: boolean
+          renewal_notified_at: string | null
           score: number
           status: Database["public"]["Enums"]["trust_status"]
           tags: string[] | null
@@ -6003,6 +6004,7 @@ export type Database = {
           mutual_credit_granted?: boolean
           note?: string | null
           renewal_credit_granted?: boolean
+          renewal_notified_at?: string | null
           score?: number
           status?: Database["public"]["Enums"]["trust_status"]
           tags?: string[] | null
@@ -6028,6 +6030,7 @@ export type Database = {
           mutual_credit_granted?: boolean
           note?: string | null
           renewal_credit_granted?: boolean
+          renewal_notified_at?: string | null
           score?: number
           status?: Database["public"]["Enums"]["trust_status"]
           tags?: string[] | null
@@ -6945,6 +6948,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_trust_renewal: {
+        Args: { p_edge_id: string; p_user_id: string }
+        Returns: Json
       }
       rebuild_territory_closure: { Args: never; Returns: undefined }
       refund_quest_funding: {
