@@ -5,6 +5,7 @@ import { ShareLinkButton } from "@/components/ShareLinkButton";
 import {
   ArrowLeft, Building2, MapPin, Zap, Plus, Heart, Pencil, Settings,
   Compass, Bot, Users, Briefcase, Clock, Euro, Trash2, Loader2, Handshake, ListChecks,
+  LayoutList, LayoutGrid,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PageShell } from "@/components/PageShell";
 import { EntityQuestsFilters } from "@/components/EntityQuestsFilters";
 import { ImageUpload } from "@/components/ImageUpload";
+import { ServicesList } from "@/components/ServicesList";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
@@ -423,39 +425,13 @@ export default function CompanyDetail() {
               </DialogContent>
             </Dialog>
           )}
-          {services.map((svc: any) => (
-            <div key={svc.id} className="rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-              <Link to={`/services/${svc.id}`} className="block">
-                {svc.image_url && <div className="h-28 w-full"><img src={svc.image_url} alt="" className="w-full h-full object-cover" /></div>}
-                <div className="p-4 pb-2">
-                  <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{svc.title}</h4>
-                    <div className="flex items-center gap-2">
-                      {svc.duration_minutes && <span className="text-xs text-muted-foreground">{svc.duration_minutes} min</span>}
-                      {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0">{svc.price_amount === 0 ? "Free" : `€${svc.price_amount}`}</Badge>}
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{svc.description}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {(svc as any)._provider_name && <span className="text-xs text-muted-foreground">by {(svc as any)._provider_name}</span>}
-                    {svc.is_draft && <Badge variant="outline" className="text-[10px]">Draft</Badge>}
-                  </div>
-                </div>
-              </Link>
-              {isAdmin && (
-                <div className="px-4 pb-3 flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
-                    if (!error) { qc.invalidateQueries({ queryKey: ["services-for-company", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
-                  }}>{svc.is_active ? "Pause" : "Resume"}</Button>
-                  <Button size="sm" variant="ghost" className="text-destructive" onClick={async () => {
-                    const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
-                    if (!error) { qc.invalidateQueries({ queryKey: ["services-for-company", id] }); toast({ title: "Service deleted" }); }
-                  }}><Trash2 className="h-3.5 w-3.5" /></Button>
-                </div>
-              )}
-            </div>
-          ))}
-          {services.length === 0 && <p className="text-muted-foreground">No services yet.</p>}
+          <ServicesList services={services} isAdmin={isAdmin} onToggleActive={async (svc: any) => {
+            const { error } = await supabase.from("services").update({ is_active: !svc.is_active }).eq("id", svc.id);
+            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-company", id] }); toast({ title: svc.is_active ? "Service paused" : "Service resumed" }); }
+          }} onDelete={async (svc: any) => {
+            const { error } = await supabase.from("services").update({ is_deleted: true, deleted_at: new Date().toISOString() }).eq("id", svc.id);
+            if (!error) { qc.invalidateQueries({ queryKey: ["services-for-company", id] }); toast({ title: "Service deleted" }); }
+          }} />
         </TabsContent>
 
         {/* Jobs */}
