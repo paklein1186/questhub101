@@ -1,0 +1,85 @@
+import { TrustNodeType } from "@/types/enums";
+import { supabase } from "@/integrations/supabase/client";
+
+// ─── Types ──────────────────────────────────────────────────
+export interface TrustScores {
+  trustScoreGlobal: number;
+  trustScoreByTag: Record<string, number>;
+  trustScoreByTerritory: Record<string, number>;
+}
+
+interface RawEdge {
+  score: number;
+  tags: string[] | null;
+  last_confirmed_at: string | null;
+  context_territory_id: string | null;
+}
+
+// ─── Weight calculation ─────────────────────────────────────
+const MONTHS_24_MS = 24 * 30 * 24 * 60 * 60 * 1000;
+
+function computeWeight(edge: RawEdge): number {
+  const base = 1 + edge.score * 0.2;
+
+  // Freshness decay: if last_confirmed_at > 24 months ago → ×0.8
+  if (edge.last_confirmed_at) {
+    const age = Date.now() - new Date(edge.last_confirmed_at).getTime();
+    if (age > MONTHS_24_MS) return base * 0.8;
+  }
+
+  return base;
+}
+
+// ─── Main helper ────────────────────────────────────────────
+export async function recomputeTrustScores(
+  nodeType: TrustNodeType,
+  nodeId: string
+): Promise<TrustScores> {
+  // Fetch all active incoming edges for this node
+  const { data, error } = await supabase
+    .from("trust_edges")
+    .select("score, tags, last_confirmed_at, context_territory_id")
+    .eq("to_node_type", nodeType)
+    .eq("to_node_id", nodeId)
+    .eq("status", "active");
+
+  if (error) throw error;
+
+  const edges: RawEdge[] = (data ?? []) as RawEdge[];
+
+  let trustScoreGlobal = 0;
+  const trustScoreByTag: Record<string, number> = {};
+  const trustScoreByTerritory: Record<string, number> = {};
+
+  for (const edge of edges) {
+    const w = computeWeight(edge);
+    trustScoreGlobal += w;
+
+    // Per-tag
+    if (edge.tags) {
+      for (const tag of edge.tags) {
+        trustScoreByTag[tag] = (trustScoreByTag[tag] ?? 0) + w;
+      }
+    }
+
+    // Per-territory
+    if (edge.context_territory_id) {
+      const tid = edge.context_territory_id;
+      trustScoreByTerritory[tid] = (trustScoreByTerritory[tid] ?? 0) + w;
+    }
+  }
+
+  return {
+    trustScoreGlobal: Math.round(trustScoreGlobal * 100) / 100,
+    trustScoreByTag: roundRecord(trustScoreByTag),
+    trustScoreByTerritory: roundRecord(trustScoreByTerritory),
+  };
+}
+
+function roundRecord(rec: Record<string, number>): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(rec)) {
+    out[k] = Math.round(v * 100) / 100;
+  }
+  return out;
+}
