@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
       entityType: eType, id: r.id, slug: r.slug || null,
       title: r[tf] || r.name || "",
       shortDescription: r.description ? String(r.description) : null,
-      coverImageUrl: r.cover_image_url || r.logo_url || r.banner_url || null,
+      coverImageUrl: r.cover_image_url || r.image_url || r.logo_url || r.banner_url || null,
       webTags: r.web_tags || [], webScopes: r.web_scopes || [],
       featuredOrder: r.featured_order, createdAt: r.created_at, updatedAt: r.updated_at,
     });
