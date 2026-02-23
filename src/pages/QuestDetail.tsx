@@ -51,6 +51,8 @@ import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
+import { GiveTrustButton } from "@/components/GiveTrustButton";
+import { TrustNodeType } from "@/types/enums";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
@@ -665,6 +667,7 @@ export default function QuestDetail() {
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
+            {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.QUEST} targetNodeId={quest.id} targetName={quest.title} contextQuestId={quest.id} />}
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && !isCancelled && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}

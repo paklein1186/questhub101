@@ -14,7 +14,8 @@ import { BookingLinkButton } from "@/components/BookingLinkButton";
 import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
-import { CommentTargetType, ReportTargetType } from "@/types/enums";
+import { CommentTargetType, ReportTargetType, TrustNodeType } from "@/types/enums";
+import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
 import { useServiceById, usePublicProfile, useGuildById, useCompanyById, useAvailabilityRules, useAvailabilityExceptions, useBookingsForProvider } from "@/hooks/useEntityQueries";
@@ -343,6 +344,7 @@ export default function ServiceDetail() {
         </div>
         <div className="flex flex-wrap gap-2 mb-6">
           <ShareLinkButton entityType="service" entityId={svc.id} entityName={svc.title} />
+          <GiveTrustButton targetNodeType={TrustNodeType.SERVICE} targetNodeId={svc.id} targetName={svc.title} />
           <BookingLinkButton serviceId={svc.id} serviceName={svc.title} />
           <ReportButton targetType={ReportTargetType.SERVICE} targetId={svc.id} />
           {canManage && (

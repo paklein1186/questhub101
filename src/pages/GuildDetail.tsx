@@ -58,6 +58,8 @@ import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
+import { GiveTrustButton } from "@/components/GiveTrustButton";
+import { TrustNodeType } from "@/types/enums";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { useEntityRoles } from "@/hooks/useEntityRoles";
 import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsList";
@@ -427,6 +429,7 @@ export default function GuildDetail() {
               {isAdmin && <Button size="sm" variant="outline" asChild><Link to={`/guilds/${guild.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link></Button>}
               {isAdmin && <InviteLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />}
               <ShareLinkButton entityType="guild" entityId={guild.id} entityName={guild.name} />
+              {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.GUILD} targetNodeId={guild.id} targetName={guild.name} contextGuildId={guild.id} />}
               {isLoggedIn && <ReportButton targetType={ReportTargetType.GUILD} targetId={guild.id} />}
             </div>
         </div>

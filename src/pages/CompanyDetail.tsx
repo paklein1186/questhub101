@@ -24,7 +24,8 @@ import { CommentThread } from "@/components/CommentThread";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
 import { useToast } from "@/hooks/use-toast";
-import { CommentTargetType, FollowTargetType, OnlineLocationType } from "@/types/enums";
+import { CommentTargetType, FollowTargetType, OnlineLocationType, TrustNodeType } from "@/types/enums";
+import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { SocialLinksDisplay } from "@/components/SocialLinks";
 import { EntityJoinButton } from "@/components/EntityJoinButton";
@@ -208,6 +209,7 @@ export default function CompanyDetail() {
                 )
               )}
               <ShareLinkButton entityType="company" entityId={company.id} entityName={company.name} />
+              {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.PARTNER_ENTITY} targetNodeId={company.id} targetName={company.name} />}
               {isAdmin && (
                 <>
                   <Button size="sm" variant="outline" onClick={openEdit}><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
