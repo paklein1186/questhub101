@@ -264,16 +264,23 @@ export function WorkCalendarTab() {
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [myEventAttendances, myRitualAttendances, externalEvents]);
 
-  // Derive unique source calendars for filter UI
+  // Derive unique source calendars for filter UI — merge DB preferences + events
   const sourceCalendars = useMemo(() => {
     const map = new Map<string, string>();
+    // First: include all calendars from DB subcalendar preferences (even if no events)
+    (dbSubcalPrefs || []).forEach((p: any) => {
+      if (p.source_calendar_id) {
+        map.set(p.source_calendar_id, p.source_calendar_name || p.source_calendar_id);
+      }
+    });
+    // Then: supplement with any calendars found in actual events
     events.forEach((e) => {
-      if (e.sourceCalendarId) {
+      if (e.sourceCalendarId && !map.has(e.sourceCalendarId)) {
         map.set(e.sourceCalendarId, e.sourceCalendarName || e.sourceCalendarId);
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [events]);
+  }, [events, dbSubcalPrefs]);
 
   // Build a map: sourceCalendarId → { connectionId, name } from external events
   const sourceCalendarMeta = useMemo(() => {
