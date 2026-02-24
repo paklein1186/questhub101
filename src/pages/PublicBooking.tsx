@@ -197,14 +197,15 @@ export default function PublicBooking() {
       navigate(`/services/${svc.id}`);
       return;
     }
-    // Store pending slot and show signup choice
+    // Store pending slot and open quick signup directly
     localStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify({
       serviceId: svc.id,
       startDateTime: selectedSlot.startDateTime,
       endDateTime: selectedSlot.endDateTime,
       notes: bookNotes.trim(),
     }));
-    setShowSignupChoice(true);
+    setQuickSignup(true);
+    setGuestOpen(true);
   };
 
   if (isLoading) {
