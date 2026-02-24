@@ -105,6 +105,13 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const activeSteps = quickSignup ? QUICK_STEPS : STEPS_ORDER;
   const activeLabels = quickSignup ? ["Account"] : STEP_LABELS;
   const [step, setStep] = useState<Step>(quickSignup ? "signup" : "goal");
+
+  // Reset step when dialog opens or mode changes
+  useEffect(() => {
+    if (open) {
+      setStep(quickSignup ? "signup" : "goal");
+    }
+  }, [open, quickSignup]);
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
