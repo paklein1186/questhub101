@@ -414,7 +414,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <p className="font-display font-semibold text-sm">Get Started</p>
+              <p className="font-display font-semibold text-sm">{quickSignup ? "Quick Signup" : "Get Started"}</p>
             </div>
             <p className="text-xs text-muted-foreground">
               Step {stepIndex + 1} of {totalSteps}
