@@ -60,8 +60,9 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   });
 
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const hoveredNodeRef = useRef<string | null>(null);
+  const mousePosRef = useRef<{ x: number; y: number } | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -400,29 +401,47 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     if (node.slug) navigate(node.slug);
   }, [navigate]);
 
-  const handleNodeHover = useCallback((node: any, prevNode: any) => {
+  const handleNodeHover = useCallback((node: any) => {
     const newId = node?.id || null;
     hoveredNodeRef.current = newId;
     setHoveredNode(newId);
+    if (newId && mousePosRef.current) {
+      setTooltipPos({ ...mousePosRef.current });
+    } else {
+      setTooltipPos(null);
+    }
     if (containerRef.current) {
       containerRef.current.style.cursor = node ? "pointer" : "grab";
     }
   }, []);
 
-  // Track mouse position for tooltip
+  // Continuously track mouse position and update tooltip
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const pos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      mousePosRef.current = pos;
       if (hoveredNodeRef.current) {
-        const rect = el.getBoundingClientRect();
-        setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      } else {
-        setTooltipPos(null);
+        setTooltipPos(pos);
+      }
+    };
+    const onLeave = () => {
+      mousePosRef.current = null;
+      hoveredNodeRef.current = null;
+      setHoveredNode(null);
+      setTooltipPos(null);
+      if (containerRef.current) {
+        containerRef.current.style.cursor = "grab";
       }
     };
     el.addEventListener("mousemove", onMove);
-    return () => el.removeEventListener("mousemove", onMove);
+    el.addEventListener("mouseleave", onLeave);
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseleave", onLeave);
+    };
   }, []);
 
   if (isLoading) {
