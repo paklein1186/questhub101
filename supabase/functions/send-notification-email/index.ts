@@ -158,6 +158,12 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "FOLLOWED_ENTITY_NEW_QUEST") {
     subject = `New quest from a community you follow`;
     ctaLabel = "View quest";
+  } else if (type === "FOLLOWED_ENTITY_NEW_SERVICE") {
+    subject = `New service available in your community`;
+    ctaLabel = "View service";
+  } else if (type === "FOLLOWED_ENTITY_NEW_COURSE") {
+    subject = `New course available in your community`;
+    ctaLabel = "View course";
   } else if (type === "CREDIT_RECEIVED") {
     subject = `You received credits! 💰`;
     ctaLabel = "View your wallet";
