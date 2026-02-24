@@ -9,30 +9,47 @@ const corsHeaders = {
 
 // Notification types that should trigger an email
 const EMAIL_WORTHY_TYPES = new Set([
+  // Social / follow
   "FOLLOWER_NEW",
+  // Mentions & comments
   "ENTITY_MENTIONED_IN_COMMENT",
   "COMMENT",
   "QUEST_COMMENT",
   "POST_UPVOTED",
+  // Bookings
   "BOOKING_REQUESTED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
+  "BOOKING_UPDATED",
+  // Membership & roles
   "GUILD_MEMBER_ADDED",
   "GUILD_ROLE_CHANGED",
   "APPLICATION_APPROVED",
   "APPLICATION_REJECTED",
+  "ENTITY_JOIN_REQUEST",
+  // Invitations & partnerships
+  "USER_INVITED_TO_UNIT",
+  "PARTNERSHIP_PROPOSED",
+  // Quests
   "QUEST_PROPOSAL_SUBMITTED",
   "QUEST_PROPOSAL_ACCEPTED",
   "QUEST_PROPOSAL_REJECTED",
   "QUEST_FUNDED_CREDITS",
+  // Rewards & economy
   "ACHIEVEMENT_UNLOCKED",
   "XP_GAINED",
-  "USER_INVITED_TO_UNIT",
+  "CREDIT_RECEIVED",
+  "milestone_completed",
+  // Trust
+  "TRUST_RENEWAL_DUE",
+  "TRUST_EDGE_OUTDATED",
+  // Followed entities activity
   "FOLLOWED_USER_NEW_POST",
   "FOLLOWED_ENTITY_NEW_POST",
   "FOLLOWED_ENTITY_NEW_EVENT",
   "FOLLOWED_ENTITY_NEW_QUEST",
-  "CREDIT_RECEIVED",
+  "FOLLOWED_ENTITY_NEW_SERVICE",
+  "FOLLOWED_ENTITY_NEW_COURSE",
 ]);
 
 // Map notification type to existing preference column
