@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { Loader2, Check, CalendarClock, ArrowRight } from "lucide-react";
+import { Loader2, Check, CalendarClock, ArrowRight, Video, Briefcase, Users } from "lucide-react";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,10 @@ export default function ServiceCreate() {
   const [duration, setDuration] = useState("60");
   const [price, setPrice] = useState("0");
   const [currency, setCurrency] = useState("EUR");
+  const [serviceType, setServiceType] = useState<"online_call" | "service_mission" | "event_attendance">("online_call");
   const [locationType, setLocationType] = useState("JITSI");
+  const [locationTypeMode, setLocationTypeMode] = useState<"online" | "in_person" | "hybrid">("online");
+  const [locationText, setLocationText] = useState("");
   const [isDraft, setIsDraft] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
@@ -82,7 +85,10 @@ export default function ServiceCreate() {
       setDuration(String(existingService.duration_minutes || 60));
       setPrice(String(existingService.price_amount || 0));
       setCurrency(existingService.price_currency || "EUR");
+      setServiceType((existingService as any).service_type || "online_call");
       setLocationType(existingService.online_location_type || "JITSI");
+      setLocationTypeMode((existingService as any).location_type || "online");
+      setLocationText((existingService as any).location_text || "");
       setIsDraft(existingService.is_draft || false);
       setIsActive(existingService.is_active ?? true);
       setImageUrl(existingService.image_url || undefined);
@@ -106,7 +112,10 @@ export default function ServiceCreate() {
           duration_minutes: Number(duration) || 60,
           price_amount: Number(price) || 0,
           price_currency: currency,
-          online_location_type: locationType,
+          service_type: serviceType,
+          online_location_type: serviceType === "online_call" ? locationType : null,
+          location_type: locationTypeMode,
+          location_text: locationTypeMode !== "online" ? locationText.trim() || null : null,
           is_draft: isDraft,
           is_active: !isDraft && isActive,
           image_url: imageUrl || null,
@@ -137,7 +146,10 @@ export default function ServiceCreate() {
           duration_minutes: Number(duration) || 60,
           price_amount: Number(price) || 0,
           price_currency: currency,
-          online_location_type: locationType,
+          service_type: serviceType,
+          online_location_type: serviceType === "online_call" ? locationType : null,
+          location_type: locationTypeMode,
+          location_text: locationTypeMode !== "online" ? locationText.trim() || null : null,
           is_active: true,
           image_url: imageUrl || null,
         } as any).select("id").single();
@@ -235,6 +247,42 @@ export default function ServiceCreate() {
           onChange={setImageUrl}
           aspectRatio="16/9"
         />
+        {/* Service Type Selector */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">Service type</label>
+          <div className="grid grid-cols-3 gap-3">
+            {([
+              { value: "online_call" as const, icon: Video, label: "Online Call", desc: "Video session via Jitsi/Zoom" },
+              { value: "service_mission" as const, icon: Briefcase, label: "Service / Mission", desc: "Deliverable or engagement" },
+              { value: "event_attendance" as const, icon: Users, label: "Event / Attendance", desc: "In-person or hybrid event" },
+            ]).map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setServiceType(opt.value);
+                  if (opt.value === "online_call") setLocationTypeMode("online");
+                  else if (opt.value === "event_attendance") setLocationTypeMode("in_person");
+                }}
+                className={`p-3 rounded-lg border text-left transition-all ${
+                  serviceType === opt.value
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-foreground/30"
+                }`}
+              >
+                <opt.icon className={`h-5 w-5 mb-1.5 ${serviceType === opt.value ? "text-primary" : "text-muted-foreground"}`} />
+                <p className="text-sm font-medium">{opt.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+              </button>
+            ))}
+          </div>
+          {serviceType !== "online_call" && (
+            <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+              ⚠️ Bookings for this type require admin approval from the hosting entity.
+            </p>
+          )}
+        </div>
+
         <div>
           <label className="text-sm font-medium mb-1 block">Title</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Strategy Workshop" maxLength={120} />
@@ -253,17 +301,44 @@ export default function ServiceCreate() {
             <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} min={0} step={5} />
           </div>
         </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Location type</label>
-          <Select value={locationType} onValueChange={setLocationType}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="JITSI">Jitsi</SelectItem>
-              <SelectItem value="ZOOM">Zoom</SelectItem>
-              <SelectItem value="OTHER">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
+        {/* Location settings */}
+        {serviceType !== "online_call" && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Location mode</label>
+              <Select value={locationTypeMode} onValueChange={(v: "online" | "in_person" | "hybrid") => setLocationTypeMode(v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="in_person">In person</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {locationTypeMode !== "online" && (
+              <div>
+                <label className="text-sm font-medium mb-1 block">Location / Address</label>
+                <Input value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="e.g. 42 Rue de la Paix, Paris" maxLength={200} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Online call tool selector */}
+        {(serviceType === "online_call" || locationTypeMode === "online" || locationTypeMode === "hybrid") && (
+          <div>
+            <label className="text-sm font-medium mb-1 block">Call tool</label>
+            <Select value={locationType} onValueChange={setLocationType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="JITSI">Jitsi</SelectItem>
+                <SelectItem value="ZOOM">Zoom</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div>
           <div className="flex items-center justify-between mb-2">

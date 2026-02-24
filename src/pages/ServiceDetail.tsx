@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight, Shield, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight, Shield, Pencil, Trash2, Briefcase, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -198,18 +198,22 @@ export default function ServiceDetail() {
   if (svc.is_draft && !isOwnService && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
 
   const isFree = !svc.price_amount || svc.price_amount === 0;
+  const svcType = (svc as any).service_type || "online_call";
+  const requiresApproval = svcType === "service_mission" || svcType === "event_attendance";
 
   const createBooking = async () => {
     if (!selectedSlot) { toast({ title: "Please select a time slot", variant: "destructive" }); return; }
     if (!currentUser.id) { toast({ title: "Please log in to book", variant: "destructive" }); return; }
-    const callUrl = isFree ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
+    // For online_call free services, auto-confirm. For mission/event, always require approval.
+    const autoConfirm = isFree && !requiresApproval;
+    const callUrl = autoConfirm ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
     const bookingPayload: any = {
       service_id: svc.id, requester_id: currentUser.id,
       provider_user_id: svc.provider_user_id || null,
       provider_guild_id: svc.provider_guild_id || (ownerType === "GUILD" ? (svc as any).owner_id : null),
       company_id: ownerType === "COMPANY" ? (svc as any).owner_id : null,
       start_date_time: selectedSlot.startDateTime, end_date_time: selectedSlot.endDateTime,
-      status: isFree ? "CONFIRMED" : "PENDING",
+      status: autoConfirm ? "CONFIRMED" : "PENDING",
       payment_status: isFree ? "NOT_REQUIRED" : "PENDING",
       amount: svc.price_amount || 0, currency: svc.price_currency,
       notes: bookNotes.trim() || null, call_url: callUrl,
@@ -222,7 +226,7 @@ export default function ServiceDetail() {
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
 
     // For paid bookings, redirect to Stripe Checkout
-    if (!isFree) {
+    if (!isFree && !requiresApproval) {
       try {
         const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("booking-checkout", {
           body: { bookingId: newBooking.id },
@@ -283,8 +287,10 @@ export default function ServiceDetail() {
       action: isFree ? "confirmed" : "sent",
     });
 
-    if (isFree) {
+    if (autoConfirm) {
       toast({ title: "✅ Session confirmed!", description: "You can join via the call link in your bookings." });
+    } else if (requiresApproval) {
+      toast({ title: "📋 Request submitted!", description: "An admin will review and validate your booking request." });
     } else {
       toast({ title: "✅ Booking request sent!", description: `${provider?.name || "The provider"} will be notified. You'll hear back soon.` });
     }
@@ -335,7 +341,10 @@ export default function ServiceDetail() {
           ) : null}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
           {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
-          {svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
+          {(svc as any).service_type === "service_mission" && <Badge variant="outline" className="text-xs"><Briefcase className="h-3 w-3 mr-1" />Mission</Badge>}
+          {(svc as any).service_type === "event_attendance" && <Badge variant="outline" className="text-xs"><Users className="h-3 w-3 mr-1" />Event</Badge>}
+          {(svc as any).service_type === "online_call" && svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
+          {(svc as any).location_text && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {(svc as any).location_text}</span>}
         </div>
 
         {svc.description && (
@@ -365,7 +374,7 @@ export default function ServiceDetail() {
 
         {!isOwnService && (
           <Dialog open={bookOpen} onOpenChange={o => { setBookOpen(o); if (!o) { setSelectedSlot(null); setWeekOffset(0); } }}>
-            <DialogTrigger asChild><Button><CalendarClock className="h-4 w-4 mr-1" /> Book a session</Button></DialogTrigger>
+            <DialogTrigger asChild><Button><CalendarClock className="h-4 w-4 mr-1" /> {svcType === "online_call" ? "Book a session" : svcType === "event_attendance" ? "Register" : "Request this service"}</Button></DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Book — {svc.title}</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-2">
@@ -387,7 +396,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (€${svc.price_amount})`) : isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
               </div>
             </DialogContent>
           </Dialog>
