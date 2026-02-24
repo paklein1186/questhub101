@@ -1,4 +1,7 @@
-// OG Share — serves OG meta tags for shared links and redirects browsers to changethegame.xyz
+// OG Share — serves entity-specific OG meta tags for social cards
+// Supports both:
+//   - Clean paths:  /og-share/quest/UUID
+//   - Query params: /og-share?type=quest&id=UUID  (legacy)
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +16,7 @@ Deno.serve(async (req) => {
   const APP_URL = "https://changethegame.xyz";
   const BRAND = "changethegame";
   const TAGLINE = "Human-powered. AI-augmented. Game-changing.";
-  const DEFAULT_IMAGE = APP_URL + "/favicon.png";
+  const DEFAULT_IMAGE = APP_URL + "/og-image.png";
 
   function esc(s: string): string {
     return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -28,7 +31,6 @@ Deno.serve(async (req) => {
   function buildDesc(title: string, desc: string | null, label: string): string {
     const s = synthesize(desc, 200);
     if (s && s.length > 30) return s;
-    // Short or missing description — build a richer fallback
     const prefix = s ? s + " — " : "";
     if (title) return prefix + "Discover \"" + title + "\" — a " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
     return prefix + "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
@@ -57,13 +59,17 @@ Deno.serve(async (req) => {
       "<meta name=\"twitter:image\" content=\"" + i + "\"/>" +
       "<meta name=\"description\" content=\"" + d + "\"/>" +
       refreshTag +
-      "</head><body><p>Redirecting...</p></body></html>";
+      "</head><body><p>Redirecting\u2026</p></body></html>";
   }
 
   function isSocialBot(userAgent: string): boolean {
     const ua = userAgent.toLowerCase();
     return [
-      "whatsapp", "facebookexternalhit", "facebot", "twitterbot", "linkedinbot", "slackbot", "discordbot", "telegrambot", "skypeuripreview", "pinterest", "googlebot"
+      "whatsapp", "facebookexternalhit", "facebot", "twitterbot",
+      "linkedinbot", "slackbot", "discordbot", "telegrambot",
+      "skypeuripreview", "pinterest", "googlebot", "applebot",
+      "bingbot", "yandex", "embedly", "outbrain", "quora",
+      "vkshare", "w3c_validator",
     ].some((bot) => ua.includes(bot));
   }
 
@@ -90,19 +96,41 @@ Deno.serve(async (req) => {
 
   try {
     const reqUrl = new URL(req.url);
-    const type = reqUrl.searchParams.get("type");
-    const id = reqUrl.searchParams.get("id");
-    const ref = reqUrl.searchParams.get("ref");
     const userAgent = req.headers.get("user-agent") || "";
     const socialBot = isSocialBot(userAgent);
 
+    // Parse type & id from either clean path or query params
+    let type: string | null = null;
+    let id: string | null = null;
+    let ref: string | null = reqUrl.searchParams.get("ref");
+
+    // Clean path format: /og-share/quest/UUID or just /quest/UUID
+    const pathParts = reqUrl.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
+    // Remove "og-share" prefix if present (Supabase function routing)
+    const cleanParts = pathParts[0] === "og-share" ? pathParts.slice(1) : pathParts;
+
+    if (cleanParts.length >= 2) {
+      type = decodeURIComponent(cleanParts[0]);
+      id = decodeURIComponent(cleanParts[1]);
+    }
+
+    // Fallback to query params (legacy support)
+    if (!type) type = reqUrl.searchParams.get("type");
+    if (!id) id = reqUrl.searchParams.get("id");
+    if (!ref) ref = reqUrl.searchParams.get("ref");
+
     if (!type || !id) {
-      return new Response("Missing type or id", { status: 400, headers: corsHeaders });
+      // Root hit — redirect to main site
+      return new Response(buildHtml(BRAND + " — " + TAGLINE, TAGLINE, DEFAULT_IMAGE, APP_URL, true), {
+        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     const c = MAP[type];
     if (!c) {
-      return new Response("Unknown type", { status: 400, headers: corsHeaders });
+      return new Response(buildHtml(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL, true), {
+        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     const sbUrl = Deno.env.get("SUPABASE_URL") || "";
@@ -123,7 +151,7 @@ Deno.serve(async (req) => {
     const appUrl = APP_URL + c.path + "/" + encodeURIComponent(id) + (ref ? "?ref=" + encodeURIComponent(ref) : "");
 
     if (!data) {
-      return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, resolveImage(type, id, DEFAULT_IMAGE), appUrl, !socialBot), {
+      return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, resolveImage(type, id, null), appUrl, !socialBot), {
         headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
       });
     }
@@ -131,15 +159,17 @@ Deno.serve(async (req) => {
     const rawTitle = data[c.title] || c.label;
     const title = c.label + ": " + rawTitle;
     const description = buildDesc(rawTitle, data[c.desc], c.label);
-    const rawImage = (c.img && data[c.img]) || (c.fallback && data[c.fallback]) || DEFAULT_IMAGE;
+    const rawImage = (c.img && data[c.img]) || (c.fallback && data[c.fallback]) || null;
     const image = resolveImage(type, id, rawImage);
+
+    console.log(`OG card: type=${type} id=${id} title="${rawTitle}" image=${image ? "yes" : "fallback"}`);
 
     return new Response(buildHtml(title, description, image, appUrl, !socialBot), {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
     });
   } catch (err) {
     console.error("OG error:", err);
-    return new Response(buildHtml(BRAND, TAGLINE, resolveImage("home", "fallback", DEFAULT_IMAGE), APP_URL, false), {
+    return new Response(buildHtml(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL, true), {
       headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
     });
   }
