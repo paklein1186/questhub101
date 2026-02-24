@@ -60,8 +60,9 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   });
 
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const hoveredNodeRef = useRef<string | null>(null);
+  const mousePosRef = useRef<{ x: number; y: number } | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
