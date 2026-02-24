@@ -413,7 +413,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
             </p>
           </div>
           <div className="flex gap-1.5">
-            {STEP_LABELS.map((label, i) => (
+            {activeLabels.map((label, i) => (
               <div key={label} className="flex-1 flex flex-col gap-1">
                 <div className={`h-1 rounded-full transition-colors duration-300 ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
                 <span className={`text-[10px] ${i <= stepIndex ? "text-foreground font-medium" : "text-muted-foreground"}`}>
