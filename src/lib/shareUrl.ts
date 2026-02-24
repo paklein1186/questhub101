@@ -14,8 +14,8 @@
  * the share subdomain.
  */
 
-/** Edge function URL for OG share cards */
-const SHARE_DOMAIN = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID || "anzeimppqytonfxrnqxp"}.supabase.co/functions/v1/og-share`;
+/** Share path on the production domain — proxied to og-share edge function via _redirects */
+const SHARE_DOMAIN = "https://changethegame.xyz/share";
 
 /** Production domain used for display / canonical URLs */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
