@@ -185,9 +185,9 @@ export function GraphView({ centerType, centerId, height = 500 }: GraphViewProps
   }, []);
 
   const linkDashArray = useCallback((link: any) => {
-    const style = EDGE_STYLES[link.relationType] || DEFAULT_EDGE_STYLE;
-    return style.dashArray
-      ? style.dashArray.split(",").map(Number)
+    const style = EDGE_STYLES[link.relationType] as any;
+    return style?.dashArray
+      ? (style.dashArray as string).split(",").map(Number)
       : undefined;
   }, []);
 
