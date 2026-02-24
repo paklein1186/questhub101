@@ -8,13 +8,6 @@ import { getInviteUrl, type ShareEntityType } from "@/lib/shareUrl";
 
 type EntityType = "guild" | "pod" | "quest" | "company";
 
-const ROUTE_MAP: Record<EntityType, string> = {
-  guild: "/guilds",
-  pod: "/pods",
-  quest: "/quests",
-  company: "/companies",
-};
-
 interface Props {
   entityType: EntityType;
   entityId: string;
@@ -25,12 +18,11 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const ogUrl = getInviteUrl(entityType as ShareEntityType, entityId);
-  
+  const inviteUrl = getInviteUrl(entityType as ShareEntityType, entityId);
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(ogUrl);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       toast({ title: "Link copied!", description: `Share this link to invite people to "${entityName}"` });
       setTimeout(() => setCopied(false), 2000);
@@ -56,7 +48,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
           </div>
           <div className="flex gap-2">
             <Input
-              value={ogUrl}
+              value={inviteUrl}
               readOnly
               className="text-xs h-9"
               onClick={(e) => (e.target as HTMLInputElement).select()}

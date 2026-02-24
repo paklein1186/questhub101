@@ -18,12 +18,11 @@ export function ShareLinkButton({ entityType, entityId, entityName, size = "sm",
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const ogUrl = getShareUrl(entityType, entityId);
-  
+  const shareUrl = getShareUrl(entityType, entityId);
 
   const handleShare = async () => {
     try {
-      await navigator.clipboard.writeText(ogUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       toast({ title: "Link copied!", description: entityName ? `Share "${entityName}" with anyone.` : "Share this link with anyone." });
       setTimeout(() => setCopied(false), 2000);
@@ -49,7 +48,7 @@ export function ShareLinkButton({ entityType, entityId, entityName, size = "sm",
           </div>
           <div className="flex gap-2">
             <Input
-              value={ogUrl}
+              value={shareUrl}
               readOnly
               className="text-xs h-9"
               onClick={(e) => (e.target as HTMLInputElement).select()}
