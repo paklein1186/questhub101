@@ -260,7 +260,23 @@ export default function RitualCallRoom() {
     return `ctg-ritual-${occurrenceId}`;
   }, [occurrence, occurrenceId]);
 
-  // Back link
+  const jitsiShareUrl = useMemo(() => {
+    if (occurrence?.visio_link && occurrence.visio_link.startsWith("http")) return occurrence.visio_link;
+    return `https://meet.jit.si/${roomName}`;
+  }, [occurrence, roomName]);
+
+  const [shareCopied, setShareCopied] = useState(false);
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(jitsiShareUrl);
+      setShareCopied(true);
+      toast({ title: "Call link copied!", description: "Anyone with this link can join — no account needed." });
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy", variant: "destructive" });
+    }
+  };
+
   const backUrl = ritual?.guild_id
     ? `/guilds/${ritual.guild_id}?tab=rituals`
     : ritual?.quest_id
