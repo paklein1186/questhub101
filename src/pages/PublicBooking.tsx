@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
@@ -105,6 +105,7 @@ export default function PublicBooking() {
   const [quickSignup, setQuickSignup] = useState(false);
   const [bookingInProgress, setBookingInProgress] = useState(false);
   // showSignupChoice removed — quick signup opens directly
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
 
@@ -340,7 +341,10 @@ export default function PublicBooking() {
                             size="sm"
                             variant={selectedSlot?.startDateTime === slot.startDateTime ? "default" : "outline"}
                             className="text-xs"
-                            onClick={() => setSelectedSlot(slot)}
+                            onClick={() => {
+                              setSelectedSlot(slot);
+                              setTimeout(() => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+                            }}
                           >
                             {selectedSlot?.startDateTime === slot.startDateTime && <Check className="h-3 w-3 mr-1" />}
                             {slot.label}
