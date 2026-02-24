@@ -322,7 +322,26 @@ Rules:
 
         // Send email
         if (pref.channel_email_enabled && profile.email) {
-          const emailHtml = buildDigestEmailHtml(digest, profile.name);
+          // Fetch digest template from DB (fall back to hardcoded)
+          let templateBodyHtml: string | null = null;
+          let templateCtaLabel = "Explore what's new";
+          let templateCtaUrl = "/explore";
+          try {
+            const { data: tpl } = await supabase
+              .from("email_templates")
+              .select("body_html, cta_label, cta_url")
+              .eq("key", "digest")
+              .single();
+            if (tpl) {
+              templateBodyHtml = tpl.body_html;
+              templateCtaLabel = tpl.cta_label || templateCtaLabel;
+              templateCtaUrl = tpl.cta_url || templateCtaUrl;
+            }
+          } catch { /* use defaults */ }
+
+          const emailHtml = templateBodyHtml
+            ? buildDigestFromTemplate(templateBodyHtml, templateCtaLabel, templateCtaUrl, digest, profile.name)
+            : buildDigestEmailHtml(digest, profile.name);
           const resendKey = Deno.env.get("RESEND_API_KEY");
           if (resendKey) {
             try {
