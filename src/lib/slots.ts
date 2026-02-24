@@ -101,9 +101,13 @@ export function generateSlots(
           const calBusy = calendarBusyEvents.some(e => {
             const eStart = new Date(e.start_at);
             const eEnd = new Date(e.end_at);
-            return slotStart < eEnd && slotEnd > eStart;
+            const isOverlap = slotStart < eEnd && slotEnd > eStart;
+            return isOverlap;
           });
-          if (calBusy) continue;
+          if (calBusy) {
+            console.log(`[generateSlots] Slot ${slotStart.toISOString()} excluded by calendar busy event`);
+            continue;
+          }
 
           const fmt = (date: Date) =>
             `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
