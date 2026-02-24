@@ -120,26 +120,27 @@ Deno.serve(async (req) => {
     const rows = await res.json();
     const data = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
-    const appUrl = APP_URL + c.path + "/" + id + (ref ? "?ref=" + ref : "");
+    const appUrl = APP_URL + c.path + "/" + encodeURIComponent(id) + (ref ? "?ref=" + encodeURIComponent(ref) : "");
 
     if (!data) {
-      return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, DEFAULT_IMAGE, appUrl), {
-        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+      return new Response(buildHtml(BRAND, "Explore this " + c.label.toLowerCase() + " on " + BRAND, resolveImage(type, id, DEFAULT_IMAGE), appUrl, !socialBot), {
+        headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
       });
     }
 
     const rawTitle = data[c.title] || c.label;
     const title = c.label + ": " + rawTitle;
     const description = buildDesc(rawTitle, data[c.desc], c.label);
-    const image = (c.img && data[c.img]) || (c.fallback && data[c.fallback]) || DEFAULT_IMAGE;
+    const rawImage = (c.img && data[c.img]) || (c.fallback && data[c.fallback]) || DEFAULT_IMAGE;
+    const image = resolveImage(type, id, rawImage);
 
-    return new Response(buildHtml(title, description, image, appUrl), {
-      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+    return new Response(buildHtml(title, description, image, appUrl, !socialBot), {
+      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
     });
   } catch (err) {
     console.error("OG error:", err);
-    return new Response(buildHtml(BRAND, TAGLINE, DEFAULT_IMAGE, APP_URL), {
-      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8" },
+    return new Response(buildHtml(BRAND, TAGLINE, resolveImage("home", "fallback", DEFAULT_IMAGE), APP_URL, false), {
+      headers: { ...corsHeaders, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, max-age=0" },
     });
   }
 });
