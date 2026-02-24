@@ -60,6 +60,8 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   });
 
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const hoveredNodeRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -333,11 +335,29 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     if (node.slug) navigate(node.slug);
   }, [navigate]);
 
-  const handleNodeHover = useCallback((node: any) => {
-    setHoveredNode(node?.id || null);
+  const handleNodeHover = useCallback((node: any, prevNode: any) => {
+    const newId = node?.id || null;
+    hoveredNodeRef.current = newId;
+    setHoveredNode(newId);
     if (containerRef.current) {
       containerRef.current.style.cursor = node ? "pointer" : "grab";
     }
+  }, []);
+
+  // Track mouse position for tooltip
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onMove = (e: MouseEvent) => {
+      if (hoveredNodeRef.current) {
+        const rect = el.getBoundingClientRect();
+        setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      } else {
+        setTooltipPos(null);
+      }
+    };
+    el.addEventListener("mousemove", onMove);
+    return () => el.removeEventListener("mousemove", onMove);
   }, []);
 
   if (isLoading) {
@@ -384,7 +404,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     : [];
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="w-full relative">
       <GraphFilters
         filters={filters}
         onChange={setFilters}
@@ -392,9 +412,16 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
         edgeCount={graphData.links.length}
       />
 
-      {/* Floating tooltip for hovered node */}
-      {hoveredNodeData && hoveredStyle && (
-        <div className="text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg mb-2 mx-auto w-fit max-w-sm pointer-events-none">
+      {/* Cursor-following tooltip */}
+      {hoveredNodeData && hoveredStyle && tooltipPos && (
+        <div
+          className="absolute z-50 text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg pointer-events-none max-w-[220px]"
+          style={{
+            left: tooltipPos.x + 14,
+            top: tooltipPos.y - 10,
+            transform: tooltipPos.x > containerWidth - 240 ? "translateX(-110%)" : undefined,
+          }}
+        >
           <div className="flex items-center gap-2">
             {hoveredNodeData.avatarUrl ? (
               <img
