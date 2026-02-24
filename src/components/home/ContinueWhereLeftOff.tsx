@@ -86,23 +86,27 @@ export function ContinueWhereLeftOff({ userId }: Props) {
           return (
             <motion.div key={item.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
               <Link to={item.route}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 hover:shadow-sm transition-all group">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Icon className="h-4 w-4 text-primary" />
+                className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all group flex flex-col">
+                {/* Thumbnail */}
+                <div className="h-24 w-full bg-muted relative overflow-hidden">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                      <Icon className="h-8 w-8 text-primary/30" />
+                    </div>
+                  )}
+                  <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] bg-background/80 backdrop-blur-sm">
+                    {item.type}
+                  </Badge>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{item.title}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <Avatar className="h-4 w-4">
-                      <AvatarImage src={item.imageUrl || undefined} className="object-cover" />
-                      <AvatarFallback className="text-[7px] bg-muted text-muted-foreground">
-                        {item.title?.[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
-                  </div>
+                {/* Content */}
+                <div className="p-3 flex-1 flex flex-col gap-1">
+                  <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                  {item.subtitle && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.subtitle}</p>
+                  )}
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
               </Link>
             </motion.div>
           );
