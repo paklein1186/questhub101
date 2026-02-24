@@ -4,7 +4,7 @@ import { Link2, Check, Copy } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { getInviteUrl, getDisplayUrl, type ShareEntityType } from "@/lib/shareUrl";
+import { getInviteUrl, type ShareEntityType } from "@/lib/shareUrl";
 
 type EntityType = "guild" | "pod" | "quest" | "company";
 
@@ -26,7 +26,7 @@ export function InviteLinkButton({ entityType, entityId, entityName }: Props) {
   const { toast } = useToast();
 
   const ogUrl = getInviteUrl(entityType as ShareEntityType, entityId);
-  const displayUrl = getDisplayUrl(entityType as ShareEntityType, entityId);
+  
 
   const copyToClipboard = async () => {
     try {

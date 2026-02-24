@@ -4,7 +4,7 @@ import { Share2, Check, Copy } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { getShareUrl, getDisplayUrl, type ShareEntityType } from "@/lib/shareUrl";
+import { getShareUrl, type ShareEntityType } from "@/lib/shareUrl";
 
 interface Props {
   entityType: ShareEntityType;
@@ -19,7 +19,7 @@ export function ShareLinkButton({ entityType, entityId, entityName, size = "sm",
   const { toast } = useToast();
 
   const ogUrl = getShareUrl(entityType, entityId);
-  const displayUrl = getDisplayUrl(entityType, entityId);
+  
 
   const handleShare = async () => {
     try {
