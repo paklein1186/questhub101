@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
   }
 
   const MAP: Record<string, { table: string; title: string; desc: string; img: string; fallback: string; path: string; label: string }> = {
-    quest:     { table: "quests",       title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/quests",      label: "Quest" },
+    quest:     { table: "quests",       title: "title", desc: "description", img: "image_url",       fallback: "",         path: "/quests",      label: "Quest" },
     guild:     { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/guilds",      label: "Guild" },
     service:   { table: "services",     title: "title", desc: "description", img: "image_url",       fallback: "",         path: "/services",    label: "Service" },
     company:   { table: "companies",    title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/companies",   label: "Organization" },
