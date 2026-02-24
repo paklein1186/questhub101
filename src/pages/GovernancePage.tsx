@@ -12,29 +12,24 @@ export default function GovernancePage({ embedded }: { embedded?: boolean }) {
   const { userLevel } = usePlanLimits();
 
   return (
-    <ContentPageShell embedded={embedded} title="Cooperative Governance" subtitle="Changethegame combines marketplace activity with cooperative stewardship.">
-      <ContentSection title="How Governance Rights Are Unlocked">
-        <p className="text-muted-foreground mb-4">
-          Governance rights are unlocked by XP level, participation history, and shareholding.
-          XP determines your participation tier. Shares increase long-term responsibility.
-        </p>
-        <p className="text-muted-foreground mb-6">
-          This ensures merit-based legitimacy, long-term alignment, and protection from speculative capture.
-        </p>
+    <ContentPageShell embedded={embedded} title={t("governancePage.title")} subtitle={t("governancePage.subtitle")}>
+      <ContentSection title={t("governancePage.howUnlocked")}>
+        <p className="text-muted-foreground mb-4">{t("governancePage.howUnlockedP1")}</p>
+        <p className="text-muted-foreground mb-6">{t("governancePage.howUnlockedP2")}</p>
 
         {user && (
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mb-6">
-            <p className="text-sm font-medium">Your current level: <strong>Level {userLevel}</strong></p>
+            <p className="text-sm font-medium" dangerouslySetInnerHTML={{ __html: t("governancePage.currentLevel", { level: userLevel }) }} />
             <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="default" className="text-xs">✓ Participate</Badge>
+              <Badge variant="default" className="text-xs">✓ {t("governancePage.participate")}</Badge>
               <Badge variant={canVote(userLevel) ? "default" : "outline"} className="text-xs">
-                {canVote(userLevel) ? "✓" : "🔒"} Vote
+                {canVote(userLevel) ? "✓" : "🔒"} {t("governancePage.vote")}
               </Badge>
               <Badge variant={canPropose(userLevel) ? "default" : "outline"} className="text-xs">
-                {canPropose(userLevel) ? "✓" : "🔒"} Propose
+                {canPropose(userLevel) ? "✓" : "🔒"} {t("governancePage.propose")}
               </Badge>
               <Badge variant={isStewardEligible(userLevel) ? "default" : "outline"} className="text-xs">
-                {isStewardEligible(userLevel) ? "✓" : "🔒"} Steward Council
+                {isStewardEligible(userLevel) ? "✓" : "🔒"} {t("governancePage.stewardCouncil")}
               </Badge>
             </div>
           </div>
@@ -48,7 +43,7 @@ export default function GovernancePage({ embedded }: { embedded?: boolean }) {
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant={unlocked ? "default" : "outline"} className="text-xs">Level {tier.levels}</Badge>
                   <span className="font-display font-semibold text-sm">{tier.label}</span>
-                  {unlocked && <Badge variant="secondary" className="text-[10px]">✓ Unlocked</Badge>}
+                  {unlocked && <Badge variant="secondary" className="text-[10px]">✓ {t("governancePage.unlocked")}</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground">{tier.description}</p>
               </div>
@@ -57,28 +52,25 @@ export default function GovernancePage({ embedded }: { embedded?: boolean }) {
         </div>
       </ContentSection>
 
-      <ContentSection title="Voting Weight">
-        <p className="text-muted-foreground mb-2">Votes are weighted by:</p>
+      <ContentSection title={t("governancePage.votingWeight")}>
+        <p className="text-muted-foreground mb-2">{t("governancePage.votingWeightP")}</p>
         <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-          <li><strong className="text-foreground">XP</strong> — your contribution history</li>
-          <li><strong className="text-foreground">Shares</strong> — moderate governance weight</li>
-          <li><strong className="text-foreground">Territory contribution</strong> — cross-territory activity</li>
+          <li dangerouslySetInnerHTML={{ __html: t("governancePage.votingXP") }} />
+          <li dangerouslySetInnerHTML={{ __html: t("governancePage.votingShares") }} />
+          <li dangerouslySetInnerHTML={{ __html: t("governancePage.votingTerritory") }} />
         </ul>
       </ContentSection>
 
-      <ContentSection title="Guild Governance">
-        <p className="text-muted-foreground">Guilds operate with configurable membership policies (open, application-based, invite-only), role-based permissions, and AI-assisted decision-making through polls and proposals.</p>
+      <ContentSection title={t("governancePage.guildGov")}>
+        <p className="text-muted-foreground">{t("governancePage.guildGovP")}</p>
       </ContentSection>
 
-      <ContentSection title="Territorial Activation">
-        <p className="text-muted-foreground">Territories are activated through quests, guilds, and people. AI agents help identify gaps and opportunities for local collaboration.</p>
+      <ContentSection title={t("governancePage.territorialActivation")}>
+        <p className="text-muted-foreground">{t("governancePage.territorialActivationP")}</p>
       </ContentSection>
 
-      <ContentSection title="Design Principles">
-        <p className="text-muted-foreground">
-          The governance architecture avoids complex quadratic voting and token-based voting.
-          It is designed for progressive activation — simple today, with infrastructure for deeper participation as the ecosystem matures.
-        </p>
+      <ContentSection title={t("governancePage.designPrinciples")}>
+        <p className="text-muted-foreground">{t("governancePage.designPrinciplesP")}</p>
       </ContentSection>
     </ContentPageShell>
   );

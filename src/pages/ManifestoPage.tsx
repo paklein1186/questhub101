@@ -13,34 +13,34 @@ export default function ManifestoPage({ embedded }: { embedded?: boolean }) {
         </p>
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">
-          <p>We believe people can create extraordinary things when they are seen, supported and connected.</p>
-          <p>We believe communities are wiser than institutions.</p>
-          <p>We believe creativity and impact are not separate.</p>
-          <p>We believe territories are alive and deserve to be understood.</p>
-          <p>We believe collaboration is a form of beauty.</p>
-          <p>We believe technology should amplify the human, not replace it.</p>
-          <p>We believe ownership should be shared.</p>
-          <p>We believe the future is built one quest at a time.</p>
+          <p>{t("manifestoPage.believe1")}</p>
+          <p>{t("manifestoPage.believe2")}</p>
+          <p>{t("manifestoPage.believe3")}</p>
+          <p>{t("manifestoPage.believe4")}</p>
+          <p>{t("manifestoPage.believe5")}</p>
+          <p>{t("manifestoPage.believe6")}</p>
+          <p>{t("manifestoPage.believe7")}</p>
+          <p>{t("manifestoPage.believe8")}</p>
 
           <div className="pt-6">
-            <p>changethegame exists so people can:</p>
+            <p>{t("manifestoPage.existsSo")}</p>
             <ul className="list-disc list-inside space-y-1 pl-1 mt-2">
-              <li>create without permission,</li>
-              <li>act with others,</li>
-              <li>learn from each other,</li>
-              <li>and transform the places they live in.</li>
+              <li>{t("manifestoPage.can1")}</li>
+              <li>{t("manifestoPage.can2")}</li>
+              <li>{t("manifestoPage.can3")}</li>
+              <li>{t("manifestoPage.can4")}</li>
             </ul>
           </div>
 
           <div className="pt-6 space-y-4">
-            <p>This is our movement, our coop-like venture, our little rebellion.</p>
-            <p>We're not here to take attention.</p>
-            <p>We're here to give people <em>their power back</em>.</p>
+            <p>{t("manifestoPage.movement")}</p>
+            <p>{t("manifestoPage.notAttention")}</p>
+            <p dangerouslySetInnerHTML={{ __html: t("manifestoPage.powerBack") }} />
           </div>
 
           <div className="pt-6 space-y-1">
-            <p>Let's change the game.</p>
-            <p>Together.</p>
+            <p>{t("manifestoPage.letsChange")}</p>
+            <p>{t("manifestoPage.together")}</p>
           </div>
         </div>
       </div>

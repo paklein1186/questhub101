@@ -14,6 +14,7 @@ export default function WhatComesNextPage({ embedded }: { embedded?: boolean }) 
   const { persona } = usePersona();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const items = t("whatComesNextPage.items", { returnObjects: true }) as string[];
 
   const handleSubmit = async () => {
     if (!text.trim()) return;
@@ -27,10 +28,10 @@ export default function WhatComesNextPage({ embedded }: { embedded?: boolean }) 
         status: "NEW",
         user_explicit: true,
       } as any);
-      toast.success("Thank you — your idea has been planted.");
+      toast.success(t("whatComesNextPage.successToast"));
       setText("");
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("whatComesNextPage.errorToast"));
     } finally {
       setSending(false);
     }
@@ -46,36 +47,28 @@ export default function WhatComesNextPage({ embedded }: { embedded?: boolean }) 
         </p>
 
         <div className="space-y-4 text-base sm:text-lg leading-relaxed text-foreground/90">
-          <p>Here are upcoming pieces we're weaving:</p>
+          <p>{t("whatComesNextPage.upcoming")}</p>
 
           <ul className="list-disc list-inside space-y-1 pl-1 pt-2">
-            <li>AI-led collective onboarding</li>
-            <li>Territory memory expansion</li>
-            <li>XP + Credits evolution</li>
-            <li>Pods with expiration time</li>
-            <li>Multi-creator quests</li>
-            <li>Partnered guild ecosystems</li>
-            <li>More expressive creative tools</li>
-            <li>Deep cross-territory analytics</li>
-            <li>Multi-language contextual translation</li>
-            <li>Coop-like governance directly in the UI</li>
+            {Array.isArray(items) && items.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
           </ul>
 
           <div className="pt-10 space-y-2">
-            <p>Have an idea, a wild thought, a frustration, or a wish?</p>
+            <p>{t("whatComesNextPage.haveIdea")}</p>
             <p>
-              Tell us.<br />
-              We listen.
+              {t("whatComesNextPage.tellUs")}<br />
+              {t("whatComesNextPage.weListen")}
             </p>
           </div>
         </div>
 
-        {/* Suggestion form */}
         <div className="mt-12 space-y-4">
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Share an idea, a wish, or a frustration…"
+            placeholder={t("whatComesNextPage.placeholder")}
             className="min-h-[120px] border-border/40 bg-transparent resize-none text-base"
           />
           <Button
@@ -84,7 +77,7 @@ export default function WhatComesNextPage({ embedded }: { embedded?: boolean }) 
             variant="outline"
             size="sm"
           >
-            {sending ? "Sending…" : "Send to the builders"}
+            {sending ? t("whatComesNextPage.sending") : t("whatComesNextPage.sendButton")}
           </Button>
         </div>
       </div>
