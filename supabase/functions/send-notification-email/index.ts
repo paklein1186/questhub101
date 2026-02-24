@@ -60,10 +60,15 @@ function prefKeyForType(type: string): string | null {
   if (["FOLLOWED_USER_NEW_POST", "FOLLOWED_ENTITY_NEW_POST"].includes(type)) return "notify_new_posts_from_followed";
   if (["FOLLOWED_ENTITY_NEW_EVENT"].includes(type)) return "notify_new_events_from_followed";
   if (["FOLLOWED_ENTITY_NEW_QUEST"].includes(type)) return "notify_new_quests_from_followed";
-  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED"].includes(type)) return "notify_bookings_and_cancellations";
+  if (["FOLLOWED_ENTITY_NEW_SERVICE"].includes(type)) return "notify_new_services_from_followed";
+  if (["FOLLOWED_ENTITY_NEW_COURSE"].includes(type)) return "notify_new_courses_from_followed";
+  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED", "BOOKING_UPDATED"].includes(type)) return "notify_bookings_and_cancellations";
   if (["GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "USER_INVITED_TO_UNIT"].includes(type)) return "notify_invitations_to_units";
+  if (["ENTITY_JOIN_REQUEST"].includes(type)) return "notify_new_join_requests_guilds";
+  if (["PARTNERSHIP_PROPOSED"].includes(type)) return "notify_new_partnership_requests";
   if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return "notify_quest_updates_and_comments";
-  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED"].includes(type)) return "notify_xp_and_achievements";
+  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED", "milestone_completed"].includes(type)) return "notify_xp_and_achievements";
+  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return null; // always send — important
   return null;
 }
 
