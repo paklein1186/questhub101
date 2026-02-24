@@ -4,18 +4,20 @@
  * Social-media crawlers don't execute JS, so the SPA can't serve per-page
  * OG tags from index.html alone.
  *
- * getShareUrl / getInviteUrl route through the og-share edge function which:
+ * Share links use share.changethegame.xyz which proxies to the og-share
+ * edge function. The function:
  *   1. Fetches entity-specific title, description & image from the DB
  *   2. Serves HTML with proper OG meta tags for crawlers
- *   3. Meta-refreshes real browsers to changethegame.xyz instantly
+ *   3. Redirects real browsers to changethegame.xyz instantly
  *
- * getDisplayUrl returns the clean human-readable URL for display in the UI.
- * Social media cards will show the clean og:url, not the function URL.
+ * Social media cards display the clean og:url (changethegame.xyz), not
+ * the share subdomain.
  */
 
-const OG_SHARE_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/og-share`;
+/** Branded share subdomain — points to og-share edge function */
+const SHARE_DOMAIN = "https://share.changethegame.xyz";
 
-/** Production domain used for display URLs */
+/** Production domain used for display / canonical URLs */
 const PRODUCTION_DOMAIN = "https://changethegame.xyz";
 
 export type ShareEntityType =
@@ -44,18 +46,19 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
 };
 
 /**
- * Returns a share URL routed through og-share for social crawler support.
- * Browsers are meta-refreshed to the clean domain instantly.
+ * Returns a share URL on the branded share subdomain.
+ * Format: share.changethegame.xyz/quest/ID
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&v=2`;
+  return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}`;
 }
 
 /**
- * Returns an invite link through og-share for social crawler support.
+ * Returns an invite link on the branded share subdomain.
+ * Format: share.changethegame.xyz/quest/ID?ref=invite
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite&v=2`;
+  return `${SHARE_DOMAIN}/${encodeURIComponent(type)}/${encodeURIComponent(id)}?ref=invite`;
 }
 
 /**
