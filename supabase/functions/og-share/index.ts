@@ -34,17 +34,19 @@ Deno.serve(async (req) => {
     return prefix + "Explore this " + label.toLowerCase() + " on " + BRAND + ". " + TAGLINE;
   }
 
-  function buildHtml(title: string, desc: string, image: string, pageUrl: string): string {
+  function buildHtml(title: string, desc: string, image: string, pageUrl: string, shouldRedirect: boolean): string {
     const t = esc(title);
     const d = esc(desc);
     const i = esc(image);
     const u = esc(pageUrl);
+    const refreshTag = shouldRedirect ? `<meta http-equiv="refresh" content="0;url=${u}"/>` : "";
     return "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"/>" +
       "<title>" + t + " | " + BRAND + "</title>" +
       "<meta property=\"og:type\" content=\"website\"/>" +
       "<meta property=\"og:title\" content=\"" + t + "\"/>" +
       "<meta property=\"og:description\" content=\"" + d + "\"/>" +
       "<meta property=\"og:image\" content=\"" + i + "\"/>" +
+      "<meta property=\"og:image:secure_url\" content=\"" + i + "\"/>" +
       "<meta property=\"og:image:width\" content=\"1200\"/>" +
       "<meta property=\"og:image:height\" content=\"630\"/>" +
       "<meta property=\"og:url\" content=\"" + u + "\"/>" +
@@ -54,20 +56,36 @@ Deno.serve(async (req) => {
       "<meta name=\"twitter:description\" content=\"" + d + "\"/>" +
       "<meta name=\"twitter:image\" content=\"" + i + "\"/>" +
       "<meta name=\"description\" content=\"" + d + "\"/>" +
-      "<meta http-equiv=\"refresh\" content=\"0;url=" + u + "\"/>" +
+      refreshTag +
       "</head><body><p>Redirecting...</p></body></html>";
   }
 
+  function isSocialBot(userAgent: string): boolean {
+    const ua = userAgent.toLowerCase();
+    return [
+      "whatsapp", "facebookexternalhit", "facebot", "twitterbot", "linkedinbot", "slackbot", "discordbot", "telegrambot", "skypeuripreview", "pinterest", "googlebot"
+    ].some((bot) => ua.includes(bot));
+  }
+
+  function resolveImage(type: string, id: string, rawImage: string | null | undefined): string {
+    const image = (rawImage || "").trim();
+    if (image && /^https?:\/\//i.test(image) && !image.endsWith("/favicon.png")) {
+      return image;
+    }
+    return `https://api.dicebear.com/9.x/shapes/png?seed=${encodeURIComponent(`${type}-${id}`)}&size=1200`;
+  }
+
   const MAP: Record<string, { table: string; title: string; desc: string; img: string; fallback: string; path: string; label: string }> = {
-    quest:     { table: "quests",       title: "title", desc: "description", img: "image_url",       fallback: "",         path: "/quests",      label: "Quest" },
+    quest:     { table: "quests",       title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/quests",      label: "Quest" },
     guild:     { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/guilds",      label: "Guild" },
     service:   { table: "services",     title: "title", desc: "description", img: "image_url",       fallback: "",         path: "/services",    label: "Service" },
     company:   { table: "companies",    title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/companies",   label: "Organization" },
     event:     { table: "guild_events", title: "title", desc: "description", img: "",                fallback: "",         path: "/events",      label: "Event" },
     course:    { table: "courses",      title: "title", desc: "description", img: "cover_image_url", fallback: "",         path: "/courses",     label: "Course" },
-    profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "avatar_url",      fallback: "",           path: "/users",     label: "Human" },
-    territory: { table: "territories",  title: "name",  desc: "summary",     img: "",           fallback: "",         path: "/territories", label: "Territory" },
+    profile:   { table: "profiles",     title: "name",  desc: "bio",         img: "avatar_url",      fallback: "",         path: "/users",       label: "Human" },
+    territory: { table: "territories",  title: "name",  desc: "summary",     img: "",                fallback: "",         path: "/territories", label: "Territory" },
     pod:       { table: "guilds",       title: "name",  desc: "description", img: "banner_url",      fallback: "logo_url", path: "/pods",        label: "Pod" },
+    topic:     { table: "topics",       title: "name",  desc: "description", img: "image_url",       fallback: "",         path: "/topics",      label: "Topic" },
   };
 
   try {
