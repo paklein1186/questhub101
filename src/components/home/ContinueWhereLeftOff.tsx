@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Clock, FileEdit, CircleDot, Inbox, ChevronRight, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,45 +18,44 @@ export function ContinueWhereLeftOff({ userId }: Props) {
     queryKey: ["continue-where-left", userId],
     queryFn: async () => {
       const [unfinishedQuests, draftServices, draftCourses, activePods, pendingApps, ownedQuests] = await Promise.all([
-        supabase.from("quest_participants").select("quest_id, quests(id, title, status)")
+        supabase.from("quest_participants").select("quest_id, quests(id, title, status, cover_image_url)")
           .eq("user_id", userId).eq("status", "active").limit(5),
-        supabase.from("services").select("id, title").eq("provider_user_id", userId)
+        supabase.from("services").select("id, title, cover_image_url").eq("provider_user_id", userId)
           .eq("is_draft", true).eq("is_deleted", false).limit(5),
-        supabase.from("courses").select("id, title").eq("owner_user_id", userId)
+        supabase.from("courses").select("id, title, cover_image_url").eq("owner_user_id", userId)
           .eq("is_published", false).eq("is_deleted", false).limit(5),
-        supabase.from("pod_members").select("pod_id, pods(id, name, type)")
+        supabase.from("pod_members").select("pod_id, pods(id, name, type, avatar_url)")
           .eq("user_id", userId).limit(5),
-        supabase.from("guild_applications").select("id, guild_id, guilds(name), status")
+        supabase.from("guild_applications").select("id, guild_id, guilds(name, logo_url), status")
           .eq("applicant_user_id", userId).eq("status", "PENDING").limit(5),
-        supabase.from("quests").select("id, title, status")
+        supabase.from("quests").select("id, title, status, cover_image_url")
           .eq("created_by_user_id", userId).eq("is_deleted", false)
           .in("status", ["OPEN", "ACTIVE", "IN_PROGRESS", "OPEN_FOR_PROPOSALS"])
           .limit(3),
       ]);
 
-      const items: { id: string; title: string; type: string; icon: string; route: string }[] = [];
+      const items: { id: string; title: string; type: string; icon: string; route: string; imageUrl?: string | null }[] = [];
 
       (unfinishedQuests.data ?? []).forEach((q: any) => {
         if (q.quests && q.quests.status !== "COMPLETED") {
-          items.push({ id: q.quest_id, title: q.quests.title, type: "Quest", icon: "quest", route: `/quests/${q.quest_id}` });
+          items.push({ id: q.quest_id, title: q.quests.title, type: "Quest", icon: "quest", route: `/quests/${q.quest_id}`, imageUrl: q.quests.cover_image_url });
         }
       });
       (draftServices.data ?? []).forEach((s: any) => {
-        items.push({ id: s.id, title: s.title, type: "Draft Service", icon: "draft", route: `/services/${s.id}` });
+        items.push({ id: s.id, title: s.title, type: "Draft Service", icon: "draft", route: `/services/${s.id}`, imageUrl: s.cover_image_url });
       });
       (draftCourses.data ?? []).forEach((c: any) => {
-        items.push({ id: c.id, title: c.title, type: "Draft Course", icon: "draft", route: `/courses/${c.id}` });
+        items.push({ id: c.id, title: c.title, type: "Draft Course", icon: "draft", route: `/courses/${c.id}`, imageUrl: c.cover_image_url });
       });
       (activePods.data ?? []).forEach((p: any) => {
-        if (p.pods) items.push({ id: p.pod_id, title: p.pods.name, type: "Pod", icon: "pod", route: `/pods/${p.pod_id}` });
+        if (p.pods) items.push({ id: p.pod_id, title: p.pods.name, type: "Pod", icon: "pod", route: `/pods/${p.pod_id}`, imageUrl: p.pods.avatar_url });
       });
       (pendingApps.data ?? []).forEach((a: any) => {
-        items.push({ id: a.id, title: a.guilds?.name || "Application", type: "Pending Application", icon: "pending", route: `/guilds/${a.guild_id}` });
+        items.push({ id: a.id, title: a.guilds?.name || "Application", type: "Pending Application", icon: "pending", route: `/guilds/${a.guild_id}`, imageUrl: a.guilds?.logo_url });
       });
       (ownedQuests.data ?? []).forEach((q: any) => {
-        // Add a "post update" shortcut for quests the user owns
         if (!items.some(it => it.id === `update-${q.id}`)) {
-          items.push({ id: `update-${q.id}`, title: `Post update on "${q.title}"`, type: "Quest Update", icon: "update", route: `/quests/${q.id}?tab=updates` });
+          items.push({ id: `update-${q.id}`, title: `Post update on "${q.title}"`, type: "Quest Update", icon: "update", route: `/quests/${q.id}?tab=updates`, imageUrl: q.cover_image_url });
         }
       });
 
@@ -86,7 +86,15 @@ export function ContinueWhereLeftOff({ userId }: Props) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{item.title}</p>
-                  <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={item.imageUrl || undefined} className="object-cover" />
+                      <AvatarFallback className="text-[7px] bg-muted text-muted-foreground">
+                        {item.title?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+                  </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
               </Link>
