@@ -31,14 +31,6 @@ export function useGraphData(centerType: string, centerId: string) {
     queryKey: ["graph", centerType, centerId],
     enabled: !!centerId,
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("graph", {
-        body: null,
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // supabase.functions.invoke doesn't support query params,
-      // so we use fetch directly
       const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "anzeimppqytonfxrnqxp";
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const session = (await supabase.auth.getSession()).data.session;
