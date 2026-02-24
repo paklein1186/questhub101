@@ -17,7 +17,7 @@ import {
   Plus, Calendar, Clock, Users, Video, Archive, CheckCircle,
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
   Telescope, Network, PartyPopper, Play, XCircle, CalendarPlus,
-  ThumbsUp, ThumbsDown, UserCheck,
+  ThumbsUp, ThumbsDown, UserCheck, Share2, Check, Copy,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { RITUAL_SESSION_TYPES, RITUAL_FREQUENCIES, RITUAL_ACCESS_TYPES, GOVERNANCE_IMPACT_COLORS, type RitualSessionTypeKey } from "@/lib/ritualConfig";
@@ -417,6 +417,9 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           <Button size="sm" variant="outline" onClick={() => navigate(`/ritual-call/${occ.id}`)}>
                             <Video className="h-3.5 w-3.5 mr-1" /> Join Call
                           </Button>
+
+                          {/* Share call link for non-members */}
+                          <ShareCallButton occurrenceId={occ.id} visioLink={occ.visio_link} ritualTitle={ritual?.title} />
 
                           {/* Admin complete */}
                           {isAdmin && occ.status === "scheduled" && (
