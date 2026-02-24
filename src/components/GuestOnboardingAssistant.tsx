@@ -386,6 +386,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         navigate("/onboarding");
       }
       // If skipPostSignupNavigation is true, the parent page handles the post-signup flow
+    }
   };
 
   const canProceed =
