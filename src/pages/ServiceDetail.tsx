@@ -123,6 +123,8 @@ export default function ServiceDetail() {
       if (!busyEvents || busyEvents.length === 0) return [];
 
       // Fetch subcalendar preferences for this provider
+      // Note: if the viewer is not the provider, RLS may block this read,
+      // in which case we include ALL busy events (safe default — more restrictive)
       const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
       const { data: prefs } = await (supabase as any)
         .from("calendar_subcalendar_preferences")
@@ -141,12 +143,15 @@ export default function ServiceDetail() {
       }
 
       // Filter out events from disabled subcalendars
-      return busyEvents.filter(e => {
+      const filtered = busyEvents.filter(e => {
         if (!e.source_calendar_id) return true; // no source = include
         return !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`);
       });
+      console.log(`[ServiceDetail] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering (${disabledSet.size} disabled subcals)`);
+      return filtered;
     },
     enabled: !!providerIdForBusy,
+    staleTime: 60_000, // Re-fetch after 1 minute to catch recent syncs
   });
 
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
