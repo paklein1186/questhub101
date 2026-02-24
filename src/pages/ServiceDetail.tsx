@@ -374,7 +374,7 @@ export default function ServiceDetail() {
 
         {!isOwnService && (
           <Dialog open={bookOpen} onOpenChange={o => { setBookOpen(o); if (!o) { setSelectedSlot(null); setWeekOffset(0); } }}>
-            <DialogTrigger asChild><Button><CalendarClock className="h-4 w-4 mr-1" /> Book a session</Button></DialogTrigger>
+            <DialogTrigger asChild><Button><CalendarClock className="h-4 w-4 mr-1" /> {svcType === "online_call" ? "Book a session" : svcType === "event_attendance" ? "Register" : "Request this service"}</Button></DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>Book — {svc.title}</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-2">
@@ -396,7 +396,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (€${svc.price_amount})`) : isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
               </div>
             </DialogContent>
           </Dialog>
