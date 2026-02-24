@@ -91,11 +91,14 @@ export default function PublicBooking() {
           if (!p.is_enabled) disabledSet.add(`${p.connection_id}::${p.source_calendar_id}`);
         }
       }
-      return busyEvents.filter((e: any) =>
+      const filtered = busyEvents.filter((e: any) =>
         !e.source_calendar_id || !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`)
       );
+      console.log(`[PublicBooking] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering`);
+      return filtered;
     },
     enabled: !!providerUserId,
+    staleTime: 60_000,
   });
 
   const [weekOffset, setWeekOffset] = useState(0);
