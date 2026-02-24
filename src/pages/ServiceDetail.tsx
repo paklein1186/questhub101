@@ -133,7 +133,7 @@ export default function ServiceDetail() {
       // 2. Fetch subcalendar preferences to filter out disabled calendars
       const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
       const { data: prefs, error: prefsErr } = await supabase
-        .from("calendar_subcalendar_preferences" as any)
+        .from("calendar_subcalendar_preferences")
         .select("source_calendar_id, is_enabled, connection_id")
         .eq("user_id", providerIdForBusy)
         .in("connection_id", connectionIds);
