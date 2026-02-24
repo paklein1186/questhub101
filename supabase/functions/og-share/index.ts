@@ -93,6 +93,8 @@ Deno.serve(async (req) => {
     const type = reqUrl.searchParams.get("type");
     const id = reqUrl.searchParams.get("id");
     const ref = reqUrl.searchParams.get("ref");
+    const userAgent = req.headers.get("user-agent") || "";
+    const socialBot = isSocialBot(userAgent);
 
     if (!type || !id) {
       return new Response("Missing type or id", { status: 400, headers: corsHeaders });
