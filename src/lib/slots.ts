@@ -30,6 +30,10 @@ export function generateSlots(
   calendarBusyEvents: { start_at: string; end_at: string }[] = [],
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
+  console.log(`[generateSlots] calendarBusyEvents count: ${calendarBusyEvents.length}, range: ${startDate} to ${endDate}, duration: ${durationMinutes}min`);
+  if (calendarBusyEvents.length > 0) {
+    console.log(`[generateSlots] First busy event: ${calendarBusyEvents[0].start_at} – ${calendarBusyEvents[0].end_at}`);
+  }
   const start = new Date(startDate);
   const end = new Date(endDate);
 
