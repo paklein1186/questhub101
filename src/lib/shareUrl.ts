@@ -48,14 +48,14 @@ const ROUTE_MAP: Record<ShareEntityType, string> = {
  * Browsers are meta-refreshed to the clean domain instantly.
  */
 export function getShareUrl(type: ShareEntityType, id: string): string {
-  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&v=2`;
 }
 
 /**
  * Returns an invite link through og-share for social crawler support.
  */
 export function getInviteUrl(type: ShareEntityType, id: string): string {
-  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite`;
+  return `${OG_SHARE_BASE}?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}&ref=invite&v=2`;
 }
 
 /**
