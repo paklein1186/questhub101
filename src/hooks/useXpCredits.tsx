@@ -151,6 +151,15 @@ function formatXpType(type: string): string {
     PROPOSAL_SUBMITTED: "Proposal submitted",
     PROPOSAL_ACCEPTED: "Proposal accepted",
     TERRITORY_MEMORY_CONTRIBUTED: "Territory knowledge contributed",
+    POST_CREATED: "Post published",
+    SERVICE_CREATED: "Service created",
+    COURSE_CREATED: "Course created",
+    EVENT_CREATED: "Event created",
+    GUILD_JOINED: "Guild joined",
+    COMPANY_JOINED: "Organization joined",
+    POD_JOINED: "Pod joined",
+    EVENT_REGISTERED: "Event registration",
+    COURSE_ENROLLED: "Course enrollment",
   };
   return map[type] ?? type.replace(/_/g, " ").toLowerCase();
 }
