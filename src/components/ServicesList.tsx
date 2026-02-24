@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { LayoutList, LayoutGrid, Trash2 } from "lucide-react";
+import { LayoutList, LayoutGrid, Trash2, Video, Briefcase, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -82,6 +82,9 @@ export function ServicesList({ services, isAdmin, onToggleActive, onDelete }: Se
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{svc.description}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1">
+                  {svc.service_type === "online_call" && <Badge variant="outline" className="text-[10px]"><Video className="h-2.5 w-2.5 mr-0.5" />Call</Badge>}
+                  {svc.service_type === "service_mission" && <Badge variant="outline" className="text-[10px]"><Briefcase className="h-2.5 w-2.5 mr-0.5" />Mission</Badge>}
+                  {svc.service_type === "event_attendance" && <Badge variant="outline" className="text-[10px]"><Users className="h-2.5 w-2.5 mr-0.5" />Event</Badge>}
                   {(svc as any)._provider_name && (
                     <span className="text-xs text-muted-foreground">by {(svc as any)._provider_name}</span>
                   )}
