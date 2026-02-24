@@ -6788,6 +6788,21 @@ export type Database = {
         }
         Relationships: []
       }
+      graph_edges: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          relation_type: string | null
+          source_id: string | null
+          source_type: string | null
+          target_id: string | null
+          target_type: string | null
+          updated_at: string | null
+          visibility: string | null
+          weight: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           allow_wall_comments: boolean | null

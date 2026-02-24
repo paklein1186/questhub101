@@ -15,6 +15,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
+import { GraphView } from "@/components/graph/GraphView";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();
@@ -110,6 +111,7 @@ export default function TerritoryDetail() {
             <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
+            <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -130,6 +132,10 @@ export default function TerritoryDetail() {
 
           <TabsContent value="contribute" className="mt-6">
             <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+          </TabsContent>
+
+          <TabsContent value="graph" className="mt-6">
+            <GraphView centerType="territory" centerId={resolvedId!} height={600} />
           </TabsContent>
 
         </Tabs>
