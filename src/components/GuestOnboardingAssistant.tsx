@@ -131,8 +131,8 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
   const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
-  const stepIndex = STEPS_ORDER.indexOf(step);
-  const totalSteps = STEPS_ORDER.length;
+  const stepIndex = activeSteps.indexOf(step);
+  const totalSteps = activeSteps.length;
   const universe = getUniverseForPersona(selectedPersona);
 
   // Fetch topics when persona changes
@@ -175,14 +175,14 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   }, [selectedPersona, universe]);
 
   const goNext = useCallback(() => {
-    const idx = STEPS_ORDER.indexOf(step);
-    if (idx < STEPS_ORDER.length - 1) setStep(STEPS_ORDER[idx + 1]);
-  }, [step]);
+    const idx = activeSteps.indexOf(step);
+    if (idx < activeSteps.length - 1) setStep(activeSteps[idx + 1]);
+  }, [step, activeSteps]);
 
   const goBack = useCallback(() => {
-    const idx = STEPS_ORDER.indexOf(step);
-    if (idx > 0) setStep(STEPS_ORDER[idx - 1]);
-  }, [step]);
+    const idx = activeSteps.indexOf(step);
+    if (idx > 0) setStep(activeSteps[idx - 1]);
+  }, [step, activeSteps]);
 
   const toggleInterest = (id: string) => {
     setSelectedInterests((prev) =>
