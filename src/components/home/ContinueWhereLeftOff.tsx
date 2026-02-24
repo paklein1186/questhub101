@@ -18,50 +18,44 @@ export function ContinueWhereLeftOff({ userId }: Props) {
     queryKey: ["continue-where-left", userId],
     queryFn: async () => {
       const [unfinishedQuests, draftServices, draftCourses, activePods, pendingApps, ownedQuests] = await Promise.all([
-        supabase.from("quest_participants").select("quest_id, quests(id, title, status, cover_image_url, description)")
+        supabase.from("quest_participants").select("quest_id, quests(id, title, status, cover_image_url)")
           .eq("user_id", userId).eq("status", "active").limit(5),
-        supabase.from("services").select("id, title, cover_image_url, short_description").eq("provider_user_id", userId)
+        supabase.from("services").select("id, title, cover_image_url").eq("provider_user_id", userId)
           .eq("is_draft", true).eq("is_deleted", false).limit(5),
-        supabase.from("courses").select("id, title, cover_image_url, description").eq("owner_user_id", userId)
+        supabase.from("courses").select("id, title, cover_image_url").eq("owner_user_id", userId)
           .eq("is_published", false).eq("is_deleted", false).limit(5),
-        supabase.from("pod_members").select("pod_id, pods(id, name, type, avatar_url, description)")
+        supabase.from("pod_members").select("pod_id, pods(id, name, type, avatar_url)")
           .eq("user_id", userId).limit(5),
-        supabase.from("guild_applications").select("id, guild_id, guilds(name, logo_url, description), status")
+        supabase.from("guild_applications").select("id, guild_id, guilds(name, logo_url), status")
           .eq("applicant_user_id", userId).eq("status", "PENDING").limit(5),
-        supabase.from("quests").select("id, title, status, cover_image_url, description")
+        supabase.from("quests").select("id, title, status, cover_image_url")
           .eq("created_by_user_id", userId).eq("is_deleted", false)
           .in("status", ["OPEN", "ACTIVE", "IN_PROGRESS", "OPEN_FOR_PROPOSALS"])
           .limit(3),
       ]);
 
-      const truncate = (s: string | null | undefined, max = 60) => {
-        if (!s) return null;
-        const clean = s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
-        return clean.length > max ? clean.slice(0, max) + "…" : clean;
-      };
-
-      const items: { id: string; title: string; type: string; icon: string; route: string; imageUrl?: string | null; subtitle?: string | null }[] = [];
+      const items: { id: string; title: string; type: string; icon: string; route: string; imageUrl?: string | null }[] = [];
 
       (unfinishedQuests.data ?? []).forEach((q: any) => {
         if (q.quests && q.quests.status !== "COMPLETED") {
-          items.push({ id: q.quest_id, title: q.quests.title, type: "Quest", icon: "quest", route: `/quests/${q.quest_id}`, imageUrl: q.quests.cover_image_url, subtitle: truncate(q.quests.description) });
+          items.push({ id: q.quest_id, title: q.quests.title, type: "Quest", icon: "quest", route: `/quests/${q.quest_id}`, imageUrl: q.quests.cover_image_url });
         }
       });
       (draftServices.data ?? []).forEach((s: any) => {
-        items.push({ id: s.id, title: s.title, type: "Draft Service", icon: "draft", route: `/services/${s.id}`, imageUrl: s.cover_image_url, subtitle: truncate(s.short_description) });
+        items.push({ id: s.id, title: s.title, type: "Draft Service", icon: "draft", route: `/services/${s.id}`, imageUrl: s.cover_image_url });
       });
       (draftCourses.data ?? []).forEach((c: any) => {
-        items.push({ id: c.id, title: c.title, type: "Draft Course", icon: "draft", route: `/courses/${c.id}`, imageUrl: c.cover_image_url, subtitle: truncate(c.description) });
+        items.push({ id: c.id, title: c.title, type: "Draft Course", icon: "draft", route: `/courses/${c.id}`, imageUrl: c.cover_image_url });
       });
       (activePods.data ?? []).forEach((p: any) => {
-        if (p.pods) items.push({ id: p.pod_id, title: p.pods.name, type: "Pod", icon: "pod", route: `/pods/${p.pod_id}`, imageUrl: p.pods.avatar_url, subtitle: truncate(p.pods.description) });
+        if (p.pods) items.push({ id: p.pod_id, title: p.pods.name, type: "Pod", icon: "pod", route: `/pods/${p.pod_id}`, imageUrl: p.pods.avatar_url });
       });
       (pendingApps.data ?? []).forEach((a: any) => {
-        items.push({ id: a.id, title: a.guilds?.name || "Application", type: "Pending Application", icon: "pending", route: `/guilds/${a.guild_id}`, imageUrl: a.guilds?.logo_url, subtitle: truncate(a.guilds?.description) });
+        items.push({ id: a.id, title: a.guilds?.name || "Application", type: "Pending Application", icon: "pending", route: `/guilds/${a.guild_id}`, imageUrl: a.guilds?.logo_url });
       });
       (ownedQuests.data ?? []).forEach((q: any) => {
         if (!items.some(it => it.id === `update-${q.id}`)) {
-          items.push({ id: `update-${q.id}`, title: `Post update on "${q.title}"`, type: "Quest Update", icon: "update", route: `/quests/${q.id}?tab=updates`, imageUrl: q.cover_image_url, subtitle: truncate(q.description) });
+          items.push({ id: `update-${q.id}`, title: `Post update on "${q.title}"`, type: "Quest Update", icon: "update", route: `/quests/${q.id}?tab=updates`, imageUrl: q.cover_image_url });
         }
       });
 
@@ -86,27 +80,23 @@ export function ContinueWhereLeftOff({ userId }: Props) {
           return (
             <motion.div key={item.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
               <Link to={item.route}
-                className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 hover:shadow-sm transition-all group flex flex-col">
-                {/* Thumbnail */}
-                <div className="h-24 w-full bg-muted relative overflow-hidden">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                      <Icon className="h-8 w-8 text-primary/30" />
-                    </div>
-                  )}
-                  <Badge variant="secondary" className="absolute top-2 left-2 text-[10px] bg-background/80 backdrop-blur-sm">
-                    {item.type}
-                  </Badge>
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/30 hover:shadow-sm transition-all group">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Icon className="h-4 w-4 text-primary" />
                 </div>
-                {/* Content */}
-                <div className="p-3 flex-1 flex flex-col gap-1">
-                  <p className="text-sm font-medium line-clamp-1">{item.title}</p>
-                  {item.subtitle && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{item.subtitle}</p>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{item.title}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={item.imageUrl || undefined} className="object-cover" />
+                      <AvatarFallback className="text-[7px] bg-muted text-muted-foreground">
+                        {item.title?.[0]?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+                  </div>
                 </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
               </Link>
             </motion.div>
           );
