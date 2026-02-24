@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2, Briefcase, CalendarClock } from "lucide-react";
+import { Clock, MapPin, Hash, Euro, Loader2, Shield, Building2, Briefcase, CalendarClock, Video, Users } from "lucide-react";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -151,6 +151,9 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
                         {svc.duration_minutes && (
                           <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" /> {svc.duration_minutes} min</span>
                         )}
+                        {(svc as any).service_type === "service_mission" && <Badge variant="outline" className="text-[10px]"><Briefcase className="h-2.5 w-2.5 mr-0.5" />Mission</Badge>}
+                        {(svc as any).service_type === "event_attendance" && <Badge variant="outline" className="text-[10px]"><Users className="h-2.5 w-2.5 mr-0.5" />Event</Badge>}
+                        {(svc as any).service_type === "online_call" && <Badge variant="outline" className="text-[10px]"><Video className="h-2.5 w-2.5 mr-0.5" />Call</Badge>}
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {svcTopics.slice(0, 5).map((t: any) => <Badge key={t.id} variant="secondary" className="text-[10px]"><Hash className="h-2.5 w-2.5 mr-0.5" />{t.name}</Badge>)}
