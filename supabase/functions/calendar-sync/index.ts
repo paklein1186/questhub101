@@ -76,10 +76,14 @@ async function listGoogleCalendars(accessToken: string): Promise<CalInfo[]> {
   const res = await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader", {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!res.ok) return [{ id: "primary", name: "Primary" }];
+  if (!res.ok) {
+    console.warn("Google calendarList failed:", res.status);
+    return [{ id: "primary", name: "Primary" }];
+  }
   const data = await res.json();
+  console.log(`Google calendarList returned ${(data.items || []).length} calendars`);
   const cals = (data.items || [])
-    .filter((cal: any) => !cal.deleted && cal.selected !== false)
+    .filter((cal: any) => !cal.deleted)
     .map((cal: any) => ({ id: cal.id, name: cal.summaryOverride || cal.summary || cal.id }));
   return cals.length > 0 ? cals : [{ id: "primary", name: "Primary" }];
 }
