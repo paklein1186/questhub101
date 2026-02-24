@@ -536,6 +536,8 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           linkColor={linkColor}
           linkWidth={linkWidth}
           linkLineDash={linkDashArray}
+          linkCanvasObjectMode={() => "after"}
+          linkCanvasObject={linkCanvasObject}
           linkDirectionalParticles={0}
           linkCurvature={0.15}
           onNodeClick={handleNodeClick}
