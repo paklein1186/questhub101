@@ -49,7 +49,7 @@ export function ShareLinkButton({ entityType, entityId, entityName, size = "sm",
           </div>
           <div className="flex gap-2">
             <Input
-              value={displayUrl}
+              value={ogUrl}
               readOnly
               className="text-xs h-9"
               onClick={(e) => (e.target as HTMLInputElement).select()}
