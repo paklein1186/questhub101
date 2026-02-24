@@ -70,6 +70,7 @@ import { SendOfficialMessageDialog } from "@/components/SendOfficialMessageDialo
 import { BroadcastMessageDialog } from "@/components/BroadcastMessageDialog";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { GraphView } from "@/components/graph/GraphView";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
