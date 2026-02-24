@@ -7,6 +7,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const BASE_URL = "https://questhub101.lovable.app";
+
 const FREQUENCY_INTERVALS: Record<string, number> = {
   three_days: 3 * 24 * 60 * 60 * 1000,
   weekly: 7 * 24 * 60 * 60 * 1000,
@@ -43,7 +45,7 @@ serve(async (req) => {
     const now = Date.now();
     const dueUsers = prefs.filter((p) => {
       const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.three_days;
-      if (!p.last_digest_sent_at) return true; // never sent
+      if (!p.last_digest_sent_at) return true;
       return now - new Date(p.last_digest_sent_at).getTime() >= interval;
     });
 
@@ -65,77 +67,173 @@ serve(async (req) => {
         // Get user profile
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, email, role, headline, bio")
+          .select("name, email, role, headline")
           .eq("user_id", userId)
           .single();
 
         if (!profile?.name) continue;
 
-        // Gather user activity data
-        const [
-          { data: follows },
-          { data: myPosts },
-          { data: memberships },
-          { data: bookings },
-          { data: enrollments },
-          { data: achievements },
-          { data: xpEvents },
-        ] = await Promise.all([
-          supabase.from("follows").select("target_type, target_id").eq("follower_id", userId),
-          supabase.from("feed_posts").select("id, content, context_type, created_at").eq("author_user_id", userId).gte("created_at", since).eq("is_deleted", false).order("created_at", { ascending: false }).limit(5),
-          supabase.from("guild_members").select("guild_id, role, guilds(name)").eq("user_id", userId).limit(10),
-          supabase.from("bookings").select("id, status, created_at, services(title)").eq("requester_id", userId).gte("created_at", since).eq("is_deleted", false).limit(5),
-          supabase.from("course_enrollments").select("course_id, progress_percent, courses(title)").eq("user_id", userId).limit(5),
-          supabase.from("achievements").select("title, created_at").eq("user_id", userId).gte("created_at", since).limit(5),
-          supabase.from("xp_events").select("amount, reason, created_at").eq("user_id", userId).gte("created_at", since).order("created_at", { ascending: false }).limit(10),
-        ]);
+        // ── Gather NETWORK-FOCUSED data ──
 
-        // Get recent network activity from followed entities
-        let networkUpdates: any[] = [];
-        if (follows && follows.length > 0) {
-          const orClauses = follows
-            .slice(0, 20)
-            .map((f: any) => `and(context_type.eq.${f.target_type},context_id.eq.${f.target_id})`)
-            .join(",");
+        // 1. Follows — what entities/people does this user follow?
+        const { data: follows } = await supabase
+          .from("follows")
+          .select("target_type, target_id")
+          .eq("follower_id", userId);
 
-          const { data: posts } = await supabase
-            .from("feed_posts")
-            .select("id, content, context_type, context_id, author_user_id, created_at")
-            .eq("is_deleted", false)
-            .or(orClauses)
-            .gte("created_at", since)
-            .order("created_at", { ascending: false })
-            .limit(10);
+        // 2. Guild memberships
+        const { data: memberships } = await supabase
+          .from("guild_members")
+          .select("guild_id, role, guilds(name)")
+          .eq("user_id", userId)
+          .limit(15);
 
-          networkUpdates = posts ?? [];
+        // 3. Followed topics
+        const followedTopicIds = (follows ?? [])
+          .filter((f: any) => f.target_type === "TOPIC")
+          .map((f: any) => f.target_id);
+
+        let topicNames: string[] = [];
+        if (followedTopicIds.length > 0) {
+          const { data: topics } = await supabase
+            .from("topics")
+            .select("id, name")
+            .in("id", followedTopicIds.slice(0, 20));
+          topicNames = (topics ?? []).map((t: any) => t.name);
         }
 
-        // Build context for AI
-        const totalXp = (xpEvents ?? []).reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0);
+        // 4. Network posts — from followed entities & guilds
+        const guildIds = (memberships ?? []).map((m: any) => m.guild_id);
+        const followedEntityTargets = (follows ?? [])
+          .filter((f: any) => f.target_type !== "TOPIC")
+          .slice(0, 20);
+
+        const orClauses: string[] = [];
+        // Posts from guilds the user belongs to
+        for (const gid of guildIds.slice(0, 15)) {
+          orClauses.push(`and(context_type.eq.GUILD,context_id.eq.${gid})`);
+        }
+        // Posts from followed entities
+        for (const f of followedEntityTargets) {
+          orClauses.push(`and(context_type.eq.${f.target_type},context_id.eq.${f.target_id})`);
+        }
+
+        let networkPosts: any[] = [];
+        if (orClauses.length > 0) {
+          const { data: posts } = await supabase
+            .from("feed_posts")
+            .select("id, content, context_type, context_id, author_user_id, created_at, upvote_count")
+            .eq("is_deleted", false)
+            .neq("author_user_id", userId)
+            .or(orClauses.join(","))
+            .gte("created_at", since)
+            .order("upvote_count", { ascending: false })
+            .limit(15);
+          networkPosts = posts ?? [];
+        }
+
+        // 5. New quests from guilds/followed entities
+        let newQuests: any[] = [];
+        if (guildIds.length > 0) {
+          const { data: quests } = await supabase
+            .from("quests")
+            .select("id, title, guild_id, created_at, guilds(name)")
+            .in("guild_id", guildIds.slice(0, 15))
+            .gte("created_at", since)
+            .eq("is_deleted", false)
+            .order("created_at", { ascending: false })
+            .limit(8);
+          newQuests = quests ?? [];
+        }
+
+        // 6. New events from guilds
+        let newEvents: any[] = [];
+        if (guildIds.length > 0) {
+          const { data: events } = await supabase
+            .from("guild_events")
+            .select("id, title, guild_id, start_at, guilds(name)")
+            .in("guild_id", guildIds.slice(0, 15))
+            .gte("created_at", since)
+            .eq("is_cancelled", false)
+            .order("start_at", { ascending: true })
+            .limit(5);
+          newEvents = events ?? [];
+        }
+
+        // 7. New members in user's guilds (social proof)
+        let newGuildMembers = 0;
+        if (guildIds.length > 0) {
+          const { count } = await supabase
+            .from("guild_members")
+            .select("id", { count: "exact", head: true })
+            .in("guild_id", guildIds.slice(0, 15))
+            .neq("user_id", userId)
+            .gte("joined_at", since);
+          newGuildMembers = count ?? 0;
+        }
+
+        // 8. Resolve author names for top posts
+        const authorIds = [...new Set(networkPosts.map((p: any) => p.author_user_id))];
+        let authorNames: Record<string, string> = {};
+        if (authorIds.length > 0) {
+          const { data: authors } = await supabase
+            .from("profiles")
+            .select("user_id, name")
+            .in("user_id", authorIds.slice(0, 20));
+          for (const a of authors ?? []) {
+            authorNames[a.user_id] = a.name || "Someone";
+          }
+        }
+
+        // 9. Resolve context names for posts
+        const contextIds = [...new Set(networkPosts.map((p: any) => p.context_id).filter(Boolean))];
+        let contextNames: Record<string, string> = {};
+        if (contextIds.length > 0) {
+          const { data: guilds } = await supabase
+            .from("guilds")
+            .select("id, name")
+            .in("id", contextIds);
+          for (const g of guilds ?? []) {
+            contextNames[g.id] = g.name;
+          }
+        }
+
         const periodLabel = pref.digest_frequency === "weekly" ? "this week" : "these past 3 days";
+
+        // Build rich context for AI — network-first
+        const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
+          author: authorNames[p.author_user_id] || "Someone",
+          context: contextNames[p.context_id] || p.context_type,
+          snippet: (p.content || "").slice(0, 200),
+          upvotes: p.upvote_count,
+        }));
 
         const userContext = {
           name: profile.name,
           role: profile.role,
           headline: profile.headline,
-          bio: profile.bio?.slice(0, 200),
           period: periodLabel,
-          stats: {
-            postsCreated: myPosts?.length ?? 0,
-            networkUpdates: networkUpdates.length,
-            bookingsMade: bookings?.length ?? 0,
-            achievementsEarned: achievements?.length ?? 0,
-            xpGained: totalXp,
-            guildsJoined: memberships?.length ?? 0,
-            coursesInProgress: (enrollments ?? []).filter((e: any) => e.progress_percent < 100).length,
+          followedTopics: topicNames.slice(0, 10),
+          guildNames: (memberships ?? []).map((m: any) => (m as any).guilds?.name).filter(Boolean).slice(0, 8),
+          networkStats: {
+            totalNewPosts: networkPosts.length,
+            newQuests: newQuests.length,
+            newEvents: newEvents.length,
+            newMembersInYourGuilds: newGuildMembers,
           },
-          guildNames: (memberships ?? []).map((m: any) => (m as any).guilds?.name).filter(Boolean).slice(0, 5),
-          courseProgress: (enrollments ?? []).map((e: any) => ({ title: (e as any).courses?.title, progress: e.progress_percent })).slice(0, 3),
-          recentAchievements: (achievements ?? []).map((a: any) => a.title),
-          followingCount: follows?.length ?? 0,
+          topPosts,
+          newQuests: newQuests.slice(0, 5).map((q: any) => ({
+            title: q.title,
+            guild: (q as any).guilds?.name,
+          })),
+          upcomingEvents: newEvents.slice(0, 3).map((e: any) => ({
+            title: e.title,
+            guild: (e as any).guilds?.name,
+            date: new Date(e.start_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          })),
         };
 
-        // Call Lovable AI to generate personalized digest
+        // Call AI to generate network-focused digest
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -147,33 +245,38 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the AI digest writer for changethegame, a collaborative platform for changemakers, creators, and impact builders. Generate a warm, personalized digest email for users about their journey on the platform. 
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary. It's a curated news brief about what's happening around them.
 
-Your output must be a JSON object with this structure:
+Your output must be a JSON object:
 {
-  "subject": "email subject line (max 60 chars, warm and personal)",
-  "greeting": "personalized greeting (1 sentence)",
-  "journey_summary": "2-3 sentences summarizing their recent activity and progress",
-  "highlights": ["highlight 1", "highlight 2", "highlight 3"],
-  "suggested_paths": [
-    {"title": "path title", "description": "why this is relevant", "link": "/relative-url"},
-    {"title": "path title", "description": "why this is relevant", "link": "/relative-url"}
+  "subject": "compelling subject line (max 60 chars, curiosity-driven, mention a specific detail from the data)",
+  "greeting": "short warm greeting using their name (1 sentence)",
+  "network_highlights": [
+    {"icon": "emoji", "text": "one-line highlight about network activity"},
+    {"icon": "emoji", "text": "one-line highlight"},
+    {"icon": "emoji", "text": "one-line highlight"}
   ],
-  "motivation": "1-2 sentences of encouragement based on their journey"
+  "featured_posts": [
+    {"author": "name", "context": "guild/community name", "teaser": "compelling 1-line teaser of the post content", "link": "/explore"}
+  ],
+  "upcoming": [
+    {"label": "Event or Quest title", "detail": "guild name · date or context", "link": "/quests or /guilds/..."}
+  ],
+  "closing": "1 sentence motivational closing or gentle nudge"
 }
 
 Rules:
-- Be warm but not cheesy. Use the user's name naturally.
-- Suggested paths should be actionable: explore quests, join guilds, start a service, complete a course, etc.
-- Use real platform links: /quests, /guilds, /services, /courses, /explore, /network
-- If user has low activity, gently encourage exploration rather than highlighting inactivity.
-- Highlights should be concrete: "You earned 45 XP", "Your guild Solar Builders had 3 new posts"
-- Keep everything concise. This is a digest, not a novel.
-- ONLY output valid JSON, nothing else.`,
+- Subject line should create curiosity: "3 new quests in Solar Builders this week" or "Your guilds are buzzing — here's what you missed"
+- Focus on NETWORK activity, not the user's own activity
+- If there's little activity, highlight the communities and topics they follow, suggest exploration
+- featured_posts: pick the most engaging 2-3 posts by upvotes or content quality. Tease the content to make them want to click.
+- Use real links: /explore, /quests, /guilds, /network, /services
+- Keep it punchy — this is a news brief, not a letter
+- ONLY output valid JSON`,
               },
               {
                 role: "user",
-                content: `Generate a digest for this user:\n${JSON.stringify(userContext, null, 2)}`,
+                content: `Generate a network digest for:\n${JSON.stringify(userContext, null, 2)}`,
               },
             ],
           }),
@@ -182,7 +285,6 @@ Rules:
         if (!aiResponse.ok) {
           const errText = await aiResponse.text();
           console.error(`AI error for ${userId}:`, aiResponse.status, errText);
-          // Fallback: create basic digest without AI
           await createFallbackDigest(supabase, userId, profile, userContext);
           results.push({ userId, status: "fallback" });
           continue;
@@ -190,10 +292,9 @@ Rules:
 
         const aiData = await aiResponse.json();
         const rawContent = aiData.choices?.[0]?.message?.content ?? "";
-        
+
         let digest;
         try {
-          // Strip markdown code fences if present
           const cleaned = rawContent.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
           digest = JSON.parse(cleaned);
         } catch {
@@ -204,22 +305,22 @@ Rules:
         }
 
         // Create in-app notification
-        const highlightsText = (digest.highlights ?? []).join(" • ");
+        const highlightsText = (digest.network_highlights ?? []).map((h: any) => `${h.icon} ${h.text}`).join(" • ");
         await supabase.from("notifications").insert({
           user_id: userId,
           type: "AI_JOURNEY_DIGEST",
-          title: digest.subject ?? "Your journey digest",
-          body: digest.journey_summary ?? highlightsText ?? "Check out what's new for you.",
+          title: digest.subject ?? "Your network digest",
+          body: highlightsText || "Here's what's happening in your network.",
           deep_link_url: "/explore",
           is_read: false,
           metadata: {
-            suggested_paths: digest.suggested_paths,
-            highlights: digest.highlights,
-            motivation: digest.motivation,
+            network_highlights: digest.network_highlights,
+            featured_posts: digest.featured_posts,
+            upcoming: digest.upcoming,
           },
         });
 
-        // Send email via Resend
+        // Send email
         if (pref.channel_email_enabled && profile.email) {
           const emailHtml = buildDigestEmailHtml(digest, profile.name);
           const resendKey = Deno.env.get("RESEND_API_KEY");
@@ -234,7 +335,7 @@ Rules:
                 body: JSON.stringify({
                   from: "changethegame <hello@changethegame.xyz>",
                   to: [profile.email],
-                  subject: digest.subject ?? `Your ${userContext.period} digest`,
+                  subject: digest.subject ?? `Your ${userContext.period} network digest`,
                   html: emailHtml,
                 }),
               });
@@ -248,8 +349,6 @@ Rules:
             } catch (emailErr: any) {
               console.error(`Email send failed for ${profile.email}:`, emailErr.message);
             }
-          } else {
-            console.warn("RESEND_API_KEY not set — skipping digest email");
           }
         }
 
@@ -282,11 +381,14 @@ Rules:
 });
 
 async function createFallbackDigest(supabase: any, userId: string, profile: any, ctx: any) {
-  const body = `Hey ${profile.name}! Over ${ctx.period}, you gained ${ctx.stats.xpGained} XP, created ${ctx.stats.postsCreated} posts, and your network had ${ctx.stats.networkUpdates} updates. Keep exploring!`;
+  const guildList = (ctx.guildNames ?? []).slice(0, 3).join(", ");
+  const body = guildList
+    ? `Hey ${profile.name}! ${ctx.networkStats.totalNewPosts} new posts across your guilds (${guildList}) ${ctx.period}. Check out what's happening!`
+    : `Hey ${profile.name}! Explore what's new on changethegame ${ctx.period}.`;
   await supabase.from("notifications").insert({
     user_id: userId,
     type: "AI_JOURNEY_DIGEST",
-    title: `Your ${ctx.period} digest`,
+    title: `Your ${ctx.period} network digest`,
     body,
     deep_link_url: "/explore",
     is_read: false,
@@ -298,37 +400,90 @@ async function createFallbackDigest(supabase: any, userId: string, profile: any,
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
-  const highlights = (digest.highlights ?? [])
-    .map((h: string) => `<li style="margin-bottom: 8px;">${h}</li>`)
+  // Network highlights
+  const highlights = (digest.network_highlights ?? [])
+    .map((h: any) => `
+      <tr>
+        <td style="padding:6px 12px 6px 0;font-size:18px;vertical-align:top;width:28px;">${h.icon || "📌"}</td>
+        <td style="padding:6px 0;font-size:15px;line-height:1.5;color:hsl(250,12%,30%);">${h.text}</td>
+      </tr>`)
     .join("");
 
-  const paths = (digest.suggested_paths ?? [])
+  // Featured posts
+  const posts = (digest.featured_posts ?? [])
     .map((p: any) => `
-      <div style="margin-bottom: 12px; padding: 12px 16px; background: #f9f6f0; border-radius: 8px; border-left: 3px solid #c4a97d;">
-        <p style="font-weight: 600; margin: 0 0 4px;">${p.title}</p>
-        <p style="font-size: 14px; color: #666; margin: 0;">${p.description}</p>
+      <div style="margin-bottom:12px;padding:14px 16px;background:hsl(250,30%,97%);border-radius:8px;border-left:3px solid hsl(262,83%,58%);">
+        <p style="font-size:13px;font-weight:600;color:hsl(262,83%,58%);margin:0 0 4px;">${p.author} · ${p.context}</p>
+        <p style="font-size:14px;color:hsl(250,12%,30%);margin:0;line-height:1.5;">${p.teaser}</p>
       </div>`)
     .join("");
 
-  return `
-<div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto; padding: 32px 16px; color: #2d2d2d;">
-  <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #8b7355; margin-bottom: 24px;">changethegame</p>
-  
-  <h2 style="font-size: 22px; font-weight: normal; margin-bottom: 8px;">${digest.greeting ?? `Hey ${userName}!`}</h2>
-  
-  <p style="line-height: 1.6;">${digest.journey_summary ?? ""}</p>
-  
-  ${highlights ? `
-  <h3 style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">✨ Highlights</h3>
-  <ul style="padding-left: 20px; line-height: 1.8;">${highlights}</ul>` : ""}
-  
-  ${paths ? `
-  <h3 style="font-size: 16px; margin-top: 24px; margin-bottom: 12px;">🧭 Suggested next steps</h3>
-  ${paths}` : ""}
-  
-  <p style="margin-top: 24px; font-style: italic; color: #6b5b3e;">${digest.motivation ?? ""}</p>
-  
-  <hr style="border: none; border-top: 1px solid #e5ddd0; margin: 32px 0 16px;" />
-  <p style="font-size: 13px; color: #8b7355;">You're receiving this because you opted into journey digests. You can change this in your settings.</p>
-</div>`;
+  // Upcoming events / quests
+  const upcoming = (digest.upcoming ?? [])
+    .map((u: any) => `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid hsl(250,18%,92%);">
+          <p style="font-size:14px;font-weight:600;color:hsl(250,30%,8%);margin:0;">${u.label}</p>
+          <p style="font-size:13px;color:hsl(250,12%,46%);margin:2px 0 0;">${u.detail}</p>
+        </td>
+      </tr>`)
+    .join("");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header -->
+    <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
+      <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
+    </div>
+
+    <!-- Card -->
+    <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
+
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 16px;">${digest.greeting || `Hey ${userName},`}</h2>
+
+      ${highlights ? `
+      <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        ${highlights}
+      </table>` : ""}
+
+      ${posts ? `
+      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">📣 Worth a look</h3>
+      ${posts}` : ""}
+
+      ${upcoming ? `
+      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:24px 0 12px;text-transform:uppercase;letter-spacing:1px;">📅 Coming up</h3>
+      <table role="presentation" style="width:100%;border-collapse:collapse;">
+        ${upcoming}
+      </table>` : ""}
+
+      ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:24px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
+
+      <div style="margin-top:28px;">
+        <a href="${BASE_URL}/explore"
+           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+          Explore what's new
+        </a>
+      </div>
+
+      <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
+      <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
+        You're receiving this because you opted into digests.
+        <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+    </p>
+  </div>
+</body>
+</html>`;
 }
