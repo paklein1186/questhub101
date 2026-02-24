@@ -404,7 +404,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     : [];
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="w-full relative">
       <GraphFilters
         filters={filters}
         onChange={setFilters}
