@@ -84,7 +84,8 @@ serve(async (req) => {
       });
     }
 
-    // Verify the caller is a participant in the conversation
+    // Verify the caller is a participant in the conversation OR is the message sender
+    // (broadcast creates conversations where the sender isn't always a participant)
     const { data: participation } = await supabase
       .from("conversation_participants")
       .select("id")
@@ -92,7 +93,7 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (!participation) {
+    if (!participation && senderId !== user.id) {
       return new Response(JSON.stringify({ error: "Not a participant" }), {
         status: 403,
         headers: { "Content-Type": "application/json", ...corsHeaders },

@@ -89,23 +89,26 @@ export function SendOfficialMessageDialog({
 
       // Trigger DM notification (which sends email too)
       try {
-        await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messageId: msg?.id,
-              conversationId: conv.id,
-              senderId: userId,
-              content: content.trim(),
-              senderLabel,
-            }),
-          }
-        );
+        const accessToken = session?.access_token;
+        if (accessToken) {
+          await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                messageId: msg?.id,
+                conversationId: conv.id,
+                senderId: userId,
+                content: content.trim(),
+                senderLabel,
+              }),
+            }
+          );
+        }
       } catch (err) {
         console.error("Error triggering DM notification:", err);
       }
