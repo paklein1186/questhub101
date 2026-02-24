@@ -134,8 +134,8 @@ export default function TerritoryDetail() {
             <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
 
-          <TabsContent value="graph" className="mt-6">
-            <GraphView centerType="territory" centerId={resolvedId!} height={600} />
+          <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
+            <GraphView centerType="territory" centerId={resolvedId!} height={700} />
           </TabsContent>
 
         </Tabs>

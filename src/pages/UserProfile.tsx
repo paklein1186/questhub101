@@ -1014,8 +1014,8 @@ export default function UserProfile() {
         </TabsContent>
 
         {/* ─── Graph ─── */}
-        <TabsContent value="graph" className="mt-6">
-          <GraphView centerType="user" centerId={profile.userId} />
+        <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
+          <GraphView centerType="user" centerId={profile.userId} height={700} />
         </TabsContent>
 
         {/* ─── Matchmaker ─── */}
