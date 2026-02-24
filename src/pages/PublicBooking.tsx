@@ -377,6 +377,7 @@ export default function PublicBooking() {
           )}
 
           {/* CTA */}
+          <div ref={ctaRef}>
           <Button
             size="lg"
             className="w-full"
@@ -397,6 +398,7 @@ export default function PublicBooking() {
               </>
             )}
           </Button>
+          </div>
 
           {!isLoggedIn && (
             <p className="text-xs text-muted-foreground text-center mt-3">
