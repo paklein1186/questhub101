@@ -105,7 +105,7 @@ export default function PublicBooking() {
   const [guestOpen, setGuestOpen] = useState(false);
   const [quickSignup, setQuickSignup] = useState(false);
   const [bookingInProgress, setBookingInProgress] = useState(false);
-  const [showSignupChoice, setShowSignupChoice] = useState(false);
+  // showSignupChoice removed — quick signup opens directly
 
   const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
 

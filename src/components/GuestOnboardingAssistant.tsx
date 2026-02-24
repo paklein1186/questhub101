@@ -29,6 +29,8 @@ interface Props {
   actionLabel?: string;
   /** If true, skip onboarding steps and go straight to signup */
   quickSignup?: boolean;
+  /** If true, don't navigate after signup (let the parent page handle it) */
+  skipPostSignupNavigation?: boolean;
 }
 
 type Step = "goal" | "persona" | "interests" | "connect" | "signup";
