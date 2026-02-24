@@ -90,7 +90,7 @@ function getUniverseForPersona(persona: string | null): UniverseMode {
   return "both";
 }
 
-export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false }: Props) {
+export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false, skipPostSignupNavigation = false }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -381,9 +381,11 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
       }, 1500);
 
       handleOpenChange(false);
-      // Navigate to onboarding wizard
-      navigate("/onboarding");
-    }
+      if (!skipPostSignupNavigation) {
+        // Navigate to onboarding wizard
+        navigate("/onboarding");
+      }
+      // If skipPostSignupNavigation is true, the parent page handles the post-signup flow
   };
 
   const canProceed =
