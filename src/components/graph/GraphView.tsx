@@ -540,22 +540,19 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
         </div>
       )}
 
-      <div className="rounded-xl border border-border overflow-hidden bg-background/50">
+      <div className="border-y border-border overflow-hidden bg-background/50">
         <ForceGraph2D
           ref={graphRef}
           graphData={graphData}
           width={containerWidth}
           height={height}
+          nodeCanvasObjectMode={() => "replace"}
           nodeCanvasObject={paintNode}
           nodePointerAreaPaint={(node: any, color, ctx) => {
-            const style = NODE_STYLES[node.type] || DEFAULT_NODE_STYLE;
-            const connections: number = node.__connections || 0;
-            const baseSize = node.isCenter
-              ? style.size * 1.8
-              : style.size * (1 + Math.min(0.6, Math.log2(connections + 1) * 0.15));
-            const size = baseSize + 8; // generous hit area beyond visual
+            // Very generous circular hit area for ALL nodes
+            const r = 16;
             ctx.beginPath();
-            ctx.arc(node.x ?? 0, node.y ?? 0, size, 0, 2 * Math.PI);
+            ctx.arc(node.x ?? 0, node.y ?? 0, r, 0, 2 * Math.PI);
             ctx.fillStyle = color;
             ctx.fill();
           }}

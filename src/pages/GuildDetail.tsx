@@ -549,8 +549,8 @@ export default function GuildDetail() {
           <TrustTab nodeType={TrustNodeType.GUILD} nodeId={guild.id} />
         </TabsContent>
 
-        <TabsContent value="graph" className="mt-6">
-          <GraphView centerType="guild" centerId={guild.id} />
+        <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
+          <GraphView centerType="guild" centerId={guild.id} height={700} />
         </TabsContent>
 
 
