@@ -3,21 +3,16 @@ import { useTranslation } from "react-i18next";
 
 export default function TerritoryAgentsInfoPage() {
   const { t } = useTranslation();
+  const analyzeItems = t("territoryAgentsPage.analyzeItems", { returnObjects: true }) as string[];
+
   return (
     <ContentPageShell title={t("pages.territoryAgents.title")} subtitle={t("pages.territoryAgents.subtitle")}>
-      <ContentSection title="What Territory Agents Analyze">
-        <ContentList items={[
-          "Quests happening locally",
-          "Guilds active in the region",
-          "Services available",
-          "People connected to the territory",
-          "Opportunities for collaboration",
-          "Suggestions for activation and community building",
-        ]} />
+      <ContentSection title={t("territoryAgentsPage.whatAnalyze")}>
+        <ContentList items={Array.isArray(analyzeItems) ? analyzeItems : []} />
       </ContentSection>
 
-      <ContentSection title="Purpose">
-        <p>They help territories regenerate intelligently and collaboratively.</p>
+      <ContentSection title={t("territoryAgentsPage.purposeTitle")}>
+        <p>{t("territoryAgentsPage.purposeP")}</p>
       </ContentSection>
     </ContentPageShell>
   );

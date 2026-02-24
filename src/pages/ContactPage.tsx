@@ -16,33 +16,33 @@ export default function ContactPage({ embedded }: { embedded?: boolean }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Thank you! We'll get back to you shortly.");
+    toast.success(t("contactPage.successToast"));
     setName(""); setEmail(""); setType(""); setMessage("");
   };
 
   return (
     <ContentPageShell embedded={embedded} title={t("pages.contact.title")} subtitle={t("pages.contact.subtitle")}>
-      <ContentSection title="Reach Out">
-        <p>Have a question, request or issue? We respond to all messages.</p>
+      <ContentSection title={t("contactPage.reachOut")}>
+        <p>{t("contactPage.reachOutP")}</p>
       </ContentSection>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-        <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} required />
-        <Input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+        <Input placeholder={t("contactPage.namePlaceholder")} value={name} onChange={e => setName(e.target.value)} required />
+        <Input type="email" placeholder={t("contactPage.emailPlaceholder")} value={email} onChange={e => setEmail(e.target.value)} required />
         <Select value={type} onValueChange={setType}>
-          <SelectTrigger><SelectValue placeholder="Type of request (optional)" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t("contactPage.typePlaceholder")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="bug">Bug report</SelectItem>
-            <SelectItem value="feedback">Feedback</SelectItem>
-            <SelectItem value="support">Support</SelectItem>
-            <SelectItem value="partnership">Partnership</SelectItem>
+            <SelectItem value="bug">{t("contactPage.typeBug")}</SelectItem>
+            <SelectItem value="feedback">{t("contactPage.typeFeedback")}</SelectItem>
+            <SelectItem value="support">{t("contactPage.typeSupport")}</SelectItem>
+            <SelectItem value="partnership">{t("contactPage.typePartnership")}</SelectItem>
           </SelectContent>
         </Select>
-        <Textarea placeholder="Your message…" value={message} onChange={e => setMessage(e.target.value)} required rows={5} />
-        <Button type="submit">Send message</Button>
+        <Textarea placeholder={t("contactPage.messagePlaceholder")} value={message} onChange={e => setMessage(e.target.value)} required rows={5} />
+        <Button type="submit">{t("contactPage.sendMessage")}</Button>
       </form>
 
-      <ContentSection title="Other Channels">
+      <ContentSection title={t("contactPage.otherChannels")}>
         <p>Email: <a href="mailto:hello@changethegame.xyz" className="text-primary hover:underline">hello@changethegame.xyz</a></p>
       </ContentSection>
     </ContentPageShell>
