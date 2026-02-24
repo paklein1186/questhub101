@@ -335,11 +335,29 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     if (node.slug) navigate(node.slug);
   }, [navigate]);
 
-  const handleNodeHover = useCallback((node: any) => {
-    setHoveredNode(node?.id || null);
+  const handleNodeHover = useCallback((node: any, prevNode: any) => {
+    const newId = node?.id || null;
+    hoveredNodeRef.current = newId;
+    setHoveredNode(newId);
     if (containerRef.current) {
       containerRef.current.style.cursor = node ? "pointer" : "grab";
     }
+  }, []);
+
+  // Track mouse position for tooltip
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onMove = (e: MouseEvent) => {
+      if (hoveredNodeRef.current) {
+        const rect = el.getBoundingClientRect();
+        setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      } else {
+        setTooltipPos(null);
+      }
+    };
+    el.addEventListener("mousemove", onMove);
+    return () => el.removeEventListener("mousemove", onMove);
   }, []);
 
   if (isLoading) {
