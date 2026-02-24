@@ -9,30 +9,47 @@ const corsHeaders = {
 
 // Notification types that should trigger an email
 const EMAIL_WORTHY_TYPES = new Set([
+  // Social / follow
   "FOLLOWER_NEW",
+  // Mentions & comments
   "ENTITY_MENTIONED_IN_COMMENT",
   "COMMENT",
   "QUEST_COMMENT",
   "POST_UPVOTED",
+  // Bookings
   "BOOKING_REQUESTED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
+  "BOOKING_UPDATED",
+  // Membership & roles
   "GUILD_MEMBER_ADDED",
   "GUILD_ROLE_CHANGED",
   "APPLICATION_APPROVED",
   "APPLICATION_REJECTED",
+  "ENTITY_JOIN_REQUEST",
+  // Invitations & partnerships
+  "USER_INVITED_TO_UNIT",
+  "PARTNERSHIP_PROPOSED",
+  // Quests
   "QUEST_PROPOSAL_SUBMITTED",
   "QUEST_PROPOSAL_ACCEPTED",
   "QUEST_PROPOSAL_REJECTED",
   "QUEST_FUNDED_CREDITS",
+  // Rewards & economy
   "ACHIEVEMENT_UNLOCKED",
   "XP_GAINED",
-  "USER_INVITED_TO_UNIT",
+  "CREDIT_RECEIVED",
+  "milestone_completed",
+  // Trust
+  "TRUST_RENEWAL_DUE",
+  "TRUST_EDGE_OUTDATED",
+  // Followed entities activity
   "FOLLOWED_USER_NEW_POST",
   "FOLLOWED_ENTITY_NEW_POST",
   "FOLLOWED_ENTITY_NEW_EVENT",
   "FOLLOWED_ENTITY_NEW_QUEST",
-  "CREDIT_RECEIVED",
+  "FOLLOWED_ENTITY_NEW_SERVICE",
+  "FOLLOWED_ENTITY_NEW_COURSE",
 ]);
 
 // Map notification type to existing preference column
@@ -43,10 +60,15 @@ function prefKeyForType(type: string): string | null {
   if (["FOLLOWED_USER_NEW_POST", "FOLLOWED_ENTITY_NEW_POST"].includes(type)) return "notify_new_posts_from_followed";
   if (["FOLLOWED_ENTITY_NEW_EVENT"].includes(type)) return "notify_new_events_from_followed";
   if (["FOLLOWED_ENTITY_NEW_QUEST"].includes(type)) return "notify_new_quests_from_followed";
-  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED"].includes(type)) return "notify_bookings_and_cancellations";
+  if (["FOLLOWED_ENTITY_NEW_SERVICE"].includes(type)) return "notify_new_services_from_followed";
+  if (["FOLLOWED_ENTITY_NEW_COURSE"].includes(type)) return "notify_new_courses_from_followed";
+  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED", "BOOKING_UPDATED"].includes(type)) return "notify_bookings_and_cancellations";
   if (["GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "USER_INVITED_TO_UNIT"].includes(type)) return "notify_invitations_to_units";
+  if (["ENTITY_JOIN_REQUEST"].includes(type)) return "notify_new_join_requests_guilds";
+  if (["PARTNERSHIP_PROPOSED"].includes(type)) return "notify_new_partnership_requests";
   if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return "notify_quest_updates_and_comments";
-  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED"].includes(type)) return "notify_xp_and_achievements";
+  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED", "milestone_completed"].includes(type)) return "notify_xp_and_achievements";
+  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return null; // always send — important
   return null;
 }
 
@@ -139,6 +161,24 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "CREDIT_RECEIVED") {
     subject = `You received credits! 💰`;
     ctaLabel = "View your wallet";
+  } else if (type === "ENTITY_JOIN_REQUEST") {
+    subject = `New membership request`;
+    ctaLabel = "Review request";
+  } else if (type === "PARTNERSHIP_PROPOSED") {
+    subject = `New partnership proposal`;
+    ctaLabel = "Review partnership";
+  } else if (type === "TRUST_RENEWAL_DUE") {
+    subject = `Trust renewal due 🔄`;
+    ctaLabel = "Renew trust";
+  } else if (type === "TRUST_EDGE_OUTDATED") {
+    subject = `A trust attestation expired`;
+    ctaLabel = "View details";
+  } else if (type === "milestone_completed") {
+    subject = `Milestone completed! 🎯`;
+    ctaLabel = "See your milestone";
+  } else if (type === "BOOKING_UPDATED") {
+    subject = `Booking update`;
+    ctaLabel = "View booking";
   }
 
   const html = `<!DOCTYPE html>
