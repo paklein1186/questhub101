@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ArrowLeft, Video, ExternalLink, Clock, Users, FileText,
   ShieldAlert, FileQuestion, AlertTriangle, ChevronRight,
-  Calendar, ThumbsUp, ThumbsDown, CalendarPlus,
+  Calendar, ThumbsUp, ThumbsDown, CalendarPlus, Share2, Check, Copy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -65,6 +65,57 @@ function downloadRitualIcs(title: string, scheduledAt: string, durationMinutes: 
   URL.revokeObjectURL(url);
 }
 
+function getJitsiUrl(occurrenceId: string, visioLink?: string): string {
+  if (visioLink) {
+    if (visioLink.startsWith("http")) return visioLink;
+    return `https://meet.jit.si/${visioLink}`;
+  }
+  return `https://meet.jit.si/ctg-ritual-${occurrenceId}`;
+}
+
+function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceId: string; visioLink?: string; ritualTitle?: string }) {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+  const jitsiUrl = getJitsiUrl(occurrenceId, visioLink);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(jitsiUrl);
+      setCopied(true);
+      toast({ title: "Call link copied!", description: "Anyone with this link can join the call — no account needed." });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy", variant: "destructive" });
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="ghost">
+          <Share2 className="h-3.5 w-3.5 mr-1" /> Share
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="end">
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium mb-1">Share call link</p>
+            <p className="text-xs text-muted-foreground">
+              Anyone with this link can join the call — no account needed.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input value={jitsiUrl} readOnly className="text-xs h-9" onClick={(e) => (e.target as HTMLInputElement).select()} />
+            <Button size="sm" variant="secondary" className="shrink-0 h-9" onClick={handleCopy}>
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface Props {
   guildId?: string;
   questId?: string;
