@@ -257,43 +257,64 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
 
       if ((isHovered || node.isCenter) && !isFaded) ctx.restore();
 
-      // Label: only on hover or for center node
+      // Label: show on hover and for center node
       const showLabel = isHovered || node.isCenter;
       if (showLabel && !isFaded) {
-        const fontSize = Math.max(10 / globalScale, 2.2);
-        const weight = "600";
-        ctx.font = `${weight} ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        const fontSize = Math.max(11 / globalScale, 2.5);
+        ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         const label = node.name || "";
-        const maxLen = 28;
+        const maxLen = 30;
         const display = label.length > maxLen ? label.slice(0, maxLen - 1) + "…" : label;
-        const ty = y + size + 3;
-
-        // Type badge
-        const typeLabel = style.label;
-        const fullDisplay = display;
+        const ty = y + size + 4;
 
         // Background pill
-        const metrics = ctx.measureText(fullDisplay);
-        const pw = metrics.width + 10;
-        const ph = fontSize + 5;
-        ctx.globalAlpha = 0.85;
-        ctx.fillStyle = "hsla(0, 0%, 6%, 0.9)";
+        const metrics = ctx.measureText(display);
+        const pw = metrics.width + 12;
+        const ph = fontSize + 6;
+        ctx.globalAlpha = 0.92;
+        ctx.fillStyle = "hsla(0, 0%, 6%, 0.92)";
         ctx.beginPath();
-        ctx.roundRect(x - pw / 2, ty - 1.5, pw, ph, 4);
+        ctx.roundRect(x - pw / 2, ty - 2, pw, ph, 4);
         ctx.fill();
 
         ctx.globalAlpha = 1;
         ctx.fillStyle = "hsla(0, 0%, 100%, 1)";
-        ctx.fillText(fullDisplay, x, ty + 1);
+        ctx.fillText(display, x, ty + 1);
 
         // Small type label below
-        const typeFontSize = Math.max(7 / globalScale, 1.8);
-        ctx.font = `400 ${typeFontSize}px -apple-system, sans-serif`;
+        const typeFontSize = Math.max(8 / globalScale, 2);
+        ctx.font = `500 ${typeFontSize}px -apple-system, sans-serif`;
         ctx.fillStyle = style.color;
-        ctx.fillText(typeLabel, x, ty + ph + 1);
+        ctx.fillText(style.label, x, ty + ph + 2);
+      }
+
+      // Show neighbor names with small font when this node is hovered
+      if (!isHovered && isNeighborOfHovered && !isFaded && globalScale > 0.4) {
+        const fontSize = Math.max(8 / globalScale, 1.8);
+        ctx.font = `500 ${fontSize}px -apple-system, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+
+        const label = node.name || "";
+        const maxLen = 20;
+        const display = label.length > maxLen ? label.slice(0, maxLen - 1) + "…" : label;
+        const ty = y + size + 3;
+
+        const metrics = ctx.measureText(display);
+        const pw = metrics.width + 8;
+        const ph = fontSize + 4;
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = "hsla(0, 0%, 10%, 0.85)";
+        ctx.beginPath();
+        ctx.roundRect(x - pw / 2, ty - 1, pw, ph, 3);
+        ctx.fill();
+
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = "hsla(0, 0%, 100%, 0.9)";
+        ctx.fillText(display, x, ty + 1);
       }
 
       ctx.globalAlpha = 1;
@@ -330,6 +351,47 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     const style = EDGE_STYLES[link.relationType] as any;
     return style?.dashArray ? (style.dashArray as string).split(",").map(Number) : undefined;
   }, []);
+
+  // Draw relation type label on hovered edges
+  const linkCanvasObject = useCallback(
+    (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      if (!hoveredNode) return;
+      const src = typeof link.source === "object" ? link.source : null;
+      const tgt = typeof link.target === "object" ? link.target : null;
+      if (!src || !tgt) return;
+      const srcId = src.id;
+      const tgtId = tgt.id;
+      if (srcId !== hoveredNode && tgtId !== hoveredNode) return;
+
+      const style = EDGE_STYLES[link.relationType] || DEFAULT_EDGE_STYLE;
+      const label = style.label;
+      if (!label) return;
+
+      const midX = (src.x + tgt.x) / 2;
+      const midY = (src.y + tgt.y) / 2;
+      const fontSize = Math.max(7 / globalScale, 1.5);
+
+      ctx.font = `500 ${fontSize}px -apple-system, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const metrics = ctx.measureText(label);
+      const pw = metrics.width + 6;
+      const ph = fontSize + 3;
+
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = "hsla(0, 0%, 8%, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(midX - pw / 2, midY - ph / 2, pw, ph, 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = style.activeColor || style.color;
+      ctx.fillText(label, midX, midY);
+      ctx.globalAlpha = 1;
+    },
+    [hoveredNode]
+  );
 
   const handleNodeClick = useCallback((node: any) => {
     if (node.slug) navigate(node.slug);
@@ -474,6 +536,8 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           linkColor={linkColor}
           linkWidth={linkWidth}
           linkLineDash={linkDashArray}
+          linkCanvasObjectMode={() => "after"}
+          linkCanvasObject={linkCanvasObject}
           linkDirectionalParticles={0}
           linkCurvature={0.15}
           onNodeClick={handleNodeClick}
