@@ -1,128 +1,55 @@
 import { ContentPageShell, ContentSection } from "@/components/ContentPageShell";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import {
   User, Users, Swords, MapPin, Network, Coins, Sparkles, Shield, Heart,
 } from "lucide-react";
 
-const PILLARS = [
-  {
-    icon: User,
-    title: "Living Profiles — Amplified by AI",
-    description:
-      "Each user owns a living profile: skills, territories, causes, services, quests completed, XP level and community involvement.",
-    aiFeatures: [
-      "Generate profile from CV / LinkedIn / text",
-      "Identify ideal quests, roles or guilds",
-      "Rewrite bios, pitches and project descriptions",
-      "Suggest meaningful human connections",
-      "Package services and expertise",
-    ],
-    goal: "Reduce friction, increase visibility, enhance impact.",
-  },
-  {
-    icon: Users,
-    title: "Guilds — Communities Designed for Action",
-    description:
-      "Autonomous communities with rituals & gatherings, members & roles, internal quests, partnerships, collective funding, shared knowledge and distributed governance.",
-    aiFeatures: [
-      "Publish public quests",
-      "Onboard organizations",
-      "Co-finance missions",
-      "Co-create learning environments",
-      "Define rules, traditions & rituals",
-    ],
-    goal: "Structure communities so they can act with clarity, agency and collective intelligence.",
-  },
-  {
-    icon: Swords,
-    title: "Quests — The Engine of Value and Impact",
-    description:
-      "Professional missions, community challenges, territorial actions, rituals, learning pathways, creative explorations and transition projects.",
-    aiFeatures: [
-      "Funded via fiat, credits, XP sponsorship, guild or territorial funds",
-      "Quest templates for structured missions",
-      "AI co-writes, analyzes and recommends quests",
-    ],
-    goal: "Help individuals, organizations and territories turn needs into action.",
-  },
-  {
-    icon: MapPin,
-    title: "Living Territories — Intelligence for Regeneration",
-    description:
-      "Every territory has a dynamic portrait, AI-powered ecosystem analysis, maps of skills and actors, a territory feed of needs and signals, and territorial quests.",
-    aiFeatures: [
-      "Collaborative territory builder module",
-      "Territories become readable, understandable & mobilizable",
-    ],
-    goal: "Give local actors a live intelligence layer to guide transformation.",
-  },
-  {
-    icon: Network,
-    title: "The Social Graph — Purposeful & Real-World Anchored",
-    description:
-      "Connect people through shared causes, skills, place-based involvement, guild membership and project participation.",
-    aiFeatures: [
-      "Augmented messaging (AI summaries, actions, recommendations)",
-      "In-person meetings and explorations",
-      "Hybrid events (rituals, masterclasses, gatherings)",
-      "Cross-territory learning loops",
-    ],
-    goal: "Weave meaningful networks of practice, purpose and mutual support.",
-  },
-  {
-    icon: Coins,
-    title: "A Cooperative Multi-Economy",
-    description:
-      "Value circulates through four complementary systems: fiat currency, credits (internal currency with slow demurrage), XP (reputation with 15 bio-inspired levels), and cooperative shares A/B/C.",
-    aiFeatures: [
-      "Fiat for classic payments",
-      "Credits earned through contributions, unlock tools & quests",
-      "XP grants governance rights with territory multipliers",
-      "Shares represent long-term cooperative ownership",
-    ],
-    goal: "Align money, recognition, cooperation and governance.",
-  },
-];
+const PILLAR_ICONS = [User, Users, Swords, MapPin, Network, Coins];
+const GOV_ICONS = [Shield, Sparkles, Coins, Heart, Users, MapPin];
 
 export default function ProductVisionPage({ embedded }: { embedded?: boolean }) {
+  const { t } = useTranslation();
+  const visionItems = t("productVisionPage.visionItems", { returnObjects: true }) as string[];
+  const pillars = t("productVisionPage.pillars", { returnObjects: true }) as { title: string; description: string; aiFeatures: string[]; goal: string }[];
+  const aiRoleItems = t("productVisionPage.aiRoleItems", { returnObjects: true }) as string[];
+  const governanceItems = t("productVisionPage.governanceItems", { returnObjects: true }) as { label: string }[];
+  const promiseItems = t("productVisionPage.promiseItems", { returnObjects: true }) as string[];
+
   return (
     <ContentPageShell
       embedded={embedded}
-      title="Product Vision 2026"
-      subtitle="The cooperative platform that turns people, communities and territories into engines of transformation."
+      title={t("productVisionPage.title")}
+      subtitle={t("productVisionPage.subtitle")}
     >
       {/* Ambition */}
-      <ContentSection title="Our Ambition">
+      <ContentSection title={t("productVisionPage.ambitionTitle")}>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          changethegame is a global digital cooperative designed for people, organizations and territories who want to act, collaborate and regenerate their ecosystems.
+          {t("productVisionPage.ambitionP1")}
         </p>
         <p className="text-sm text-muted-foreground mt-2 italic">
-          It is not a social network. It is not a marketplace. It is not a project management tool.
+          {t("productVisionPage.ambitionP2")}
         </p>
         <p className="text-sm font-semibold mt-2">
-          👉 changethegame is an <span className="text-primary">action infrastructure</span> — where skills, missions, communities, territories, resources and collective intelligence turn into real-world impact.
+          👉 {t("productVisionPage.ambitionP3")}
         </p>
       </ContentSection>
 
       {/* Vision */}
-      <ContentSection title="Our Vision">
+      <ContentSection title={t("productVisionPage.visionTitle")}>
         <ul className="space-y-1.5 text-sm text-muted-foreground list-disc pl-5">
-          <li>Individuals showcase talents, stories and contributions</li>
-          <li>Collectives organize, fund and grow</li>
-          <li>Organizations find the right people and launch missions</li>
-          <li>Territories become readable, understandable and actionable</li>
-          <li>Value circulates through multiple systems (fiat, credits, XP, shares)</li>
-          <li>Everyone contributes to a shared digital commons</li>
-          <li>AI acts as a co-pilot for transformation</li>
+          {Array.isArray(visionItems) && visionItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
         </ul>
       </ContentSection>
 
       {/* Six Pillars */}
-      <ContentSection title="The Six Product Pillars">
+      <ContentSection title={t("productVisionPage.pillarsTitle")}>
         <div className="grid gap-5 sm:grid-cols-2">
-          {PILLARS.map((p, i) => {
-            const Icon = p.icon;
+          {Array.isArray(pillars) && pillars.map((p, i) => {
+            const Icon = PILLAR_ICONS[i];
             return (
               <Card key={i} className="p-5 space-y-3 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
@@ -145,60 +72,41 @@ export default function ProductVisionPage({ embedded }: { embedded?: boolean }) 
       </ContentSection>
 
       {/* AI Role */}
-      <ContentSection title="The Role of AI — A Constant Co-pilot">
+      <ContentSection title={t("productVisionPage.aiRoleTitle")}>
         <div className="flex flex-wrap gap-2 mb-3">
-          {[
-            "Structure ideas into quests",
-            "Generate bios & proposals",
-            "Summarize rituals & meetings",
-            "Suggest connections & opportunities",
-            "Diagnose territories",
-            "Align tasks with missions",
-            "Analyze collective signals",
-          ].map((item) => (
+          {Array.isArray(aiRoleItems) && aiRoleItems.map((item) => (
             <Badge key={item} variant="secondary" className="text-xs font-normal">
               {item}
             </Badge>
           ))}
         </div>
         <p className="text-sm text-muted-foreground italic">
-          🎯 Augment human capacities, not replace them.
+          🎯 {t("productVisionPage.aiRoleGoal")}
         </p>
       </ContentSection>
 
       {/* Governance */}
-      <ContentSection title="Governance Architecture">
+      <ContentSection title={t("productVisionPage.governanceTitle")}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {[
-            { icon: Shield, label: "Users are co-stewards" },
-            { icon: Sparkles, label: "XP grants progressive rights" },
-            { icon: Coins, label: "Shares give long-term engagement" },
-            { icon: Heart, label: "Transparent governance" },
-            { icon: Users, label: "Guilds hold micro-governance" },
-            { icon: MapPin, label: "Territories influence strategy" },
-          ].map(({ icon: I, label }) => (
-            <div key={label} className="flex items-center gap-2 rounded-lg border p-2.5">
-              <I className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-xs text-muted-foreground">{label}</span>
-            </div>
-          ))}
+          {Array.isArray(governanceItems) && governanceItems.map((g, i) => {
+            const I = GOV_ICONS[i];
+            return (
+              <div key={i} className="flex items-center gap-2 rounded-lg border p-2.5">
+                <I className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs text-muted-foreground">{g.label}</span>
+              </div>
+            );
+          })}
         </div>
       </ContentSection>
 
       {/* Promise */}
-      <ContentSection title="Our Promise">
+      <ContentSection title={t("productVisionPage.promiseTitle")}>
         <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-          To reinvent how humans collaborate to transform their ecosystems. A space where:
+          {t("productVisionPage.promiseDesc")}
         </p>
         <div className="flex flex-wrap gap-2">
-          {[
-            "Talents find meaning",
-            "Organizations find the right people",
-            "Communities find structure",
-            "Territories find clarity",
-            "The commons find a home",
-            "Transitions find momentum",
-          ].map((p) => (
+          {Array.isArray(promiseItems) && promiseItems.map((p) => (
             <Badge key={p} className="text-xs px-3 py-1">{p}</Badge>
           ))}
         </div>
