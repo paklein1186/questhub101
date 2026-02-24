@@ -27,11 +27,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actionLabel?: string;
+  /** If true, skip onboarding steps and go straight to signup */
+  quickSignup?: boolean;
 }
 
 type Step = "goal" | "persona" | "interests" | "connect" | "signup";
 
 const STEPS_ORDER: Step[] = ["goal", "persona", "interests", "connect", "signup"];
+const QUICK_STEPS: Step[] = ["signup"];
 const STEP_LABELS = ["Goal", "World", "Topics", "Connect", "Account"];
 
 const GOALS = [
@@ -85,7 +88,7 @@ function getUniverseForPersona(persona: string | null): UniverseMode {
   return "both";
 }
 
-export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action" }: Props) {
+export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -99,7 +102,9 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const { signUp } = useAuth();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>("goal");
+  const activeSteps = quickSignup ? QUICK_STEPS : STEPS_ORDER;
+  const activeLabels = quickSignup ? ["Account"] : STEP_LABELS;
+  const [step, setStep] = useState<Step>(quickSignup ? "signup" : "goal");
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
