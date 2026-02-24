@@ -130,7 +130,10 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
 
   useEffect(() => {
     if (graphData.nodes.length && graphRef.current) {
-      setTimeout(() => graphRef.current?.zoomToFit(500, 80), 700);
+      // Initial fit
+      setTimeout(() => graphRef.current?.zoomToFit(400, 40), 800);
+      // Re-fit after simulation settles
+      setTimeout(() => graphRef.current?.zoomToFit(400, 40), 2500);
     }
   }, [graphData.nodes.length]);
 
@@ -527,7 +530,11 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           nodeCanvasObject={paintNode}
           nodePointerAreaPaint={(node: any, color, ctx) => {
             const style = NODE_STYLES[node.type] || DEFAULT_NODE_STYLE;
-            const size = (node.isCenter ? style.size * 2 : style.size * 1.2) + 4;
+            const connections: number = node.__connections || 0;
+            const baseSize = node.isCenter
+              ? style.size * 1.8
+              : style.size * (1 + Math.min(0.6, Math.log2(connections + 1) * 0.15));
+            const size = baseSize + 8; // generous hit area beyond visual
             ctx.beginPath();
             ctx.arc(node.x ?? 0, node.y ?? 0, size, 0, 2 * Math.PI);
             ctx.fillStyle = color;
