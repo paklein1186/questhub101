@@ -217,9 +217,9 @@ export function CreateTrustEdgeDialog({
       evidence_url: evidenceUrl || null,
       visibility: visibility as any,
       tags: tags.filter((t) => !t.startsWith("__")),
-      context_quest_id: contextQuestId || null,
-      context_guild_id: contextGuildId || null,
-      context_territory_id: contextTerritoryId || null,
+      context_quest_id: contextQuestId && contextQuestId !== "none" ? contextQuestId : null,
+      context_guild_id: contextGuildId && contextGuildId !== "none" ? contextGuildId : null,
+      context_territory_id: contextTerritoryId && contextTerritoryId !== "none" ? contextTerritoryId : null,
       status: "active" as any,
       created_by: user.id,
     });
