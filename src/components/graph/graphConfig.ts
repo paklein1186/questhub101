@@ -7,31 +7,118 @@
 // ─── Node type → visual config ─────────────────────────────
 export const NODE_STYLES: Record<
   string,
-  { color: string; size: number; shape: "circle" | "diamond" | "square"; label: string }
+  {
+    color: string;
+    glow: string;
+    size: number;
+    shape: "circle" | "diamond" | "square" | "hexagon";
+    label: string;
+    icon: string;
+  }
 > = {
-  user:      { color: "hsl(210,70%,55%)", size: 6,  shape: "circle",  label: "User" },
-  guild:     { color: "hsl(150,60%,45%)", size: 10, shape: "circle",  label: "Guild" },
-  quest:     { color: "hsl(40,90%,55%)",  size: 8,  shape: "diamond", label: "Quest" },
-  territory: { color: "hsl(280,50%,55%)", size: 12, shape: "circle",  label: "Territory" },
-  org:       { color: "hsl(0,60%,50%)",   size: 10, shape: "square",  label: "Organisation" },
-  pod:       { color: "hsl(180,55%,45%)", size: 7,  shape: "circle",  label: "Pod" },
+  user: {
+    color: "hsl(220, 75%, 58%)",
+    glow: "hsla(220, 75%, 58%, 0.35)",
+    size: 5,
+    shape: "circle",
+    label: "User",
+    icon: "👤",
+  },
+  guild: {
+    color: "hsl(152, 60%, 42%)",
+    glow: "hsla(152, 60%, 42%, 0.35)",
+    size: 8,
+    shape: "hexagon",
+    label: "Guild",
+    icon: "⚔️",
+  },
+  quest: {
+    color: "hsl(38, 92%, 55%)",
+    glow: "hsla(38, 92%, 55%, 0.35)",
+    size: 6,
+    shape: "diamond",
+    label: "Quest",
+    icon: "⚡",
+  },
+  territory: {
+    color: "hsl(272, 55%, 55%)",
+    glow: "hsla(272, 55%, 55%, 0.35)",
+    size: 10,
+    shape: "circle",
+    label: "Territory",
+    icon: "🌍",
+  },
+  org: {
+    color: "hsl(0, 65%, 52%)",
+    glow: "hsla(0, 65%, 52%, 0.35)",
+    size: 8,
+    shape: "square",
+    label: "Organisation",
+    icon: "🏢",
+  },
+  pod: {
+    color: "hsl(185, 55%, 42%)",
+    glow: "hsla(185, 55%, 42%, 0.35)",
+    size: 6,
+    shape: "circle",
+    label: "Pod",
+    icon: "🔮",
+  },
 };
 
 // ─── Relation type → edge visual ────────────────────────────
-export const EDGE_STYLES: Record<string, { color: string; dashArray?: string; label: string }> = {
-  follows:     { color: "hsl(210,30%,70%)", dashArray: "4,4", label: "Follows" },
-  member_of:   { color: "hsl(150,50%,55%)", label: "Member of" },
-  steward_of:  { color: "hsl(40,80%,50%)",  label: "Steward of" },
-  quest_owner: { color: "hsl(40,80%,50%)",  label: "Quest owner" },
-  partner:     { color: "hsl(280,40%,55%)", label: "Partner" },
-  funds:       { color: "hsl(120,60%,45%)", label: "Funds" },
-  trust:       { color: "hsl(0,50%,55%)",   label: "Trust" },
-  located_in:  { color: "hsl(280,30%,60%)", dashArray: "6,3", label: "Located in" },
+export const EDGE_STYLES: Record<
+  string,
+  { color: string; activeColor: string; dashArray?: string; label: string }
+> = {
+  follows: {
+    color: "hsla(210, 25%, 65%, 0.4)",
+    activeColor: "hsl(210, 50%, 65%)",
+    dashArray: "4,4",
+    label: "Follows",
+  },
+  member_of: {
+    color: "hsla(152, 45%, 50%, 0.5)",
+    activeColor: "hsl(152, 60%, 50%)",
+    label: "Member of",
+  },
+  steward_of: {
+    color: "hsla(38, 70%, 50%, 0.6)",
+    activeColor: "hsl(38, 85%, 55%)",
+    label: "Steward of",
+  },
+  quest_owner: {
+    color: "hsla(38, 70%, 50%, 0.5)",
+    activeColor: "hsl(38, 85%, 55%)",
+    label: "Quest owner",
+  },
+  partner: {
+    color: "hsla(272, 40%, 55%, 0.5)",
+    activeColor: "hsl(272, 55%, 60%)",
+    label: "Partner",
+  },
+  funds: {
+    color: "hsla(120, 55%, 42%, 0.5)",
+    activeColor: "hsl(120, 65%, 50%)",
+    dashArray: "2,3",
+    label: "Funds",
+  },
+  trust: {
+    color: "hsla(0, 45%, 55%, 0.5)",
+    activeColor: "hsl(0, 60%, 60%)",
+    label: "Trust",
+  },
+  located_in: {
+    color: "hsla(272, 25%, 55%, 0.35)",
+    activeColor: "hsl(272, 40%, 60%)",
+    dashArray: "6,3",
+    label: "Located in",
+  },
 };
 
 // ─── Weight → line width mapping ────────────────────────────
-const MIN_WIDTH = 1;
-const MAX_WIDTH = 6;
+const MIN_WIDTH = 0.8;
+const MAX_WIDTH = 5;
 
 export function weightToWidth(weight: number): number {
   const clamped = Math.max(0, Math.min(1, weight));
@@ -39,5 +126,58 @@ export function weightToWidth(weight: number): number {
 }
 
 // ─── Default / fallback ─────────────────────────────────────
-export const DEFAULT_EDGE_STYLE = { color: "hsl(0,0%,60%)", label: "Connected" };
-export const DEFAULT_NODE_STYLE = { color: "hsl(0,0%,50%)", size: 6, shape: "circle" as const, label: "Entity" };
+export const DEFAULT_EDGE_STYLE = {
+  color: "hsla(0, 0%, 55%, 0.3)",
+  activeColor: "hsl(0, 0%, 65%)",
+  label: "Connected",
+};
+export const DEFAULT_NODE_STYLE = {
+  color: "hsl(0, 0%, 50%)",
+  glow: "hsla(0, 0%, 50%, 0.3)",
+  size: 5,
+  shape: "circle" as const,
+  label: "Entity",
+  icon: "●",
+};
+
+// ─── Canvas helpers ─────────────────────────────────────────
+
+/** Draw a regular hexagon path */
+export function drawHexagon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  r: number
+) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 6;
+    const px = x + r * Math.cos(angle);
+    const py = y + r * Math.sin(angle);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+/** Draw a rounded rectangle path */
+export function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  radius: number
+) {
+  const r = Math.min(radius, size);
+  ctx.beginPath();
+  ctx.moveTo(x - size + r, y - size);
+  ctx.lineTo(x + size - r, y - size);
+  ctx.quadraticCurveTo(x + size, y - size, x + size, y - size + r);
+  ctx.lineTo(x + size, y + size - r);
+  ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size);
+  ctx.lineTo(x - size + r, y + size);
+  ctx.quadraticCurveTo(x - size, y + size, x - size, y + size - r);
+  ctx.lineTo(x - size, y - size + r);
+  ctx.quadraticCurveTo(x - size, y - size, x - size + r, y - size);
+  ctx.closePath();
+}
