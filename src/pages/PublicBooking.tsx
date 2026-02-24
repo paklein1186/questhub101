@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   Clock, Euro, MapPin, Hash, CalendarClock, Video,
   ChevronLeft, ChevronRight, Shield, Check, ArrowRight,
-  Zap, Compass,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -411,6 +410,7 @@ export default function PublicBooking() {
         onOpenChange={setGuestOpen}
         actionLabel="book this session"
         quickSignup={quickSignup}
+        skipPostSignupNavigation
       />
     </div>
   );
