@@ -540,7 +540,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
         </div>
       )}
 
-      <div className="rounded-xl border border-border overflow-hidden bg-background/50">
+      <div className="border-y border-border overflow-hidden bg-background/50">
         <ForceGraph2D
           ref={graphRef}
           graphData={graphData}
