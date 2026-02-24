@@ -226,7 +226,7 @@ export default function ServiceDetail() {
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
 
     // For paid bookings, redirect to Stripe Checkout
-    if (!isFree) {
+    if (!isFree && !requiresApproval) {
       try {
         const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("booking-checkout", {
           body: { bookingId: newBooking.id },
@@ -287,8 +287,10 @@ export default function ServiceDetail() {
       action: isFree ? "confirmed" : "sent",
     });
 
-    if (isFree) {
+    if (autoConfirm) {
       toast({ title: "✅ Session confirmed!", description: "You can join via the call link in your bookings." });
+    } else if (requiresApproval) {
+      toast({ title: "📋 Request submitted!", description: "An admin will review and validate your booking request." });
     } else {
       toast({ title: "✅ Booking request sent!", description: `${provider?.name || "The provider"} will be notified. You'll hear back soon.` });
     }
