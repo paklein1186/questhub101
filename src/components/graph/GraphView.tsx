@@ -443,12 +443,6 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       el.removeEventListener("mouseleave", onLeave);
     };
   }, []);
-        setTooltipPos(null);
-      }
-    };
-    el.addEventListener("mousemove", onMove);
-    return () => el.removeEventListener("mousemove", onMove);
-  }, []);
 
   if (isLoading) {
     return (
