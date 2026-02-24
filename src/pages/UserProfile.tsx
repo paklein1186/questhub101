@@ -662,6 +662,7 @@ export default function UserProfile() {
           <TabsTrigger value="territories"><Globe className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           <TabsTrigger value="entities">Entities</TabsTrigger>
           <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
+          <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
@@ -1009,6 +1010,11 @@ export default function UserProfile() {
         {/* ─── Trust ─── */}
         <TabsContent value="trust" className="mt-6">
           <TrustTab nodeType={TrustNodeType.PROFILE} nodeId={profile.userId} />
+        </TabsContent>
+
+        {/* ─── Graph ─── */}
+        <TabsContent value="graph" className="mt-6">
+          <GraphView centerType="user" centerId={profile.userId} />
         </TabsContent>
 
         {/* ─── Matchmaker ─── */}

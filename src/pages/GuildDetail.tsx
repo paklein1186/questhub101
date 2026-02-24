@@ -457,6 +457,7 @@ export default function GuildDetail() {
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
+            { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
           return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
@@ -545,6 +546,10 @@ export default function GuildDetail() {
 
         <TabsContent value="trust" className="mt-6">
           <TrustTab nodeType={TrustNodeType.GUILD} nodeId={guild.id} />
+        </TabsContent>
+
+        <TabsContent value="graph" className="mt-6">
+          <GraphView centerType="guild" centerId={guild.id} />
         </TabsContent>
 
 
