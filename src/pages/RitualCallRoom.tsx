@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   ArrowLeft, Video, ExternalLink, Clock, Users, FileText,
   ShieldAlert, FileQuestion, AlertTriangle, ChevronRight,
-  Calendar, ThumbsUp, ThumbsDown, CalendarPlus,
+  Calendar, ThumbsUp, ThumbsDown, CalendarPlus, Share2, Check, Copy,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PageShell } from "@/components/PageShell";
@@ -258,7 +260,23 @@ export default function RitualCallRoom() {
     return `ctg-ritual-${occurrenceId}`;
   }, [occurrence, occurrenceId]);
 
-  // Back link
+  const jitsiShareUrl = useMemo(() => {
+    if (occurrence?.visio_link && occurrence.visio_link.startsWith("http")) return occurrence.visio_link;
+    return `https://meet.jit.si/${roomName}`;
+  }, [occurrence, roomName]);
+
+  const [shareCopied, setShareCopied] = useState(false);
+  const copyShareLink = async () => {
+    try {
+      await navigator.clipboard.writeText(jitsiShareUrl);
+      setShareCopied(true);
+      toast({ title: "Call link copied!", description: "Anyone with this link can join — no account needed." });
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy", variant: "destructive" });
+    }
+  };
+
   const backUrl = ritual?.guild_id
     ? `/guilds/${ritual.guild_id}?tab=rituals`
     : ritual?.quest_id
@@ -304,6 +322,29 @@ export default function RitualCallRoom() {
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="font-medium text-foreground">{ritual?.title || "Call"}</span>
         <div className="ml-auto flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Share2 className="h-3.5 w-3.5 mr-1" /> Share Call
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium mb-1">Share call link</p>
+                  <p className="text-xs text-muted-foreground">
+                    Anyone with this link can join the call — no account needed.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Input value={jitsiShareUrl} readOnly className="text-xs h-9" onClick={(e) => (e.target as HTMLInputElement).select()} />
+                  <Button size="sm" variant="secondary" className="shrink-0 h-9" onClick={copyShareLink}>
+                    {shareCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Badge variant="default" className="text-xs">
             <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5 animate-pulse" />
             {occurrence.status === "scheduled" ? "Scheduled" : occurrence.status}

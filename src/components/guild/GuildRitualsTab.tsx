@@ -17,7 +17,7 @@ import {
   Plus, Calendar, Clock, Users, Video, Archive, CheckCircle,
   Coffee, Heart, Landmark, Brain, GraduationCap, Zap, Scale,
   Telescope, Network, PartyPopper, Play, XCircle, CalendarPlus,
-  ThumbsUp, ThumbsDown, UserCheck,
+  ThumbsUp, ThumbsDown, UserCheck, Share2, Check, Copy,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { RITUAL_SESSION_TYPES, RITUAL_FREQUENCIES, RITUAL_ACCESS_TYPES, GOVERNANCE_IMPACT_COLORS, type RitualSessionTypeKey } from "@/lib/ritualConfig";
@@ -63,6 +63,57 @@ function downloadRitualIcs(title: string, scheduledAt: string, durationMinutes: 
   a.href = url; a.download = `ritual-${Date.now()}.ics`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function getJitsiUrl(occurrenceId: string, visioLink?: string): string {
+  if (visioLink) {
+    if (visioLink.startsWith("http")) return visioLink;
+    return `https://meet.jit.si/${visioLink}`;
+  }
+  return `https://meet.jit.si/ctg-ritual-${occurrenceId}`;
+}
+
+function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceId: string; visioLink?: string; ritualTitle?: string }) {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+  const jitsiUrl = getJitsiUrl(occurrenceId, visioLink);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(jitsiUrl);
+      setCopied(true);
+      toast({ title: "Call link copied!", description: "Anyone with this link can join the call — no account needed." });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "Failed to copy", variant: "destructive" });
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="ghost">
+          <Share2 className="h-3.5 w-3.5 mr-1" /> Share
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="end">
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium mb-1">Share call link</p>
+            <p className="text-xs text-muted-foreground">
+              Anyone with this link can join the call — no account needed.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Input value={jitsiUrl} readOnly className="text-xs h-9" onClick={(e) => (e.target as HTMLInputElement).select()} />
+            <Button size="sm" variant="secondary" className="shrink-0 h-9" onClick={handleCopy}>
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 interface Props {
@@ -417,6 +468,9 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
                           <Button size="sm" variant="outline" onClick={() => navigate(`/ritual-call/${occ.id}`)}>
                             <Video className="h-3.5 w-3.5 mr-1" /> Join Call
                           </Button>
+
+                          {/* Share call link for non-members */}
+                          <ShareCallButton occurrenceId={occ.id} visioLink={occ.visio_link} ritualTitle={ritual?.title} />
 
                           {/* Admin complete */}
                           {isAdmin && occ.status === "scheduled" && (
