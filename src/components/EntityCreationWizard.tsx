@@ -174,7 +174,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
             ))
             .map(t => t.id);
           if (matchedTopicIds.length) {
-            setSelectedTopicIds(matchedTopicIds);
+            setSelectedTopicIds(prev => [...new Set([...prev, ...matchedTopicIds])]);
             setScrapedTopicIds(matchedTopicIds);
           }
         }
@@ -188,7 +188,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
             ))
             .map(t => t.id);
           if (matchedTerritoryIds.length) {
-            setSelectedTerritoryIds(matchedTerritoryIds);
+            setSelectedTerritoryIds(prev => [...new Set([...prev, ...matchedTerritoryIds])]);
             setScrapedTerritoryIds(matchedTerritoryIds);
           }
         }
