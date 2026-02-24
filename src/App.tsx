@@ -190,6 +190,9 @@ const App = () => (
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
 
+                {/* Share redirect — fallback when _redirects proxy doesn't intercept */}
+                <Route path="/share/:type/:id" element={<ShareRedirect />} />
+
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
                 <Route path="/welcome" element={<WelcomePage />} />
