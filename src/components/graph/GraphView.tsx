@@ -412,9 +412,16 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
         edgeCount={graphData.links.length}
       />
 
-      {/* Floating tooltip for hovered node */}
-      {hoveredNodeData && hoveredStyle && (
-        <div className="text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg mb-2 mx-auto w-fit max-w-sm pointer-events-none">
+      {/* Cursor-following tooltip */}
+      {hoveredNodeData && hoveredStyle && tooltipPos && (
+        <div
+          className="absolute z-50 text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg pointer-events-none max-w-[220px]"
+          style={{
+            left: tooltipPos.x + 14,
+            top: tooltipPos.y - 10,
+            transform: tooltipPos.x > containerWidth - 240 ? "translateX(-110%)" : undefined,
+          }}
+        >
           <div className="flex items-center gap-2">
             {hoveredNodeData.avatarUrl ? (
               <img
