@@ -29,6 +29,8 @@ interface Props {
   actionLabel?: string;
   /** If true, skip onboarding steps and go straight to signup */
   quickSignup?: boolean;
+  /** If true, don't navigate after signup (let the parent page handle it) */
+  skipPostSignupNavigation?: boolean;
 }
 
 type Step = "goal" | "persona" | "interests" | "connect" | "signup";
@@ -88,7 +90,7 @@ function getUniverseForPersona(persona: string | null): UniverseMode {
   return "both";
 }
 
-export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false }: Props) {
+export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false, skipPostSignupNavigation = false }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -379,8 +381,11 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
       }, 1500);
 
       handleOpenChange(false);
-      // Navigate to onboarding wizard
-      navigate("/onboarding");
+      if (!skipPostSignupNavigation) {
+        // Navigate to onboarding wizard
+        navigate("/onboarding");
+      }
+      // If skipPostSignupNavigation is true, the parent page handles the post-signup flow
     }
   };
 

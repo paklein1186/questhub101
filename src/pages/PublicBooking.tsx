@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   Clock, Euro, MapPin, Hash, CalendarClock, Video,
   ChevronLeft, ChevronRight, Shield, Check, ArrowRight,
-  Zap, Compass,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -105,7 +104,7 @@ export default function PublicBooking() {
   const [guestOpen, setGuestOpen] = useState(false);
   const [quickSignup, setQuickSignup] = useState(false);
   const [bookingInProgress, setBookingInProgress] = useState(false);
-  const [showSignupChoice, setShowSignupChoice] = useState(false);
+  // showSignupChoice removed — quick signup opens directly
 
   const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
 
@@ -197,14 +196,15 @@ export default function PublicBooking() {
       navigate(`/services/${svc.id}`);
       return;
     }
-    // Store pending slot and show signup choice
+    // Store pending slot and open quick signup directly
     localStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify({
       serviceId: svc.id,
       startDateTime: selectedSlot.startDateTime,
       endDateTime: selectedSlot.endDateTime,
       notes: bookNotes.trim(),
     }));
-    setShowSignupChoice(true);
+    setQuickSignup(true);
+    setGuestOpen(true);
   };
 
   if (isLoading) {
@@ -400,55 +400,7 @@ export default function PublicBooking() {
             </p>
           )}
 
-          {/* Signup choice modal */}
-          {showSignupChoice && !isLoggedIn && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 rounded-xl border border-border bg-card p-5 space-y-3"
-            >
-              <h3 className="font-display font-semibold text-base text-center">How would you like to sign up?</h3>
-              <p className="text-xs text-muted-foreground text-center">
-                Create an account to confirm your booking.
-              </p>
-              <div className="grid gap-2">
-                <Button
-                  variant="default"
-                  className="w-full justify-start gap-3 h-auto py-3 px-4"
-                  onClick={() => {
-                    setShowSignupChoice(false);
-                    setQuickSignup(true);
-                    setGuestOpen(true);
-                  }}
-                >
-                  <div className="h-8 w-8 rounded-lg bg-primary-foreground/20 flex items-center justify-center shrink-0">
-                    <Zap className="h-4 w-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium">Quick signup</p>
-                    <p className="text-xs opacity-80">Name, email & password — book in 30 seconds</p>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3 h-auto py-3 px-4"
-                  onClick={() => {
-                    setShowSignupChoice(false);
-                    setQuickSignup(false);
-                    setGuestOpen(true);
-                  }}
-                >
-                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                    <Compass className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium">Guided onboarding</p>
-                    <p className="text-xs text-muted-foreground">Pick your world, topics & discover communities</p>
-                  </div>
-                </Button>
-              </div>
-            </motion.div>
-          )}
+          {/* Signup choice panel removed — GuestOnboardingAssistant opens directly */}
         </motion.div>
       </div>
 
@@ -458,6 +410,7 @@ export default function PublicBooking() {
         onOpenChange={setGuestOpen}
         actionLabel="book this session"
         quickSignup={quickSignup}
+        skipPostSignupNavigation
       />
     </div>
   );
