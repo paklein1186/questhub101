@@ -352,6 +352,47 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     return style?.dashArray ? (style.dashArray as string).split(",").map(Number) : undefined;
   }, []);
 
+  // Draw relation type label on hovered edges
+  const linkCanvasObject = useCallback(
+    (link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+      if (!hoveredNode) return;
+      const src = typeof link.source === "object" ? link.source : null;
+      const tgt = typeof link.target === "object" ? link.target : null;
+      if (!src || !tgt) return;
+      const srcId = src.id;
+      const tgtId = tgt.id;
+      if (srcId !== hoveredNode && tgtId !== hoveredNode) return;
+
+      const style = EDGE_STYLES[link.relationType] || DEFAULT_EDGE_STYLE;
+      const label = style.label;
+      if (!label) return;
+
+      const midX = (src.x + tgt.x) / 2;
+      const midY = (src.y + tgt.y) / 2;
+      const fontSize = Math.max(7 / globalScale, 1.5);
+
+      ctx.font = `500 ${fontSize}px -apple-system, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const metrics = ctx.measureText(label);
+      const pw = metrics.width + 6;
+      const ph = fontSize + 3;
+
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = "hsla(0, 0%, 8%, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(midX - pw / 2, midY - ph / 2, pw, ph, 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = style.activeColor || style.color;
+      ctx.fillText(label, midX, midY);
+      ctx.globalAlpha = 1;
+    },
+    [hoveredNode]
+  );
+
   const handleNodeClick = useCallback((node: any) => {
     if (node.slug) navigate(node.slug);
   }, [navigate]);
