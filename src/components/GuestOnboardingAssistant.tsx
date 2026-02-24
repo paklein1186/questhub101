@@ -137,6 +137,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
   // Fetch topics when persona changes
   useEffect(() => {
+    if (quickSignup) return; // skip topic fetching in quick mode
     if (!selectedPersona) return;
     setLoadingTopics(true);
     setSelectedInterests([]);
