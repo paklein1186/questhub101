@@ -227,24 +227,27 @@ export function PlatformBroadcastDialog() {
             .eq("broadcast_id", broadcastId)
             .eq("user_id", recipientId);
 
-          // Fire email notification (non-blocking)
-          fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                messageId: msg?.id,
-                conversationId: conv.id,
-                senderId: userId,
-                content: messageBody,
-                senderLabel: SENDER_LABEL,
-              }),
-            }
-          ).catch(() => {});
+          // Fire email notification (non-blocking) — use session token so edge function authenticates
+          const accessToken = session?.access_token;
+          if (accessToken) {
+            fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-dm-notification`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  messageId: msg?.id,
+                  conversationId: conv.id,
+                  senderId: userId,
+                  content: messageBody,
+                  senderLabel: SENDER_LABEL,
+                }),
+              }
+            ).catch(() => {});
+          }
 
           sent++;
         } catch {
