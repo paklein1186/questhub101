@@ -81,6 +81,7 @@ import MyRequests from "./pages/MyRequests";
 import MyGuilds from "./pages/MyGuilds";
 import MyAvailability from "./pages/MyAvailability";
 import NotFound from "./pages/NotFound";
+import ShareRedirect from "./pages/ShareRedirect";
 import MyCompanies from "./pages/MyCompanies";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
