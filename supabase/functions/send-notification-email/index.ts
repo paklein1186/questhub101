@@ -161,6 +161,24 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "CREDIT_RECEIVED") {
     subject = `You received credits! 💰`;
     ctaLabel = "View your wallet";
+  } else if (type === "ENTITY_JOIN_REQUEST") {
+    subject = `New membership request`;
+    ctaLabel = "Review request";
+  } else if (type === "PARTNERSHIP_PROPOSED") {
+    subject = `New partnership proposal`;
+    ctaLabel = "Review partnership";
+  } else if (type === "TRUST_RENEWAL_DUE") {
+    subject = `Trust renewal due 🔄`;
+    ctaLabel = "Renew trust";
+  } else if (type === "TRUST_EDGE_OUTDATED") {
+    subject = `A trust attestation expired`;
+    ctaLabel = "View details";
+  } else if (type === "milestone_completed") {
+    subject = `Milestone completed! 🎯`;
+    ctaLabel = "See your milestone";
+  } else if (type === "BOOKING_UPDATED") {
+    subject = `Booking update`;
+    ctaLabel = "View booking";
   }
 
   const html = `<!DOCTYPE html>
