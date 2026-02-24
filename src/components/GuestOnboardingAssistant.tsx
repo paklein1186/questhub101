@@ -27,11 +27,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actionLabel?: string;
+  /** If true, skip onboarding steps and go straight to signup */
+  quickSignup?: boolean;
 }
 
 type Step = "goal" | "persona" | "interests" | "connect" | "signup";
 
 const STEPS_ORDER: Step[] = ["goal", "persona", "interests", "connect", "signup"];
+const QUICK_STEPS: Step[] = ["signup"];
 const STEP_LABELS = ["Goal", "World", "Topics", "Connect", "Account"];
 
 const GOALS = [
@@ -85,7 +88,7 @@ function getUniverseForPersona(persona: string | null): UniverseMode {
   return "both";
 }
 
-export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action" }: Props) {
+export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "perform this action", quickSignup = false }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -99,7 +102,16 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const { signUp } = useAuth();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>("goal");
+  const activeSteps = quickSignup ? QUICK_STEPS : STEPS_ORDER;
+  const activeLabels = quickSignup ? ["Account"] : STEP_LABELS;
+  const [step, setStep] = useState<Step>(quickSignup ? "signup" : "goal");
+
+  // Reset step when dialog opens or mode changes
+  useEffect(() => {
+    if (open) {
+      setStep(quickSignup ? "signup" : "goal");
+    }
+  }, [open, quickSignup]);
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -126,12 +138,13 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
   const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
-  const stepIndex = STEPS_ORDER.indexOf(step);
-  const totalSteps = STEPS_ORDER.length;
+  const stepIndex = activeSteps.indexOf(step);
+  const totalSteps = activeSteps.length;
   const universe = getUniverseForPersona(selectedPersona);
 
   // Fetch topics when persona changes
   useEffect(() => {
+    if (quickSignup) return; // skip topic fetching in quick mode
     if (!selectedPersona) return;
     setLoadingTopics(true);
     setSelectedInterests([]);
@@ -170,14 +183,14 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   }, [selectedPersona, universe]);
 
   const goNext = useCallback(() => {
-    const idx = STEPS_ORDER.indexOf(step);
-    if (idx < STEPS_ORDER.length - 1) setStep(STEPS_ORDER[idx + 1]);
-  }, [step]);
+    const idx = activeSteps.indexOf(step);
+    if (idx < activeSteps.length - 1) setStep(activeSteps[idx + 1]);
+  }, [step, activeSteps]);
 
   const goBack = useCallback(() => {
-    const idx = STEPS_ORDER.indexOf(step);
-    if (idx > 0) setStep(STEPS_ORDER[idx - 1]);
-  }, [step]);
+    const idx = activeSteps.indexOf(step);
+    if (idx > 0) setStep(activeSteps[idx - 1]);
+  }, [step, activeSteps]);
 
   const toggleInterest = (id: string) => {
     setSelectedInterests((prev) =>
@@ -401,14 +414,14 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <p className="font-display font-semibold text-sm">Get Started</p>
+              <p className="font-display font-semibold text-sm">{quickSignup ? "Quick Signup" : "Get Started"}</p>
             </div>
             <p className="text-xs text-muted-foreground">
               Step {stepIndex + 1} of {totalSteps}
             </p>
           </div>
           <div className="flex gap-1.5">
-            {STEP_LABELS.map((label, i) => (
+            {activeLabels.map((label, i) => (
               <div key={label} className="flex-1 flex flex-col gap-1">
                 <div className={`h-1 rounded-full transition-colors duration-300 ${i <= stepIndex ? "bg-primary" : "bg-muted"}`} />
                 <span className={`text-[10px] ${i <= stepIndex ? "text-foreground font-medium" : "text-muted-foreground"}`}>
