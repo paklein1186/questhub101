@@ -198,18 +198,22 @@ export default function ServiceDetail() {
   if (svc.is_draft && !isOwnService && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>Service not found.</p></PageShell>;
 
   const isFree = !svc.price_amount || svc.price_amount === 0;
+  const svcType = (svc as any).service_type || "online_call";
+  const requiresApproval = svcType === "service_mission" || svcType === "event_attendance";
 
   const createBooking = async () => {
     if (!selectedSlot) { toast({ title: "Please select a time slot", variant: "destructive" }); return; }
     if (!currentUser.id) { toast({ title: "Please log in to book", variant: "destructive" }); return; }
-    const callUrl = isFree ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
+    // For online_call free services, auto-confirm. For mission/event, always require approval.
+    const autoConfirm = isFree && !requiresApproval;
+    const callUrl = autoConfirm ? generateCallUrl(`bk-${Date.now()}`, svc.online_location_type as any) : undefined;
     const bookingPayload: any = {
       service_id: svc.id, requester_id: currentUser.id,
       provider_user_id: svc.provider_user_id || null,
       provider_guild_id: svc.provider_guild_id || (ownerType === "GUILD" ? (svc as any).owner_id : null),
       company_id: ownerType === "COMPANY" ? (svc as any).owner_id : null,
       start_date_time: selectedSlot.startDateTime, end_date_time: selectedSlot.endDateTime,
-      status: isFree ? "CONFIRMED" : "PENDING",
+      status: autoConfirm ? "CONFIRMED" : "PENDING",
       payment_status: isFree ? "NOT_REQUIRED" : "PENDING",
       amount: svc.price_amount || 0, currency: svc.price_currency,
       notes: bookNotes.trim() || null, call_url: callUrl,
