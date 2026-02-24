@@ -4984,6 +4984,8 @@ export type Database = {
           is_boosted: boolean
           is_deleted: boolean
           is_draft: boolean
+          location_text: string | null
+          location_type: string
           online_location_type: string | null
           online_location_url_template: string | null
           owner_id: string | null
@@ -4993,6 +4995,7 @@ export type Database = {
           provider_guild_id: string | null
           provider_user_id: string | null
           public_visibility: string
+          service_type: string
           stripe_price_id: string | null
           title: string
           universe_visibility: string
@@ -5014,6 +5017,8 @@ export type Database = {
           is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          location_text?: string | null
+          location_type?: string
           online_location_type?: string | null
           online_location_url_template?: string | null
           owner_id?: string | null
@@ -5023,6 +5028,7 @@ export type Database = {
           provider_guild_id?: string | null
           provider_user_id?: string | null
           public_visibility?: string
+          service_type?: string
           stripe_price_id?: string | null
           title: string
           universe_visibility?: string
@@ -5044,6 +5050,8 @@ export type Database = {
           is_boosted?: boolean
           is_deleted?: boolean
           is_draft?: boolean
+          location_text?: string | null
+          location_type?: string
           online_location_type?: string | null
           online_location_url_template?: string | null
           owner_id?: string | null
@@ -5053,6 +5061,7 @@ export type Database = {
           provider_guild_id?: string | null
           provider_user_id?: string | null
           public_visibility?: string
+          service_type?: string
           stripe_price_id?: string | null
           title?: string
           universe_visibility?: string
