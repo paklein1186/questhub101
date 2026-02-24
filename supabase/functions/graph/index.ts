@@ -39,7 +39,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create supabase client - use auth header if present for RLS
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -48,8 +47,8 @@ Deno.serve(async (req) => {
       global: { headers: authHeader ? { Authorization: authHeader } : {} },
     });
 
-    // Fetch edges where center node is source or target
-    const { data: edges, error: edgesErr } = await supabase
+    // Step 1: Fetch edges where center node is source or target
+    const { data: centerEdges, error: edgesErr } = await supabase
       .from("graph_edges")
       .select("*")
       .or(
@@ -64,34 +63,64 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Filter: only show public edges for unauthenticated users
+    // Auth & visibility filtering
     const {
       data: { user },
     } = await supabase.auth.getUser();
     const isAuthenticated = !!user;
 
-    const filteredEdges = (edges || []).filter((e: any) => {
+    const filterVisibility = (e: any) => {
       if (e.visibility === "public") return true;
       if (!isAuthenticated) return false;
-      // For network/followers visibility, show to authenticated users
       if (e.visibility === "network" || e.visibility === "followers") return true;
-      // Private: only if user is source or target
       if (e.visibility === "private") {
         return e.source_id === user?.id || e.target_id === user?.id;
       }
       return true;
-    });
+    };
+
+    const filteredCenterEdges = (centerEdges || []).filter(filterVisibility);
+
+    // Collect neighbor IDs from center edges
+    const neighborIds = new Set<string>();
+    for (const edge of filteredCenterEdges) {
+      if (edge.source_id !== centerId) neighborIds.add(edge.source_id);
+      if (edge.target_id !== centerId) neighborIds.add(edge.target_id);
+    }
+
+    // Step 2: Fetch inter-neighbor edges (edges between neighbors)
+    // This shows shared quests, mutual guild memberships, etc.
+    let interEdges: any[] = [];
+    const neighborArray = Array.from(neighborIds);
+    if (neighborArray.length > 1 && neighborArray.length <= 200) {
+      // Fetch edges where BOTH source and target are in the neighbor set
+      const { data: betweenEdges } = await supabase
+        .from("graph_edges")
+        .select("*")
+        .in("source_id", neighborArray)
+        .in("target_id", neighborArray)
+        .limit(500);
+
+      if (betweenEdges) {
+        interEdges = betweenEdges.filter(filterVisibility);
+      }
+    }
+
+    // Merge all edges, deduplicate by id
+    const allEdgesMap = new Map<string, any>();
+    for (const e of filteredCenterEdges) allEdgesMap.set(e.id, e);
+    for (const e of interEdges) allEdgesMap.set(e.id, e);
+    const allEdges = Array.from(allEdgesMap.values());
 
     // Collect all unique node IDs grouped by type
-    const nodeMap = new Map<string, string>(); // "type:id" -> type
+    const nodeMap = new Map<string, string>();
     nodeMap.set(`${centerType}:${centerId}`, centerType);
 
-    for (const edge of filteredEdges) {
+    for (const edge of allEdges) {
       nodeMap.set(`${edge.source_type}:${edge.source_id}`, edge.source_type);
       nodeMap.set(`${edge.target_type}:${edge.target_id}`, edge.target_type);
     }
 
-    // Group IDs by type for batch fetching
     const idsByType: Record<string, string[]> = {};
     for (const [key, type] of nodeMap) {
       const id = key.split(":")[1];
@@ -99,9 +128,8 @@ Deno.serve(async (req) => {
       if (!idsByType[type].includes(id)) idsByType[type].push(id);
     }
 
-    // Fetch node metadata from respective tables
+    // Fetch node metadata
     const nodeData: Record<string, any> = {};
-
     const fetchPromises: Promise<void>[] = [];
 
     if (idsByType["user"]?.length) {
@@ -113,8 +141,7 @@ Deno.serve(async (req) => {
           .then(({ data }) => {
             for (const p of data || []) {
               nodeData[`user:${p.user_id}`] = {
-                id: p.user_id,
-                type: "user",
+                id: p.user_id, type: "user",
                 name: p.name || "Unknown",
                 avatarUrl: p.avatar_url,
                 slug: `/users/${p.user_id}`,
@@ -134,8 +161,7 @@ Deno.serve(async (req) => {
           .then(({ data }) => {
             for (const g of data || []) {
               nodeData[`guild:${g.id}`] = {
-                id: g.id,
-                type: "guild",
+                id: g.id, type: "guild",
                 name: g.name,
                 avatarUrl: g.logo_url,
                 slug: `/guilds/${g.id}`,
@@ -149,15 +175,15 @@ Deno.serve(async (req) => {
       fetchPromises.push(
         supabase
           .from("quests")
-          .select("id, title")
+          .select("id, title, cover_image_url")
           .in("id", idsByType["quest"])
           .eq("is_deleted", false)
           .then(({ data }) => {
             for (const q of data || []) {
               nodeData[`quest:${q.id}`] = {
-                id: q.id,
-                type: "quest",
+                id: q.id, type: "quest",
                 name: q.title,
+                avatarUrl: q.cover_image_url,
                 slug: `/quests/${q.id}`,
               };
             }
@@ -169,15 +195,15 @@ Deno.serve(async (req) => {
       fetchPromises.push(
         supabase
           .from("territories")
-          .select("id, name, slug")
+          .select("id, name, slug, cover_image_url")
           .in("id", idsByType["territory"])
           .eq("is_deleted", false)
           .then(({ data }) => {
             for (const t of data || []) {
               nodeData[`territory:${t.id}`] = {
-                id: t.id,
-                type: "territory",
+                id: t.id, type: "territory",
                 name: t.name,
+                avatarUrl: t.cover_image_url,
                 slug: `/territories/${t.slug || t.id}`,
               };
             }
@@ -195,8 +221,7 @@ Deno.serve(async (req) => {
           .then(({ data }) => {
             for (const c of data || []) {
               nodeData[`org:${c.id}`] = {
-                id: c.id,
-                type: "org",
+                id: c.id, type: "org",
                 name: c.name,
                 avatarUrl: c.logo_url,
                 slug: `/companies/${c.id}`,
@@ -216,8 +241,7 @@ Deno.serve(async (req) => {
           .then(({ data }) => {
             for (const p of data || []) {
               nodeData[`pod:${p.id}`] = {
-                id: p.id,
-                type: "pod",
+                id: p.id, type: "pod",
                 name: p.name,
                 slug: `/pods/${p.id}`,
               };
@@ -228,20 +252,15 @@ Deno.serve(async (req) => {
 
     await Promise.all(fetchPromises);
 
-    // Build center node
     const centerKey = `${centerType}:${centerId}`;
     const center = nodeData[centerKey] || {
-      id: centerId,
-      type: centerType,
-      name: "Unknown",
+      id: centerId, type: centerType, name: "Unknown",
       slug: `/${centerType}s/${centerId}`,
     };
 
-    // Build nodes list (excluding center)
     const nodes = Object.values(nodeData).filter((n: any) => n.id !== centerId);
 
-    // Build edges response
-    const responseEdges = filteredEdges.map((e: any) => ({
+    const responseEdges = allEdges.map((e: any) => ({
       id: e.id,
       source: e.source_id,
       target: e.target_id,
@@ -254,9 +273,7 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ center, nodes, edges: responseEdges }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("Graph function error:", err);

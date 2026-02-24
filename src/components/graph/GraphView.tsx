@@ -19,11 +19,29 @@ interface FGNode {
   id: string; type: string; name: string; avatarUrl?: string;
   slug: string; isCenter?: boolean; x?: number; y?: number;
   __connections?: number;
+  __img?: HTMLImageElement;
+  __imgLoaded?: boolean;
+  __imgFailed?: boolean;
 }
 
 interface FGLink {
   id: string; source: string | FGNode; target: string | FGNode;
   relationType: string; weight: number;
+}
+
+// Image cache shared across renders
+const imgCache = new Map<string, HTMLImageElement>();
+
+function getOrLoadImage(url: string): HTMLImageElement | null {
+  if (imgCache.has(url)) {
+    const img = imgCache.get(url)!;
+    return img.complete && img.naturalWidth > 0 ? img : null;
+  }
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = url;
+  imgCache.set(url, img);
+  return null;
 }
 
 export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps) {
@@ -42,7 +60,6 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   });
 
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  const [hoveredLink, setHoveredLink] = useState<FGLink | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -86,7 +103,14 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     return { nodes, links };
   }, [data, filters, centerId, centerType]);
 
-  // Build adjacency map for hover highlighting
+  // Preload images when graphData changes
+  useEffect(() => {
+    for (const node of graphData.nodes) {
+      if (node.avatarUrl) getOrLoadImage(node.avatarUrl);
+    }
+  }, [graphData.nodes]);
+
+  // Adjacency map for hover highlighting
   const adjacencyMap = useMemo(() => {
     const map = new Map<string, Set<string>>();
     for (const link of graphData.links) {
@@ -108,12 +132,11 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     }
   }, [graphData.nodes.length]);
 
-  // ─── Node painting ───────────────────────────────────────
+  // ─── Node painting with avatar images ────────────────────
   const paintNode = useCallback(
     (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
       const style = NODE_STYLES[node.type] || DEFAULT_NODE_STYLE;
       const connections: number = node.__connections || 0;
-      // Subtle adaptive sizing: center is bigger, hubs slightly bigger
       const baseSize = node.isCenter
         ? style.size * 1.8
         : style.size * (1 + Math.min(0.6, Math.log2(connections + 1) * 0.15));
@@ -124,86 +147,151 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       const isNeighborOfHovered = hoveredNode ? adjacencyMap.get(hoveredNode)?.has(node.id) : false;
       const isFaded = hoveredNode !== null && !isHovered && !isNeighborOfHovered && !node.isCenter;
 
-      const alpha = isFaded ? 0.15 : 1;
-      const size = isHovered ? baseSize * 1.3 : baseSize;
+      const alpha = isFaded ? 0.12 : 1;
+      const size = isHovered ? baseSize * 1.35 : baseSize;
 
-      // Glow
-      if (isHovered || node.isCenter) {
+      ctx.globalAlpha = alpha;
+
+      // Try to draw avatar image
+      const avatarUrl = node.avatarUrl;
+      let img: HTMLImageElement | null = null;
+      if (avatarUrl) {
+        img = getOrLoadImage(avatarUrl);
+      }
+
+      // Glow for center or hovered
+      if ((isHovered || node.isCenter) && !isFaded) {
         ctx.save();
         ctx.shadowColor = style.glow;
-        ctx.shadowBlur = isHovered ? 18 : 10;
+        ctx.shadowBlur = isHovered ? 20 : 12;
       }
 
-      // Shape path
-      ctx.beginPath();
-      if (style.shape === "diamond") {
-        const s = size * 1.05;
-        ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y);
-        ctx.closePath();
-      } else if (style.shape === "square") {
-        drawRoundedRect(ctx, x, y, size * 0.9, size * 0.2);
-      } else if (style.shape === "hexagon") {
-        drawHexagon(ctx, x, y, size);
-      } else {
-        ctx.arc(x, y, size, 0, 2 * Math.PI);
-      }
+      // Draw shape path (used for clipping image and as fallback fill)
+      const drawShapePath = () => {
+        ctx.beginPath();
+        if (style.shape === "diamond") {
+          const s = size * 1.05;
+          ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y);
+          ctx.closePath();
+        } else if (style.shape === "square") {
+          drawRoundedRect(ctx, x, y, size * 0.9, size * 0.25);
+        } else if (style.shape === "hexagon") {
+          drawHexagon(ctx, x, y, size);
+        } else {
+          ctx.arc(x, y, size, 0, 2 * Math.PI);
+        }
+      };
 
-      // Fill
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = style.color;
-      ctx.fill();
-
-      // Inner highlight (top-left light)
-      if (!isFaded) {
-        ctx.globalAlpha = 0.25 * alpha;
-        const hl = ctx.createRadialGradient(x - size * 0.3, y - size * 0.35, 0, x, y, size);
-        hl.addColorStop(0, "hsla(0, 0%, 100%, 1)");
-        hl.addColorStop(1, "hsla(0, 0%, 100%, 0)");
-        ctx.fillStyle = hl;
+      if (img) {
+        // Draw colored ring behind image
+        drawShapePath();
+        ctx.fillStyle = style.color;
         ctx.fill();
-        ctx.globalAlpha = alpha;
+
+        // Clip to shape and draw image
+        ctx.save();
+        drawShapePath();
+        ctx.clip();
+        const imgSize = size * 1.8;
+        ctx.drawImage(img, x - imgSize / 2, y - imgSize / 2, imgSize, imgSize);
+        ctx.restore();
+
+        // Border
+        drawShapePath();
+        if (node.isCenter) {
+          ctx.strokeStyle = `hsla(0, 0%, 100%, ${0.9 * alpha})`;
+          ctx.lineWidth = 2.5 / globalScale;
+          ctx.stroke();
+        } else if (isHovered) {
+          ctx.strokeStyle = `hsla(0, 0%, 100%, 0.75)`;
+          ctx.lineWidth = 2 / globalScale;
+          ctx.stroke();
+        } else {
+          ctx.strokeStyle = style.color;
+          ctx.lineWidth = 1.5 / globalScale;
+          ctx.stroke();
+        }
+      } else {
+        // No image: draw filled shape with type icon
+        drawShapePath();
+        ctx.fillStyle = style.color;
+        ctx.fill();
+
+        // Inner highlight
+        if (!isFaded) {
+          ctx.globalAlpha = 0.2 * alpha;
+          const hl = ctx.createRadialGradient(x - size * 0.3, y - size * 0.3, 0, x, y, size);
+          hl.addColorStop(0, "hsla(0, 0%, 100%, 1)");
+          hl.addColorStop(1, "hsla(0, 0%, 100%, 0)");
+          ctx.fillStyle = hl;
+          drawShapePath();
+          ctx.fill();
+          ctx.globalAlpha = alpha;
+        }
+
+        // Type initial letter as fallback
+        if (globalScale > 0.5) {
+          const iconSize = Math.max(size * 0.9, 3);
+          ctx.font = `600 ${iconSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = `hsla(0, 0%, 100%, ${0.85 * alpha})`;
+          const initial = (node.name || style.label || "?").charAt(0).toUpperCase();
+          ctx.fillText(initial, x, y);
+        }
+
+        // Border
+        drawShapePath();
+        if (node.isCenter) {
+          ctx.strokeStyle = `hsla(0, 0%, 100%, ${0.85 * alpha})`;
+          ctx.lineWidth = 2 / globalScale;
+          ctx.stroke();
+        } else if (isHovered) {
+          ctx.strokeStyle = `hsla(0, 0%, 100%, 0.6)`;
+          ctx.lineWidth = 1.5 / globalScale;
+          ctx.stroke();
+        }
       }
 
-      // Border
-      if (node.isCenter) {
-        ctx.strokeStyle = `hsla(0, 0%, 100%, ${0.85 * alpha})`;
-        ctx.lineWidth = 2 / globalScale;
-        ctx.stroke();
-      } else if (isHovered) {
-        ctx.strokeStyle = `hsla(0, 0%, 100%, 0.7)`;
-        ctx.lineWidth = 1.5 / globalScale;
-        ctx.stroke();
-      }
+      if ((isHovered || node.isCenter) && !isFaded) ctx.restore();
 
-      if (isHovered || node.isCenter) ctx.restore();
-
-      // Label: only center, hovered, or neighbors of hovered
-      const showLabel = node.isCenter || isHovered || isNeighborOfHovered;
+      // Label: only on hover or for center node
+      const showLabel = isHovered || node.isCenter;
       if (showLabel && !isFaded) {
         const fontSize = Math.max(10 / globalScale, 2.2);
-        const weight = (node.isCenter || isHovered) ? "600" : "400";
+        const weight = "600";
         ctx.font = `${weight} ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         const label = node.name || "";
-        const maxLen = isHovered ? 28 : 18;
+        const maxLen = 28;
         const display = label.length > maxLen ? label.slice(0, maxLen - 1) + "…" : label;
-        const ty = y + size + 2.5;
+        const ty = y + size + 3;
 
-        // Background pill behind label
-        const metrics = ctx.measureText(display);
-        const pw = metrics.width + 6;
-        const ph = fontSize + 3;
-        ctx.globalAlpha = 0.7;
-        ctx.fillStyle = "hsla(0, 0%, 8%, 0.85)";
+        // Type badge
+        const typeLabel = style.label;
+        const fullDisplay = display;
+
+        // Background pill
+        const metrics = ctx.measureText(fullDisplay);
+        const pw = metrics.width + 10;
+        const ph = fontSize + 5;
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = "hsla(0, 0%, 6%, 0.9)";
         ctx.beginPath();
-        ctx.roundRect(x - pw / 2, ty - 1, pw, ph, 3);
+        ctx.roundRect(x - pw / 2, ty - 1.5, pw, ph, 4);
         ctx.fill();
 
         ctx.globalAlpha = 1;
-        ctx.fillStyle = isHovered ? "hsla(0, 0%, 100%, 1)" : "hsla(0, 0%, 90%, 0.95)";
-        ctx.fillText(display, x, ty + 1);
+        ctx.fillStyle = "hsla(0, 0%, 100%, 1)";
+        ctx.fillText(fullDisplay, x, ty + 1);
+
+        // Small type label below
+        const typeFontSize = Math.max(7 / globalScale, 1.8);
+        ctx.font = `400 ${typeFontSize}px -apple-system, sans-serif`;
+        ctx.fillStyle = style.color;
+        ctx.fillText(typeLabel, x, ty + ph + 1);
       }
 
       ctx.globalAlpha = 1;
@@ -231,7 +319,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       const src = typeof link.source === "object" ? link.source.id : link.source;
       const tgt = typeof link.target === "object" ? link.target.id : link.target;
       if (src === hoveredNode || tgt === hoveredNode) return base * 2;
-      return 0.2;
+      return 0.15;
     },
     [hoveredNode]
   );
@@ -248,7 +336,7 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
   const handleNodeHover = useCallback((node: any) => {
     setHoveredNode(node?.id || null);
     if (containerRef.current) {
-      containerRef.current.style.cursor = node ? "pointer" : "default";
+      containerRef.current.style.cursor = node ? "pointer" : "grab";
     }
   }, []);
 
@@ -278,6 +366,23 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
     );
   }
 
+  // Find hovered node data for tooltip
+  const hoveredNodeData = hoveredNode ? graphData.nodes.find((n) => n.id === hoveredNode) : null;
+  const hoveredStyle = hoveredNodeData ? (NODE_STYLES[hoveredNodeData.type] || DEFAULT_NODE_STYLE) : null;
+  const hoveredNeighborCount = hoveredNode ? (adjacencyMap.get(hoveredNode)?.size ?? 0) : 0;
+
+  // Gather edge types for hovered node
+  const hoveredEdgeTypes = hoveredNode
+    ? [...new Set(graphData.links
+        .filter((l) => {
+          const s = typeof l.source === "object" ? l.source.id : l.source;
+          const t = typeof l.target === "object" ? l.target.id : l.target;
+          return s === hoveredNode || t === hoveredNode;
+        })
+        .map((l) => (EDGE_STYLES[l.relationType] || DEFAULT_EDGE_STYLE).label)
+      )]
+    : [];
+
   return (
     <div ref={containerRef} className="w-full">
       <GraphFilters
@@ -288,27 +393,41 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
       />
 
       {/* Floating tooltip for hovered node */}
-      {hoveredNode && (() => {
-        const n = graphData.nodes.find((nd) => nd.id === hoveredNode);
-        if (!n) return null;
-        const style = NODE_STYLES[n.type] || DEFAULT_NODE_STYLE;
-        const neighbors = adjacencyMap.get(n.id);
-        return (
-          <div className="text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg mb-2 mx-auto w-fit max-w-sm">
-            <div className="flex items-center gap-2">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: style.color }}
+      {hoveredNodeData && hoveredStyle && (
+        <div className="text-xs bg-popover/95 backdrop-blur-sm text-popover-foreground border border-border rounded-lg px-3 py-2 shadow-lg mb-2 mx-auto w-fit max-w-sm pointer-events-none">
+          <div className="flex items-center gap-2">
+            {hoveredNodeData.avatarUrl ? (
+              <img
+                src={hoveredNodeData.avatarUrl}
+                alt=""
+                className="w-6 h-6 rounded-full object-cover shrink-0 border"
+                style={{ borderColor: hoveredStyle.color }}
               />
-              <span className="font-semibold truncate">{n.name}</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">{style.label}</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-1">
-              {neighbors?.size ?? 0} connections · Click to open
+            ) : (
+              <span
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold text-white shrink-0"
+                style={{ backgroundColor: hoveredStyle.color }}
+              >
+                {(hoveredNodeData.name || "?").charAt(0)}
+              </span>
+            )}
+            <div className="min-w-0">
+              <div className="font-semibold truncate">{hoveredNodeData.name}</div>
+              <div className="text-[10px] text-muted-foreground">
+                {hoveredStyle.label} · {hoveredNeighborCount} connections
+              </div>
             </div>
           </div>
-        );
-      })()}
+          {hoveredEdgeTypes.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {hoveredEdgeTypes.map((et) => (
+                <span key={et} className="text-[9px] bg-muted px-1.5 py-0.5 rounded-full">{et}</span>
+              ))}
+            </div>
+          )}
+          <div className="text-[9px] text-muted-foreground mt-1 opacity-60">Click to open</div>
+        </div>
+      )}
 
       <div className="rounded-xl border border-border overflow-hidden bg-background/50">
         <ForceGraph2D
@@ -329,10 +448,9 @@ export function GraphView({ centerType, centerId, height = 600 }: GraphViewProps
           linkWidth={linkWidth}
           linkLineDash={linkDashArray}
           linkDirectionalParticles={0}
-          linkCurvature={0.12}
+          linkCurvature={0.15}
           onNodeClick={handleNodeClick}
           onNodeHover={handleNodeHover}
-          onLinkHover={(link: any) => setHoveredLink(link)}
           backgroundColor="transparent"
           cooldownTicks={isLargeGraph ? 250 : 120}
           d3AlphaDecay={isLargeGraph ? 0.015 : 0.035}
