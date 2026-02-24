@@ -15,6 +15,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
+import { GraphView } from "@/components/graph/GraphView";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();

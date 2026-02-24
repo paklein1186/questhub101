@@ -46,6 +46,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { GraphView } from "@/components/graph/GraphView";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
