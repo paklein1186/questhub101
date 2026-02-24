@@ -74,20 +74,31 @@ export default function PublicBooking() {
     queryKey: ["provider-calendar-busy", providerUserId],
     queryFn: async () => {
       if (!providerUserId) return [];
-      const { data: busyEvents } = await supabase
+      const { data: busyEvents, error: busyErr } = await supabase
         .from("calendar_busy_events")
         .select("start_at, end_at, source_calendar_id, connection_id")
         .eq("user_id", providerUserId);
-      if (!busyEvents || busyEvents.length === 0) return [];
+      if (busyErr) {
+        console.error("[PublicBooking] Failed to fetch busy events:", busyErr);
+        return [];
+      }
+      if (!busyEvents || busyEvents.length === 0) {
+        console.log("[PublicBooking] No busy events found for provider", providerUserId);
+        return [];
+      }
       const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
-      const { data: prefs } = await (supabase as any)
+      const { data: prefs, error: prefsErr } = await supabase
         .from("calendar_subcalendar_preferences")
         .select("source_calendar_id, is_enabled, connection_id")
         .eq("user_id", providerUserId)
         .in("connection_id", connectionIds);
+      if (prefsErr) {
+        console.warn("[PublicBooking] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
+        return busyEvents;
+      }
       const disabledSet = new Set<string>();
       if (prefs?.length) {
-        for (const p of prefs) {
+        for (const p of prefs as any[]) {
           if (!p.is_enabled) disabledSet.add(`${p.connection_id}::${p.source_calendar_id}`);
         }
       }
@@ -98,7 +109,8 @@ export default function PublicBooking() {
       return filtered;
     },
     enabled: !!providerUserId,
-    staleTime: 60_000,
+    staleTime: 30_000,
+    refetchOnMount: "always",
   });
 
   const [weekOffset, setWeekOffset] = useState(0);

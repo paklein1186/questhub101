@@ -114,44 +114,59 @@ export default function ServiceDetail() {
     queryKey: ["provider-calendar-busy", providerIdForBusy],
     queryFn: async () => {
       if (!providerIdForBusy) return [];
-      // Fetch busy events joined with subcalendar preferences to filter enabled only
-      const { data: busyEvents } = await supabase
+
+      // 1. Fetch ALL busy events for this provider
+      const { data: busyEvents, error: busyErr } = await supabase
         .from("calendar_busy_events")
         .select("start_at, end_at, source_calendar_id, connection_id")
         .eq("user_id", providerIdForBusy);
 
-      if (!busyEvents || busyEvents.length === 0) return [];
+      if (busyErr) {
+        console.error("[ServiceDetail] Failed to fetch busy events:", busyErr);
+        return [];
+      }
+      if (!busyEvents || busyEvents.length === 0) {
+        console.log("[ServiceDetail] No busy events found for provider", providerIdForBusy);
+        return [];
+      }
 
-      // Fetch subcalendar preferences for this provider
-      // Note: if the viewer is not the provider, RLS may block this read,
-      // in which case we include ALL busy events (safe default — more restrictive)
+      // 2. Fetch subcalendar preferences to filter out disabled calendars
       const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
-      const { data: prefs } = await (supabase as any)
+      const { data: prefs, error: prefsErr } = await supabase
         .from("calendar_subcalendar_preferences")
         .select("source_calendar_id, is_enabled, connection_id")
         .eq("user_id", providerIdForBusy)
         .in("connection_id", connectionIds);
 
-      // Build a set of disabled subcalendars
+      if (prefsErr) {
+        console.warn("[ServiceDetail] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
+        // Safe default: include all busy events (more restrictive for booking)
+        console.log(`[ServiceDetail] Returning all ${busyEvents.length} busy events (no pref filtering)`);
+        return busyEvents;
+      }
+
+      // Build set of disabled subcalendar keys
       const disabledSet = new Set<string>();
       if (prefs && prefs.length > 0) {
-        for (const p of prefs) {
+        for (const p of prefs as any[]) {
           if (!p.is_enabled) {
             disabledSet.add(`${p.connection_id}::${p.source_calendar_id}`);
           }
         }
       }
 
-      // Filter out events from disabled subcalendars
+      // Keep events from enabled (or unknown) subcalendars
       const filtered = busyEvents.filter(e => {
-        if (!e.source_calendar_id) return true; // no source = include
+        if (!e.source_calendar_id) return true;
         return !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`);
       });
+
       console.log(`[ServiceDetail] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering (${disabledSet.size} disabled subcals)`);
       return filtered;
     },
     enabled: !!providerIdForBusy,
-    staleTime: 60_000, // Re-fetch after 1 minute to catch recent syncs
+    staleTime: 30_000,
+    refetchOnMount: "always",
   });
 
   const svcTopics = (svc as any)?.service_topics?.map((st: any) => st.topics).filter(Boolean) || [];
