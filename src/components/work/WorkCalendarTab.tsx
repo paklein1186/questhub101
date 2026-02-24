@@ -90,7 +90,7 @@ export function WorkCalendarTab() {
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("calendar_subcalendar_preferences")
-        .select("source_calendar_id, is_enabled, connection_id")
+        .select("source_calendar_id, source_calendar_name, is_enabled, connection_id")
         .eq("user_id", currentUser.id!);
       return data || [];
     },
