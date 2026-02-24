@@ -322,6 +322,29 @@ export default function RitualCallRoom() {
         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="font-medium text-foreground">{ritual?.title || "Call"}</span>
         <div className="ml-auto flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Share2 className="h-3.5 w-3.5 mr-1" /> Share Call
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium mb-1">Share call link</p>
+                  <p className="text-xs text-muted-foreground">
+                    Anyone with this link can join the call — no account needed.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Input value={jitsiShareUrl} readOnly className="text-xs h-9" onClick={(e) => (e.target as HTMLInputElement).select()} />
+                  <Button size="sm" variant="secondary" className="shrink-0 h-9" onClick={copyShareLink}>
+                    {shareCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Badge variant="default" className="text-xs">
             <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5 animate-pulse" />
             {occurrence.status === "scheduled" ? "Scheduled" : occurrence.status}
