@@ -81,6 +81,7 @@ import MyRequests from "./pages/MyRequests";
 import MyGuilds from "./pages/MyGuilds";
 import MyAvailability from "./pages/MyAvailability";
 import NotFound from "./pages/NotFound";
+import ShareRedirect from "./pages/ShareRedirect";
 import MyCompanies from "./pages/MyCompanies";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
@@ -189,6 +190,9 @@ const App = () => (
                 <Route path="/signup" element={<RedirectIfAuthed><Signup /></RedirectIfAuthed>} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+
+                {/* Share redirect — fallback when _redirects proxy doesn't intercept */}
+                <Route path="/share/:type/:id" element={<ShareRedirect />} />
 
                 {/* Public pages */}
                 <Route path="/" element={<Index />} />
