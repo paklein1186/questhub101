@@ -322,7 +322,26 @@ Rules:
 
         // Send email
         if (pref.channel_email_enabled && profile.email) {
-          const emailHtml = buildDigestEmailHtml(digest, profile.name);
+          // Fetch digest template from DB (fall back to hardcoded)
+          let templateBodyHtml: string | null = null;
+          let templateCtaLabel = "Explore what's new";
+          let templateCtaUrl = "/explore";
+          try {
+            const { data: tpl } = await supabase
+              .from("email_templates")
+              .select("body_html, cta_label, cta_url")
+              .eq("key", "digest")
+              .single();
+            if (tpl) {
+              templateBodyHtml = tpl.body_html;
+              templateCtaLabel = tpl.cta_label || templateCtaLabel;
+              templateCtaUrl = tpl.cta_url || templateCtaUrl;
+            }
+          } catch { /* use defaults */ }
+
+          const emailHtml = templateBodyHtml
+            ? buildDigestFromTemplate(templateBodyHtml, templateCtaLabel, templateCtaUrl, digest, profile.name)
+            : buildDigestEmailHtml(digest, profile.name);
           const resendKey = Deno.env.get("RESEND_API_KEY");
           if (resendKey) {
             try {
@@ -397,6 +416,94 @@ async function createFallbackDigest(supabase: any, userId: string, profile: any,
     .from("notification_preferences")
     .update({ last_digest_sent_at: new Date().toISOString() })
     .eq("user_id", userId);
+}
+
+function buildDigestFromTemplate(
+  bodyTemplate: string,
+  ctaLabel: string,
+  ctaUrl: string,
+  digest: any,
+  userName: string
+): string {
+  // Build partial HTML blocks for template placeholders
+  const highlightsRows = (digest.network_highlights ?? [])
+    .map((h: any) => `
+      <tr>
+        <td style="padding:6px 12px 6px 0;font-size:18px;vertical-align:top;width:28px;">${h.icon || "📌"}</td>
+        <td style="padding:6px 0;font-size:15px;line-height:1.5;color:hsl(250,12%,30%);">${h.text}</td>
+      </tr>`)
+    .join("");
+
+  const postsHtml = (digest.featured_posts ?? [])
+    .map((p: any) => `
+      <div style="margin-bottom:12px;padding:14px 16px;background:hsl(250,30%,97%);border-radius:8px;border-left:3px solid hsl(262,83%,58%);">
+        <p style="font-size:13px;font-weight:600;color:hsl(262,83%,58%);margin:0 0 4px;">${p.author} · ${p.context}</p>
+        <p style="font-size:14px;color:hsl(250,12%,30%);margin:0;line-height:1.5;">${p.teaser}</p>
+      </div>`)
+    .join("");
+
+  const upcomingRows = (digest.upcoming ?? [])
+    .map((u: any) => `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid hsl(250,18%,92%);">
+          <p style="font-size:14px;font-weight:600;color:hsl(250,30%,8%);margin:0;">${u.label}</p>
+          <p style="font-size:13px;color:hsl(250,12%,46%);margin:2px 0 0;">${u.detail}</p>
+        </td>
+      </tr>`)
+    .join("");
+
+  // Replace template variables
+  let body = bodyTemplate
+    .replace(/\{\{greeting\}\}/g, digest.greeting || `Hey ${userName},`)
+    .replace(/\{\{highlights_rows\}\}/g, highlightsRows)
+    .replace(/\{\{featured_posts_html\}\}/g, postsHtml)
+    .replace(/\{\{upcoming_rows\}\}/g, upcomingRows)
+    .replace(/\{\{closing\}\}/g, digest.closing || "");
+
+  // Handle conditional sections {{#section}}...{{/section}}
+  const conditionalReplace = (tag: string, hasContent: boolean) => {
+    const re = new RegExp(`\\{\\{#${tag}\\}\\}([\\s\\S]*?)\\{\\{\\/${tag}\\}\\}`, "g");
+    body = hasContent ? body.replace(re, "$1") : body.replace(re, "");
+  };
+  conditionalReplace("highlights", highlightsRows.length > 0);
+  conditionalReplace("featured_posts", postsHtml.length > 0);
+  conditionalReplace("upcoming", upcomingRows.length > 0);
+  conditionalReplace("closing", !!digest.closing);
+
+  const fullCtaUrl = ctaUrl.startsWith("http") ? ctaUrl : `${BASE_URL}${ctaUrl}`;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+    <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
+      <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
+    </div>
+    <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
+      ${body}
+      <div style="margin-top:28px;">
+        <a href="${fullCtaUrl}"
+           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+          ${ctaLabel}
+        </a>
+      </div>
+      <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
+      <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
+        You're receiving this because you opted into digests.
+        <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
+      </p>
+    </div>
+    <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+    </p>
+  </div>
+</body>
+</html>`;
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
