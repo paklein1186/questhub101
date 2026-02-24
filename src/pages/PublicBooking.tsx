@@ -102,7 +102,9 @@ export default function PublicBooking() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [bookNotes, setBookNotes] = useState("");
   const [guestOpen, setGuestOpen] = useState(false);
+  const [quickSignup, setQuickSignup] = useState(false);
   const [bookingInProgress, setBookingInProgress] = useState(false);
+  const [showSignupChoice, setShowSignupChoice] = useState(false);
 
   const isUnitService = ownerType === "GUILD" || ownerType === "COMPANY";
 
@@ -194,14 +196,14 @@ export default function PublicBooking() {
       navigate(`/services/${svc.id}`);
       return;
     }
-    // Store pending slot and trigger guest onboarding
+    // Store pending slot and show signup choice
     localStorage.setItem(PENDING_BOOKING_KEY, JSON.stringify({
       serviceId: svc.id,
       startDateTime: selectedSlot.startDateTime,
       endDateTime: selectedSlot.endDateTime,
       notes: bookNotes.trim(),
     }));
-    setGuestOpen(true);
+    setShowSignupChoice(true);
   };
 
   if (isLoading) {
