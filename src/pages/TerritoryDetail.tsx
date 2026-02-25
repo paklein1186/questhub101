@@ -10,7 +10,7 @@ import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
-import { LivingTab } from "@/components/living/LivingTab";
+
 
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -129,8 +129,7 @@ export default function TerritoryDetail() {
             <TerritoryEcosystemTab territoryId={resolvedId!} />
           </TabsContent>
 
-          <TabsContent value="living" className="mt-6 space-y-8">
-            <LivingTab linkedType="territory" linkedId={resolvedId!} defaultTerritoryId={resolvedId!} />
+          <TabsContent value="living" className="mt-6">
             <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
