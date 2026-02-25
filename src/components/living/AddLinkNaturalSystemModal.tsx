@@ -104,12 +104,15 @@ function LinkForm({ linkedType, linkedId, onDone, onBack }: {
   const { data: results, isLoading } = useSearchNaturalSystems(search);
   const linkMutation = useLinkNaturalSystem();
 
+  const { toast } = useToast();
+
   const handleSelect = async (systemId: string) => {
     try {
       await linkMutation.mutateAsync({ natural_system_id: systemId, linked_type: linkedType, linked_id: linkedId });
       onDone();
     } catch (err: any) {
       console.error(err);
+      toast({ title: "Failed to link system", description: err.message, variant: "destructive" });
     }
   };
 
