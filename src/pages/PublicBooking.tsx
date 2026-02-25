@@ -197,6 +197,39 @@ export default function PublicBooking() {
           toast({ title: "Could not create booking", description: error?.message, variant: "destructive" });
           return;
         }
+        // Notify provider
+        if (svc.provider_user_id && svc.provider_user_id !== currentUser.id) {
+          await supabase.from("notifications").insert({
+            user_id: svc.provider_user_id,
+            type: "BOOKING_REQUESTED",
+            title: "New booking request",
+            body: `${currentUser.name || "Someone"} requested "${svc.title}"${data.startDateTime ? `\n📅 ${new Date(data.startDateTime).toLocaleString()}` : ""}`,
+            related_entity_type: "BOOKING",
+            related_entity_id: newBooking.id,
+            deep_link_url: `/bookings/${newBooking.id}`,
+            data: { bookingId: newBooking.id } as any,
+          });
+        }
+        // Notify guild/company admins for unit services
+        const unitOwnerType = svc.provider_guild_id ? "GUILD" : (svc as any).owner_type === "COMPANY" ? "COMPANY" : null;
+        const unitOwnerIdVal = svc.provider_guild_id || ((svc as any).owner_type === "COMPANY" ? (svc as any).owner_id : null);
+        if (unitOwnerType && unitOwnerIdVal) {
+          const memberTable = unitOwnerType === "GUILD" ? "guild_members" : "company_members";
+          const memberIdCol = unitOwnerType === "GUILD" ? "guild_id" : "company_id";
+          const { data: admins } = await (supabase as any).from(memberTable).select("user_id, role").eq(memberIdCol, unitOwnerIdVal);
+          for (const admin of (admins || []).filter((a: any) => ["ADMIN", "OWNER"].includes(a.role?.toUpperCase()) && a.user_id !== currentUser.id)) {
+            await supabase.from("notifications").insert({
+              user_id: admin.user_id,
+              type: "BOOKING_REQUESTED",
+              title: "New booking request",
+              body: `${currentUser.name || "Someone"} requested "${svc.title}"`,
+              related_entity_type: "BOOKING",
+              related_entity_id: newBooking.id,
+              deep_link_url: `/bookings/${newBooking.id}`,
+              data: { bookingId: newBooking.id } as any,
+            });
+          }
+        }
         toast({ title: isFree ? "✅ Session confirmed!" : "✅ Booking request sent!" });
         navigate(`/bookings/${newBooking.id}`);
       })();

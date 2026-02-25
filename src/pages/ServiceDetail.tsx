@@ -256,7 +256,8 @@ export default function ServiceDetail() {
     queryClient.invalidateQueries({ queryKey: ["bookings-for-unit"] });
     queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
 
-    // For paid bookings, redirect to Stripe Checkout
+    // For paid bookings, redirect to Stripe Checkout (but still send notifications below)
+    let redirectedToCheckout = false;
     if (!isFree && !requiresApproval) {
       try {
         const { data: checkoutData, error: checkoutErr } = await supabase.functions.invoke("booking-checkout", {
@@ -267,7 +268,7 @@ export default function ServiceDetail() {
         } else {
           window.open(checkoutData.url, "_blank");
           toast({ title: "Booking created! Complete payment in the new tab." });
-          return;
+          redirectedToCheckout = true;
         }
       } catch {
         toast({ title: "Booking created", description: "Payment link could not be generated." });
