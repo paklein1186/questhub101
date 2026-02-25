@@ -83,3 +83,12 @@ verify_jwt = false
 
 [functions.trust-graph-public]
 verify_jwt = false
+
+[functions.poll-live-data]
+verify_jwt = false
+
+[functions.ns-sensor-webhook]
+verify_jwt = false
+
+[functions.ns-timeseries]
+verify_jwt = false

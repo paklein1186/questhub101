@@ -7568,6 +7568,11 @@ export type Database = {
         Returns: Json
       }
       rebuild_territory_closure: { Args: never; Returns: undefined }
+      recompute_all_indicators: { Args: never; Returns: number }
+      recompute_natural_system_indicators: {
+        Args: { p_natural_system_id: string }
+        Returns: undefined
+      }
       refund_quest_funding: {
         Args: { _quest_id: string }
         Returns: {
