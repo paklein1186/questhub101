@@ -4,7 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import type { FeedPostWithAttachments } from "@/hooks/useFeedPosts";
 import { useTogglePostUpvote } from "@/hooks/usePostUpvote";
-import { renderMentions } from "@/components/MentionTextarea";
+import { PostCard } from "@/components/feed/PostCard";
 import { renderPostContent } from "@/lib/renderPostContent";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -26,6 +26,7 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
   const toggleUpvote = useTogglePostUpvote();
   const upvoteCount = post.upvote_count ?? 0;
   const [showComments, setShowComments] = useState(false);
+  const [showFullPost, setShowFullPost] = useState(false);
 
   const { data: commentCount = 0 } = useQuery({
     queryKey: ["post-comment-count", post.id],
@@ -79,7 +80,10 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
 
   return (
     <>
-      <div className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20">
+      <div
+        className="group relative rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-card-hover hover:border-primary/20 cursor-pointer"
+        onClick={() => setShowFullPost(true)}
+      >
         {/* Thumbnail area */}
         <div className={`relative overflow-hidden bg-muted ${size === "small" ? "h-28" : size === "medium" ? "h-40" : "h-52 max-h-52"}`}>
           {thumbnailSrc ? (
@@ -177,10 +181,18 @@ export function PostTile({ post, hasUpvoted = false, size }: PostTileProps) {
         </div>
       </div>
 
-      {/* Comment dialog */}
+      {/* Full post wall-view dialog */}
+      <Dialog open={showFullPost} onOpenChange={setShowFullPost}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-1">
+            <PostCard post={post} hasUpvoted={hasUpvoted} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comment dialog (from hover action) */}
       <Dialog open={showComments} onOpenChange={setShowComments}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-          {/* Post preview in dialog */}
           <div className="space-y-3 pb-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Avatar className="h-7 w-7">
