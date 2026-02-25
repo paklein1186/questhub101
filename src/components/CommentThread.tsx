@@ -396,6 +396,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                       placeholder="Write a reply… (type @ to mention)"
                       className="min-h-[60px] flex-1"
                       maxLength={500}
+                      entityContext={entityContext}
                       onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(comment.id); } }}
                     />
                   </div>
@@ -447,6 +448,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               placeholder="Add a comment… (type @ to mention someone)"
               className="min-h-[80px]"
               maxLength={1000}
+              entityContext={entityContext}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(); } }}
             />
             {newCommentImagePreview && (
