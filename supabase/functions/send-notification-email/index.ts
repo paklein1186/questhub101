@@ -182,6 +182,9 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "milestone_completed") {
     subject = `Milestone completed! 🎯`;
     ctaLabel = "See your milestone";
+  } else if (type === "BOOKING_CANCELLED") {
+    subject = `Your booking has been cancelled`;
+    ctaLabel = "View details";
   } else if (type === "BOOKING_UPDATED") {
     subject = `Booking update`;
     ctaLabel = "View booking";

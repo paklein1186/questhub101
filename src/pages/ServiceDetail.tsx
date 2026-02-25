@@ -27,24 +27,29 @@ import { useQueryClient } from "@tanstack/react-query";
 
 async function insertBookingNotification(params: {
   recipientUserId: string; bookingId: string; serviceTitle: string; requesterName: string; action: string;
+  startDateTime?: string; endDateTime?: string; amount?: number; currency?: string;
 }) {
   const titleMap: Record<string, string> = {
     requested: "New booking request",
-    confirmed: "Booking confirmed",
+    confirmed: "Booking confirmed ✅",
     sent: "Booking request sent",
     accepted: "Booking accepted",
     declined: "Booking declined",
     cancelled: "Booking cancelled",
   };
+  const timeSummary = params.startDateTime
+    ? `\n📅 ${new Date(params.startDateTime).toLocaleString()}${params.endDateTime ? ` – ${new Date(params.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}`
+    : "";
+  const priceSummary = params.amount && params.amount > 0 ? `\n💰 €${params.amount} ${params.currency || "EUR"}` : "";
   const bodyMap: Record<string, string> = {
-    requested: `${params.requesterName} requested "${params.serviceTitle}"`,
-    confirmed: `Your session for "${params.serviceTitle}" is confirmed`,
-    sent: `Your booking request for "${params.serviceTitle}" was sent`,
-    accepted: `Your booking for "${params.serviceTitle}" has been accepted`,
+    requested: `${params.requesterName} requested "${params.serviceTitle}"${timeSummary}${priceSummary}`,
+    confirmed: `Your session for "${params.serviceTitle}" is confirmed${timeSummary}`,
+    sent: `Your booking request for "${params.serviceTitle}" was sent${timeSummary}${priceSummary}`,
+    accepted: `Your booking for "${params.serviceTitle}" has been accepted${timeSummary}`,
     declined: `Your booking for "${params.serviceTitle}" was declined`,
     cancelled: `Booking for "${params.serviceTitle}" was cancelled`,
   };
-  await supabase.from("notifications").insert({
+  const { data: notifData } = await supabase.from("notifications").insert({
     user_id: params.recipientUserId,
     type: params.action === "requested" ? "BOOKING_REQUESTED" : params.action === "confirmed" || params.action === "accepted" ? "BOOKING_CONFIRMED" : params.action === "declined" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
     title: titleMap[params.action] || `Booking ${params.action}`,
@@ -53,7 +58,13 @@ async function insertBookingNotification(params: {
     related_entity_id: params.bookingId,
     deep_link_url: `/bookings/${params.bookingId}`,
     data: { bookingId: params.bookingId } as any,
-  });
+  }).select("id").single();
+  // Trigger email
+  if (notifData?.id) {
+    supabase.functions.invoke("send-notification-email", {
+      body: { notification_id: notifData.id },
+    }).catch(() => {});
+  }
 }
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";
@@ -271,6 +282,10 @@ export default function ServiceDetail() {
         serviceTitle: svc.title,
         requesterName: currentUser.name,
         action: "requested",
+        startDateTime: selectedSlot.startDateTime,
+        endDateTime: selectedSlot.endDateTime,
+        amount: svc.price_amount,
+        currency: svc.price_currency,
       });
     }
 
@@ -294,17 +309,25 @@ export default function ServiceDetail() {
             serviceTitle: svc.title,
             requesterName: currentUser.name,
             action: "requested",
+            startDateTime: selectedSlot.startDateTime,
+            endDateTime: selectedSlot.endDateTime,
+            amount: svc.price_amount,
+            currency: svc.price_currency,
           });
         }
       }
     }
-    // Notify requester (self-confirmation)
+    // Notify requester (self-confirmation with booking summary)
     await insertBookingNotification({
       recipientUserId: currentUser.id,
       bookingId: newBooking.id,
       serviceTitle: svc.title,
       requesterName: currentUser.name,
       action: isFree ? "confirmed" : "sent",
+      startDateTime: selectedSlot.startDateTime,
+      endDateTime: selectedSlot.endDateTime,
+      amount: svc.price_amount,
+      currency: svc.price_currency,
     });
 
     if (autoConfirm) {
