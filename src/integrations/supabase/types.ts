@@ -7744,6 +7744,7 @@ export type Database = {
         | "fungi_lichens"
         | "microorganisms"
         | "multi_species_guild"
+        | "ecosystem"
       natural_system_type:
         | "river"
         | "wetland"
@@ -7985,6 +7986,7 @@ export const Constants = {
         "fungi_lichens",
         "microorganisms",
         "multi_species_guild",
+        "ecosystem",
       ],
       natural_system_type: [
         "river",
