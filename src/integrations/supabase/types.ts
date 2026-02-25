@@ -3165,6 +3165,47 @@ export type Database = {
           },
         ]
       }
+      natural_system_data_points: {
+        Row: {
+          created_at: string
+          id: string
+          metric: string
+          natural_system_id: string
+          recorded_at: string
+          source: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric: string
+          natural_system_id: string
+          recorded_at?: string
+          source?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric?: string
+          natural_system_id?: string
+          recorded_at?: string
+          source?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_system_data_points_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       natural_system_health_snapshots: {
         Row: {
           health_index: number
@@ -3190,6 +3231,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "natural_system_health_snapshots_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      natural_system_indicators: {
+        Row: {
+          computed_at: string
+          id: string
+          indicator: string
+          natural_system_id: string
+          value: number
+        }
+        Insert: {
+          computed_at?: string
+          id?: string
+          indicator: string
+          natural_system_id: string
+          value: number
+        }
+        Update: {
+          computed_at?: string
+          id?: string
+          indicator?: string
+          natural_system_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_system_indicators_natural_system_id_fkey"
             columns: ["natural_system_id"]
             isOneToOne: false
             referencedRelation: "natural_systems"
@@ -3242,6 +3315,7 @@ export type Database = {
           id: string
           is_deleted: boolean
           kingdom: Database["public"]["Enums"]["natural_system_kingdom"]
+          live_config: Json | null
           location_text: string | null
           name: string
           picture_url: string | null
@@ -3265,6 +3339,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           kingdom?: Database["public"]["Enums"]["natural_system_kingdom"]
+          live_config?: Json | null
           location_text?: string | null
           name: string
           picture_url?: string | null
@@ -3288,6 +3363,7 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           kingdom?: Database["public"]["Enums"]["natural_system_kingdom"]
+          live_config?: Json | null
           location_text?: string | null
           name?: string
           picture_url?: string | null
@@ -7306,6 +7382,14 @@ export type Database = {
         }[]
       }
       get_eco_config: { Args: never; Returns: Json }
+      get_latest_indicator: {
+        Args: { p_indicator?: string; p_natural_system_id: string }
+        Returns: {
+          computed_at: string
+          indicator: string
+          value: number
+        }[]
+      }
       get_linked_natural_systems: {
         Args: {
           p_linked_id: string
@@ -7367,6 +7451,22 @@ export type Database = {
           token_expires_at: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_recent_data_points: {
+        Args: {
+          p_limit?: number
+          p_metric?: string
+          p_natural_system_id: string
+          p_since?: string
+        }
+        Returns: {
+          id: string
+          metric: string
+          recorded_at: string
+          source: string
+          unit: string
+          value: number
         }[]
       }
       get_territory_living_dashboard: {
