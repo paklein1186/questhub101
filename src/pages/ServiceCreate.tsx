@@ -158,7 +158,7 @@ export default function ServiceCreate() {
         const serviceId = (data as any).id;
 
         // Create default Mon-Fri 9:00–17:00 availability rules
-        const defaultRules = [1, 2, 3, 4, 5].map(weekday => ({
+        const defaultRules = [0, 1, 2, 3, 4].map(weekday => ({
           provider_user_id: user.id,
           service_id: serviceId,
           weekday,
