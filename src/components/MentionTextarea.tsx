@@ -380,6 +380,27 @@ export function extractAllMentions(text: string): MentionedEntity[] {
   return mentions;
 }
 
+/**
+ * Extract bulk mention tokens (@members, @followers) from text.
+ * Returns array of { mentionType: "members"|"followers", entityType, entityId }
+ */
+export function extractBulkMentions(text: string): { mentionType: "members" | "followers"; entityType: string; entityId: string }[] {
+  const results: { mentionType: "members" | "followers"; entityType: string; entityId: string }[] = [];
+  let match: RegExpExecArray | null;
+  const re = new RegExp(MENTION_REGEX.source, "g");
+  while ((match = re.exec(text)) !== null) {
+    const ref = match[2];
+    if (ref.startsWith("bulk:")) {
+      // Format: bulk:members:GUILD:id or bulk:followers:GUILD:id
+      const parts = ref.split(":");
+      if (parts.length === 4) {
+        results.push({ mentionType: parts[1] as "members" | "followers", entityType: parts[2], entityId: parts[3] });
+      }
+    }
+  }
+  return results;
+}
+
 function entityLink(type: MentionEntityType, id: string): string {
   const routes: Record<MentionEntityType, string> = {
     user: "/users/",
