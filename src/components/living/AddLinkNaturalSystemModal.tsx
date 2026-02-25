@@ -160,7 +160,7 @@ function CreateForm({ linkedType, linkedId, defaultTerritoryId, onDone, onBack }
   onDone: () => void; onBack: () => void;
 }) {
   const [name, setName] = useState("");
-  const [kingdom, setKingdom] = useState<NaturalSystemKingdom>("plants");
+  const [kingdom, setKingdom] = useState<NaturalSystemKingdom>("ecosystem");
   const [systemType, setSystemType] = useState<NaturalSystemTypeV2>("other");
   const [description, setDescription] = useState("");
   const [locationText, setLocationText] = useState("");
@@ -255,10 +255,10 @@ function CreateForm({ linkedType, linkedId, defaultTerritoryId, onDone, onBack }
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Loire River Watershed" />
       </div>
 
-      {/* Kingdom + System Type */}
+      {/* Category + System Type */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Kingdom</Label>
+          <Label>Category</Label>
           <Select value={kingdom} onValueChange={(v) => setKingdom(v as NaturalSystemKingdom)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -267,6 +267,7 @@ function CreateForm({ linkedType, linkedId, defaultTerritoryId, onDone, onBack }
               ))}
             </SelectContent>
           </Select>
+          <p className="text-[10px] text-muted-foreground mt-1">Use "Ecosystem" for rivers, forests, etc.</p>
         </div>
         <div>
           <Label>System Type</Label>

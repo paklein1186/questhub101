@@ -1,0 +1,1 @@
+ALTER TYPE public.natural_system_kingdom ADD VALUE IF NOT EXISTS 'ecosystem';

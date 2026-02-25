@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Leaf, Activity, Shield, ExternalLink, Plus, Settings, TreePine,
   Bug, Sprout, Microscope, Droplets, Users, Swords, MapPin, Link2,
-  TrendingUp, AlertTriangle, BarChart3
+  TrendingUp, AlertTriangle, BarChart3, ArrowLeft, Globe
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { KINGDOM_LABELS, SYSTEM_TYPE_LABELS } from "@/types/naturalSystems";
+import { PageShell } from "@/components/PageShell";
 import {
   useNaturalSystem,
   useNaturalSystemLinks,
@@ -40,6 +41,7 @@ const KINGDOM_ICONS: Record<string, React.ReactNode> = {
   fungi_lichens: <Sprout className="h-4 w-4" />,
   microorganisms: <Microscope className="h-4 w-4" />,
   multi_species_guild: <Leaf className="h-4 w-4" />,
+  ecosystem: <Globe className="h-4 w-4" />,
 };
 
 function SectionHeading({ icon: Icon, title, sub }: { icon: typeof Leaf; title: string; sub?: string }) {
@@ -68,6 +70,7 @@ function SkeletonBlock({ className }: { className?: string }) {
 
 export default function NaturalSystemPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: ns, isLoading } = useNaturalSystem(id);
   const { data: links } = useNaturalSystemLinks(id);
   const { data: stewardEdges } = useNsStewardEdges(id);
@@ -101,25 +104,38 @@ export default function NaturalSystemPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <SkeletonBlock className="h-48 w-full" />
-        <div className="grid gap-4 md:grid-cols-2"><SkeletonBlock className="h-40" /><SkeletonBlock className="h-40" /></div>
-      </div>
+      <PageShell>
+        <div className="max-w-5xl mx-auto space-y-6">
+          <SkeletonBlock className="h-48 w-full" />
+          <div className="grid gap-4 md:grid-cols-2"><SkeletonBlock className="h-40" /><SkeletonBlock className="h-40" /></div>
+        </div>
+      </PageShell>
     );
   }
 
   if (!ns) {
     return (
-      <div className="container max-w-5xl mx-auto px-4 py-20 text-center">
-        <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-foreground mb-2">Natural System not found</h1>
-        <p className="text-muted-foreground">This system may have been removed or doesn't exist.</p>
-      </div>
+      <PageShell>
+        <div className="max-w-5xl mx-auto py-20 text-center">
+          <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-foreground mb-2">Natural System not found</h1>
+          <p className="text-muted-foreground">This system may have been removed or doesn't exist.</p>
+        </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="container max-w-5xl mx-auto px-4 py-6 space-y-10">
+    <PageShell>
+      <div className="max-w-5xl mx-auto space-y-10">
+
+      {/* Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors -mb-6"
+      >
+        <ArrowLeft className="h-4 w-4" /> Back
+      </button>
 
       {/* ═══════════════════════════════════════════════════════
           SECTION A – HERO & SUMMARY
@@ -437,6 +453,7 @@ export default function NaturalSystemPage() {
         naturalSystemId={id!}
         currentConfig={(ns as any).live_config}
       />
-    </div>
+      </div>
+    </PageShell>
   );
 }

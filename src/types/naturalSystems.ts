@@ -8,7 +8,8 @@ export type NaturalSystemKingdom =
   | "animals"
   | "fungi_lichens"
   | "microorganisms"
-  | "multi_species_guild";
+  | "multi_species_guild"
+  | "ecosystem";
 
 export type NaturalSystemTypeV2 =
   | "river_watershed"
@@ -134,6 +135,7 @@ export interface OpenTrustEdge {
 /* ── Label helpers ── */
 
 export const KINGDOM_LABELS: Record<NaturalSystemKingdom, string> = {
+  ecosystem: "Ecosystem",
   plants: "Plants",
   animals: "Animals",
   fungi_lichens: "Fungi & Lichens",
