@@ -137,12 +137,17 @@ export function CalendarSyncTab() {
         ),
       }));
 
+      const currentSub = (subCalendars[connectionId] || []).find((c) => c.id === calId);
       await (supabase as any)
         .from("calendar_subcalendar_preferences")
-        .update({ is_enabled: enabled })
-        .eq("user_id", user!.id)
-        .eq("connection_id", connectionId)
-        .eq("source_calendar_id", calId);
+        .upsert({
+          user_id: user!.id,
+          connection_id: connectionId,
+          source_calendar_id: calId,
+          source_calendar_name: currentSub?.name || calId,
+          is_enabled: enabled,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id,connection_id,source_calendar_id" });
     } catch (err: any) {
       toast({ title: "Failed to update preference", variant: "destructive" });
       // Revert
