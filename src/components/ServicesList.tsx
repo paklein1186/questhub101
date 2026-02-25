@@ -15,7 +15,7 @@ interface ServicesListProps {
 }
 
 export function ServicesList({ services, isAdmin, onToggleActive, onDelete }: ServicesListProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   if (services.length === 0) return <p className="text-muted-foreground">No services yet.</p>;
 
