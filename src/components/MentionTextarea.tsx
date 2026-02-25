@@ -440,7 +440,20 @@ export function renderMentions(text: string, options?: { onDark?: boolean }): (s
     const parsed = parseMentionRef(match[2]);
     const href = entityLink(parsed.type, parsed.id);
 
-    if (parsed.type === "user") {
+    if (parsed.id.startsWith("bulk:")) {
+      // Bulk mention: render as a styled badge (no link)
+      parts.push(
+        <Badge
+          key={`bulk-${match.index}`}
+          variant="secondary"
+          className={onDark
+            ? "text-[10px] bg-white/20 text-white border-0 font-semibold"
+            : "text-[10px] bg-primary/15 text-primary font-semibold"}
+        >
+          @{name}
+        </Badge>,
+      );
+    } else if (parsed.type === "user") {
       parts.push(
         <Link
           key={`${parsed.type}-${parsed.id}-${match.index}`}
