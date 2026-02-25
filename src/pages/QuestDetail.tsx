@@ -82,9 +82,16 @@ function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: bo
   });
 
   const updateLinks = async (newLinks: ExternalLinkItem[]) => {
-    const { data: quest } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+    console.log("[QuestExternalLinks] updateLinks called with", newLinks.length, "links");
+    const { data: quest, error: fetchErr } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+    console.log("[QuestExternalLinks] fetch result:", { quest, fetchErr });
+    if (fetchErr) { console.error("[QuestExternalLinks] fetch error:", fetchErr); return; }
     const cfg = (quest?.features_config as any) || {};
-    await supabase.from("quests").update({ features_config: { ...cfg, external_links: newLinks } } as any).eq("id", questId);
+    const payload = { features_config: { ...cfg, external_links: newLinks } };
+    console.log("[QuestExternalLinks] updating with payload:", JSON.stringify(payload));
+    const { data: updateData, error: updateErr } = await supabase.from("quests").update(payload as any).eq("id", questId).select();
+    console.log("[QuestExternalLinks] update result:", { updateData, updateErr });
+    if (updateErr) { console.error("[QuestExternalLinks] update error:", updateErr); return; }
     qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
   };
 
