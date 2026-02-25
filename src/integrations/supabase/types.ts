@@ -4306,6 +4306,9 @@ export type Database = {
           entity_type: string
           id: string
           quest_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
         }
         Insert: {
           created_at?: string
@@ -4314,6 +4317,9 @@ export type Database = {
           entity_type: string
           id?: string
           quest_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
         }
         Update: {
           created_at?: string
@@ -4322,6 +4328,9 @@ export type Database = {
           entity_type?: string
           id?: string
           quest_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -7405,6 +7414,10 @@ export type Database = {
           users_faded: number
         }[]
       }
+      approve_quest_affiliation: {
+        Args: { _affiliation_id: string }
+        Returns: undefined
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       create_and_link_natural_system: {
         Args: {
@@ -7692,6 +7705,10 @@ export type Database = {
           refunded_count: number
           refunded_total: number
         }[]
+      }
+      reject_quest_affiliation: {
+        Args: { _affiliation_id: string }
+        Returns: undefined
       }
       release_pending_trust_xp: {
         Args: never

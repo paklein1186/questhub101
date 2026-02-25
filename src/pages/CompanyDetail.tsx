@@ -49,6 +49,7 @@ import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
 import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
+import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
 
 export default function CompanyDetail() {
   const navigate = useNavigate();
@@ -364,6 +365,7 @@ export default function CompanyDetail() {
 
         {/* Quests */}
         <TabsContent value="quests" className="mt-6 space-y-3">
+          <PendingAffiliationRequests entityType="COMPANY" entityId={company.id} isAdmin={isAdmin} />
           {isAdmin && (
             <Dialog open={questOpen} onOpenChange={setQuestOpen}>
               <DialogTrigger asChild><Button size="sm" className="mb-3"><Plus className="h-4 w-4 mr-1" /> Create quest for this organization</Button></DialogTrigger>
