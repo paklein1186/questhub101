@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow, isPast, isFuture, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -62,6 +63,7 @@ const STATUS_COLORS: Record<DecisionStatus, string> = {
 export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memberCount, currentUserRole, featuresConfig, permissionContext }: Props & { permissionContext?: import("@/lib/permissions").PermissionContext }) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { notifyDecisionCreated } = useNotifications();
   const [createOpen, setCreateOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
   const [filterTab, setFilterTab] = useState("open");
@@ -158,6 +160,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 /* ═══════════ Create Form ═══════════ */
 function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; userId: string; onCreated: () => void }) {
   const { toast } = useToast();
+  const { notifyDecisionCreated } = useNotifications();
   const { roles: entityRoles } = useEntityRoles("guild", guildId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -215,7 +218,25 @@ function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; u
       } as any);
       if (error) throw error;
     },
-    onSuccess: () => { toast({ title: saveAsDraft ? "Decision saved as draft" : "Decision created & opened" }); onCreated(); },
+    onSuccess: () => {
+      toast({ title: saveAsDraft ? "Decision saved as draft" : "Decision created & opened" });
+      // Notify members (fire-and-forget)
+      if (!saveAsDraft) {
+        (async () => {
+          try {
+            const { data: guild } = await supabase.from("guilds").select("name").eq("id", guildId).maybeSingle();
+            notifyDecisionCreated({
+              entityType: "GUILD",
+              entityId: guildId,
+              entityName: guild?.name || "your guild",
+              question: title.trim(),
+              creatorUserId: userId,
+            });
+          } catch { /* silent */ }
+        })();
+      }
+      onCreated();
+    },
     onError: (e: any) => { toast({ title: "Error", description: e.message, variant: "destructive" }); },
   });
 

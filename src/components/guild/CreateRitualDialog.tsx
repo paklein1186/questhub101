@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, questId, onCre
   const entityId = guildId || questId || "";
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { notifyRitualCreated } = useNotifications();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -139,6 +141,19 @@ export function CreateRitualDialog({ open, onOpenChange, guildId, questId, onCre
       return;
     }
     toast({ title: "Ritual created" });
+    // Notify members (fire-and-forget)
+    (async () => {
+      try {
+        const eType = guildId ? "GUILD" : "QUEST";
+        const eId = guildId || questId || "";
+        let eName = "your entity";
+        if (guildId) {
+          const { data } = await supabase.from("guilds").select("name").eq("id", guildId).maybeSingle();
+          eName = data?.name || eName;
+        }
+        notifyRitualCreated({ entityType: eType, entityId: eId, entityName: eName, ritualTitle: title.trim(), creatorUserId: currentUser.id });
+      } catch { /* silent */ }
+    })();
     setStep(0);
     setSessionType("GUILD_ASSEMBLY");
     setTitle(""); setDescription(""); setAccessRoles([]);

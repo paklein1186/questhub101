@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import ImageLightbox from "@/components/ImageLightbox";
-import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
+import { MentionTextarea, extractMentionIds, extractAllMentions, extractBulkMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { renderPostContent } from "@/lib/renderPostContent";
 import { processMentions } from "@/lib/mentionNotifications";
 import { useNotifications, stripMentionTokens } from "@/hooks/useNotifications";
@@ -39,7 +39,16 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { checkRateLimit } = useRateLimit();
-  const { notifyComment, notifyUpvote } = useNotifications();
+  const { notifyComment, notifyUpvote, notifyBulkMention } = useNotifications();
+
+  // Derive entity context for @members/@followers
+  const entityContext = (() => {
+    const entityTypes = ["GUILD", "QUEST", "COMPANY", "POD"];
+    if (entityTypes.includes(targetType)) {
+      return { entityType: targetType, entityId: targetId };
+    }
+    return undefined;
+  })();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const queryKey = ["comments", targetType, targetId];
@@ -220,6 +229,23 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         });
       }
 
+      // Process @members / @followers bulk mentions
+      const bulkMentions = extractBulkMentions(content);
+      if (bulkMentions.length > 0 && inserted) {
+        for (const bm of bulkMentions) {
+          notifyBulkMention({
+            mentionType: bm.mentionType,
+            entityType: bm.entityType,
+            entityId: bm.entityId,
+            authorUserId: currentUser.id,
+            authorName: currentUser.name,
+            snippet: cleanSnippet,
+            targetType,
+            targetId,
+          });
+        }
+      }
+
       // Notify the target entity owner about the comment
       if (inserted) {
         notifyComment({
@@ -370,6 +396,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
                       placeholder="Write a reply… (type @ to mention)"
                       className="min-h-[60px] flex-1"
                       maxLength={500}
+                      entityContext={entityContext}
                       onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(comment.id); } }}
                     />
                   </div>
@@ -421,6 +448,7 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
               placeholder="Add a comment… (type @ to mention someone)"
               className="min-h-[80px]"
               maxLength={1000}
+              entityContext={entityContext}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !isSubmitting) { e.preventDefault(); addComment(); } }}
             />
             {newCommentImagePreview && (

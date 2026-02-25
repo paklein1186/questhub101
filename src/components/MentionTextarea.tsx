@@ -33,6 +33,8 @@ interface Props {
   maxLength?: number;
   onKeyDown?: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   mentionHint?: string;
+  /** Entity context for @members/@followers. If provided, these bulk options appear in the dropdown. */
+  entityContext?: { entityType: string; entityId: string };
 }
 
 interface SuggestionItem {
@@ -76,6 +78,7 @@ export function MentionTextarea({
   maxLength,
   onKeyDown,
   mentionHint,
+  entityContext,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -108,12 +111,24 @@ export function MentionTextarea({
           supabase.from("quests").select("id, title").ilike("title", likeQ).eq("is_deleted", false).limit(3),
         ]);
 
-        const items: SuggestionItem[] = [
+        const items: SuggestionItem[] = [];
+
+        // Add @members and @followers bulk options if entity context is provided and query matches
+        if (entityContext) {
+          if ("members".startsWith(query.toLowerCase())) {
+            items.push({ entityType: "user" as const, id: `bulk:members:${entityContext.entityType}:${entityContext.entityId}`, name: "members", avatar_url: null });
+          }
+          if ("followers".startsWith(query.toLowerCase())) {
+            items.push({ entityType: "user" as const, id: `bulk:followers:${entityContext.entityType}:${entityContext.entityId}`, name: "followers", avatar_url: null });
+          }
+        }
+
+        items.push(
           ...(usersRes.data ?? []).map((u: any) => ({ entityType: "user" as const, id: u.user_id, name: u.name, avatar_url: u.avatar_url })),
           ...(guildsRes.data ?? []).map((g: any) => ({ entityType: "guild" as const, id: g.id, name: g.name, avatar_url: g.logo_url })),
           ...(companiesRes.data ?? []).map((c: any) => ({ entityType: "company" as const, id: c.id, name: c.name, avatar_url: c.logo_url })),
           ...(questsRes.data ?? []).map((q: any) => ({ entityType: "quest" as const, id: q.id, name: q.title, avatar_url: null })),
-        ];
+        );
 
         setSuggestions(items);
       } catch {
@@ -123,7 +138,7 @@ export function MentionTextarea({
     }, 200);
 
     return () => clearTimeout(timeout);
-  }, [query, showSuggestions]);
+  }, [query, showSuggestions, entityContext]);
 
   const handleInput = useCallback(
     (newValue: string) => {
@@ -281,13 +296,15 @@ export function MentionTextarea({
             <div className="px-3 py-2 text-xs text-muted-foreground">No results found</div>
           )}
           {suggestions.map((item, i) => {
-            const Icon = ENTITY_ICON[item.entityType];
+            const isBulk = item.id.startsWith("bulk:");
+            const Icon = isBulk ? Users : ENTITY_ICON[item.entityType];
             return (
               <button
                 key={`${item.entityType}-${item.id}`}
                 className={cn(
                   "flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-accent transition-colors",
                   i === selectedIndex && "bg-accent",
+                  isBulk && "font-semibold text-primary",
                 )}
                 onMouseDown={(e) => { e.preventDefault(); insertMention(item); }}
                 onMouseEnter={() => setSelectedIndex(i)}
@@ -298,8 +315,12 @@ export function MentionTextarea({
                     <Icon className="h-3.5 w-3.5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate font-medium flex-1">{item.name}</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{ENTITY_LABEL[item.entityType]}</span>
+                <span className="truncate font-medium flex-1">
+                  {isBulk ? `@${item.name}` : item.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                  {isBulk ? "Notify all" : ENTITY_LABEL[item.entityType]}
+                </span>
               </button>
             );
           })}
@@ -321,6 +342,10 @@ const MENTION_REGEX = /@\[([^\]]+)\]\(([^)]+)\)/g;
  * "abc-123"  → { type: "user", id: "abc-123" }
  */
 function parseMentionRef(ref: string): { type: MentionEntityType; id: string } {
+  // Handle bulk mentions
+  if (ref.startsWith("bulk:")) {
+    return { type: "user", id: ref };
+  }
   const colonIdx = ref.indexOf(":");
   if (colonIdx > 0) {
     const type = ref.slice(0, colonIdx) as MentionEntityType;
@@ -359,6 +384,27 @@ export function extractAllMentions(text: string): MentionedEntity[] {
   return mentions;
 }
 
+/**
+ * Extract bulk mention tokens (@members, @followers) from text.
+ * Returns array of { mentionType: "members"|"followers", entityType, entityId }
+ */
+export function extractBulkMentions(text: string): { mentionType: "members" | "followers"; entityType: string; entityId: string }[] {
+  const results: { mentionType: "members" | "followers"; entityType: string; entityId: string }[] = [];
+  let match: RegExpExecArray | null;
+  const re = new RegExp(MENTION_REGEX.source, "g");
+  while ((match = re.exec(text)) !== null) {
+    const ref = match[2];
+    if (ref.startsWith("bulk:")) {
+      // Format: bulk:members:GUILD:id or bulk:followers:GUILD:id
+      const parts = ref.split(":");
+      if (parts.length === 4) {
+        results.push({ mentionType: parts[1] as "members" | "followers", entityType: parts[2], entityId: parts[3] });
+      }
+    }
+  }
+  return results;
+}
+
 function entityLink(type: MentionEntityType, id: string): string {
   const routes: Record<MentionEntityType, string> = {
     user: "/users/",
@@ -394,7 +440,20 @@ export function renderMentions(text: string, options?: { onDark?: boolean }): (s
     const parsed = parseMentionRef(match[2]);
     const href = entityLink(parsed.type, parsed.id);
 
-    if (parsed.type === "user") {
+    if (parsed.id.startsWith("bulk:")) {
+      // Bulk mention: render as a styled badge (no link)
+      parts.push(
+        <Badge
+          key={`bulk-${match.index}`}
+          variant="secondary"
+          className={onDark
+            ? "text-[10px] bg-white/20 text-white border-0 font-semibold"
+            : "text-[10px] bg-primary/15 text-primary font-semibold"}
+        >
+          @{name}
+        </Badge>,
+      );
+    } else if (parsed.type === "user") {
       parts.push(
         <Link
           key={`${parsed.type}-${parsed.id}-${match.index}`}
