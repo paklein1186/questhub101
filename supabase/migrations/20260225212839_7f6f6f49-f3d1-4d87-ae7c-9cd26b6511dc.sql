@@ -1,0 +1,1 @@
+UPDATE natural_systems SET kingdom = 'ecosystem' WHERE id = 'a05729c7-5ab8-4432-8a9c-f77bab9d233a';
