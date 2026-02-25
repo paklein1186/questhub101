@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { IncomingBookings } from "@/components/home/IncomingBookings";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -285,6 +286,9 @@ export default function NetworkDashboardTab() {
     <div className="space-y-8">
       {/* Trust renewal widget — visible to all users */}
       <TrustRenewalWidget />
+
+      {/* Incoming booking requests */}
+      <IncomingBookings userId={currentUser.id} />
 
       {/* Summary bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
