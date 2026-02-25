@@ -33,6 +33,8 @@ interface Props {
   maxLength?: number;
   onKeyDown?: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   mentionHint?: string;
+  /** Entity context for @members/@followers. If provided, these bulk options appear in the dropdown. */
+  entityContext?: { entityType: string; entityId: string };
 }
 
 interface SuggestionItem {
@@ -76,6 +78,7 @@ export function MentionTextarea({
   maxLength,
   onKeyDown,
   mentionHint,
+  entityContext,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -108,12 +111,24 @@ export function MentionTextarea({
           supabase.from("quests").select("id, title").ilike("title", likeQ).eq("is_deleted", false).limit(3),
         ]);
 
-        const items: SuggestionItem[] = [
+        const items: SuggestionItem[] = [];
+
+        // Add @members and @followers bulk options if entity context is provided and query matches
+        if (entityContext) {
+          if ("members".startsWith(query.toLowerCase())) {
+            items.push({ entityType: "user" as const, id: `bulk:members:${entityContext.entityType}:${entityContext.entityId}`, name: "members", avatar_url: null });
+          }
+          if ("followers".startsWith(query.toLowerCase())) {
+            items.push({ entityType: "user" as const, id: `bulk:followers:${entityContext.entityType}:${entityContext.entityId}`, name: "followers", avatar_url: null });
+          }
+        }
+
+        items.push(
           ...(usersRes.data ?? []).map((u: any) => ({ entityType: "user" as const, id: u.user_id, name: u.name, avatar_url: u.avatar_url })),
           ...(guildsRes.data ?? []).map((g: any) => ({ entityType: "guild" as const, id: g.id, name: g.name, avatar_url: g.logo_url })),
           ...(companiesRes.data ?? []).map((c: any) => ({ entityType: "company" as const, id: c.id, name: c.name, avatar_url: c.logo_url })),
           ...(questsRes.data ?? []).map((q: any) => ({ entityType: "quest" as const, id: q.id, name: q.title, avatar_url: null })),
-        ];
+        );
 
         setSuggestions(items);
       } catch {
@@ -123,7 +138,7 @@ export function MentionTextarea({
     }, 200);
 
     return () => clearTimeout(timeout);
-  }, [query, showSuggestions]);
+  }, [query, showSuggestions, entityContext]);
 
   const handleInput = useCallback(
     (newValue: string) => {
