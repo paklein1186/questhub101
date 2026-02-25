@@ -72,27 +72,55 @@ const updateIcons: Record<string, typeof Sparkles> = {
 
 function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: boolean }) {
   const qc = useQueryClient();
+  const { toast } = useToast();
+
   const { data: links = [] } = useQuery<ExternalLinkItem[]>({
     queryKey: ["quest-external-links", questId],
     queryFn: async () => {
-      const { data } = await supabase.from("quests").select("features_config").eq("id", questId).single();
-      const cfg = (data?.features_config as any) || {};
-      return (cfg.external_links as ExternalLinkItem[]) || [];
+      const { data, error } = await supabase
+        .from("quests")
+        .select("features_config")
+        .eq("id", questId)
+        .single();
+
+      if (error) throw error;
+
+      const cfg = (data?.features_config as Record<string, unknown> | null) ?? {};
+      const externalLinks = cfg.external_links;
+
+      return Array.isArray(externalLinks) ? (externalLinks as ExternalLinkItem[]) : [];
     },
+    enabled: !!questId,
   });
 
   const updateLinks = async (newLinks: ExternalLinkItem[]) => {
-    console.log("[QuestExternalLinks] updateLinks called with", newLinks.length, "links");
-    const { data: quest, error: fetchErr } = await supabase.from("quests").select("features_config").eq("id", questId).single();
-    console.log("[QuestExternalLinks] fetch result:", { quest, fetchErr });
-    if (fetchErr) { console.error("[QuestExternalLinks] fetch error:", fetchErr); return; }
-    const cfg = (quest?.features_config as any) || {};
-    const payload = { features_config: { ...cfg, external_links: newLinks } };
-    console.log("[QuestExternalLinks] updating with payload:", JSON.stringify(payload));
-    const { data: updateData, error: updateErr } = await supabase.from("quests").update(payload as any).eq("id", questId).select();
-    console.log("[QuestExternalLinks] update result:", { updateData, updateErr });
-    if (updateErr) { console.error("[QuestExternalLinks] update error:", updateErr); return; }
-    qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
+    const previousLinks = qc.getQueryData<ExternalLinkItem[]>(["quest-external-links", questId]) ?? [];
+    qc.setQueryData<ExternalLinkItem[]>(["quest-external-links", questId], newLinks);
+
+    try {
+      const { data: quest, error: fetchErr } = await supabase
+        .from("quests")
+        .select("features_config")
+        .eq("id", questId)
+        .single();
+      if (fetchErr) throw fetchErr;
+
+      const cfg = (quest?.features_config as Record<string, unknown> | null) ?? {};
+      const { error: updateErr } = await supabase
+        .from("quests")
+        .update({ features_config: { ...cfg, external_links: newLinks } } as any)
+        .eq("id", questId);
+      if (updateErr) throw updateErr;
+    } catch (error: any) {
+      qc.setQueryData<ExternalLinkItem[]>(["quest-external-links", questId], previousLinks);
+      toast({
+        title: "Failed to save link",
+        description: error?.message ?? "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
+    }
   };
 
   return <ExternalLinksPanel links={links} onLinksChange={updateLinks} canEdit={isOwner} />;
