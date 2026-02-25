@@ -4690,6 +4690,7 @@ export type Database = {
           mission_budget_min: number | null
           monetization_type: Database["public"]["Enums"]["monetization_type"]
           natural_system_id: string | null
+          otg_edges_created: boolean
           owner_id: string | null
           owner_type: string
           payment_type: string
@@ -4739,6 +4740,7 @@ export type Database = {
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           natural_system_id?: string | null
+          otg_edges_created?: boolean
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
@@ -4788,6 +4790,7 @@ export type Database = {
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           natural_system_id?: string | null
+          otg_edges_created?: boolean
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
@@ -7206,6 +7209,10 @@ export type Database = {
         }[]
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      create_eco_quest_otg_edges: {
+        Args: { _quest_id: string }
+        Returns: undefined
+      }
       distribute_eco_quest_rewards: {
         Args: { _quest_id: string }
         Returns: undefined
@@ -7266,6 +7273,22 @@ export type Database = {
           token_expires_at: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_territory_otg_graph: {
+        Args: { p_max_nodes?: number; p_territory_id: string }
+        Returns: Json
+      }
+      get_territory_otg_stewards: {
+        Args: { p_limit?: number; p_territory_id: string }
+        Returns: {
+          edge_count: number
+          node_avatar: string
+          node_id: string
+          node_name: string
+          node_type: string
+          tags: string[]
+          total_weight: number
         }[]
       }
       get_territory_stewards: {
@@ -7372,6 +7395,22 @@ export type Database = {
           _target_type: string
         }
         Returns: undefined
+      }
+      upsert_stewardship_edge: {
+        Args: {
+          _context_guild_id?: string
+          _context_quest_id?: string
+          _context_territory_id?: string
+          _created_by?: string
+          _delta_score?: number
+          _edge_type?: Database["public"]["Enums"]["trust_edge_type"]
+          _from_id: string
+          _from_type: Database["public"]["Enums"]["trust_node_type"]
+          _tags?: string[]
+          _to_id: string
+          _to_type: Database["public"]["Enums"]["trust_node_type"]
+        }
+        Returns: string
       }
     }
     Enums: {

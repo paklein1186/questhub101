@@ -12,8 +12,9 @@ import {
   useEcosystemHealth,
   useStewardshipActivity,
   useFundingData,
-  useTrustGovernance,
 } from "@/hooks/useLivingDashboard";
+import { useTerritoryOtgStewards, useTerritoryOtgGraph } from "@/hooks/useTerritoryOtg";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface Props {
   territoryId: string;
@@ -242,25 +243,34 @@ function FundingCard({ territoryId }: { territoryId: string }) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   4. TRUST & GOVERNANCE CARD
+   4. TRUST & GOVERNANCE CARD (enriched with names/avatars + mini graph)
    ══════════════════════════════════════════════════════════════ */
 function TrustGovernanceCard({ territoryId }: { territoryId: string }) {
-  const { data, isLoading } = useTrustGovernance(territoryId);
+  const { data: stewards, isLoading: sLoading } = useTerritoryOtgStewards(territoryId, 5);
+  const { data: graph, isLoading: gLoading } = useTerritoryOtgGraph(territoryId, 15);
 
-  if (isLoading) return <CardSkeleton />;
+  if (sLoading && gLoading) return <CardSkeleton />;
+
+  const maxWeight = Math.max(...(stewards ?? []).map((s) => s.total_weight), 1);
 
   return (
     <DashCard icon={Shield} title="Trust & Governance" accentClass="bg-secondary/15 text-secondary">
-      {data && data.topStewards.length > 0 ? (
+      {stewards && stewards.length > 0 ? (
         <div className="space-y-2">
           <p className="text-[11px] font-medium text-muted-foreground">Top Stewards (by trust weight)</p>
-          {data.topStewards.map((s, i) => (
-            <div key={`${s.from_type}:${s.from_id}`} className="flex items-center gap-3 rounded-xl bg-muted/50 px-3 py-2">
+          {stewards.map((s, i) => (
+            <div key={`${s.node_type}:${s.node_id}`} className="flex items-center gap-3 rounded-xl bg-muted/50 px-3 py-2">
               <span className="text-xs font-bold text-muted-foreground w-5">{i + 1}</span>
+              <Avatar className="h-7 w-7 shrink-0">
+                {s.node_avatar && <AvatarImage src={s.node_avatar} alt={s.node_name ?? ""} />}
+                <AvatarFallback className="text-[10px]">
+                  {s.node_type === "profile" ? "👤" : "⚔️"}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="text-[9px] px-1 py-0 capitalize">{s.from_type}</Badge>
-                  <span className="text-xs text-foreground truncate">{s.from_id.slice(0, 8)}…</span>
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 capitalize">{s.node_type}</Badge>
+                  <span className="text-xs font-medium text-foreground truncate">{s.node_name ?? s.node_id.slice(0, 8)}</span>
                 </div>
                 {s.tags && s.tags.length > 0 && (
                   <div className="flex gap-1 mt-0.5">
@@ -271,13 +281,14 @@ function TrustGovernanceCard({ territoryId }: { territoryId: string }) {
                 )}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden">
+                <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full bg-secondary/70"
-                    style={{ width: `${Math.min(s.weight * 100, 100)}%` }}
+                    style={{ width: `${Math.min((s.total_weight / maxWeight) * 100, 100)}%` }}
                   />
                 </div>
-                <span className="text-[10px] font-medium text-foreground">{s.weight.toFixed(2)}</span>
+                <span className="text-[10px] font-medium text-foreground w-8 text-right">{s.total_weight.toFixed(1)}</span>
+                <span className="text-[9px] text-muted-foreground">({s.edge_count})</span>
               </div>
             </div>
           ))}
@@ -286,23 +297,34 @@ function TrustGovernanceCard({ territoryId }: { territoryId: string }) {
         <p className="text-xs text-muted-foreground">No stewardship trust edges yet.</p>
       )}
 
-      {/* Mini network viz placeholder */}
-      {data && data.edges.length > 0 && (
-        <div className="rounded-xl border border-border bg-muted/30 p-4 flex flex-col items-center justify-center gap-2">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-[10px]">🌍</span>
-            </div>
-            {data.edges.slice(0, 4).map((e, i) => (
-              <div key={i} className="flex items-center gap-1">
-                <div className="h-[1px] w-6 bg-border" />
-                <div className="h-5 w-5 rounded-full bg-secondary/20 flex items-center justify-center">
-                  <span className="text-[8px]">{e.from_type === "profile" ? "👤" : "⚔️"}</span>
+      {/* Mini network visualization */}
+      {graph && graph.nodes.length > 1 && (
+        <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+          <p className="text-[11px] font-medium text-muted-foreground text-center">Trust Network</p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {graph.nodes.slice(0, 8).map((node) => {
+              const emoji = node.type === "territory" ? "🌍" : node.type === "natural_system" ? "🌿" : node.type === "profile" ? "👤" : "⚔️";
+              const bg = node.is_center
+                ? "bg-primary/20 ring-2 ring-primary/30"
+                : node.type === "natural_system" ? "bg-success/15" : "bg-secondary/15";
+              return (
+                <div key={node.id} className="flex flex-col items-center gap-0.5">
+                  <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs", bg)}>
+                    {node.avatar ? (
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={node.avatar} />
+                        <AvatarFallback className="text-[10px]">{emoji}</AvatarFallback>
+                      </Avatar>
+                    ) : emoji}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground max-w-[50px] truncate text-center">{node.name}</span>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          <p className="text-[10px] text-muted-foreground">{data.edges.length} trust connections</p>
+          <p className="text-[10px] text-muted-foreground text-center">
+            {graph.nodes.length} nodes · {graph.edges.length} connections
+          </p>
         </div>
       )}
     </DashCard>
