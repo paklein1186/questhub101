@@ -60,6 +60,7 @@ import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 import { LivingTab } from "@/components/living/LivingTab";
+import { ExternalLinksPanel, type ExternalLinkItem } from "@/components/guild/ExternalLinksPanel";
 import { Leaf } from "lucide-react";
 
 const updateIcons: Record<string, typeof Sparkles> = {
@@ -68,6 +69,27 @@ const updateIcons: Record<string, typeof Sparkles> = {
   REFLECTION: BookOpen,
   GENERAL: MessageCircle,
 };
+
+function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: boolean }) {
+  const qc = useQueryClient();
+  const { data: links = [] } = useQuery<ExternalLinkItem[]>({
+    queryKey: ["quest-external-links", questId],
+    queryFn: async () => {
+      const { data } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+      const cfg = (data?.features_config as any) || {};
+      return (cfg.external_links as ExternalLinkItem[]) || [];
+    },
+  });
+
+  const updateLinks = async (newLinks: ExternalLinkItem[]) => {
+    const { data: quest } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+    const cfg = (quest?.features_config as any) || {};
+    await supabase.from("quests").update({ features_config: { ...cfg, external_links: newLinks } } as any).eq("id", questId);
+    qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
+  };
+
+  return <ExternalLinksPanel links={links} onLinksChange={updateLinks} canEdit={isOwner} />;
+}
 
 function QuestFollowersSection({ questId, participantUserIds }: { questId: string; participantUserIds: string[] }) {
   const { data: followers = [] } = useQuery({
@@ -1217,7 +1239,8 @@ export default function QuestDetail() {
           })}
         </TabsContent>
 
-        <TabsContent value="documents" className="mt-6">
+        <TabsContent value="documents" className="mt-6 space-y-6">
+          <QuestExternalLinks questId={quest.id} isOwner={isOwner} />
           <AttachmentList targetType={AttachmentTargetType.QUEST} targetId={quest.id} />
           {isOwner && <div className="mt-4"><AttachmentUpload targetType={AttachmentTargetType.QUEST} targetId={quest.id} /></div>}
         </TabsContent>
