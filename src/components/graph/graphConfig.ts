@@ -62,6 +62,14 @@ export const NODE_STYLES: Record<
     label: "Pod",
     icon: "🔮",
   },
+  natural_system: {
+    color: "hsl(142, 60%, 38%)",
+    glow: "hsla(142, 60%, 38%, 0.4)",
+    size: 4.5,
+    shape: "hexagon",
+    label: "Natural System",
+    icon: "🌿",
+  },
 };
 
 export const EDGE_STYLES: Record<
@@ -75,7 +83,10 @@ export const EDGE_STYLES: Record<
   partner:     { color: "hsla(272, 40%, 55%, 0.2)",   activeColor: "hsl(272, 55%, 60%)", label: "Partner" },
   funds:       { color: "hsla(120, 55%, 42%, 0.2)",   activeColor: "hsl(120, 65%, 50%)", dashArray: "2,3", label: "Funds" },
   trust:       { color: "hsla(0, 45%, 55%, 0.2)",     activeColor: "hsl(0, 60%, 60%)",   label: "Trust" },
-  located_in:  { color: "hsla(272, 25%, 55%, 0.12)",  activeColor: "hsl(272, 40%, 60%)", dashArray: "5,3", label: "Located in" },
+  located_in:    { color: "hsla(272, 25%, 55%, 0.12)",  activeColor: "hsl(272, 40%, 60%)", dashArray: "5,3", label: "Located in" },
+  anchored_in:   { color: "hsla(142, 40%, 40%, 0.18)",  activeColor: "hsl(142, 55%, 45%)", dashArray: "4,2", label: "Anchored in" },
+  steward_of_ns: { color: "hsla(142, 55%, 38%, 0.22)",  activeColor: "hsl(142, 65%, 42%)", label: "Steward of" },
+  funded_by:     { color: "hsla(45, 70%, 50%, 0.18)",    activeColor: "hsl(45, 80%, 55%)",  dashArray: "2,3", label: "Funded by" },
 };
 
 const MIN_WIDTH = 0.5;

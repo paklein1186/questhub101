@@ -3067,6 +3067,68 @@ export type Database = {
           },
         ]
       }
+      natural_systems: {
+        Row: {
+          created_at: string
+          created_by_user_id: string | null
+          description: string | null
+          geo_shape: Json | null
+          health_index: number | null
+          id: string
+          is_deleted: boolean
+          name: string
+          regenerative_potential: number | null
+          resilience_index: number | null
+          seasonal_cycle: Json | null
+          stress_signals: Json | null
+          territory_id: string
+          type: Database["public"]["Enums"]["natural_system_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          geo_shape?: Json | null
+          health_index?: number | null
+          id?: string
+          is_deleted?: boolean
+          name: string
+          regenerative_potential?: number | null
+          resilience_index?: number | null
+          seasonal_cycle?: Json | null
+          stress_signals?: Json | null
+          territory_id: string
+          type?: Database["public"]["Enums"]["natural_system_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string | null
+          description?: string | null
+          geo_shape?: Json | null
+          health_index?: number | null
+          id?: string
+          is_deleted?: boolean
+          name?: string
+          regenerative_potential?: number | null
+          resilience_index?: number | null
+          seasonal_cycle?: Json | null
+          stress_signals?: Json | null
+          territory_id?: string
+          type?: Database["public"]["Enums"]["natural_system_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_systems_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           channel_email_enabled: boolean
@@ -4478,6 +4540,7 @@ export type Database = {
           credit_reward: number
           deleted_at: string | null
           description: string | null
+          eco_category: Database["public"]["Enums"]["eco_category"] | null
           escrow_credits: number
           featured_order: number | null
           features_config: Json
@@ -4493,6 +4556,7 @@ export type Database = {
           mission_budget_max: number | null
           mission_budget_min: number | null
           monetization_type: Database["public"]["Enums"]["monetization_type"]
+          natural_system_id: string | null
           owner_id: string | null
           owner_type: string
           payment_type: string
@@ -4525,6 +4589,7 @@ export type Database = {
           credit_reward?: number
           deleted_at?: string | null
           description?: string | null
+          eco_category?: Database["public"]["Enums"]["eco_category"] | null
           escrow_credits?: number
           featured_order?: number | null
           features_config?: Json
@@ -4540,6 +4605,7 @@ export type Database = {
           mission_budget_max?: number | null
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          natural_system_id?: string | null
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
@@ -4572,6 +4638,7 @@ export type Database = {
           credit_reward?: number
           deleted_at?: string | null
           description?: string | null
+          eco_category?: Database["public"]["Enums"]["eco_category"] | null
           escrow_credits?: number
           featured_order?: number | null
           features_config?: Json
@@ -4587,6 +4654,7 @@ export type Database = {
           mission_budget_max?: number | null
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
+          natural_system_id?: string | null
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
@@ -4620,6 +4688,13 @@ export type Database = {
             columns: ["guild_id"]
             isOneToOne: false
             referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quests_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
             referencedColumns: ["id"]
           },
         ]
@@ -5965,6 +6040,13 @@ export type Database = {
             foreignKeyName: "trust_edge_useful_marks_trust_edge_id_fkey"
             columns: ["trust_edge_id"]
             isOneToOne: false
+            referencedRelation: "open_trust_edges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trust_edge_useful_marks_trust_edge_id_fkey"
+            columns: ["trust_edge_id"]
+            isOneToOne: false
             referencedRelation: "trust_edges"
             referencedColumns: ["id"]
           },
@@ -6803,6 +6885,82 @@ export type Database = {
         }
         Relationships: []
       }
+      open_trust_edges: {
+        Row: {
+          context_guild_id: string | null
+          context_quest_id: string | null
+          context_territory_id: string | null
+          edge_type: string | null
+          evidence_count: number | null
+          from_id: string | null
+          from_type: string | null
+          id: string | null
+          last_updated_at: string | null
+          status: string | null
+          tags: string[] | null
+          to_id: string | null
+          to_type: string | null
+          visibility: string | null
+          weight: number | null
+        }
+        Insert: {
+          context_guild_id?: string | null
+          context_quest_id?: string | null
+          context_territory_id?: string | null
+          edge_type?: never
+          evidence_count?: never
+          from_id?: string | null
+          from_type?: never
+          id?: string | null
+          last_updated_at?: string | null
+          status?: never
+          tags?: string[] | null
+          to_id?: string | null
+          to_type?: never
+          visibility?: never
+          weight?: never
+        }
+        Update: {
+          context_guild_id?: string | null
+          context_quest_id?: string | null
+          context_territory_id?: string | null
+          edge_type?: never
+          evidence_count?: never
+          from_id?: string | null
+          from_type?: never
+          id?: string | null
+          last_updated_at?: string | null
+          status?: never
+          tags?: string[] | null
+          to_id?: string | null
+          to_type?: never
+          visibility?: never
+          weight?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trust_edges_context_guild_id_fkey"
+            columns: ["context_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trust_edges_context_quest_id_fkey"
+            columns: ["context_quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trust_edges_context_territory_id_fkey"
+            columns: ["context_territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles_public: {
         Row: {
           allow_wall_comments: boolean | null
@@ -6878,6 +7036,32 @@ export type Database = {
         }
         Relationships: []
       }
+      territory_natural_systems_summary: {
+        Row: {
+          avg_health_index: number | null
+          avg_regenerative_potential: number | null
+          avg_resilience_index: number | null
+          forest_count: number | null
+          linked_quests_count: number | null
+          other_count: number | null
+          pollinator_network_count: number | null
+          river_count: number | null
+          soil_system_count: number | null
+          species_guild_count: number | null
+          territory_id: string | null
+          total_systems: number | null
+          wetland_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_systems_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       apply_monthly_demurrage: {
@@ -6935,6 +7119,18 @@ export type Database = {
           token_expires_at: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_territory_stewards: {
+        Args: { p_limit?: number; p_territory_id: string }
+        Returns: {
+          edge_type: string
+          from_id: string
+          from_type: string
+          tags: string[]
+          to_id: string
+          to_type: string
+          weight: number
         }[]
       }
       get_user_id_by_email: {
@@ -7033,6 +7229,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "superadmin"
+      eco_category:
+        | "observation"
+        | "restoration"
+        | "governance"
+        | "knowledge"
+        | "none"
       guild_application_status: "PENDING" | "APPROVED" | "REJECTED"
       guild_join_policy: "OPEN" | "APPROVAL_REQUIRED" | "INVITE_ONLY"
       guild_member_role: "ADMIN" | "MEMBER"
@@ -7043,6 +7245,14 @@ export type Database = {
         | "PERSONAL_ONLY_RITUALS"
         | "CUSTOM"
       monetization_type: "FREE" | "PAID" | "MIXED"
+      natural_system_type:
+        | "river"
+        | "wetland"
+        | "forest"
+        | "soil_system"
+        | "pollinator_network"
+        | "species_guild"
+        | "other"
       pod_member_role: "HOST" | "MEMBER"
       pod_type: "QUEST_POD" | "STUDY_POD"
       quest_status:
@@ -7101,6 +7311,7 @@ export type Database = {
         | "service"
         | "partner_entity"
         | "territory"
+        | "natural_system"
       trust_status: "active" | "outdated" | "retracted"
       trust_visibility: "public" | "network" | "private"
       xp_transaction_type:
@@ -7237,6 +7448,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "superadmin"],
+      eco_category: [
+        "observation",
+        "restoration",
+        "governance",
+        "knowledge",
+        "none",
+      ],
       guild_application_status: ["PENDING", "APPROVED", "REJECTED"],
       guild_join_policy: ["OPEN", "APPROVAL_REQUIRED", "INVITE_ONLY"],
       guild_member_role: ["ADMIN", "MEMBER"],
@@ -7248,6 +7466,15 @@ export const Constants = {
         "CUSTOM",
       ],
       monetization_type: ["FREE", "PAID", "MIXED"],
+      natural_system_type: [
+        "river",
+        "wetland",
+        "forest",
+        "soil_system",
+        "pollinator_network",
+        "species_guild",
+        "other",
+      ],
       pod_member_role: ["HOST", "MEMBER"],
       pod_type: ["QUEST_POD", "STUDY_POD"],
       quest_status: [
@@ -7312,6 +7539,7 @@ export const Constants = {
         "service",
         "partner_entity",
         "territory",
+        "natural_system",
       ],
       trust_status: ["active", "outdated", "retracted"],
       trust_visibility: ["public", "network", "private"],
