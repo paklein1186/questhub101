@@ -2237,6 +2237,60 @@ export type Database = {
         }
         Relationships: []
       }
+      gratitude_donations: {
+        Row: {
+          amount_credits: number
+          amount_fiat: number
+          booking_id: string | null
+          created_at: string
+          currency: string | null
+          from_user_id: string
+          id: string
+          metadata: Json | null
+          to_guild_id: string | null
+          to_target_type: string
+        }
+        Insert: {
+          amount_credits?: number
+          amount_fiat?: number
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          from_user_id: string
+          id?: string
+          metadata?: Json | null
+          to_guild_id?: string | null
+          to_target_type: string
+        }
+        Update: {
+          amount_credits?: number
+          amount_fiat?: number
+          booking_id?: string | null
+          created_at?: string
+          currency?: string | null
+          from_user_id?: string
+          id?: string
+          metadata?: Json | null
+          to_guild_id?: string | null
+          to_target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gratitude_donations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gratitude_donations_to_guild_id_fkey"
+            columns: ["to_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_applications: {
         Row: {
           admin_note: string | null
@@ -4049,6 +4103,8 @@ export type Database = {
           created_at: string
           credits_balance: number
           current_plan_code: string | null
+          default_give_back_guild_id: string | null
+          default_give_back_target_type: string
           demurrage_exempt: boolean
           email: string
           featured_order: number | null
@@ -4112,6 +4168,8 @@ export type Database = {
           created_at?: string
           credits_balance?: number
           current_plan_code?: string | null
+          default_give_back_guild_id?: string | null
+          default_give_back_target_type?: string
           demurrage_exempt?: boolean
           email?: string
           featured_order?: number | null
@@ -4175,6 +4233,8 @@ export type Database = {
           created_at?: string
           credits_balance?: number
           current_plan_code?: string | null
+          default_give_back_guild_id?: string | null
+          default_give_back_target_type?: string
           demurrage_exempt?: boolean
           email?: string
           featured_order?: number | null
@@ -4228,7 +4288,15 @@ export type Database = {
           xp_pending?: number
           xp_recent_12m?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_default_give_back_guild_id_fkey"
+            columns: ["default_give_back_guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quest_affiliations: {
         Row: {
@@ -7562,6 +7630,16 @@ export type Database = {
           p_natural_system_id: string
         }
         Returns: undefined
+      }
+      process_give_back: {
+        Args: {
+          _amount_credits?: number
+          _booking_id?: string
+          _metadata?: Json
+          _to_guild_id?: string
+          _to_target_type: string
+        }
+        Returns: string
       }
       process_trust_renewal: {
         Args: { p_edge_id: string; p_user_id: string }

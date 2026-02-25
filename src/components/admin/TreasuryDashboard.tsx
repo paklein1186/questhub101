@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap } from "lucide-react";
 import { TREASURY_ALLOCATION } from "@/lib/xpCreditsConfig";
+import { PlatformGiveBackAdmin } from "@/components/giveback/GiveBackHistory";
 
 export function TreasuryDashboard() {
   const { data: settings = {}, isLoading: loadingSettings } = useQuery({
@@ -174,6 +175,9 @@ export function TreasuryDashboard() {
           </div>
         </div>
       )}
+
+      {/* Platform Give-back */}
+      <PlatformGiveBackAdmin />
     </div>
   );
 }
