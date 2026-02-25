@@ -86,7 +86,7 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
                 onClick={(e) => {
                   e.preventDefault();
                   const popup = window.open(link.url, "_blank", "noopener,noreferrer");
-                  if (!popup) window.location.assign(link.url);
+                  if (!popup) window.open(link.url, "_top");
                 }}
               >
                 {getLinkIcon(link.url)}

@@ -250,7 +250,7 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
                       e.preventDefault();
                       e.stopPropagation();
                       const popup = window.open(`/documents/${att.id}`, "_blank", "noopener,noreferrer");
-                      if (!popup) window.location.assign(`/documents/${att.id}`);
+                      if (!popup) window.open(`/documents/${att.id}`, "_top");
                     }}
                   >
                     {displayTitle}
