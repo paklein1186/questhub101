@@ -62,6 +62,10 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.APPLICATION_REJECTED:
     case NotificationType.UNIT_NEW_GUILD_JOIN_REQUEST:
     case NotificationType.UNIT_NEW_POD_JOIN_REQUEST:
+    case NotificationType.ENTITY_NEW_DECISION:
+    case NotificationType.ENTITY_NEW_RITUAL:
+    case NotificationType.BULK_MENTION_MEMBERS:
+    case NotificationType.BULK_MENTION_FOLLOWERS:
       return "notifyOnGuildActivity";
     case NotificationType.FOLLOWER_NEW:
     case NotificationType.FOLLOWER_ACTIVITY:
