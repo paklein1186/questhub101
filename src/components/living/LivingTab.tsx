@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Leaf, Plus, TreePine, Droplets, Mountain, Sprout, Bug, Microscope, Link2, Search as SearchIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const SYSTEM_TYPE_ICONS: Record<string, React.ReactNode> = {
 };
 
 function NaturalSystemCard({ system }: { system: LinkedNaturalSystem }) {
+  const navigate = useNavigate();
   const desc = system.description
     ? system.description.length > 120
       ? system.description.slice(0, 120) + "…"
@@ -29,7 +31,10 @@ function NaturalSystemCard({ system }: { system: LinkedNaturalSystem }) {
     : null;
 
   return (
-    <Card className="overflow-hidden hover:border-primary/30 transition-all">
+    <Card
+      className="overflow-hidden hover:border-primary/30 transition-all cursor-pointer"
+      onClick={() => navigate(`/natural-systems/${system.id}`)}
+    >
       <div className="flex">
         {system.picture_url && (
           <div className="w-24 h-24 shrink-0">
