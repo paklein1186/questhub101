@@ -160,6 +160,7 @@ export function GuildDecisions({ guildId, isAdmin, isMember, currentUserId, memb
 /* ═══════════ Create Form ═══════════ */
 function CreateDecisionForm({ guildId, userId, onCreated }: { guildId: string; userId: string; onCreated: () => void }) {
   const { toast } = useToast();
+  const { notifyDecisionCreated } = useNotifications();
   const { roles: entityRoles } = useEntityRoles("guild", guildId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
