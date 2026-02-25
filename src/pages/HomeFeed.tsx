@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
+import { IncomingBookings } from "@/components/home/IncomingBookings";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -694,6 +695,7 @@ export default function HomeFeed() {
       {/* Task Board — below the AI section */}
       {currentUser.id && (
         <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
+          <IncomingBookings userId={currentUser.id} />
           <MyTaskBoard userId={currentUser.id} />
           <FollowingActivity />
         </div>
