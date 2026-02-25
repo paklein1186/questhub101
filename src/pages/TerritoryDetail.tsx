@@ -2,13 +2,14 @@ import { useParams, useSearchParams, Link, useNavigate } from "react-router-dom"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare, Heart } from "lucide-react";
+import { Loader2, MapPin, Compass, Shield, CircleDot, Brain, ArrowLeft, MessageSquare, Heart, Leaf } from "lucide-react";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
 import { TerritoryOverviewTab } from "@/components/territory/TerritoryOverviewTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
+import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
 
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -109,6 +110,7 @@ export default function TerritoryDetail() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
             <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
+            <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
             <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
@@ -124,6 +126,10 @@ export default function TerritoryDetail() {
 
           <TabsContent value="ecosystem" className="mt-6">
             <TerritoryEcosystemTab territoryId={resolvedId!} />
+          </TabsContent>
+
+          <TabsContent value="living" className="mt-6">
+            <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
           <TabsContent value="library" className="mt-6">
