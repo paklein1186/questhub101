@@ -47,6 +47,8 @@ import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { GraphView } from "@/components/graph/GraphView";
+import { LivingTab } from "@/components/living/LivingTab";
+import { Leaf } from "lucide-react";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -663,6 +665,7 @@ export default function UserProfile() {
           <TabsTrigger value="territories"><Globe className="h-3.5 w-3.5 mr-1" /> Territories</TabsTrigger>
           <TabsTrigger value="entities">Entities</TabsTrigger>
           <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
+          <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
@@ -1011,6 +1014,11 @@ export default function UserProfile() {
         {/* ─── Trust ─── */}
         <TabsContent value="trust" className="mt-6">
           <TrustTab nodeType={TrustNodeType.PROFILE} nodeId={profile.userId} />
+        </TabsContent>
+
+        {/* ─── Living ─── */}
+        <TabsContent value="living" className="mt-6">
+          <LivingTab linkedType="user" linkedId={id!} />
         </TabsContent>
 
         {/* ─── Graph ─── */}

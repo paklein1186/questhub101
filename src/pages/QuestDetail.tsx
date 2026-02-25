@@ -59,6 +59,8 @@ import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
+import { LivingTab } from "@/components/living/LivingTab";
+import { Leaf } from "lucide-react";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -910,6 +912,7 @@ export default function QuestDetail() {
             {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
             <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
+            <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1283,6 +1286,10 @@ export default function QuestDetail() {
 
         <TabsContent value="trust" className="mt-6">
           <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
+        </TabsContent>
+
+        <TabsContent value="living" className="mt-6">
+          <LivingTab linkedType="quest" linkedId={quest.id} />
         </TabsContent>
         
       </Tabs>
