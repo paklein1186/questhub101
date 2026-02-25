@@ -296,13 +296,15 @@ export function MentionTextarea({
             <div className="px-3 py-2 text-xs text-muted-foreground">No results found</div>
           )}
           {suggestions.map((item, i) => {
-            const Icon = ENTITY_ICON[item.entityType];
+            const isBulk = item.id.startsWith("bulk:");
+            const Icon = isBulk ? Users : ENTITY_ICON[item.entityType];
             return (
               <button
                 key={`${item.entityType}-${item.id}`}
                 className={cn(
                   "flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-accent transition-colors",
                   i === selectedIndex && "bg-accent",
+                  isBulk && "font-semibold text-primary",
                 )}
                 onMouseDown={(e) => { e.preventDefault(); insertMention(item); }}
                 onMouseEnter={() => setSelectedIndex(i)}
@@ -313,8 +315,12 @@ export function MentionTextarea({
                     <Icon className="h-3.5 w-3.5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate font-medium flex-1">{item.name}</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{ENTITY_LABEL[item.entityType]}</span>
+                <span className="truncate font-medium flex-1">
+                  {isBulk ? `@${item.name}` : item.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                  {isBulk ? "Notify all" : ENTITY_LABEL[item.entityType]}
+                </span>
               </button>
             );
           })}
