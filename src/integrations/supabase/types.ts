@@ -365,6 +365,104 @@ export type Database = {
           },
         ]
       }
+      biopoints_budgets: {
+        Row: {
+          allocated_by_user_id: string | null
+          created_at: string
+          evaluation_months: number
+          health_threshold: number
+          id: string
+          is_active: boolean
+          natural_system_id: string
+          remaining_budget: number
+          territory_id: string | null
+          total_budget: number
+          updated_at: string
+        }
+        Insert: {
+          allocated_by_user_id?: string | null
+          created_at?: string
+          evaluation_months?: number
+          health_threshold?: number
+          id?: string
+          is_active?: boolean
+          natural_system_id: string
+          remaining_budget?: number
+          territory_id?: string | null
+          total_budget?: number
+          updated_at?: string
+        }
+        Update: {
+          allocated_by_user_id?: string | null
+          created_at?: string
+          evaluation_months?: number
+          health_threshold?: number
+          id?: string
+          is_active?: boolean
+          natural_system_id?: string
+          remaining_budget?: number
+          territory_id?: string | null
+          total_budget?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biopoints_budgets_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "biopoints_budgets_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      biopoints_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          natural_system_id: string | null
+          quest_id: string | null
+          source: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          natural_system_id?: string | null
+          quest_id?: string | null
+          source?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          natural_system_id?: string | null
+          quest_id?: string | null
+          source?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "biopoints_transactions_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           amount: number | null
@@ -3067,6 +3165,38 @@ export type Database = {
           },
         ]
       }
+      natural_system_health_snapshots: {
+        Row: {
+          health_index: number
+          id: string
+          natural_system_id: string
+          recorded_at: string
+          resilience_index: number
+        }
+        Insert: {
+          health_index: number
+          id?: string
+          natural_system_id: string
+          recorded_at?: string
+          resilience_index: number
+        }
+        Update: {
+          health_index?: number
+          id?: string
+          natural_system_id?: string
+          recorded_at?: string
+          resilience_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_system_health_snapshots_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       natural_systems: {
         Row: {
           created_at: string
@@ -3784,6 +3914,7 @@ export type Database = {
           allow_wall_comments: boolean
           avatar_url: string | null
           bio: string | null
+          biopoints_balance: number
           community_xp: number
           contribution_index: number
           created_at: string
@@ -3846,6 +3977,7 @@ export type Database = {
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
+          biopoints_balance?: number
           community_xp?: number
           contribution_index?: number
           created_at?: string
@@ -3908,6 +4040,7 @@ export type Database = {
           allow_wall_comments?: boolean
           avatar_url?: string | null
           bio?: string | null
+          biopoints_balance?: number
           community_xp?: number
           contribution_index?: number
           created_at?: string
@@ -7073,6 +7206,19 @@ export type Database = {
         }[]
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      distribute_eco_quest_rewards: {
+        Args: { _quest_id: string }
+        Returns: undefined
+      }
+      distribute_health_improvement_biopoints: {
+        Args: never
+        Returns: {
+          improvement: number
+          recipients: number
+          system_name: string
+          total_distributed: number
+        }[]
+      }
       get_conversation_participants: {
         Args: { conv_ids: string[] }
         Returns: {
@@ -7083,6 +7229,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_eco_config: { Args: never; Returns: Json }
       get_my_bookings: {
         Args: never
         Returns: {
