@@ -53,23 +53,25 @@ const EMAIL_WORTHY_TYPES = new Set([
 ]);
 
 // Map notification type to existing preference column
-function prefKeyForType(type: string): string | null {
-  if (["QUEST_COMMENT", "COMMENT", "POST_UPVOTED"].includes(type)) return "notify_comments_and_upvotes";
-  if (["ENTITY_MENTIONED_IN_COMMENT"].includes(type)) return "notify_mentions";
-  if (["FOLLOWER_NEW"].includes(type)) return "notify_follower_activity";
-  if (["FOLLOWED_USER_NEW_POST", "FOLLOWED_ENTITY_NEW_POST"].includes(type)) return "notify_new_posts_from_followed";
-  if (["FOLLOWED_ENTITY_NEW_EVENT"].includes(type)) return "notify_new_events_from_followed";
-  if (["FOLLOWED_ENTITY_NEW_QUEST"].includes(type)) return "notify_new_quests_from_followed";
-  if (["FOLLOWED_ENTITY_NEW_SERVICE"].includes(type)) return "notify_new_services_from_followed";
-  if (["FOLLOWED_ENTITY_NEW_COURSE"].includes(type)) return "notify_new_courses_from_followed";
-  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED", "BOOKING_UPDATED"].includes(type)) return "notify_bookings_and_cancellations";
-  if (["GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "USER_INVITED_TO_UNIT"].includes(type)) return "notify_invitations_to_units";
-  if (["ENTITY_JOIN_REQUEST"].includes(type)) return "notify_new_join_requests_guilds";
-  if (["PARTNERSHIP_PROPOSED"].includes(type)) return "notify_new_partnership_requests";
-  if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return "notify_quest_updates_and_comments";
-  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED", "milestone_completed"].includes(type)) return "notify_xp_and_achievements";
-  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return null; // always send — important
-  return null;
+// Returns { key, alwaysSend } — alwaysSend=true means it bypasses per-type prefs (but still respects global email toggle)
+function prefKeyForType(type: string): { key: string | null; alwaysSend: boolean } {
+  if (["QUEST_COMMENT", "COMMENT", "POST_UPVOTED"].includes(type)) return { key: "notify_comments_and_upvotes", alwaysSend: false };
+  if (["ENTITY_MENTIONED_IN_COMMENT"].includes(type)) return { key: "notify_mentions", alwaysSend: false };
+  if (["FOLLOWER_NEW"].includes(type)) return { key: "notify_follower_activity", alwaysSend: false };
+  if (["FOLLOWED_USER_NEW_POST", "FOLLOWED_ENTITY_NEW_POST"].includes(type)) return { key: "notify_new_posts_from_followed", alwaysSend: false };
+  if (["FOLLOWED_ENTITY_NEW_EVENT"].includes(type)) return { key: "notify_new_events_from_followed", alwaysSend: false };
+  if (["FOLLOWED_ENTITY_NEW_QUEST"].includes(type)) return { key: "notify_new_quests_from_followed", alwaysSend: false };
+  if (["FOLLOWED_ENTITY_NEW_SERVICE"].includes(type)) return { key: "notify_new_services_from_followed", alwaysSend: false };
+  if (["FOLLOWED_ENTITY_NEW_COURSE"].includes(type)) return { key: "notify_new_courses_from_followed", alwaysSend: false };
+  if (["BOOKING_REQUESTED", "BOOKING_CONFIRMED", "BOOKING_CANCELLED", "BOOKING_UPDATED"].includes(type)) return { key: "notify_bookings_and_cancellations", alwaysSend: false };
+  if (["GUILD_MEMBER_ADDED", "GUILD_ROLE_CHANGED", "APPLICATION_APPROVED", "APPLICATION_REJECTED", "USER_INVITED_TO_UNIT"].includes(type)) return { key: "notify_invitations_to_units", alwaysSend: false };
+  if (["ENTITY_JOIN_REQUEST"].includes(type)) return { key: "notify_new_join_requests_guilds", alwaysSend: false };
+  if (["PARTNERSHIP_PROPOSED"].includes(type)) return { key: "notify_new_partnership_requests", alwaysSend: false };
+  if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return { key: "notify_quest_updates_and_comments", alwaysSend: false };
+  if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED", "milestone_completed"].includes(type)) return { key: "notify_xp_and_achievements", alwaysSend: false };
+  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return { key: null, alwaysSend: true }; // always send — important
+  // Unknown types: don't send email (safe default)
+  return { key: null, alwaysSend: false };
 }
 
 const BASE_URL = "https://changethegame.xyz";
@@ -294,11 +296,19 @@ serve(async (req) => {
     }
 
     // Check type-specific preference
-    const prefKey = prefKeyForType(notification.type);
-    if (prefKey && prefs && prefs[prefKey] === false) {
-      return new Response(JSON.stringify({ skipped: true, reason: `pref_${prefKey}_disabled` }), {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+    const { key: prefKey, alwaysSend } = prefKeyForType(notification.type);
+    if (!alwaysSend) {
+      // If no prefKey mapping and not alwaysSend, skip (unknown type = no email by default)
+      if (!prefKey) {
+        return new Response(JSON.stringify({ skipped: true, reason: "unmapped_type_no_email" }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      if (prefs && prefs[prefKey] === false) {
+        return new Response(JSON.stringify({ skipped: true, reason: `pref_${prefKey}_disabled` }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
     }
 
     // Get user email
