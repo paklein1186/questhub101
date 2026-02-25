@@ -229,6 +229,23 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         });
       }
 
+      // Process @members / @followers bulk mentions
+      const bulkMentions = extractBulkMentions(content);
+      if (bulkMentions.length > 0 && inserted) {
+        for (const bm of bulkMentions) {
+          notifyBulkMention({
+            mentionType: bm.mentionType,
+            entityType: bm.entityType,
+            entityId: bm.entityId,
+            authorUserId: currentUser.id,
+            authorName: currentUser.name,
+            snippet: cleanSnippet,
+            targetType,
+            targetId,
+          });
+        }
+      }
+
       // Notify the target entity owner about the comment
       if (inserted) {
         notifyComment({
