@@ -7,43 +7,33 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Notification types that should trigger an email
 const EMAIL_WORTHY_TYPES = new Set([
-  // Social / follow
   "FOLLOWER_NEW",
-  // Mentions & comments
   "ENTITY_MENTIONED_IN_COMMENT",
   "COMMENT",
   "QUEST_COMMENT",
   "POST_UPVOTED",
-  // Bookings
   "BOOKING_REQUESTED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_UPDATED",
-  // Membership & roles
   "GUILD_MEMBER_ADDED",
   "GUILD_ROLE_CHANGED",
   "APPLICATION_APPROVED",
   "APPLICATION_REJECTED",
   "ENTITY_JOIN_REQUEST",
-  // Invitations & partnerships
   "USER_INVITED_TO_UNIT",
   "PARTNERSHIP_PROPOSED",
-  // Quests
   "QUEST_PROPOSAL_SUBMITTED",
   "QUEST_PROPOSAL_ACCEPTED",
   "QUEST_PROPOSAL_REJECTED",
   "QUEST_FUNDED_CREDITS",
-  // Rewards & economy
   "ACHIEVEMENT_UNLOCKED",
   "XP_GAINED",
   "CREDIT_RECEIVED",
   "milestone_completed",
-  // Trust
   "TRUST_RENEWAL_DUE",
   "TRUST_EDGE_OUTDATED",
-  // Followed entities activity
   "FOLLOWED_USER_NEW_POST",
   "FOLLOWED_ENTITY_NEW_POST",
   "FOLLOWED_ENTITY_NEW_EVENT",
@@ -52,8 +42,6 @@ const EMAIL_WORTHY_TYPES = new Set([
   "FOLLOWED_ENTITY_NEW_COURSE",
 ]);
 
-// Map notification type to existing preference column
-// Returns { key, alwaysSend } — alwaysSend=true means it bypasses per-type prefs (but still respects global email toggle)
 function prefKeyForType(type: string): { key: string | null; alwaysSend: boolean } {
   if (["QUEST_COMMENT", "COMMENT", "POST_UPVOTED"].includes(type)) return { key: "notify_comments_and_upvotes", alwaysSend: false };
   if (["ENTITY_MENTIONED_IN_COMMENT"].includes(type)) return { key: "notify_mentions", alwaysSend: false };
@@ -69,8 +57,7 @@ function prefKeyForType(type: string): { key: string | null; alwaysSend: boolean
   if (["PARTNERSHIP_PROPOSED"].includes(type)) return { key: "notify_new_partnership_requests", alwaysSend: false };
   if (["QUEST_PROPOSAL_SUBMITTED", "QUEST_PROPOSAL_ACCEPTED", "QUEST_PROPOSAL_REJECTED", "QUEST_FUNDED_CREDITS"].includes(type)) return { key: "notify_quest_updates_and_comments", alwaysSend: false };
   if (["ACHIEVEMENT_UNLOCKED", "XP_GAINED", "CREDIT_RECEIVED", "milestone_completed"].includes(type)) return { key: "notify_xp_and_achievements", alwaysSend: false };
-  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return { key: null, alwaysSend: true }; // always send — important
-  // Unknown types: don't send email (safe default)
+  if (["TRUST_RENEWAL_DUE", "TRUST_EDGE_OUTDATED"].includes(type)) return { key: null, alwaysSend: true };
   return { key: null, alwaysSend: false };
 }
 
@@ -108,14 +95,98 @@ async function sendEmailViaResend(to: string, subject: string, html: string) {
   return true;
 }
 
+function buildBookingConfirmationEmail(notification: any, recipientName: string): { subject: string; html: string } {
+  const data = notification.data || {};
+  const serviceTitle = data.serviceTitle || "your session";
+  const startDt = data.startDateTime ? new Date(data.startDateTime) : null;
+  const endDt = data.endDateTime ? new Date(data.endDateTime) : null;
+  const amount = data.amount;
+  const currency = data.currency || "€";
+  const callUrl = data.callUrl;
+  const bookingLink = `${BASE_URL}/bookings/${data.bookingId || notification.related_entity_id || ""}`;
+
+  const dateStr = startDt
+    ? startDt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    : null;
+  const timeStr = startDt
+    ? `${startDt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}${endDt ? ` – ${endDt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}` : ""}`
+    : null;
+
+  const detailRows: string[] = [];
+  detailRows.push(`<tr><td style="padding:8px 12px;font-size:13px;color:hsl(250,12%,46%);font-weight:600;">Service</td><td style="padding:8px 12px;font-size:14px;color:hsl(250,30%,8%);font-weight:600;">${serviceTitle}</td></tr>`);
+  if (dateStr) detailRows.push(`<tr><td style="padding:8px 12px;font-size:13px;color:hsl(250,12%,46%);font-weight:600;">Date</td><td style="padding:8px 12px;font-size:14px;color:hsl(250,30%,8%);">${dateStr}</td></tr>`);
+  if (timeStr) detailRows.push(`<tr><td style="padding:8px 12px;font-size:13px;color:hsl(250,12%,46%);font-weight:600;">Time</td><td style="padding:8px 12px;font-size:14px;color:hsl(250,30%,8%);">${timeStr}</td></tr>`);
+  if (amount && Number(amount) > 0) detailRows.push(`<tr><td style="padding:8px 12px;font-size:13px;color:hsl(250,12%,46%);font-weight:600;">Amount</td><td style="padding:8px 12px;font-size:14px;color:hsl(250,30%,8%);">${currency}${amount}</td></tr>`);
+
+  const callButton = callUrl
+    ? `<a href="${callUrl}" style="display:inline-block;background:hsl(142,71%,45%);color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-right:12px;">🎥 Join Video Call</a>`
+    : "";
+
+  const subject = `Your session "${serviceTitle}" is confirmed ✅`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header -->
+    <div style="background:hsl(262,83%,58%);border-radius:12px 12px 0 0;padding:20px 28px;">
+      <span style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.85);">changethegame</span>
+    </div>
+
+    <!-- Card -->
+    <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 8px;">Hey ${recipientName},</h2>
+      <p style="font-size:16px;font-weight:600;color:hsl(142,71%,45%);line-height:1.5;margin:16px 0 8px;">✅ Your session has been accepted!</p>
+      <p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:0 0 20px;">Great news — your session request has been confirmed. Here are the details:</p>
+
+      <!-- Booking Details Table -->
+      <table style="width:100%;border-collapse:collapse;background:hsl(250,30%,97%);border-radius:8px;overflow:hidden;margin-bottom:24px;">
+        ${detailRows.join("")}
+      </table>
+
+      <div style="margin-top:24px;">
+        ${callButton}
+        <a href="${bookingLink}"
+           style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">
+          View Booking Details
+        </a>
+      </div>
+
+      <hr style="border:none;border-top:1px solid hsl(250,18%,90%);margin:32px 0 20px;" />
+      <p style="font-size:12px;color:hsl(250,12%,46%);line-height:1.6;margin:0;">
+        You're receiving this because email notifications are enabled.
+        <a href="${BASE_URL}/me?tab=notifications" style="color:hsl(262,83%,58%);text-decoration:underline;">Manage preferences</a>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:hsl(250,12%,46%);margin-top:16px;">
+      © 2025 changethegame · <a href="${BASE_URL}" style="color:hsl(250,12%,46%);">changethegame.xyz</a>
+    </p>
+  </div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
 function buildNotificationEmail(notification: any, recipientName: string): { subject: string; html: string } {
+  // Use rich template for booking confirmations
+  if (notification.type === "BOOKING_CONFIRMED") {
+    return buildBookingConfirmationEmail(notification, recipientName);
+  }
+
   const title = notification.title || "New notification";
   const body = notification.body || "";
   const deepLink = notification.deep_link_url
     ? `${BASE_URL}${notification.deep_link_url}`
     : BASE_URL;
 
-  // Type-specific subject & CTA
   let subject = title;
   let ctaLabel = "View on changethegame";
   let extraHtml = "";
@@ -136,9 +207,6 @@ function buildNotificationEmail(notification: any, recipientName: string): { sub
   } else if (type === "BOOKING_REQUESTED") {
     subject = `New session request`;
     ctaLabel = "Review request";
-  } else if (type === "BOOKING_CONFIRMED") {
-    subject = `Your session is confirmed ✅`;
-    ctaLabel = "View booking";
   } else if (type === "APPLICATION_APPROVED") {
     subject = `Your application was approved! 🎉`;
     ctaLabel = "Get started";
@@ -258,7 +326,6 @@ serve(async (req) => {
       });
     }
 
-    // Fetch the notification
     const { data: notification, error: nErr } = await supabase
       .from("notifications")
       .select("*")
@@ -272,7 +339,6 @@ serve(async (req) => {
       });
     }
 
-    // Check if this type deserves an email
     if (!EMAIL_WORTHY_TYPES.has(notification.type)) {
       return new Response(JSON.stringify({ skipped: true, reason: "type_not_emailable" }), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -281,24 +347,20 @@ serve(async (req) => {
 
     const userId = notification.user_id;
 
-    // Check user preferences
     const { data: prefs } = await supabase
       .from("notification_preferences")
       .select("*")
       .eq("user_id", userId)
       .single();
 
-    // Respect global email toggle
     if (prefs && prefs.channel_email_enabled === false) {
       return new Response(JSON.stringify({ skipped: true, reason: "email_disabled" }), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Check type-specific preference
     const { key: prefKey, alwaysSend } = prefKeyForType(notification.type);
     if (!alwaysSend) {
-      // If no prefKey mapping and not alwaysSend, skip (unknown type = no email by default)
       if (!prefKey) {
         return new Response(JSON.stringify({ skipped: true, reason: "unmapped_type_no_email" }), {
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -311,7 +373,6 @@ serve(async (req) => {
       }
     }
 
-    // Get user email
     const { data: profile } = await supabase
       .from("profiles")
       .select("email, name")
