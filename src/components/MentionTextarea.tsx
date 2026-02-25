@@ -342,6 +342,10 @@ const MENTION_REGEX = /@\[([^\]]+)\]\(([^)]+)\)/g;
  * "abc-123"  → { type: "user", id: "abc-123" }
  */
 function parseMentionRef(ref: string): { type: MentionEntityType; id: string } {
+  // Handle bulk mentions
+  if (ref.startsWith("bulk:")) {
+    return { type: "user", id: ref };
+  }
   const colonIdx = ref.indexOf(":");
   if (colonIdx > 0) {
     const type = ref.slice(0, colonIdx) as MentionEntityType;
