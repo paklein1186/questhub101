@@ -72,20 +72,34 @@ const updateIcons: Record<string, typeof Sparkles> = {
 
 function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: boolean }) {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const { data: links = [] } = useQuery<ExternalLinkItem[]>({
     queryKey: ["quest-external-links", questId],
     queryFn: async () => {
-      const { data } = await supabase.from("quests").select("features_config").eq("id", questId).single();
-      const cfg = (data?.features_config as any) || {};
+      const { data, error } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+      if (error) { console.error("Failed to load external links:", error); return []; }
+      const cfg = (data?.features_config as Record<string, unknown>) || {};
       return (cfg.external_links as ExternalLinkItem[]) || [];
     },
   });
 
   const updateLinks = async (newLinks: ExternalLinkItem[]) => {
-    const { data: quest } = await supabase.from("quests").select("features_config").eq("id", questId).single();
-    const cfg = (quest?.features_config as any) || {};
-    await supabase.from("quests").update({ features_config: { ...cfg, external_links: newLinks } } as any).eq("id", questId);
-    qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
+    // Optimistic update
+    qc.setQueryData<ExternalLinkItem[]>(["quest-external-links", questId], newLinks);
+    try {
+      const { data: quest, error: fetchErr } = await supabase.from("quests").select("features_config").eq("id", questId).single();
+      if (fetchErr) throw fetchErr;
+      const cfg = (quest?.features_config as Record<string, unknown>) || {};
+      const { error: updateErr } = await supabase.from("quests").update({
+        features_config: { ...cfg, external_links: newLinks },
+      } as any).eq("id", questId);
+      if (updateErr) throw updateErr;
+    } catch (e: any) {
+      console.error("Failed to save external links:", e);
+      toast({ title: "Failed to save link", description: e.message, variant: "destructive" });
+      // Revert optimistic update
+      qc.invalidateQueries({ queryKey: ["quest-external-links", questId] });
+    }
   };
 
   return <ExternalLinksPanel links={links} onLinksChange={updateLinks} canEdit={isOwner} />;
