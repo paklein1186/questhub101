@@ -71,6 +71,8 @@ import { BroadcastMessageDialog } from "@/components/BroadcastMessageDialog";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { GraphView } from "@/components/graph/GraphView";
+import { LivingTab } from "@/components/living/LivingTab";
+import { Leaf } from "lucide-react";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -331,7 +333,6 @@ export default function GuildDetail() {
     toast({ title: "Left guild" });
   };
 
-
   const createGuildService = async () => {
     if (!svcTitle.trim()) return;
     const { error } = await supabase.from("services").insert({
@@ -458,6 +459,7 @@ export default function GuildDetail() {
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
+            { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
@@ -547,6 +549,10 @@ export default function GuildDetail() {
 
         <TabsContent value="trust" className="mt-6">
           <TrustTab nodeType={TrustNodeType.GUILD} nodeId={guild.id} />
+        </TabsContent>
+
+        <TabsContent value="living" className="mt-6">
+          <LivingTab linkedType="entity" linkedId={guild.id} />
         </TabsContent>
 
         <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
