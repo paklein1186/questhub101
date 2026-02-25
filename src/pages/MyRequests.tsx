@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-warning/10 text-warning",
@@ -52,6 +53,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
         {myRequests.map((b, i) => {
           const svc = b.services as any;
           const canCancel = CANCELLABLE.includes(b.status);
+          const provider = (b as any).provider_profile;
           return (
             <motion.div
               key={b.id}
@@ -66,6 +68,19 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
                 </div>
                 <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace("_", " ")}</Badge>
               </div>
+
+              {/* Provider info */}
+              {provider && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={provider.avatar_url || undefined} />
+                    <AvatarFallback className="text-[10px]">{provider.name?.charAt(0) || "?"}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-muted-foreground">
+                    Session with <Link to={`/users/${b.provider_user_id}`} className="font-medium text-foreground hover:text-primary">{provider.name}</Link>
+                  </span>
+                </div>
+              )}
 
               {b.notes && <p className="text-sm text-muted-foreground mb-2">{b.notes}</p>}
 

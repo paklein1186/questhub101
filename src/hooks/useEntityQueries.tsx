@@ -908,7 +908,26 @@ export function useMyBookings(userId: string | undefined) {
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Enrich with counterpart profile names
+      const userIds = new Set<string>();
+      (data || []).forEach((b: any) => {
+        if (b.requester_id) userIds.add(b.requester_id);
+        if (b.provider_user_id) userIds.add(b.provider_user_id);
+      });
+      const ids = Array.from(userIds);
+      let profileMap = new Map<string, { name: string; avatar_url: string | null }>();
+      if (ids.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("user_id, name, avatar_url")
+          .in("user_id", ids);
+        (profiles || []).forEach((p: any) => profileMap.set(p.user_id, { name: p.name, avatar_url: p.avatar_url }));
+      }
+      return (data || []).map((b: any) => ({
+        ...b,
+        requester_profile: profileMap.get(b.requester_id) || null,
+        provider_profile: profileMap.get(b.provider_user_id) || null,
+      }));
     },
     enabled: !!userId,
   });

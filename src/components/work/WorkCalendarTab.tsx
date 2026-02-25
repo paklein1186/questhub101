@@ -63,8 +63,8 @@ interface CalendarEvent {
   date: string;
   endDate?: string;
   durationMinutes: number;
-  type: "event" | "ritual" | "external";
-  entityType: "guild" | "quest" | "external";
+  type: "event" | "ritual" | "external" | "booking";
+  entityType: "guild" | "quest" | "external" | "booking";
   entityId: string;
   entityName: string;
   visioLink?: string;
@@ -156,7 +156,7 @@ export function WorkCalendarTab() {
     enabled: !!currentUser.id,
   });
 
-  // Fetch synced external calendar events (Google / Outlook)
+   // Fetch synced external calendar events (Google / Outlook)
   const { data: externalEvents = [] } = useQuery({
     queryKey: ["my-external-calendar-events", currentUser.id],
     queryFn: async () => {
@@ -165,6 +165,27 @@ export function WorkCalendarTab() {
         .select("id, summary, start_at, end_at, connection_id, source_calendar_id, source_calendar_name, calendar_connections(provider)")
         .eq("user_id", currentUser.id!);
       return data || [];
+    },
+    enabled: !!currentUser.id,
+  });
+
+  // Fetch confirmed bookings
+  const { data: myBookings = [] } = useQuery({
+    queryKey: ["my-confirmed-bookings-calendar", currentUser.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("id, start_date_time, end_date_time, call_url, status, requester_id, provider_user_id, services(id, title, duration_minutes)")
+        .or(`requester_id.eq.${currentUser.id},provider_user_id.eq.${currentUser.id}`)
+        .in("status", ["CONFIRMED", "ACCEPTED"])
+        .eq("is_deleted", false)
+        .not("start_date_time", "is", null);
+      if (!data?.length) return [];
+      // Get counterpart names
+      const counterpartIds = data.map(b => b.requester_id === currentUser.id ? b.provider_user_id : b.requester_id).filter(Boolean);
+      const { data: profiles } = await supabase.from("profiles_public").select("user_id, name").in("user_id", [...new Set(counterpartIds)]);
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.name]));
+      return data.map(b => ({ ...b, counterpartName: profileMap.get(b.requester_id === currentUser.id ? b.provider_user_id : b.requester_id) || "Someone" }));
     },
     enabled: !!currentUser.id,
   });
@@ -261,8 +282,29 @@ export function WorkCalendarTab() {
       });
     });
 
+    // Confirmed bookings
+    myBookings.forEach((bk: any) => {
+      if (!bk.start_date_time) return;
+      const svc = bk.services as any;
+      const start = new Date(bk.start_date_time).getTime();
+      const end = bk.end_date_time ? new Date(bk.end_date_time).getTime() : start + (svc?.duration_minutes || 60) * 60000;
+      const durationMin = Math.max(Math.round((end - start) / 60000), 1);
+      items.push({
+        id: `booking-${bk.id}`,
+        title: `${svc?.title || "Booking"} — ${bk.counterpartName}`,
+        date: bk.start_date_time,
+        endDate: bk.end_date_time || undefined,
+        durationMinutes: durationMin,
+        type: "booking",
+        entityType: "booking",
+        entityId: bk.id,
+        entityName: "Booking",
+        visioLink: bk.call_url || undefined,
+      });
+    });
+
     return items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [myEventAttendances, myRitualAttendances, externalEvents]);
+  }, [myEventAttendances, myRitualAttendances, externalEvents, myBookings]);
 
   // Derive unique source calendars for filter UI — merge DB preferences + events
   const sourceCalendars = useMemo(() => {
@@ -452,14 +494,14 @@ export function WorkCalendarTab() {
               )}
               <div className="mt-0.5 space-y-0.5">
                 {dayEvents.slice(0, maxVisible).map((evt) => {
-                  const Icon = evt.type === "external" ? Globe : evt.type === "ritual" && evt.sessionType ? getSessionIcon(evt.sessionType) : Calendar;
+                  const Icon = evt.type === "external" ? Globe : evt.type === "booking" ? Video : evt.type === "ritual" && evt.sessionType ? getSessionIcon(evt.sessionType) : Calendar;
                   return (
                     <button
                       key={evt.id}
                       type="button"
-                      onClick={() => setSelectedEvent(evt)}
+                      onClick={() => evt.type === "booking" ? navigate(`/bookings/${evt.entityId}`) : setSelectedEvent(evt)}
                       className={`text-[10px] rounded px-1 py-0.5 truncate cursor-pointer flex items-center gap-0.5 text-left w-full hover:opacity-80 transition-opacity ${
-                        evt.type === "external" ? "bg-secondary/60 text-secondary-foreground" : evt.type === "ritual" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"
+                        evt.type === "external" ? "bg-secondary/60 text-secondary-foreground" : evt.type === "booking" ? "bg-emerald-500/10 text-emerald-700" : evt.type === "ritual" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"
                       }`}
                       title={`${evt.title} — ${format(new Date(evt.date), "HH:mm")} (${evt.entityName})`}
                     >
@@ -492,20 +534,20 @@ export function WorkCalendarTab() {
                 : evt.type === "ritual" && evt.sessionType
                   ? getSessionIcon(evt.sessionType)
                   : Calendar;
-              const route = evt.entityType === "external" ? "" : evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
+              const route = evt.entityType === "external" ? "" : evt.entityType === "booking" ? `/bookings/${evt.entityId}` : evt.entityType === "guild" ? `/guilds/${evt.entityId}` : `/quests/${evt.entityId}`;
               return (
                 <Card key={evt.id} className="group hover:scale-[1.01] transition-transform">
                   <CardContent className="p-4 flex flex-col gap-3">
                     {/* Header row */}
                     <div className="flex items-start gap-3">
-                      <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "external" ? "bg-secondary/60" : evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
-                        <Icon className={`h-5 w-5 ${evt.type === "external" ? "text-secondary-foreground" : evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
+                      <div className={`p-2.5 rounded-xl shrink-0 ${evt.type === "external" ? "bg-secondary/60" : evt.type === "booking" ? "bg-emerald-500/10" : evt.type === "ritual" ? "bg-primary/10" : "bg-accent"}`}>
+                        <Icon className={`h-5 w-5 ${evt.type === "external" ? "text-secondary-foreground" : evt.type === "booking" ? "text-emerald-600" : evt.type === "ritual" ? "text-primary" : "text-accent-foreground"}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{evt.title}</p>
                         {evt.entityType !== "external" ? (
                           <Link to={route} className="text-xs text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5">
-                            {evt.entityType === "guild" ? <Shield className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
+                            {evt.entityType === "guild" ? <Shield className="h-3 w-3" /> : evt.entityType === "booking" ? <Video className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
                             {evt.entityName}
                           </Link>
                         ) : (
