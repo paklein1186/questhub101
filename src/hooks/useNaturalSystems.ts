@@ -185,6 +185,9 @@ export function useLinkNaturalSystem() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["linked-natural-systems"] });
+      qc.invalidateQueries({ queryKey: ["territory-natural-systems-rpc"] });
+      qc.invalidateQueries({ queryKey: ["natural-systems"] });
+      qc.invalidateQueries({ queryKey: ["territory-natural-summary"] });
     },
   });
 }
