@@ -7369,6 +7369,28 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_territory_living_dashboard: {
+        Args: { p_territory_id: string }
+        Returns: Json
+      }
+      get_territory_natural_systems: {
+        Args: { p_territory_id: string }
+        Returns: {
+          created_at: string
+          description: string
+          health_index: number
+          id: string
+          kingdom: string
+          location_text: string
+          name: string
+          picture_url: string
+          regenerative_potential: number
+          resilience_index: number
+          source_url: string
+          system_type: string
+          tags: string[]
+        }[]
+      }
       get_territory_otg_graph: {
         Args: { p_max_nodes?: number; p_territory_id: string }
         Returns: Json
