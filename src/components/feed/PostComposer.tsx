@@ -58,6 +58,15 @@ interface PostComposerProps {
 
 export function PostComposer({ contextType, contextId, showVisibilityPicker = false, initialTerritoryIds, initialTopicIds, roomId }: PostComposerProps) {
   const currentUser = useCurrentUser();
+
+  // Derive entity context for @members/@followers in the mention dropdown
+  const entityContext = (() => {
+    const entityTypes = ["GUILD", "GUILD_DISCUSSION", "QUEST", "COMPANY", "POD"];
+    if (entityTypes.includes(contextType) && contextId) {
+      return { entityType: contextType.replace("_DISCUSSION", ""), entityId: contextId };
+    }
+    return undefined;
+  })();
   const { user: authUser } = useAuth();
   const createPost = useCreatePost();
 
@@ -250,6 +259,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             placeholder="Share an update, idea, or creation… (type @ to mention)"
             className="min-h-[80px] resize-none text-sm border-0 bg-transparent p-0 focus-visible:ring-0 shadow-none"
             maxLength={5000}
+            entityContext={entityContext}
           />
           <div className="flex justify-end">
             <span className={`text-xs ${content.length > 4500 ? 'text-destructive' : 'text-muted-foreground'}`}>
