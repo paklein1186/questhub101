@@ -157,6 +157,7 @@ import AgentDetail from "./pages/AgentDetail";
 import DocumentRedirect from "./pages/DocumentRedirect";
 import PublicWebsite from "./pages/PublicWebsite";
 import PublicBooking from "./pages/PublicBooking";
+import NaturalSystemPage from "./pages/NaturalSystemPage";
 
 const queryClient = new QueryClient();
 
@@ -243,6 +244,7 @@ const App = () => (
                 <Route path="/explore/people-info" element={<PeopleInfoPage />} />
                 <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
                 <Route path="/territories/:id" element={<TerritoryDetail />} />
+                <Route path="/natural-systems/:id" element={<NaturalSystemPage />} />
                 <Route path="/create/quest-info" element={<CreateQuestInfoPage />} />
                 <Route path="/create/service-info" element={<ServiceInfoPage />} />
                 <Route path="/create/guild-info" element={<CreateGuildInfoPage />} />

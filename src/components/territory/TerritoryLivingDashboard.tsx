@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Leaf, Activity, Coins, Shield, Plus,
   TreePine, Droplets, Bug, Mountain, Sprout, Microscope,
@@ -89,7 +90,8 @@ function NsCard({ ns }: { ns: TerritoryNaturalSystem }) {
     : null;
 
   return (
-    <Card className="overflow-hidden hover:border-primary/30 transition-all">
+    <Link to={`/natural-systems/${ns.id}`} className="block">
+    <Card className="overflow-hidden hover:border-primary/30 transition-all cursor-pointer">
       <div className="flex">
         {ns.picture_url && (
           <div className="w-24 h-24 shrink-0">
@@ -119,6 +121,7 @@ function NsCard({ ns }: { ns: TerritoryNaturalSystem }) {
         </CardContent>
       </div>
     </Card>
+    </Link>
   );
 }
 
