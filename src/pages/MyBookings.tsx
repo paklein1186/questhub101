@@ -47,17 +47,24 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
         }
         if (booking) {
           const svc = booking.services as any;
-          // Insert notification — don't use .select().single() as RLS SELECT
-          // policy prevents reading other users' rows, causing rollback
+          const startFmt = booking.start_date_time ? new Date(booking.start_date_time).toLocaleString() : "";
+          const endFmt = booking.end_date_time ? new Date(booking.end_date_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+          const timeLine = startFmt ? `📅 ${startFmt}${endFmt ? ` – ${endFmt}` : ""}` : "";
+          const priceLine = booking.amount && Number(booking.amount) > 0 ? `💰 ${booking.currency || "€"}${booking.amount}` : "";
+          const bodyText = status === "ACCEPTED" || status === "CONFIRMED"
+            ? `Your session "${svc?.title || "a service"}" has been accepted! ${timeLine} ${priceLine}`.trim()
+            : status === "DECLINED" || status === "CANCELLED"
+            ? `Your booking for "${svc?.title || "a service"}" has been ${status.toLowerCase()}.`
+            : `Your booking for "${svc?.title || "a service"}" has been updated.`;
           const { error: notifErr } = await supabase.from("notifications").insert({
             user_id: booking.requester_id,
             type: status === "ACCEPTED" || status === "CONFIRMED" ? "BOOKING_CONFIRMED" : status === "DECLINED" || status === "CANCELLED" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
-            title: status === "ACCEPTED" || status === "CONFIRMED" ? "Booking confirmed! ✅" : status === "DECLINED" ? "Booking declined" : status === "CANCELLED" ? "Booking cancelled" : `Booking ${status.toLowerCase()}`,
-            body: `Your booking for "${svc?.title || "a service"}" has been ${status.toLowerCase()}. ${booking.start_date_time ? `📅 ${new Date(booking.start_date_time).toLocaleString()}` : ""}`,
+            title: status === "ACCEPTED" || status === "CONFIRMED" ? "Session accepted! ✅" : status === "DECLINED" ? "Booking declined" : status === "CANCELLED" ? "Booking cancelled" : `Booking ${status.toLowerCase()}`,
+            body: bodyText,
             related_entity_type: "BOOKING",
             related_entity_id: bookingId,
             deep_link_url: `/bookings/${bookingId}`,
-            data: { bookingId } as any,
+            data: { bookingId, serviceTitle: svc?.title, startDateTime: booking.start_date_time, endDateTime: booking.end_date_time, amount: booking.amount, currency: booking.currency, callUrl: booking.call_url } as any,
           });
           if (notifErr) console.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
           // Email is triggered automatically by DB trigger trg_send_notification_email
@@ -128,11 +135,11 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
 
               {(b.status === "REQUESTED" || b.status === "PENDING") && (
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleUpdateStatus(b.id, "CONFIRMED")}>
-                    <Check className="h-3.5 w-3.5 mr-1" /> Confirm
+                  <Button size="sm" onClick={() => handleUpdateStatus(b.id, "ACCEPTED")}>
+                    <Check className="h-3.5 w-3.5 mr-1" /> Accept
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(b.id, "CANCELLED")}>
-                    <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                    <X className="h-3.5 w-3.5 mr-1" /> Decline
                   </Button>
                 </div>
               )}
