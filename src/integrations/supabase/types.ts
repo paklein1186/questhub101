@@ -3330,7 +3330,7 @@ export type Database = {
           id: string
           linked_id: string
           linked_type: Database["public"]["Enums"]["ns_link_type"]
-          linked_via: Database["public"]["Enums"]["ns_link_via"]
+          linked_via: string
           natural_system_id: string
         }
         Insert: {
@@ -3338,7 +3338,7 @@ export type Database = {
           id?: string
           linked_id: string
           linked_type: Database["public"]["Enums"]["ns_link_type"]
-          linked_via?: Database["public"]["Enums"]["ns_link_via"]
+          linked_via?: string
           natural_system_id: string
         }
         Update: {
@@ -3346,7 +3346,7 @@ export type Database = {
           id?: string
           linked_id?: string
           linked_type?: Database["public"]["Enums"]["ns_link_type"]
-          linked_via?: Database["public"]["Enums"]["ns_link_via"]
+          linked_via?: string
           natural_system_id?: string
         }
         Relationships: [
@@ -7468,16 +7468,16 @@ export type Database = {
           description: string
           health_index: number
           id: string
-          kingdom: Database["public"]["Enums"]["natural_system_kingdom"]
+          kingdom: string
           link_created_at: string
-          linked_via: Database["public"]["Enums"]["ns_link_via"]
+          linked_via: string
           location_text: string
           name: string
           picture_url: string
           regenerative_potential: number
           resilience_index: number
           source_url: string
-          system_type: Database["public"]["Enums"]["natural_system_type_v2"]
+          system_type: string
           tags: string[]
           territory_id: string
           updated_at: string
@@ -7766,7 +7766,6 @@ export type Database = {
         | "climate_cell"
         | "other"
       ns_link_type: "user" | "entity" | "territory" | "quest"
-      ns_link_via: "quest" | "manual"
       pod_member_role: "HOST" | "MEMBER"
       pod_type: "QUEST_POD" | "STUDY_POD"
       quest_status:
@@ -8011,7 +8010,6 @@ export const Constants = {
         "other",
       ],
       ns_link_type: ["user", "entity", "territory", "quest"],
-      ns_link_via: ["quest", "manual"],
       pod_member_role: ["HOST", "MEMBER"],
       pod_type: ["QUEST_POD", "STUDY_POD"],
       quest_status: [
