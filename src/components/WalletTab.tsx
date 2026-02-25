@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
 import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
+import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -41,6 +42,7 @@ const TX_TYPE_LABELS: Record<string, string> = {
   DEMURRAGE_FADE: "Ecosystem redistribution",
   TREASURY_DEMURRAGE_RECEIVED: "Treasury received",
   QUEST_FUNDING_REFUND: "Quest funding refunded",
+  GIVE_BACK: "Give-back contribution",
 };
 
 export function WalletTab() {
@@ -350,6 +352,11 @@ export function WalletTab() {
             </div>
           )}
         </Section>
+
+        {/* ═══ GIVE-BACK HISTORY ═══ */}
+        <GiveBackHistory />
+
+        <Separator />
 
         {/* ═══ COMMISSION BENEFITS ═══ */}
         <Section title="Commission Benefits" icon={<CreditCard className="h-5 w-5" />}>

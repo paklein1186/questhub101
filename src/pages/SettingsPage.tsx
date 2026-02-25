@@ -59,6 +59,8 @@ import { StripeConnectSection } from "@/components/StripeConnectSection";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { IcsFeedsManager } from "@/components/IcsFeedsManager";
+import { GiveBackSettingsSection } from "@/components/giveback/GiveBackSettingsSection";
+import { Heart } from "lucide-react";
 
 
 const TABS = [
@@ -81,6 +83,7 @@ const TABS = [
   { key: "referrals", label: "settings.referrals", icon: UserCircle },
   { key: "apps", label: "settings.apps", icon: Plug },
   { key: "history", label: "Activity History", icon: History },
+  { key: "giveback", label: "Give-back", icon: Heart },
   { key: "website", label: "Website", icon: Globe },
 ];
 
@@ -747,6 +750,9 @@ export default function SettingsPage() {
 
               {/* ── Wallet ── */}
               {activeTab === "wallet" && <WalletTab />}
+
+              {/* ── Give-back ── */}
+              {activeTab === "giveback" && <GiveBackSettingsSection />}
 
               {/* ── Referrals ── */}
               {activeTab === "referrals" && (

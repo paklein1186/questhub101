@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Briefcase, Check, X, CheckCircle, Video, ExternalLink, User } from "lucide-react";
@@ -10,6 +11,7 @@ import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries"
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { GiveBackModal } from "@/components/giveback/GiveBackModal";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-warning/10 text-warning",
@@ -27,6 +29,8 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
   const { toast } = useToast();
   const { data: allBookings = [], isLoading } = useMyBookings(currentUser.id);
   const updateStatus = useUpdateBookingStatus();
+  const [giveBackOpen, setGiveBackOpen] = useState(false);
+  const [giveBackBooking, setGiveBackBooking] = useState<any>(null);
 
   // Incoming = I am the provider
   const myIncoming = allBookings.filter((b) => b.provider_user_id === currentUser.id);
@@ -36,6 +40,11 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
     updateStatus.mutate({ bookingId, status }, {
       onSuccess: async () => {
         toast({ title: `Booking ${status.toLowerCase()}` });
+        // Trigger give-back modal when completing a booking
+        if (status === "COMPLETED" && booking) {
+          setGiveBackBooking(booking);
+          setGiveBackOpen(true);
+        }
         if (booking) {
           const svc = booking.services as any;
           // Insert notification — don't use .select().single() as RLS SELECT
@@ -141,6 +150,14 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
           );
         })}
       </div>
+
+      <GiveBackModal
+        open={giveBackOpen}
+        onOpenChange={setGiveBackOpen}
+        earnedAmount={giveBackBooking?.amount ? Number(giveBackBooking.amount) : undefined}
+        serviceName={(giveBackBooking?.services as any)?.title}
+        bookingId={giveBackBooking?.id}
+      />
     </PageShell>
   );
 }

@@ -43,6 +43,7 @@ import { AIWriterButton } from "@/components/AIWriterButton";
 import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { UnitAvailabilityEditor } from "@/components/UnitAvailabilityEditor";
 import { UnitWalletTab } from "@/components/UnitWalletTab";
+import { GuildGiveBackReceived } from "@/components/giveback/GiveBackHistory";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { EntityRolesManager } from "@/components/EntityRolesManager";
@@ -866,12 +867,15 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
 
               {/* ── Billing / Unit Wallet ── */}
               {activeTab === "billing" && (
-                <UnitWalletTab
-                  unitType="GUILD"
-                  unitId={guildId}
-                  unitName={guild.name}
-                  creditsBalance={(guild as any).credits_balance ?? 0}
-                />
+                <div className="space-y-6">
+                  <UnitWalletTab
+                    unitType="GUILD"
+                    unitId={guildId}
+                    unitName={guild.name}
+                    creditsBalance={(guild as any).credits_balance ?? 0}
+                  />
+                  <GuildGiveBackReceived guildId={guildId} />
+                </div>
               )}
 
               {/* ── Partnerships ── */}
