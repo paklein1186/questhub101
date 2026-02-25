@@ -29,7 +29,7 @@ export function useNaturalSystems(territoryId: string | undefined) {
   });
 }
 
-/* ── Linked natural systems via RPC ── */
+/* ── Linked natural systems via RPC (with co-dependency propagation) ── */
 export function useLinkedNaturalSystems(
   linkedType: NsLinkType | undefined,
   linkedId: string | undefined
@@ -40,11 +40,38 @@ export function useLinkedNaturalSystems(
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc(
-        "get_linked_natural_systems" as any,
+        "get_linked_natural_systems_with_codeps" as any,
         { p_linked_type: linkedType!, p_linked_id: linkedId! }
       );
       if (error) throw error;
       return (data ?? []) as unknown as LinkedNaturalSystem[];
+    },
+  });
+}
+
+/* ── Co-occurring natural systems (galaxy) ── */
+export interface CoOccurringNaturalSystem {
+  id: string;
+  name: string;
+  kingdom: string;
+  system_type: string;
+  picture_url: string | null;
+  health_index: number;
+  shared_links_count: number;
+}
+
+export function useCoOccurringNaturalSystems(naturalSystemId: string | undefined) {
+  return useQuery<CoOccurringNaturalSystem[]>({
+    queryKey: ["co-occurring-ns", naturalSystemId],
+    enabled: !!naturalSystemId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc(
+        "get_co_occurring_natural_systems" as any,
+        { p_natural_system_id: naturalSystemId! }
+      );
+      if (error) throw error;
+      return (data ?? []) as unknown as CoOccurringNaturalSystem[];
     },
   });
 }

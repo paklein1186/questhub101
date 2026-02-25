@@ -7439,6 +7439,18 @@ export type Database = {
           total_distributed: number
         }[]
       }
+      get_co_occurring_natural_systems: {
+        Args: { p_natural_system_id: string }
+        Returns: {
+          health_index: number
+          id: string
+          kingdom: string
+          name: string
+          picture_url: string
+          shared_links_count: number
+          system_type: string
+        }[]
+      }
       get_conversation_participants: {
         Args: { conv_ids: string[] }
         Returns: {
@@ -7464,6 +7476,29 @@ export type Database = {
           p_linked_type: Database["public"]["Enums"]["ns_link_type"]
         }
         Returns: {
+          created_at: string
+          description: string
+          health_index: number
+          id: string
+          kingdom: string
+          link_created_at: string
+          linked_via: string
+          location_text: string
+          name: string
+          picture_url: string
+          regenerative_potential: number
+          resilience_index: number
+          source_url: string
+          system_type: string
+          tags: string[]
+          territory_id: string
+          updated_at: string
+        }[]
+      }
+      get_linked_natural_systems_with_codeps: {
+        Args: { p_linked_id: string; p_linked_type: string }
+        Returns: {
+          codep_source: string
           created_at: string
           description: string
           health_index: number

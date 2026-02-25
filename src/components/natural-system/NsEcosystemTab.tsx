@@ -7,8 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Loader2, Compass, Shield, CircleDot, Building2, GraduationCap,
-  Briefcase, Users, Swords, MapPin, Leaf,
+  Briefcase, Users, Swords, MapPin, Leaf, Orbit,
 } from "lucide-react";
+import { useCoOccurringNaturalSystems } from "@/hooks/useNaturalSystems";
+import { KINGDOM_LABELS, SYSTEM_TYPE_LABELS } from "@/types/naturalSystems";
 
 interface Props {
   naturalSystemId: string;
@@ -59,7 +61,6 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
     enabled: !!naturalSystemId,
     staleTime: 60_000,
     queryFn: async () => {
-      // Fetch all links for this natural system
       const { data: links, error } = await supabase
         .from("natural_system_links" as any)
         .select("*")
@@ -72,7 +73,6 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
       const questIds = allLinks.filter(l => l.linked_type === "quest").map(l => l.linked_id);
       const territoryIds = allLinks.filter(l => l.linked_type === "territory").map(l => l.linked_id);
 
-      // Fetch all related data in parallel
       const [profiles, guilds, companies, quests, territories] = await Promise.all([
         userIds.length > 0
           ? supabase.from("profiles").select("user_id, name, avatar_url, headline").in("user_id", userIds).then(r => r.data || [])
@@ -91,18 +91,15 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
           : [],
       ]);
 
-      // Also fetch quests linked via natural_system_id
       const { data: nsQuests } = await supabase
         .from("quests" as any)
         .select("id, title, description, status")
         .eq("natural_system_id", naturalSystemId)
         .eq("is_deleted", false);
 
-      // Merge quests, deduplicate
       const allQuests = [...(quests as any[]), ...((nsQuests || []) as any[])];
       const uniqueQuests = Array.from(new Map(allQuests.map(q => [q.id, q])).values());
 
-      // Determine which entity IDs are guilds vs companies
       const guildIdSet = new Set((guilds as any[]).map(g => g.id));
       const remainingEntityIds = entityIds.filter(id => !guildIdSet.has(id));
       
@@ -115,6 +112,8 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
       };
     },
   });
+
+  const { data: galaxy, isLoading: galaxyLoading } = useCoOccurringNaturalSystems(naturalSystemId);
 
   if (isLoading) {
     return (
@@ -129,7 +128,9 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
   const hasContent = data.profiles.length > 0 || data.guilds.length > 0 ||
     data.companies.length > 0 || data.quests.length > 0 || data.territories.length > 0;
 
-  if (!hasContent) {
+  const hasGalaxy = galaxy && galaxy.length > 0;
+
+  if (!hasContent && !hasGalaxy) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <Leaf className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -141,6 +142,47 @@ export function NsEcosystemTab({ naturalSystemId }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Galaxy – co-occurring natural systems */}
+      {hasGalaxy && (
+        <div className="space-y-3">
+          <h3 className="font-display text-sm font-semibold flex items-center gap-2">
+            <Orbit className="h-4 w-4 text-primary" /> Galaxy
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{galaxy!.length}</Badge>
+          </h3>
+          <p className="text-xs text-muted-foreground -mt-1">
+            Other natural systems present alongside this one (sharing territories, quests, or stewards).
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+            {galaxy!.map((ns) => (
+              <Link key={ns.id} to={`/natural-systems/${ns.id}`}>
+                <Card className="hover:bg-muted/50 transition-colors overflow-hidden">
+                  <CardContent className="p-3 flex items-center gap-3">
+                    {ns.picture_url ? (
+                      <img src={ns.picture_url} alt={ns.name} className="h-10 w-10 rounded-md object-cover shrink-0" />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center shrink-0">
+                        <Leaf className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{ns.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Badge variant="outline" className="text-[9px] py-0">
+                          {KINGDOM_LABELS[ns.kingdom as keyof typeof KINGDOM_LABELS] || ns.kingdom}
+                        </Badge>
+                        <span className="text-[9px] text-muted-foreground">
+                          {ns.shared_links_count} shared link{ns.shared_links_count > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Territories */}
       {data.territories.length > 0 && (
         <div className="space-y-2">

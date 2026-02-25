@@ -22,7 +22,12 @@ const SYSTEM_TYPE_ICONS: Record<string, React.ReactNode> = {
   mountain_slope: <Mountain className="h-3.5 w-3.5" />,
 };
 
-function NaturalSystemCard({ system }: { system: LinkedNaturalSystem }) {
+const CODEP_LABELS: Record<string, string> = {
+  member_user: "via member",
+  member_quest: "via quest membership",
+};
+
+function NaturalSystemCard({ system, codepSource }: { system: LinkedNaturalSystem; codepSource?: string }) {
   const navigate = useNavigate();
   const desc = system.description
     ? system.description.length > 120
@@ -62,6 +67,11 @@ function NaturalSystemCard({ system }: { system: LinkedNaturalSystem }) {
             {system.linked_via === "quest" && (
               <Badge className="text-[9px] bg-primary/10 text-primary border-0 py-0">
                 <Link2 className="h-2.5 w-2.5 mr-0.5" /> via quests
+              </Badge>
+            )}
+            {codepSource && codepSource !== "direct" && (
+              <Badge variant="outline" className="text-[9px] py-0 text-muted-foreground">
+                {CODEP_LABELS[codepSource] || codepSource}
               </Badge>
             )}
           </div>
@@ -111,7 +121,7 @@ export function LivingTab({ linkedType, linkedId, defaultTerritoryId }: LivingTa
       ) : systems && systems.length > 0 ? (
         <div className="grid gap-3 md:grid-cols-2">
           {systems.map((s) => (
-            <NaturalSystemCard key={s.id} system={s} />
+            <NaturalSystemCard key={s.id} system={s} codepSource={(s as any).codep_source} />
           ))}
         </div>
       ) : (
