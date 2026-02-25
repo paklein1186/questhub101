@@ -82,9 +82,12 @@ export function ExternalLinksPanel({ links, onLinksChange, canEdit }: ExternalLi
             >
               <a
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="flex items-center gap-3 flex-1 min-w-0"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const popup = window.open(link.url, "_blank", "noopener,noreferrer");
+                  if (!popup) window.location.assign(link.url);
+                }}
               >
                 {getLinkIcon(link.url)}
                 <div className="flex-1 min-w-0">
