@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link2, X, Save, Loader2, Shield, Building2, Plus } from "lucide-react";
+import { Link2, X, Loader2, Shield, Building2, Plus, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -20,6 +20,7 @@ interface Affiliation {
   id: string;
   entity_type: "GUILD" | "COMPANY";
   entity_id: string;
+  status: string;
   name: string;
   logo_url: string | null;
 }
@@ -38,19 +39,18 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_affiliations" as any)
-        .select("id, entity_type, entity_id")
+        .select("id, entity_type, entity_id, status")
         .eq("quest_id", questId);
       if (error) throw error;
       const rows = (data ?? []) as any[];
-      // Resolve names
       const results: Affiliation[] = [];
       for (const row of rows) {
         if (row.entity_type === "GUILD") {
           const { data: g } = await supabase.from("guilds").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
-          if (g) results.push({ id: row.id, entity_type: "GUILD", entity_id: g.id, name: g.name, logo_url: g.logo_url });
+          if (g) results.push({ id: row.id, entity_type: "GUILD", entity_id: g.id, status: row.status, name: g.name, logo_url: g.logo_url });
         } else {
           const { data: c } = await supabase.from("companies").select("id, name, logo_url").eq("id", row.entity_id).maybeSingle();
-          if (c) results.push({ id: row.id, entity_type: "COMPANY", entity_id: c.id, name: c.name, logo_url: c.logo_url });
+          if (c) results.push({ id: row.id, entity_type: "COMPANY", entity_id: c.id, status: row.status, name: c.name, logo_url: c.logo_url });
         }
       }
       return results;
@@ -101,15 +101,14 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
       entity_type: addEntityType,
       entity_id: addEntityId,
       created_by_user_id: currentUser.id,
+      status: "PENDING",
     } as any);
     if (error) {
-      toast({ title: "Error adding affiliation", description: error.message, variant: "destructive" });
+      toast({ title: "Error sending request", description: error.message, variant: "destructive" });
     } else {
-      // Also update legacy guild_id/company_id for backward compat (use first of each type)
-      await syncLegacyIds();
       qc.invalidateQueries({ queryKey: ["quest-affiliations", questId] });
       qc.invalidateQueries({ queryKey: ["quest", questId] });
-      toast({ title: "Affiliation added" });
+      toast({ title: "Affiliation request sent", description: "The entity admins will review your request." });
       setAddEntityId("");
     }
     setSaving(false);
@@ -129,19 +128,32 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
     setSaving(false);
   };
 
-  // Keep legacy guild_id/company_id in sync (first of each type, or null)
   const syncLegacyIds = async () => {
     const { data: allAffs } = await supabase
       .from("quest_affiliations" as any)
-      .select("entity_type, entity_id")
+      .select("entity_type, entity_id, status")
       .eq("quest_id", questId);
     const rows = (allAffs ?? []) as any[];
-    const firstGuild = rows.find(r => r.entity_type === "GUILD")?.entity_id || null;
-    const firstCompany = rows.find(r => r.entity_type === "COMPANY")?.entity_id || null;
+    const approved = rows.filter(r => r.status === "APPROVED");
+    const firstGuild = approved.find(r => r.entity_type === "GUILD")?.entity_id || null;
+    const firstCompany = approved.find(r => r.entity_type === "COMPANY")?.entity_id || null;
     await supabase.from("quests").update({
       guild_id: firstGuild,
       company_id: firstCompany,
     } as any).eq("id", questId);
+  };
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return <Badge variant="outline" className="text-[10px] gap-1 text-amber-600 border-amber-300"><Clock className="h-2.5 w-2.5" /> Pending</Badge>;
+      case "APPROVED":
+        return <Badge variant="outline" className="text-[10px] gap-1 text-emerald-600 border-emerald-300"><CheckCircle2 className="h-2.5 w-2.5" /> Approved</Badge>;
+      case "REJECTED":
+        return <Badge variant="outline" className="text-[10px] gap-1 text-destructive border-destructive/30"><XCircle className="h-2.5 w-2.5" /> Declined</Badge>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -152,7 +164,7 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
             <Link2 className="h-4 w-4 text-primary" /> Entity Affiliations
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Attach this quest to one or more Guilds or Organizations so it appears on their profile.
+            Request to attach this quest to Guilds or Organizations. Entity admins must approve the request.
           </p>
         </div>
 
@@ -176,9 +188,12 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">{aff.name}</p>
-                    <Badge variant="outline" className="text-[10px]">
-                      {aff.entity_type === "GUILD" ? "Guild" : "Organization"}
-                    </Badge>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <Badge variant="outline" className="text-[10px]">
+                        {aff.entity_type === "GUILD" ? "Guild" : "Organization"}
+                      </Badge>
+                      {statusBadge(aff.status)}
+                    </div>
                   </div>
                 </div>
                 <Button
@@ -197,7 +212,7 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
 
         {/* Add new affiliation */}
         <div className="space-y-3 pt-2 border-t border-border">
-          <p className="text-sm font-medium">Add affiliation</p>
+          <p className="text-sm font-medium">Request affiliation</p>
           <div className="flex gap-2">
             <Select value={addEntityType} onValueChange={(v) => { setAddEntityType(v as "GUILD" | "COMPANY"); setAddEntityId(""); }}>
               <SelectTrigger className="w-[140px]">
@@ -226,7 +241,7 @@ export function QuestAffiliationsTab({ questId, quest }: Props) {
           </div>
           <Button size="sm" onClick={addAffiliation} disabled={saving || !addEntityId}>
             {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Plus className="h-4 w-4 mr-1" />}
-            Add
+            Send request
           </Button>
         </div>
       </div>

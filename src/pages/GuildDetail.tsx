@@ -72,6 +72,7 @@ import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
+import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
 import { Leaf } from "lucide-react";
 
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
@@ -617,6 +618,7 @@ export default function GuildDetail() {
         </TabsContent>
 
         <TabsContent value="quests" className="mt-6 space-y-3">
+          <PendingAffiliationRequests entityType="GUILD" entityId={guild.id} isAdmin={isAdmin} />
           {isMember && (
             <div className="flex items-center gap-3 mb-3">
               <Button size="sm" asChild>
