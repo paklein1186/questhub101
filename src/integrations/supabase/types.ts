@@ -3197,6 +3197,41 @@ export type Database = {
           },
         ]
       }
+      natural_system_links: {
+        Row: {
+          created_at: string
+          id: string
+          linked_id: string
+          linked_type: Database["public"]["Enums"]["ns_link_type"]
+          linked_via: Database["public"]["Enums"]["ns_link_via"]
+          natural_system_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_id: string
+          linked_type: Database["public"]["Enums"]["ns_link_type"]
+          linked_via?: Database["public"]["Enums"]["ns_link_via"]
+          natural_system_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_id?: string
+          linked_type?: Database["public"]["Enums"]["ns_link_type"]
+          linked_via?: Database["public"]["Enums"]["ns_link_via"]
+          natural_system_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "natural_system_links_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       natural_systems: {
         Row: {
           created_at: string
@@ -3206,12 +3241,18 @@ export type Database = {
           health_index: number | null
           id: string
           is_deleted: boolean
+          kingdom: Database["public"]["Enums"]["natural_system_kingdom"]
+          location_text: string | null
           name: string
+          picture_url: string | null
           regenerative_potential: number | null
           resilience_index: number | null
           seasonal_cycle: Json | null
+          source_url: string | null
           stress_signals: Json | null
-          territory_id: string
+          system_type: Database["public"]["Enums"]["natural_system_type_v2"]
+          tags: string[] | null
+          territory_id: string | null
           type: Database["public"]["Enums"]["natural_system_type"]
           updated_at: string
         }
@@ -3223,12 +3264,18 @@ export type Database = {
           health_index?: number | null
           id?: string
           is_deleted?: boolean
+          kingdom?: Database["public"]["Enums"]["natural_system_kingdom"]
+          location_text?: string | null
           name: string
+          picture_url?: string | null
           regenerative_potential?: number | null
           resilience_index?: number | null
           seasonal_cycle?: Json | null
+          source_url?: string | null
           stress_signals?: Json | null
-          territory_id: string
+          system_type?: Database["public"]["Enums"]["natural_system_type_v2"]
+          tags?: string[] | null
+          territory_id?: string | null
           type?: Database["public"]["Enums"]["natural_system_type"]
           updated_at?: string
         }
@@ -3240,12 +3287,18 @@ export type Database = {
           health_index?: number | null
           id?: string
           is_deleted?: boolean
+          kingdom?: Database["public"]["Enums"]["natural_system_kingdom"]
+          location_text?: string | null
           name?: string
+          picture_url?: string | null
           regenerative_potential?: number | null
           resilience_index?: number | null
           seasonal_cycle?: Json | null
+          source_url?: string | null
           stress_signals?: Json | null
-          territory_id?: string
+          system_type?: Database["public"]["Enums"]["natural_system_type_v2"]
+          tags?: string[] | null
+          territory_id?: string | null
           type?: Database["public"]["Enums"]["natural_system_type"]
           updated_at?: string
         }
@@ -7209,6 +7262,22 @@ export type Database = {
         }[]
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      create_and_link_natural_system: {
+        Args: {
+          p_description?: string
+          p_kingdom: Database["public"]["Enums"]["natural_system_kingdom"]
+          p_linked_id?: string
+          p_linked_type?: Database["public"]["Enums"]["ns_link_type"]
+          p_location_text?: string
+          p_name: string
+          p_picture_url?: string
+          p_source_url?: string
+          p_system_type: Database["public"]["Enums"]["natural_system_type_v2"]
+          p_tags?: string[]
+          p_territory_id?: string
+        }
+        Returns: string
+      }
       create_eco_quest_otg_edges: {
         Args: { _quest_id: string }
         Returns: undefined
@@ -7237,6 +7306,31 @@ export type Database = {
         }[]
       }
       get_eco_config: { Args: never; Returns: Json }
+      get_linked_natural_systems: {
+        Args: {
+          p_linked_id: string
+          p_linked_type: Database["public"]["Enums"]["ns_link_type"]
+        }
+        Returns: {
+          created_at: string
+          description: string
+          health_index: number
+          id: string
+          kingdom: Database["public"]["Enums"]["natural_system_kingdom"]
+          link_created_at: string
+          linked_via: Database["public"]["Enums"]["ns_link_via"]
+          location_text: string
+          name: string
+          picture_url: string
+          regenerative_potential: number
+          resilience_index: number
+          source_url: string
+          system_type: Database["public"]["Enums"]["natural_system_type_v2"]
+          tags: string[]
+          territory_id: string
+          updated_at: string
+        }[]
+      }
       get_my_bookings: {
         Args: never
         Returns: {
@@ -7339,6 +7433,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      link_natural_system: {
+        Args: {
+          p_linked_id: string
+          p_linked_type: Database["public"]["Enums"]["ns_link_type"]
+          p_natural_system_id: string
+        }
+        Returns: undefined
+      }
       process_trust_renewal: {
         Args: { p_edge_id: string; p_user_id: string }
         Returns: Json
@@ -7431,6 +7533,12 @@ export type Database = {
         | "PERSONAL_ONLY_RITUALS"
         | "CUSTOM"
       monetization_type: "FREE" | "PAID" | "MIXED"
+      natural_system_kingdom:
+        | "plants"
+        | "animals"
+        | "fungi_lichens"
+        | "microorganisms"
+        | "multi_species_guild"
       natural_system_type:
         | "river"
         | "wetland"
@@ -7439,6 +7547,20 @@ export type Database = {
         | "pollinator_network"
         | "species_guild"
         | "other"
+      natural_system_type_v2:
+        | "river_watershed"
+        | "wetland_peatland"
+        | "forest_woodland"
+        | "soil_system_agroecosystem"
+        | "grassland_meadow"
+        | "urban_ecosystem"
+        | "mountain_slope"
+        | "coastline_estuary"
+        | "aquifer_spring"
+        | "climate_cell"
+        | "other"
+      ns_link_type: "user" | "entity" | "territory" | "quest"
+      ns_link_via: "quest" | "manual"
       pod_member_role: "HOST" | "MEMBER"
       pod_type: "QUEST_POD" | "STUDY_POD"
       quest_status:
@@ -7652,6 +7774,13 @@ export const Constants = {
         "CUSTOM",
       ],
       monetization_type: ["FREE", "PAID", "MIXED"],
+      natural_system_kingdom: [
+        "plants",
+        "animals",
+        "fungi_lichens",
+        "microorganisms",
+        "multi_species_guild",
+      ],
       natural_system_type: [
         "river",
         "wetland",
@@ -7661,6 +7790,21 @@ export const Constants = {
         "species_guild",
         "other",
       ],
+      natural_system_type_v2: [
+        "river_watershed",
+        "wetland_peatland",
+        "forest_woodland",
+        "soil_system_agroecosystem",
+        "grassland_meadow",
+        "urban_ecosystem",
+        "mountain_slope",
+        "coastline_estuary",
+        "aquifer_spring",
+        "climate_cell",
+        "other",
+      ],
+      ns_link_type: ["user", "entity", "territory", "quest"],
+      ns_link_via: ["quest", "manual"],
       pod_member_role: ["HOST", "MEMBER"],
       pod_type: ["QUEST_POD", "STUDY_POD"],
       quest_status: [
