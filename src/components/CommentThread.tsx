@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import ImageLightbox from "@/components/ImageLightbox";
-import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
+import { MentionTextarea, extractMentionIds, extractAllMentions, extractBulkMentions, renderMentions, type MentionedUser } from "@/components/MentionTextarea";
 import { renderPostContent } from "@/lib/renderPostContent";
 import { processMentions } from "@/lib/mentionNotifications";
 import { useNotifications, stripMentionTokens } from "@/hooks/useNotifications";
@@ -39,7 +39,16 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { checkRateLimit } = useRateLimit();
-  const { notifyComment, notifyUpvote } = useNotifications();
+  const { notifyComment, notifyUpvote, notifyBulkMention } = useNotifications();
+
+  // Derive entity context for @members/@followers
+  const entityContext = (() => {
+    const entityTypes = ["GUILD", "QUEST", "COMPANY", "POD"];
+    if (entityTypes.includes(targetType)) {
+      return { entityType: targetType, entityId: targetId };
+    }
+    return undefined;
+  })();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const queryKey = ["comments", targetType, targetId];
