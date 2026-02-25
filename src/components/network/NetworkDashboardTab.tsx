@@ -271,6 +271,7 @@ export default function NetworkDashboardTab() {
     return (
       <div className="space-y-8">
         <TrustRenewalWidget />
+        <IncomingBookings userId={currentUser.id} />
         <div className="text-center py-16 space-y-3">
           <Shield className="h-10 w-10 text-muted-foreground/40 mx-auto" />
           <p className="text-muted-foreground">You're not an admin of any entity yet.</p>
