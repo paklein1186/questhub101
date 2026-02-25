@@ -81,11 +81,12 @@ function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: bo
         .from("quests")
         .select("features_config")
         .eq("id", questId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return [];
 
-      const cfg = (data?.features_config as Record<string, unknown> | null) ?? {};
+      const cfg = (data.features_config as Record<string, unknown> | null) ?? {};
       const externalLinks = cfg.external_links;
 
       return Array.isArray(externalLinks) ? (externalLinks as ExternalLinkItem[]) : [];
@@ -102,15 +103,20 @@ function QuestExternalLinks({ questId, isOwner }: { questId: string; isOwner: bo
         .from("quests")
         .select("features_config")
         .eq("id", questId)
-        .single();
+        .maybeSingle();
       if (fetchErr) throw fetchErr;
+      if (!quest) throw new Error("Quest not found or access denied.");
 
-      const cfg = (quest?.features_config as Record<string, unknown> | null) ?? {};
-      const { error: updateErr } = await supabase
+      const cfg = (quest.features_config as Record<string, unknown> | null) ?? {};
+      const { data: updatedQuest, error: updateErr } = await supabase
         .from("quests")
         .update({ features_config: { ...cfg, external_links: newLinks } } as any)
-        .eq("id", questId);
+        .eq("id", questId)
+        .select("id")
+        .maybeSingle();
+
       if (updateErr) throw updateErr;
+      if (!updatedQuest) throw new Error("You don't have permission to update this quest.");
     } catch (error: any) {
       qc.setQueryData<ExternalLinkItem[]>(["quest-external-links", questId], previousLinks);
       toast({
