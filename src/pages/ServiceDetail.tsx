@@ -52,7 +52,7 @@ async function insertBookingNotification(params: {
   // Don't use .select().single() — RLS SELECT policy prevents reading other users'
   // notifications, which causes PostgREST to roll back the entire insert.
   // The DB trigger trg_send_notification_email handles email delivery automatically.
-  await supabase.from("notifications").insert({
+  const { error: notifErr } = await supabase.from("notifications").insert({
     user_id: params.recipientUserId,
     type: params.action === "requested" ? "BOOKING_REQUESTED" : params.action === "confirmed" || params.action === "accepted" ? "BOOKING_CONFIRMED" : params.action === "declined" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
     title: titleMap[params.action] || `Booking ${params.action}`,
@@ -62,6 +62,9 @@ async function insertBookingNotification(params: {
     deep_link_url: `/bookings/${params.bookingId}`,
     data: { bookingId: params.bookingId } as any,
   });
+  if (notifErr) {
+    console.error("[BOOKING-NOTIF] Failed to insert notification:", notifErr.message, notifErr.code, notifErr.details);
+  }
 }
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { computeLevelFromXp } from "@/lib/xpCreditsConfig";

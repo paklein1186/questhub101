@@ -33,7 +33,7 @@ interface Props {
   skipPostSignupNavigation?: boolean;
 }
 
-type Step = "goal" | "persona" | "interests" | "connect" | "signup";
+type Step = "goal" | "persona" | "interests" | "connect" | "signup" | "login";
 
 const STEPS_ORDER: Step[] = ["goal", "persona", "interests", "connect", "signup"];
 const QUICK_STEPS: Step[] = ["signup"];
@@ -101,7 +101,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     }
     onOpenChange(newOpen);
   }, [onOpenChange]);
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const { toast } = useToast();
 
   const activeSteps = quickSignup ? QUICK_STEPS : STEPS_ORDER;
@@ -137,6 +137,11 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [signingUp, setSigningUp] = useState(false);
+  // Login form
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const redirectParam = `?redirect=${encodeURIComponent(location.pathname + location.search)}`;
 
@@ -389,12 +394,29 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    if (!loginEmail.trim() || !loginPassword) return;
+    setLoggingIn(true);
+    const { error } = await signIn(loginEmail.trim(), loginPassword);
+    setLoggingIn(false);
+    if (error) {
+      setLoginError(error);
+      toast({ title: "Login failed", description: error, variant: "destructive" });
+    } else {
+      handleOpenChange(false);
+      toast({ title: "Welcome back!" });
+    }
+  };
+
   const canProceed =
     (step === "goal" && !!selectedGoal) ||
     (step === "persona" && !!selectedPersona) ||
     step === "interests" ||
     step === "connect" ||
-    step === "signup";
+    step === "signup" ||
+    step === "login";
 
   const motionProps = {
     initial: { opacity: 0, x: 30 },
@@ -802,8 +824,40 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
                 <p className="text-center text-xs text-muted-foreground mt-4">
                   Already have an account?{" "}
-                  <button onClick={() => { handleOpenChange(false); navigate(`/login${redirectParam}`); }} className="text-primary font-medium hover:underline">
+                  <button onClick={() => setStep("login")} className="text-primary font-medium hover:underline">
                     Log in
+                  </button>
+                </p>
+              </motion.div>
+            )}
+
+            {/* ─── Login Step ─── */}
+            {step === "login" && (
+              <motion.div key="login" {...motionProps} className="p-5">
+                <h2 className="font-display font-semibold text-base mb-1">Welcome back</h2>
+                <p className="text-xs text-muted-foreground mb-4">Log in to continue with your booking.</p>
+
+                <form onSubmit={handleLogin} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-email" className="text-xs">Email</Label>
+                    <Input id="login-email" type="email" value={loginEmail} onChange={(e) => { setLoginEmail(e.target.value); setLoginError(null); }} placeholder="you@example.com" required autoComplete="email" className={loginError ? "border-destructive" : ""} />
+                    {loginError && <p className="text-[11px] text-destructive">{loginError}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-pw" className="text-xs">Password</Label>
+                    <Input id="login-pw" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="Your password" required autoComplete="current-password" />
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loggingIn}>
+                    {loggingIn ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                    Log in
+                  </Button>
+                </form>
+
+                <p className="text-center text-xs text-muted-foreground mt-4">
+                  Don't have an account?{" "}
+                  <button onClick={() => setStep("signup")} className="text-primary font-medium hover:underline">
+                    Sign up
                   </button>
                 </p>
               </motion.div>
@@ -813,14 +867,18 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
 
         {/* Footer nav */}
         <div className="p-3 border-t flex items-center justify-between">
-          {stepIndex > 0 ? (
+          {stepIndex > 0 && step !== "login" ? (
             <Button variant="ghost" size="sm" onClick={goBack}>
+              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
+            </Button>
+          ) : step === "login" ? (
+            <Button variant="ghost" size="sm" onClick={() => setStep("signup")}>
               <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
             </Button>
           ) : (
             <div />
           )}
-          {step !== "signup" && (
+          {step !== "signup" && step !== "login" && (
             <Button size="sm" onClick={goNext} disabled={!canProceed}>
               {step === "connect" ? "Create account" : "Continue"} <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>

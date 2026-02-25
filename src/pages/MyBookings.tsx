@@ -40,7 +40,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
           const svc = booking.services as any;
           // Insert notification — don't use .select().single() as RLS SELECT
           // policy prevents reading other users' rows, causing rollback
-          await supabase.from("notifications").insert({
+          const { error: notifErr } = await supabase.from("notifications").insert({
             user_id: booking.requester_id,
             type: status === "ACCEPTED" || status === "CONFIRMED" ? "BOOKING_CONFIRMED" : status === "DECLINED" || status === "CANCELLED" ? "BOOKING_CANCELLED" : "BOOKING_UPDATED",
             title: status === "ACCEPTED" || status === "CONFIRMED" ? "Booking confirmed! ✅" : status === "DECLINED" ? "Booking declined" : status === "CANCELLED" ? "Booking cancelled" : `Booking ${status.toLowerCase()}`,
@@ -50,6 +50,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
             deep_link_url: `/bookings/${bookingId}`,
             data: { bookingId } as any,
           });
+          if (notifErr) console.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
           // Email is triggered automatically by DB trigger trg_send_notification_email
         }
       },
