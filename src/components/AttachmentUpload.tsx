@@ -246,7 +246,12 @@ export function AttachmentList({ targetType, targetId }: { targetType: Attachmen
                   <a
                     href={`/documents/${att.id}`}
                     className="truncate flex-1 font-medium hover:text-primary transition-colors"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const popup = window.open(`/documents/${att.id}`, "_blank", "noopener,noreferrer");
+                      if (!popup) window.location.assign(`/documents/${att.id}`);
+                    }}
                   >
                     {displayTitle}
                   </a>
