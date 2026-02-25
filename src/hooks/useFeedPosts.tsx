@@ -224,11 +224,12 @@ export function useCreatePost() {
 
           const entityConfig = ENTITY_MEMBER_TABLES[contextType];
           if (entityConfig && contextId) {
+            // Fetch all members with roles
             const { data: members } = await supabase
               .from(entityConfig.table as any)
-              .select("user_id")
+              .select("user_id, role")
               .eq(entityConfig.idCol, contextId)
-              .limit(200);
+              .limit(500);
 
             if (members && members.length > 0) {
               const { data: authorProfile } = await supabase
@@ -237,17 +238,81 @@ export function useCreatePost() {
                 .eq("user_id", authorUserId)
                 .single();
               const authorName = authorProfile?.name || "Someone";
-              const notifRows = (members as any[])
-                .filter((m: any) => m.user_id !== authorUserId)
-                .map((m: any) => ({
-                  user_id: m.user_id,
-                  type: "FOLLOWED_ENTITY_NEW_POST",
-                  title: "New post in your entity",
-                  body: `${authorName} published a new post`,
-                  related_entity_type: contextType.replace("_DISCUSSION", ""),
-                  related_entity_id: contextId,
-                  deep_link_url: `${entityConfig.deepPrefix}/${contextId}`,
-                }));
+
+              // If post is in a discussion room, filter by room audience
+              let eligibleMembers = (members as any[]).filter((m: any) => m.user_id !== authorUserId);
+
+              if (roomId) {
+                const { data: room } = await supabase
+                  .from("discussion_rooms")
+                  .select("audience_type, allowed_role_ids")
+                  .eq("id", roomId)
+                  .single();
+
+                if (room) {
+                  const audienceType = room.audience_type || "MEMBERS";
+                  const allowedRoleIds: string[] = (room.allowed_role_ids as string[]) || [];
+
+                  if (audienceType === "ADMINS_ONLY") {
+                    eligibleMembers = eligibleMembers.filter((m: any) =>
+                      ["ADMIN", "OWNER", "admin", "owner"].includes(m.role)
+                    );
+                  } else if (audienceType === "OPERATIONS_TEAM") {
+                    // Need to check entity_member_roles for "Operations" role
+                    const userIds = eligibleMembers.map((m: any) => m.user_id);
+                    const { data: roleAssignments } = await supabase
+                      .from("entity_member_roles")
+                      .select("user_id, entity_role_id, entity_roles(name)")
+                      .in("user_id", userIds);
+                    const opsUserIds = new Set(
+                      ((roleAssignments as any[]) || [])
+                        .filter((r: any) => r.entity_roles?.name?.toLowerCase() === "operations")
+                        .map((r: any) => r.user_id)
+                    );
+                    // Also include admins
+                    eligibleMembers = eligibleMembers.filter((m: any) =>
+                      opsUserIds.has(m.user_id) || ["ADMIN", "OWNER", "admin", "owner"].includes(m.role)
+                    );
+                  } else if (audienceType === "SELECTED_ROLES" && allowedRoleIds.length > 0) {
+                    const userIds = eligibleMembers.map((m: any) => m.user_id);
+                    const { data: roleAssignments } = await supabase
+                      .from("entity_member_roles")
+                      .select("user_id, entity_role_id")
+                      .in("user_id", userIds)
+                      .in("entity_role_id", allowedRoleIds);
+                    const allowedUserIds = new Set(
+                      ((roleAssignments as any[]) || []).map((r: any) => r.user_id)
+                    );
+                    // Also include admins
+                    eligibleMembers = eligibleMembers.filter((m: any) =>
+                      allowedUserIds.has(m.user_id) || ["ADMIN", "OWNER", "admin", "owner"].includes(m.role)
+                    );
+                  } else if (audienceType === "ACTIVE_ROLES") {
+                    const userIds = eligibleMembers.map((m: any) => m.user_id);
+                    const { data: roleAssignments } = await supabase
+                      .from("entity_member_roles")
+                      .select("user_id")
+                      .in("user_id", userIds);
+                    const usersWithRoles = new Set(
+                      ((roleAssignments as any[]) || []).map((r: any) => r.user_id)
+                    );
+                    eligibleMembers = eligibleMembers.filter((m: any) =>
+                      usersWithRoles.has(m.user_id) || ["ADMIN", "OWNER", "admin", "owner"].includes(m.role)
+                    );
+                  }
+                  // MEMBERS, FOLLOWERS, PUBLIC → all members get notified (default)
+                }
+              }
+
+              const notifRows = eligibleMembers.map((m: any) => ({
+                user_id: m.user_id,
+                type: "FOLLOWED_ENTITY_NEW_POST",
+                title: "New post in your entity",
+                body: `${authorName} published a new post`,
+                related_entity_type: contextType.replace("_DISCUSSION", ""),
+                related_entity_id: contextId,
+                deep_link_url: `${entityConfig.deepPrefix}/${contextId}`,
+              }));
               if (notifRows.length > 0) {
                 await supabase.from("notifications").insert(notifRows as any);
               }
