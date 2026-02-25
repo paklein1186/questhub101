@@ -97,20 +97,18 @@ export function WorkCalendarTab() {
     enabled: !!currentUser.id,
   });
 
-  // Sync DB prefs into local state once loaded
+  // Sync DB prefs into local state once loaded (DB is source of truth)
   useEffect(() => {
-    if (!dbSubcalPrefs || dbSubcalPrefs.length === 0) return;
+    if (!dbSubcalPrefs) return;
+    if (dbSubcalPrefs.length === 0) return;
+
     const dbHidden = new Set<string>();
     for (const p of dbSubcalPrefs) {
       if (!p.is_enabled) dbHidden.add(p.source_calendar_id);
     }
-    if (dbHidden.size > 0) {
-      setHiddenCalendars(prev => {
-        const merged = new Set([...prev, ...dbHidden]);
-        localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(merged)));
-        return merged;
-      });
-    }
+
+    setHiddenCalendars(dbHidden);
+    localStorage.setItem("ctg-hidden-calendars", JSON.stringify(Array.from(dbHidden)));
   }, [dbSubcalPrefs]);
 
   type ViewMode = "day" | "3day" | "week" | "month";
