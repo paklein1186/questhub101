@@ -244,6 +244,9 @@ interface NotificationStore {
   notifyPostUpvote: (params: { postId: string; postAuthorId: string; upvoterName: string }) => void;
   notifyJoinRequest: (params: { entityType: string; entityId: string; entityName: string; applicantName: string }) => void;
   notifyApplicationDecision: (params: { entityType: string; entityId: string; entityName: string; applicantUserId: string; decision: "APPROVED" | "REJECTED" }) => void;
+  notifyDecisionCreated: (params: { entityType: string; entityId: string; entityName: string; question: string; creatorUserId: string }) => void;
+  notifyRitualCreated: (params: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => void;
+  notifyBulkMention: (params: { mentionType: "members" | "followers"; entityType: string; entityId: string; authorUserId: string; authorName: string; snippet: string; targetType: string; targetId: string }) => void;
 }
 
 const NotificationContext = createContext<NotificationStore>(null!);
