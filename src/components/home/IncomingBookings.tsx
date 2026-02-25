@@ -73,7 +73,7 @@ export function IncomingBookings({ userId }: IncomingBookingsProps) {
             <Badge variant="default" className="text-[10px] px-1.5 py-0">{pending.length} pending</Badge>
           )}
         </h2>
-        <Link to="/bookings" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-0.5">
+        <Link to="/work?tab=bookings" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-0.5">
           View all <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
