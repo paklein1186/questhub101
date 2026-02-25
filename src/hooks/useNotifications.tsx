@@ -936,10 +936,3 @@ export function useNotifications() {
 
 // Re-export the snippet helper for use in CommentThread
 export { stripMentionTokens };
-
-export function useNotifications() {
-  return useContext(NotificationContext);
-}
-
-// Re-export the snippet helper for use in CommentThread
-export { stripMentionTokens };
