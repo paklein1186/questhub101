@@ -193,9 +193,6 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
             />
           );
         })()}
-        ) : (
-          <p className="text-muted-foreground">Join the guild to participate in decisions.</p>
-        )}
       </TabsContent>
       <TabsContent value="rituals" className="mt-4">
         {(fc as any).rituals ? (
