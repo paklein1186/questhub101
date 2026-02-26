@@ -795,7 +795,7 @@ serve(async (req) => {
       const { createdEntities: toUndo = [] } = body;
       const undone: any[] = [];
       for (const ent of toUndo) {
-        const table = ENTITY_TABLE[ent.type];
+        const table = ent.type === "discussion_room" ? "discussion_rooms" : ENTITY_TABLE[ent.type];
         if (!table) continue;
         try {
           // Try soft-delete first (is_deleted), fall back to hard delete
