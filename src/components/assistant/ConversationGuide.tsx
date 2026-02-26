@@ -48,6 +48,8 @@ export type ConversationGuideProps = {
   onSessionChange?: (sessionId: string) => void;
   className?: string;
   inline?: boolean;
+  /** When true, uses larger input/response areas (mobile overlay) */
+  expanded?: boolean;
 };
 
 // ---------- Helpers ----------
@@ -174,7 +176,7 @@ function ChatBody({
     <>
       {/* Messages */}
       <ScrollArea
-        className={`flex-1 px-3 py-2 ${hasMessages ? "min-h-[200px] max-h-[420px]" : "max-h-20"}`}
+        className={`flex-1 px-3 py-2 ${hasMessages ? "min-h-[200px]" : "max-h-20"}`}
         ref={scrollRef}
       >
         {!hasMessages && (
@@ -309,7 +311,7 @@ function ChatBody({
             }
           }}
           placeholder={hasPending ? "Confirm actions above first, or type to skip…" : "Describe what you need… (Enter to send)"}
-          className="min-h-[40px] max-h-24 text-sm resize-none flex-1"
+          className="min-h-[48px] max-h-32 text-sm resize-none flex-1"
           rows={1}
         />
         <div className="flex flex-col gap-1">
