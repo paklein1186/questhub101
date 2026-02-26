@@ -524,6 +524,7 @@ You have access to these abstract actions (the server will execute them):
 2) update_entity(type, id, fields) → updates an existing entity
 3) link_entities(from_type, from_id, relation, to_type, to_id) → connects two entities
 4) prefill_form(type, draft_id, fields) → pre-fills/creates a draft entity
+5) create_discussion_room(scope_type, scope_id, name, description?) → creates a discussion room in a guild or quest. scope_type is "GUILD" or "QUEST", scope_id is the entity id.
 
 Valid entity types: user, guild, quest, service, territory, event, living_system, post
 
@@ -691,12 +692,56 @@ async function postCreationHooks(sb: any, userId: string, entityType: string, en
     }
 
     if (entityType === "quest") {
-      // Add creator as OWNER participant
+      // 1. Add creator as OWNER participant
       await sb.from("quest_participants").insert({
         quest_id: entityId,
         user_id: userId,
         role: "OWNER",
         status: "ACTIVE",
+      });
+
+      // 2. Create default entity roles for quest
+      const questRoles = SUGGESTED_DEFAULT_ROLES.map((r) => ({
+        entity_type: "quest",
+        entity_id: entityId,
+        name: r.name,
+        color: r.color,
+        is_default: r.is_default,
+        sort_order: r.sort_order,
+      }));
+      await sb.from("entity_roles").insert(questRoles);
+
+      // 3. Assign "Source" role to the creator
+      const { data: questSourceRole } = await sb
+        .from("entity_roles")
+        .select("id")
+        .eq("entity_type", "quest")
+        .eq("entity_id", entityId)
+        .eq("name", "Source")
+        .eq("is_default", true)
+        .single();
+      if (questSourceRole) {
+        await sb.from("entity_member_roles").insert({
+          entity_role_id: questSourceRole.id,
+          user_id: userId,
+        });
+      }
+
+      // 4. Create default discussion room
+      await sb.from("discussion_rooms").insert({
+        scope_type: "QUEST",
+        scope_id: entityId,
+        name: "General",
+        description: "Default discussion room",
+        is_default: true,
+        created_by_user_id: userId,
+      });
+
+      // 5. Auto-follow
+      await sb.from("follows").insert({
+        follower_id: userId,
+        target_type: "QUEST",
+        target_id: entityId,
       });
     }
   } catch (e: any) {
