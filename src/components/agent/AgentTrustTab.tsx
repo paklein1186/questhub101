@@ -26,7 +26,7 @@ export default function AgentTrustTab({ agent }: Props) {
         .select("*")
         .eq("agent_id", agent.id)
         .maybeSingle();
-      return data;
+      return data as any;
     },
   });
 

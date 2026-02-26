@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare, CreditCard } from "lucide-react";
+import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare, CreditCard, Shield, Activity, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/lib/admin";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import AgentBillingTab from "@/components/agent/AgentBillingTab";
+import AgentOverviewTab from "@/components/agent/AgentOverviewTab";
+import AgentPermissionsTab from "@/components/agent/AgentPermissionsTab";
+import AgentActivityTab from "@/components/agent/AgentActivityTab";
+import AgentTrustTab from "@/components/agent/AgentTrustTab";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -61,9 +66,7 @@ type RelatedPage = { label: string; path: string; icon: React.ReactNode };
 function getContextualPages(messages: Msg[], agentCategory: string, agentSkills: string[]): RelatedPage[] {
   const allText = messages.map(m => m.content).join(" ").toLowerCase();
   const pages: RelatedPage[] = [];
-
   const kw = (words: string[]) => words.some(w => allText.includes(w));
-
   if (kw(["territoire", "territory", "région", "zone", "géograph", "local"])) {
     pages.push({ label: "Territoires", path: "/explore?tab=territories", icon: <Map className="h-3.5 w-3.5" /> });
   }
@@ -94,8 +97,6 @@ function getContextualPages(messages: Msg[], agentCategory: string, agentSkills:
   if (kw(["réseau", "network", "connexion", "carte"])) {
     pages.push({ label: "Réseau", path: "/network", icon: <Globe className="h-3.5 w-3.5" /> });
   }
-
-  // Deduplicate by path
   const seen = new Set<string>();
   return pages.filter(p => {
     if (seen.has(p.path)) return false;
@@ -109,6 +110,7 @@ export default function AgentDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { isAdmin } = useUserRoles(user?.id);
 
   const { data: agent, isLoading } = useQuery({
     queryKey: ["agent", id],
@@ -143,6 +145,8 @@ export default function AgentDetail() {
   });
 
   const isHired = !!hire;
+  const isOwner = !!user && agent?.creator_user_id === user.id;
+  const canManage = isOwner || isAdmin;
 
   if (isLoading) return <PageShell><Skeleton className="h-64" /></PageShell>;
   if (!agent) return <PageShell><p>Agent not found</p></PageShell>;
@@ -153,17 +157,36 @@ export default function AgentDetail() {
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
-      <Tabs defaultValue="chat" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="chat">Chat</TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="overview" className="flex items-center gap-1">
+            <Eye className="h-3.5 w-3.5" /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="flex items-center gap-1">
+            <MessageSquare className="h-3.5 w-3.5" /> Chat
+          </TabsTrigger>
+          {canManage && (
+            <TabsTrigger value="permissions" className="flex items-center gap-1">
+              <Shield className="h-3.5 w-3.5" /> Permissions
+            </TabsTrigger>
+          )}
           <TabsTrigger value="billing" className="flex items-center gap-1">
             <CreditCard className="h-3.5 w-3.5" /> Billing
           </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-1">
+            <Activity className="h-3.5 w-3.5" /> Activity
+          </TabsTrigger>
+          <TabsTrigger value="trust" className="flex items-center gap-1">
+            <Star className="h-3.5 w-3.5" /> Trust
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="overview">
+          <AgentOverviewTab agent={agent} isOwner={isOwner} isAdmin={isAdmin} />
+        </TabsContent>
 
         <TabsContent value="chat">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Agent info */}
             <div className="lg:col-span-1 space-y-4">
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-4">
@@ -187,9 +210,7 @@ export default function AgentDetail() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                   <Zap className="h-4 w-4" /> {agent.cost_per_use} credits per message
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {agent.usage_count} interactions
-                </div>
+                <div className="text-xs text-muted-foreground">{agent.usage_count} interactions</div>
               </Card>
 
               {!isHired && user && (
@@ -203,12 +224,9 @@ export default function AgentDetail() {
                   <CheckCircle className="h-4 w-4" /> You've hired this agent
                 </div>
               )}
-              {!user && (
-                <Button onClick={() => navigate("/login")} className="w-full">Log in to hire</Button>
-              )}
+              {!user && <Button onClick={() => navigate("/login")} className="w-full">Log in to hire</Button>}
             </div>
 
-            {/* Chat */}
             <div className="lg:col-span-2">
               {isHired ? (
                 <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
@@ -223,8 +241,22 @@ export default function AgentDetail() {
           </div>
         </TabsContent>
 
+        {canManage && (
+          <TabsContent value="permissions">
+            <AgentPermissionsTab agent={agent} />
+          </TabsContent>
+        )}
+
         <TabsContent value="billing">
           <AgentBillingTab agentId={agent.id} agentCreatorId={agent.creator_user_id} />
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <AgentActivityTab agentId={agent.id} />
+        </TabsContent>
+
+        <TabsContent value="trust">
+          <AgentTrustTab agent={agent} />
         </TabsContent>
       </Tabs>
     </PageShell>
@@ -383,7 +415,6 @@ function AgentChat({ agentId, agentName, costPerUse, userId, agentCategory, agen
       </div>
 
       <div className="border-t border-border">
-        {/* Contextual related pages */}
         {contextualPages.length > 0 && (
           <div className="px-4 pt-3 flex flex-wrap gap-1.5">
             <span className="text-[10px] text-muted-foreground mr-1 self-center">Explorer :</span>

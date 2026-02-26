@@ -78,7 +78,7 @@ export default function AgentPermissionsTab({ agent }: Props) {
         .select("total_score")
         .eq("agent_id", agent.id)
         .maybeSingle();
-      return data;
+      return data as any;
     },
   });
 
