@@ -137,8 +137,9 @@ function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig 
 }
 
 /** Clustered subtabs: Discussions, Docs, Decisions, Rituals */
-function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, currentMembership, members, territories, topics }: {
+function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, currentMembership, members, territories, topics, guildMembership }: {
   guild: any; fc: any; isAdmin: boolean; isMember: boolean; currentUser: any; currentMembership: any; members: any[]; territories: any[]; topics: any[];
+  guildMembership?: any;
 }) {
   const [sub, setSub] = useState("discussions");
   return (
@@ -172,16 +173,26 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
         )}
       </TabsContent>
       <TabsContent value="decisions" className="mt-4">
-        {isMember ? (
-          <GuildDecisions
-            guildId={guild.id}
-            isAdmin={isAdmin}
-            isMember={isMember}
-            currentUserId={currentUser.id}
-            memberCount={members.length}
-            currentUserRole={currentMembership?.role}
-            featuresConfig={fc}
-          />
+        {(() => {
+          const votingAllowed = isAdmin || canAccessGuildVoting(guild, guildMembership);
+          if (!votingAllowed && guild.enable_membership) {
+            return <p className="text-muted-foreground">Only members can access this governance view. Become a member from the Membership card.</p>;
+          }
+          if (!isMember) {
+            return <p className="text-muted-foreground">Join the guild to participate in decisions.</p>;
+          }
+          return (
+            <GuildDecisions
+              guildId={guild.id}
+              isAdmin={isAdmin}
+              isMember={isMember}
+              currentUserId={currentUser.id}
+              memberCount={members.length}
+              currentUserRole={currentMembership?.role}
+              featuresConfig={fc}
+            />
+          );
+        })()}
         ) : (
           <p className="text-muted-foreground">Join the guild to participate in decisions.</p>
         )}
