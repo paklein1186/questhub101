@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
@@ -47,6 +48,7 @@ interface AiSuggestion {
 }
 
 export default function QuestCreate() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { guildId, companyId } = useParams<{ guildId?: string; companyId?: string }>();
   const currentUser = useCurrentUser();

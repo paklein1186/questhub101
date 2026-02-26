@@ -1,4 +1,5 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
@@ -181,6 +182,7 @@ function QuestFollowersSection({ questId, participantUserIds }: { questId: strin
 }
 
 export default function QuestDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);

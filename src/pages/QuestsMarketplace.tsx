@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks, Target, HandCoins } from "lucide-react";
@@ -76,6 +77,7 @@ function CreateQuestButton() {
 }
 
 export default function QuestsMarketplace({ bare, statusFilter: externalStatusFilter }: { bare?: boolean; statusFilter?: string }) {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hideCompleted, setHideCompleted] = useState(true);
 
