@@ -204,97 +204,312 @@ async function executeLink(
 }
 
 // =====================================================================
-// Build context summary for the LLM
+// Build structured context summary for the LLM
 // =====================================================================
 async function buildContextSummary(
   sb: any,
   userId: string,
   contextType: string,
-  contextId: string | null
+  contextId: string | null,
+  sessionId: string | null
 ): Promise<string> {
-  const parts: string[] = [];
+  // ---------- [USER] ----------
+  const [profileRes, membershipsRes, userTerrsRes, userTopicsRes] = await Promise.all([
+    sb.from("profiles")
+      .select("user_id, name, bio, persona_type, headline, location, xp_level, preferred_language")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    sb.from("guild_members")
+      .select("guild_id, role, guilds(id, name)")
+      .eq("user_id", userId)
+      .limit(8),
+    sb.from("user_territories")
+      .select("territory_id, is_primary, territories(id, name, level)")
+      .eq("user_id", userId)
+      .limit(5),
+    sb.from("user_topics")
+      .select("topic_id, topics(id, name)")
+      .eq("user_id", userId)
+      .limit(10),
+  ]);
 
-  // User profile
-  const { data: profile } = await sb
-    .from("profiles")
-    .select("id, handle, display_name, persona, bio")
-    .eq("id", userId)
-    .single();
-  if (profile) {
-    parts.push(
-      `User: ${profile.display_name || profile.handle || userId} (persona: ${profile.persona || "unknown"})` +
-      (profile.bio ? ` – "${profile.bio.slice(0, 150)}"` : "")
-    );
-  }
+  const profile = profileRes.data;
+  const memberships = membershipsRes.data || [];
+  const userTerrs = userTerrsRes.data || [];
+  const userTopics = userTopicsRes.data || [];
 
-  // User's guilds
-  const { data: memberships } = await sb
-    .from("guild_members")
-    .select("guild_id, guilds(id, name)")
-    .eq("user_id", userId)
-    .limit(5);
-  if (memberships?.length) {
-    const guildNames = memberships.map((m: any) => m.guilds?.name).filter(Boolean);
-    if (guildNames.length) parts.push(`User's guilds: ${guildNames.join(", ")}`);
-  }
+  const userGuildsLine = memberships.length
+    ? memberships.map((m: any) => `${m.guilds?.name || "?"} (id: ${m.guild_id}, role: ${m.role})`).join("; ")
+    : "none";
 
-  // User's territories
-  const { data: userTerrs } = await sb
-    .from("user_territories")
-    .select("territory_id, territories(id, name)")
-    .eq("user_id", userId)
-    .limit(5);
-  if (userTerrs?.length) {
-    const terrNames = userTerrs.map((t: any) => t.territories?.name).filter(Boolean);
-    if (terrNames.length) parts.push(`User's territories: ${terrNames.join(", ")}`);
-  }
+  const userTerrLine = userTerrs.length
+    ? userTerrs.map((t: any) => `${t.territories?.name || "?"} (id: ${t.territory_id}${t.is_primary ? ", primary" : ""})`).join("; ")
+    : "none";
 
-  // Context entity
+  const skillsLine = userTopics.length
+    ? userTopics.map((t: any) => t.topics?.name).filter(Boolean).join(", ")
+    : "unknown";
+
+  const userSection = [
+    "[USER]",
+    `id: ${profile?.user_id || userId}`,
+    `name: ${profile?.name || "unknown"}`,
+    `persona: ${profile?.persona_type || "unknown"}`,
+    `headline: ${profile?.headline || "none"}`,
+    `location: ${profile?.location || "none"}`,
+    `xp_level: ${profile?.xp_level ?? 0}`,
+    `language: ${profile?.preferred_language || "en"}`,
+    `guilds: ${userGuildsLine}`,
+    `territories: ${userTerrLine}`,
+    `skills/topics: ${skillsLine}`,
+  ].join("\n");
+
+  // ---------- [CONTEXT] ----------
+  let contextSection = `[CONTEXT]\ntype: ${contextType}\nentity: none`;
+  let nearbySection = "";
+
   if (contextType === "guild" && contextId) {
-    const { data: g } = await sb.from("guilds").select("id, name, description").eq("id", contextId).single();
-    if (g) parts.push(`Current guild: "${g.name}" (id: ${g.id}) – ${(g.description || "").slice(0, 200)}`);
-  }
-  if (contextType === "quest" && contextId) {
-    const { data: q } = await sb
-      .from("quests")
-      .select("id, title, description, status, quest_type, guild_id, natural_system_id")
-      .eq("id", contextId)
-      .single();
-    if (q) {
-      parts.push(
-        `Current quest: "${q.title}" (id: ${q.id}, status: ${q.status}, type: ${q.quest_type})` +
-        (q.guild_id ? ` guild_id: ${q.guild_id}` : "") +
-        ` – ${(q.description || "").slice(0, 200)}`
-      );
+    const [guildRes, questsRes, servicesRes, eventsRes, guildTerrsRes] = await Promise.all([
+      sb.from("guilds").select("id, name, description").eq("id", contextId).maybeSingle(),
+      sb.from("quests")
+        .select("id, title, status, is_draft")
+        .eq("guild_id", contextId)
+        .eq("is_deleted", false)
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      sb.from("services")
+        .select("id, name, is_active")
+        .eq("guild_id", contextId)
+        .limit(5),
+      sb.from("guild_events")
+        .select("id, title, start_at, status")
+        .eq("guild_id", contextId)
+        .eq("is_cancelled", false)
+        .order("start_at", { ascending: false })
+        .limit(3),
+      sb.from("guild_territories")
+        .select("territory_id, territories(id, name)")
+        .eq("guild_id", contextId)
+        .limit(5),
+    ]);
+    const g = guildRes.data;
+    const quests = questsRes.data || [];
+    const services = servicesRes.data || [];
+    const events = eventsRes.data || [];
+    const gTerrs = guildTerrsRes.data || [];
+
+    if (g) {
+      contextSection = [
+        "[CONTEXT]",
+        "type: guild",
+        `entity: { id: ${g.id}, name: "${g.name}", description: "${(g.description || "").slice(0, 200)}" }`,
+        `territories: ${gTerrs.map((t: any) => `${t.territories?.name} (id: ${t.territory_id})`).join("; ") || "none"}`,
+      ].join("\n");
+
+      nearbySection = [
+        "[NEARBY]",
+        `quests_in_guild: ${fmtQuests(quests)}`,
+        `services_in_guild: ${services.map((s: any) => `${s.name} (id: ${s.id})`).join("; ") || "none"}`,
+        `events_in_guild: ${events.map((e: any) => `${e.title} (id: ${e.id}, ${e.start_at})`).join("; ") || "none"}`,
+      ].join("\n");
     }
   }
-  if (contextType === "territory" && contextId) {
-    const { data: t } = await sb.from("territories").select("id, name, description, level").eq("id", contextId).single();
-    if (t) parts.push(`Current territory: "${t.name}" (id: ${t.id}, level: ${t.level}) – ${(t.description || "").slice(0, 200)}`);
+
+  if (contextType === "quest" && contextId) {
+    const [questRes, participantsRes, affiliationsRes, questTerrsRes, nsLinkRes] = await Promise.all([
+      sb.from("quests")
+        .select("id, title, description, status, quest_type, guild_id, natural_system_id, is_draft, created_by_user_id")
+        .eq("id", contextId)
+        .maybeSingle(),
+      sb.from("quest_participants")
+        .select("id", { count: "exact", head: true })
+        .eq("quest_id", contextId),
+      sb.from("quest_affiliations")
+        .select("entity_id, entity_type, status")
+        .eq("quest_id", contextId)
+        .limit(5),
+      sb.from("quest_territories")
+        .select("territory_id, territories(id, name)")
+        .eq("quest_id", contextId)
+        .limit(5),
+      sb.from("natural_system_links")
+        .select("natural_system_id, natural_systems(id, name)")
+        .eq("linked_id", contextId)
+        .eq("linked_type", "quest")
+        .limit(5),
+    ]);
+    const q = questRes.data;
+    const partCount = participantsRes.count || 0;
+    const affiliations = affiliationsRes.data || [];
+    const qTerrs = questTerrsRes.data || [];
+    const nsLinks = nsLinkRes.data || [];
+
+    if (q) {
+      contextSection = [
+        "[CONTEXT]",
+        "type: quest",
+        `entity: { id: ${q.id}, title: "${q.title}", status: ${q.status}, quest_type: ${q.quest_type}, is_draft: ${q.is_draft}, guild_id: ${q.guild_id || "none"}, natural_system_id: ${q.natural_system_id || "none"} }`,
+        `description: "${(q.description || "").slice(0, 300)}"`,
+        `participants: ${partCount}`,
+        `territories: ${qTerrs.map((t: any) => `${t.territories?.name} (id: ${t.territory_id})`).join("; ") || "none"}`,
+        `affiliations: ${affiliations.map((a: any) => `${a.entity_type}(${a.entity_id}) status:${a.status}`).join("; ") || "none"}`,
+        `linked_living_systems: ${nsLinks.map((l: any) => `${l.natural_systems?.name} (id: ${l.natural_system_id})`).join("; ") || "none"}`,
+      ].join("\n");
+    }
   }
 
-  // Recent drafts in context
-  if (contextType === "quest" || contextType === "guild" || contextType === "global") {
-    const { data: drafts } = await sb
-      .from("quests")
-      .select("id, title, status")
+  if (contextType === "territory" && contextId) {
+    const [terrRes, guildsInTRes, questsInTRes, nsInTRes] = await Promise.all([
+      sb.from("territories")
+        .select("id, name, description, level, parent_id")
+        .eq("id", contextId)
+        .maybeSingle(),
+      sb.from("guild_territories")
+        .select("guild_id, guilds(id, name)")
+        .eq("territory_id", contextId)
+        .limit(5),
+      sb.from("quest_territories")
+        .select("quest_id, quests(id, title, status)")
+        .eq("territory_id", contextId)
+        .limit(5),
+      sb.from("natural_systems")
+        .select("id, name, type, system_type, kingdom")
+        .eq("territory_id", contextId)
+        .eq("is_deleted", false)
+        .limit(5),
+    ]);
+    const t = terrRes.data;
+    const guildsInT = guildsInTRes.data || [];
+    const questsInT = questsInTRes.data || [];
+    const nsInT = nsInTRes.data || [];
+
+    if (t) {
+      contextSection = [
+        "[CONTEXT]",
+        "type: territory",
+        `entity: { id: ${t.id}, name: "${t.name}", level: ${t.level}, parent_id: ${t.parent_id || "none"} }`,
+        `description: "${(t.description || "").slice(0, 200)}"`,
+      ].join("\n");
+
+      nearbySection = [
+        "[NEARBY]",
+        `guilds_in_territory: ${guildsInT.map((g: any) => `${g.guilds?.name} (id: ${g.guild_id})`).join("; ") || "none"}`,
+        `quests_in_territory: ${questsInT.map((q: any) => `${q.quests?.title} (id: ${q.quest_id}, status: ${q.quests?.status})`).join("; ") || "none"}`,
+        `living_systems_in_territory: ${nsInT.map((n: any) => `${n.name} (id: ${n.id}, kingdom: ${n.kingdom}, type: ${n.system_type || n.type})`).join("; ") || "none"}`,
+      ].join("\n");
+    }
+  }
+
+  if (contextType === "onboarding") {
+    contextSection = "[CONTEXT]\ntype: onboarding\nentity: none\nNote: User is going through onboarding. Help them define their profile, find guilds, and create their first quest.";
+  }
+
+  if (contextType === "global") {
+    contextSection = "[CONTEXT]\ntype: global\nentity: none";
+  }
+
+  // ---------- [DRAFTS] ----------
+  const draftQueries: Promise<any>[] = [];
+  // User's own drafts
+  draftQueries.push(
+    sb.from("quests")
+      .select("id, title, status, guild_id")
       .eq("created_by_user_id", userId)
       .eq("is_draft", true)
       .eq("is_deleted", false)
       .order("updated_at", { ascending: false })
-      .limit(3);
-    if (drafts?.length) {
-      parts.push("Recent draft quests: " + drafts.map((d: any) => `"${d.title}" (${d.id})`).join(", "));
+      .limit(5)
+  );
+
+  const [draftQuestsRes] = await Promise.all(draftQueries);
+  const draftQuests = draftQuestsRes.data || [];
+
+  const draftsSection = [
+    "[DRAFTS]",
+    `draft_quests: ${fmtQuests(draftQuests)}`,
+  ].join("\n");
+
+  // ---------- [ASSISTANT_HISTORY] ----------
+  let historySection = "[ASSISTANT_HISTORY]\nlast_actions: none";
+  if (sessionId) {
+    const { data: recentMsgs } = await sb
+      .from("assistant_messages")
+      .select("role, content")
+      .eq("session_id", sessionId)
+      .eq("role", "assistant")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (recentMsgs?.length) {
+      const lastContent = recentMsgs[0].content;
+      const acts = lastContent?.actions || lastContent?.actionsExecuted;
+      if (Array.isArray(acts) && acts.length) {
+        const short = acts
+          .filter((a: any) => a.success)
+          .map((a: any) => {
+            if (a.createdEntity) return `created ${a.createdEntity.type}(${a.createdEntity.id})`;
+            if (a.updatedEntity) return `updated ${a.updatedEntity.type}(${a.updatedEntity.id})`;
+            if (a.link) return `linked ${a.link.fromType}→${a.link.relation}→${a.link.toType}`;
+            return a.name;
+          })
+          .join("; ");
+        if (short) historySection = `[ASSISTANT_HISTORY]\nlast_actions: ${short}`;
+      }
     }
   }
 
-  return parts.join("\n") || "No additional context available.";
+  // ---------- Assemble ----------
+  return [userSection, "", contextSection, "", nearbySection, "", draftsSection, "", historySection]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function fmtQuests(qs: any[]): string {
+  return qs.length
+    ? qs.map((q: any) => `"${q.title}" (id: ${q.id}, status: ${q.status || "?"}${q.is_draft ? ", draft" : ""})`).join("; ")
+    : "none";
 }
 
 // =====================================================================
-// System prompt
+// System prompt with context-specific behavioral hints
 // =====================================================================
-function buildSystemPrompt(contextSummary: string): string {
+function buildSystemPrompt(contextSummary: string, contextType: string): string {
+  // Context-specific behavioral nudges
+  const contextHints: Record<string, string> = {
+    territory: `
+TERRITORY CONTEXT BEHAVIOR:
+- Strongly prefer creating quests + living_systems + events anchored in this territory.
+- When user describes an initiative, create a quest AND link it to the territory with anchored_in.
+- If natural ecosystems are mentioned (forests, rivers, wetlands, soil, agro-ecology), create or find a living_system and link it.
+- Look for existing guilds in the territory to affiliate quests with.
+- Suggest events when user describes gatherings, residencies, or meetings.`,
+    guild: `
+GUILD CONTEXT BEHAVIOR:
+- Prefer creating quests + services affiliated with this guild.
+- When user describes a project, create a quest and use belongs_to to link it to this guild.
+- If user describes offerings or skillshares, create a service.
+- Check if draft quests exist in this guild before creating new ones – prefer updating drafts.
+- Suggest rituals or events when user describes recurring activities.`,
+    quest: `
+QUEST CONTEXT BEHAVIOR:
+- Focus on REFINING the current quest rather than creating new quests.
+- Use update_entity to add description, dates, participants, territory links.
+- If user mentions guilds or companies, link them with belongs_to or partner_with.
+- If user mentions natural systems, link with involves_living_system.
+- Only create NEW entities if clearly needed (e.g. a linked event, a new living_system).`,
+    onboarding: `
+ONBOARDING CONTEXT BEHAVIOR:
+- Help user define their profile, interests, and territory.
+- Suggest guilds to join based on their interests.
+- Create a first draft quest if user describes a project or mission.
+- Keep actions minimal and focused on getting the user started.`,
+    global: `
+GLOBAL CONTEXT BEHAVIOR:
+- Act as a general guide – help route user to the right context.
+- Create entities as needed but always try to anchor them to territories and guilds.
+- If user mentions a specific guild, quest, or territory by name, use existing IDs from context.`,
+  };
+
   return `You are the CTG Conversational Guide.
 
 Goal:
@@ -332,8 +547,10 @@ IMPORTANT schema notes:
 - For territory links, use link_entities with anchored_in after creating the entity.
 - Include raw_input in fields when creating entities to preserve the user's original text.
 - For IDs of entities created in the same call, use placeholder "$last_<type>" (e.g. "$last_quest", "$last_guild") and the server will resolve them.
+- ALWAYS use actual UUIDs from the context summary when referencing existing entities.
+${contextHints[contextType] || ""}
 
-Current context:
+Here is the CTG context summary for this conversation:
 ${contextSummary}
 
 Your output MUST be valid JSON with no markdown fences:
@@ -345,13 +562,13 @@ Your output MUST be valid JSON with no markdown fences:
 }
 
 Rules:
-- Prefer EDIT or PREFILL an existing draft (from context) instead of creating duplicates.
+- Prefer EDIT or PREFILL an existing draft (from [DRAFTS] section) instead of creating duplicates.
 - Infer as many fields as you safely can (title, description, tags, territories, skills, dates).
 - Preserve the richness of the original user text by including it in a raw_input field inside fields when creating entities.
 - If a crucial field is missing, still create a draft entity (is_draft: true) and ask a short follow-up question.
 - Keep assistant_message short, practical, and focused on what was done and what is needed next.
 - If unsure whether to create or reuse, prefer reusing entities mentioned in the context.
-- When referencing IDs from the context summary, use the actual UUID provided.`;
+- Check [ASSISTANT_HISTORY] to avoid repeating the same actions.`;
 }
 
 // =====================================================================
@@ -502,8 +719,8 @@ serve(async (req) => {
     }));
 
     // --- Build context ---
-    const contextSummary = await buildContextSummary(sb, userId, contextType, contextId || null);
-    const systemPrompt = buildSystemPrompt(contextSummary);
+    const contextSummary = await buildContextSummary(sb, userId, contextType, contextId || null, effectiveSessionId);
+    const systemPrompt = buildSystemPrompt(contextSummary, contextType);
 
     // --- Call LLM ---
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
