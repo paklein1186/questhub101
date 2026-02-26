@@ -11,6 +11,7 @@ import { useTerritories } from "@/hooks/useSupabaseData";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 
 const CONTRACT_TYPES = [
   { value: "full-time", label: "Full-time" },
@@ -437,35 +438,12 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
             {/* Topics removed — jobs only use Territories */}
 
             {/* Territories */}
-            <div>
-              <label className="text-sm font-medium mb-1 block flex items-center gap-1">
-                <MapPin className="h-4 w-4" /> Territories {selectedTerritories.length > 0 && `(${selectedTerritories.length})`}
-              </label>
-              <Input
-                value={terrSearch}
-                onChange={e => setTerrSearch(e.target.value)}
-                placeholder="Search territories…"
-                className="mb-2 text-sm"
-              />
-              <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto rounded-lg border border-border p-2">
-                {(terrSearch.trim()
-                  ? allTerritories.filter((t: any) => t.name.toLowerCase().includes(terrSearch.toLowerCase()))
-                  : [
-                      ...allTerritories.filter((t: any) => selectedTerritories.includes(t.id)),
-                      ...allTerritories.filter((t: any) => !selectedTerritories.includes(t.id)),
-                    ]
-                ).map((t: any) => (
-                  <Badge
-                    key={t.id}
-                    variant={selectedTerritories.includes(t.id) ? "default" : "outline"}
-                    className="cursor-pointer text-xs"
-                    onClick={() => toggleTerritory(t.id)}
-                  >
-                    <MapPin className="h-3 w-3 mr-0.5" />{t.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Territories"
+              items={allTerritories.map((t: any) => ({ id: t.id, name: t.name }))}
+              selectedIds={selectedTerritories}
+              onToggle={toggleTerritory}
+            />
 
             <div className="flex gap-2">
               {!isEdit && <Button variant="outline" size="sm" onClick={() => setStep("file")}>Back</Button>}

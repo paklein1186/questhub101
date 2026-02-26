@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PageShell } from "@/components/PageShell";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -294,37 +295,25 @@ export default function CourseCreate() {
 
             <Separator />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Topics (Houses)</label>
-              <div className="flex items-center gap-2 mb-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTopics(topics.map((t) => t.id))}>Select all</Button>
-                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
-              </div>
-              <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                {topics.map((t) => (
-                  <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
-                    <span className="text-sm">{t.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Topics (Houses)"
+              items={topics.map((t) => ({ id: t.id, name: t.name }))}
+              selectedIds={selectedTopics}
+              onToggle={toggleTopic}
+              onSelectAll={() => setSelectedTopics(topics.map((t) => t.id))}
+              onClearAll={() => setSelectedTopics([])}
+              variant="checkboxes"
+            />
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Territories</label>
-              <div className="flex items-center gap-2 mb-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTerritories(territories.map((t) => t.id))}>Select all</Button>
-                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
-              </div>
-              <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                {territories.map((t) => (
-                  <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                    <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                    <span className="text-sm">{t.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Territories"
+              items={territories.map((t) => ({ id: t.id, name: t.name }))}
+              selectedIds={selectedTerritories}
+              onToggle={toggleTerritory}
+              onSelectAll={() => setSelectedTerritories(territories.map((t) => t.id))}
+              onClearAll={() => setSelectedTerritories([])}
+              variant="checkboxes"
+            />
 
             <Button onClick={handleSave} disabled={!title.trim()} className="w-full"><Save className="h-4 w-4 mr-2" /> Save course</Button>
           </div>

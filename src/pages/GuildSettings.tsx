@@ -34,6 +34,7 @@ import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
@@ -409,35 +410,27 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                   <Separator />
 
                   <Section title="Topics (Houses)" icon={<Hash className="h-5 w-5" />}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTopics(allTopics.map((t: any) => t.id))}>Select all</Button>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {allTopics.map((t: any) => (
-                        <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                          <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
-                          <span className="text-sm">{t.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
+                    <SearchableTagPicker
+                      label="Topics"
+                      items={allTopics.map((t: any) => ({ id: t.id, name: t.name }))}
+                      selectedIds={selectedTopics}
+                      onToggle={toggleTopic}
+                      onSelectAll={() => setSelectedTopics(allTopics.map((t: any) => t.id))}
+                      onClearAll={() => setSelectedTopics([])}
+                      variant="checkboxes"
+                    />
                   </Section>
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedTerritories(allTerritories.map((t: any) => t.id))}>Select all</Button>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
-                    </div>
-                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {allTerritories.map((t: any) => (
-                        <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                          <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({t.level?.toLowerCase()})</span></span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{selectedTerritories.length} selected</p>
+                    <SearchableTagPicker
+                      label="Territories"
+                      items={allTerritories.map((t: any) => ({ id: t.id, name: t.name, subtitle: t.level?.toLowerCase() }))}
+                      selectedIds={selectedTerritories}
+                      onToggle={toggleTerritory}
+                      onSelectAll={() => setSelectedTerritories(allTerritories.map((t: any) => t.id))}
+                      onClearAll={() => setSelectedTerritories([])}
+                      variant="checkboxes"
+                    />
                   </Section>
 
                   <Section title="Universe Visibility" icon={<Settings className="h-5 w-5" />}>

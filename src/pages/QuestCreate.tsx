@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -897,47 +898,25 @@ export default function QuestCreate() {
           />
 
           {(topics ?? []).length > 0 && (
-            <div>
-              <Label>Topics</Label>
-              <div className="flex items-center gap-2 mt-1 mb-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTopics((topics ?? []).map((t) => t.id))}>Select all</Button>
-                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTopics([])} disabled={selectedTopics.length === 0}>Clear all</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(topics ?? []).map((t) => (
-                  <Badge
-                    key={t.id}
-                    variant={selectedTopics.includes(t.id) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => toggleTopic(t.id)}
-                  >
-                    {t.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Topics"
+              items={(topics ?? []).map(t => ({ id: t.id, name: t.name }))}
+              selectedIds={selectedTopics}
+              onToggle={toggleTopic}
+              onSelectAll={() => setSelectedTopics((topics ?? []).map(t => t.id))}
+              onClearAll={() => setSelectedTopics([])}
+            />
           )}
 
           {(territories ?? []).length > 0 && (
-            <div>
-              <Label>Territories</Label>
-              <div className="flex items-center gap-2 mt-1 mb-2">
-                <Button variant="outline" size="sm" type="button" onClick={() => setSelectedTerritories((territories ?? []).map((t) => t.id))}>Select all</Button>
-                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTerritories([])} disabled={selectedTerritories.length === 0}>Clear all</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(territories ?? []).map((t) => (
-                  <Badge
-                    key={t.id}
-                    variant={selectedTerritories.includes(t.id) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => toggleTerritory(t.id)}
-                  >
-                    {t.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Territories"
+              items={(territories ?? []).map(t => ({ id: t.id, name: t.name }))}
+              selectedIds={selectedTerritories}
+              onToggle={toggleTerritory}
+              onSelectAll={() => setSelectedTerritories((territories ?? []).map(t => t.id))}
+              onClearAll={() => setSelectedTerritories([])}
+            />
           )}
 
           <div className="flex items-center gap-2">

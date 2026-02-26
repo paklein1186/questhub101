@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories, useCreateGuild, useCreatePod, useQuests } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { SUGGESTED_DEFAULT_ROLES } from "@/lib/permissions";
 import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums";
 import { normalizeUrl } from "@/components/SocialLinks";
@@ -619,44 +620,28 @@ Respond ONLY in this exact JSON format, no markdown:
                 <span>Pre-selected based on your website — adjust as needed.</span>
               </div>
             )}
-            <div>
-              <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
-                <Hash className="h-3.5 w-3.5" /> Topics
-              </label>
-              <p className="text-xs text-muted-foreground mb-2">{t("wizard.topicsAndTerritories")}</p>
-              <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                {topics.map(topic => {
-                  const isSelected = selectedTopicIds.includes(topic.id);
-                  const isSuggested = scrapedTopicIds.includes(topic.id);
-                  return (
-                    <label key={topic.id} className="flex items-center gap-1.5 cursor-pointer">
-                      <Checkbox checked={isSelected} onCheckedChange={() => toggleTopic(topic.id)} />
-                      <span className={cn("text-sm", isSuggested && "font-medium text-primary")}>{topic.name}</span>
-                      {isSuggested && <Sparkles className="h-3 w-3 text-primary" />}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" /> Territories
-              </label>
-              <p className="text-xs text-muted-foreground mb-2">{t("filters.territories")}</p>
-              <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-40 overflow-y-auto">
-                {territories.map(territory => {
-                  const isSelected = selectedTerritoryIds.includes(territory.id);
-                  const isSuggested = scrapedTerritoryIds.includes(territory.id);
-                  return (
-                    <label key={territory.id} className="flex items-center gap-1.5 cursor-pointer">
-                      <Checkbox checked={isSelected} onCheckedChange={() => toggleTerritory(territory.id)} />
-                      <span className={cn("text-sm", isSuggested && "font-medium text-primary")}>{territory.name}</span>
-                      {isSuggested && <Sparkles className="h-3 w-3 text-primary" />}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+            <SearchableTagPicker
+              label="Topics"
+              items={topics.map(topic => ({
+                id: topic.id,
+                name: topic.name,
+                suggested: scrapedTopicIds.includes(topic.id),
+              }))}
+              selectedIds={selectedTopicIds}
+              onToggle={toggleTopic}
+              variant="checkboxes"
+            />
+            <SearchableTagPicker
+              label="Territories"
+              items={territories.map(territory => ({
+                id: territory.id,
+                name: territory.name,
+                suggested: scrapedTerritoryIds.includes(territory.id),
+              }))}
+              selectedIds={selectedTerritoryIds}
+              onToggle={toggleTerritory}
+              variant="checkboxes"
+            />
           </div>
         );
 
