@@ -524,6 +524,7 @@ You have access to these abstract actions (the server will execute them):
 2) update_entity(type, id, fields) → updates an existing entity
 3) link_entities(from_type, from_id, relation, to_type, to_id) → connects two entities
 4) prefill_form(type, draft_id, fields) → pre-fills/creates a draft entity
+5) create_discussion_room(scope_type, scope_id, name, description?) → creates a discussion room in a guild or quest. scope_type is "GUILD" or "QUEST", scope_id is the entity id.
 
 Valid entity types: user, guild, quest, service, territory, event, living_system, post
 
@@ -691,12 +692,56 @@ async function postCreationHooks(sb: any, userId: string, entityType: string, en
     }
 
     if (entityType === "quest") {
-      // Add creator as OWNER participant
+      // 1. Add creator as OWNER participant
       await sb.from("quest_participants").insert({
         quest_id: entityId,
         user_id: userId,
         role: "OWNER",
         status: "ACTIVE",
+      });
+
+      // 2. Create default entity roles for quest
+      const questRoles = SUGGESTED_DEFAULT_ROLES.map((r) => ({
+        entity_type: "quest",
+        entity_id: entityId,
+        name: r.name,
+        color: r.color,
+        is_default: r.is_default,
+        sort_order: r.sort_order,
+      }));
+      await sb.from("entity_roles").insert(questRoles);
+
+      // 3. Assign "Source" role to the creator
+      const { data: questSourceRole } = await sb
+        .from("entity_roles")
+        .select("id")
+        .eq("entity_type", "quest")
+        .eq("entity_id", entityId)
+        .eq("name", "Source")
+        .eq("is_default", true)
+        .single();
+      if (questSourceRole) {
+        await sb.from("entity_member_roles").insert({
+          entity_role_id: questSourceRole.id,
+          user_id: userId,
+        });
+      }
+
+      // 4. Create default discussion room
+      await sb.from("discussion_rooms").insert({
+        scope_type: "QUEST",
+        scope_id: entityId,
+        name: "General",
+        description: "Default discussion room",
+        is_default: true,
+        created_by_user_id: userId,
+      });
+
+      // 5. Auto-follow
+      await sb.from("follows").insert({
+        follower_id: userId,
+        target_type: "QUEST",
+        target_id: entityId,
       });
     }
   } catch (e: any) {
@@ -750,7 +795,7 @@ serve(async (req) => {
       const { createdEntities: toUndo = [] } = body;
       const undone: any[] = [];
       for (const ent of toUndo) {
-        const table = ENTITY_TABLE[ent.type];
+        const table = ent.type === "discussion_room" ? "discussion_rooms" : ENTITY_TABLE[ent.type];
         if (!table) continue;
         try {
           // Try soft-delete first (is_deleted), fall back to hard delete
@@ -778,7 +823,7 @@ serve(async (req) => {
 
       // First pass: create/update
       for (const action of pendingActions) {
-        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity") continue;
+        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity" && action.name !== "create_discussion_room") continue;
         const result: any = { name: action.name, args: action.args, success: false };
         try {
           if (action.name === "create_entity" || action.name === "prefill_form") {
@@ -817,6 +862,47 @@ serve(async (req) => {
               const { error: updateErr } = await sb.from(table).update(fields).eq("id", entityId);
               if (updateErr) { result.error = updateErr.message; }
               else { result.success = true; result.updatedEntity = { type: entityType, id: entityId }; updatedEntities.push(result.updatedEntity); }
+            }
+          } else if (action.name === "create_discussion_room") {
+            const scopeType = action.args?.scope_type;
+            let scopeId = action.args?.scope_id;
+            const roomName = action.args?.name || "Discussion";
+            const roomDesc = action.args?.description || null;
+
+            // Resolve $last_ placeholders and context
+            if (typeof scopeId === "string" && scopeId.startsWith("$last_")) {
+              const t = scopeId.replace("$last_", "");
+              const match = createdEntities.find((e) => e.type === t);
+              if (match) scopeId = match.id;
+            }
+            if (!scopeId && contextId) scopeId = contextId;
+
+            if (!scopeType || !scopeId) { result.error = "Missing scope_type or scope_id"; }
+            else {
+              // Get max sort_order
+              const { data: existingRooms } = await sb.from("discussion_rooms")
+                .select("sort_order")
+                .eq("scope_type", scopeType)
+                .eq("scope_id", scopeId)
+                .order("sort_order", { ascending: false })
+                .limit(1);
+              const maxSort = existingRooms?.[0]?.sort_order ?? -1;
+
+              const { data: newRoom, error: roomErr } = await sb.from("discussion_rooms").insert({
+                scope_type: scopeType,
+                scope_id: scopeId,
+                name: roomName,
+                description: roomDesc,
+                is_default: false,
+                created_by_user_id: userId,
+                sort_order: maxSort + 1,
+              }).select("id").single();
+              if (roomErr) { result.error = roomErr.message; }
+              else {
+                result.success = true;
+                result.createdEntity = { type: "discussion_room", id: newRoom.id };
+                createdEntities.push(result.createdEntity);
+              }
             }
           }
         } catch (e: any) { result.error = e.message ?? String(e); }
