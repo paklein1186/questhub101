@@ -943,12 +943,39 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, []);
 
+  // ── Trigger: Notify followers of quest creator (no guild context) ──
+
+  const notifyFollowersQuestCreated = useCallback(async ({ questId, questTitle }: any) => {
+    try {
+      if (!userId) return;
+      const { data: followers } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("target_type", "USER")
+        .eq("target_id", userId);
+
+      for (const f of followers ?? []) {
+        if (f.follower_id === userId) continue;
+        await addNotification({
+          userId: f.follower_id, type: NotificationType.QUEST_CREATED,
+          title: "New quest from someone you follow",
+          body: `A new quest "${questTitle}" was created`,
+          relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
+          deepLinkUrl: `/quests/${questId}`,
+        });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyFollowersQuestCreated error:", err);
+    }
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
       preferences, updatePreferences,
       notifyComment, notifyUpvote, notifyQuestUpdate, notifyBooking,
       notifyGuildMemberAdded, notifyGuildRoleChanged, notifyGuildQuestCreated,
+      notifyFollowersQuestCreated,
       notifyPodInvite, notifyPodMessage, notifyNewFollower,
       notifyXpGained, notifyAchievement,
       notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
