@@ -398,7 +398,7 @@ export default function ConversationGuide({
       >
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span className="font-semibold text-sm">CTG Guide</span>
+          <span className="font-semibold text-sm">Pi</span>
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
             {CONTEXT_BADGES[contextType]}
           </Badge>
