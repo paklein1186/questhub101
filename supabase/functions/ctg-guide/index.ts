@@ -818,6 +818,9 @@ serve(async (req) => {
               result.success = true;
               result.createdEntity = { type: entityType, id: inserted.id };
               createdEntities.push(result.createdEntity);
+
+              // ── Post-creation hooks: make creator admin ──
+              await postCreationHooks(sb, userId, entityType, inserted.id);
             }
           }
         } else if (action.name === "update_entity") {
