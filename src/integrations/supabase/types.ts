@@ -7832,6 +7832,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      match_territory_with_datasets: {
+        Args: { p_territory_id: string }
+        Returns: {
+          dataset_granularity: string
+          dataset_id: string
+          dataset_source: string
+          dataset_title: string
+          match_level: string
+          matched_at_granularity: string
+        }[]
+      }
       process_give_back: {
         Args: {
           _amount_credits?: number
@@ -7906,6 +7917,10 @@ export type Database = {
           _target_id: string
           _target_type: string
         }
+        Returns: undefined
+      }
+      update_living_system_external_data: {
+        Args: { p_natural_system_id: string }
         Returns: undefined
       }
       upsert_stewardship_edge: {
