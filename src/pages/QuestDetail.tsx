@@ -39,6 +39,7 @@ import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCre
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { QuestProposals } from "@/components/quest/QuestProposals";
+import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
@@ -1198,12 +1199,17 @@ export default function QuestDetail() {
           />
         </TabsContent>
 
-        <TabsContent value="subtasks" className="mt-6">
+        <TabsContent value="subtasks" className="mt-6 space-y-6">
           <QuestSubtasks
             questId={quest.id}
             questOwnerId={quest.created_by_user_id}
             guildId={quest.guild_id}
             canManage={isOwner || isCollaborator}
+          />
+          <ContributionLogPanel
+            questId={quest.id}
+            questOwnerId={quest.created_by_user_id}
+            guildId={quest.guild_id}
           />
         </TabsContent>
 

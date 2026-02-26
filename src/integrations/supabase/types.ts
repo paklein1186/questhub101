@@ -1343,6 +1343,107 @@ export type Database = {
         }
         Relationships: []
       }
+      contribution_logs: {
+        Row: {
+          contribution_type: string
+          created_at: string
+          credits_earned: number
+          deliverable_url: string | null
+          description: string | null
+          guild_id: string | null
+          hours_logged: number | null
+          id: string
+          impact_signal: Json | null
+          ip_licence: string
+          quest_id: string | null
+          role: string | null
+          status: string
+          subtask_id: string | null
+          territory_id: string | null
+          title: string
+          trust_signal: Json | null
+          user_id: string
+          verified_at: string | null
+          verified_by_user_id: string | null
+          xp_earned: number
+        }
+        Insert: {
+          contribution_type?: string
+          created_at?: string
+          credits_earned?: number
+          deliverable_url?: string | null
+          description?: string | null
+          guild_id?: string | null
+          hours_logged?: number | null
+          id?: string
+          impact_signal?: Json | null
+          ip_licence?: string
+          quest_id?: string | null
+          role?: string | null
+          status?: string
+          subtask_id?: string | null
+          territory_id?: string | null
+          title: string
+          trust_signal?: Json | null
+          user_id: string
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+          xp_earned?: number
+        }
+        Update: {
+          contribution_type?: string
+          created_at?: string
+          credits_earned?: number
+          deliverable_url?: string | null
+          description?: string | null
+          guild_id?: string | null
+          hours_logged?: number | null
+          id?: string
+          impact_signal?: Json | null
+          ip_licence?: string
+          quest_id?: string | null
+          role?: string | null
+          status?: string
+          subtask_id?: string | null
+          territory_id?: string | null
+          title?: string
+          trust_signal?: Json | null
+          user_id?: string
+          verified_at?: string | null
+          verified_by_user_id?: string | null
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_logs_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_logs_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_logs_subtask_id_fkey"
+            columns: ["subtask_id"]
+            isOneToOne: false
+            referencedRelation: "quest_subtasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_logs_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -5095,7 +5196,10 @@ export type Database = {
       quest_subtasks: {
         Row: {
           assignee_user_id: string | null
+          completed_at: string | null
+          completed_by_user_id: string | null
           created_at: string
+          credit_reward: number | null
           description: string | null
           due_date: string | null
           id: string
@@ -5105,10 +5209,14 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          xp_reward: number | null
         }
         Insert: {
           assignee_user_id?: string | null
+          completed_at?: string | null
+          completed_by_user_id?: string | null
           created_at?: string
+          credit_reward?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -5118,10 +5226,14 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          xp_reward?: number | null
         }
         Update: {
           assignee_user_id?: string | null
+          completed_at?: string | null
+          completed_by_user_id?: string | null
           created_at?: string
+          credit_reward?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -5131,6 +5243,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          xp_reward?: number | null
         }
         Relationships: [
           {

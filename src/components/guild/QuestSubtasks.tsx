@@ -3,13 +3,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -32,6 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
 export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { grantXp, grantCredits } = useXpCredits();
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -100,7 +103,31 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     updateStatus(subtaskId, "DONE");
     setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     pendingTimers.current.delete(subtaskId);
-  }, [questId]);
+
+    // Grant XP and credits to the assignee
+    const subtask = subtasks.find((s: any) => s.id === subtaskId);
+    const assigneeId = subtask?.assignee_user_id || currentUser.id;
+    if (assigneeId) {
+      grantXp(assigneeId, {
+        type: XP_EVENT_TYPES.SUBTASK_COMPLETED,
+        relatedEntityType: "quest_subtask",
+        relatedEntityId: subtaskId,
+      }, true);
+
+      const creditReward = subtask?.credit_reward ?? 0;
+      if (creditReward > 0) {
+        grantCredits(assigneeId, {
+          type: CREDIT_TX_TYPES.QUEST_REWARD_EARNED,
+          amount: creditReward,
+          source: `Subtask: ${subtask?.title}`,
+          relatedEntityType: "quest_subtask",
+          relatedEntityId: subtaskId,
+        }, true);
+      }
+    }
+    // Invalidate contribution logs
+    qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc]);
 
   const undoSubtaskDone = useCallback((subtaskId: string) => {
     const timer = pendingTimers.current.get(subtaskId);
@@ -135,6 +162,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
 
   const updateSubtaskPriority = async (subtaskId: string, priority: Priority) => {
     await supabase.from("quest_subtasks" as any).update({ priority } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+  };
+
+  const updateSubtaskCredits = async (subtaskId: string, credits: number) => {
+    await supabase.from("quest_subtasks" as any).update({ credit_reward: credits } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
@@ -260,6 +292,24 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
                 <AvatarFallback className="text-[10px]">{subtask.assignee.name?.[0]}</AvatarFallback>
               </Avatar>
             )}
+            {/* Credit reward indicator */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5">
+                <Coins className="h-3 w-3 text-amber-500" />
+                <Input
+                  type="number"
+                  min="0"
+                  value={subtask.credit_reward ?? 0}
+                  onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="Credit reward for completing this subtask"
+                />
+              </div>
+            ) : (subtask.credit_reward ?? 0) > 0 ? (
+              <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
+                <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
+              </Badge>
+            ) : null}
             {canManage && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
