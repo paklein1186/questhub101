@@ -54,6 +54,9 @@ export const XP_EVENT_TYPES = {
   // Enrollment / registration
   EVENT_REGISTERED: "EVENT_REGISTERED",
   COURSE_ENROLLED: "COURSE_ENROLLED",
+  // Subtask / contribution
+  SUBTASK_COMPLETED: "SUBTASK_COMPLETED",
+  CONTRIBUTION_LOGGED: "CONTRIBUTION_LOGGED",
   // Admin
   ADJUSTMENT: "ADJUSTMENT",
 } as const;
@@ -103,6 +106,9 @@ export const XP_REWARDS: Record<string, number> = {
   // Enrollment / registration
   [XP_EVENT_TYPES.EVENT_REGISTERED]: 1,
   [XP_EVENT_TYPES.COURSE_ENROLLED]: 2,
+  // Subtask / contribution
+  [XP_EVENT_TYPES.SUBTASK_COMPLETED]: 5,
+  [XP_EVENT_TYPES.CONTRIBUTION_LOGGED]: 2,
 };
 
 /** Daily cap for COMMENT_UPVOTED XP (max XP from this type per user per day) */
