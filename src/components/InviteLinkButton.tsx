@@ -27,8 +27,8 @@ export function InviteLinkButton({ entityType, entityId, entityName, excludeUser
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+  const currentUser = useCurrentUser();
   const { toast } = useToast();
-  const { user } = useCurrentUser();
 
   const inviteUrl = getInviteUrl(entityType as ShareEntityType, entityId);
 
