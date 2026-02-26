@@ -95,6 +95,20 @@ export function AddTerritoryDialog({ onCreated }: Props) {
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Granularity</label>
+            <Select value={granularity} onValueChange={setGranularity}>
+              <SelectTrigger><SelectValue placeholder="Auto-detect" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TerritorialGranularity.DISTRICT_OR_COMMUNE}>District / Commune</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS3}>NUTS3</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS2}>NUTS2</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS1}>NUTS1</SelectItem>
+                <SelectItem value={TerritorialGranularity.COUNTRY}>Country</SelectItem>
+                <SelectItem value={TerritorialGranularity.CUSTOM_PERIMETER}>Custom Perimeter</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button onClick={handleSubmit} disabled={!name.trim()} className="w-full">
             Create Territory
           </Button>
