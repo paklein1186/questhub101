@@ -72,11 +72,11 @@ export function TransferCreditsDialog({
   const handleTransfer = async () => {
     const amt = parseInt(amount);
     if (!amt || amt < 1) {
-      toast({ title: "Invalid amount", description: "Enter at least 1 credit.", variant: "destructive" });
+      toast({ title: "Invalid amount", description: "Enter at least 1 Platform Credit.", variant: "destructive" });
       return;
     }
     if (amt > currentBalance) {
-      toast({ title: "Insufficient credits", description: `You only have ${currentBalance} credits.`, variant: "destructive" });
+      toast({ title: "Insufficient Platform Credits", description: `You only have ${currentBalance} Platform Credits.`, variant: "destructive" });
       return;
     }
 
@@ -97,7 +97,7 @@ export function TransferCreditsDialog({
       });
       if (error) throw error;
 
-      toast({ title: "Transfer complete", description: `${amt} credits sent successfully.` });
+      toast({ title: "Transfer complete", description: `${amt} Platform Credits sent successfully.` });
       queryClient.invalidateQueries({ queryKey: ["credit-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["unit-credit-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["credits-balance"] });
@@ -118,9 +118,9 @@ export function TransferCreditsDialog({
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+           <DialogTitle className="flex items-center gap-2">
             <Send className="h-5 w-5" />
-            Transfer Credits
+            🔷 Transfer Platform Credits
           </DialogTitle>
         </DialogHeader>
 
@@ -199,7 +199,7 @@ export function TransferCreditsDialog({
               max={currentBalance}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter credit amount"
+              placeholder="Enter Platform Credit amount"
             />
           </div>
 
@@ -222,7 +222,7 @@ export function TransferCreditsDialog({
           </Button>
           <Button onClick={handleTransfer} disabled={sending || !amount}>
             {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-            Send {amount ? `${amount} credits` : ""}
+            Send {amount ? `${amount} Platform Credits` : ""}
           </Button>
         </DialogFooter>
       </DialogContent>

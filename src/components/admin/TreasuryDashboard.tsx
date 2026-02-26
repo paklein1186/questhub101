@@ -92,7 +92,7 @@ export function TreasuryDashboard() {
               <StatCard icon={Coins} label="GMV (30d)" value={`€${(econStats?.gmv ?? 0).toLocaleString()}`} color="text-primary" />
               <StatCard icon={TrendingUp} label="Commission Rev." value={`€${(econStats?.commissionRevenue ?? 0).toLocaleString()}`} color="text-emerald-500" />
               <StatCard icon={Users} label="Active Holders" value={String(econStats?.activeHolders ?? 0)} color="text-blue-500" />
-              <StatCard icon={Zap} label="Credit Velocity" value={`${econStats?.velocity ?? 0}%`} color="text-amber-500" />
+              <StatCard icon={Zap} label="Platform Credit Velocity" value={`${econStats?.velocity ?? 0}%`} color="text-amber-500" />
             </>
           )}
         </div>
@@ -101,16 +101,16 @@ export function TreasuryDashboard() {
       {/* Credit Circulation */}
       <div>
         <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3">
-          <Recycle className="h-5 w-5 text-primary" /> Credit Circulation (30d)
+          <Recycle className="h-5 w-5 text-blue-500" /> 🔷 Platform Credit Circulation (30d)
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)
           ) : (
             <>
-              <StatCard icon={Coins} label="Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
-              <StatCard icon={Coins} label="Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
-              <StatCard icon={Recycle} label="Credits Faded" value={String(econStats?.monthlyFaded ?? 0)} color="text-rose-500" />
+              <StatCard icon={Coins} label="Platform Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
+              <StatCard icon={Coins} label="Platform Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
+              <StatCard icon={Recycle} label="Platform Credits Faded" value={String(econStats?.monthlyFaded ?? 0)} color="text-rose-500" />
             </>
           )}
         </div>
@@ -125,7 +125,7 @@ export function TreasuryDashboard() {
           <CardContent className="p-6 text-center">
             <p className="text-xs text-muted-foreground mb-1">Total Treasury Balance</p>
             <p className="text-3xl font-bold">{loadingSettings ? "…" : treasuryBalance.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground mt-1">credits (from demurrage redistribution)</p>
+            <p className="text-xs text-muted-foreground mt-1">Platform Credits (from demurrage redistribution)</p>
           </CardContent>
         </Card>
 

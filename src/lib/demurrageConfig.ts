@@ -47,12 +47,21 @@ export const ECONOMY_LAYERS = [
   },
   {
     key: "credits",
-    label: "Credits",
-    purpose: "Collaboration fuel",
+    label: "🔷 Platform Credits",
+    purpose: "Feature fuel & gamification",
     icon: "Coins",
     convertible: false,
     description:
-      "Non-convertible internal coordination units earned through contribution. Cannot be exchanged or withdrawn. Gently fade by 1% per month to encourage circulation.",
+      "Non-monetary platform utility credits for quotas, boosts, and gamification. Cannot be exchanged, withdrawn, or used for quest payouts. Gently fade by 1% per month to encourage circulation.",
+  },
+  {
+    key: "gameb",
+    label: "🟩 GameB Tokens",
+    purpose: "Fiat-backed mission value",
+    icon: "Leaf",
+    convertible: true,
+    description:
+      "Internal accounting units backed by real fiat. Earned from funded quests, used for redistribution and contributor payouts. Withdrawable to fiat via Stripe Connect.",
   },
   {
     key: "xp",

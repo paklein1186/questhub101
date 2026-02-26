@@ -28,12 +28,12 @@ export function EconomyDashboard() {
   });
 
   const items = [
-    { icon: Coins, label: "Credits in Circulation", value: stats?.total_credits_in_circulation ?? 0, color: "text-primary" },
+    { icon: Coins, label: "🔷 Platform Credits in Circulation", value: stats?.total_credits_in_circulation ?? 0, color: "text-blue-500" },
     { icon: Building2, label: "Treasury Balance", value: stats?.treasury_balance ?? 0, color: "text-amber-500" },
     { icon: Recycle, label: "Redistributed This Month", value: stats?.monthly_faded ?? 0, color: "text-emerald-500" },
     { icon: TrendingUp, label: "Minted This Month", value: stats?.monthly_minted ?? 0, color: "text-blue-500" },
     { icon: Zap, label: "Total Lifetime Redistributed", value: stats?.total_lifetime_faded ?? 0, color: "text-orange-500" },
-    { icon: Users, label: "Active Credit Holders", value: stats?.active_holders ?? 0, color: "text-violet-500" },
+    { icon: Users, label: "Active Holders", value: stats?.active_holders ?? 0, color: "text-violet-500" },
   ];
 
   if (isLoading) {
