@@ -60,6 +60,7 @@ const TABS = [
   { key: "features", label: "Features", icon: Puzzle },
   { key: "governance", label: "Governance", icon: Vote },
   { key: "membership", label: "Membership Policy", icon: ClipboardList },
+  { key: "membership-contributions", label: "Membership & Contributions", icon: Users },
   { key: "applications", label: "Applications", icon: Users },
   { key: "members", label: "Members & Roles", icon: Users },
   { key: "roles", label: "Custom Roles", icon: Tag },
@@ -620,6 +621,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     toast({ title: "Membership policy saved!" });
                   }}
                 />
+              )}
+
+              {/* ── Membership & Contributions ── */}
+              {activeTab === "membership-contributions" && (
+                <GuildMembershipSettingsPanel guild={guild} guildId={guildId} />
               )}
 
               {/* ── Applications ── */}
