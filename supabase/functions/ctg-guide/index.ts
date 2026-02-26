@@ -14,21 +14,36 @@ function jsonRes(body: unknown, status = 200) {
   });
 }
 
-// ---------- Entity-type → table mapping ----------
+// =====================================================================
+// Entity-type → table mapping (matches actual DB schema)
+// =====================================================================
 const ENTITY_TABLE: Record<string, string> = {
   guild: "guilds",
   quest: "quests",
   service: "services",
   territory: "territories",
-  event: "events",
+  event: "guild_events",        // events live in guild_events
   living_system: "natural_systems",
-  post: "posts",
+  post: "feed_posts",           // posts live in feed_posts
   user: "profiles",
 };
 
-// ---------- Relation executor ----------
+// Creator-column per entity type
+const CREATOR_COLUMN: Record<string, string> = {
+  guild: "created_by_user_id",
+  quest: "created_by_user_id",
+  service: "provider_user_id",
+  event: "created_by_user_id",
+  living_system: "created_by_user_id",
+  post: "author_user_id",
+};
+
+// =====================================================================
+// Relation executor – maps abstract relations to real DB operations
+// =====================================================================
 async function executeLink(
   sb: any,
+  userId: string,
   fromType: string,
   fromId: string,
   relation: string,
@@ -36,52 +51,161 @@ async function executeLink(
   toId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // quest → guild  (belongs_to)
+    // ----- belongs_to -----
+
+    // quest belongs_to guild → quest_affiliations (approval-based)
     if (fromType === "quest" && toType === "guild" && relation === "belongs_to") {
-      const { error } = await sb.from("quests").update({ guild_id: toId }).eq("id", fromId);
+      await sb.from("quest_affiliations").insert({
+        quest_id: fromId,
+        entity_id: toId,
+        entity_type: "guild",
+        created_by_user_id: userId,
+        status: "PENDING",
+      });
+      return { success: true };
+    }
+
+    // quest belongs_to company → quest_affiliations
+    if (fromType === "quest" && toType === "company" && relation === "belongs_to") {
+      await sb.from("quest_affiliations").insert({
+        quest_id: fromId,
+        entity_id: toId,
+        entity_type: "company",
+        created_by_user_id: userId,
+        status: "PENDING",
+      });
+      return { success: true };
+    }
+
+    // service belongs_to guild → services.guild_id
+    if (fromType === "service" && toType === "guild" && relation === "belongs_to") {
+      const { error } = await sb.from("services").update({ guild_id: toId }).eq("id", fromId);
       if (error) throw error;
       return { success: true };
     }
-    // quest → territory (anchored_in)
-    if (fromType === "quest" && toType === "territory" && relation === "anchored_in") {
-      const { error } = await sb.from("quest_territories").upsert(
-        { quest_id: fromId, territory_id: toId },
-        { onConflict: "quest_id,territory_id" }
-      );
+
+    // event belongs_to guild → guild_events already requires guild_id at insert
+    // (handled at create_entity time, not here)
+
+    // ----- anchored_in (territory links) -----
+
+    if (relation === "anchored_in" && toType === "territory") {
+      // quest → quest_territories join table
+      if (fromType === "quest") {
+        await sb.from("quest_territories").upsert(
+          { quest_id: fromId, territory_id: toId },
+          { onConflict: "quest_id,territory_id" }
+        );
+        return { success: true };
+      }
+      // guild → guild_territories join table
+      if (fromType === "guild") {
+        await sb.from("guild_territories").upsert(
+          { guild_id: fromId, territory_id: toId },
+          { onConflict: "guild_id,territory_id" }
+        );
+        return { success: true };
+      }
+      // living_system → natural_systems.territory_id column
+      if (fromType === "living_system") {
+        const { error } = await sb.from("natural_systems").update({ territory_id: toId }).eq("id", fromId);
+        if (error) throw error;
+        return { success: true };
+      }
+      // service → service has no territory FK; skip gracefully
+      return { success: true };
+    }
+
+    // ----- member_of -----
+
+    if (relation === "member_of" && fromType === "user" && toType === "guild") {
+      await sb.from("guild_members").insert({
+        user_id: fromId,
+        guild_id: toId,
+        role: "MEMBER",
+      });
+      return { success: true };
+    }
+
+    // ----- follows -----
+
+    if (relation === "follows" && fromType === "user") {
+      await sb.from("follows").insert({
+        follower_id: fromId,
+        target_type: toType,
+        target_id: toId,
+      });
+      return { success: true };
+    }
+
+    // ----- involves_living_system -----
+
+    if (relation === "involves_living_system" && toType === "living_system") {
+      // natural_system_links table – polymorphic link
+      const linkTypeMap: Record<string, string> = {
+        quest: "quest",
+        territory: "territory",
+        user: "user",
+        guild: "entity",
+        service: "entity",
+      };
+      const linkedType = linkTypeMap[fromType] || "entity";
+      await sb.from("natural_system_links").insert({
+        natural_system_id: toId,
+        linked_id: fromId,
+        linked_type: linkedType,
+        linked_via: "ctg-guide",
+      });
+      return { success: true };
+    }
+
+    // Also support the reverse direction: quest → natural_system_id direct FK
+    if (relation === "involves_living_system" && fromType === "quest" && toType === "living_system") {
+      const { error } = await sb.from("quests").update({ natural_system_id: toId }).eq("id", fromId);
       if (error) throw error;
       return { success: true };
     }
-    // quest → living_system
-    if (fromType === "quest" && toType === "living_system" && relation === "involves_living_system") {
-      const { error } = await sb.from("quest_natural_systems").upsert(
-        { quest_id: fromId, natural_system_id: toId },
-        { onConflict: "quest_id,natural_system_id" }
-      );
-      if (error) throw error;
-      return { success: true };
-    }
-    // quest → guild/company (partner_with)
+
+    // ----- partner_with -----
+
     if (relation === "partner_with") {
-      // Generic – just log for now; specific join tables can be added later
+      // Use quest_affiliations if quest is involved
+      if (fromType === "quest") {
+        await sb.from("quest_affiliations").insert({
+          quest_id: fromId,
+          entity_id: toId,
+          entity_type: toType === "guild" ? "guild" : "company",
+          created_by_user_id: userId,
+          status: "PENDING",
+        });
+        return { success: true };
+      }
+      // Otherwise log success – no generic partner table exists
       return { success: true };
     }
-    // guild → territory
-    if (fromType === "guild" && toType === "territory") {
-      const { error } = await sb.from("guild_territories").upsert(
-        { guild_id: fromId, territory_id: toId },
-        { onConflict: "guild_id,territory_id" }
-      );
-      if (error) throw error;
+
+    // ----- uses (service) -----
+    // No standard link table; skip gracefully
+    if (relation === "uses") {
       return { success: true };
     }
-    // Fallback – unknown relation
+
+    // ----- involves -----
+    if (relation === "involves") {
+      return { success: true };
+    }
+
+    // Fallback – unknown relation combo
+    console.warn(`Unsupported link: ${fromType} --${relation}--> ${toType}`);
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message ?? String(e) };
   }
 }
 
-// ---------- Build context summary ----------
+// =====================================================================
+// Build context summary for the LLM
+// =====================================================================
 async function buildContextSummary(
   sb: any,
   userId: string,
@@ -93,33 +217,83 @@ async function buildContextSummary(
   // User profile
   const { data: profile } = await sb
     .from("profiles")
-    .select("id, handle, display_name, persona")
+    .select("id, handle, display_name, persona, bio")
     .eq("id", userId)
     .single();
   if (profile) {
     parts.push(
-      `User: ${profile.display_name || profile.handle || userId} (persona: ${profile.persona || "unknown"})`
+      `User: ${profile.display_name || profile.handle || userId} (persona: ${profile.persona || "unknown"})` +
+      (profile.bio ? ` – "${profile.bio.slice(0, 150)}"` : "")
     );
+  }
+
+  // User's guilds
+  const { data: memberships } = await sb
+    .from("guild_members")
+    .select("guild_id, guilds(id, name)")
+    .eq("user_id", userId)
+    .limit(5);
+  if (memberships?.length) {
+    const guildNames = memberships.map((m: any) => m.guilds?.name).filter(Boolean);
+    if (guildNames.length) parts.push(`User's guilds: ${guildNames.join(", ")}`);
+  }
+
+  // User's territories
+  const { data: userTerrs } = await sb
+    .from("user_territories")
+    .select("territory_id, territories(id, name)")
+    .eq("user_id", userId)
+    .limit(5);
+  if (userTerrs?.length) {
+    const terrNames = userTerrs.map((t: any) => t.territories?.name).filter(Boolean);
+    if (terrNames.length) parts.push(`User's territories: ${terrNames.join(", ")}`);
   }
 
   // Context entity
   if (contextType === "guild" && contextId) {
     const { data: g } = await sb.from("guilds").select("id, name, description").eq("id", contextId).single();
-    if (g) parts.push(`Current guild: "${g.name}" – ${(g.description || "").slice(0, 200)}`);
+    if (g) parts.push(`Current guild: "${g.name}" (id: ${g.id}) – ${(g.description || "").slice(0, 200)}`);
   }
   if (contextType === "quest" && contextId) {
-    const { data: q } = await sb.from("quests").select("id, title, description, status").eq("id", contextId).single();
-    if (q) parts.push(`Current quest: "${q.title}" (${q.status}) – ${(q.description || "").slice(0, 200)}`);
+    const { data: q } = await sb
+      .from("quests")
+      .select("id, title, description, status, quest_type, guild_id, natural_system_id")
+      .eq("id", contextId)
+      .single();
+    if (q) {
+      parts.push(
+        `Current quest: "${q.title}" (id: ${q.id}, status: ${q.status}, type: ${q.quest_type})` +
+        (q.guild_id ? ` guild_id: ${q.guild_id}` : "") +
+        ` – ${(q.description || "").slice(0, 200)}`
+      );
+    }
   }
   if (contextType === "territory" && contextId) {
-    const { data: t } = await sb.from("territories").select("id, name, description").eq("id", contextId).single();
-    if (t) parts.push(`Current territory: "${t.name}" – ${(t.description || "").slice(0, 200)}`);
+    const { data: t } = await sb.from("territories").select("id, name, description, level").eq("id", contextId).single();
+    if (t) parts.push(`Current territory: "${t.name}" (id: ${t.id}, level: ${t.level}) – ${(t.description || "").slice(0, 200)}`);
+  }
+
+  // Recent drafts in context
+  if (contextType === "quest" || contextType === "guild" || contextType === "global") {
+    const { data: drafts } = await sb
+      .from("quests")
+      .select("id, title, status")
+      .eq("created_by_user_id", userId)
+      .eq("is_draft", true)
+      .eq("is_deleted", false)
+      .order("updated_at", { ascending: false })
+      .limit(3);
+    if (drafts?.length) {
+      parts.push("Recent draft quests: " + drafts.map((d: any) => `"${d.title}" (${d.id})`).join(", "));
+    }
   }
 
   return parts.join("\n") || "No additional context available.";
 }
 
-// ---------- System prompt ----------
+// =====================================================================
+// System prompt
+// =====================================================================
 function buildSystemPrompt(contextSummary: string): string {
   return `You are the CTG Conversational Guide.
 
@@ -130,19 +304,39 @@ Goal:
 - Always keep track of the current context: onboarding, guild page, quest page, territory dashboard, or global.
 - After performing actions, answer the user in clear, concise language in their language (French or English depending on input).
 
-You have access to these abstract actions:
-1) create_entity(type, fields) → { id }
-2) update_entity(type, id, fields)
-3) link_entities(from_type, from_id, relation, to_type, to_id)
-4) prefill_form(type, draft_id, fields)
+You have access to these abstract actions (the server will execute them):
+1) create_entity(type, fields) → creates a new entity
+2) update_entity(type, id, fields) → updates an existing entity
+3) link_entities(from_type, from_id, relation, to_type, to_id) → connects two entities
+4) prefill_form(type, draft_id, fields) → pre-fills/creates a draft entity
 
 Valid entity types: user, guild, quest, service, territory, event, living_system, post
-Valid relations: belongs_to, anchored_in, uses, involves, member_of, follows, involves_living_system, partner_with
+
+Valid relations:
+- belongs_to: quest/service → guild or company (creates an affiliation)
+- anchored_in: any entity → territory (links to a territory)
+- uses: entity → service
+- involves: entity → entity (generic involvement)
+- member_of: user → guild (adds as member)
+- follows: user → any entity (creates a follow)
+- involves_living_system: quest/guild/territory → living_system (links to a natural system)
+- partner_with: quest → guild/company (creates a partnership affiliation)
+
+IMPORTANT schema notes:
+- Quests require: title (string), created_by_user_id (auto-injected). Optional: description, quest_type, status (DRAFT/IDEA/ACTIVE), is_draft (boolean).
+- Guild events require: title (string), guild_id (string), start_at (ISO datetime), created_by_user_id (auto-injected).
+- Posts (feed_posts) require: author_user_id (auto-injected). Optional: content, context_type (global/guild/quest/user), context_id.
+- Natural systems require: name (string). Optional: description, territory_id, kingdom (fauna/flora/fungi/microbiome/mineral/mixed), system_type, type.
+- Services require: name (string). Optional: description, guild_id.
+- When creating a quest linked to a guild, create the quest first, then use link_entities with belongs_to.
+- For territory links, use link_entities with anchored_in after creating the entity.
+- Include raw_input in fields when creating entities to preserve the user's original text.
+- For IDs of entities created in the same call, use placeholder "$last_<type>" (e.g. "$last_quest", "$last_guild") and the server will resolve them.
 
 Current context:
 ${contextSummary}
 
-Your output MUST be valid JSON:
+Your output MUST be valid JSON with no markdown fences:
 {
   "actions": [
     { "name": "create_entity" | "update_entity" | "link_entities" | "prefill_form", "args": { ... } }
@@ -151,15 +345,71 @@ Your output MUST be valid JSON:
 }
 
 Rules:
-- Prefer EDIT or PREFILL an existing draft instead of creating duplicates.
+- Prefer EDIT or PREFILL an existing draft (from context) instead of creating duplicates.
 - Infer as many fields as you safely can (title, description, tags, territories, skills, dates).
 - Preserve the richness of the original user text by including it in a raw_input field inside fields when creating entities.
-- If a crucial field is missing, still create a draft entity and ask a short follow-up question.
-- Keep assistant_message short, practical, and focused.
-- If unsure whether to create or reuse, prefer reusing entities mentioned in the context.`;
+- If a crucial field is missing, still create a draft entity (is_draft: true) and ask a short follow-up question.
+- Keep assistant_message short, practical, and focused on what was done and what is needed next.
+- If unsure whether to create or reuse, prefer reusing entities mentioned in the context.
+- When referencing IDs from the context summary, use the actual UUID provided.`;
 }
 
-// ---------- Main handler ----------
+// =====================================================================
+// Enrich actions with context + resolve placeholders
+// =====================================================================
+function enrichActions(
+  actions: any[],
+  contextType: string,
+  contextId: string | null,
+  createdEntities: { type: string; id: string }[]
+): any[] {
+  return actions.map((action) => {
+    if (action.name === "link_entities") {
+      const args = { ...action.args };
+
+      // Resolve $last_<type> placeholders
+      if (typeof args.from_id === "string" && args.from_id.startsWith("$last_")) {
+        const t = args.from_id.replace("$last_", "");
+        const match = createdEntities.find((e) => e.type === t);
+        if (match) args.from_id = match.id;
+      }
+      if (typeof args.to_id === "string" && args.to_id.startsWith("$last_")) {
+        const t = args.to_id.replace("$last_", "");
+        const match = createdEntities.find((e) => e.type === t);
+        if (match) args.to_id = match.id;
+      }
+
+      // Fill missing IDs from context
+      if (!args.from_id && contextType === args.from_type && contextId) {
+        args.from_id = contextId;
+      }
+      if (!args.to_id && contextType === args.to_type && contextId) {
+        args.to_id = contextId;
+      }
+
+      // Also resolve non-UUID placeholder IDs (e.g. "quest_id_created_above")
+      if (args.from_id && !isUUID(args.from_id)) {
+        const match = createdEntities.find((e) => e.type === args.from_type);
+        if (match) args.from_id = match.id;
+      }
+      if (args.to_id && !isUUID(args.to_id)) {
+        const match = createdEntities.find((e) => e.type === args.to_type);
+        if (match) args.to_id = match.id;
+      }
+
+      return { ...action, args };
+    }
+    return action;
+  });
+}
+
+function isUUID(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
+// =====================================================================
+// Main handler
+// =====================================================================
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -193,9 +443,6 @@ serve(async (req) => {
       });
     }
 
-    // --- Service-key client for inserts the user can't do directly ---
-    const sbService = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-
     // --- Resolve or create session ---
     let effectiveSessionId = sessionId as string | null;
     if (effectiveSessionId) {
@@ -208,9 +455,9 @@ serve(async (req) => {
       if (!existing) effectiveSessionId = null;
     }
     if (!effectiveSessionId) {
-      // Look for recent session
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: recent } = await sb
+      // Also match context_id if provided
+      let query = sb
         .from("assistant_sessions")
         .select("id")
         .eq("user_id", userId)
@@ -218,6 +465,9 @@ serve(async (req) => {
         .gte("created_at", cutoff)
         .order("created_at", { ascending: false })
         .limit(1);
+      if (contextId) query = query.eq("context_id", contextId);
+
+      const { data: recent } = await query;
       if (recent && recent.length > 0) {
         effectiveSessionId = recent[0].id;
       } else {
@@ -241,11 +491,14 @@ serve(async (req) => {
       .select("role, content")
       .eq("session_id", effectiveSessionId)
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(20);
 
     const historyMessages = (historyRows || []).map((r: any) => ({
       role: r.role as string,
-      content: typeof r.content === "object" ? r.content.text || JSON.stringify(r.content) : String(r.content),
+      content:
+        typeof r.content === "object"
+          ? r.content.text || JSON.stringify(r.content)
+          : String(r.content),
     }));
 
     // --- Build context ---
@@ -289,7 +542,6 @@ serve(async (req) => {
     // --- Parse LLM JSON ---
     let parsed: { actions: any[]; assistant_message: string };
     try {
-      // Strip markdown fences if present
       const cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
       parsed = JSON.parse(cleaned);
     } catch {
@@ -298,11 +550,14 @@ serve(async (req) => {
 
     // --- Execute actions ---
     const actionsExecuted: any[] = [];
-    const createdEntities: any[] = [];
-    const updatedEntities: any[] = [];
+    const createdEntities: { type: string; id: string }[] = [];
+    const updatedEntities: { type: string; id: string }[] = [];
     const links: any[] = [];
 
+    // First pass: create/update entities
     for (const action of parsed.actions || []) {
+      if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity") continue;
+
       const result: any = { name: action.name, args: action.args, success: false };
       try {
         if (action.name === "create_entity" || action.name === "prefill_form") {
@@ -312,12 +567,26 @@ serve(async (req) => {
             result.error = `Unknown entity type: ${entityType}`;
           } else {
             const fields = { ...action.args.fields };
-            // Inject creator
-            if (entityType === "quest") {
-              fields.created_by = fields.created_by || userId;
+
+            // Inject creator column
+            const creatorCol = CREATOR_COLUMN[entityType];
+            if (creatorCol && !fields[creatorCol]) {
+              fields[creatorCol] = userId;
             }
-            if (entityType === "guild" || entityType === "living_system") {
-              fields.created_by_user_id = fields.created_by_user_id || userId;
+
+            // Mark as draft for prefill
+            if (action.name === "prefill_form" && entityType === "quest") {
+              fields.is_draft = true;
+              fields.status = fields.status || "DRAFT";
+            }
+
+            // Remove raw_input if table doesn't support it (insert will fail otherwise)
+            // Most tables don't have raw_input – store it in description instead
+            if (fields.raw_input && entityType !== "user") {
+              if (!fields.description) {
+                fields.description = fields.raw_input;
+              }
+              delete fields.raw_input;
             }
 
             const { data: inserted, error: insertErr } = await sb
@@ -342,6 +611,10 @@ serve(async (req) => {
             result.error = "Missing type or id";
           } else {
             const fields = { ...action.args.fields };
+            if (fields.raw_input) {
+              if (!fields.description) fields.description = fields.raw_input;
+              delete fields.raw_input;
+            }
             const { error: updateErr } = await sb.from(table).update(fields).eq("id", entityId);
             if (updateErr) {
               result.error = updateErr.message;
@@ -351,18 +624,6 @@ serve(async (req) => {
               updatedEntities.push(result.updatedEntity);
             }
           }
-        } else if (action.name === "link_entities") {
-          const { from_type, from_id, relation, to_type, to_id } = action.args || {};
-          // Resolve IDs – if an action created them earlier, use those
-          const resolvedFromId = resolveId(from_id, createdEntities, from_type);
-          const resolvedToId = resolveId(to_id, createdEntities, to_type);
-          const linkResult = await executeLink(sb, from_type, resolvedFromId, relation, to_type, resolvedToId);
-          result.success = linkResult.success;
-          result.error = linkResult.error;
-          if (linkResult.success) {
-            result.link = { fromType: from_type, fromId: resolvedFromId, relation, toType: to_type, toId: resolvedToId };
-            links.push(result.link);
-          }
         }
       } catch (e: any) {
         result.error = e.message ?? String(e);
@@ -370,7 +631,35 @@ serve(async (req) => {
       actionsExecuted.push(result);
     }
 
-    // --- Store messages ---
+    // Second pass: link_entities (after creates, so placeholders can resolve)
+    const linkActions = (parsed.actions || []).filter((a: any) => a.name === "link_entities");
+    const enrichedLinks = enrichActions(linkActions, contextType, contextId || null, createdEntities);
+
+    for (const action of enrichedLinks) {
+      const { from_type, from_id, relation, to_type, to_id } = action.args || {};
+      const result: any = { name: action.name, args: action.args, success: false };
+
+      if (!from_id || !to_id) {
+        result.error = `Missing IDs: from_id=${from_id}, to_id=${to_id}`;
+        actionsExecuted.push(result);
+        continue;
+      }
+
+      try {
+        const linkResult = await executeLink(sb, userId, from_type, from_id, relation, to_type, to_id);
+        result.success = linkResult.success;
+        result.error = linkResult.error;
+        if (linkResult.success) {
+          result.link = { fromType: from_type, fromId: from_id, relation, toType: to_type, toId: to_id };
+          links.push(result.link);
+        }
+      } catch (e: any) {
+        result.error = e.message ?? String(e);
+      }
+      actionsExecuted.push(result);
+    }
+
+    // --- Store conversation messages ---
     await sb.from("assistant_messages").insert([
       {
         session_id: effectiveSessionId,
@@ -400,16 +689,3 @@ serve(async (req) => {
     return jsonRes({ error: e.message ?? "Internal error" }, 500);
   }
 });
-
-function resolveId(
-  id: string,
-  createdEntities: { type: string; id: string }[],
-  entityType: string
-): string {
-  if (id && !id.includes("-")) {
-    // Might be a placeholder like "quest_id_created_above"
-    const match = createdEntities.find((e) => e.type === entityType);
-    if (match) return match.id;
-  }
-  return id;
-}
