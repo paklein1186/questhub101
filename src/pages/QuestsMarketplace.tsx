@@ -181,9 +181,9 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-display font-semibold">{quest.title}</h3>
-                      {(quest as any).quest_type && QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType] && (
+                      {(quest as any).quest_type && (
                         <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}`}>
-                          {QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType]}
+                          {t(`questTypes.${(quest as any).quest_type}`)}
                         </Badge>
                       )}
                     </div>

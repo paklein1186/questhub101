@@ -638,7 +638,7 @@ export default function QuestCreate() {
           </div>
 
           <div>
-            <Label htmlFor="questType">Type de quête</Label>
+            <Label htmlFor="questType">{t("filters.questType")}</Label>
             <select
               id="questType"
               value={questType}
@@ -646,7 +646,7 @@ export default function QuestCreate() {
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               {QUEST_TYPES.map(qt => (
-                <option key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</option>
+                <option key={qt} value={qt}>{t(`questTypes.${qt}`)}</option>
               ))}
           </select>
           </div>
