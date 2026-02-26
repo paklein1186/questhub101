@@ -719,8 +719,8 @@ serve(async (req) => {
     }));
 
     // --- Build context ---
-    const contextSummary = await buildContextSummary(sb, userId, contextType, contextId || null);
-    const systemPrompt = buildSystemPrompt(contextSummary);
+    const contextSummary = await buildContextSummary(sb, userId, contextType, contextId || null, effectiveSessionId);
+    const systemPrompt = buildSystemPrompt(contextSummary, contextType);
 
     // --- Call LLM ---
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
