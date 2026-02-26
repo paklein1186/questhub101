@@ -73,7 +73,7 @@ export function useQuestContributions(questId: string | undefined) {
       return (data || []).map((d: any) => ({
         ...d,
         profile: profileMap.get(d.user_id) ?? { name: "Unknown", avatar_url: null },
-      })) as ContributionLog[];
+      })) as unknown as ContributionLog[];
     },
   });
 }
