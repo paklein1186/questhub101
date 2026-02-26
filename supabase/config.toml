@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.ns-timeseries]
 verify_jwt = false
+
+[functions.refresh-environmental-data]
+verify_jwt = false
