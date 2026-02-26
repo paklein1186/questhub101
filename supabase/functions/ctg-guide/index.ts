@@ -625,6 +625,87 @@ function isUUID(s: string): boolean {
 }
 
 // =====================================================================
+// Post-creation hooks: membership, roles, discussion rooms
+// =====================================================================
+const SUGGESTED_DEFAULT_ROLES = [
+  { name: "Source", color: "#6366f1", is_default: true, sort_order: 0 },
+  { name: "Admin", color: "#ef4444", is_default: false, sort_order: 1 },
+  { name: "Operations", color: "#f59e0b", is_default: false, sort_order: 2 },
+  { name: "Active Member", color: "#22c55e", is_default: false, sort_order: 3 },
+  { name: "Member", color: "#3b82f6", is_default: false, sort_order: 4 },
+];
+
+async function postCreationHooks(sb: any, userId: string, entityType: string, entityId: string) {
+  try {
+    if (entityType === "guild") {
+      // 1. Add creator as ADMIN guild member
+      await sb.from("guild_members").insert({
+        guild_id: entityId,
+        user_id: userId,
+        role: "ADMIN",
+      });
+
+      // 2. Create default entity roles
+      const rolesToInsert = SUGGESTED_DEFAULT_ROLES.map((r) => ({
+        entity_type: "guild",
+        entity_id: entityId,
+        name: r.name,
+        color: r.color,
+        is_default: r.is_default,
+        sort_order: r.sort_order,
+      }));
+      await sb.from("entity_roles").insert(rolesToInsert);
+
+      // 3. Assign "Source" role to the creator
+      const { data: sourceRole } = await sb
+        .from("entity_roles")
+        .select("id")
+        .eq("entity_type", "guild")
+        .eq("entity_id", entityId)
+        .eq("name", "Source")
+        .eq("is_default", true)
+        .single();
+      if (sourceRole) {
+        await sb.from("entity_member_roles").insert({
+          entity_role_id: sourceRole.id,
+          user_id: userId,
+        });
+      }
+
+      // 4. Create default discussion room
+      await sb.from("discussion_rooms").insert({
+        scope_type: "GUILD",
+        scope_id: entityId,
+        name: "General",
+        description: "Default discussion room",
+        is_default: true,
+        created_by_user_id: userId,
+      });
+
+      // 5. Auto-follow
+      await sb.from("follows").insert({
+        follower_id: userId,
+        target_type: "GUILD",
+        target_id: entityId,
+      });
+    }
+
+    if (entityType === "quest") {
+      // Add creator as OWNER participant
+      await sb.from("quest_participants").insert({
+        quest_id: entityId,
+        user_id: userId,
+        role: "OWNER",
+        status: "ACTIVE",
+      });
+    }
+  } catch (e: any) {
+    // Non-fatal: log but don't fail the creation
+    console.warn("postCreationHooks warning:", e.message ?? e);
+  }
+}
+
+// =====================================================================
 // Main handler
 // =====================================================================
 serve(async (req) => {
