@@ -176,7 +176,7 @@ export function InviteLinkButton({ entityType, entityId, entityName, excludeUser
                 {sendingEmail ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : emailSent ? (
-                  <Check className="h-3.5 w-3.5 text-green-500" />
+                  <Check className="h-3.5 w-3.5 text-primary" />
                 ) : (
                   <Send className="h-3.5 w-3.5" />
                 )}
