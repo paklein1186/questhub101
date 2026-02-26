@@ -4,7 +4,7 @@ import {
   BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag,
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
-  Menu, X, ShieldAlert, ToggleLeft, Trophy,
+  Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -70,6 +70,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/economy/emails", label: "Emails & Digests", icon: Mail },
       { to: "/admin/economy/treasury", label: "Treasury & Revenue", icon: Zap },
       { to: "/admin/economy/milestones", label: "Milestones", icon: Trophy },
+      { to: "/admin/economy/agent-billing", label: "Agent Billing", icon: Bot },
     ],
   },
   {
