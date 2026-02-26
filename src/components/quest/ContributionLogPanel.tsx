@@ -99,12 +99,10 @@ export function ContributionLogPanel({
     if (!formTitle.trim()) return;
     setSubmitting(true);
     
-    // Use supabase directly to include task_type, base_units, weight_factor, weighted_units
-    const { supabase } = await import("@/integrations/supabase/client");
     const userId = currentUser.id;
     if (!userId) { setSubmitting(false); return; }
 
-    const { error } = await supabase
+    await supabase
       .from("contribution_logs" as any)
       .insert({
         user_id: userId,
@@ -120,11 +118,6 @@ export function ContributionLogPanel({
         weighted_units: weightedUnits,
         ip_licence: "CC-BY-SA",
       } as any);
-
-    if (!error) {
-      // Invalidate queries
-      const { useQueryClient } = await import("@tanstack/react-query");
-    }
 
     setFormTitle("");
     setFormDescription("");
