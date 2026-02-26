@@ -1920,6 +1920,213 @@ export type Database = {
         }
         Relationships: []
       }
+      eco_impact_events: {
+        Row: {
+          beneficiary_user_ids: string[] | null
+          created_at: string
+          id: string
+          indicator_name: string
+          narrative_text: string | null
+          natural_system_id: string | null
+          quest_id: string
+          reward_amount: number
+          reward_type: string
+          rule_id: string | null
+          value_after: Json | null
+          value_before: Json | null
+        }
+        Insert: {
+          beneficiary_user_ids?: string[] | null
+          created_at?: string
+          id?: string
+          indicator_name: string
+          narrative_text?: string | null
+          natural_system_id?: string | null
+          quest_id: string
+          reward_amount: number
+          reward_type: string
+          rule_id?: string | null
+          value_after?: Json | null
+          value_before?: Json | null
+        }
+        Update: {
+          beneficiary_user_ids?: string[] | null
+          created_at?: string
+          id?: string
+          indicator_name?: string
+          narrative_text?: string | null
+          natural_system_id?: string | null
+          quest_id?: string
+          reward_amount?: number
+          reward_type?: string
+          rule_id?: string | null
+          value_after?: Json | null
+          value_before?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eco_impact_events_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_impact_events_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_impact_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "eco_impact_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eco_impact_rules: {
+        Row: {
+          comparison_type: string
+          created_at: string
+          created_by_user_id: string
+          evaluation_period: string
+          fulfilled_at: string | null
+          id: string
+          is_active: boolean
+          is_fulfilled: boolean
+          natural_system_id: string | null
+          quest_id: string
+          reward_amount: number
+          reward_type: string
+          target_indicator: string
+          target_value: Json
+          updated_at: string
+        }
+        Insert: {
+          comparison_type?: string
+          created_at?: string
+          created_by_user_id: string
+          evaluation_period?: string
+          fulfilled_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_fulfilled?: boolean
+          natural_system_id?: string | null
+          quest_id: string
+          reward_amount?: number
+          reward_type?: string
+          target_indicator: string
+          target_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          comparison_type?: string
+          created_at?: string
+          created_by_user_id?: string
+          evaluation_period?: string
+          fulfilled_at?: string | null
+          id?: string
+          is_active?: boolean
+          is_fulfilled?: boolean
+          natural_system_id?: string | null
+          quest_id?: string
+          reward_amount?: number
+          reward_type?: string
+          target_indicator?: string
+          target_value?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eco_impact_rules_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_impact_rules_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eco_narratives: {
+        Row: {
+          created_at: string
+          event_id: string | null
+          id: string
+          indicator_after: Json | null
+          indicator_before: Json | null
+          indicator_key: string | null
+          narrative_text: string
+          narrative_type: string
+          natural_system_id: string | null
+          quest_id: string | null
+          territory_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          indicator_after?: Json | null
+          indicator_before?: Json | null
+          indicator_key?: string | null
+          narrative_text: string
+          narrative_type?: string
+          natural_system_id?: string | null
+          quest_id?: string | null
+          territory_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          indicator_after?: Json | null
+          indicator_before?: Json | null
+          indicator_key?: string | null
+          narrative_text?: string
+          narrative_type?: string
+          natural_system_id?: string | null
+          quest_id?: string | null
+          territory_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eco_narratives_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "eco_impact_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_narratives_natural_system_id_fkey"
+            columns: ["natural_system_id"]
+            isOneToOne: false
+            referencedRelation: "natural_systems"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_narratives_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eco_narratives_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eco_region_lookup: {
         Row: {
           admin_level: string | null
