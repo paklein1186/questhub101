@@ -75,7 +75,8 @@ import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
 import { Leaf } from "lucide-react";
-
+import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
+import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
   allTabs: TabDefinition[]; defaultOrder: string[];
