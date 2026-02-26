@@ -56,8 +56,8 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             {[
               { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
-              { icon: <Coins className="h-4 w-4 text-primary" />, label: "Credits", desc: "Liquid value" },
-              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "Impact Score", desc: "Eco & social" },
+              { icon: <Coins className="h-4 w-4 text-blue-500" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
+              { icon: <Leaf className="h-4 w-4 text-emerald-500" />, label: "🟩 GameB Tokens", desc: "Mission value" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
@@ -131,31 +131,33 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           </p>
         </Section>
 
-        {/* 4. Credits */}
+        {/* 4. Dual Currency */}
         <Section
           number="4"
-          title="Credits: the Regenerative Currency"
+          title="Dual Currency: Platform Credits & GameB Tokens"
           icon={<Coins className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-2 gap-4 mt-2">
-            <div>
-              <p className="font-medium text-foreground mb-2">Credits flow in from:</p>
-              <ul className="space-y-1 text-muted-foreground">
-                {["Pre-funded quests", "Territorial budgets", "Guild pools", "Funders & foundations", "Public programs (Erasmus+, NEB, local calls)", "Contributors redistributing voluntarily"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
+            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+              <p className="font-medium text-foreground mb-2">🔷 Platform Credits (non-monetary)</p>
+              <p className="text-xs text-muted-foreground mb-2">Feature fuel for gamification, quotas, boosts. Cannot be withdrawn.</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                {["Monthly plan allocation", "Top-up purchases", "Creating quests beyond quota", "Boosting visibility", "Gamified actions & streaks"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-blue-500 shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
-            <div>
-              <p className="font-medium text-foreground mb-2">Credits flow out to:</p>
-              <ul className="space-y-1 text-muted-foreground">
-                {["Contributors (for work done)", "Guilds (maintaining standards)", "Territories (coordination)", "CTG platform (sustainability)", "Living systems (biocredit signals)"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <p className="font-medium text-foreground mb-2">🟩 GameB Tokens (fiat-backed)</p>
+              <p className="text-xs text-muted-foreground mb-2">Mission value. Backed by real fiat. Withdrawable by contributors.</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                {["Pre-funded quest budgets", "Contributor payouts", "Guild/Territory redistribution", "Ecological impact flows", "Fiat withdrawal via Stripe Connect"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
           </div>
-          <p className="mt-3 font-medium text-foreground">This creates a closed-loop regenerative economy.</p>
+          <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with GameB Tokens.</p>
         </Section>
 
         {/* 5. Redistribution */}
@@ -164,7 +166,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           title="Transparent Redistribution"
           icon={<BarChart3 className="h-5 w-5" />}
         >
-          <p>At the end of each quest, credits automatically split into:</p>
+          <p>At the end of each quest, GameB Tokens automatically split into:</p>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
             {[
               { label: "Contributors", desc: "Major share", pct: "~60%" },
