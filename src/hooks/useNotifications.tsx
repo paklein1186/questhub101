@@ -240,6 +240,7 @@ interface NotificationStore {
   notifyGuildMemberAdded: (params: { guildId: string; userId: string }) => void;
   notifyGuildRoleChanged: (params: { guildId: string; userId: string; newRole: string }) => void;
   notifyGuildQuestCreated: (params: { guildId: string; questId: string; questTitle: string }) => void;
+  notifyFollowersQuestCreated: (params: { questId: string; questTitle: string }) => void;
   notifyPodInvite: (params: { podId: string; userId: string }) => void;
   notifyPodMessage: (params: { podId: string; authorId: string; snippet: string }) => void;
   notifyNewFollower: (params: { followerId: string; targetUserId: string }) => void;
@@ -647,25 +648,50 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  // ── Trigger: Guild quest created — notify ALL guild admins ──
+  // ── Trigger: Guild quest created — notify ALL guild members + creator's followers ──
 
   const notifyGuildQuestCreated = useCallback(async ({ guildId, questId, questTitle }: any) => {
     try {
-      const { data: admins } = await supabase
+      const notifiedSet = new Set<string>();
+
+      // 1. Notify all guild members (not just admins)
+      const { data: members } = await supabase
         .from("guild_members")
         .select("user_id")
-        .eq("guild_id", guildId)
-        .eq("role", "ADMIN");
-      if (!admins?.length) return;
+        .eq("guild_id", guildId);
 
-      for (const admin of admins) {
-        if (admin.user_id === userId) continue; // skip the quest creator
+      for (const m of members ?? []) {
+        if (m.user_id === userId) continue;
+        if (notifiedSet.has(m.user_id)) continue;
+        notifiedSet.add(m.user_id);
         await addNotification({
-          userId: admin.user_id, type: NotificationType.GUILD_QUEST_CREATED,
+          userId: m.user_id, type: NotificationType.GUILD_QUEST_CREATED,
           title: "New guild quest", body: `Quest "${questTitle}" was created in your guild`,
           relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
           deepLinkUrl: `/quests/${questId}`,
         });
+      }
+
+      // 2. Notify followers of the quest creator
+      if (userId) {
+        const { data: followers } = await supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("target_type", "USER")
+          .eq("target_id", userId);
+
+        for (const f of followers ?? []) {
+          if (f.follower_id === userId) continue;
+          if (notifiedSet.has(f.follower_id)) continue;
+          notifiedSet.add(f.follower_id);
+          await addNotification({
+            userId: f.follower_id, type: NotificationType.QUEST_CREATED,
+            title: "New quest from someone you follow",
+            body: `A new quest "${questTitle}" was created`,
+            relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
+            deepLinkUrl: `/quests/${questId}`,
+          });
+        }
       }
     } catch (err) {
       console.error("[Notifications] notifyGuildQuestCreated error:", err);
@@ -918,12 +944,39 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, []);
 
+  // ── Trigger: Notify followers of quest creator (no guild context) ──
+
+  const notifyFollowersQuestCreated = useCallback(async ({ questId, questTitle }: any) => {
+    try {
+      if (!userId) return;
+      const { data: followers } = await supabase
+        .from("follows")
+        .select("follower_id")
+        .eq("target_type", "USER")
+        .eq("target_id", userId);
+
+      for (const f of followers ?? []) {
+        if (f.follower_id === userId) continue;
+        await addNotification({
+          userId: f.follower_id, type: NotificationType.QUEST_CREATED,
+          title: "New quest from someone you follow",
+          body: `A new quest "${questTitle}" was created`,
+          relatedEntityType: NotificationEntityType.QUEST, relatedEntityId: questId,
+          deepLinkUrl: `/quests/${questId}`,
+        });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyFollowersQuestCreated error:", err);
+    }
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
       preferences, updatePreferences,
       notifyComment, notifyUpvote, notifyQuestUpdate, notifyBooking,
       notifyGuildMemberAdded, notifyGuildRoleChanged, notifyGuildQuestCreated,
+      notifyFollowersQuestCreated,
       notifyPodInvite, notifyPodMessage, notifyNewFollower,
       notifyXpGained, notifyAchievement,
       notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
