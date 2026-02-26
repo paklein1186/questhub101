@@ -543,6 +543,7 @@ export default function GuildDetail() {
 
           {/* Highlighted posts from Discussion/Posts tab */}
           <HighlightedPostsTiles guildId={guild.id} onViewAll={() => setActiveTab("discussion")} />
+          <GuildMembershipCard guild={guild} />
           <PartnersBlock entityType="GUILD" entityId={guild.id} />
         </TabsContent>
 
