@@ -85,6 +85,60 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_billing_profiles: {
+        Row: {
+          agent_id: string
+          auto_pause_over_limit: boolean
+          created_at: string
+          current_plan_id: string | null
+          id: string
+          is_active: boolean
+          monthly_spend_limit: number | null
+          payer_id: string
+          payer_type: Database["public"]["Enums"]["billing_entity_type"]
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          auto_pause_over_limit?: boolean
+          created_at?: string
+          current_plan_id?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_spend_limit?: number | null
+          payer_id: string
+          payer_type?: Database["public"]["Enums"]["billing_entity_type"]
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          auto_pause_over_limit?: boolean
+          created_at?: string
+          current_plan_id?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_spend_limit?: number | null
+          payer_id?: string
+          payer_type?: Database["public"]["Enums"]["billing_entity_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_billing_profiles_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_billing_profiles_current_plan_id_fkey"
+            columns: ["current_plan_id"]
+            isOneToOne: false
+            referencedRelation: "agent_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_conversations: {
         Row: {
           agent_id: string
@@ -148,6 +202,120 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "agent_hires_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_plans: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          label: string
+          monthly_price: number
+          quota_json: Json
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          label: string
+          monthly_price?: number
+          quota_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          label?: string
+          monthly_price?: number
+          quota_json?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agent_usage_records: {
+        Row: {
+          action_type_id: string
+          agent_id: string
+          base_price: number
+          billed_from_plan: boolean
+          created_at: string
+          creator_id: string
+          creator_type: Database["public"]["Enums"]["billing_entity_type"]
+          final_price: number
+          id: string
+          payer_id: string
+          payer_type: Database["public"]["Enums"]["billing_entity_type"]
+          resource_id: string | null
+          resource_type: string | null
+          sensitivity: Database["public"]["Enums"]["content_sensitivity"]
+          sensitivity_multiplier: number
+          trust_multiplier: number
+          trust_score_at_action: number
+          value_factor: number
+          value_multiplier: number
+          volume_multiplier: number
+        }
+        Insert: {
+          action_type_id: string
+          agent_id: string
+          base_price?: number
+          billed_from_plan?: boolean
+          created_at?: string
+          creator_id: string
+          creator_type?: Database["public"]["Enums"]["billing_entity_type"]
+          final_price?: number
+          id?: string
+          payer_id: string
+          payer_type?: Database["public"]["Enums"]["billing_entity_type"]
+          resource_id?: string | null
+          resource_type?: string | null
+          sensitivity?: Database["public"]["Enums"]["content_sensitivity"]
+          sensitivity_multiplier?: number
+          trust_multiplier?: number
+          trust_score_at_action?: number
+          value_factor?: number
+          value_multiplier?: number
+          volume_multiplier?: number
+        }
+        Update: {
+          action_type_id?: string
+          agent_id?: string
+          base_price?: number
+          billed_from_plan?: boolean
+          created_at?: string
+          creator_id?: string
+          creator_type?: Database["public"]["Enums"]["billing_entity_type"]
+          final_price?: number
+          id?: string
+          payer_id?: string
+          payer_type?: Database["public"]["Enums"]["billing_entity_type"]
+          resource_id?: string | null
+          resource_type?: string | null
+          sensitivity?: Database["public"]["Enums"]["content_sensitivity"]
+          sensitivity_multiplier?: number
+          trust_multiplier?: number
+          trust_score_at_action?: number
+          value_factor?: number
+          value_multiplier?: number
+          volume_multiplier?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_usage_records_action_type_id_fkey"
+            columns: ["action_type_id"]
+            isOneToOne: false
+            referencedRelation: "monetized_action_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_usage_records_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
@@ -1005,6 +1173,8 @@ export type Database = {
       }
       companies: {
         Row: {
+          allow_agent_crawling: boolean
+          allow_agent_subscription: boolean
           banner_url: string | null
           collaboration_interests: string[] | null
           contact_user_id: string | null
@@ -1034,12 +1204,15 @@ export type Database = {
           twitter_url: string | null
           universe_visibility: string
           updated_at: string
+          value_factor: number
           web_scopes: string[]
           web_tags: string[]
           web_visibility_override: string
           website_url: string | null
         }
         Insert: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           banner_url?: string | null
           collaboration_interests?: string[] | null
           contact_user_id?: string | null
@@ -1069,12 +1242,15 @@ export type Database = {
           twitter_url?: string | null
           universe_visibility?: string
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[]
           web_tags?: string[]
           web_visibility_override?: string
           website_url?: string | null
         }
         Update: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           banner_url?: string | null
           collaboration_interests?: string[] | null
           contact_user_id?: string | null
@@ -1104,6 +1280,7 @@ export type Database = {
           twitter_url?: string | null
           universe_visibility?: string
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[]
           web_tags?: string[]
           web_visibility_override?: string
@@ -3141,6 +3318,8 @@ export type Database = {
       }
       guilds: {
         Row: {
+          allow_agent_crawling: boolean
+          allow_agent_subscription: boolean
           application_questions: Json | null
           banner_url: string | null
           created_at: string
@@ -3180,12 +3359,15 @@ export type Database = {
           type: Database["public"]["Enums"]["guild_type"]
           universe_visibility: string
           updated_at: string
+          value_factor: number
           web_scopes: string[] | null
           web_tags: string[] | null
           web_visibility_override: string
           website_url: string | null
         }
         Insert: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
           created_at?: string
@@ -3225,12 +3407,15 @@ export type Database = {
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[] | null
           web_tags?: string[] | null
           web_visibility_override?: string
           website_url?: string | null
         }
         Update: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
           created_at?: string
@@ -3270,6 +3455,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[] | null
           web_tags?: string[] | null
           web_visibility_override?: string
@@ -3726,6 +3912,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      monetized_action_types: {
+        Row: {
+          base_price: number
+          code: string
+          created_at: string
+          default_sensitivity: Database["public"]["Enums"]["content_sensitivity"]
+          id: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          code: string
+          created_at?: string
+          default_sensitivity?: Database["public"]["Enums"]["content_sensitivity"]
+          id?: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          code?: string
+          created_at?: string
+          default_sensitivity?: Database["public"]["Enums"]["content_sensitivity"]
+          id?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       natural_system_data_points: {
         Row: {
@@ -5651,6 +5867,41 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_share_records: {
+        Row: {
+          amount: number
+          beneficiary_id: string | null
+          beneficiary_type: Database["public"]["Enums"]["billing_entity_type"]
+          created_at: string
+          id: string
+          usage_record_id: string
+        }
+        Insert: {
+          amount?: number
+          beneficiary_id?: string | null
+          beneficiary_type: Database["public"]["Enums"]["billing_entity_type"]
+          created_at?: string
+          id?: string
+          usage_record_id: string
+        }
+        Update: {
+          amount?: number
+          beneficiary_id?: string | null
+          beneficiary_type?: Database["public"]["Enums"]["billing_entity_type"]
+          created_at?: string
+          id?: string
+          usage_record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_share_records_usage_record_id_fkey"
+            columns: ["usage_record_id"]
+            isOneToOne: false
+            referencedRelation: "agent_usage_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ritual_attendees: {
         Row: {
           id: string
@@ -6352,6 +6603,8 @@ export type Database = {
       }
       territories: {
         Row: {
+          allow_agent_crawling: boolean
+          allow_agent_subscription: boolean
           auto_expand_perimeter: boolean
           created_at: string
           custom_perimeter_name: string | null
@@ -6379,10 +6632,13 @@ export type Database = {
           stats: Json | null
           summary: string | null
           updated_at: string
+          value_factor: number
           web_scopes: string[]
           web_tags: string[]
         }
         Insert: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           auto_expand_perimeter?: boolean
           created_at?: string
           custom_perimeter_name?: string | null
@@ -6410,10 +6666,13 @@ export type Database = {
           stats?: Json | null
           summary?: string | null
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[]
           web_tags?: string[]
         }
         Update: {
+          allow_agent_crawling?: boolean
+          allow_agent_subscription?: boolean
           auto_expand_perimeter?: boolean
           created_at?: string
           custom_perimeter_name?: string | null
@@ -6441,6 +6700,7 @@ export type Database = {
           stats?: Json | null
           summary?: string | null
           updated_at?: string
+          value_factor?: number
           web_scopes?: string[]
           web_tags?: string[]
         }
@@ -8428,6 +8688,14 @@ export type Database = {
     Enums: {
       api_method: "GET" | "POST" | "STATIC_FILE"
       app_role: "admin" | "moderator" | "user" | "superadmin"
+      billing_entity_type:
+        | "user"
+        | "guild"
+        | "entity"
+        | "territory"
+        | "platform"
+        | "commons"
+      content_sensitivity: "public" | "restricted" | "private"
       dataset_fetch_method: "API" | "SCRAPER" | "STATIC_IMPORT"
       dataset_granularity:
         | "GLOBAL"
@@ -8689,6 +8957,15 @@ export const Constants = {
     Enums: {
       api_method: ["GET", "POST", "STATIC_FILE"],
       app_role: ["admin", "moderator", "user", "superadmin"],
+      billing_entity_type: [
+        "user",
+        "guild",
+        "entity",
+        "territory",
+        "platform",
+        "commons",
+      ],
+      content_sensitivity: ["public", "restricted", "private"],
       dataset_fetch_method: ["API", "SCRAPER", "STATIC_IMPORT"],
       dataset_granularity: [
         "GLOBAL",
