@@ -239,6 +239,50 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_trust_scores: {
+        Row: {
+          agent_id: string
+          computed_at: string
+          guild_endorsements: number
+          history_score: number
+          id: string
+          owner_trust: number
+          penalties: number
+          total_score: number
+          xp_level: number
+        }
+        Insert: {
+          agent_id: string
+          computed_at?: string
+          guild_endorsements?: number
+          history_score?: number
+          id?: string
+          owner_trust?: number
+          penalties?: number
+          total_score?: number
+          xp_level?: number
+        }
+        Update: {
+          agent_id?: string
+          computed_at?: string
+          guild_endorsements?: number
+          history_score?: number
+          id?: string
+          owner_trust?: number
+          penalties?: number
+          total_score?: number
+          xp_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_trust_scores_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_usage_records: {
         Row: {
           action_type_id: string

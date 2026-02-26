@@ -71,8 +71,14 @@ serve(async (req) => {
     const payerId = billing?.payer_id || user.id;
     const payerType = billing?.payer_type || "user";
 
-    // 3. Trust multiplier (use agent's trust or default 50)
-    const trustScore = 50; // TODO: integrate with OTG trust score lookup
+    // 3. Trust multiplier (use agent's computed trust score)
+    let trustScore = 50;
+    const { data: trustData } = await supabase
+      .from("agent_trust_scores")
+      .select("total_score")
+      .eq("agent_id", agent_id)
+      .maybeSingle();
+    if (trustData) trustScore = Number(trustData.total_score);
     const trustMultiplier = Math.max(0.5, Math.min(1.5, 1.5 - (trustScore / 100)));
 
     // 4. Sensitivity multiplier
