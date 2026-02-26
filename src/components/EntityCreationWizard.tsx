@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTopics, useTerritories, useCreateGuild, useCreatePod, useQuests } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { SUGGESTED_DEFAULT_ROLES } from "@/lib/permissions";
 import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums";
 import { normalizeUrl } from "@/components/SocialLinks";

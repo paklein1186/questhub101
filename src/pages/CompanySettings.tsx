@@ -39,6 +39,7 @@ import {
 } from "@/hooks/useEntityQueries";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { UserSearchInput } from "@/components/UserSearchInput";

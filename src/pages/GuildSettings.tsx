@@ -34,6 +34,7 @@ import { SocialLinksEdit, normalizeUrl } from "@/components/SocialLinks";
 import { EntityApplicationsTab } from "@/components/EntityApplicationsTab";
 import { MembershipPolicyEditor } from "@/components/MembershipPolicyEditor";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 
