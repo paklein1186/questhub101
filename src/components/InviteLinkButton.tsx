@@ -49,7 +49,7 @@ export function InviteLinkButton({ entityType, entityId, entityName, excludeUser
       return;
     }
 
-    const inviterName = user?.user_metadata?.name || user?.email || "Someone";
+    const inviterName = currentUser.name || currentUser.email || "Someone";
     await sendInviteNotification({
       invitedUserId: selectedUser.user_id,
       inviterName,
@@ -74,7 +74,7 @@ export function InviteLinkButton({ entityType, entityId, entityName, excludeUser
 
     setSendingEmail(true);
     try {
-      const inviterName = user?.user_metadata?.name || user?.email || "Someone";
+      const inviterName = currentUser.name || currentUser.email || "Someone";
       const { error } = await supabase.functions.invoke("send-invite-email", {
         body: {
           email: trimmed,
