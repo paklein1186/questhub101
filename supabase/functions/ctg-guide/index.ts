@@ -53,15 +53,37 @@ async function executeLink(
   try {
     // ----- belongs_to -----
 
-    // quest belongs_to guild → quest_affiliations (approval-based)
+    // quest belongs_to guild → set guild_id + quest_affiliations (auto-approve if user is admin)
     if (fromType === "quest" && toType === "guild" && relation === "belongs_to") {
+      // Set the primary guild on the quest
+      await sb.from("quests").update({ guild_id: toId }).eq("id", fromId);
+
+      // Check if user is admin of the guild → auto-approve affiliation
+      const { data: membership } = await sb.from("guild_members")
+        .select("role")
+        .eq("guild_id", toId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      const isAdmin = membership?.role === "ADMIN";
+
       await sb.from("quest_affiliations").insert({
         quest_id: fromId,
         entity_id: toId,
         entity_type: "guild",
         created_by_user_id: userId,
-        status: "PENDING",
+        status: isAdmin ? "APPROVED" : "PENDING",
       });
+
+      // If approved, also add to quest_hosts
+      if (isAdmin) {
+        await sb.from("quest_hosts").upsert({
+          quest_id: fromId,
+          host_type: "guild",
+          host_id: toId,
+          role: "CO_HOST",
+        }, { onConflict: "quest_id,host_type,host_id" });
+      }
+
       return { success: true };
     }
 
