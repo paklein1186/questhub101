@@ -1,4 +1,5 @@
 import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
@@ -181,6 +182,7 @@ function QuestFollowersSection({ questId, participantUserIds }: { questId: strin
 }
 
 export default function QuestDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);
@@ -614,9 +616,9 @@ export default function QuestDetail() {
         <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
           <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
           <div className="flex items-center gap-2">
-            {(quest as any).quest_type && QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType] && (
+            {(quest as any).quest_type && (
               <Badge variant="outline" className={QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}>
-                {QUEST_TYPE_LABELS[(quest as any).quest_type as QuestType]}
+                {t(`questTypes.${(quest as any).quest_type}`)}
               </Badge>
             )}
             <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
@@ -851,12 +853,12 @@ export default function QuestDetail() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><label className="text-sm font-medium mb-1 block">Type de quête</label>
+              <div><label className="text-sm font-medium mb-1 block">{t("filters.questType")}</label>
                 <Select value={editQuestType} onValueChange={setEditQuestType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {QUEST_TYPES.map(qt => (
-                      <SelectItem key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</SelectItem>
+                      <SelectItem key={qt} value={qt}>{t(`questTypes.${qt}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -290,7 +290,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   <SelectContent>
                     <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
                     {QUEST_TYPES.map(qt => (
-                      <SelectItem key={qt} value={qt}>{QUEST_TYPE_LABELS[qt]}</SelectItem>
+                      <SelectItem key={qt} value={qt}>{t(`questTypes.${qt}`)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

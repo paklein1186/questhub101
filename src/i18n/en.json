@@ -1349,5 +1349,17 @@
     "analyzeItems": ["Quests happening locally", "Guilds active in the region", "Services available", "People connected to the territory", "Opportunities for collaboration", "Suggestions for activation and community building"],
     "purposeTitle": "Purpose",
     "purposeP": "They help territories regenerate intelligently and collaboratively."
+  },
+  "questTypes": {
+    "CONTACT": "Contact",
+    "SERVICE": "Service",
+    "ACTION": "Action",
+    "PROJET": "Project",
+    "EVENEMENT": "Event",
+    "LIEU": "Place",
+    "RESSOURCE": "Resource",
+    "FINANCEMENT": "Funding",
+    "PARTENARIAT": "Partnership",
+    "APPRENTISSAGE": "Learning"
   }
 }

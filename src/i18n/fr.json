@@ -1349,5 +1349,17 @@
     "analyzeItems": ["Les quêtes en cours localement", "Les guildes actives dans la région", "Les services disponibles", "Les personnes connectées au territoire", "Les opportunités de collaboration", "Des suggestions d'activation et de construction communautaire"],
     "purposeTitle": "Objectif",
     "purposeP": "Ils aident les territoires à se régénérer de manière intelligente et collaborative."
+  },
+  "questTypes": {
+    "CONTACT": "Contact",
+    "SERVICE": "Service",
+    "ACTION": "Action",
+    "PROJET": "Projet",
+    "EVENEMENT": "Événement",
+    "LIEU": "Lieu",
+    "RESSOURCE": "Ressource",
+    "FINANCEMENT": "Financement",
+    "PARTENARIAT": "Partenariat",
+    "APPRENTISSAGE": "Apprentissage"
   }
 }
