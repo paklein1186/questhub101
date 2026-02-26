@@ -269,6 +269,7 @@ export default function GuildDetail() {
   const { getRolesForUser, roles: entityRoles } = useEntityRoles("guild", id);
 
   const limits = usePlanLimits();
+  const { membership: guildMembership } = useGuildMembership(id);
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
@@ -712,6 +713,7 @@ export default function GuildDetail() {
             members={members}
             territories={territories}
             topics={topics}
+            guildMembership={guildMembership}
           />
         </TabsContent>
 
