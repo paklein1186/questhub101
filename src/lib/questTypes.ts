@@ -1,4 +1,4 @@
-/** Quest Type (Level 1 categories) */
+/** Quest Type (Level 1 categories) — values are stored in DB, do NOT rename */
 export const QUEST_TYPES = [
   "CONTACT",
   "SERVICE",
@@ -14,17 +14,35 @@ export const QUEST_TYPES = [
 
 export type QuestType = (typeof QUEST_TYPES)[number];
 
+/** i18n key map — use with t(`questTypes.${key}`) */
+export const QUEST_TYPE_I18N_KEYS: Record<QuestType, string> = {
+  CONTACT: "questTypes.CONTACT",
+  SERVICE: "questTypes.SERVICE",
+  ACTION: "questTypes.ACTION",
+  PROJET: "questTypes.PROJET",
+  EVENEMENT: "questTypes.EVENEMENT",
+  LIEU: "questTypes.LIEU",
+  RESSOURCE: "questTypes.RESSOURCE",
+  FINANCEMENT: "questTypes.FINANCEMENT",
+  PARTENARIAT: "questTypes.PARTENARIAT",
+  APPRENTISSAGE: "questTypes.APPRENTISSAGE",
+};
+
+/**
+ * @deprecated Use QUEST_TYPE_I18N_KEYS with useTranslation() instead.
+ * Kept for backward compat in non-i18n contexts.
+ */
 export const QUEST_TYPE_LABELS: Record<QuestType, string> = {
   CONTACT: "Contact",
   SERVICE: "Service",
   ACTION: "Action",
-  PROJET: "Projet",
-  EVENEMENT: "Événement",
-  LIEU: "Lieu",
-  RESSOURCE: "Ressource",
-  FINANCEMENT: "Financement",
-  PARTENARIAT: "Partenariat",
-  APPRENTISSAGE: "Apprentissage",
+  PROJET: "Project",
+  EVENEMENT: "Event",
+  LIEU: "Place",
+  RESSOURCE: "Resource",
+  FINANCEMENT: "Funding",
+  PARTENARIAT: "Partnership",
+  APPRENTISSAGE: "Learning",
 };
 
 export const QUEST_TYPE_COLORS: Record<QuestType, string> = {
