@@ -13,6 +13,7 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
+import { QuestBudgetWizard } from "@/components/quest/QuestBudgetWizard";
 import { QUEST_TYPES, QUEST_TYPE_LABELS } from "@/lib/questTypes";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
