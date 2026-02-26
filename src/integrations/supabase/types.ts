@@ -2116,42 +2116,60 @@ export type Database = {
       }
       environmental_datasets: {
         Row: {
+          api_base_url: string | null
           api_endpoint: string | null
+          api_method: string | null
+          api_params_template: Json | null
           created_at: string
+          dataset_type: string | null
           description: string | null
+          example_response: Json | null
           fetch_method: Database["public"]["Enums"]["dataset_fetch_method"]
           granularity: Database["public"]["Enums"]["dataset_granularity"]
           id: string
           is_active: boolean
           metadata_schema: Json | null
+          response_mapping: Json | null
           source: string
           title: string
           update_frequency: string | null
           updated_at: string
         }
         Insert: {
+          api_base_url?: string | null
           api_endpoint?: string | null
+          api_method?: string | null
+          api_params_template?: Json | null
           created_at?: string
+          dataset_type?: string | null
           description?: string | null
+          example_response?: Json | null
           fetch_method?: Database["public"]["Enums"]["dataset_fetch_method"]
           granularity?: Database["public"]["Enums"]["dataset_granularity"]
           id?: string
           is_active?: boolean
           metadata_schema?: Json | null
+          response_mapping?: Json | null
           source: string
           title: string
           update_frequency?: string | null
           updated_at?: string
         }
         Update: {
+          api_base_url?: string | null
           api_endpoint?: string | null
+          api_method?: string | null
+          api_params_template?: Json | null
           created_at?: string
+          dataset_type?: string | null
           description?: string | null
+          example_response?: Json | null
           fetch_method?: Database["public"]["Enums"]["dataset_fetch_method"]
           granularity?: Database["public"]["Enums"]["dataset_granularity"]
           id?: string
           is_active?: boolean
           metadata_schema?: Json | null
+          response_mapping?: Json | null
           source?: string
           title?: string
           update_frequency?: string | null
@@ -7964,6 +7982,7 @@ export type Database = {
       }
     }
     Enums: {
+      api_method: "GET" | "POST" | "STATIC_FILE"
       app_role: "admin" | "moderator" | "user" | "superadmin"
       dataset_fetch_method: "API" | "SCRAPER" | "STATIC_IMPORT"
       dataset_granularity:
@@ -7974,6 +7993,7 @@ export type Database = {
         | "NUTS3"
         | "BIOREGION"
         | "CUSTOM"
+      dataset_type: "FOREST_NAVIGATOR" | "COPERNICUS" | "GBIF" | "CUSTOM"
       eco_category:
         | "observation"
         | "restoration"
@@ -8223,6 +8243,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      api_method: ["GET", "POST", "STATIC_FILE"],
       app_role: ["admin", "moderator", "user", "superadmin"],
       dataset_fetch_method: ["API", "SCRAPER", "STATIC_IMPORT"],
       dataset_granularity: [
@@ -8234,6 +8255,7 @@ export const Constants = {
         "BIOREGION",
         "CUSTOM",
       ],
+      dataset_type: ["FOREST_NAVIGATOR", "COPERNICUS", "GBIF", "CUSTOM"],
       eco_category: [
         "observation",
         "restoration",

@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.refresh-environmental-data]
 verify_jwt = false
+
+[functions.fetch-env-indicators]
+verify_jwt = false
