@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Send, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, Send, Loader2, Sparkles, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
@@ -48,6 +48,8 @@ export type ConversationGuideProps = {
   sessionId?: string | null;
   onSessionChange?: (sessionId: string) => void;
   className?: string;
+  /** If true, renders inline without the collapsible card wrapper */
+  inline?: boolean;
 };
 
 // ---------- Helpers ----------
@@ -98,6 +100,182 @@ const CONTEXT_BADGES: Record<string, string> = {
   territory: "Territory",
 };
 
+// ---------- Storage helpers ----------
+const STORAGE_KEY = "ctg-guide-history";
+
+function loadStoredMessages(contextType: string, contextId?: string | null): ChatMessage[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+    const all = JSON.parse(stored);
+    const key = `${contextType}:${contextId ?? "global"}`;
+    return all[key] ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function storeMessages(contextType: string, contextId: string | null | undefined, messages: ChatMessage[]) {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const all = stored ? JSON.parse(stored) : {};
+    const key = `${contextType}:${contextId ?? "global"}`;
+    all[key] = messages;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch { /* ignore quota errors */ }
+}
+
+// ---------- Chat body (shared) ----------
+function ChatBody({
+  messages,
+  input,
+  setInput,
+  isLoading,
+  send,
+  onNewConversation,
+  contextType,
+  navigate,
+}: {
+  messages: ChatMessage[];
+  input: string;
+  setInput: (v: string) => void;
+  isLoading: boolean;
+  send: () => void;
+  onNewConversation: () => void;
+  contextType: string;
+  navigate: (to: string) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
+  const hasMessages = messages.length > 0;
+
+  return (
+    <>
+      {/* Messages */}
+      <ScrollArea
+        className={`flex-1 px-3 py-2 ${hasMessages ? "min-h-[200px] max-h-[420px]" : "max-h-20"}`}
+        ref={scrollRef}
+      >
+        {!hasMessages && (
+          <p className="text-xs text-muted-foreground italic py-4 text-center">
+            {CONTEXT_HINTS[contextType]}
+          </p>
+        )}
+        <div className="space-y-3">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
+                }`}
+              >
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+                </div>
+
+                {/* Entity chips */}
+                {msg.meta?.createdEntities && msg.meta.createdEntities.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {msg.meta.createdEntities.map((e) => (
+                      <Badge
+                        key={e.id}
+                        variant="outline"
+                        className="text-[10px] cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate(entityRoute(e.type, e.id))}
+                      >
+                        ✨ New {entityLabel(e.type)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {msg.meta?.updatedEntities && msg.meta.updatedEntities.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {msg.meta.updatedEntities.map((e) => (
+                      <Badge
+                        key={e.id}
+                        variant="outline"
+                        className="text-[10px] cursor-pointer hover:bg-primary/10"
+                        onClick={() => navigate(entityRoute(e.type, e.id))}
+                      >
+                        ✏️ Updated {entityLabel(e.type)}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {msg.meta?.links && msg.meta.links.length > 0 && (
+                  <div className="text-[10px] text-muted-foreground mt-1">
+                    {msg.meta.links.map((l, i) => (
+                      <span key={i}>
+                        🔗 {entityLabel(l.fromType)} → {l.relation} → {entityLabel(l.toType)}
+                        {i < msg.meta!.links!.length - 1 && " · "}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-xl px-3 py-2 text-sm flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Thinking…
+              </div>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <div className="border-t p-2 flex gap-2 items-end">
+        <Textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          placeholder="Describe what you need… (Enter to send)"
+          className="min-h-[40px] max-h-24 text-sm resize-none flex-1"
+          rows={1}
+        />
+        <div className="flex flex-col gap-1">
+          <Button
+            size="icon"
+            onClick={send}
+            disabled={isLoading || !input.trim()}
+            className="shrink-0"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+          {hasMessages && (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={onNewConversation}
+              className="shrink-0 h-8 w-8"
+              title="New conversation"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ---------- Component ----------
 export default function ConversationGuide({
   contextType,
@@ -105,24 +283,26 @@ export default function ConversationGuide({
   sessionId: propSessionId,
   onSessionChange,
   className,
+  inline = false,
 }: ConversationGuideProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [open, setOpen] = useState(inline);
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    loadStoredMessages(contextType, contextId)
+  );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [internalSessionId, setInternalSessionId] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const effectiveSessionId = propSessionId ?? internalSessionId ?? null;
 
-  // Auto-scroll
+  // Persist messages
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+    storeMessages(contextType, contextId, messages);
+  }, [messages, contextType, contextId]);
 
   if (!session) return null;
 
@@ -184,13 +364,31 @@ export default function ConversationGuide({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      send();
-    }
+  const startNewConversation = () => {
+    setMessages([]);
+    setInternalSessionId(null);
+    setInput("");
   };
 
+  // ─── Inline mode: no card wrapper ───
+  if (inline) {
+    return (
+      <div className={`flex flex-col w-full rounded-xl border border-border bg-card overflow-hidden ${className ?? ""}`}>
+        <ChatBody
+          messages={messages}
+          input={input}
+          setInput={setInput}
+          isLoading={isLoading}
+          send={send}
+          onNewConversation={startNewConversation}
+          contextType={contextType}
+          navigate={navigate}
+        />
+      </div>
+    );
+  }
+
+  // ─── Collapsible card mode (default) ───
   return (
     <Card className={`flex flex-col overflow-hidden ${className ?? ""}`}>
       {/* Header */}
@@ -210,102 +408,16 @@ export default function ConversationGuide({
 
       {open && (
         <CardContent className="flex flex-col p-0 flex-1 min-h-0">
-          {/* Messages */}
-          <ScrollArea className="flex-1 max-h-72 px-3 py-2" ref={scrollRef}>
-            {messages.length === 0 && (
-              <p className="text-xs text-muted-foreground italic py-4 text-center">
-                {CONTEXT_HINTS[contextType]}
-              </p>
-            )}
-            <div className="space-y-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
-                    }`}
-                  >
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{msg.text}</ReactMarkdown>
-                    </div>
-
-                    {/* Entity chips */}
-                    {msg.meta?.createdEntities && msg.meta.createdEntities.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {msg.meta.createdEntities.map((e) => (
-                          <Badge
-                            key={e.id}
-                            variant="outline"
-                            className="text-[10px] cursor-pointer hover:bg-primary/10"
-                            onClick={() => navigate(entityRoute(e.type, e.id))}
-                          >
-                            ✨ New {entityLabel(e.type)}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    {msg.meta?.updatedEntities && msg.meta.updatedEntities.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {msg.meta.updatedEntities.map((e) => (
-                          <Badge
-                            key={e.id}
-                            variant="outline"
-                            className="text-[10px] cursor-pointer hover:bg-primary/10"
-                            onClick={() => navigate(entityRoute(e.type, e.id))}
-                          >
-                            ✏️ Updated {entityLabel(e.type)}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    {msg.meta?.links && msg.meta.links.length > 0 && (
-                      <div className="text-[10px] text-muted-foreground mt-1">
-                        {msg.meta.links.map((l, i) => (
-                          <span key={i}>
-                            🔗 {entityLabel(l.fromType)} → {l.relation} → {entityLabel(l.toType)}
-                            {i < msg.meta!.links!.length - 1 && " · "}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-xl px-3 py-2 text-sm flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Thinking…
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          {/* Input */}
-          <div className="border-t p-2 flex gap-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Describe what you need…"
-              className="min-h-[40px] max-h-24 text-sm resize-none"
-              rows={1}
-            />
-            <Button
-              size="icon"
-              onClick={send}
-              disabled={isLoading || !input.trim()}
-              className="shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+          <ChatBody
+            messages={messages}
+            input={input}
+            setInput={setInput}
+            isLoading={isLoading}
+            send={send}
+            onNewConversation={startNewConversation}
+            contextType={contextType}
+            navigate={navigate}
+          />
         </CardContent>
       )}
     </Card>

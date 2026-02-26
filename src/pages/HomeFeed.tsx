@@ -547,77 +547,14 @@ export default function HomeFeed() {
           </span>
         </div>
 
-        {/* ─── Free mode ─── */}
-        {mode === "free" && !result && (
+        {/* ─── Free mode — CTG Guide inline ─── */}
+        {mode === "free" && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full space-y-4"
+            className="w-full"
           >
-            <p className="text-center text-base sm:text-lg text-foreground/80 font-medium">
-              What do I want to{" "}
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={verb}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.3 }}
-                  className="inline-block text-primary font-semibold"
-                >
-                  {verb}
-                </motion.span>
-              </AnimatePresence>
-              {" "}now?
-            </p>
-
-            <Textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isListening ? "Listening…" : "Type what you want to work on, explore, fix, create, or find…"}
-              className={cn(
-                "min-h-[56px] max-h-[120px] resize-none text-base bg-card border-border focus-visible:ring-primary/30",
-                isListening && "border-primary ring-2 ring-primary/20"
-              )}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submitIntent(input, "HOME_FREE");
-                }
-              }}
-            />
-
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={toggleVoice}
-                disabled={loading}
-                className={cn(
-                  "h-10 w-10 rounded-xl transition-colors",
-                  isListening
-                    ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
-                )}
-                title={isListening ? "Stop listening" : "Voice input"}
-              >
-                {isListening ? (
-                  <MicOff className="h-4 w-4 animate-pulse" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                onClick={() => submitIntent(input, "HOME_FREE")}
-                disabled={loading || !input.trim()}
-                className="gap-2"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Let's go
-              </Button>
-            </div>
+            <ConversationGuide contextType="global" inline className="min-h-[120px]" />
           </motion.div>
         )}
 
@@ -700,7 +637,7 @@ export default function HomeFeed() {
           <FollowingActivity />
         </div>
       )}
-      <ConversationGuide contextType="global" />
+      
     </PageShell>
   );
 }
