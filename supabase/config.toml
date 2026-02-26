@@ -101,3 +101,6 @@ verify_jwt = false
 
 [functions.evaluate-eco-impact]
 verify_jwt = false
+
+[functions.ctg-guide]
+verify_jwt = false

@@ -217,6 +217,62 @@ export type Database = {
           },
         ]
       }
+      assistant_messages: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_sessions: {
+        Row: {
+          context_id: string | null
+          context_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          context_id?: string | null
+          context_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          context_id?: string | null
+          context_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attachment_upvotes: {
         Row: {
           attachment_id: string
