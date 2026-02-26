@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare } from "lucide-react";
+import { Bot, ArrowLeft, Zap, Send, Loader2, CheckCircle, Star, Sparkles, Users, Map, Tag, Briefcase, BookOpen, Globe, MessageSquare, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { PageShell } from "@/components/PageShell";
@@ -10,8 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import AgentBillingTab from "@/components/agent/AgentBillingTab";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
