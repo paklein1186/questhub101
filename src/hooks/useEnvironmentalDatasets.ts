@@ -133,6 +133,38 @@ export function useTerritoryPrecisionSettings(territoryId: string | undefined) {
   });
 }
 
+export function useTerritoryLivingIndicators(territoryId: string | undefined) {
+  return useQuery<TerritoryIndicatorsResponse>({
+    queryKey: ["territory-living-indicators", territoryId],
+    enabled: !!territoryId,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("fetch-env-indicators", {
+        body: { territory_id: territoryId },
+      });
+      if (error) throw error;
+      return data as TerritoryIndicatorsResponse;
+    },
+  });
+}
+
+export function useRefreshLivingIndicators() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (territoryId: string) => {
+      const { data, error } = await supabase.functions.invoke("fetch-env-indicators", {
+        body: { territory_id: territoryId },
+      });
+      if (error) throw error;
+      return data as TerritoryIndicatorsResponse;
+    },
+    onSuccess: (_, territoryId) => {
+      qc.invalidateQueries({ queryKey: ["territory-living-indicators", territoryId] });
+      qc.invalidateQueries({ queryKey: ["territory-dataset-matches", territoryId] });
+    },
+  });
+}
+
 export function useUpdateTerritoryPrecision() {
   const qc = useQueryClient();
   return useMutation({
