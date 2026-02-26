@@ -296,27 +296,25 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                   <Separator />
 
                   <Section title="Topics" icon={<Hash className="h-5 w-5" />}>
-                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card max-h-48 overflow-y-auto">
-                      {(allTopics || []).map((t: any) => (
-                        <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                          <Checkbox checked={selectedTopics.includes(t.id)} onCheckedChange={() => toggleTopic(t.id)} />
-                          <span className="text-sm">{t.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{selectedTopics.length} selected</p>
+                    <SearchableTagPicker
+                      label="Topics"
+                      items={(allTopics || []).map((t: any) => ({ id: t.id, name: t.name }))}
+                      selectedIds={selectedTopics}
+                      onToggle={toggleTopic}
+                      onClearAll={() => setSelectedTopics([])}
+                      variant="checkboxes"
+                    />
                   </Section>
 
                   <Section title="Territories" icon={<MapPin className="h-5 w-5" />}>
-                    <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border bg-card">
-                      {(allTerritories || []).map((t: any) => (
-                        <label key={t.id} className="flex items-center gap-1.5 cursor-pointer">
-                          <Checkbox checked={selectedTerritories.includes(t.id)} onCheckedChange={() => toggleTerritory(t.id)} />
-                          <span className="text-sm">{t.name} <span className="text-muted-foreground text-xs">({(t.level || "").toLowerCase()})</span></span>
-                        </label>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{selectedTerritories.length} selected</p>
+                    <SearchableTagPicker
+                      label="Territories"
+                      items={(allTerritories || []).map((t: any) => ({ id: t.id, name: t.name, subtitle: (t.level || "").toLowerCase() }))}
+                      selectedIds={selectedTerritories}
+                      onToggle={toggleTerritory}
+                      onClearAll={() => setSelectedTerritories([])}
+                      variant="checkboxes"
+                    />
                   </Section>
 
                   <Button onClick={handleSaveIdentity} className="w-full"><Save className="h-4 w-4 mr-2" /> Save identity</Button>

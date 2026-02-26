@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
+import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
