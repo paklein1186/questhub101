@@ -13,6 +13,7 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
+import { QuestBudgetWizard } from "@/components/quest/QuestBudgetWizard";
 import { QUEST_TYPES, QUEST_TYPE_LABELS } from "@/lib/questTypes";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
@@ -867,105 +868,33 @@ export default function QuestCreate() {
             </div>
           </div>
 
-          {/* Mission Budget (Euros) */}
-          <div className="rounded-lg border border-border p-4 space-y-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2">💰 Mission Budget (€)</h3>
-            <p className="text-xs text-muted-foreground">Mission budgets are in euros. Credits are not used for compensation.</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="budgetMin">Budget Min (€)</Label>
-                <Input id="budgetMin" type="number" value={missionBudgetMin} onChange={(e) => setMissionBudgetMin(e.target.value)} min={0} className="mt-1" placeholder="e.g. 500" />
-              </div>
-              <div>
-                <Label htmlFor="budgetMax">Budget Max (€)</Label>
-                <Input id="budgetMax" type="number" value={missionBudgetMax} onChange={(e) => setMissionBudgetMax(e.target.value)} min={0} className="mt-1" placeholder="e.g. 5000" />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="paymentType">Payment Method</Label>
-              <select
-                id="paymentType"
-                value={paymentType}
-                onChange={(e) => setPaymentType(e.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="INVOICE">Invoice</option>
-                <option value="STRIPE">Stripe</option>
-              </select>
-            </div>
-
-            {/* Commission Estimator */}
-            {(missionBudgetMin || missionBudgetMax) && (
-              <CommissionEstimator budgetMin={missionBudgetMin} budgetMax={missionBudgetMax} />
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="reward">Reward XP</Label>
-              <Input id="reward" type="number" value={rewardXp} onChange={(e) => setRewardXp(e.target.value)} min={0} className="mt-1" />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border p-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <Switch id="monetized" checked={isMonetized} onCheckedChange={setIsMonetized} />
-              <Label htmlFor="monetized" className="font-semibold">Is this quest monetized?</Label>
-            </div>
-            {isMonetized && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="creditReward">Credit Reward (to participants)</Label>
-                  <Input id="creditReward" type="number" value={creditReward} onChange={(e) => setCreditReward(e.target.value)} min={0} className="mt-1" placeholder="0" />
-                  <p className="text-xs text-muted-foreground mt-1">Credits granted on quest completion</p>
-                </div>
-                <div>
-                  <Label htmlFor="priceFiat">Fiat Price (€ cents)</Label>
-                  <Input id="priceFiat" type="number" value={priceFiat} onChange={(e) => setPriceFiat(e.target.value)} min={0} className="mt-1" placeholder="0" />
-                  <p className="text-xs text-muted-foreground mt-1">Stripe payment required to join (in cents)</p>
-                </div>
-              </div>
-          )}
-
-          <div className="rounded-lg border border-border p-4 space-y-4">
-            <h3 className="text-sm font-semibold">Budget & Proposals</h3>
-            <div className="flex items-center gap-3">
-              <Switch id="openForProposals" checked={openForProposals} onCheckedChange={setOpenForProposals} />
-              <Label htmlFor="openForProposals">Open for proposals (community can submit proposals)</Label>
-            </div>
-            {openForProposals && (
-              <>
-                <div>
-                  <Label className="mb-1 block">Funding Type</Label>
-                  <Select value={fundingType} onValueChange={(v) => setFundingType(v as "CREDITS" | "FIAT")}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
-                      <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-1">Choose whether the quest pot uses Credits or fiat currency</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="creditBudget">{fundingType === "CREDITS" ? "Credit Budget (pot)" : "Fiat Budget (€)"}</Label>
-                    <Input id="creditBudget" type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} className="mt-1" placeholder="0" />
-                    <p className="text-xs text-muted-foreground mt-1">{fundingType === "CREDITS" ? "Credits you commit to fund proposals" : "Euros you commit to the quest"}</p>
-                  </div>
-                  <div>
-                    <Label htmlFor="fundingGoal">Funding Goal (optional)</Label>
-                    <Input id="fundingGoal" type="number" value={fundingGoalCredits} onChange={e => setFundingGoalCredits(e.target.value)} min={0} className="mt-1" placeholder="Target" />
-                    <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "Credits" : "€"} for the quest</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Switch id="allowFundraising" checked={allowFundraising} onCheckedChange={setAllowFundraising} />
-                  <Label htmlFor="allowFundraising">Allow community fundraising</Label>
-                </div>
-              </>
-            )}
-          </div>
-          </div>
+          {/* Budget, Rewards & Funding Wizard */}
+          <QuestBudgetWizard
+            missionBudgetMin={missionBudgetMin}
+            setMissionBudgetMin={setMissionBudgetMin}
+            missionBudgetMax={missionBudgetMax}
+            setMissionBudgetMax={setMissionBudgetMax}
+            paymentType={paymentType}
+            setPaymentType={setPaymentType}
+            rewardXp={rewardXp}
+            setRewardXp={setRewardXp}
+            isMonetized={isMonetized}
+            setIsMonetized={setIsMonetized}
+            creditReward={creditReward}
+            setCreditReward={setCreditReward}
+            priceFiat={priceFiat}
+            setPriceFiat={setPriceFiat}
+            openForProposals={openForProposals}
+            setOpenForProposals={setOpenForProposals}
+            fundingType={fundingType}
+            setFundingType={setFundingType}
+            creditBudget={creditBudget}
+            setCreditBudget={setCreditBudget}
+            fundingGoalCredits={fundingGoalCredits}
+            setFundingGoalCredits={setFundingGoalCredits}
+            allowFundraising={allowFundraising}
+            setAllowFundraising={setAllowFundraising}
+          />
 
           {(topics ?? []).length > 0 && (
             <div>
