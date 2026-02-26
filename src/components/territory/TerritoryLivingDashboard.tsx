@@ -17,6 +17,8 @@ import {
   type TerritoryNaturalSystem,
 } from "@/hooks/useTerritoryLivingDashboard";
 import { AddLinkNaturalSystemModal } from "@/components/living/AddLinkNaturalSystemModal";
+import { EnvironmentalDataOverview } from "@/components/territory/EnvironmentalDataOverview";
+import { TerritoryPrecisionSettings } from "@/components/territory/TerritoryPrecisionSettings";
 
 interface Props {
   territoryId: string;
