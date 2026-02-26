@@ -359,6 +359,7 @@ export function TerritoryLivingDashboard({ territoryId, territoryName }: Props) 
 
       {/* ═══ B. LIVING SYSTEMS LISTING ═══ */}
       <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
               <TreePine className="h-5 w-5 text-success" /> Living Systems in this Territory
