@@ -8,12 +8,14 @@ const RevenueModelsPage = lazy(() => import("@/pages/RevenueModelsPage"));
 const CreditEconomyPage = lazy(() => import("@/pages/CreditEconomyPage"));
 const GovernancePage = lazy(() => import("@/pages/GovernancePage"));
 const TrustGraphPage = lazy(() => import("@/pages/TrustGraphPage"));
+const OpenValueNetworkPage = lazy(() => import("@/pages/OpenValueNetworkPage"));
 
 const TABS = [
   { value: "revenue", labelKey: "hubs.tabs.revenue" },
   { value: "credits", labelKey: "hubs.tabs.credits" },
   { value: "trust", labelKey: "hubs.tabs.trustGraph" },
   { value: "governance", labelKey: "hubs.tabs.governance" },
+  { value: "ovn", labelKey: "hubs.tabs.ovn" },
 ] as const;
 
 export default function EcosystemHub() {
@@ -39,6 +41,7 @@ export default function EcosystemHub() {
             <TabsContent value="credits"><CreditEconomyPage embedded /></TabsContent>
             <TabsContent value="trust"><TrustGraphPage embedded /></TabsContent>
             <TabsContent value="governance"><GovernancePage embedded /></TabsContent>
+            <TabsContent value="ovn"><OpenValueNetworkPage embedded /></TabsContent>
           </Suspense>
         </Tabs>
       </div>
