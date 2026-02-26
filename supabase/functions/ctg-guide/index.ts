@@ -863,6 +863,47 @@ serve(async (req) => {
               if (updateErr) { result.error = updateErr.message; }
               else { result.success = true; result.updatedEntity = { type: entityType, id: entityId }; updatedEntities.push(result.updatedEntity); }
             }
+          } else if (action.name === "create_discussion_room") {
+            const scopeType = action.args?.scope_type;
+            let scopeId = action.args?.scope_id;
+            const roomName = action.args?.name || "Discussion";
+            const roomDesc = action.args?.description || null;
+
+            // Resolve $last_ placeholders and context
+            if (typeof scopeId === "string" && scopeId.startsWith("$last_")) {
+              const t = scopeId.replace("$last_", "");
+              const match = createdEntities.find((e) => e.type === t);
+              if (match) scopeId = match.id;
+            }
+            if (!scopeId && contextId) scopeId = contextId;
+
+            if (!scopeType || !scopeId) { result.error = "Missing scope_type or scope_id"; }
+            else {
+              // Get max sort_order
+              const { data: existingRooms } = await sb.from("discussion_rooms")
+                .select("sort_order")
+                .eq("scope_type", scopeType)
+                .eq("scope_id", scopeId)
+                .order("sort_order", { ascending: false })
+                .limit(1);
+              const maxSort = existingRooms?.[0]?.sort_order ?? -1;
+
+              const { data: newRoom, error: roomErr } = await sb.from("discussion_rooms").insert({
+                scope_type: scopeType,
+                scope_id: scopeId,
+                name: roomName,
+                description: roomDesc,
+                is_default: false,
+                created_by_user_id: userId,
+                sort_order: maxSort + 1,
+              }).select("id").single();
+              if (roomErr) { result.error = roomErr.message; }
+              else {
+                result.success = true;
+                result.createdEntity = { type: "discussion_room", id: newRoom.id };
+                createdEntities.push(result.createdEntity);
+              }
+            }
           }
         } catch (e: any) { result.error = e.message ?? String(e); }
         actionsExecuted.push(result);
