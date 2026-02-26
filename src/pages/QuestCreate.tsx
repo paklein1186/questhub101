@@ -57,7 +57,7 @@ export default function QuestCreate() {
   const { checkRateLimit, isChecking } = useRateLimit();
   const { grantXp } = useXpCredits();
   const { persona } = usePersona();
-  const { notifyGuildQuestCreated } = useNotifications();
+  const { notifyGuildQuestCreated, notifyFollowersQuestCreated } = useNotifications();
 
   const { data: topics } = useTopics();
   const { data: territories } = useTerritories();
@@ -453,6 +453,9 @@ export default function QuestCreate() {
       if (effectiveGuildId) {
         qc.invalidateQueries({ queryKey: ["quests-for-guild", effectiveGuildId] });
         notifyGuildQuestCreated({ guildId: effectiveGuildId, questId: quest.id, questTitle: title.trim() });
+      } else {
+        // No guild context — still notify followers of the creator
+        notifyFollowersQuestCreated({ questId: quest.id, questTitle: title.trim() });
       }
       toast({ title: "Quest created! +5 XP" });
       navigate(`/quests/${quest.id}`);
