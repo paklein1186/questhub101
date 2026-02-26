@@ -727,19 +727,133 @@ serve(async (req) => {
   const userId = userData.user.id;
 
   try {
-    const { message, contextType, contextId, sessionId } = await req.json();
+    const body = await req.json();
+    const { message, contextType, contextId, sessionId, mode = "propose", pendingActions } = body;
 
     // --- Ping test ---
     if (message === "__ping") {
       return jsonRes({
         sessionId: sessionId || "test",
         assistantMessage: "pong",
+        proposedActions: [],
         actionsExecuted: [],
         createdEntities: [],
         updatedEntities: [],
         links: [],
       });
     }
+
+    // =====================================================================
+    // MODE: undo — soft-delete created entities
+    // =====================================================================
+    if (mode === "undo") {
+      const { createdEntities: toUndo = [] } = body;
+      const undone: any[] = [];
+      for (const ent of toUndo) {
+        const table = ENTITY_TABLE[ent.type];
+        if (!table) continue;
+        try {
+          // Try soft-delete first (is_deleted), fall back to hard delete
+          const { error: softErr } = await sb.from(table).update({ is_deleted: true }).eq("id", ent.id);
+          if (softErr) {
+            // Table might not have is_deleted column; try hard delete
+            await sb.from(table).delete().eq("id", ent.id);
+          }
+          undone.push(ent);
+        } catch (e: any) {
+          console.warn("Undo failed for", ent, e.message);
+        }
+      }
+      return jsonRes({ undone });
+    }
+
+    // =====================================================================
+    // MODE: execute — run previously proposed actions
+    // =====================================================================
+    if (mode === "execute" && Array.isArray(pendingActions)) {
+      const actionsExecuted: any[] = [];
+      const createdEntities: { type: string; id: string }[] = [];
+      const updatedEntities: { type: string; id: string }[] = [];
+      const links: any[] = [];
+
+      // First pass: create/update
+      for (const action of pendingActions) {
+        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity") continue;
+        const result: any = { name: action.name, args: action.args, success: false };
+        try {
+          if (action.name === "create_entity" || action.name === "prefill_form") {
+            const entityType = action.args?.type;
+            const table = ENTITY_TABLE[entityType];
+            if (!table) { result.error = `Unknown entity type: ${entityType}`; }
+            else {
+              const fields = { ...action.args.fields };
+              const creatorCol = CREATOR_COLUMN[entityType];
+              if (creatorCol && !fields[creatorCol]) fields[creatorCol] = userId;
+              if (action.name === "prefill_form" && entityType === "quest") {
+                fields.is_draft = true;
+                fields.status = fields.status || "DRAFT";
+              }
+              if (fields.raw_input && entityType !== "user") {
+                if (!fields.description) fields.description = fields.raw_input;
+                delete fields.raw_input;
+              }
+              const { data: inserted, error: insertErr } = await sb.from(table).insert(fields).select("id").single();
+              if (insertErr) { result.error = insertErr.message; }
+              else {
+                result.success = true;
+                result.createdEntity = { type: entityType, id: inserted.id };
+                createdEntities.push(result.createdEntity);
+                await postCreationHooks(sb, userId, entityType, inserted.id);
+              }
+            }
+          } else if (action.name === "update_entity") {
+            const entityType = action.args?.type;
+            const table = ENTITY_TABLE[entityType];
+            const entityId = action.args?.id;
+            if (!table || !entityId) { result.error = "Missing type or id"; }
+            else {
+              const fields = { ...action.args.fields };
+              if (fields.raw_input) { if (!fields.description) fields.description = fields.raw_input; delete fields.raw_input; }
+              const { error: updateErr } = await sb.from(table).update(fields).eq("id", entityId);
+              if (updateErr) { result.error = updateErr.message; }
+              else { result.success = true; result.updatedEntity = { type: entityType, id: entityId }; updatedEntities.push(result.updatedEntity); }
+            }
+          }
+        } catch (e: any) { result.error = e.message ?? String(e); }
+        actionsExecuted.push(result);
+      }
+
+      // Second pass: links
+      const linkActions = pendingActions.filter((a: any) => a.name === "link_entities");
+      const enrichedLinks = enrichActions(linkActions, contextType, contextId || null, createdEntities);
+      for (const action of enrichedLinks) {
+        const { from_type, from_id, relation, to_type, to_id } = action.args || {};
+        const result: any = { name: action.name, args: action.args, success: false };
+        if (!from_id || !to_id) { result.error = `Missing IDs`; actionsExecuted.push(result); continue; }
+        try {
+          const linkResult = await executeLink(sb, userId, from_type, from_id, relation, to_type, to_id);
+          result.success = linkResult.success;
+          result.error = linkResult.error;
+          if (linkResult.success) { result.link = { fromType: from_type, fromId: from_id, relation, toType: to_type, toId: to_id }; links.push(result.link); }
+        } catch (e: any) { result.error = e.message ?? String(e); }
+        actionsExecuted.push(result);
+      }
+
+      // Store in conversation
+      if (sessionId) {
+        await sb.from("assistant_messages").insert({
+          session_id: sessionId,
+          role: "assistant",
+          content: { text: "[Actions executed]", actions: actionsExecuted },
+        });
+      }
+
+      return jsonRes({ actionsExecuted, createdEntities, updatedEntities, links });
+    }
+
+    // =====================================================================
+    // MODE: propose (default) — call LLM, return proposed actions
+    // =====================================================================
 
     // --- Resolve or create session ---
     let effectiveSessionId = sessionId as string | null;
@@ -754,7 +868,6 @@ serve(async (req) => {
     }
     if (!effectiveSessionId) {
       const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      // Also match context_id if provided
       let query = sb
         .from("assistant_sessions")
         .select("id")
@@ -771,11 +884,7 @@ serve(async (req) => {
       } else {
         const { data: newSession, error: sessErr } = await sb
           .from("assistant_sessions")
-          .insert({
-            user_id: userId,
-            context_type: contextType,
-            context_id: contextId || null,
-          })
+          .insert({ user_id: userId, context_type: contextType, context_id: contextId || null })
           .select("id")
           .single();
         if (sessErr) throw sessErr;
@@ -793,10 +902,7 @@ serve(async (req) => {
 
     const historyMessages = (historyRows || []).map((r: any) => ({
       role: r.role as string,
-      content:
-        typeof r.content === "object"
-          ? r.content.text || JSON.stringify(r.content)
-          : String(r.content),
+      content: typeof r.content === "object" ? r.content.text || JSON.stringify(r.content) : String(r.content),
     }));
 
     // --- Build context ---
@@ -815,15 +921,8 @@ serve(async (req) => {
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: llmMessages,
-        temperature: 0.4,
-      }),
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "google/gemini-3-flash-preview", messages: llmMessages, temperature: 0.4 }),
     });
 
     if (!aiRes.ok) {
@@ -846,144 +945,21 @@ serve(async (req) => {
       parsed = { actions: [], assistant_message: rawContent || "I'm here to help – could you rephrase?" };
     }
 
-    // --- Execute actions ---
-    const actionsExecuted: any[] = [];
-    const createdEntities: { type: string; id: string }[] = [];
-    const updatedEntities: { type: string; id: string }[] = [];
-    const links: any[] = [];
-
-    // First pass: create/update entities
-    for (const action of parsed.actions || []) {
-      if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity") continue;
-
-      const result: any = { name: action.name, args: action.args, success: false };
-      try {
-        if (action.name === "create_entity" || action.name === "prefill_form") {
-          const entityType = action.args?.type;
-          const table = ENTITY_TABLE[entityType];
-          if (!table) {
-            result.error = `Unknown entity type: ${entityType}`;
-          } else {
-            const fields = { ...action.args.fields };
-
-            // Inject creator column
-            const creatorCol = CREATOR_COLUMN[entityType];
-            if (creatorCol && !fields[creatorCol]) {
-              fields[creatorCol] = userId;
-            }
-
-            // Mark as draft for prefill
-            if (action.name === "prefill_form" && entityType === "quest") {
-              fields.is_draft = true;
-              fields.status = fields.status || "DRAFT";
-            }
-
-            // Remove raw_input if table doesn't support it (insert will fail otherwise)
-            // Most tables don't have raw_input – store it in description instead
-            if (fields.raw_input && entityType !== "user") {
-              if (!fields.description) {
-                fields.description = fields.raw_input;
-              }
-              delete fields.raw_input;
-            }
-
-            const { data: inserted, error: insertErr } = await sb
-              .from(table)
-              .insert(fields)
-              .select("id")
-              .single();
-
-            if (insertErr) {
-              result.error = insertErr.message;
-            } else {
-              result.success = true;
-              result.createdEntity = { type: entityType, id: inserted.id };
-              createdEntities.push(result.createdEntity);
-
-              // ── Post-creation hooks: make creator admin ──
-              await postCreationHooks(sb, userId, entityType, inserted.id);
-            }
-          }
-        } else if (action.name === "update_entity") {
-          const entityType = action.args?.type;
-          const table = ENTITY_TABLE[entityType];
-          const entityId = action.args?.id;
-          if (!table || !entityId) {
-            result.error = "Missing type or id";
-          } else {
-            const fields = { ...action.args.fields };
-            if (fields.raw_input) {
-              if (!fields.description) fields.description = fields.raw_input;
-              delete fields.raw_input;
-            }
-            const { error: updateErr } = await sb.from(table).update(fields).eq("id", entityId);
-            if (updateErr) {
-              result.error = updateErr.message;
-            } else {
-              result.success = true;
-              result.updatedEntity = { type: entityType, id: entityId };
-              updatedEntities.push(result.updatedEntity);
-            }
-          }
-        }
-      } catch (e: any) {
-        result.error = e.message ?? String(e);
-      }
-      actionsExecuted.push(result);
-    }
-
-    // Second pass: link_entities (after creates, so placeholders can resolve)
-    const linkActions = (parsed.actions || []).filter((a: any) => a.name === "link_entities");
-    const enrichedLinks = enrichActions(linkActions, contextType, contextId || null, createdEntities);
-
-    for (const action of enrichedLinks) {
-      const { from_type, from_id, relation, to_type, to_id } = action.args || {};
-      const result: any = { name: action.name, args: action.args, success: false };
-
-      if (!from_id || !to_id) {
-        result.error = `Missing IDs: from_id=${from_id}, to_id=${to_id}`;
-        actionsExecuted.push(result);
-        continue;
-      }
-
-      try {
-        const linkResult = await executeLink(sb, userId, from_type, from_id, relation, to_type, to_id);
-        result.success = linkResult.success;
-        result.error = linkResult.error;
-        if (linkResult.success) {
-          result.link = { fromType: from_type, fromId: from_id, relation, toType: to_type, toId: to_id };
-          links.push(result.link);
-        }
-      } catch (e: any) {
-        result.error = e.message ?? String(e);
-      }
-      actionsExecuted.push(result);
-    }
-
     // --- Store conversation messages ---
     await sb.from("assistant_messages").insert([
-      {
-        session_id: effectiveSessionId,
-        role: "user",
-        content: { text: message },
-      },
+      { session_id: effectiveSessionId, role: "user", content: { text: message } },
       {
         session_id: effectiveSessionId,
         role: "assistant",
-        content: {
-          text: parsed.assistant_message,
-          actions: actionsExecuted,
-        },
+        content: { text: parsed.assistant_message, proposedActions: parsed.actions },
       },
     ]);
 
+    // --- Return proposed actions (NOT executed) ---
     return jsonRes({
       sessionId: effectiveSessionId,
       assistantMessage: parsed.assistant_message,
-      actionsExecuted,
-      createdEntities,
-      updatedEntities,
-      links,
+      proposedActions: parsed.actions || [],
     });
   } catch (e: any) {
     console.error("ctg-guide error:", e);
