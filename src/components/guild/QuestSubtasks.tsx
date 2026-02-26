@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -138,6 +138,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
+  const updateSubtaskCredits = async (subtaskId: string, credits: number) => {
+    await supabase.from("quest_subtasks" as any).update({ credit_reward: credits } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+  };
+
   const deleteSubtask = async (subtaskId: string) => {
     await supabase.from("quest_subtasks" as any).delete().eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
@@ -260,6 +265,24 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
                 <AvatarFallback className="text-[10px]">{subtask.assignee.name?.[0]}</AvatarFallback>
               </Avatar>
             )}
+            {/* Credit reward indicator */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5">
+                <Coins className="h-3 w-3 text-amber-500" />
+                <Input
+                  type="number"
+                  min="0"
+                  value={subtask.credit_reward ?? 0}
+                  onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="Credit reward for completing this subtask"
+                />
+              </div>
+            ) : (subtask.credit_reward ?? 0) > 0 ? (
+              <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
+                <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
+              </Badge>
+            ) : null}
             {canManage && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
