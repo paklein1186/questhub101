@@ -547,7 +547,7 @@ export default function HomeFeed() {
           </span>
         </div>
 
-        {/* ─── Free mode — CTG Guide inline ─── */}
+        {/* ─── Free mode — Pi inline ─── */}
         {mode === "free" && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
