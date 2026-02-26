@@ -103,7 +103,31 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     updateStatus(subtaskId, "DONE");
     setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     pendingTimers.current.delete(subtaskId);
-  }, [questId]);
+
+    // Grant XP and credits to the assignee
+    const subtask = subtasks.find((s: any) => s.id === subtaskId);
+    const assigneeId = subtask?.assignee_user_id || currentUser.id;
+    if (assigneeId) {
+      grantXp(assigneeId, {
+        type: XP_EVENT_TYPES.SUBTASK_COMPLETED,
+        relatedEntityType: "quest_subtask",
+        relatedEntityId: subtaskId,
+      }, true);
+
+      const creditReward = subtask?.credit_reward ?? 0;
+      if (creditReward > 0) {
+        grantCredits(assigneeId, {
+          type: CREDIT_TX_TYPES.QUEST_REWARD_EARNED,
+          amount: creditReward,
+          source: `Subtask: ${subtask?.title}`,
+          relatedEntityType: "quest_subtask",
+          relatedEntityId: subtaskId,
+        }, true);
+      }
+    }
+    // Invalidate contribution logs
+    qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc]);
 
   const undoSubtaskDone = useCallback((subtaskId: string) => {
     const timer = pendingTimers.current.get(subtaskId);
