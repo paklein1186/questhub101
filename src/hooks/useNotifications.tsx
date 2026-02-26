@@ -240,6 +240,7 @@ interface NotificationStore {
   notifyGuildMemberAdded: (params: { guildId: string; userId: string }) => void;
   notifyGuildRoleChanged: (params: { guildId: string; userId: string; newRole: string }) => void;
   notifyGuildQuestCreated: (params: { guildId: string; questId: string; questTitle: string }) => void;
+  notifyFollowersQuestCreated: (params: { questId: string; questTitle: string }) => void;
   notifyPodInvite: (params: { podId: string; userId: string }) => void;
   notifyPodMessage: (params: { podId: string; authorId: string; snippet: string }) => void;
   notifyNewFollower: (params: { followerId: string; targetUserId: string }) => void;
