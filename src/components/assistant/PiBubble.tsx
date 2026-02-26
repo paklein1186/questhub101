@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 import ConversationGuide from "@/components/assistant/ConversationGuide";
 import type { ConversationGuideProps } from "@/components/assistant/ConversationGuide";
 
@@ -13,17 +14,18 @@ export function PiBubble({
   contextId,
 }: Pick<ConversationGuideProps, "contextType" | "contextId">) {
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   return (
     <>
-      {/* Floating bubble trigger */}
+      {/* Floating bubble trigger — on mobile sits above bottom nav (~70px), centered */}
       {!open && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.5 }}
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[55] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
+          className="fixed left-1/2 -translate-x-1/2 z-[55] h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center bottom-[4.5rem] sm:bottom-6"
           title="Talk to Pi"
         >
           <Sparkles className="h-5 w-5" />
@@ -43,13 +45,17 @@ export function PiBubble({
               className="fixed inset-0 z-[55] bg-background/60 backdrop-blur-sm"
             />
 
-            {/* Chat panel */}
+            {/* Chat panel — mobile: near-fullscreen; desktop: centered card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="fixed z-[56] inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 top-[10vh] sm:top-[12vh] sm:w-[520px] max-h-[76vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+              className={
+                isMobile
+                  ? "fixed z-[56] inset-x-2 top-4 bottom-[4.5rem] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+                  : "fixed z-[56] left-1/2 -translate-x-1/2 top-[12vh] w-[520px] max-h-[76vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+              }
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
@@ -73,6 +79,7 @@ export function PiBubble({
                 contextType={contextType}
                 contextId={contextId}
                 inline
+                expanded={isMobile}
                 className="flex-1 min-h-0 border-0 rounded-none"
               />
             </motion.div>
