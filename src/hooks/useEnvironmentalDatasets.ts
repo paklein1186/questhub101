@@ -12,7 +12,34 @@ export interface EnvironmentalDataset {
   is_active: boolean;
   description: string | null;
   api_endpoint: string | null;
+  dataset_type: string | null;
+  api_base_url: string | null;
+  api_method: string | null;
   created_at: string;
+}
+
+export interface StandardIndicator {
+  dataset_id: string;
+  dataset_title: string;
+  dataset_source: string;
+  dataset_type: string;
+  status: "ok" | "unavailable" | "no_data";
+  error?: string;
+  indicators: {
+    forest_cover: number | null;
+    forest_change_rate: number | null;
+    carbon_stock: number | null;
+    disturbances_index: number | null;
+    time_span: { from: string; to: string } | null;
+    meta: Record<string, unknown>;
+  };
+}
+
+export interface TerritoryIndicatorsResponse {
+  datasets: StandardIndicator[];
+  mergedView: Record<string, unknown>;
+  territory_id: string;
+  eco_region: { eco_region_code: string; eco_region_name: string } | null;
 }
 
 export interface TerritoryDatasetMatch {
