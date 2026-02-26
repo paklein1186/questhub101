@@ -74,8 +74,9 @@ import { TrustTab } from "@/components/trust/TrustTab";
 import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
-import { Leaf } from "lucide-react";
+import { Leaf, Network } from "lucide-react";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
+import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
@@ -472,6 +473,7 @@ export default function GuildDetail() {
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
             { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
+            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">OVN</span></> },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
@@ -566,6 +568,10 @@ export default function GuildDetail() {
 
         <TabsContent value="living" className="mt-6">
           <LivingTab linkedType="entity" linkedId={guild.id} />
+        </TabsContent>
+
+        <TabsContent value="ovn" className="mt-6">
+          <GuildOVNTab guildId={guild.id} guildName={guild.name} />
         </TabsContent>
 
         <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
