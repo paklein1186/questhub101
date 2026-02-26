@@ -58,7 +58,7 @@ const COMPARISON_OPTIONS = [
 
 const REWARD_OPTIONS = [
   { value: "XP", label: "XP", icon: Zap },
-  { value: "CREDITS", label: "Credits", icon: Coins },
+  { value: "CREDITS", label: "🟩 GameB Tokens", icon: Coins },
   { value: "BADGE", label: "Badge", icon: Trophy },
 ];
 

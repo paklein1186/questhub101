@@ -58,7 +58,7 @@ function Tip({ children }: { children: React.ReactNode }) {
 
 const STEPS = [
   { id: 0, label: "Budget", icon: Banknote, short: "Mission budget in euros" },
-  { id: 1, label: "Rewards", icon: Zap, short: "XP, credits & monetization" },
+  { id: 1, label: "Rewards", icon: Zap, short: "XP & monetization" },
   { id: 2, label: "Funding", icon: Handshake, short: "Proposals & fundraising" },
 ];
 
@@ -117,7 +117,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
             <div>
               <h3 className="text-sm font-semibold flex items-center gap-1.5">
                 <Banknote className="h-4 w-4 text-primary" /> Mission Budget
-                <Tip>The fiat compensation range for this quest in euros. This is separate from internal Credits.</Tip>
+                <Tip>The fiat compensation range for this quest in euros. This is separate from Platform Credits.</Tip>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 How much is this quest worth in euros?
@@ -182,7 +182,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
             <div>
               <h3 className="text-sm font-semibold flex items-center gap-1.5">
                 <Zap className="h-4 w-4 text-primary" /> Rewards
-                <Tip>XP and credit rewards distributed to participants when they complete this quest.</Tip>
+                <Tip>XP rewards distributed to participants when they complete this quest.</Tip>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 What do participants earn?
@@ -208,15 +208,15 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Switch id="bw-monetized" checked={props.isMonetized} onCheckedChange={props.setIsMonetized} />
                 <Label htmlFor="bw-monetized" className="text-xs font-medium flex items-center gap-1">
                   Monetize this quest
-                  <Tip>Enable credits and/or fiat payment for joining this quest.</Tip>
+                  <Tip>Enable GameB Tokens and/or fiat payment for this quest.</Tip>
                 </Label>
               </div>
 
               {props.isMonetized && (
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
-                    <Label htmlFor="bw-creditReward" className="text-xs flex items-center gap-1">
-                      Credit reward <Tip>Internal credits distributed to each participant on completion. Credits are non-convertible.</Tip>
+                     <Label htmlFor="bw-creditReward" className="text-xs flex items-center gap-1">
+                       🟩 GameB Token reward <Tip>GameB Tokens distributed to each participant on completion. Backed by fiat.</Tip>
                     </Label>
                     <Input
                       id="bw-creditReward"
@@ -274,14 +274,14 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <div className="space-y-3 pt-1">
                   <div>
                     <Label className="text-xs flex items-center gap-1">
-                      Pot currency <Tip>Use internal Credits or fiat euros to fund accepted proposals.</Tip>
+                       Pot currency <Tip>Use GameB Tokens or fiat euros to fund accepted proposals.</Tip>
                     </Label>
                     <Select value={props.fundingType} onValueChange={(v) => props.setFundingType(v as "CREDITS" | "FIAT")}>
                       <SelectTrigger className="mt-1 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CREDITS">Credits</SelectItem>
+                        <SelectItem value="CREDITS">🟩 GameB Tokens</SelectItem>
                         <SelectItem value="FIAT">Fiat (€)</SelectItem>
                       </SelectContent>
                     </Select>
@@ -326,7 +326,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Switch id="bw-fundraising" checked={props.allowFundraising} onCheckedChange={props.setAllowFundraising} />
                 <Label htmlFor="bw-fundraising" className="text-xs font-medium flex items-center gap-1">
                   Community fundraising
-                  <Tip>Allow others to contribute credits to this quest's budget.</Tip>
+                  <Tip>Allow others to contribute GameB Tokens to this quest's budget.</Tip>
                 </Label>
               </div>
             </div>
@@ -361,7 +361,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
             )}
             {props.isMonetized && Number(props.creditReward) > 0 && (
               <Badge variant="outline" className="text-[10px] py-0 gap-1">
-                <Coins className="h-2.5 w-2.5" /> {props.creditReward} Credits
+                <Coins className="h-2.5 w-2.5" /> {props.creditReward} 🟩 Tokens
               </Badge>
             )}
             {props.openForProposals && (
