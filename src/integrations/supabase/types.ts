@@ -1920,6 +1920,39 @@ export type Database = {
         }
         Relationships: []
       }
+      eco_region_lookup: {
+        Row: {
+          biome: string | null
+          created_at: string
+          eco_region_code: string
+          eco_region_name: string
+          id: string
+          realm: string | null
+          territory_code: string
+          territory_granularity: Database["public"]["Enums"]["territorial_granularity"]
+        }
+        Insert: {
+          biome?: string | null
+          created_at?: string
+          eco_region_code: string
+          eco_region_name: string
+          id?: string
+          realm?: string | null
+          territory_code: string
+          territory_granularity: Database["public"]["Enums"]["territorial_granularity"]
+        }
+        Update: {
+          biome?: string | null
+          created_at?: string
+          eco_region_code?: string
+          eco_region_name?: string
+          id?: string
+          realm?: string | null
+          territory_code?: string
+          territory_granularity?: Database["public"]["Enums"]["territorial_granularity"]
+        }
+        Relationships: []
+      }
       ecosystem_treasury_allocations: {
         Row: {
           created_at: string
@@ -2063,6 +2096,51 @@ export type Database = {
           is_default?: boolean
           name?: string
           sort_order?: number
+        }
+        Relationships: []
+      }
+      environmental_datasets: {
+        Row: {
+          api_endpoint: string | null
+          created_at: string
+          description: string | null
+          fetch_method: Database["public"]["Enums"]["dataset_fetch_method"]
+          granularity: Database["public"]["Enums"]["dataset_granularity"]
+          id: string
+          is_active: boolean
+          metadata_schema: Json | null
+          source: string
+          title: string
+          update_frequency: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint?: string | null
+          created_at?: string
+          description?: string | null
+          fetch_method?: Database["public"]["Enums"]["dataset_fetch_method"]
+          granularity?: Database["public"]["Enums"]["dataset_granularity"]
+          id?: string
+          is_active?: boolean
+          metadata_schema?: Json | null
+          source: string
+          title: string
+          update_frequency?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string | null
+          created_at?: string
+          description?: string | null
+          fetch_method?: Database["public"]["Enums"]["dataset_fetch_method"]
+          granularity?: Database["public"]["Enums"]["dataset_granularity"]
+          id?: string
+          is_active?: boolean
+          metadata_schema?: Json | null
+          source?: string
+          title?: string
+          update_frequency?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3364,6 +3442,7 @@ export type Database = {
           created_at: string
           created_by_user_id: string | null
           description: string | null
+          external_data_links: Json | null
           geo_shape: Json | null
           health_index: number | null
           id: string
@@ -3388,6 +3467,7 @@ export type Database = {
           created_at?: string
           created_by_user_id?: string | null
           description?: string | null
+          external_data_links?: Json | null
           geo_shape?: Json | null
           health_index?: number | null
           id?: string
@@ -3412,6 +3492,7 @@ export type Database = {
           created_at?: string
           created_by_user_id?: string | null
           description?: string | null
+          external_data_links?: Json | null
           geo_shape?: Json | null
           health_index?: number | null
           id?: string
@@ -5829,7 +5910,9 @@ export type Database = {
       }
       territories: {
         Row: {
+          auto_expand_perimeter: boolean
           created_at: string
+          custom_perimeter_name: string | null
           deleted_at: string | null
           featured_order: number | null
           feedpoint_default_guilds: boolean
@@ -5838,6 +5921,9 @@ export type Database = {
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
           geojson: Json | null
+          granularity:
+            | Database["public"]["Enums"]["territorial_granularity"]
+            | null
           id: string
           is_deleted: boolean
           latitude: number | null
@@ -5845,6 +5931,7 @@ export type Database = {
           longitude: number | null
           name: string
           parent_id: string | null
+          precision_level: Database["public"]["Enums"]["territorial_precision_level"]
           public_visibility: string
           slug: string | null
           stats: Json | null
@@ -5854,7 +5941,9 @@ export type Database = {
           web_tags: string[]
         }
         Insert: {
+          auto_expand_perimeter?: boolean
           created_at?: string
+          custom_perimeter_name?: string | null
           deleted_at?: string | null
           featured_order?: number | null
           feedpoint_default_guilds?: boolean
@@ -5863,6 +5952,9 @@ export type Database = {
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
           geojson?: Json | null
+          granularity?:
+            | Database["public"]["Enums"]["territorial_granularity"]
+            | null
           id?: string
           is_deleted?: boolean
           latitude?: number | null
@@ -5870,6 +5962,7 @@ export type Database = {
           longitude?: number | null
           name: string
           parent_id?: string | null
+          precision_level?: Database["public"]["Enums"]["territorial_precision_level"]
           public_visibility?: string
           slug?: string | null
           stats?: Json | null
@@ -5879,7 +5972,9 @@ export type Database = {
           web_tags?: string[]
         }
         Update: {
+          auto_expand_perimeter?: boolean
           created_at?: string
+          custom_perimeter_name?: string | null
           deleted_at?: string | null
           featured_order?: number | null
           feedpoint_default_guilds?: boolean
@@ -5888,6 +5983,9 @@ export type Database = {
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
           geojson?: Json | null
+          granularity?:
+            | Database["public"]["Enums"]["territorial_granularity"]
+            | null
           id?: string
           is_deleted?: boolean
           latitude?: number | null
@@ -5895,6 +5993,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           parent_id?: string | null
+          precision_level?: Database["public"]["Enums"]["territorial_precision_level"]
           public_visibility?: string
           slug?: string | null
           stats?: Json | null
@@ -6000,6 +6099,60 @@ export type Database = {
           {
             foreignKeyName: "territory_closure_descendant_id_fkey"
             columns: ["descendant_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_dataset_matches: {
+        Row: {
+          created_at: string
+          dataset_id: string
+          fetched_summary: Json | null
+          id: string
+          is_active: boolean
+          last_fetched_at: string | null
+          match_level: string
+          matched_granularity: string
+          territory_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dataset_id: string
+          fetched_summary?: Json | null
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          match_level?: string
+          matched_granularity: string
+          territory_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dataset_id?: string
+          fetched_summary?: Json | null
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          match_level?: string
+          matched_granularity?: string
+          territory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_dataset_matches_dataset_id_fkey"
+            columns: ["dataset_id"]
+            isOneToOne: false
+            referencedRelation: "environmental_datasets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_dataset_matches_territory_id_fkey"
+            columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
             referencedColumns: ["id"]
@@ -7679,6 +7832,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      match_territory_with_datasets: {
+        Args: { p_territory_id: string }
+        Returns: {
+          dataset_granularity: string
+          dataset_id: string
+          dataset_source: string
+          dataset_title: string
+          match_level: string
+          matched_at_granularity: string
+        }[]
+      }
       process_give_back: {
         Args: {
           _amount_credits?: number
@@ -7755,6 +7919,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_living_system_external_data: {
+        Args: { p_natural_system_id: string }
+        Returns: undefined
+      }
       upsert_stewardship_edge: {
         Args: {
           _context_guild_id?: string
@@ -7774,6 +7942,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "superadmin"
+      dataset_fetch_method: "API" | "SCRAPER" | "STATIC_IMPORT"
+      dataset_granularity:
+        | "GLOBAL"
+        | "COUNTRY"
+        | "NUTS1"
+        | "NUTS2"
+        | "NUTS3"
+        | "BIOREGION"
+        | "CUSTOM"
       eco_category:
         | "observation"
         | "restoration"
@@ -7854,6 +8031,17 @@ export type Database = {
         | "CROSS_GUILD_FEDERATION"
         | "CELEBRATION"
       subscription_status: "ACTIVE" | "CANCELED" | "EXPIRED" | "TRIAL"
+      territorial_granularity:
+        | "COUNTRY"
+        | "NUTS1"
+        | "NUTS2"
+        | "NUTS3"
+        | "DISTRICT_OR_COMMUNE"
+        | "CUSTOM_PERIMETER"
+      territorial_precision_level:
+        | "STRICT_MATCH"
+        | "PERIMETER_MATCH"
+        | "BIOREGIONAL_MATCH"
       territory_level:
         | "TOWN"
         | "REGION"
@@ -8013,6 +8201,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "superadmin"],
+      dataset_fetch_method: ["API", "SCRAPER", "STATIC_IMPORT"],
+      dataset_granularity: [
+        "GLOBAL",
+        "COUNTRY",
+        "NUTS1",
+        "NUTS2",
+        "NUTS3",
+        "BIOREGION",
+        "CUSTOM",
+      ],
       eco_category: [
         "observation",
         "restoration",
@@ -8102,6 +8300,19 @@ export const Constants = {
         "CELEBRATION",
       ],
       subscription_status: ["ACTIVE", "CANCELED", "EXPIRED", "TRIAL"],
+      territorial_granularity: [
+        "COUNTRY",
+        "NUTS1",
+        "NUTS2",
+        "NUTS3",
+        "DISTRICT_OR_COMMUNE",
+        "CUSTOM_PERIMETER",
+      ],
+      territorial_precision_level: [
+        "STRICT_MATCH",
+        "PERIMETER_MATCH",
+        "BIOREGIONAL_MATCH",
+      ],
       territory_level: [
         "TOWN",
         "REGION",

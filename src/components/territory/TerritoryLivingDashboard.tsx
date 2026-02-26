@@ -17,6 +17,8 @@ import {
   type TerritoryNaturalSystem,
 } from "@/hooks/useTerritoryLivingDashboard";
 import { AddLinkNaturalSystemModal } from "@/components/living/AddLinkNaturalSystemModal";
+import { EnvironmentalDataOverview } from "@/components/territory/EnvironmentalDataOverview";
+import { TerritoryPrecisionSettings } from "@/components/territory/TerritoryPrecisionSettings";
 
 interface Props {
   territoryId: string;
@@ -348,6 +350,12 @@ export function TerritoryLivingDashboard({ territoryId, territoryName }: Props) 
           <p className="text-sm text-muted-foreground">Could not load dashboard data.</p>
         )}
       </div>
+
+      {/* ═══ A2. ENVIRONMENTAL DATA OVERVIEW ═══ */}
+      <EnvironmentalDataOverview territoryId={territoryId} territoryName={territoryName} />
+
+      {/* ═══ A3. PRECISION SETTINGS ═══ */}
+      <TerritoryPrecisionSettings territoryId={territoryId} />
 
       {/* ═══ B. LIVING SYSTEMS LISTING ═══ */}
       <div className="space-y-4">

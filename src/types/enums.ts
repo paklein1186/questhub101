@@ -341,3 +341,34 @@ export enum TrustStatus {
   OUTDATED = "outdated",
   RETRACTED = "retracted",
 }
+
+export enum TerritorialPrecisionLevel {
+  STRICT_MATCH = "STRICT_MATCH",
+  PERIMETER_MATCH = "PERIMETER_MATCH",
+  BIOREGIONAL_MATCH = "BIOREGIONAL_MATCH",
+}
+
+export enum TerritorialGranularity {
+  COUNTRY = "COUNTRY",
+  NUTS1 = "NUTS1",
+  NUTS2 = "NUTS2",
+  NUTS3 = "NUTS3",
+  DISTRICT_OR_COMMUNE = "DISTRICT_OR_COMMUNE",
+  CUSTOM_PERIMETER = "CUSTOM_PERIMETER",
+}
+
+export enum DatasetGranularity {
+  GLOBAL = "GLOBAL",
+  COUNTRY = "COUNTRY",
+  NUTS1 = "NUTS1",
+  NUTS2 = "NUTS2",
+  NUTS3 = "NUTS3",
+  BIOREGION = "BIOREGION",
+  CUSTOM = "CUSTOM",
+}
+
+export enum DatasetFetchMethod {
+  API = "API",
+  SCRAPER = "SCRAPER",
+  STATIC_IMPORT = "STATIC_IMPORT",
+}

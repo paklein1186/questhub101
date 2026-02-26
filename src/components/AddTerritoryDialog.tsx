@@ -9,7 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { TerritoryLevel } from "@/types/enums";
+import { TerritoryLevel, TerritorialGranularity } from "@/types/enums";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -21,6 +21,7 @@ export function AddTerritoryDialog({ onCreated }: Props) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [level, setLevel] = useState<TerritoryLevel>(TerritoryLevel.TOWN);
+  const [granularity, setGranularity] = useState<string>("");
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -45,9 +46,12 @@ export function AddTerritoryDialog({ onCreated }: Props) {
       return;
     }
 
+    const insertData: Record<string, unknown> = { name: trimmed, level: level as any };
+    if (granularity) insertData.granularity = granularity;
+
     const { data: newTerritory, error } = await supabase
       .from("territories")
-      .insert({ name: trimmed, level: level as any })
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -58,6 +62,7 @@ export function AddTerritoryDialog({ onCreated }: Props) {
     toast({ title: `Territory "${trimmed}" created and selected!` });
     setOpen(false);
     setName("");
+    setGranularity("");
   };
 
   return (
@@ -87,6 +92,20 @@ export function AddTerritoryDialog({ onCreated }: Props) {
                 <SelectItem value={TerritoryLevel.REGION}>Region</SelectItem>
                 <SelectItem value={TerritoryLevel.NATIONAL}>National</SelectItem>
                 <SelectItem value={TerritoryLevel.OTHER}>Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Granularity</label>
+            <Select value={granularity} onValueChange={setGranularity}>
+              <SelectTrigger><SelectValue placeholder="Auto-detect" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TerritorialGranularity.DISTRICT_OR_COMMUNE}>District / Commune</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS3}>NUTS3</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS2}>NUTS2</SelectItem>
+                <SelectItem value={TerritorialGranularity.NUTS1}>NUTS1</SelectItem>
+                <SelectItem value={TerritorialGranularity.COUNTRY}>Country</SelectItem>
+                <SelectItem value={TerritorialGranularity.CUSTOM_PERIMETER}>Custom Perimeter</SelectItem>
               </SelectContent>
             </Select>
           </div>
