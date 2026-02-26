@@ -1,5 +1,6 @@
 import { useQuestContributions, useLogContribution, type ContributionType } from "@/hooks/useContributionLog";
 import { useGuildWeights, DEFAULT_TASK_TYPES, useValuePieActions, useQuestValuePie } from "@/hooks/useValuePie";
+import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
