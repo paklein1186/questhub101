@@ -2943,6 +2943,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          processed_at: string | null
           reviewed_at: string | null
           reviewed_by_user_id: string | null
           status: string
@@ -2959,6 +2960,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          processed_at?: string | null
           reviewed_at?: string | null
           reviewed_by_user_id?: string | null
           status?: string
@@ -2975,6 +2977,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          processed_at?: string | null
           reviewed_at?: string | null
           reviewed_by_user_id?: string | null
           status?: string
