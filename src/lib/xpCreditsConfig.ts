@@ -221,7 +221,7 @@ export const CREDIT_COSTS = {
   REDUCE_COMMISSION_BY_1_PERCENT: 25,
 } as const;
 
-// ─── Credit Bundles (purchasable via Stripe) ────────────────
+// ─── Platform Credit Bundles (purchasable via Stripe) ────────────────
 export const CREDIT_BUNDLES = [
   { code: "STARTER_100", credits: 100, priceEur: 4, label: "Starter", stripePriceId: "price_1SzRJsBttrYxqJqzDOZdcEfR" },
   { code: "CREATOR_300", credits: 300, priceEur: 10, label: "Creator", stripePriceId: "price_1SzRJtBttrYxqJqz6Uwn7fN8" },
@@ -287,16 +287,18 @@ export const GOVERNANCE_XP_TIERS = [
 ] as const;
 
 // ─── Grace Period ───────────────────────────────────────────
-/** Number of days new users can play without spending credits */
+/** Number of days new users can play without spending Platform Credits */
 export const GRACE_PERIOD_DAYS = 30;
 
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
-  moneyDisclaimer: "Mission budgets are in euros. Credits are not used for compensation.",
-  creditsDisclaimer: "Credits are non-convertible internal coordination units. They circulate within the ecosystem and are subject to 1% monthly redistribution. They cannot be exchanged for money.",
-  upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use credits.",
-  demurrageNotice: "Inactive credits are gradually redistributed to the ecosystem treasury (1%/month).",
-  creditsNature: "Collaboration fuel — earned through contribution, spent on ecosystem tools.",
+  moneyDisclaimer: "Mission budgets are funded in fiat (€) and converted to GameB Tokens. Platform Credits are never used for compensation.",
+  creditsDisclaimer: "Platform Credits are non-monetary feature-fuel. They power gamification, quotas, and platform actions. They cannot be exchanged for money or used for quest payouts.",
+  gamebDisclaimer: "GameB Tokens are fiat-backed mission units. Earned from funded quests and withdrawable to fiat via Stripe Connect.",
+  upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use Platform Credits.",
+  demurrageNotice: "Inactive Platform Credits are gradually redistributed to the ecosystem treasury (1%/month).",
+  creditsNature: "🔷 Platform Credits — Feature fuel for quotas, boosts, and gamification. Non-monetary.",
+  gamebNature: "🟩 GameB Tokens — Fiat-backed mission value. Earned from quests, withdrawable to fiat.",
   xpNature: "Reputation & contribution level — earned through participation, never purchased.",
   sharesNature: "Stewardship participation — long-term commitment to the platform's mission.",
 } as const;

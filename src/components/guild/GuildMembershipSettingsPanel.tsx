@@ -234,10 +234,10 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             <div className="space-y-4 pl-2 border-l-2 border-primary/20">
               <div>
                 <Label className="text-sm font-medium mb-1 block">
-                  Redistribution ({redistributionPercent}%)
+                  🟩 GameB Token Redistribution ({redistributionPercent}%)
                 </Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Percent of entry fees notionally going to a common pool
+                  Percent of quest-earned GameB Tokens redistributed to the guild pool
                 </p>
                 <Slider
                   value={[redistributionPercent]}

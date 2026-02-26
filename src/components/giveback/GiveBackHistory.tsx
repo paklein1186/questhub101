@@ -39,7 +39,7 @@ export function GiveBackHistory() {
         <h3 className="font-display text-lg font-semibold flex items-center gap-2">
           <Heart className="h-5 w-5 text-primary" /> My Give-back Contributions
         </h3>
-        <Badge variant="secondary" className="text-xs">{totalCredits} credits total • {donations.length} donations</Badge>
+        <Badge variant="secondary" className="text-xs">{totalCredits} Platform Credits total • {donations.length} donations</Badge>
       </div>
 
       {donations.length === 0 ? (
@@ -106,7 +106,7 @@ export function GuildGiveBackReceived({ guildId }: { guildId: string }) {
         <h4 className="font-display text-base font-semibold flex items-center gap-2">
           <Heart className="h-4 w-4 text-primary" /> Give-back Received
         </h4>
-        <Badge variant="secondary" className="text-xs">{totalCredits} credits</Badge>
+        <Badge variant="secondary" className="text-xs">{totalCredits} Platform Credits</Badge>
       </div>
       {donations.length === 0 ? (
         <p className="text-sm text-muted-foreground">No give-back contributions received yet.</p>
@@ -159,7 +159,7 @@ export function PlatformGiveBackAdmin() {
         <h4 className="font-display text-base font-semibold flex items-center gap-2">
           <Heart className="h-4 w-4 text-primary" /> Platform Give-back
         </h4>
-        <Badge variant="secondary" className="text-xs">{totalCredits} credits total</Badge>
+        <Badge variant="secondary" className="text-xs">{totalCredits} Platform Credits total</Badge>
       </div>
       {donations.length === 0 ? (
         <p className="text-sm text-muted-foreground">No give-back contributions to the platform yet.</p>
