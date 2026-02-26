@@ -3047,6 +3047,8 @@ export type Database = {
           credits_balance: number
           deleted_at: string | null
           description: string | null
+          enable_membership: boolean
+          entry_fee_credits: number | null
           featured_order: number | null
           features_config: Json
           feedpoint_default_guilds: boolean
@@ -3062,8 +3064,17 @@ export type Database = {
           join_policy: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url: string | null
           logo_url: string | null
+          member_xp_bonus_percent: number
+          members_only_events: boolean
+          members_only_quests: boolean
+          members_only_voting: boolean
+          membership_benefits_text: string | null
+          membership_commitments_text: string | null
+          membership_duration_months: number | null
+          membership_style: string
           name: string
           public_visibility: string
+          redistribution_percent: number
           twitter_url: string | null
           type: Database["public"]["Enums"]["guild_type"]
           universe_visibility: string
@@ -3081,6 +3092,8 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          enable_membership?: boolean
+          entry_fee_credits?: number | null
           featured_order?: number | null
           features_config?: Json
           feedpoint_default_guilds?: boolean
@@ -3096,8 +3109,17 @@ export type Database = {
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url?: string | null
           logo_url?: string | null
+          member_xp_bonus_percent?: number
+          members_only_events?: boolean
+          members_only_quests?: boolean
+          members_only_voting?: boolean
+          membership_benefits_text?: string | null
+          membership_commitments_text?: string | null
+          membership_duration_months?: number | null
+          membership_style?: string
           name: string
           public_visibility?: string
+          redistribution_percent?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
@@ -3115,6 +3137,8 @@ export type Database = {
           credits_balance?: number
           deleted_at?: string | null
           description?: string | null
+          enable_membership?: boolean
+          entry_fee_credits?: number | null
           featured_order?: number | null
           features_config?: Json
           feedpoint_default_guilds?: boolean
@@ -3130,8 +3154,17 @@ export type Database = {
           join_policy?: Database["public"]["Enums"]["guild_join_policy"]
           linkedin_url?: string | null
           logo_url?: string | null
+          member_xp_bonus_percent?: number
+          members_only_events?: boolean
+          members_only_quests?: boolean
+          members_only_voting?: boolean
+          membership_benefits_text?: string | null
+          membership_commitments_text?: string | null
+          membership_duration_months?: number | null
+          membership_style?: string
           name?: string
           public_visibility?: string
+          redistribution_percent?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
@@ -7146,6 +7179,41 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_guild_memberships: {
+        Row: {
+          guild_id: string
+          id: string
+          joined_at: string
+          membership_expires_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          guild_id: string
+          id?: string
+          joined_at?: string
+          membership_expires_at?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          guild_id?: string
+          id?: string
+          joined_at?: string
+          membership_expires_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_guild_memberships_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_milestones: {
         Row: {

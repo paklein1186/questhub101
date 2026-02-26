@@ -75,7 +75,8 @@ import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
 import { Leaf } from "lucide-react";
-
+import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
+import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
   allTabs: TabDefinition[]; defaultOrder: string[];
@@ -136,8 +137,9 @@ function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig 
 }
 
 /** Clustered subtabs: Discussions, Docs, Decisions, Rituals */
-function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, currentMembership, members, territories, topics }: {
+function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, currentMembership, members, territories, topics, guildMembership }: {
   guild: any; fc: any; isAdmin: boolean; isMember: boolean; currentUser: any; currentMembership: any; members: any[]; territories: any[]; topics: any[];
+  guildMembership?: any;
 }) {
   const [sub, setSub] = useState("discussions");
   return (
@@ -171,19 +173,26 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
         )}
       </TabsContent>
       <TabsContent value="decisions" className="mt-4">
-        {isMember ? (
-          <GuildDecisions
-            guildId={guild.id}
-            isAdmin={isAdmin}
-            isMember={isMember}
-            currentUserId={currentUser.id}
-            memberCount={members.length}
-            currentUserRole={currentMembership?.role}
-            featuresConfig={fc}
-          />
-        ) : (
-          <p className="text-muted-foreground">Join the guild to participate in decisions.</p>
-        )}
+        {(() => {
+          const votingAllowed = isAdmin || canAccessGuildVoting(guild, guildMembership);
+          if (!votingAllowed && guild.enable_membership) {
+            return <p className="text-muted-foreground">Only members can access this governance view. Become a member from the Membership card.</p>;
+          }
+          if (!isMember) {
+            return <p className="text-muted-foreground">Join the guild to participate in decisions.</p>;
+          }
+          return (
+            <GuildDecisions
+              guildId={guild.id}
+              isAdmin={isAdmin}
+              isMember={isMember}
+              currentUserId={currentUser.id}
+              memberCount={members.length}
+              currentUserRole={currentMembership?.role}
+              featuresConfig={fc}
+            />
+          );
+        })()}
       </TabsContent>
       <TabsContent value="rituals" className="mt-4">
         {(fc as any).rituals ? (
@@ -260,6 +269,7 @@ export default function GuildDetail() {
   const { getRolesForUser, roles: entityRoles } = useEntityRoles("guild", id);
 
   const limits = usePlanLimits();
+  const { membership: guildMembership } = useGuildMembership(id);
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
@@ -542,6 +552,7 @@ export default function GuildDetail() {
 
           {/* Highlighted posts from Discussion/Posts tab */}
           <HighlightedPostsTiles guildId={guild.id} onViewAll={() => setActiveTab("discussion")} />
+          <GuildMembershipCard guild={guild} />
           <PartnersBlock entityType="GUILD" entityId={guild.id} />
         </TabsContent>
 
@@ -702,6 +713,7 @@ export default function GuildDetail() {
             members={members}
             territories={territories}
             topics={topics}
+            guildMembership={guildMembership}
           />
         </TabsContent>
 
