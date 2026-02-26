@@ -348,6 +348,7 @@ export default function ConversationGuide({
   onSessionChange,
   className,
   inline = false,
+  expanded = false,
 }: ConversationGuideProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
