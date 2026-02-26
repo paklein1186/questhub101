@@ -59,7 +59,7 @@ import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
-import { LivingTab } from "@/components/living/LivingTab";
+import { QuestLivingTab } from "@/components/living/QuestLivingTab";
 import { ExternalLinksPanel, type ExternalLinkItem } from "@/components/guild/ExternalLinksPanel";
 import { Leaf } from "lucide-react";
 
@@ -1353,7 +1353,12 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="living" className="mt-6">
-          <LivingTab linkedType="quest" linkedId={quest.id} />
+          <QuestLivingTab
+            linkedType="quest"
+            linkedId={quest.id}
+            defaultTerritoryId={territories?.[0]?.id}
+            isOwner={isOwner}
+          />
         </TabsContent>
         
       </Tabs>
