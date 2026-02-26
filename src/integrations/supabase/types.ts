@@ -1525,6 +1525,7 @@ export type Database = {
       }
       contribution_logs: {
         Row: {
+          base_units: number | null
           contribution_type: string
           created_at: string
           credits_earned: number
@@ -1539,15 +1540,19 @@ export type Database = {
           role: string | null
           status: string
           subtask_id: string | null
+          task_type: string | null
           territory_id: string | null
           title: string
           trust_signal: Json | null
           user_id: string
           verified_at: string | null
           verified_by_user_id: string | null
+          weight_factor: number | null
+          weighted_units: number | null
           xp_earned: number
         }
         Insert: {
+          base_units?: number | null
           contribution_type?: string
           created_at?: string
           credits_earned?: number
@@ -1562,15 +1567,19 @@ export type Database = {
           role?: string | null
           status?: string
           subtask_id?: string | null
+          task_type?: string | null
           territory_id?: string | null
           title: string
           trust_signal?: Json | null
           user_id: string
           verified_at?: string | null
           verified_by_user_id?: string | null
+          weight_factor?: number | null
+          weighted_units?: number | null
           xp_earned?: number
         }
         Update: {
+          base_units?: number | null
           contribution_type?: string
           created_at?: string
           credits_earned?: number
@@ -1585,12 +1594,15 @@ export type Database = {
           role?: string | null
           status?: string
           subtask_id?: string | null
+          task_type?: string | null
           territory_id?: string | null
           title?: string
           trust_signal?: Json | null
           user_id?: string
           verified_at?: string | null
           verified_by_user_id?: string | null
+          weight_factor?: number | null
+          weighted_units?: number | null
           xp_earned?: number
         }
         Relationships: [
@@ -3088,6 +3100,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      guild_contribution_weights: {
+        Row: {
+          created_at: string
+          guild_id: string
+          id: string
+          task_type: string
+          updated_at: string
+          weight_factor: number
+        }
+        Insert: {
+          created_at?: string
+          guild_id: string
+          id?: string
+          task_type: string
+          updated_at?: string
+          weight_factor?: number
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string
+          id?: string
+          task_type?: string
+          updated_at?: string
+          weight_factor?: number
+        }
+        Relationships: []
       }
       guild_docs: {
         Row: {
@@ -5716,6 +5755,36 @@ export type Database = {
           },
         ]
       }
+      quest_value_pie_log: {
+        Row: {
+          contributor_id: string
+          created_at: string
+          gameb_tokens_awarded: number
+          id: string
+          quest_id: string
+          share_percent: number
+          weighted_units: number
+        }
+        Insert: {
+          contributor_id: string
+          created_at?: string
+          gameb_tokens_awarded?: number
+          id?: string
+          quest_id: string
+          share_percent?: number
+          weighted_units?: number
+        }
+        Update: {
+          contributor_id?: string
+          created_at?: string
+          gameb_tokens_awarded?: number
+          id?: string
+          quest_id?: string
+          share_percent?: number
+          weighted_units?: number
+        }
+        Relationships: []
+      }
       quests: {
         Row: {
           allow_fundraising: boolean
@@ -5765,6 +5834,7 @@ export type Database = {
           title: string
           universe_visibility: string
           updated_at: string
+          value_pie_calculated: boolean | null
           web_scopes: string[] | null
           web_tags: string[] | null
           web_visibility_override: string
@@ -5818,6 +5888,7 @@ export type Database = {
           title: string
           universe_visibility?: string
           updated_at?: string
+          value_pie_calculated?: boolean | null
           web_scopes?: string[] | null
           web_tags?: string[] | null
           web_visibility_override?: string
@@ -5871,6 +5942,7 @@ export type Database = {
           title?: string
           universe_visibility?: string
           updated_at?: string
+          value_pie_calculated?: boolean | null
           web_scopes?: string[] | null
           web_tags?: string[] | null
           web_visibility_override?: string
