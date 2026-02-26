@@ -70,6 +70,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/economy/emails", label: "Emails & Digests", icon: Mail },
       { to: "/admin/economy/treasury", label: "Treasury & Revenue", icon: Zap },
       { to: "/admin/economy/milestones", label: "Milestones", icon: Trophy },
+      { to: "/admin/economy/agent-billing", label: "Agent Billing", icon: Bot },
     ],
   },
   {
