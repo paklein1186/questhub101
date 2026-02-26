@@ -153,65 +153,80 @@ export default function AgentDetail() {
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Agent info */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Bot className="h-8 w-8 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold flex items-center gap-2">
-                  {agent.name}
-                  {agent.is_featured && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
-                </h1>
-                <Badge variant="outline" className="text-xs">{agent.category}</Badge>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
-            <div className="flex flex-wrap gap-1 mb-4">
-              {agent.skills?.map((s: string) => (
-                <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Zap className="h-4 w-4" /> {agent.cost_per_use} credits per message
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {agent.usage_count} interactions
-            </div>
-          </Card>
+      <Tabs defaultValue="chat" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="chat">Chat</TabsTrigger>
+          <TabsTrigger value="billing" className="flex items-center gap-1">
+            <CreditCard className="h-3.5 w-3.5" /> Billing
+          </TabsTrigger>
+        </TabsList>
 
-          {!isHired && user && (
-            <Button onClick={() => hireMut.mutate()} disabled={hireMut.isPending} className="w-full" size="lg">
-              <Sparkles className="h-4 w-4 mr-2" />
-              {hireMut.isPending ? "Hiring..." : "Hire this Agent"}
-            </Button>
-          )}
-          {isHired && (
-            <div className="flex items-center gap-2 text-sm text-primary">
-              <CheckCircle className="h-4 w-4" /> You've hired this agent
-            </div>
-          )}
-          {!user && (
-            <Button onClick={() => navigate("/login")} className="w-full">Log in to hire</Button>
-          )}
-        </div>
+        <TabsContent value="chat">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Agent info */}
+            <div className="lg:col-span-1 space-y-4">
+              <Card className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <Bot className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold flex items-center gap-2">
+                      {agent.name}
+                      {agent.is_featured && <Star className="h-4 w-4 text-amber-500 fill-amber-500" />}
+                    </h1>
+                    <Badge variant="outline" className="text-xs">{agent.category}</Badge>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">{agent.description}</p>
+                <div className="flex flex-wrap gap-1 mb-4">
+                  {agent.skills?.map((s: string) => (
+                    <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <Zap className="h-4 w-4" /> {agent.cost_per_use} credits per message
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {agent.usage_count} interactions
+                </div>
+              </Card>
 
-        {/* Chat */}
-        <div className="lg:col-span-2">
-          {isHired ? (
-            <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
-          ) : (
-            <Card className="p-12 text-center">
-              <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-              <h3 className="text-lg font-semibold mb-2">Hire to start chatting</h3>
-              <p className="text-sm text-muted-foreground">Hire this agent to begin a conversation and get personalized assistance.</p>
-            </Card>
-          )}
-        </div>
-      </div>
+              {!isHired && user && (
+                <Button onClick={() => hireMut.mutate()} disabled={hireMut.isPending} className="w-full" size="lg">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {hireMut.isPending ? "Hiring..." : "Hire this Agent"}
+                </Button>
+              )}
+              {isHired && (
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <CheckCircle className="h-4 w-4" /> You've hired this agent
+                </div>
+              )}
+              {!user && (
+                <Button onClick={() => navigate("/login")} className="w-full">Log in to hire</Button>
+              )}
+            </div>
+
+            {/* Chat */}
+            <div className="lg:col-span-2">
+              {isHired ? (
+                <AgentChat agentId={agent.id} agentName={agent.name} costPerUse={agent.cost_per_use} userId={user!.id} agentCategory={agent.category} agentSkills={agent.skills || []} />
+              ) : (
+                <Card className="p-12 text-center">
+                  <Bot className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
+                  <h3 className="text-lg font-semibold mb-2">Hire to start chatting</h3>
+                  <p className="text-sm text-muted-foreground">Hire this agent to begin a conversation and get personalized assistance.</p>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="billing">
+          <AgentBillingTab agentId={agent.id} agentCreatorId={agent.creator_user_id} />
+        </TabsContent>
+      </Tabs>
     </PageShell>
   );
 }
