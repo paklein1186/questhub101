@@ -18,6 +18,7 @@ import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
 import { GraphView } from "@/components/graph/GraphView";
+import ConversationGuide from "@/components/assistant/ConversationGuide";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();
@@ -147,6 +148,7 @@ export default function TerritoryDetail() {
 
         </Tabs>
       </div>
+      <ConversationGuide contextType="territory" contextId={resolvedId} />
     </div>
   );
 }

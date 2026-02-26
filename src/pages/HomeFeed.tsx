@@ -24,6 +24,7 @@ import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
+import ConversationGuide from "@/components/assistant/ConversationGuide";
 
 /* ───────── Persona-specific config ───────── */
 
@@ -699,6 +700,7 @@ export default function HomeFeed() {
           <FollowingActivity />
         </div>
       )}
+      <ConversationGuide contextType="global" />
     </PageShell>
   );
 }
