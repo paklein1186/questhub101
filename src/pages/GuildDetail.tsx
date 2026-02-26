@@ -576,6 +576,10 @@ export default function GuildDetail() {
           <GuildOVNTab guildId={guild.id} guildName={guild.name} />
         </TabsContent>
 
+        <TabsContent value="monetization" className="mt-6">
+          <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
+        </TabsContent>
+
         <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
           <GraphView centerType="guild" centerId={guild.id} height={700} />
         </TabsContent>
