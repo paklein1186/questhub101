@@ -34,6 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
 export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
+  const { grantXp, grantCredits } = useXpCredits();
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
