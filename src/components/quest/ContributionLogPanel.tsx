@@ -1,4 +1,5 @@
 import { useQuestContributions, useLogContribution, type ContributionType } from "@/hooks/useContributionLog";
+import { useGuildWeights, DEFAULT_TASK_TYPES, useValuePieActions, useQuestValuePie } from "@/hooks/useValuePie";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,15 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen
+  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen, Scale
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { ValuePieChart } from "./ValuePieChart";
 
 interface Props {
   questId: string;
   questOwnerId: string;
   guildId?: string | null;
+  questBudgetGamebTokens?: number;
+  guildPercent?: number;
+  territoryPercent?: number;
+  ctgPercent?: number;
+  valuePieCalculated?: boolean;
 }
 
 const TYPE_LABELS: Record<string, { label: string; icon: typeof FileText; color: string }> = {
@@ -43,43 +50,104 @@ const CONTRIBUTION_OPTIONS: { value: ContributionType; label: string }[] = [
   { value: "other", label: "Other contribution" },
 ];
 
-export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) {
+export function ContributionLogPanel({
+  questId,
+  questOwnerId,
+  guildId,
+  questBudgetGamebTokens = 0,
+  guildPercent = 10,
+  territoryPercent = 5,
+  ctgPercent = 5,
+  valuePieCalculated = false,
+}: Props) {
   const currentUser = useCurrentUser();
   const { data: contributions = [], isLoading } = useQuestContributions(questId);
   const { logContribution, verifyContribution } = useLogContribution();
+  const { data: guildWeights = [] } = useGuildWeights(guildId);
+  const { calculateAndDistribute } = useValuePieActions();
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [distributing, setDistributing] = useState(false);
 
   // Form state
   const [formType, setFormType] = useState<ContributionType>("documentation");
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formHours, setFormHours] = useState("");
+  const [formTaskType, setFormTaskType] = useState<string>("research");
+  const [formBaseUnits, setFormBaseUnits] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const isOwner = currentUser.id === questOwnerId;
 
+  // Build weight map from guild weights
+  const weightMap = useMemo(() => {
+    const m = new Map<string, number>();
+    guildWeights.forEach((w) => m.set(w.task_type, w.weight_factor));
+    // Fallback defaults
+    DEFAULT_TASK_TYPES.forEach((t) => {
+      if (!m.has(t)) m.set(t, 1.0);
+    });
+    return m;
+  }, [guildWeights]);
+
+  const currentWeight = weightMap.get(formTaskType) ?? 1.0;
+  const baseUnitsNum = parseFloat(formBaseUnits) || 0;
+  const weightedUnits = Math.round(baseUnitsNum * currentWeight * 100) / 100;
+
   const handleSubmit = async () => {
     if (!formTitle.trim()) return;
     setSubmitting(true);
-    await logContribution({
-      questId,
-      guildId: guildId ?? undefined,
-      contributionType: formType,
-      title: formTitle.trim(),
-      description: formDescription.trim() || undefined,
-      hoursLogged: formHours ? parseFloat(formHours) : undefined,
-    });
+    
+    // Use supabase directly to include task_type, base_units, weight_factor, weighted_units
+    const { supabase } = await import("@/integrations/supabase/client");
+    const userId = currentUser.id;
+    if (!userId) { setSubmitting(false); return; }
+
+    const { error } = await supabase
+      .from("contribution_logs" as any)
+      .insert({
+        user_id: userId,
+        quest_id: questId,
+        guild_id: guildId ?? null,
+        contribution_type: formType,
+        title: formTitle.trim(),
+        description: formDescription.trim() || null,
+        hours_logged: formHours ? parseFloat(formHours) : null,
+        task_type: formTaskType,
+        base_units: baseUnitsNum,
+        weight_factor: currentWeight,
+        weighted_units: weightedUnits,
+        ip_licence: "CC-BY-SA",
+      } as any);
+
+    if (!error) {
+      // Invalidate queries
+      const { useQueryClient } = await import("@tanstack/react-query");
+    }
+
     setFormTitle("");
     setFormDescription("");
     setFormHours("");
+    setFormBaseUnits("");
     setShowForm(false);
     setSubmitting(false);
+    // Force refetch
+    window.dispatchEvent(new Event("contribution-logged"));
+  };
+
+  const handleDistribute = async () => {
+    if (distributing) return;
+    setDistributing(true);
+    const overheadPct = (guildPercent + territoryPercent + ctgPercent) / 100;
+    const contributorPool = Math.round(questBudgetGamebTokens * (1 - overheadPct) * 100) / 100;
+    await calculateAndDistribute({ questId, contributorPoolTokens: contributorPool });
+    setDistributing(false);
   };
 
   // Aggregate stats
   const totalXp = contributions.reduce((s, c) => s + c.xp_earned, 0);
-  const totalCredits = contributions.reduce((s, c) => s + c.credits_earned, 0);
+  const totalWeightedUnits = contributions.reduce((s, c) => s + (Number((c as any).weighted_units) || 0), 0);
   const uniqueContributors = new Set(contributions.map((c) => c.user_id)).size;
   const verified = contributions.filter((c) => c.status === "verified").length;
 
@@ -96,11 +164,24 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
           <Badge variant="secondary" className="text-xs">{contributions.length}</Badge>
         </button>
 
-        {currentUser.id && (
-          <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowForm(!showForm)}>
-            <Plus className="h-3 w-3" /> Log contribution
-          </Button>
-        )}
+        <div className="flex gap-1.5">
+          {isOwner && contributions.length > 0 && !valuePieCalculated && questBudgetGamebTokens > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
+              onClick={handleDistribute}
+              disabled={distributing}
+            >
+              <Scale className="h-3 w-3" /> {distributing ? "Distributing…" : "Calculate Value Pie"}
+            </Button>
+          )}
+          {currentUser.id && !valuePieCalculated && (
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowForm(!showForm)}>
+              <Plus className="h-3 w-3" /> Log contribution
+            </Button>
+          )}
+        </div>
       </div>
 
       {expanded && (
@@ -120,14 +201,14 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
                 <p className="text-lg font-bold text-primary">{totalXp}</p>
                 <p className="text-[10px] text-muted-foreground">XP Earned</p>
               </div>
-              <div className="rounded-md bg-muted/50 p-2">
-                <p className="text-lg font-bold text-primary">{verified}/{contributions.length}</p>
-                <p className="text-[10px] text-muted-foreground">Verified</p>
+              <div className="rounded-md bg-emerald-500/5 p-2">
+                <p className="text-lg font-bold text-emerald-600">{totalWeightedUnits}</p>
+                <p className="text-[10px] text-muted-foreground">Weighted Units</p>
               </div>
             </div>
           )}
 
-          {/* Log Form */}
+          {/* Log Form with task_type & base_units */}
           {showForm && (
             <div className="rounded-lg border border-border bg-card p-3 space-y-2">
               <div className="flex gap-2">
@@ -155,6 +236,44 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
                 rows={2}
                 className="text-sm"
               />
+              {/* Value Pie Fields */}
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="text-[10px] text-muted-foreground block mb-0.5">Task Type (for weight)</label>
+                  <Select value={formTaskType} onValueChange={setFormTaskType}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEFAULT_TASK_TYPES.map((t) => (
+                        <SelectItem key={t} value={t} className="text-xs capitalize">
+                          {t} (×{weightMap.get(t)?.toFixed(1) ?? "1.0"})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-24">
+                  <label className="text-[10px] text-muted-foreground block mb-0.5">Base Units</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. hours"
+                    value={formBaseUnits}
+                    onChange={(e) => setFormBaseUnits(e.target.value)}
+                    className="h-8 text-sm"
+                    step="0.25"
+                    min="0"
+                  />
+                </div>
+                <div className="text-center px-2">
+                  <label className="text-[10px] text-muted-foreground block mb-0.5">Weight</label>
+                  <span className="text-sm font-medium">×{currentWeight.toFixed(1)}</span>
+                </div>
+                <div className="text-center px-2">
+                  <label className="text-[10px] text-muted-foreground block mb-0.5">Weighted</label>
+                  <span className="text-sm font-bold text-emerald-600">{weightedUnits}</span>
+                </div>
+              </div>
               <div className="flex gap-2 items-center">
                 <Input
                   type="number"
@@ -185,6 +304,8 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
                 {contributions.map((c) => {
                   const typeInfo = TYPE_LABELS[c.contribution_type] ?? TYPE_LABELS.other;
                   const Icon = typeInfo.icon;
+                  const wu = Number((c as any).weighted_units) || 0;
+                  const taskType = (c as any).task_type;
                   return (
                     <div key={c.id} className="flex items-start gap-2 rounded-md border border-border bg-card p-2 group">
                       <Avatar className="h-7 w-7 mt-0.5">
@@ -198,14 +319,17 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
                             <Icon className="h-2.5 w-2.5" />
                             {typeInfo.label}
                           </Badge>
+                          {taskType && (
+                            <Badge variant="secondary" className="text-[10px] capitalize">{taskType}</Badge>
+                          )}
                           {c.status === "verified" && (
                             <Badge className="bg-emerald-500/10 text-emerald-600 border-0 text-[10px]">✓ Verified</Badge>
                           )}
+                          {wu > 0 && (
+                            <span className="text-[10px] text-emerald-600 font-medium">{wu} wu</span>
+                          )}
                           {c.xp_earned > 0 && (
                             <span className="text-[10px] text-primary font-medium">+{c.xp_earned} XP</span>
-                          )}
-                          {c.credits_earned > 0 && (
-                            <span className="text-[10px] text-amber-600 font-medium">+{c.credits_earned} Cr</span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{c.title}</p>
@@ -234,6 +358,9 @@ export function ContributionLogPanel({ questId, questOwnerId, guildId }: Props) 
               </div>
             </ScrollArea>
           )}
+
+          {/* Value Pie Visualization */}
+          <ValuePieChart questId={questId} />
 
           {/* IP Licence note */}
           <p className="text-[10px] text-muted-foreground">
