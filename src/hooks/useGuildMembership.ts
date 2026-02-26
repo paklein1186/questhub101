@@ -14,9 +14,17 @@ export type GuildMembershipRow = {
   membership_expires_at: string | null;
 };
 
+type GuildLike = {
+  membership_duration_months?: number | null;
+  members_only_quests?: boolean;
+  members_only_events?: boolean;
+  members_only_voting?: boolean;
+  enable_membership?: boolean;
+};
+
 export function isActiveMember(
   membership: GuildMembershipRow | null | undefined,
-  guild: { membership_duration_months?: number | null } | null | undefined
+  guild: GuildLike | null | undefined
 ): boolean {
   if (!membership || membership.role !== "member") return false;
   if (!membership.membership_expires_at) return true;
@@ -24,7 +32,7 @@ export function isActiveMember(
 }
 
 export function canCreateGuildQuest(
-  guild: { members_only_quests?: boolean; enable_membership?: boolean } | null,
+  guild: GuildLike | null,
   membership: GuildMembershipRow | null | undefined
 ): boolean {
   if (!guild?.members_only_quests) return true;
@@ -32,7 +40,7 @@ export function canCreateGuildQuest(
 }
 
 export function canCreateGuildEvent(
-  guild: { members_only_events?: boolean; enable_membership?: boolean } | null,
+  guild: GuildLike | null,
   membership: GuildMembershipRow | null | undefined
 ): boolean {
   if (!guild?.members_only_events) return true;
@@ -40,7 +48,7 @@ export function canCreateGuildEvent(
 }
 
 export function canAccessGuildVoting(
-  guild: { members_only_voting?: boolean; enable_membership?: boolean } | null,
+  guild: GuildLike | null,
   membership: GuildMembershipRow | null | undefined
 ): boolean {
   if (!guild?.members_only_voting) return true;
@@ -59,7 +67,7 @@ export function useGuildMembership(guildId: string | undefined) {
   const { data: membership = null, isLoading, refetch } = useQuery({
     queryKey,
     enabled: !!guildId && !!userId,
-    queryFn: async () => {
+    queryFn: async (): Promise<GuildMembershipRow | null> => {
       const { data, error } = await supabase
         .from("user_guild_memberships" as any)
         .select("*")
@@ -67,7 +75,7 @@ export function useGuildMembership(guildId: string | undefined) {
         .eq("guild_id", guildId!)
         .maybeSingle();
       if (error) throw error;
-      return data as GuildMembershipRow | null;
+      return (data as any) as GuildMembershipRow | null;
     },
   });
 
@@ -117,7 +125,7 @@ export function useGuildMembership(guildId: string | undefined) {
       // Spend credits via the secure RPC
       const ok = await spendCredits(userId, {
         amount: fee,
-        type: "guild_membership",
+        type: "GUILD_MEMBERSHIP" as any,
         source: `Guild membership fee`,
         relatedEntityType: "guild",
         relatedEntityId: guildId,
