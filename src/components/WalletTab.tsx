@@ -179,18 +179,28 @@ export function WalletTab() {
       return;
     }
     if (!gamebBalance?.stripe_connect_onboarded) {
-      toast({ title: "Connect required", description: "You need to set up your Stripe Connect account first.", variant: "destructive" });
+      toast({ title: "Stripe Connect required", description: "You need to set up your Stripe Connect account first.", variant: "destructive" });
       return;
     }
     try {
       const { error } = await supabase.from("gameb_withdrawal_requests" as any).insert({
         user_id: userId,
         amount_tokens: balance,
-        amount_fiat: balance * 0.04, // 1 token = €0.04 (100 tokens = €4)
+        amount_fiat: balance * 0.04,
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} tokens → €${(balance * 0.04).toFixed(2)} submitted for review.` });
+      toast({ title: "Withdrawal requested", description: `${balance} GameB Tokens → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleStripeConnectOnboarding = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-connect-onboarding");
+      if (error) throw error;
+      if (data?.url) window.open(data.url, "_blank");
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -431,9 +441,14 @@ export function WalletTab() {
                       <Download className="h-4 w-4 mr-1" /> Withdraw to Fiat
                     </Button>
                     {!gamebBalance?.stripe_connect_onboarded && (
-                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-500/30">
-                        Stripe Connect required
-                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleStripeConnectOnboarding}
+                        className="text-xs border-amber-500/30 text-amber-600"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Set up Stripe Connect
+                      </Button>
                     )}
                   </div>
                 </div>
