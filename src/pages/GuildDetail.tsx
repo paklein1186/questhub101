@@ -77,7 +77,6 @@ import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliati
 import { Leaf, Network } from "lucide-react";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
-import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
