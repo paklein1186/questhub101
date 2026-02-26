@@ -637,7 +637,7 @@ export default function HomeFeed() {
           <FollowingActivity />
         </div>
       )}
-      <ConversationGuide contextType="global" />
+      
     </PageShell>
   );
 }
