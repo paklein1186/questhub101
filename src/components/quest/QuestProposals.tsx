@@ -515,7 +515,7 @@ export function QuestProposals({
                     )}
                     {proposal.requested_currency && proposal.requested_currency !== "CREDITS" && (
                       <Badge variant="outline" className="text-[10px] capitalize">
-                        {proposal.requested_currency === "BOTH" ? "Credits + Fiat" : "Fiat"}
+                        {proposal.requested_currency === "BOTH" ? "GameB Tokens + Fiat" : "Fiat"}
                       </Badge>
                     )}
                     {/* Payment link — only active when accepted and fiat requested */}
