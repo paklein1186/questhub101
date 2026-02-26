@@ -696,9 +696,9 @@
     "fillManually": "Fill in manually",
     "prefilledFromWebsite": "Pre-filled from website — review and adjust below.",
     "guild": "Guild",
-    "guildDesc": "A collective or community of like-minded people working toward shared goals.",
+    "guildDesc": "A purposeful collective, network or community — swarmable and scalable around shared missions.",
     "pod": "Pod",
-    "podDesc": "A small, focused micro-team for a specific project or study topic.",
+    "podDesc": "A small, purpose-free micro-team — lightweight and flexible for any project or study topic.",
     "company": "Traditional Organization",
     "companyDesc": "An SME, non-profit, or established organization joining the ecosystem."
   },

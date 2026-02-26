@@ -696,9 +696,9 @@
     "fillManually": "Remplir manuellement",
     "prefilledFromWebsite": "Pré-rempli depuis le site web — vérifiez et ajustez ci-dessous.",
     "guild": "Guilde",
-    "guildDesc": "Un collectif ou une communauté de personnes partageant les mêmes idées et travaillant vers des objectifs communs.",
+    "guildDesc": "Un collectif, réseau ou communauté à vocation — essaimable et scalable autour de missions partagées.",
     "pod": "Pod",
-    "podDesc": "Une micro-équipe ciblée pour un projet ou un sujet d'étude spécifique.",
+    "podDesc": "Une micro-équipe légère et sans vocation fixe — flexible pour tout projet ou sujet d'étude.",
     "company": "Organisation traditionnelle",
     "companyDesc": "Une PME, une association ou une organisation établie rejoignant l'écosystème."
   },
