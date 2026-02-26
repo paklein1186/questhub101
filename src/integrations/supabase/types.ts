@@ -1922,34 +1922,49 @@ export type Database = {
       }
       eco_region_lookup: {
         Row: {
+          admin_level: string | null
           biome: string | null
+          code_admin: string | null
+          comments: string | null
           created_at: string
           eco_region_code: string
           eco_region_name: string
+          eco_region_scheme: string | null
           id: string
           realm: string | null
           territory_code: string
           territory_granularity: Database["public"]["Enums"]["territorial_granularity"]
+          updated_at: string | null
         }
         Insert: {
+          admin_level?: string | null
           biome?: string | null
+          code_admin?: string | null
+          comments?: string | null
           created_at?: string
           eco_region_code: string
           eco_region_name: string
+          eco_region_scheme?: string | null
           id?: string
           realm?: string | null
           territory_code: string
           territory_granularity: Database["public"]["Enums"]["territorial_granularity"]
+          updated_at?: string | null
         }
         Update: {
+          admin_level?: string | null
           biome?: string | null
+          code_admin?: string | null
+          comments?: string | null
           created_at?: string
           eco_region_code?: string
           eco_region_name?: string
+          eco_region_scheme?: string | null
           id?: string
           realm?: string | null
           territory_code?: string
           territory_granularity?: Database["public"]["Enums"]["territorial_granularity"]
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -7831,6 +7846,14 @@ export type Database = {
           p_natural_system_id: string
         }
         Returns: undefined
+      }
+      map_territory_to_eco_region: {
+        Args: { p_territory_id: string }
+        Returns: {
+          eco_region_code: string
+          eco_region_name: string
+          eco_region_scheme: string
+        }[]
       }
       match_territory_with_datasets: {
         Args: { p_territory_id: string }
