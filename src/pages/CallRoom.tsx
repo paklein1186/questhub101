@@ -218,8 +218,8 @@ export default function CallRoom() {
   const roomName = useMemo(() => {
     if (!booking) return "";
     if (booking.call_url) {
-      // Extract room name from existing Jitsi URL
-      const match = booking.call_url.match(/meet\.jit\.si\/(.+)/);
+      // Extract room name from existing URL (meet.jit.si or 8x8.vc)
+      const match = booking.call_url.match(/(?:meet\.jit\.si|8x8\.vc)\/(.+)/);
       if (match) return match[1];
     }
     return `changethegame-${booking.id}`;
