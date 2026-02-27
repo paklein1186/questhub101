@@ -67,7 +67,7 @@ export default function BookingDetail() {
 
   const service = booking.services as any;
   const isConfirmed = booking.status === "CONFIRMED" || booking.status === "ACCEPTED";
-  const effectiveCallUrl = booking.call_url || (isConfirmed ? `https://meet.jit.si/gamechanger-${booking.id}` : undefined);
+  const effectiveCallUrl = booking.call_url || (isConfirmed ? `https://8x8.vc/gamechanger-${booking.id}` : undefined);
 
   return (
     <PageShell>

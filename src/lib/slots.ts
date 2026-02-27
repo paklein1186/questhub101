@@ -129,7 +129,7 @@ export function generateSlots(
 /** Generate a Jitsi meeting URL for a booking */
 export function generateCallUrl(bookingId: string, locationType?: string): string {
   if (!locationType || locationType === "JITSI") {
-    return `https://meet.jit.si/gamechanger-${bookingId}`;
+    return `https://8x8.vc/gamechanger-${bookingId}`;
   }
   return "";
 }
