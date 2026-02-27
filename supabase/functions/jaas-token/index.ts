@@ -19,7 +19,9 @@ function textToUint8(text: string): Uint8Array {
 
 /** Strip PEM headers and decode base64 */
 function pemToArrayBuffer(pem: string): ArrayBuffer {
-  const lines = pem
+  // Env vars often store \n as literal two-char sequence; restore real newlines
+  const normalised = pem.replace(/\\n/g, "\n");
+  const lines = normalised
     .replace(/-----BEGIN [\w\s]+-----/, "")
     .replace(/-----END [\w\s]+-----/, "")
     .replace(/\s/g, "");
@@ -116,17 +118,16 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = (claimsData.claims.email as string) || "";
+    const userId = userData.user.id;
+    const userEmail = userData.user.email || "";
 
     const { roomName } = await req.json();
     if (!roomName || typeof roomName !== "string") {
