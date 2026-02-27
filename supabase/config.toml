@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.ctg-guide]
 verify_jwt = false
+
+[functions.jaas-token]
+verify_jwt = false
