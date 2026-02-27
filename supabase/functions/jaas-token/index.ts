@@ -147,11 +147,18 @@ Deno.serve(async (req) => {
     const appId = Deno.env.get("JAAS_APP_ID");
     const privateKey = Deno.env.get("JAAS_PRIVATE_KEY");
     if (!appId || !privateKey) {
+      console.error("JaaS not configured. appId:", !!appId, "privateKey:", !!privateKey);
       return new Response(JSON.stringify({ error: "JaaS not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Debug: log key format info (NOT the key itself)
+    const keyNorm = privateKey.replace(/\\n/g, "\n");
+    console.log("Key starts with:", keyNorm.substring(0, 40));
+    console.log("Key length:", keyNorm.length);
+    console.log("Contains BEGIN:", keyNorm.includes("-----BEGIN"));
 
     const jwt = await createJaaSJwt(
       appId,
