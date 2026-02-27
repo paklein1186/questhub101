@@ -68,9 +68,9 @@ function downloadRitualIcs(title: string, scheduledAt: string, durationMinutes: 
 function getJitsiUrl(occurrenceId: string, visioLink?: string): string {
   if (visioLink) {
     if (visioLink.startsWith("http")) return visioLink;
-    return `https://meet.jit.si/${visioLink}`;
+    return `https://8x8.vc/${visioLink}`;
   }
-  return `https://meet.jit.si/ctg-ritual-${occurrenceId}`;
+  return `https://8x8.vc/ctg-ritual-${occurrenceId}`;
 }
 
 function ShareCallButton({ occurrenceId, visioLink, ritualTitle }: { occurrenceId: string; visioLink?: string; ritualTitle?: string }) {
@@ -232,7 +232,7 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
     const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
     const ritual = rituals.find((r: any) => r.id === ritualId);
     const visioLink = (ritual as any)?.default_visio_link ||
-      `https://meet.jit.si/ctg-ritual-${ritualId.slice(0, 8)}-${Date.now()}`;
+      `https://8x8.vc/ctg-ritual-${ritualId.slice(0, 8)}-${Date.now()}`;
 
     const { error } = await supabase.from("ritual_occurrences").insert({
       ritual_id: ritualId,
