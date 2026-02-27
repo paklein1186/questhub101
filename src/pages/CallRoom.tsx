@@ -15,7 +15,7 @@ import { useUserRoles } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-// ─── Jitsi Embed ──────────────────────────────────────────────
+// ─── Jitsi Embed (JaaS – 8x8.vc) ────────────────────────────
 
 function JitsiEmbed({
   roomName,
@@ -35,55 +35,76 @@ function JitsiEmbed({
 
   useEffect(() => {
     if (!containerRef.current || apiRef.current) return;
+    let cancelled = false;
 
-    // Load Jitsi External API script
-    const script = document.createElement("script");
-    script.src = "https://meet.jit.si/external_api.js";
-    script.async = true;
-    script.onload = () => {
+    async function init() {
       try {
-        const api = new (window as any).JitsiMeetExternalAPI("meet.jit.si", {
-          roomName,
-          parentNode: containerRef.current!,
-          width: "100%",
-          height: "100%",
-          userInfo: { displayName, avatarURL: avatarUrl },
-          configOverwrite: {
-            startWithAudioMuted: true,
-            startWithVideoMuted: false,
-            prejoinPageEnabled: false,
-            disableDeepLinking: true,
-          },
-          interfaceConfigOverwrite: {
-            SHOW_JITSI_WATERMARK: false,
-            SHOW_WATERMARK_FOR_GUESTS: false,
-            TOOLBAR_BUTTONS: [
-              "microphone", "camera", "desktop", "chat",
-              "raisehand", "tileview", "fullscreen",
-              "hangup", "settings",
-            ],
-          },
-        });
-        apiRef.current = api;
-        setLoaded(true);
-      } catch {
-        setFailed(true);
-        onError();
-      }
-    };
-    script.onerror = () => {
-      setFailed(true);
-      onError();
-    };
-    document.head.appendChild(script);
+        // 1. Fetch JaaS JWT from edge function
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error("Not authenticated");
 
+        const res = await supabase.functions.invoke("jaas-token", {
+          body: { roomName },
+        });
+        if (res.error || !res.data?.jwt) throw new Error(res.error?.message || "No JWT returned");
+
+        const { jwt, appId } = res.data;
+        if (cancelled) return;
+
+        // 2. Load JaaS External API script
+        const script = document.createElement("script");
+        script.src = "https://8x8.vc/external_api.js";
+        script.async = true;
+        script.onload = () => {
+          if (cancelled) return;
+          try {
+            const api = new (window as any).JitsiMeetExternalAPI("8x8.vc", {
+              roomName: `${appId}/${roomName}`,
+              parentNode: containerRef.current!,
+              width: "100%",
+              height: "100%",
+              jwt,
+              configOverwrite: {
+                startWithAudioMuted: true,
+                startWithVideoMuted: false,
+                prejoinPageEnabled: false,
+                disableDeepLinking: true,
+              },
+              interfaceConfigOverwrite: {
+                SHOW_JITSI_WATERMARK: false,
+                SHOW_WATERMARK_FOR_GUESTS: false,
+                TOOLBAR_BUTTONS: [
+                  "microphone", "camera", "desktop", "chat",
+                  "raisehand", "tileview", "fullscreen",
+                  "hangup", "settings",
+                ],
+              },
+            });
+            apiRef.current = api;
+            setLoaded(true);
+          } catch {
+            setFailed(true);
+            onError();
+          }
+        };
+        script.onerror = () => { setFailed(true); onError(); };
+        document.head.appendChild(script);
+      } catch (e) {
+        console.error("JaaS init error:", e);
+        if (!cancelled) { setFailed(true); onError(); }
+      }
+    }
+
+    init();
     return () => {
+      cancelled = true;
       apiRef.current?.dispose();
       apiRef.current = null;
     };
   }, [roomName, displayName, avatarUrl, onError]);
 
-  const jitsiUrl = `https://meet.jit.si/${roomName}`;
+  const jitsiUrl = `https://8x8.vc/${roomName}`;
 
   if (failed) {
     return (
@@ -91,11 +112,11 @@ function JitsiEmbed({
         <AlertTriangle className="h-12 w-12 text-warning mb-4" />
         <h3 className="font-display text-lg font-semibold mb-2">Couldn't load the call</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          You can still join the Jitsi room directly:
+          The video call couldn't be initialized. Try joining directly:
         </p>
         <Button asChild>
           <a href={jitsiUrl} target="_blank" rel="noopener noreferrer">
-            <Video className="h-4 w-4 mr-2" /> Open Jitsi room <ExternalLink className="h-3.5 w-3.5 ml-1" />
+            <Video className="h-4 w-4 mr-2" /> Open call room <ExternalLink className="h-3.5 w-3.5 ml-1" />
           </a>
         </Button>
       </div>
