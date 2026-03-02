@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,19 @@ export default function ProfileEnrichment() {
   // Input state
   const [resumeText, setResumeText] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [linkedinPrefilled, setLinkedinPrefilled] = useState(false);
+
+  // Pre-fill LinkedIn URL from profile
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles").select("linkedin_url").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data?.linkedin_url) {
+          setLinkedinUrl(data.linkedin_url);
+          setLinkedinPrefilled(true);
+        }
+      });
+  }, [user?.id]);
   const [pastedDescription, setPastedDescription] = useState("");
   const [resumeFileName, setResumeFileName] = useState("");
 
@@ -267,6 +280,9 @@ export default function ProfileEnrichment() {
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
                   />
+                  {linkedinPrefilled && (
+                    <p className="text-xs text-muted-foreground mt-1">Pre-filled from your profile — update if needed.</p>
+                  )}
                 </CardContent>
               </Card>
 
