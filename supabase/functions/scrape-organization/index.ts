@@ -1,9 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const BLOCKED_HOSTS = [
+  "localhost", "127.0.0.1", "0.0.0.0", "::1",
+  "169.254.169.254",
+  "metadata.google.internal",
+];
+
+const BLOCKED_IP_RANGES = [
+  /^10\./, /^172\.(1[6-9]|2[0-9]|3[01])\./,
+  /^192\.168\./, /^0\./,
+  /^fd[0-9a-f]{2}:/i, /^fe80:/i,
+];
+
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (BLOCKED_HOSTS.includes(h)) return true;
+  return BLOCKED_IP_RANGES.some((p) => p.test(h));
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,11 +30,45 @@ serve(async (req) => {
   }
 
   try {
+    // JWT auth check — only logged-in users can call this
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { url, linkedinUrl } = await req.json();
     const targetUrl = url || linkedinUrl;
 
     if (!targetUrl || typeof targetUrl !== "string") {
       return new Response(JSON.stringify({ error: "url or linkedinUrl is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SSRF protection — block internal/private network URLs
+    try {
+      const parsed = new URL(targetUrl);
+      if (isBlockedHost(parsed.hostname)) {
+        throw new Error("Blocked URL");
+      }
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid or blocked URL" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
