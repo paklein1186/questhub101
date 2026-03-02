@@ -68,6 +68,20 @@ serve(async (req) => {
       .eq("agent_id", agent_id)
       .maybeSingle();
 
+    // Verify caller is authorized to use this agent
+    if (billing && billing.payer_id !== user.id) {
+      // Also allow if caller is the agent's creator
+      const { data: agentData } = await supabase
+        .from("agents")
+        .select("creator_user_id")
+        .eq("id", agent_id)
+        .maybeSingle();
+
+      if (!agentData || agentData.creator_user_id !== user.id) {
+        throw new Error("Not authorized to charge this agent");
+      }
+    }
+
     const payerId = billing?.payer_id || user.id;
     const payerType = billing?.payer_type || "user";
 
