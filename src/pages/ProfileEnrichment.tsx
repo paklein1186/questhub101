@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,11 +37,12 @@ type Step = "welcome" | "input" | "processing" | "review" | "done";
 export default function ProfileEnrichment() {
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
+  const currentUser = useCurrentUser();
   const [step, setStep] = useState<Step>("welcome");
 
   // Input state
   const [resumeText, setResumeText] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState(currentUser?.linkedinUrl || "");
   const [pastedDescription, setPastedDescription] = useState("");
   const [resumeFileName, setResumeFileName] = useState("");
 
@@ -267,6 +269,9 @@ export default function ProfileEnrichment() {
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
                   />
+                  {currentUser?.linkedinUrl && (
+                    <p className="text-xs text-muted-foreground mt-1">Pre-filled from your profile — update if needed.</p>
+                  )}
                 </CardContent>
               </Card>
 
