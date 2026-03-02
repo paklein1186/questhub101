@@ -35,10 +35,26 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
 }
 
 function normalizeAppId(raw: string): string {
-  return raw
+  const cleaned = raw
     .replace(/^https?:\/\/8x8\.vc\//i, "")
     .replace(/\/+$/, "")
     .trim();
+  return cleaned.split("/").filter(Boolean)[0] ?? "";
+}
+
+function normalizeKeyId(rawAppId: string, rawKeyId?: string): string {
+  const direct = (rawKeyId ?? "").trim();
+  if (direct) {
+    const parts = direct.split("/").filter(Boolean);
+    return parts[parts.length - 1] ?? "default";
+  }
+
+  const cleanedApp = rawAppId
+    .replace(/^https?:\/\/8x8\.vc\//i, "")
+    .replace(/\/+$/, "")
+    .trim();
+  const appParts = cleanedApp.split("/").filter(Boolean);
+  return appParts[1] ?? "default";
 }
 
 function normalizeRoomName(appId: string, raw: string): string {
@@ -54,6 +70,7 @@ function normalizeRoomName(appId: string, raw: string): string {
 
 async function createJaaSJwt(
   appId: string,
+  kid: string,
   privateKeyPem: string,
   roomName: string,
   userName: string,
@@ -63,13 +80,12 @@ async function createJaaSJwt(
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
-  const keyId = Deno.env.get("JAAS_KEY_ID")?.trim() || "default";
   const safeAppId = normalizeAppId(appId);
 
   const header = {
     alg: "RS256",
     typ: "JWT",
-    kid: `${safeAppId}/${keyId}`,
+    kid,
   };
 
   const payload = {
@@ -171,6 +187,7 @@ Deno.serve(async (req) => {
 
     const appId = Deno.env.get("JAAS_APP_ID");
     const privateKey = Deno.env.get("JAAS_PRIVATE_KEY");
+    const keyIdRaw = Deno.env.get("JAAS_KEY_ID")?.trim();
     if (!appId || !privateKey) {
       console.error("JaaS not configured. appId:", !!appId, "privateKey:", !!privateKey);
       return new Response(JSON.stringify({ error: "JaaS not configured" }), {
@@ -194,15 +211,17 @@ Deno.serve(async (req) => {
     }
 
     const safeAppId = normalizeAppId(appId);
-    const keyId = Deno.env.get("JAAS_KEY_ID")?.trim() || "default";
+    const normalizedKeyId = normalizeKeyId(appId, keyIdRaw);
+    const kid = `${safeAppId}/${normalizedKeyId}`;
     console.log("AppID:", safeAppId);
-    console.log("KeyID:", keyId);
-    console.log("kid:", `${safeAppId}/${keyId}`);
+    console.log("KeyID:", normalizedKeyId);
+    console.log("kid:", kid);
     console.log("Room name (normalized):", normalizedRoomName);
     console.log("Room in JWT: *");
 
     const jwt = await createJaaSJwt(
       safeAppId,
+      kid,
       privateKey,
       normalizedRoomName,
       profile?.name || "Participant",
