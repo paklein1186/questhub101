@@ -229,6 +229,27 @@ export default function Onboarding() {
           delete ctx.show_post_signup_wizard;
           localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
         }
+        // Pre-populate intentions from guest goals
+        if (Array.isArray(ctx.goals) && ctx.goals.length > 0) {
+          const goalMap: Record<string, string> = {
+            create: "project",
+            collaborate: "community",
+            learn: "learn",
+            offer: "work",
+            explore: "explore",
+          };
+          const mapped = ctx.goals.map((g: string) => goalMap[g]).filter(Boolean) as string[];
+          if (mapped.length > 0) {
+            setIntentions(prev => {
+              const merged = new Set([...prev, ...mapped]);
+              return Array.from(merged);
+            });
+          }
+        }
+        // Pre-populate org rep flag
+        if (ctx.is_org_rep === true) {
+          setRepresentsOrg(true);
+        }
       }
     } catch { /* ignore */ }
     setPreloaded(true);
