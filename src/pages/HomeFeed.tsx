@@ -33,7 +33,7 @@ const PERSONA_VERBS: Record<string, string[]> = {
   CREATIVE: ["create", "imagine", "express", "make more beautiful", "share", "explore", "experiment", "collaborate"],
   HYBRID: ["do", "create", "achieve", "imagine", "contribute", "explore", "experiment", "collaborate", "support", "express"],
   ORG_REP: ["grow", "connect", "develop", "partner", "expand", "recruit", "promote", "collaborate"],
-  UNSET: ["do", "create", "explore", "collaborate", "share", "achieve"],
+  UNSET: ["do", "create", "explore", "collaborate", "share", "achieve"]
 };
 
 const PERSONA_GREETING_KEYS: Record<string, string> = {
@@ -41,7 +41,7 @@ const PERSONA_GREETING_KEYS: Record<string, string> = {
   CREATIVE: "home.greetingCreative",
   HYBRID: "home.greetingHybrid",
   ORG_REP: "home.greetingOrgRep",
-  UNSET: "home.greetingDefault",
+  UNSET: "home.greetingDefault"
 };
 
 const PERSONA_DESCRIPTION_KEYS: Record<string, string> = {
@@ -49,7 +49,7 @@ const PERSONA_DESCRIPTION_KEYS: Record<string, string> = {
   CREATIVE: "home.descCreative",
   HYBRID: "home.descHybrid",
   ORG_REP: "home.descOrgRep",
-  UNSET: "home.descDefault",
+  UNSET: "home.descDefault"
 };
 
 /* ───────── Guided mode uses GuidedPathways component ───────── */
@@ -78,14 +78,14 @@ function TerritoryFlow({
   originalInput,
   userId,
   persona,
-  onReset,
-}: {
-  result: any;
-  originalInput: string;
-  userId?: string;
-  persona: string;
-  onReset: () => void;
-}) {
+  onReset
+
+
+
+
+
+
+}: {result: any;originalInput: string;userId?: string;persona: string;onReset: () => void;}) {
   const navigate = useNavigate();
   const [questTitle, setQuestTitle] = useState(result.questDraft?.title || "");
   const [questDesc, setQuestDesc] = useState(result.questDraft?.description || "");
@@ -105,7 +105,7 @@ function TerritoryFlow({
         category: "OPPORTUNITIES",
         visibility: "PUBLIC",
         tags: result.memoryThemes || [],
-        created_by_user_id: userId,
+        created_by_user_id: userId
       } as any);
       setMemSaved(true);
     } catch {
@@ -117,19 +117,19 @@ function TerritoryFlow({
     if (!userId) return;
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from("quests")
-        .insert({
-          title: questTitle,
-          description: questDesc,
-          created_by_user_id: userId,
-          is_draft: true,
-          status: "DRAFT",
-          owner_type: "USER",
-          owner_id: userId,
-        } as any)
-        .select("id")
-        .single();
+      const { data, error } = await supabase.
+      from("quests").
+      insert({
+        title: questTitle,
+        description: questDesc,
+        created_by_user_id: userId,
+        is_draft: true,
+        status: "DRAFT",
+        owner_type: "USER",
+        owner_id: userId
+      } as any).
+      select("id").
+      single();
       if (error) throw error;
       setQuestSaved((data as any).id);
       toast.success("Quest draft saved!");
@@ -152,60 +152,60 @@ function TerritoryFlow({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full space-y-6"
-    >
+      className="w-full space-y-6">
+      
       {/* Summary */}
-      {result.summary && (
-        <div className="rounded-xl border border-border bg-card p-4">
+      {result.summary &&
+      <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm text-foreground/80 leading-relaxed">{result.summary}</p>
         </div>
-      )}
+      }
 
       {/* Territory confirmation */}
-      {memSaved && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      {memSaved &&
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Check className="h-3.5 w-3.5 text-emerald-500" />
           Your contribution has enriched the territory.
         </div>
-      )}
+      }
 
       {/* Quest draft */}
-      {result.questDraft && (
-        <div className="space-y-3">
+      {result.questDraft &&
+      <div className="space-y-3">
           <p className="text-xs font-medium text-muted-foreground">Quest draft generated from your vision:</p>
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
             <input
-              type="text"
-              value={questTitle}
-              onChange={(e) => setQuestTitle(e.target.value)}
-              className="w-full bg-transparent text-base font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
-              placeholder="Quest title…"
-            />
+            type="text"
+            value={questTitle}
+            onChange={(e) => setQuestTitle(e.target.value)}
+            className="w-full bg-transparent text-base font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
+            placeholder="Quest title…" />
+          
             <Textarea
-              value={questDesc}
-              onChange={(e) => setQuestDesc(e.target.value)}
-              className="min-h-[80px] resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
-              placeholder="Quest description…"
-            />
-            {result.questDraft.suggestedSkills?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+            value={questDesc}
+            onChange={(e) => setQuestDesc(e.target.value)}
+            className="min-h-[80px] resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0"
+            placeholder="Quest description…" />
+          
+            {result.questDraft.suggestedSkills?.length > 0 &&
+          <div className="flex flex-wrap gap-1.5">
                 <span className="text-xs text-muted-foreground mr-1">Skills:</span>
-                {result.questDraft.suggestedSkills.map((s: string) => (
-                  <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s}</span>
-                ))}
-              </div>
+                {result.questDraft.suggestedSkills.map((s: string) =>
+            <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s}</span>
             )}
-            {result.questDraft.suggestedTopics?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              </div>
+          }
+            {result.questDraft.suggestedTopics?.length > 0 &&
+          <div className="flex flex-wrap gap-1.5">
                 <span className="text-xs text-muted-foreground mr-1">Topics:</span>
-                {result.questDraft.suggestedTopics.map((t: string) => (
-                  <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
-                ))}
-              </div>
+                {result.questDraft.suggestedTopics.map((t: string) =>
+            <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t}</span>
             )}
+              </div>
+          }
             <div className="flex gap-2 pt-1">
-              {!questSaved ? (
-                <>
+              {!questSaved ?
+            <>
                   <Button size="sm" onClick={saveQuestDraft} disabled={saving || !questTitle.trim()}>
                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
                     Save as draft
@@ -213,30 +213,30 @@ function TerritoryFlow({
                   <Button size="sm" variant="outline" onClick={() => navigate("/quests/new")}>
                     Open full editor
                   </Button>
-                </>
-              ) : (
-                <Button size="sm" variant="outline" onClick={() => navigate(`/quests/${questSaved}`)}>
+                </> :
+
+            <Button size="sm" variant="outline" onClick={() => navigate(`/quests/${questSaved}`)}>
                   View quest <ChevronRight className="h-3.5 w-3.5 ml-1" />
                 </Button>
-              )}
+            }
             </div>
           </div>
         </div>
-      )}
+      }
 
       {/* Local Allies */}
-      {result.localAllies?.length > 0 && (
-        <div className="space-y-3">
+      {result.localAllies?.length > 0 &&
+      <div className="space-y-3">
           <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5" /> Local Allies Who Could Help
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {result.localAllies.map((ally: any) => (
-              <button
-                key={ally.id}
-                onClick={() => navigate(ally.route)}
-                className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
-              >
+            {result.localAllies.map((ally: any) =>
+          <button
+            key={ally.id}
+            onClick={() => navigate(ally.route)}
+            className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left">
+            
                 <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={ally.logo_url} />
                   <AvatarFallback className="text-xs">{ally.name?.charAt(0)}</AvatarFallback>
@@ -246,46 +246,46 @@ function TerritoryFlow({
                   <p className="text-xs text-muted-foreground">{ally.entityType}</p>
                 </div>
               </button>
-            ))}
+          )}
           </div>
         </div>
-      )}
+      }
 
       {/* Standard suggestions */}
-      {result.suggestions?.length > 0 && (
-        <div className="space-y-2">
+      {result.suggestions?.length > 0 &&
+      <div className="space-y-2">
           <p className="text-xs text-muted-foreground font-medium">Other next steps:</p>
-          {result.suggestions.map((s: any, i: number) => (
-            <button
-              key={i}
-              onClick={() => {
-                let route = s.route || "/explore";
-                if (!route.startsWith("/") || route.includes("://")) route = "/explore";
-                // Append queryParams if present
-                if (s.queryParams && Object.keys(s.queryParams).length > 0) {
-                  const url = new URL(route, window.location.origin);
-                  Object.entries(s.queryParams).forEach(([k, v]) => url.searchParams.set(k, v as string));
-                  route = url.pathname + url.search + url.hash;
-                }
-                navigate(route);
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
-            >
+          {result.suggestions.map((s: any, i: number) =>
+        <button
+          key={i}
+          onClick={() => {
+            let route = s.route || "/explore";
+            if (!route.startsWith("/") || route.includes("://")) route = "/explore";
+            // Append queryParams if present
+            if (s.queryParams && Object.keys(s.queryParams).length > 0) {
+              const url = new URL(route, window.location.origin);
+              Object.entries(s.queryParams).forEach(([k, v]) => url.searchParams.set(k, v as string));
+              route = url.pathname + url.search + url.hash;
+            }
+            navigate(route);
+          }}
+          className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left">
+          
               <Sparkles className="h-4 w-4 text-primary shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground">{s.label}</p>
                 {s.description && <p className="text-xs text-muted-foreground truncate">{s.description}</p>}
               </div>
             </button>
-          ))}
+        )}
         </div>
-      )}
+      }
 
       <div className="flex justify-center pt-2">
         <Button variant="ghost" size="sm" onClick={onReset}>Start over</Button>
       </div>
-    </motion.div>
-  );
+    </motion.div>);
+
 }
 
 /* ───────── Main Component ───────── */
@@ -332,7 +332,7 @@ export default function HomeFeed() {
     setLastInput(text);
     try {
       const { data, error } = await supabase.functions.invoke("interpret-intent", {
-        body: { intentText: text, persona, source },
+        body: { intentText: text, persona, source }
       });
       if (error) throw error;
       setResult(data);
@@ -352,7 +352,7 @@ export default function HomeFeed() {
         source: mode === "free" ? "HOME_FREE" : "HOME_GUIDED",
         persona_at_time: persona,
         original_text: input,
-        user_explicit: true,
+        user_explicit: true
       } as any);
       toast.success("Thanks! Your idea has been saved for the team.");
       setInput("");
@@ -438,7 +438,7 @@ export default function HomeFeed() {
       console.log("[STT] Recognition ended, wasListening:", isListeningRef.current);
       if (isListeningRef.current && !finalTranscript.trim()) {
         // Auto-restart if user hasn't spoken yet (browser timeout)
-        try { recognition.start(); } catch (_) { /* ignore */ }
+        try {recognition.start();} catch (_) {/* ignore */}
         return;
       }
       isListeningRef.current = false;
@@ -457,9 +457,9 @@ export default function HomeFeed() {
         recognitionRef.current = null;
         toast.error("Microphone permission denied. Please allow access in your browser settings, or open the app in a new tab.");
       } else if (event.error === "no-speech") {
+
         // Normal timeout, onend will auto-restart
-      } else if (event.error !== "aborted") {
-        isListeningRef.current = false;
+      } else if (event.error !== "aborted") {isListeningRef.current = false;
         setIsListening(false);
         recognitionRef.current = null;
         toast.error("Could not capture audio. Please try again.");
@@ -503,8 +503,8 @@ export default function HomeFeed() {
         onClick={() => setBauhausPaused((p) => !p)}
         className="fixed top-20 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
         aria-label={bauhausPaused ? "Resume animation" : "Pause animation"}
-        title={bauhausPaused ? "Resume animation" : "Pause animation"}
-      >
+        title={bauhausPaused ? "Resume animation" : "Pause animation"}>
+        
         {bauhausPaused ? <Play size={14} /> : <Pause size={14} />}
       </button>
       <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
@@ -519,16 +519,16 @@ export default function HomeFeed() {
         </p>
 
         {/* Search shortcut */}
-        <button
-          onClick={() => navigate("/search")}
-          className="flex items-center gap-2 h-9 px-4 mb-4 rounded-full border border-input bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
-        >
-          <Search className="h-4 w-4" />
-          <span>Search…</span>
-          <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-            ⌘K
-          </kbd>
-        </button>
+        
+
+
+
+
+
+
+
+
+        
 
         {/* Free / Guided toggle */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
@@ -540,104 +540,104 @@ export default function HomeFeed() {
             onCheckedChange={(checked) => {
               setMode(checked ? "guided" : "free");
               resetAll();
-            }}
-          />
+            }} />
+          
           <span className={cn("text-sm font-medium transition-colors", mode === "guided" ? "text-foreground" : "text-muted-foreground")}>
             {t("home.guided")}
           </span>
         </div>
 
         {/* ─── Free mode — Pi inline ─── */}
-        {mode === "free" && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full"
-          >
+        {mode === "free" &&
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full">
+          
             <ConversationGuide contextType="global" inline className="min-h-[120px]" />
           </motion.div>
-        )}
+        }
 
         {/* ─── Guided mode ─── */}
-        {mode === "guided" && !result && (
-          <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} />
-        )}
+        {mode === "guided" && !result &&
+        <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} />
+        }
 
         {/* ─── Territory Intent Flow ─── */}
-        {result && isTerritory && (
-          <TerritoryFlow
-            result={result}
-            originalInput={lastInput}
-            userId={currentUser.id}
-            persona={persona}
-            onReset={resetAll}
-          />
-        )}
+        {result && isTerritory &&
+        <TerritoryFlow
+          result={result}
+          originalInput={lastInput}
+          userId={currentUser.id}
+          persona={persona}
+          onReset={resetAll} />
+
+        }
 
         {/* ─── Standard AI result (non-territory) ─── */}
-        {result && !isTerritory && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full space-y-4"
-          >
-            {result.summary && (
-              <div className="rounded-xl border border-border bg-card p-4">
+        {result && !isTerritory &&
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full space-y-4">
+          
+            {result.summary &&
+          <div className="rounded-xl border border-border bg-card p-4">
                 <p className="text-sm text-foreground/80 leading-relaxed">{result.summary}</p>
-                {result.followUpQuestion && (
-                  <p className="text-xs text-muted-foreground mt-2 italic">{result.followUpQuestion}</p>
-                )}
+                {result.followUpQuestion &&
+            <p className="text-xs text-muted-foreground mt-2 italic">{result.followUpQuestion}</p>
+            }
               </div>
-            )}
+          }
 
-            {result.suggestions?.length > 0 && (
-              <div className="space-y-2">
+            {result.suggestions?.length > 0 &&
+          <div className="space-y-2">
                 <p className="text-xs text-muted-foreground font-medium">Here are some next steps:</p>
-                {result.suggestions.map((s: any, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSuggestionClick(s.route || "/explore", s.queryParams)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left"
-                  >
+                {result.suggestions.map((s: any, i: number) =>
+            <button
+              key={i}
+              onClick={() => handleSuggestionClick(s.route || "/explore", s.queryParams)}
+              className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left">
+              
                     <Sparkles className="h-4 w-4 text-primary shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground">{s.label}</p>
                       {s.description && <p className="text-xs text-muted-foreground truncate">{s.description}</p>}
                     </div>
                   </button>
-                ))}
-              </div>
             )}
+              </div>
+          }
 
-            {result.actionType === "OTHER" && (
-              <p className="text-xs text-muted-foreground text-center">
+            {result.actionType === "OTHER" &&
+          <p className="text-xs text-muted-foreground text-center">
                 We're not sure how to route this yet, but we've saved your idea for the team. 💡
               </p>
-            )}
+          }
 
             <div className="flex justify-center pt-2">
               <Button variant="ghost" size="sm" onClick={resetAll}>Start over</Button>
             </div>
           </motion.div>
-        )}
+        }
 
         {/* Loading state */}
-        {loading && (
-          <div className="flex items-center gap-2 text-muted-foreground py-8">
+        {loading &&
+        <div className="flex items-center gap-2 text-muted-foreground py-8">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span className="text-sm">Thinking…</span>
           </div>
-        )}
+        }
       </div>
 
       {/* Task Board — below the AI section */}
-      {currentUser.id && (
-        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
+      {currentUser.id &&
+      <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
           <MyTaskBoard userId={currentUser.id} />
           <FollowingActivity />
         </div>
-      )}
+      }
       
-    </PageShell>
-  );
+    </PageShell>);
+
 }
