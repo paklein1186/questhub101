@@ -110,12 +110,12 @@ export function AffiliationsStep({
 
         <div>
           <label className="text-sm font-medium mb-1 flex items-center gap-1.5">
-            <Link2 className="h-3.5 w-3.5" /> Other (Instagram, Behance, GitHub…)
+            <Link2 className="h-3.5 w-3.5" /> Other link (Instagram, GitHub, portfolio…)
           </label>
           <Input
             value={links.other}
             onChange={(e) => onLinksChange({ ...links, other: e.target.value })}
-            placeholder="https://…"
+            placeholder="https://instagram.com/… or github.com/…"
             maxLength={500}
           />
         </div>

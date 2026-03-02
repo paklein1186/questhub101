@@ -333,7 +333,7 @@ export default function Onboarding() {
       if (location.trim()) updates.location = location.trim();
       if (affLinks.website.trim()) updates.website_url = affLinks.website.trim();
       if (affLinks.linkedin.trim()) updates.linkedin_url = affLinks.linkedin.trim();
-      if (affLinks.other.trim()) updates.instagram_url = affLinks.other.trim();
+      if (affLinks.other.trim()) updates.instagram_url = affLinks.other.trim(); // stores any social/portfolio link, not just Instagram
       updates.persona_type = personaType;
       updates.persona_source = "onboarding_intent";
 
@@ -385,7 +385,7 @@ export default function Onboarding() {
         preferred_language: preferredLang,
         website_url: affLinks.website.trim() || null,
         linkedin_url: affLinks.linkedin.trim() || null,
-        instagram_url: affLinks.other.trim() || null,
+        instagram_url: affLinks.other.trim() || null, // stores any social/portfolio link, not just Instagram
       } as any).eq("user_id", authUser.id);
 
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
