@@ -105,7 +105,7 @@ export function GlobalSearchDialog() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 h-8 w-56 sm:w-72 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
+        className="flex items-center gap-2 h-8 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground hover:bg-muted transition-colors"
       >
         <Search className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">{t("search.placeholder")}</span>
