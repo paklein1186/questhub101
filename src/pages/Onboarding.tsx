@@ -662,6 +662,12 @@ export default function Onboarding() {
         return;
       }
     }
+    const isIdentityStep = (!isCreativePath && step === 1) ||
+                            (isCreativePath && step === 2);
+    if (isIdentityStep && !name.trim()) {
+      toast({ title: "Please enter your name", variant: "destructive" });
+      return;
+    }
     setDirection(1);
     setStep((s) => Math.min(s + 1, lastStepIndex));
   };
