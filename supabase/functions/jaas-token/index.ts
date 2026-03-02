@@ -17,15 +17,18 @@ function textToUint8(text: string): Uint8Array {
   return new TextEncoder().encode(text);
 }
 
-/** Strip PEM headers and decode base64 */
+/** Strip PEM headers and decode base64, or handle raw base64 */
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   // Env vars often store \n as literal two-char sequence; restore real newlines
-  const normalised = pem.replace(/\\n/g, "\n");
-  const lines = normalised
-    .replace(/-----BEGIN [\w\s]+-----/, "")
-    .replace(/-----END [\w\s]+-----/, "")
+  const normalised = pem.replace(/\\n/g, "\n").trim();
+  // Strip PEM headers if present
+  let b64 = normalised
+    .replace(/-----BEGIN [\w\s]+-----/g, "")
+    .replace(/-----END [\w\s]+-----/g, "")
     .replace(/\s/g, "");
-  const binary = atob(lines);
+  // If still empty after stripping, the input was already raw base64
+  if (!b64) b64 = normalised.replace(/\s/g, "");
+  const binary = atob(b64);
   const buf = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i);
   return buf.buffer;
@@ -61,18 +64,19 @@ async function createJaaSJwt(
   const now = Math.floor(Date.now() / 1000);
 
   const keyId = Deno.env.get("JAAS_KEY_ID")?.trim() || "default";
+  const safeAppId = normalizeAppId(appId);
 
   const header = {
     alg: "RS256",
     typ: "JWT",
-    kid: `${normalizeAppId(appId)}/${keyId}`,
+    kid: `${safeAppId}/${keyId}`,
   };
 
   const payload = {
     iss: "chat",
     aud: "jitsi",
-    sub: appId,
-    room: roomName,
+    sub: safeAppId,
+    room: "*",
     exp: now + 3600, // 1 hour
     nbf: now - 10,
     iat: now,
@@ -190,6 +194,12 @@ Deno.serve(async (req) => {
     }
 
     const safeAppId = normalizeAppId(appId);
+    const keyId = Deno.env.get("JAAS_KEY_ID")?.trim() || "default";
+    console.log("AppID:", safeAppId);
+    console.log("KeyID:", keyId);
+    console.log("kid:", `${safeAppId}/${keyId}`);
+    console.log("Room name (normalized):", normalizedRoomName);
+    console.log("Room in JWT: *");
 
     const jwt = await createJaaSJwt(
       safeAppId,
@@ -201,7 +211,10 @@ Deno.serve(async (req) => {
       true // all authenticated platform users are moderators in their rooms
     );
 
-    return new Response(JSON.stringify({ jwt, appId: safeAppId, roomName: normalizedRoomName, roomPath: `${safeAppId}/${normalizedRoomName}` }), {
+    const roomPath = `${safeAppId}/${normalizedRoomName}`;
+    console.log("Returned roomPath:", roomPath);
+
+    return new Response(JSON.stringify({ jwt, appId: safeAppId, roomName: normalizedRoomName, roomPath }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
