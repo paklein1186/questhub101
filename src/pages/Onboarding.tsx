@@ -1397,7 +1397,7 @@ export default function Onboarding() {
             <Button variant="default" className="flex-1" onClick={() => setWantsService(true)}>
               Yes, let's go
             </Button>
-            <Button variant="outline" className="flex-1" onClick={() => { setWantsService(false); finishOnboarding(); }}>
+            <Button variant="outline" className="flex-1" onClick={() => { setWantsService(false); goNext(); }}>
               Skip for now
             </Button>
           </div>
