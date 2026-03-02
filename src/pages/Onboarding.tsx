@@ -250,6 +250,10 @@ export default function Onboarding() {
         if (ctx.is_org_rep === true) {
           setRepresentsOrg(true);
         }
+        // Pre-fill website URL from guest org URL
+        if (ctx.org_url && !data?.website_url) {
+          setAffLinks(prev => ({ ...prev, website: ctx.org_url }));
+        }
       }
     } catch { /* ignore */ }
     setPreloaded(true);
