@@ -358,6 +358,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
         preselected_guild_ids: selectedGuildIds,
         preselected_follow_user_ids: selectedUserIds,
         show_post_signup_wizard: false,
+        org_url: orgUrl || null,
       };
       localStorage.setItem("guestOnboardingContext", JSON.stringify(ctx));
       // Clear dismissal flag so post-signup flows work
