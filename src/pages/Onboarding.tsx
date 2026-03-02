@@ -249,6 +249,9 @@ export default function Onboarding() {
         // Pre-populate org rep flag
         if (ctx.is_org_rep === true) {
           setRepresentsOrg(true);
+          setIntentions(prev =>
+            prev.includes("register_org") ? prev : [...prev, "register_org"]
+          );
         }
         // Pre-fill website URL from guest org URL
         if (ctx.org_url && !data?.website_url) {
