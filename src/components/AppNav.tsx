@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
@@ -16,6 +16,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +81,7 @@ export function AppNav() {
   const { data: flags = [] } = useFeatureFlags();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { togglePanel } = usePiSidePanel();
 
   const { data: creditsBalance } = useQuery({
     queryKey: ["nav-credits-balance", session?.user?.id],

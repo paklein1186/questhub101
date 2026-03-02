@@ -18,7 +18,7 @@ import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
 import { GraphView } from "@/components/graph/GraphView";
-import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
+import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();

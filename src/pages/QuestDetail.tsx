@@ -23,7 +23,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, ReportTargetType, AttachmentTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
-import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
+import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
