@@ -786,7 +786,7 @@ export default function Onboarding() {
             <button
               key={opt.key}
               onClick={() => { selectImpactPath(); toggleIntention(opt.key); if (opt.key === "register_org") setRepresentsOrg(true); }}
-              className={cn(
+              aria-pressed={intentions.includes(opt.key)}
                 "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                 intentions.includes(opt.key)
                   ? "border-primary bg-primary/5 shadow-sm"
@@ -842,7 +842,7 @@ export default function Onboarding() {
               <button
                 key={key}
                 onClick={() => setSelectedTopics((p) => toggleArr(p, topicId))}
-                className={cn(
+                aria-pressed={isSelected}
                   "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                   isSelected
                     ? "border-primary bg-primary/5 shadow-sm"
@@ -868,7 +868,7 @@ export default function Onboarding() {
                 <button
                   key={t.id}
                   onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
-                  className={cn(
+                  aria-pressed={selectedTopics.includes(t.id)}
                     "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
                     selectedTopics.includes(t.id)
                       ? "border-primary bg-primary text-primary-foreground"
@@ -1012,7 +1012,7 @@ export default function Onboarding() {
               <button
                 key={t.id}
                 onClick={() => setSelectedTopics((p) => toggleArr(p, t.id))}
-                className={cn(
+                aria-pressed={selectedTopics.includes(t.id)}
                   "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
                   selectedTopics.includes(t.id)
                     ? "border-primary bg-primary text-primary-foreground"
@@ -1096,7 +1096,7 @@ export default function Onboarding() {
               <button
                 key={t.id}
                 onClick={() => setSelectedTerritories((p) => toggleArr(p, t.id))}
-                className={cn(
+                aria-pressed={selectedTerritories.includes(t.id)}
                   "px-3 py-1.5 rounded-full border text-xs font-medium transition-all",
                   selectedTerritories.includes(t.id)
                     ? "border-accent bg-accent text-accent-foreground"
@@ -1138,7 +1138,7 @@ export default function Onboarding() {
             <button
               key={lang.code}
               onClick={() => toggleLang(lang.code)}
-              className={cn(
+              aria-pressed={spokenLangCodes.includes(lang.code)}
                 "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                 spokenLangCodes.includes(lang.code)
                   ? "border-primary bg-primary/5 shadow-sm"
@@ -1245,7 +1245,7 @@ export default function Onboarding() {
                 <button
                   key={person.user_id}
                   onClick={() => toggleFollow(person.user_id)}
-                  className={cn(
+                  aria-pressed={selectedFollows.includes(person.user_id)}
                     "w-full flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                     selectedFollows.includes(person.user_id)
                       ? "border-primary bg-primary/5 shadow-sm"
@@ -1346,7 +1346,7 @@ export default function Onboarding() {
                   <button
                     key={t.id}
                     onClick={() => setProjectTopics((p) => toggleArr(p, t.id))}
-                    className={cn(
+                    aria-pressed={projectTopics.includes(t.id)}
                       "px-2.5 py-1 rounded-full border text-xs transition-all",
                       projectTopics.includes(t.id)
                         ? "border-primary bg-primary text-primary-foreground"
@@ -1365,7 +1365,7 @@ export default function Onboarding() {
                   <button
                     key={t.id}
                     onClick={() => setProjectTerritories((p) => toggleArr(p, t.id))}
-                    className={cn(
+                    aria-pressed={projectTerritories.includes(t.id)}
                       "px-2.5 py-1 rounded-full border text-xs transition-all",
                       projectTerritories.includes(t.id)
                         ? "border-accent bg-accent text-accent-foreground"
@@ -1439,7 +1439,7 @@ export default function Onboarding() {
                   <button
                     key={t.id}
                     onClick={() => setServiceTopics((p) => toggleArr(p, t.id))}
-                    className={cn(
+                    aria-pressed={serviceTopics.includes(t.id)}
                       "px-2.5 py-1 rounded-full border text-xs transition-all",
                       serviceTopics.includes(t.id)
                         ? "border-primary bg-primary text-primary-foreground"
@@ -1605,7 +1605,7 @@ export default function Onboarding() {
               <span>Step {step + 1} of {progressSteps}</span>
               <span className="font-display font-semibold text-foreground">{currentStepLabel}</span>
             </div>
-            <Progress value={((step + 1) / progressSteps) * 100} className="h-1.5" />
+            <Progress value={((step + 1) / progressSteps) * 100} className="h-1.5" aria-label="Onboarding progress" />
           </div>
         )}
 
