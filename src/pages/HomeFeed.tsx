@@ -514,9 +514,7 @@ export default function HomeFeed() {
         <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
           {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
         </h1>
-        <p className="text-xs text-muted-foreground/70 text-center max-w-md mb-4 sm:mb-6 px-2">
-          {t(PERSONA_DESCRIPTION_KEYS[effectivePersona] || PERSONA_DESCRIPTION_KEYS.UNSET)}
-        </p>
+        <div className="mb-4 sm:mb-6" />
 
         {/* Search shortcut */}
         
