@@ -30,6 +30,19 @@ function normalizeRoomName(raw: string): string {
   return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
 }
 
+function normalizeAppId(raw: string): string {
+  return raw
+    .replace(/^https?:\/\/8x8\.vc\//i, "")
+    .replace(/\/+$/, "")
+    .trim();
+}
+
+function buildRoomPath(appId: string, roomName: string): string {
+  const safeAppId = normalizeAppId(appId);
+  const safeRoom = normalizeRoomName(roomName);
+  return `${safeAppId}/${safeRoom}`;
+}
+
 function JitsiEmbed({
   roomName,
   displayName,
@@ -45,6 +58,7 @@ function JitsiEmbed({
   const apiRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [directUrl, setDirectUrl] = useState(`https://8x8.vc/${roomName}`);
 
   useEffect(() => {
     if (!containerRef.current || apiRef.current) return;
@@ -62,6 +76,10 @@ function JitsiEmbed({
         if (res.error || !res.data?.jwt) throw new Error(res.error?.message || "No JWT returned");
 
         const { jwt, appId } = res.data;
+        const roomPath = typeof res.data?.roomPath === "string"
+          ? res.data.roomPath
+          : buildRoomPath(String(appId || ""), roomName);
+        setDirectUrl(`https://8x8.vc/${roomPath}`);
         if (cancelled) return;
 
         const script = document.createElement("script");
@@ -71,7 +89,7 @@ function JitsiEmbed({
           if (cancelled) return;
           try {
             const api = new (window as any).JitsiMeetExternalAPI("8x8.vc", {
-              roomName: `${appId}/${roomName}`,
+              roomName: roomPath,
               parentNode: containerRef.current!,
               width: "100%",
               height: "100%",
@@ -115,7 +133,7 @@ function JitsiEmbed({
     };
   }, [roomName, displayName, avatarUrl, onError]);
 
-  const jitsiUrl = `https://8x8.vc/${roomName}`;
+  const jitsiUrl = directUrl;
 
   if (failed) {
     return (

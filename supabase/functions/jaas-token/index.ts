@@ -31,11 +31,19 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return buf.buffer;
 }
 
+function normalizeAppId(raw: string): string {
+  return raw
+    .replace(/^https?:\/\/8x8\.vc\//i, "")
+    .replace(/\/+$/, "")
+    .trim();
+}
+
 function normalizeRoomName(appId: string, raw: string): string {
+  const safeAppId = normalizeAppId(appId);
   const trimmed = raw.trim();
   const withoutUrl = trimmed.replace(/^https?:\/\/(?:meet\.jit\.si|8x8\.vc)\//i, "");
-  if (withoutUrl.startsWith(`${appId}/`)) {
-    return withoutUrl.slice(appId.length + 1);
+  if (withoutUrl.startsWith(`${safeAppId}/`)) {
+    return withoutUrl.slice(safeAppId.length + 1);
   }
   const parts = withoutUrl.split("/").filter(Boolean);
   return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
@@ -52,10 +60,12 @@ async function createJaaSJwt(
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
 
+  const keyId = Deno.env.get("JAAS_KEY_ID")?.trim() || "default";
+
   const header = {
     alg: "RS256",
     typ: "JWT",
-    kid: appId + "/default",
+    kid: `${normalizeAppId(appId)}/${keyId}`,
   };
 
   const payload = {
@@ -179,8 +189,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const safeAppId = normalizeAppId(appId);
+
     const jwt = await createJaaSJwt(
-      appId,
+      safeAppId,
       privateKey,
       normalizedRoomName,
       profile?.name || "Participant",
@@ -189,7 +201,7 @@ Deno.serve(async (req) => {
       true // all authenticated platform users are moderators in their rooms
     );
 
-    return new Response(JSON.stringify({ jwt, appId }), {
+    return new Response(JSON.stringify({ jwt, appId: safeAppId, roomName: normalizedRoomName, roomPath: `${safeAppId}/${normalizedRoomName}` }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
