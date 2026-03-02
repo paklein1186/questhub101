@@ -18,7 +18,7 @@ import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { cn } from "@/lib/utils";
 import { GraphView } from "@/components/graph/GraphView";
-import { PiBubble } from "@/components/assistant/PiBubble";
+import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 
 export default function TerritoryDetail() {
   const navigate = useNavigate();
@@ -148,7 +148,7 @@ export default function TerritoryDetail() {
 
         </Tabs>
       </div>
-      <PiBubble contextType="territory" contextId={resolvedId} />
+      <PiContextSetter contextType="territory" contextId={resolvedId} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
@@ -16,6 +16,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +81,7 @@ export function AppNav() {
   const { data: flags = [] } = useFeatureFlags();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { togglePanel } = usePiSidePanel();
 
   const { data: creditsBalance } = useQuery({
     queryKey: ["nav-credits-balance", session?.user?.id],
@@ -168,6 +170,15 @@ export function AppNav() {
                       </Link>
                     );
                   })}
+
+                  {/* Pi toggle */}
+                  <button
+                    onClick={togglePanel}
+                    className="flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors ml-1"
+                    title="Talk to Pi"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </button>
 
                   {/* Unified profile menu */}
                   <DropdownMenu>
@@ -441,6 +452,14 @@ export function AppNav() {
                 </Link>
               );
             })}
+            {/* Pi tab */}
+            <button
+              onClick={togglePanel}
+              className="flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors"
+            >
+              <Sparkles className="h-5 w-5" />
+              <span className="leading-none">Pi</span>
+            </button>
             {/* Me tab */}
             <Link
               to="/me"

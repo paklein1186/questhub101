@@ -23,7 +23,7 @@ import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType, QuestUpdateType, QuestStatus, FollowTargetType, ReportTargetType, AttachmentTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
-import { PiBubble } from "@/components/assistant/PiBubble";
+import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -1371,7 +1371,7 @@ export default function QuestDetail() {
         </TabsContent>
         
       </Tabs>
-      <PiBubble contextType="quest" contextId={id} />
+      <PiContextSetter contextType="quest" contextId={id} />
     </PageShell>
   );
 }
