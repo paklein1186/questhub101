@@ -53,6 +53,7 @@ function JitsiEmbed({
   const apiRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [directUrl, setDirectUrl] = useState(`https://8x8.vc/${roomName}`);
 
   useEffect(() => {
     if (!containerRef.current || apiRef.current) return;
@@ -71,8 +72,10 @@ function JitsiEmbed({
         if (res.error || !res.data?.jwt) throw new Error(res.error?.message || "No JWT returned");
 
         const { jwt, appId } = res.data;
-        const roomPath = buildRoomPath(String(appId || ""), roomName);
-        const joinUrl = `https://8x8.vc/${roomPath}`;
+        const roomPath = typeof res.data?.roomPath === "string"
+          ? res.data.roomPath
+          : buildRoomPath(String(appId || ""), roomName);
+        setDirectUrl(`https://8x8.vc/${roomPath}`);
         if (cancelled) return;
 
         // 2. Load JaaS External API script
@@ -127,7 +130,7 @@ function JitsiEmbed({
     };
   }, [roomName, displayName, avatarUrl, onError]);
 
-  const jitsiUrl = `https://8x8.vc/${roomName}`;
+  const jitsiUrl = directUrl;
 
   if (failed) {
     return (
