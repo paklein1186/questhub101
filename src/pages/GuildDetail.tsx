@@ -28,7 +28,7 @@ import { usePlanLimits, EXTRA_QUEST_CREDIT_COST, EXTRA_GUILD_CREDIT_COST } from 
 import { CommentTargetType, FollowTargetType, GuildJoinPolicy, OnlineLocationType, ReportTargetType } from "@/types/enums";
 import { ReportButton } from "@/components/ReportButton";
 import { DraftBanner } from "@/components/DraftBanner";
-import { PiBubble } from "@/components/assistant/PiBubble";
+import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -746,7 +746,7 @@ export default function GuildDetail() {
           </TabsContent>
         )}
       </Tabs>
-      <PiBubble contextType="guild" contextId={id} />
+      <PiContextSetter contextType="guild" contextId={id} />
     </PageShell>
   );
 }
