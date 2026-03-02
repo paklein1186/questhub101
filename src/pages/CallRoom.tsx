@@ -25,6 +25,19 @@ function normalizeRoomName(raw: string): string {
   return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
 }
 
+function normalizeAppId(raw: string): string {
+  return raw
+    .replace(/^https?:\/\/8x8\.vc\//i, "")
+    .replace(/\/+$/, "")
+    .trim();
+}
+
+function buildRoomPath(appId: string, roomName: string): string {
+  const safeAppId = normalizeAppId(appId);
+  const safeRoom = normalizeRoomName(roomName);
+  return `${safeAppId}/${safeRoom}`;
+}
+
 function JitsiEmbed({
   roomName,
   displayName,
@@ -58,6 +71,8 @@ function JitsiEmbed({
         if (res.error || !res.data?.jwt) throw new Error(res.error?.message || "No JWT returned");
 
         const { jwt, appId } = res.data;
+        const roomPath = buildRoomPath(String(appId || ""), roomName);
+        const joinUrl = `https://8x8.vc/${roomPath}`;
         if (cancelled) return;
 
         // 2. Load JaaS External API script
@@ -68,7 +83,7 @@ function JitsiEmbed({
           if (cancelled) return;
           try {
             const api = new (window as any).JitsiMeetExternalAPI("8x8.vc", {
-              roomName: `${appId}/${roomName}`,
+              roomName: roomPath,
               parentNode: containerRef.current!,
               width: "100%",
               height: "100%",
