@@ -17,6 +17,14 @@ import { useToast } from "@/hooks/use-toast";
 
 // ─── Jitsi Embed (JaaS – 8x8.vc) ────────────────────────────
 
+function normalizeRoomName(raw: string): string {
+  const stripped = raw
+    .replace(/^https?:\/\/(?:meet\.jit\.si|8x8\.vc)\//i, "")
+    .trim();
+  const parts = stripped.split("/").filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
+}
+
 function JitsiEmbed({
   roomName,
   displayName,
@@ -218,9 +226,8 @@ export default function CallRoom() {
   const roomName = useMemo(() => {
     if (!booking) return "";
     if (booking.call_url) {
-      // Extract room name from existing URL (meet.jit.si or 8x8.vc)
-      const match = booking.call_url.match(/(?:meet\.jit\.si|8x8\.vc)\/(.+)/);
-      if (match) return match[1];
+      const normalized = normalizeRoomName(booking.call_url);
+      if (normalized) return normalized;
     }
     return `changethegame-${booking.id}`;
   }, [booking]);

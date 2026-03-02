@@ -31,6 +31,16 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   return buf.buffer;
 }
 
+function normalizeRoomName(appId: string, raw: string): string {
+  const trimmed = raw.trim();
+  const withoutUrl = trimmed.replace(/^https?:\/\/(?:meet\.jit\.si|8x8\.vc)\//i, "");
+  if (withoutUrl.startsWith(`${appId}/`)) {
+    return withoutUrl.slice(appId.length + 1);
+  }
+  const parts = withoutUrl.split("/").filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
+}
+
 async function createJaaSJwt(
   appId: string,
   privateKeyPem: string,
@@ -137,6 +147,7 @@ Deno.serve(async (req) => {
       });
     }
 
+
     // Get user profile for display name and avatar
     const { data: profile } = await supabase
       .from("profiles")
@@ -160,10 +171,18 @@ Deno.serve(async (req) => {
     console.log("Key length:", keyNorm.length);
     console.log("Contains BEGIN:", keyNorm.includes("-----BEGIN"));
 
+    const normalizedRoomName = normalizeRoomName(appId, roomName);
+    if (!normalizedRoomName) {
+      return new Response(JSON.stringify({ error: "Invalid roomName" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const jwt = await createJaaSJwt(
       appId,
       privateKey,
-      roomName,
+      normalizedRoomName,
       profile?.name || "Participant",
       userEmail,
       profile?.avatar_url || undefined,

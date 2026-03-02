@@ -22,6 +22,14 @@ import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualCon
 
 // ─── Jitsi Embed (JaaS – 8x8.vc) ────────────────────────────
 
+function normalizeRoomName(raw: string): string {
+  const stripped = raw
+    .replace(/^https?:\/\/(?:meet\.jit\.si|8x8\.vc)\//i, "")
+    .trim();
+  const parts = stripped.split("/").filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 1] : (parts[0] ?? "");
+}
+
 function JitsiEmbed({
   roomName,
   displayName,
@@ -274,8 +282,8 @@ export default function RitualCallRoom() {
   const roomName = useMemo(() => {
     if (!occurrence) return "";
     if (occurrence.visio_link) {
-      const match = occurrence.visio_link.match(/meet\.jit\.si\/(.+)/);
-      if (match) return match[1];
+      const normalized = normalizeRoomName(occurrence.visio_link);
+      if (normalized) return normalized;
     }
     return `ctg-ritual-${occurrenceId}`;
   }, [occurrence, occurrenceId]);
