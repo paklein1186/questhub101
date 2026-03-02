@@ -13,11 +13,11 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
+    // Only allow service role key (anon key is public and must not authorize sensitive operations)
     const token = authHeader.replace("Bearer ", "");
-    if (token !== serviceKey && token !== anonKey) {
+    if (token !== serviceKey) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
