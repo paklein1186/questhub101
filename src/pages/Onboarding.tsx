@@ -442,12 +442,13 @@ export default function Onboarding() {
 
       // Save selected follows
       if (selectedFollows.length > 0) {
-        await supabase.from("follows").insert(
+        await supabase.from("follows").upsert(
           selectedFollows.map(targetId => ({
             follower_id: authUser.id,
             target_id: targetId,
             target_type: "USER",
-          }))
+          })),
+          { onConflict: "follower_id,target_type,target_id", ignoreDuplicates: true }
         );
       }
 
