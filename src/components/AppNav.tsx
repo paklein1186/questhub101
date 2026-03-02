@@ -452,6 +452,14 @@ export function AppNav() {
                 </Link>
               );
             })}
+            {/* Pi tab */}
+            <button
+              onClick={togglePanel}
+              className="flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors"
+            >
+              <Sparkles className="h-5 w-5" />
+              <span className="leading-none">Pi</span>
+            </button>
             {/* Me tab */}
             <Link
               to="/me"
