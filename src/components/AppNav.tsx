@@ -171,6 +171,15 @@ export function AppNav() {
                     );
                   })}
 
+                  {/* Pi toggle */}
+                  <button
+                    onClick={togglePanel}
+                    className="flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors ml-1"
+                    title="Talk to Pi"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                  </button>
+
                   {/* Unified profile menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
