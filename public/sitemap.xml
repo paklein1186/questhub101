@@ -2,12 +2,12 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://changethegame.xyz/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://changethegame.xyz/explore</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://changethegame.xyz/quests</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://changethegame.xyz/guilds</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://changethegame.xyz/services</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://changethegame.xyz/companies</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://changethegame.xyz/explore/quests-info</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://changethegame.xyz/explore/guilds-info</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://changethegame.xyz/explore/houses</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://changethegame.xyz/explore/companies-info</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://changethegame.xyz/courses</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://changethegame.xyz/territories</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://changethegame.xyz/territories-houses</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://changethegame.xyz/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://changethegame.xyz/how-it-works</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://changethegame.xyz/manifesto</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
