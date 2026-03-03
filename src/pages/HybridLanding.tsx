@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Sparkles, Compass, Users, Layers,
-  Blend, Star, Heart, Briefcase, Feather,
+  Blend, Star, Heart, Briefcase, Feather, TrendingUp, Shield,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,11 @@ import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { HOUSES_OF_ART } from "@/lib/personaLabels";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { LandingStatBar } from "@/components/landing/LandingStatBar";
+import { LandingProgressionSection } from "@/components/landing/LandingProgressionSection";
+import { LandingServicesSection } from "@/components/landing/LandingServicesSection";
+import { usePiPanel } from "@/hooks/usePiPanel";
+import { useTranslation } from "react-i18next";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -78,25 +83,15 @@ function useUserHouses(userId: string | undefined) {
 }
 
 export default function HybridLanding() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { openPiPanel } = usePiPanel();
   const { data: quests = [], isLoading: loadingQuests } = useFeaturedQuests();
   const { data: groups = [], isLoading: loadingGroups } = useFeaturedGroups();
   const { data: userHouses = [] } = useUserHouses(user?.id);
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
-
-  // Auto-trigger onboarding assistant for unlogged users after a brief delay
-  useEffect(() => {
-    if (user) return;
-    const dismissed = localStorage.getItem("guestAssistantDismissed");
-    if (dismissed) return;
-    const timer = setTimeout(() => {
-      setGuestAction("get started");
-      setGuestOpen(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
     if (user) {
@@ -137,7 +132,7 @@ export default function HybridLanding() {
         <div className="container py-20 md:py-32 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
-              <Blend className="h-3 w-3 mr-1" /> Creativity · Impact · Connection
+              <Blend className="h-3 w-3 mr-1" /> {t("landing.hybrid.hero.badge")}
             </Badge>
           </motion.div>
 
@@ -147,11 +142,9 @@ export default function HybridLanding() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
           >
-            Where{" "}
-            <span className="text-primary">creators</span>{" "}
-            and{" "}
-            <span className="text-accent">builders</span>{" "}
-            meet.
+            <span className="block">{t("landing.hybrid.hero.title1")}</span>
+            <span className="block text-primary">{t("landing.hybrid.hero.title2")}</span>
+            <span className="block text-accent">{t("landing.hybrid.hero.title3")}</span>
           </motion.h1>
 
           <motion.p
@@ -160,7 +153,7 @@ export default function HybridLanding() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="mt-5 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
-            For the ones who draw, design, prototype, regenerate, choreograph, weave, code, facilitate, imagine.
+            {t("landing.hybrid.hero.sub")}
           </motion.p>
 
           <motion.div
@@ -170,55 +163,157 @@ export default function HybridLanding() {
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" className="gap-2" onClick={() => handleGatedClick("start a quest", "/quests/new")}>
-              <Feather className="h-4 w-4" /> Start a Quest
+              <Feather className="h-4 w-4" /> {t("landing.hybrid.hero.cta1")}
             </Button>
             <Button size="lg" variant="outline" className="gap-2" onClick={() => handleGatedClick("share a skill or service", "/services/new")}>
-              <Briefcase className="h-4 w-4" /> Share a Skill or Service
+              <Briefcase className="h-4 w-4" /> {t("landing.hybrid.hero.cta2")}
             </Button>
             <Button size="lg" variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleGatedClick("join a guild or circle", "/explore")}>
-              <Users className="h-4 w-4" /> Join a Guild or Circle
+              <Users className="h-4 w-4" /> {t("landing.hybrid.hero.cta3")}
             </Button>
           </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.55 }}
-            className="mt-5 text-sm text-muted-foreground italic cursor-pointer hover:text-foreground transition-colors"
-            onClick={() => { if (!user) { setGuestAction("get guidance"); setGuestOpen(true); } else { navigate("/"); } }}
-          >
-            Let your two worlds speak — your guide adapts to your flow.
-          </motion.p>
+          <LandingStatBar />
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+            <button
+              onClick={() => !user ? (setGuestAction("get guidance"), setGuestOpen(true)) : openPiPanel()}
+              className="mt-5 text-sm text-muted-foreground italic hover:text-foreground transition-colors"
+            >
+              {t("landing.hybrid.hero.piLink")} <Sparkles className="h-3.5 w-3.5 ml-1 inline" />
+            </button>
+          </motion.div>
         </div>
       </section>
 
-      {/* ─── What You Can Do ─── */}
+      {/* ─── Dual XP Track ─── */}
       <section className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">What you can do</h2>
-          <div className="grid gap-8 sm:grid-cols-3">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-3">
+            {t("landing.hybrid.dualTrack.title")}
+          </h2>
+          <p className="text-muted-foreground text-center mb-10 max-w-lg mx-auto">
+            {t("landing.hybrid.dualTrack.sub")}
+          </p>
+          <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
             {[
-              { icon: Feather, title: "Start a Quest", text: "Mix creativity and strategy. Launch a project, creation, or mission.", action: "start a quest", route: "/quests/new" },
-              { icon: Briefcase, title: "Share What You Know", text: "From artistic skills to consulting services — support others with both worlds.", action: "share what you know", route: "/services/new" },
-              { icon: Users, title: "Join a Space", text: "Guilds, circles, traditional organizations, collectives — hybrid collaboration thrives here.", action: "join a space", route: "/explore" },
-            ].map((card, i) => (
-              <motion.div
-                key={card.title}
-                custom={i}
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-8 text-center cursor-pointer hover:border-primary/30 transition-all"
-                onClick={() => handleGatedClick(card.action, card.route)}
-              >
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                  <card.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-display font-semibold text-lg mb-2">{card.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{card.text}</p>
+              { key: "maker", color: "text-accent", bg: "bg-accent/10", border: "border-accent/20" },
+              { key: "steward", color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" },
+            ].map(({ key, color, bg, border }) => (
+              <div key={key} className={`rounded-2xl border ${border} ${bg} p-6`}>
+                <p className={`text-xs font-medium uppercase tracking-wider mb-2 ${color}`}>
+                  {t(`landing.hybrid.dualTrack.${key}.label`)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t(`landing.hybrid.dualTrack.${key}.desc`)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Who Calls This Home ─── */}
+      <section className="border-t border-border">
+        <div className="container py-16 md:py-24">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-10">
+            {t("landing.hybrid.examples.title")}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-3 max-w-3xl mx-auto">
+            {(t("landing.hybrid.examples.items", { returnObjects: true }) as any[]).map((item: any, i: number) => (
+              <motion.div key={i} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
+                className="rounded-xl border border-border bg-card p-5">
+                <h3 className="font-display font-semibold text-sm mb-2">{item.role}</h3>
+                <p className="text-xs text-muted-foreground">{item.desc}</p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Featured Quests, Services & Guilds ─── */}
+      <section className="border-t border-border bg-muted/40">
+        <div className="container py-16 md:py-24">
+          <div className="grid gap-12 lg:grid-cols-3">
+            {/* Quests */}
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" /> Featured Quests
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">Missions and creations waiting for hybrid minds.</p>
+              <div className="space-y-3">
+                {loadingQuests ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
+                ) : quests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No featured quests yet — start one!</p>
+                ) : (
+                  quests.slice(0, 3).map((q, i) => (
+                    <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-display font-semibold text-sm">{q.title}</h3>
+                          <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.reward_xp} IP</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Button variant="ghost" size="sm" asChild className="mt-4">
+                <Link to="/explore">See all Quests <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+              </Button>
+            </div>
+
+            {/* Services */}
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" /> {t("landing.creative.sessions.title")}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">{t("landing.creative.sessions.sub")}</p>
+              <LandingServicesSection
+                titleKey="landing.creative.sessions.title"
+                subtitleKey="landing.creative.sessions.sub"
+              />
+            </div>
+
+            {/* Groups */}
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
+                <Layers className="h-5 w-5 text-accent" /> Guilds & Circles
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">Spaces where impact meets imagination.</p>
+              <div className="space-y-3">
+                {loadingGroups ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
+                ) : groups.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No groups yet — form one!</p>
+                ) : (
+                  groups.map((g, i) => (
+                    <motion.div key={g.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-accent/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          {g.logo_url ? (
+                            <img src={g.logo_url} alt={g.name} className="h-10 w-10 rounded-xl object-cover" />
+                          ) : (
+                            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-accent" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-display font-semibold text-sm">{g.name}</h3>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{g.description}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Button variant="ghost" size="sm" asChild className="mt-4">
+                <Link to="/explore">See all Groups <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -267,82 +362,31 @@ export default function HybridLanding() {
         </div>
       </section>
 
-      {/* ─── Featured Hybrid Units ─── */}
-      <section className="border-t border-border bg-muted/40">
-        <div className="container py-16 md:py-24">
-          <div className="grid gap-12 lg:grid-cols-2">
-            {/* Quests */}
-            <div>
-              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
-                <Star className="h-5 w-5 text-primary" /> Featured Quests
-              </h2>
-              <p className="text-sm text-muted-foreground mb-5">Missions and creations waiting for hybrid minds.</p>
-              <div className="space-y-3">
-                {loadingQuests ? (
-                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
-                ) : quests.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No featured quests yet — start one!</p>
-                ) : (
-                  quests.slice(0, 3).map((q, i) => (
-                    <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                      <Link to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-display font-semibold text-sm">{q.title}</h3>
-                          <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.reward_xp} IP</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
-                      </Link>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-              <Button variant="ghost" size="sm" asChild className="mt-4">
-                <Link to="/explore">See all Quests <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
-              </Button>
-            </div>
+      {/* ─── Progression ─── */}
+      <LandingProgressionSection persona="hybrid" />
 
-            {/* Groups */}
-            <div>
-              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-accent" /> Guilds & Circles
-              </h2>
-              <p className="text-sm text-muted-foreground mb-5">Spaces where impact meets imagination.</p>
-              <div className="space-y-3">
-                {loadingGroups ? (
-                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
-                ) : groups.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No groups yet — form one!</p>
-                ) : (
-                  groups.map((g, i) => (
-                    <motion.div key={g.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                      <Link to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-accent/30 transition-all">
-                        <div className="flex items-center gap-3">
-                          {g.logo_url ? (
-                            <img src={g.logo_url} alt={g.name} className="h-10 w-10 rounded-xl object-cover" />
-                          ) : (
-                            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                              <Users className="h-5 w-5 text-accent" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-display font-semibold text-sm">{g.name}</h3>
-                            <p className="text-xs text-muted-foreground line-clamp-1">{g.description}</p>
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-              <Button variant="ghost" size="sm" asChild className="mt-4">
-                <Link to="/explore">See all Groups <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
-              </Button>
-            </div>
+      {/* ─── Trust Graph Teaser ─── */}
+      <section className="border-t border-border">
+        <div className="container py-16 md:py-24 text-center max-w-2xl mx-auto">
+          <Shield className="h-8 w-8 text-primary mx-auto mb-4" />
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">
+            {t("landing.impact.trust.title")}
+          </h2>
+          <p className="text-muted-foreground mb-6">{t("landing.impact.trust.sub")}</p>
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {(t("landing.impact.trust.dimensions", { returnObjects: true }) as string[]).map((dim: string) => (
+              <Badge key={dim} variant="outline" className="text-xs">
+                <TrendingUp className="h-3 w-3 mr-1" /> {dim}
+              </Badge>
+            ))}
           </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/explore">{t("common.learnMore")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+          </Button>
         </div>
       </section>
 
-      {/* ─── Why Hybrid People Belong ─── */}
+      {/* ─── Manifesto ─── */}
       <section className="border-t border-border">
         <div className="container py-16 md:py-24 text-center max-w-2xl mx-auto">
           <motion.div
@@ -352,13 +396,12 @@ export default function HybridLanding() {
             transition={{ duration: 0.6 }}
           >
             <Heart className="h-8 w-8 text-primary mx-auto mb-6" />
-            <h2 className="font-display text-2xl md:text-3xl font-bold mb-6">Why hybrid people belong here</h2>
+            <h2 className="font-display text-2xl md:text-3xl font-bold mb-6">{t("landing.hybrid.manifesto.title")}</h2>
             <p className="text-muted-foreground leading-relaxed text-lg">
-              Some people don't fit a single box — they move between imagination and structure.
+              {t("landing.hybrid.manifesto.p1")}
             </p>
             <p className="text-muted-foreground leading-relaxed text-lg mt-4">
-              changethegame is designed for them: a place where ideas can become systems,
-              and systems can inspire imagination.
+              {t("landing.hybrid.manifesto.p2")}
             </p>
           </motion.div>
         </div>
@@ -367,14 +410,14 @@ export default function HybridLanding() {
       {/* ─── Final CTA ─── */}
       <section className="border-t border-border bg-primary/5">
         <div className="container py-16 text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to bridge both worlds?</h2>
-          <p className="text-muted-foreground mb-6">Join a network where creativity and impact amplify each other.</p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">{t("landing.hybrid.cta.title")}</h2>
+          <p className="text-muted-foreground mb-6">{t("landing.hybrid.cta.sub")}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">{t("landing.hybrid.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/explore">Explore first</Link>
+              <Link to="/explore">{t("landing.hybrid.cta.btn2")}</Link>
             </Button>
           </div>
         </div>
