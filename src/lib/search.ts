@@ -56,7 +56,7 @@ export async function globalSearch(
       const { count } = await supabase.from("user_territories").select("id", { count: "exact", head: true }).eq("user_id", u.user_id).eq("territory_id", filters.territoryId);
       if (!count) continue;
     }
-    results.push({ type: "USER", id: u.user_id, title: u.name ?? "Unknown", subtitle: u.headline ?? undefined, url: `/users/${u.user_id}` });
+    results.push({ type: "USER", id: u.user_id, title: u.name ?? "Unknown", subtitle: u.headline ?? undefined, url: `/users/${u.user_id}`, imageUrl: u.avatar_url ?? undefined });
   }
 
   // Guilds
