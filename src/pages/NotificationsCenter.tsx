@@ -212,22 +212,23 @@ export default function NotificationsCenter() {
 
   return (
     <PageShell>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Bell className="h-7 w-7 text-primary" /> {t("notifications.pageTitle")}
+      <div className="max-w-3xl mx-auto w-full px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold flex items-center gap-2 shrink-0">
+          <Bell className="h-6 w-6 sm:h-7 sm:w-7 text-primary" /> {t("notifications.pageTitle")}
           {unreadCount > 0 && (
             <Badge className="bg-destructive text-destructive-foreground ml-2">{t("notifications.unread", { count: unreadCount })}</Badge>
           )}
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Read/unread toggle */}
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-lg border border-border overflow-x-auto">
             {(["all", "unread", ...(showAdminTabs ? ["admin", "system"] : [])] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setReadFilter(f as any)}
                 className={cn(
-                  "px-3 py-1.5 text-sm font-medium transition-colors capitalize",
+                  "px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium transition-colors capitalize whitespace-nowrap",
                   readFilter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                 )}
               >
@@ -238,7 +239,7 @@ export default function NotificationsCenter() {
 
           {/* Type filter */}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[150px] h-9">
+            <SelectTrigger className="w-[130px] sm:w-[150px] h-9">
               <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
               <SelectValue placeholder={t("notifications.filterType")} />
             </SelectTrigger>
@@ -251,8 +252,8 @@ export default function NotificationsCenter() {
           </Select>
 
           {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={markAllAsRead}>
-              <CheckCheck className="h-4 w-4 mr-1" /> {t("notifications.markAllRead")}
+            <Button variant="outline" size="sm" onClick={markAllAsRead} className="whitespace-nowrap">
+              <CheckCheck className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">{t("notifications.markAllRead")}</span><span className="sm:hidden">Read all</span>
             </Button>
           )}
 
@@ -362,6 +363,7 @@ export default function NotificationsCenter() {
           </Button>
         </div>
       )}
+      </div>
     </PageShell>
   );
 }
