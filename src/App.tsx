@@ -12,6 +12,7 @@ import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
 import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
 import { PiPanelProvider } from "@/components/pi/PiPanelProvider";
 import { PiPanel } from "@/components/pi/PiPanel";
+import { PiFloatingButton } from "@/components/pi/PiFloatingButton";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
@@ -189,6 +190,7 @@ const App = () => (
             <GuestBauhausShape />
             <ChatBubbleOverlay />
             <PiPanel />
+            <PiFloatingButton />
             <BugReportBubble />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
