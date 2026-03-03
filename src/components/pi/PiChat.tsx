@@ -293,14 +293,57 @@ export function PiChat({ className }: PiChatProps) {
     }
   };
 
-  const handleSuggestionClick = (prompt: string) => {
+  const handleSuggestionClick = useCallback((prompt: string) => {
     setInput(prompt);
-    // Auto-send
-    setTimeout(() => {
-      const sendBtn = document.querySelector("[data-pi-send]") as HTMLButtonElement;
-      if (sendBtn) sendBtn.click();
-    }, 100);
-  };
+    // Use a microtask to ensure input is set before sending
+    queueMicrotask(() => {
+      // Directly invoke the send logic with the prompt
+      const text = prompt.trim();
+      if (!text || isLoading || !session?.user?.id) return;
+      if (!isChatActive) setChatActive(true);
+
+      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
+      const nextMessages = [...messages, userMsg];
+      setMessages(nextMessages);
+      setInput("");
+      setIsLoading(true);
+
+      (async () => {
+        let cId = conversationId;
+        if (!cId) {
+          try {
+            const conv = await createConversation({ title: text.slice(0, 60), modelId: "gemini-flash", contextType, contextId, messages: [userMsg] });
+            if (conv) { cId = conv.id; setConversationId(cId); setActiveConversation(cId); }
+          } catch (e) { console.error("Failed to create conversation:", e); }
+        }
+        try {
+          const { data, error } = await supabase.functions.invoke("ctg-guide", {
+            body: { message: text, contextType, contextId: contextId ?? null, mode: "propose" },
+          });
+          if (error) throw error;
+          const proposedActions = data.proposedActions || [];
+          const followUpSuggestions = data.followUpSuggestions || [];
+          const assistantMsg: ChatMessage = {
+            id: crypto.randomUUID(), role: "assistant", text: data.assistantMessage,
+            proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
+            pendingConfirmation: proposedActions.length > 0,
+            followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
+          };
+          const updatedMessages = [...nextMessages, assistantMsg];
+          setMessages(updatedMessages);
+          if (cId) persistMessages(updatedMessages, cId);
+        } catch (e: any) {
+          console.error("Pi error:", e);
+          const errMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: t("pi.errorRetry") };
+          const updatedMessages = [...nextMessages, errMsg];
+          setMessages(updatedMessages);
+          if (cId) persistMessages(updatedMessages, cId);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    });
+  }, [messages, isLoading, session, isChatActive, conversationId, contextType, contextId]);
 
   const undoActions = async (msgId: string) => {
     const msg = messages.find((m) => m.id === msgId);
