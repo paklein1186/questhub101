@@ -509,7 +509,7 @@ export function PiChat({ className }: PiChatProps) {
             className="flex-1 resize-none border-0 bg-transparent text-sm focus-visible:ring-0 min-h-[20px] max-h-[120px] p-0"
             rows={1}
           />
-          <Button data-pi-send size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
+          <Button data-pi-send size="icon" variant="ghost" onClick={() => send()} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>
