@@ -68,7 +68,6 @@ export function PiChat({ className }: PiChatProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const userEntities = useUserEntities(session?.user?.id);
-  const navigate = useNavigate();
   const {
     activeConversationId,
     setActiveConversation,
