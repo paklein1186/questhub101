@@ -1362,5 +1362,27 @@
     "FINANCEMENT": "Funding",
     "PARTENARIAT": "Partnership",
     "APPRENTISSAGE": "Learning"
+  },
+  "pi": {
+    "panelLabel": "Pi Panel",
+    "closePi": "Close Pi",
+    "recentQuests": "Your recent quests",
+    "recentConversations": "Recent conversations",
+    "noActiveQuests": "No active quests at the moment.",
+    "noConversations": "No conversations yet.",
+    "continueWithPi": "Continue with Pi",
+    "greeting": "Hello! I'm Pi 👋",
+    "greetingSubtext": "Describe what you'd like to accomplish and I'll guide you through the platform.",
+    "placeholder": "Ask Pi... E.g: 'Find a guild about solar energy'",
+    "sendHint": "Enter to send · Shift+Enter for line break",
+    "newConversation": "New conv.",
+    "proposedActions": "Proposed actions:",
+    "confirm": "Confirm",
+    "skip": "Skip",
+    "undo": "Undo",
+    "actionsUndone": "Actions undone.",
+    "errorRetry": "Sorry, an error occurred. Please try again.",
+    "openPi": "Open Pi, your AI guide",
+    "piTitle": "Pi — your AI guide"
   }
 }

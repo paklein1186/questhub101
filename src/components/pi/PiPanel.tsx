@@ -4,6 +4,7 @@ import { Sparkles, X, ChevronDown, ChevronUp } from "lucide-react";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "react-i18next";
 import { PiModelSelector } from "./PiModelSelector";
 import { PiRecentQuests } from "./PiRecentQuests";
 import { PiRecentConversations } from "./PiRecentConversations";
@@ -14,6 +15,7 @@ const BREAKPOINT_OVERLAY = 1280;
 
 export function PiPanel() {
   const { session } = useAuth();
+  const { t } = useTranslation();
   const {
     isOpen,
     closePiPanel,
@@ -119,7 +121,7 @@ export function PiPanel() {
             )}
             style={{ width: isFullscreen ? undefined : panelWidth }}
             role="complementary"
-            aria-label="Panneau Pi"
+            aria-label={t("pi.panelLabel")}
           >
             {/* Resize handle on right edge (desktop only) */}
             {!isFullscreen && (
@@ -144,7 +146,7 @@ export function PiPanel() {
                 <button
                   onClick={closePiPanel}
                   className="h-7 w-7 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
-                  aria-label="Fermer Pi"
+                  aria-label={t("pi.closePi")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -162,7 +164,7 @@ export function PiPanel() {
                 onClick={() => setQuestsOpen((v) => !v)}
                 className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>Vos quêtes récentes</span>
+                <span>{t("pi.recentQuests")}</span>
                 {questsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               </button>
               {questsOpen && <PiRecentQuests />}
@@ -179,7 +181,7 @@ export function PiPanel() {
                 onClick={() => setConvsOpen((v) => !v)}
                 className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>Conversations récentes</span>
+                <span>{t("pi.recentConversations")}</span>
                 {convsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               </button>
               {convsOpen && <PiRecentConversations />}

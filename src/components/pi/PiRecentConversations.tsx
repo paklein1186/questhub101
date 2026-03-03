@@ -1,6 +1,8 @@
 import { usePiConversations } from "@/hooks/usePiConversations";
 import { usePiPanel } from "@/hooks/usePiPanel";
+import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { MessageSquare, Loader2 } from "lucide-react";
 
 const MODEL_LABELS: Record<string, string> = {
@@ -13,6 +15,8 @@ const MODEL_LABELS: Record<string, string> = {
 export function PiRecentConversations() {
   const { data: conversations, isLoading } = usePiConversations(5);
   const { setActiveConversation, setSelectedModel } = usePiPanel();
+  const { t, i18n } = useTranslation();
+  const dateFnsLocale = i18n.language === "fr" ? fr : enUS;
 
   if (isLoading) {
     return (
@@ -25,7 +29,7 @@ export function PiRecentConversations() {
   if (!conversations?.length) {
     return (
       <p className="text-xs text-muted-foreground italic px-3 py-3">
-        Pas encore de conversations.
+        {t("pi.noConversations")}
       </p>
     );
   }
@@ -49,7 +53,7 @@ export function PiRecentConversations() {
             </div>
             <div className="flex items-center gap-2 mt-0.5 ml-5.5">
               <span className="text-[11px] text-muted-foreground">
-                {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
+                {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true, locale: dateFnsLocale })}
               </span>
               {c.model_id && (
                 <span className="text-[10px] text-muted-foreground/70">

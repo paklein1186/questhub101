@@ -1362,5 +1362,27 @@
     "FINANCEMENT": "Financement",
     "PARTENARIAT": "Partenariat",
     "APPRENTISSAGE": "Apprentissage"
+  },
+  "pi": {
+    "panelLabel": "Panneau Pi",
+    "closePi": "Fermer Pi",
+    "recentQuests": "Vos quêtes récentes",
+    "recentConversations": "Conversations récentes",
+    "noActiveQuests": "Aucune quête active pour le moment.",
+    "noConversations": "Pas encore de conversations.",
+    "continueWithPi": "Continuer avec Pi",
+    "greeting": "Bonjour ! Je suis Pi 👋",
+    "greetingSubtext": "Décrivez ce que vous souhaitez accomplir et je vous guiderai sur la plateforme.",
+    "placeholder": "Demandez à Pi... Ex: 'Trouve une guilde sur l'énergie solaire'",
+    "sendHint": "Entrée pour envoyer · Maj+Entrée pour saut de ligne",
+    "newConversation": "Nouvelle conv.",
+    "proposedActions": "Actions proposées :",
+    "confirm": "Confirmer",
+    "skip": "Passer",
+    "undo": "Annuler",
+    "actionsUndone": "Actions annulées.",
+    "errorRetry": "Désolé, une erreur s'est produite. Réessayez.",
+    "openPi": "Ouvrir Pi, votre guide IA",
+    "piTitle": "Pi — votre guide IA"
   }
 }

@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 export function PiFloatingButton() {
   const { session } = useAuth();
   const { togglePiPanel, isOpen } = usePiPanel();
+  const { t } = useTranslation();
 
   const { data: creditsBalance } = useQuery({
     queryKey: ["pi-credits-balance", session?.user?.id],
@@ -34,8 +36,8 @@ export function PiFloatingButton() {
           ? "w-10 h-10 bg-primary text-primary-foreground"
           : "w-10 h-10 bg-primary/90 text-primary-foreground hover:bg-primary"
       )}
-      aria-label="Ouvrir Pi, votre guide IA"
-      title="Pi — votre guide IA"
+      aria-label={t("pi.openPi")}
+      title={t("pi.piTitle")}
     >
       <Sparkles className="h-4 w-4" />
       {creditsBalance != null && !isOpen && (

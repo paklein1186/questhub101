@@ -3,13 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { usePiPanel } from "@/hooks/usePiPanel";
+import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { ArrowRight, Loader2 } from "lucide-react";
 
 export function PiRecentQuests() {
   const { session } = useAuth();
   const { setChatActive } = usePiPanel();
+  const { t, i18n } = useTranslation();
   const userId = session?.user?.id;
+  const dateFnsLocale = i18n.language === "fr" ? fr : enUS;
 
   const { data: quests, isLoading } = useQuery({
     queryKey: ["pi-recent-quests", userId],
@@ -38,7 +42,7 @@ export function PiRecentQuests() {
   if (!quests?.length) {
     return (
       <p className="text-xs text-muted-foreground italic px-3 py-3">
-        Aucune quête active pour le moment.
+        {t("pi.noActiveQuests")}
       </p>
     );
   }
@@ -61,10 +65,10 @@ export function PiRecentQuests() {
           </div>
           <div className="flex items-center justify-between mt-1">
             <span className="text-[11px] text-muted-foreground">
-              {formatDistanceToNow(new Date(q.updated_at), { addSuffix: true })}
+              {formatDistanceToNow(new Date(q.updated_at), { addSuffix: true, locale: dateFnsLocale })}
             </span>
             <span className="text-[11px] text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-              Continuer avec Pi <ArrowRight className="h-3 w-3" />
+              {t("pi.continueWithPi")} <ArrowRight className="h-3 w-3" />
             </span>
           </div>
         </button>
