@@ -479,7 +479,7 @@ export function PiChat({ className }: PiChatProps) {
                         onClick={() => {
                           if (s.route) {
                             navigate(s.route);
-                            onClose?.();
+                            closePiPanel();
                           } else if (s.prompt) {
                             handleSuggestionClick(s.prompt);
                           }
