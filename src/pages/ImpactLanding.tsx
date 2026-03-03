@@ -17,7 +17,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { LandingStatBar } from "@/components/landing/LandingStatBar";
 import { LandingProgressionSection } from "@/components/landing/LandingProgressionSection";
-import { LandingServicesSection } from "@/components/landing/LandingServicesSection";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { useTranslation } from "react-i18next";
 
