@@ -12,11 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { buildRoute } from "@/lib/routeHelpers";
 import type { PersonaType } from "@/lib/personaLabels";
+import { ACTION_PATHS } from "@/components/assistant/PiActionPaths";
 
 /* ────────── Types ────────── */
 
