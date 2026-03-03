@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -53,12 +53,13 @@ function useFeaturedQuests() {
   return useQuery({
     queryKey: ["org-landing-quests"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("quests")
         .select("id, title, description, reward_xp, is_featured")
         .eq("is_deleted", false).eq("is_draft", false).eq("is_featured", true)
+        .in("quest_type", ["ACTION", "PROJECT", "FUNDING", "PARTNERSHIP"])
         .order("created_at", { ascending: false }).limit(6);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     staleTime: 300_000,
   });
@@ -72,6 +73,25 @@ export default function OrganizationLanding() {
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
   const { data: quests, isLoading: questsLoading } = useFeaturedQuests();
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user) return;
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setGuestAction("get guidance");
+          setGuestOpen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (triggerRef.current) observer.observe(triggerRef.current);
+    return () => observer.disconnect();
+  }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
     if (user) navigate(authRoute);
@@ -146,7 +166,7 @@ export default function OrganizationLanding() {
       </section>
 
       {/* Who joins — Org Types */}
-      <section className="border-t border-border bg-muted/40">
+      <section ref={triggerRef} className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-4">
             {t("landing.org.types.title", "Types of organizations")}

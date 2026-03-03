@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -78,6 +78,25 @@ export default function BrowseLanding() {
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
   const [q1Answer, setQ1Answer] = useState<number | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user) return;
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setGuestAction("get guidance");
+          setGuestOpen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (triggerRef.current) observer.observe(triggerRef.current);
+    return () => observer.disconnect();
+  }, [user]);
 
   const q1Options = t("landing.browse.quiz.q1Options", { returnObjects: true }) as string[];
   const q1Routes = t("landing.browse.quiz.q1Routes", { returnObjects: true }) as string[];
@@ -308,7 +327,7 @@ export default function BrowseLanding() {
       </section>
 
       {/* ─── Houses / Topics ─── */}
-      <section className="border-t border-border bg-muted/40">
+      <section ref={triggerRef} className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">Topic Houses</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">

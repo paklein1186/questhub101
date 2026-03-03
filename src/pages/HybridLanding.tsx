@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -92,6 +92,25 @@ export default function HybridLanding() {
   const { data: userHouses = [] } = useUserHouses(user?.id);
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user) return;
+    const dismissed = localStorage.getItem("guestAssistantDismissed");
+    if (dismissed) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setGuestAction("get guidance");
+          setGuestOpen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (triggerRef.current) observer.observe(triggerRef.current);
+    return () => observer.disconnect();
+  }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
     if (user) {
@@ -319,7 +338,7 @@ export default function HybridLanding() {
       </section>
 
       {/* ─── Your Houses ─── */}
-      <section className="border-t border-border">
+      <section ref={triggerRef} className="border-t border-border">
         <div className="container py-16 md:py-24 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">Your hybrid constellation</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
