@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Compass, Users, Target, Briefcase,
-  Star, Heart, Layers, BookOpen, Award, Sparkles,
+  Star, Heart, Layers, Sparkles,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { LandingStatBar } from "@/components/landing/LandingStatBar";
+import { LandingServicesSection } from "@/components/landing/LandingServicesSection";
+import { LandingProgressionSection } from "@/components/landing/LandingProgressionSection";
+import { usePiPanel } from "@/hooks/usePiPanel";
+import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -62,22 +69,18 @@ function useTopics() {
 }
 
 export default function BrowseLanding() {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const { openPiPanel } = usePiPanel();
   const { data: quests = [], isLoading: loadingQuests } = useFeaturedQuests();
   const { data: groups = [], isLoading: loadingGroups } = useFeaturedGroups();
   const { data: topics = [], isLoading: loadingTopics } = useTopics();
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
+  const [q1Answer, setQ1Answer] = useState<number | null>(null);
 
-  // Auto-trigger onboarding assistant for unlogged users after a brief delay
-  useEffect(() => {
-    const dismissed = localStorage.getItem("guestAssistantDismissed");
-    if (dismissed) return;
-    const timer = setTimeout(() => {
-      setGuestAction("get started");
-      setGuestOpen(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+  const q1Options = t("landing.browse.quiz.q1Options", { returnObjects: true }) as string[];
+  const q1Routes = t("landing.browse.quiz.q1Routes", { returnObjects: true }) as string[];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -91,8 +94,14 @@ export default function BrowseLanding() {
             <Button size="sm" variant="ghost" asChild>
               <Link to="/explore"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
             </Button>
-            <Button size="sm" variant="ghost" asChild><Link to="/login">Log in</Link></Button>
-            <Button size="sm" asChild><Link to="/welcome">Sign up</Link></Button>
+            {user ? (
+              <Button size="sm" asChild><Link to="/">Enter</Link></Button>
+            ) : (
+              <>
+                <Button size="sm" variant="ghost" asChild><Link to="/login">Log in</Link></Button>
+                <Button size="sm" asChild><Link to="/welcome">Sign up</Link></Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -103,7 +112,7 @@ export default function BrowseLanding() {
         <div className="container py-20 md:py-32 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
-              <Compass className="h-3 w-3 mr-1" /> Discover · Connect · Contribute
+              <Compass className="h-3 w-3 mr-1" /> {t("landing.browse.hero.badge")}
             </Badge>
           </motion.div>
 
@@ -112,10 +121,10 @@ export default function BrowseLanding() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1]"
           >
-            A network for{" "}
-            <span className="text-primary">changemakers,</span>{" "}
-            <span className="text-accent">creators,</span>{" "}
-            builders.
+            {t("landing.browse.hero.title1")}{" "}
+            <span className="text-primary">{t("landing.browse.hero.title2")}</span>{" "}
+            <span className="text-accent">{t("landing.browse.hero.title3")}</span>{" "}
+            {t("landing.browse.hero.title4")}
           </motion.h1>
 
           <motion.p
@@ -123,7 +132,7 @@ export default function BrowseLanding() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed"
           >
-            Browse quests, communities, and services — see if this is the right place for you.
+            {t("landing.browse.hero.sub")}
           </motion.p>
 
           <motion.div
@@ -132,17 +141,22 @@ export default function BrowseLanding() {
             className="mt-8 flex flex-col sm:flex-row gap-3 justify-center"
           >
             <Button size="lg" asChild className="gap-2">
-              <Link to="/explore"><Compass className="h-4 w-4" /> Browse Everything</Link>
+              <Link to="/explore"><Compass className="h-4 w-4" /> {t("landing.browse.hero.cta1")}</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="gap-2">
-              <Link to="/welcome"><Sparkles className="h-4 w-4" /> Create an Account</Link>
+              <Link to="/welcome"><Sparkles className="h-4 w-4" /> {t("landing.browse.hero.cta2")}</Link>
             </Button>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="mt-4">
-            <Button variant="link" asChild className="text-muted-foreground text-sm">
-              <Link to="/welcome">← Choose a different path</Link>
-            </Button>
+          <LandingStatBar />
+
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }} className="mt-2 flex justify-center">
+            <button
+              onClick={() => !user ? (setGuestAction("find my path"), setGuestOpen(true)) : openPiPanel()}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> {t("landing.browse.hero.piLink")}
+            </button>
           </motion.div>
         </div>
       </section>
@@ -171,10 +185,49 @@ export default function BrowseLanding() {
         </div>
       </section>
 
+      {/* ─── Self-selection Quiz ─── */}
+      <section className="border-t border-border bg-muted/40">
+        <div className="container py-16 md:py-24 max-w-2xl mx-auto">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-3">
+            {t("landing.browse.quiz.title")}
+          </h2>
+          <p className="text-muted-foreground text-center mb-8">{t("landing.browse.quiz.sub")}</p>
+
+          <p className="text-sm font-medium mb-4">{t("landing.browse.quiz.q1")}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {q1Options.map((opt: string, i: number) => (
+              <button
+                key={i}
+                onClick={() => setQ1Answer(i)}
+                className={cn(
+                  "p-4 rounded-xl border text-sm text-left transition-all",
+                  q1Answer === i
+                    ? "border-primary bg-primary/5 text-foreground font-medium"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/30"
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+
+          {q1Answer !== null && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 rounded-xl border border-primary/20 bg-primary/5">
+              <p className="text-sm text-muted-foreground mb-3">{t("landing.browse.quiz.result")}</p>
+              <Button asChild size="sm">
+                <Link to={q1Routes[q1Answer]}>
+                  {t("landing.browse.quiz.tryPath")} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Link>
+              </Button>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
       {/* ─── Featured content ─── */}
       <section className="border-t border-border">
         <div className="container py-16 md:py-24">
-          <div className="grid gap-12 lg:grid-cols-2">
+          <div className="grid gap-12 lg:grid-cols-3">
             {/* Quests */}
             <div>
               <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
@@ -203,6 +256,14 @@ export default function BrowseLanding() {
               <Button variant="ghost" size="sm" asChild className="mt-4">
                 <Link to="/explore">See all quests <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
+            </div>
+
+            {/* Services */}
+            <div>
+              <LandingServicesSection
+                titleKey="landing.impact.services.title"
+                subtitleKey="landing.impact.services.sub"
+              />
             </div>
 
             {/* Groups */}
@@ -257,11 +318,11 @@ export default function BrowseLanding() {
             {loadingTopics ? (
               Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-8 w-24 rounded-full" />)
             ) : (
-              topics.map((t, i) => (
-                <motion.div key={t.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                  <Link to={`/topics/${t.slug}`}>
+              topics.map((tp, i) => (
+                <motion.div key={tp.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                  <Link to={`/topics/${tp.slug}`}>
                     <Badge variant="secondary" className="px-3 py-1.5 text-sm hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
-                      {t.name}
+                      {tp.name}
                     </Badge>
                   </Link>
                 </motion.div>
@@ -274,28 +335,19 @@ export default function BrowseLanding() {
         </div>
       </section>
 
-      {/* ─── Trust ─── */}
-      <section className="border-t border-border">
-        <div className="container py-16 md:py-24 text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-4">Trust & Learning</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto mb-10">
-            Your contributions build a visible reputation — no résumé needed.
-          </p>
-          <div className="grid gap-6 sm:grid-cols-3 max-w-3xl mx-auto">
-            {[
-              { icon: Star, title: "XP & Contribution", desc: "Earn experience points for every quest and service you contribute to." },
-              { icon: Award, title: "Achievements", desc: "Unlock badges for milestones — your track record speaks for itself." },
-              { icon: BookOpen, title: "Pods", desc: "Small learning & action groups that keep you accountable and connected." },
-            ].map((item, i) => (
-              <motion.div key={item.title} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="rounded-2xl border border-border bg-card p-5"
-              >
-                <item.icon className="h-6 w-6 text-primary mx-auto mb-3" />
-                <h3 className="font-display font-semibold text-sm mb-1">{item.title}</h3>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* ─── Progression ─── */}
+      <LandingProgressionSection persona="browse" />
+
+      {/* ─── Pi Invitation ─── */}
+      <section className="border-t border-border bg-muted/40">
+        <div className="container py-16 md:py-24 text-center max-w-xl mx-auto">
+          <Sparkles className="h-10 w-10 text-primary mx-auto mb-4" />
+          <h2 className="font-display text-2xl font-bold mb-3">{t("landing.browse.piCta.title")}</h2>
+          <p className="text-muted-foreground mb-6">{t("landing.browse.piCta.sub")}</p>
+          <Button size="lg" className="gap-2"
+            onClick={() => !user ? (setGuestAction("find my path with Pi"), setGuestOpen(true)) : openPiPanel()}>
+            <Sparkles className="h-4 w-4" /> {t("landing.browse.piCta.btn")}
+          </Button>
         </div>
       </section>
 
@@ -310,7 +362,7 @@ export default function BrowseLanding() {
               <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/welcome">← Back to persona selector</Link>
+              <Link to="/explore">Explore first</Link>
             </Button>
           </div>
         </div>
