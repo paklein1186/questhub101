@@ -989,6 +989,34 @@ serve(async (req) => {
                 createdEntities.push(result.createdEntity);
               }
             }
+          } else if (action.name === "add_subtask") {
+            const questId = action.args?.quest_id;
+            const subtaskTitle = action.args?.title;
+            if (!questId || !subtaskTitle) { result.error = "Missing quest_id or title"; }
+            else {
+              // Get current max sort_order for subtasks
+              const { data: existingSubs } = await sb.from("quest_subtasks")
+                .select("sort_order")
+                .eq("quest_id", questId)
+                .order("sort_order", { ascending: false })
+                .limit(1);
+              const maxSort = existingSubs?.[0]?.sort_order ?? -1;
+
+              const { data: newSubtask, error: subErr } = await sb.from("quest_subtasks").insert({
+                quest_id: questId,
+                title: subtaskTitle,
+                description: action.args?.description || null,
+                created_by_user_id: userId,
+                sort_order: maxSort + 1,
+                status: "TODO",
+              }).select("id").single();
+              if (subErr) { result.error = subErr.message; }
+              else {
+                result.success = true;
+                result.createdEntity = { type: "subtask", id: newSubtask.id };
+                createdEntities.push(result.createdEntity);
+              }
+            }
           }
         } catch (e: any) { result.error = e.message ?? String(e); }
         actionsExecuted.push(result);
