@@ -132,7 +132,7 @@ const ACTION_PATHS: ActionPath[] = [
 ];
 
 interface PiActionPathsProps {
-  onPromptSelect: (prompt: string) => void;
+  onPromptSelect: (prompt: string, displayPrompt?: string) => void;
   onClose?: () => void;
   userEntities?: UserEntities | null;
 }
@@ -160,6 +160,7 @@ export function PiActionPaths({ onPromptSelect, onClose, userEntities }: PiActio
       navigate(action.route);
       onClose?.();
     } else if (action.type === "prompt" && action.prompt) {
+      const displayPrompt = action.prompt;
       let enrichedPrompt = action.prompt;
       if (userEntities) {
         const parts: string[] = [];
@@ -171,7 +172,7 @@ export function PiActionPaths({ onPromptSelect, onClose, userEntities }: PiActio
         }
         if (parts.length) enrichedPrompt += "\n\n" + parts.join("\n");
       }
-      onPromptSelect(enrichedPrompt);
+      onPromptSelect(enrichedPrompt, displayPrompt);
     }
   };
 
