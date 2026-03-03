@@ -491,113 +491,130 @@ export default function HomeFeed() {
         <BauhausShape />
       </BauhausPausedContext.Provider>
 
-      <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
-
-        {!isPiOpen && (
-          <>
-            {/* Greeting */}
-            <p className="text-sm text-muted-foreground mb-1">{t("home.welcome")}, {userName}</p>
-            <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
-              {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
-            </h1>
-            <div className="mb-4 sm:mb-6" />
-
-            {/* Talk to Pi button */}
-            <motion.button
-              initial={{ opacity: 0, y: 8 }}
+      {/* When Pi is open, show tasks at the top with no hero spacing */}
+      {isPiOpen ? (
+        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-12 space-y-8 sm:space-y-10">
+          {currentUser.id && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              onClick={() => openPiPanel()}
-              className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <Sparkles className="h-4 w-4" />
-              Talk to Pi
-            </motion.button>
-
-            {/* ─── Guided Pathways ─── */}
-            <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} onActionSelected={(prompt) => {
-              if (prompt) {
-                openPiPanel();
-                setPrefillPrompt(prompt);
-              }
-            }} />
-          </>
-        )}
-
-        {/* ─── Territory Intent Flow ─── */}
-        {result && isTerritory &&
-        <TerritoryFlow
-          result={result}
-          originalInput={lastInput}
-          userId={currentUser.id}
-          persona={persona}
-          onReset={resetAll} />
-
-        }
-
-        {/* ─── Standard AI result (non-territory) ─── */}
-        {result && !isTerritory &&
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full space-y-4">
-          
-            {result.summary &&
-          <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm text-foreground/80 leading-relaxed">{result.summary}</p>
-                {result.followUpQuestion &&
-            <p className="text-xs text-muted-foreground mt-2 italic">{result.followUpQuestion}</p>
-            }
-              </div>
-          }
-
-            {result.suggestions?.length > 0 &&
-          <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">Here are some next steps:</p>
-                {result.suggestions.map((s: any, i: number) =>
-            <button
-              key={i}
-              onClick={() => handleSuggestionClick(s.route || "/explore", s.queryParams)}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left">
-              
-                    <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{s.label}</p>
-                      {s.description && <p className="text-xs text-muted-foreground truncate">{s.description}</p>}
-                    </div>
-                  </button>
-            )}
-              </div>
-          }
-
-            {result.actionType === "OTHER" &&
-          <p className="text-xs text-muted-foreground text-center">
-                We're not sure how to route this yet, but we've saved your idea for the team. 💡
-              </p>
-          }
-
-            <div className="flex justify-center pt-2">
-              <Button variant="ghost" size="sm" onClick={resetAll}>Start over</Button>
-            </div>
-          </motion.div>
-        }
-
-        {/* Loading state */}
-        {loading &&
-        <div className="flex items-center gap-2 text-muted-foreground py-8">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">Thinking…</span>
-          </div>
-        }
-      </div>
-
-      {/* Task Board — below the AI section */}
-      {currentUser.id &&
-      <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
-          <MyTaskBoard userId={currentUser.id} />
+              <MyTaskBoard userId={currentUser.id} />
+            </motion.div>
+          )}
           <FollowingActivity />
         </div>
-      }
+      ) : (
+        <>
+          <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
+            <AnimatePresence>
+              <motion.div
+                key="home-hero"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="flex flex-col items-center w-full"
+              >
+                {/* Greeting */}
+                <p className="text-sm text-muted-foreground mb-1">{t("home.welcome")}, {userName}</p>
+                <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
+                  {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
+                </h1>
+                <div className="mb-4 sm:mb-6" />
+
+                {/* Talk to Pi button */}
+                <motion.button
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  onClick={() => openPiPanel()}
+                  className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Talk to Pi
+                </motion.button>
+
+                {/* ─── Guided Pathways ─── */}
+                <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} onActionSelected={(prompt) => {
+                  if (prompt) {
+                    openPiPanel();
+                    setPrefillPrompt(prompt);
+                  }
+                }} />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* ─── Territory Intent Flow ─── */}
+            {result && isTerritory &&
+            <TerritoryFlow
+              result={result}
+              originalInput={lastInput}
+              userId={currentUser.id}
+              persona={persona}
+              onReset={resetAll} />
+            }
+
+            {/* ─── Standard AI result (non-territory) ─── */}
+            {result && !isTerritory &&
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full space-y-4">
+                {result.summary &&
+              <div className="rounded-xl border border-border bg-card p-4">
+                    <p className="text-sm text-foreground/80 leading-relaxed">{result.summary}</p>
+                    {result.followUpQuestion &&
+                <p className="text-xs text-muted-foreground mt-2 italic">{result.followUpQuestion}</p>
+                }
+                  </div>
+              }
+                {result.suggestions?.length > 0 &&
+              <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">Here are some next steps:</p>
+                    {result.suggestions.map((s: any, i: number) =>
+                <button
+                  key={i}
+                  onClick={() => handleSuggestionClick(s.route || "/explore", s.queryParams)}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-all text-left">
+                        <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground">{s.label}</p>
+                          {s.description && <p className="text-xs text-muted-foreground truncate">{s.description}</p>}
+                        </div>
+                      </button>
+                )}
+                  </div>
+              }
+                {result.actionType === "OTHER" &&
+              <p className="text-xs text-muted-foreground text-center">
+                    We're not sure how to route this yet, but we've saved your idea for the team. 💡
+                  </p>
+              }
+                <div className="flex justify-center pt-2">
+                  <Button variant="ghost" size="sm" onClick={resetAll}>Start over</Button>
+                </div>
+              </motion.div>
+            }
+
+            {/* Loading state */}
+            {loading &&
+            <div className="flex items-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span className="text-sm">Thinking…</span>
+              </div>
+            }
+          </div>
+
+          {/* Task Board — below the AI section */}
+          {currentUser.id &&
+          <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
+              <MyTaskBoard userId={currentUser.id} />
+              <FollowingActivity />
+            </div>
+          }
+        </>
+      )}
       
     </PageShell>);
 
