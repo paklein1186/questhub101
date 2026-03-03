@@ -505,8 +505,12 @@ export function PiChat({ className }: PiChatProps) {
       <div className="border-t border-border p-3 space-y-2">
         <div className="flex items-end gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2">
           <Textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              autoResize();
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
