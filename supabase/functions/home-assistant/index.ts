@@ -218,9 +218,10 @@ serve(async (req) => {
     );
 
     // Fetch platform content and user context in parallel
-    const [platformContent] = await Promise.all([
+    const [fetchResult] = await Promise.all([
       fetchPlatformContent(supabaseAdmin, userId),
     ]);
+    const { platformContent, userEntities } = fetchResult;
 
     let contextNote = "";
     if (userContext) {
