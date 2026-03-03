@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { buildRoute } from "@/lib/routeHelpers";
 import type { PersonaType } from "@/lib/personaLabels";
 
 /* ────────── Types ────────── */
@@ -25,6 +26,7 @@ interface SubAction {
   icon: any;
   behavior: "navigate" | "ai-prompt" | "create";
   route?: string;
+  prefill_params?: Record<string, string>;
   promptText?: Record<string, string>;
   aiCode?: string;
 }
@@ -238,7 +240,7 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
   const handleSubAction = (sub: SubAction) => {
     if (sub.behavior === "navigate" && sub.route) {
       setOpenPathway(null);
-      navigate(sub.route);
+      navigate(buildRoute(sub));
       return;
     }
     if (sub.behavior === "ai-prompt") {
@@ -251,7 +253,7 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
     // create behavior — same as navigate for now
     if (sub.route) {
       setOpenPathway(null);
-      navigate(sub.route);
+      navigate(buildRoute(sub));
     }
   };
 
@@ -276,8 +278,11 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
     }
   }, [input, promptStep, persona]);
 
-  const handleSuggestionClick = (route: string) => {
-    const target = route && route.startsWith("/") && !route.includes("://") ? route : "/explore";
+  const handleSuggestionClick = (suggestion: { route?: string; prefill_params?: Record<string, string> }) => {
+    const route = suggestion.route && suggestion.route.startsWith("/") && !suggestion.route.includes("://")
+      ? suggestion.route
+      : "/explore";
+    const target = buildRoute({ route, prefill_params: suggestion.prefill_params });
     setOpenPathway(null);
     setPromptStep(null);
     setAiResult(null);
