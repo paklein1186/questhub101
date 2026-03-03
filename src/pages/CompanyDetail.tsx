@@ -247,7 +247,7 @@ export default function CompanyDetail() {
         </Dialog>
       </motion.div>
 
-      <Tabs value={activeCompanyTab} onValueChange={setActiveCompanyTab}>
+      <Tabs value={activeCompanyTab} onValueChange={(v) => { if (!isLoggedIn) { setAuthPromptAction("explore this organization"); setAuthPromptOpen(true); return; } setActiveCompanyTab(v); }}>
         <TabsList>
           <TabsTrigger value="overview"><Building2 className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members ({members.length})</TabsTrigger>
