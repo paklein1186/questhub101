@@ -492,8 +492,8 @@ export function PiChat({ className }: PiChatProps) {
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="border-t border-border p-3">
+      {/* Input + Action chips */}
+      <div className="border-t border-border p-3 space-y-2">
         <div className="flex items-end gap-2 rounded-xl border border-border bg-muted/30 px-3 py-2">
           <Textarea
             value={input}
@@ -512,7 +512,16 @@ export function PiChat({ className }: PiChatProps) {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex items-center justify-between mt-1.5 px-1">
+
+        {/* Voies chips */}
+        <PiActionPaths
+          onPromptSelect={(prompt) => {
+            setInput(prompt);
+          }}
+          userEntities={userEntities}
+        />
+
+        <div className="flex items-center justify-between mt-1 px-1">
           <p className="text-[10px] text-muted-foreground">
             {t("pi.sendHint")}
           </p>
