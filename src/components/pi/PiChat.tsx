@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { useTranslation } from "react-i18next";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { usePiConversationMutations } from "@/hooks/usePiConversations";
 
@@ -59,6 +60,7 @@ interface PiChatProps {
 
 export function PiChat({ className }: PiChatProps) {
   const { session } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     activeConversationId,
@@ -175,7 +177,7 @@ export function PiChat({ className }: PiChatProps) {
       const errMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        text: "Désolé, une erreur s'est produite. Réessayez.",
+        text: t("pi.errorRetry"),
       };
       const updatedMessages = [...nextMessages, errMsg];
       setMessages(updatedMessages);
@@ -244,7 +246,7 @@ export function PiChat({ className }: PiChatProps) {
       });
       const updated = messages.map((m) =>
         m.id === msgId
-          ? { ...m, meta: { ...m.meta, undoable: false, createdEntities: [], links: [] }, text: m.text + "\n\n*⏪ Actions annulées.*" }
+          ? { ...m, meta: { ...m.meta, undoable: false, createdEntities: [], links: [] }, text: m.text + `\n\n*⏪ ${t("pi.actionsUndone")}*` }
           : m
       );
       setMessages(updated);
@@ -275,9 +277,9 @@ export function PiChat({ className }: PiChatProps) {
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <p className="text-sm font-medium text-foreground mb-1">Bonjour ! Je suis Pi 👋</p>
+            <p className="text-sm font-medium text-foreground mb-1">{t("pi.greeting")}</p>
             <p className="text-xs text-muted-foreground max-w-[260px]">
-              Décrivez ce que vous souhaitez accomplir et je vous guiderai sur la plateforme.
+              {t("pi.greetingSubtext")}
             </p>
           </div>
         )}
@@ -304,7 +306,7 @@ export function PiChat({ className }: PiChatProps) {
                 {msg.pendingConfirmation && msg.proposedActions?.length ? (
                   <div className="mt-2.5 space-y-1.5">
                     <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                      Actions proposées :
+                      {t("pi.proposedActions")}
                     </p>
                     {msg.proposedActions.map((a, i) => (
                       <div key={i} className="text-xs px-2 py-1.5 rounded-lg bg-background/60 border border-border">
@@ -313,10 +315,10 @@ export function PiChat({ className }: PiChatProps) {
                     ))}
                     <div className="flex gap-1.5 pt-1">
                       <Button size="sm" className="h-7 text-xs gap-1" onClick={() => confirmActions(msg.id)}>
-                        <Check className="h-3 w-3" /> Confirmer
+                        <Check className="h-3 w-3" /> {t("pi.confirm")}
                       </Button>
                       <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => rejectActions(msg.id)}>
-                        <X className="h-3 w-3" /> Passer
+                        <X className="h-3 w-3" /> {t("pi.skip")}
                       </Button>
                     </div>
                   </div>
@@ -337,7 +339,7 @@ export function PiChat({ className }: PiChatProps) {
                 {msg.meta?.undoable && (
                   <div className="mt-2">
                     <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1" onClick={() => undoActions(msg.id)}>
-                      <Undo2 className="h-3 w-3" /> Annuler
+                      <Undo2 className="h-3 w-3" /> {t("pi.undo")}
                     </Button>
                   </div>
                 )}
@@ -374,7 +376,7 @@ export function PiChat({ className }: PiChatProps) {
                 send();
               }
             }}
-            placeholder="Demandez à Pi... Ex: 'Trouve une guilde sur l'énergie solaire'"
+            placeholder={t("pi.placeholder")}
             className="flex-1 resize-none border-0 bg-transparent text-sm focus-visible:ring-0 min-h-[20px] max-h-[120px] p-0"
             rows={1}
           />
@@ -384,14 +386,14 @@ export function PiChat({ className }: PiChatProps) {
         </div>
         <div className="flex items-center justify-between mt-1.5 px-1">
           <p className="text-[10px] text-muted-foreground">
-            Entrée pour envoyer · Maj+Entrée pour saut de ligne
+            {t("pi.sendHint")}
           </p>
           {hasMessages && (
             <button
               onClick={startNewConversation}
               className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
             >
-              <RotateCcw className="h-3 w-3" /> Nouvelle conv.
+              <RotateCcw className="h-3 w-3" /> {t("pi.newConversation")}
             </button>
           )}
         </div>
