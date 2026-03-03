@@ -117,6 +117,11 @@ export function PiChat({ className }: PiChatProps) {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Auto-resize textarea when input changes programmatically
+  useEffect(() => {
+    autoResize();
+  }, [input, autoResize]);
+
   const persistMessages = useCallback(
     async (msgs: ChatMessage[], convId: string | null) => {
       if (!convId || !session?.user?.id) return;
