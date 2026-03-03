@@ -155,6 +155,7 @@ function ChatBody({
   onNewConversation,
   contextType,
   navigate,
+  onClose,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -167,12 +168,21 @@ function ChatBody({
   onNewConversation: () => void;
   contextType: string;
   navigate: (to: string) => void;
+  onClose?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [pathsExpanded, setPathsExpanded] = useState(true);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Collapse paths when first message appears
+  useEffect(() => {
+    if (messages.length > 0) {
+      setPathsExpanded(false);
+    }
+  }, [messages.length]);
 
   const hasMessages = messages.length > 0;
   const hasPending = messages.some((m) => m.pendingConfirmation);
