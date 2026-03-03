@@ -45,7 +45,7 @@ const ACTION_PATHS: ActionPath[] = [
       { label: "Submit a proposal", type: "navigate", route: "/explore?tab=quests" },
       { label: "AI Matchmaker", type: "prompt", prompt: "I want to be useful right now. Use my profile, skills and territory to match me with quests that need contributors immediately." },
       { label: "Browse jobs", type: "navigate", route: "/jobs" },
-      { label: "Track applications", type: "navigate", route: "/work" },
+      { label: "See my ongoing tasks", type: "navigate", route: "/work" },
       { label: "Become co-host", type: "prompt", prompt: "I want to join an existing quest as a co-host and share facilitation responsibilities. Which quests are looking for co-hosts?" },
     ],
   },
