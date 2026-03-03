@@ -120,14 +120,15 @@ export function PiChat({ className }: PiChatProps) {
     [session, updateConversation]
   );
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText?: string, displayText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isLoading || !session?.user?.id) return;
 
     // Mark chat as active (collapses volets)
     if (!isChatActive) setChatActive(true);
 
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
+    const shownText = displayText ?? text;
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: shownText };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput("");
@@ -515,9 +516,9 @@ export function PiChat({ className }: PiChatProps) {
 
         {/* Voies chips */}
         <PiActionPaths
-          onPromptSelect={(prompt) => {
-            setInput(prompt);
+          onPromptSelect={(prompt, displayPrompt) => {
             if (!isChatActive) setChatActive(true);
+            send(prompt, displayPrompt);
           }}
           userEntities={userEntities}
         />
