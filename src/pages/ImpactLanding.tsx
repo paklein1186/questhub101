@@ -18,7 +18,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { LandingStatBar } from "@/components/landing/LandingStatBar";
 import { LandingProgressionSection } from "@/components/landing/LandingProgressionSection";
 import { LandingServicesSection } from "@/components/landing/LandingServicesSection";
-import { usePiPanel } from "@/context/PiPanelContext";
+import { usePiPanel } from "@/hooks/usePiPanel";
 import { useTranslation } from "react-i18next";
 
 const fadeUp = {
@@ -100,7 +100,7 @@ export default function ImpactLanding() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { open: openPi } = usePiPanel();
+  const { openPiPanel } = usePiPanel();
   const { data: missions = [], isLoading: loadingMissions } = useFeaturedMissions();
   const { data: guilds = [], isLoading: loadingGuilds } = useFeaturedGuilds();
   const { data: userHouses = [] } = useUserHouses(user?.id);
