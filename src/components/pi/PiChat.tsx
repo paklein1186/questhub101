@@ -113,9 +113,15 @@ export function PiChat({ className }: PiChatProps) {
   }, [activeConversationId]);
 
   // Auto-scroll
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    });
+  }, []);
+
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isChatActive, scrollToBottom]);
 
   // Auto-resize textarea when input changes programmatically
   useEffect(() => {
