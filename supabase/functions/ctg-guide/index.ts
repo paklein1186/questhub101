@@ -451,6 +451,46 @@ async function buildContextSummary(
     `draft_quests: ${fmtQuests(draftQuests)}`,
   ].join("\n");
 
+  // ---------- [USER_ACTIVE_QUESTS] ----------
+  const { data: activeQuestsData } = await sb
+    .from("quest_participants")
+    .select("quest_id, role, quests(id, title, status, quest_type, description, is_draft)")
+    .eq("user_id", userId)
+    .in("status", ["ACTIVE", "ACCEPTED"])
+    .order("created_at", { ascending: false })
+    .limit(15);
+
+  const activeQuests = (activeQuestsData || [])
+    .filter((qp: any) => qp.quests && !qp.quests.is_deleted)
+    .map((qp: any) => qp.quests);
+
+  const activeQuestsSection = [
+    "[USER_ACTIVE_QUESTS]",
+    activeQuests.length
+      ? activeQuests.map((q: any) => `"${q.title}" (id: ${q.id}, status: ${q.status}, type: ${q.quest_type || "?"}, draft: ${q.is_draft})`).join("; ")
+      : "none",
+  ].join("\n");
+
+  // ---------- [USER_GUILDS_FULL] ----------
+  const userGuildsSection = memberships.length
+    ? "[USER_GUILDS_FULL]\n" + memberships.map((m: any) => `"${m.guilds?.name || "?"}" (id: ${m.guild_id}, role: ${m.role})`).join("; ")
+    : "[USER_GUILDS_FULL]\nnone";
+
+  // ---------- [USER_SERVICES] ----------
+  const { data: userServicesData } = await sb
+    .from("services")
+    .select("id, name, is_active")
+    .eq("provider_user_id", userId)
+    .eq("is_deleted", false)
+    .limit(10);
+
+  const userServicesSection = [
+    "[USER_SERVICES]",
+    (userServicesData || []).length
+      ? (userServicesData || []).map((s: any) => `"${s.name}" (id: ${s.id}, active: ${s.is_active})`).join("; ")
+      : "none",
+  ].join("\n");
+
   // ---------- [ASSISTANT_HISTORY] ----------
   let historySection = "[ASSISTANT_HISTORY]\nlast_actions: none";
   if (sessionId) {
@@ -481,7 +521,7 @@ async function buildContextSummary(
   }
 
   // ---------- Assemble ----------
-  return [userSection, "", contextSection, "", nearbySection, "", draftsSection, "", historySection]
+  return [userSection, "", contextSection, "", nearbySection, "", draftsSection, "", activeQuestsSection, "", userGuildsSection, "", userServicesSection, "", historySection]
     .filter(Boolean)
     .join("\n");
 }
