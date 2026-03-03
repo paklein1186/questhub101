@@ -27,16 +27,12 @@ function useNudgeCount(userId: string | undefined) {
         .eq("user_id", userId);
       if (!guildCount || guildCount === 0) nudges++;
 
-      // 2. Has the user created or joined at least one quest?
+      // 2. Has the user created at least one quest?
       const { count: questCreated } = await supabase
         .from("quests")
         .select("id", { count: "exact", head: true })
         .eq("created_by_user_id", userId);
-      const { count: questJoined } = await supabase
-        .from("quest_members")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId);
-      if ((!questCreated || questCreated === 0) && (!questJoined || questJoined === 0)) nudges++;
+      if (!questCreated || questCreated === 0) nudges++;
 
       // 3. Has the user completed their profile bio?
       const { data: profile } = await supabase
