@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { PiActionPaths } from "./PiActionPaths";
+import { useUserEntities } from "@/hooks/useUserEntities";
 
 // ---------- Types ----------
 type EntityRef = { type: string; id: string };
@@ -28,12 +29,19 @@ type ProposedAction = {
   args: any;
 };
 
+type Choice = {
+  label: string;
+  route: string;
+  meta?: string;
+};
+
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
   proposedActions?: ProposedAction[];
   pendingConfirmation?: boolean;
+  choices?: Choice[];
   meta?: {
     createdEntities?: EntityRef[];
     updatedEntities?: EntityRef[];
@@ -156,6 +164,7 @@ function ChatBody({
   contextType,
   navigate,
   onClose,
+  userEntities,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -169,6 +178,7 @@ function ChatBody({
   contextType: string;
   navigate: (to: string) => void;
   onClose?: () => void;
+  userEntities?: any;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pathsExpanded, setPathsExpanded] = useState(true);
@@ -213,6 +223,7 @@ function ChatBody({
                   setPathsExpanded(false);
                 }}
                 onClose={onClose}
+                userEntities={userEntities}
               />
             </motion.div>
           )}
