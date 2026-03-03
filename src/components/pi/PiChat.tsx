@@ -120,14 +120,15 @@ export function PiChat({ className }: PiChatProps) {
     [session, updateConversation]
   );
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (overrideText?: string, displayText?: string) => {
+    const text = (overrideText ?? input).trim();
     if (!text || isLoading || !session?.user?.id) return;
 
     // Mark chat as active (collapses volets)
     if (!isChatActive) setChatActive(true);
 
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
+    const shownText = displayText ?? text;
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text: shownText };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput("");
@@ -508,16 +509,16 @@ export function PiChat({ className }: PiChatProps) {
             className="flex-1 resize-none border-0 bg-transparent text-sm focus-visible:ring-0 min-h-[20px] max-h-[120px] p-0"
             rows={1}
           />
-          <Button data-pi-send size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
+          <Button data-pi-send size="icon" variant="ghost" onClick={() => send()} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Voies chips */}
         <PiActionPaths
-          onPromptSelect={(prompt) => {
-            setInput(prompt);
+          onPromptSelect={(prompt, displayPrompt) => {
             if (!isChatActive) setChatActive(true);
+            send(prompt, displayPrompt);
           }}
           userEntities={userEntities}
         />
