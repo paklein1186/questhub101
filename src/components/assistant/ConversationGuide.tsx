@@ -189,6 +189,36 @@ function ChatBody({
 
   return (
     <>
+      {/* Quick Actions */}
+      <div className="border-b border-border">
+        <button
+          onClick={() => setPathsExpanded((v) => !v)}
+          className="flex items-center justify-between w-full px-3 py-2 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+        >
+          <span className="font-medium">Quick actions</span>
+          {pathsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        </button>
+        <AnimatePresence>
+          {pathsExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <PiActionPaths
+                onPromptSelect={(prompt) => {
+                  setInput(prompt);
+                  setPathsExpanded(false);
+                }}
+                onClose={onClose}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Messages */}
       <ScrollArea
         className={`flex-1 px-3 py-2 ${hasMessages ? "min-h-[200px]" : "max-h-20"}`}
