@@ -96,6 +96,23 @@ function useFeaturedTerritories() {
   });
 }
 
+function useFeaturedServices() {
+  return useQuery({
+    queryKey: ["impact-landing-services"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("services")
+        .select("id, title, description, price_amount, price_currency")
+        .eq("is_deleted", false)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return (data ?? []) as any[];
+    },
+    staleTime: 300_000,
+  });
+}
+
 export default function ImpactLanding() {
   const { t } = useTranslation();
   const { user } = useAuth();
