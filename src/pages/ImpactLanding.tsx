@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Compass, Users, Target, Briefcase,
-  Shield, Star, Heart, Layers, MapPin,
+  Shield, Star, Heart, Layers, MapPin, TrendingUp,
 } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,10 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { useAuth } from "@/hooks/useAuth";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { LandingStatBar } from "@/components/landing/LandingStatBar";
+import { LandingProgressionSection } from "@/components/landing/LandingProgressionSection";
+import { usePiPanel } from "@/hooks/usePiPanel";
+import { useTranslation } from "react-i18next";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -25,15 +29,16 @@ function useFeaturedMissions() {
   return useQuery({
     queryKey: ["impact-landing-missions"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("quests")
         .select("id, title, description, reward_xp, is_featured")
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .eq("is_featured", true)
+        .in("quest_type", ["ACTION", "PROJECT", "PARTNERSHIP", "FUNDING"])
         .order("created_at", { ascending: false })
         .limit(3);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     staleTime: 300_000,
   });
@@ -43,7 +48,7 @@ function useFeaturedGuilds() {
   return useQuery({
     queryKey: ["impact-landing-guilds"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("guilds")
         .select("id, name, description, logo_url")
         .eq("is_deleted", false)
@@ -51,7 +56,7 @@ function useFeaturedGuilds() {
         .eq("is_approved", true)
         .order("created_at", { ascending: false })
         .limit(3);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     staleTime: 300_000,
   });
@@ -76,26 +81,49 @@ function useUserHouses(userId: string | undefined) {
   });
 }
 
+function useFeaturedTerritories() {
+  return useQuery({
+    queryKey: ["impact-landing-territories"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("territories")
+        .select("id, name")
+        .limit(3);
+      return (data ?? []) as any[];
+    },
+    staleTime: 300_000,
+  });
+}
+
+function useFeaturedServices() {
+  return useQuery({
+    queryKey: ["impact-landing-services"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("services")
+        .select("id, title, description, price_amount, price_currency")
+        .eq("is_deleted", false)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return (data ?? []) as any[];
+    },
+    staleTime: 300_000,
+  });
+}
+
 export default function ImpactLanding() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { openPiPanel } = usePiPanel();
   const { data: missions = [], isLoading: loadingMissions } = useFeaturedMissions();
   const { data: guilds = [], isLoading: loadingGuilds } = useFeaturedGuilds();
   const { data: userHouses = [] } = useUserHouses(user?.id);
+  const { data: territories = [] } = useFeaturedTerritories();
+  const { data: services = [], isLoading: loadingServices } = useFeaturedServices();
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
-
-  // Auto-trigger onboarding assistant for unlogged users after a brief delay
-  useEffect(() => {
-    if (user) return;
-    const dismissed = localStorage.getItem("guestAssistantDismissed");
-    if (dismissed) return;
-    const timer = setTimeout(() => {
-      setGuestAction("get started");
-      setGuestOpen(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
     if (user) {
@@ -116,14 +144,14 @@ export default function ImpactLanding() {
           </Link>
           <nav className="flex items-center gap-2">
             <Button size="sm" variant="ghost" asChild>
-              <Link to="/explore"><Compass className="h-4 w-4 mr-1" /> Explore</Link>
+              <Link to="/explore"><Compass className="h-4 w-4 mr-1" /> {t("nav.explore")}</Link>
             </Button>
             {user ? (
-              <Button size="sm" asChild><Link to="/">Enter</Link></Button>
+              <Button size="sm" asChild><Link to="/">{t("nav.home")}</Link></Button>
             ) : (
               <>
-                <Button size="sm" variant="ghost" asChild><Link to="/login">Log in</Link></Button>
-                <Button size="sm" asChild><Link to="/welcome">Sign up</Link></Button>
+                <Button size="sm" variant="ghost" asChild><Link to="/login">{t("nav.login")}</Link></Button>
+                <Button size="sm" asChild><Link to="/welcome">{t("nav.signup")}</Link></Button>
               </>
             )}
           </nav>
@@ -136,7 +164,7 @@ export default function ImpactLanding() {
         <div className="container py-12 sm:py-20 md:py-32 text-center relative z-10 px-4">
           <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <Badge variant="secondary" className="mb-4 px-3 py-1 text-xs font-medium">
-              <Shield className="h-3 w-3 mr-1" /> Missions · Guilds · Territories
+              <Shield className="h-3 w-3 mr-1" /> {t("landing.impact.hero.badge")}
             </Badge>
           </motion.div>
 
@@ -146,10 +174,10 @@ export default function ImpactLanding() {
             transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight max-w-3xl mx-auto leading-[1.1] px-2"
           >
-            A home for{" "}
-            <span className="text-primary">operators,</span>{" "}
-            <span className="text-accent">builders,</span>{" "}
-            catalysts.
+            {t("landing.impact.hero.title1")}{" "}
+            <span className="text-primary">{t("landing.impact.hero.title2")}</span>{" "}
+            <span className="text-accent">{t("landing.impact.hero.title3")}</span>{" "}
+            {t("landing.impact.hero.title4")}
           </motion.h1>
 
           <motion.p
@@ -158,7 +186,7 @@ export default function ImpactLanding() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="mt-5 text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed"
           >
-            Find missions, collaborators, guilds, and partners to move territories forward.
+            {t("landing.impact.hero.sub")}
           </motion.p>
 
           <motion.div
@@ -168,37 +196,46 @@ export default function ImpactLanding() {
             className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center px-4"
           >
             <Button size="lg" className="gap-2" onClick={() => handleGatedClick("start a mission", "/quests/new")}>
-              <Target className="h-4 w-4" /> Start a Mission
+              <Target className="h-4 w-4" /> {t("landing.impact.hero.cta1")}
             </Button>
             <Button size="lg" variant="outline" className="gap-2" onClick={() => handleGatedClick("offer a service", "/services/new")}>
-              <Briefcase className="h-4 w-4" /> Offer a Service
+              <Briefcase className="h-4 w-4" /> {t("landing.impact.hero.cta2")}
             </Button>
             <Button size="lg" variant="outline" className="gap-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground" onClick={() => handleGatedClick("join a guild", "/explore")}>
-              <Users className="h-4 w-4" /> Join a Guild
+              <Users className="h-4 w-4" /> {t("landing.impact.hero.cta3")}
             </Button>
           </motion.div>
 
-          <motion.p
+          <LandingStatBar />
+
+          <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.55 }}
-            className="mt-5 text-sm text-muted-foreground italic cursor-pointer hover:text-foreground transition-colors"
-            onClick={() => { if (!user) { setGuestAction("get guidance"); setGuestOpen(true); } else { navigate("/"); } }}
+            className="mt-5 text-sm text-muted-foreground italic hover:text-foreground transition-colors"
+            onClick={() => {
+              if (!user) {
+                setGuestAction("get guidance");
+                setGuestOpen(true);
+              } else {
+                openPiPanel();
+              }
+            }}
           >
-            Need clarity? Ask your Navigator for help.
-          </motion.p>
+            {t("landing.impact.hero.piLink")}
+          </motion.button>
         </div>
       </section>
 
       {/* ─── What You Can Do ─── */}
       <section className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">What you can do</h2>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">{t("landing.impact.whatYouCanDo")}</h2>
           <div className="grid gap-8 sm:grid-cols-3">
             {[
-              { icon: Target, title: "Launch a Mission", text: "Share a challenge, project, or transformation you want to drive.", action: "launch a mission", route: "/quests/new" },
-              { icon: Briefcase, title: "Offer Your Expertise", text: "Consulting, facilitation, governance, design, engineering, research.", action: "offer expertise", route: "/services/new" },
-              { icon: Users, title: "Join a Guild", text: "Collaborate with structured networks across territories and ecosystems.", action: "join a guild", route: "/explore" },
+              { icon: Target, title: t("landing.impact.cards.mission.title"), text: t("landing.impact.cards.mission.text"), action: "launch a mission", route: "/quests/new" },
+              { icon: Briefcase, title: t("landing.impact.cards.service.title"), text: t("landing.impact.cards.service.text"), action: "offer expertise", route: "/services/new" },
+              { icon: Users, title: t("landing.impact.cards.guild.title"), text: t("landing.impact.cards.guild.text"), action: "join a guild", route: "/explore" },
             ].map((card, i) => (
               <motion.div
                 key={card.title}
@@ -221,8 +258,48 @@ export default function ImpactLanding() {
         </div>
       </section>
 
-      {/* ─── Your Houses ─── */}
+      {/* ─── Featured Territories ─── */}
       <section className="border-t border-border">
+        <div className="container py-16 md:py-24 text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-display text-2xl md:text-3xl font-bold mb-3"
+          >
+            {t("landing.impact.territory.title")}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-muted-foreground mb-10 max-w-lg mx-auto"
+          >
+            {t("landing.impact.territory.sub")}
+          </motion.p>
+          <div className="flex flex-wrap gap-3 justify-center mb-8">
+            {territories.map((terr: any, i: number) => (
+              <motion.div key={terr.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                <Link to={`/territories/${terr.id}`}>
+                  <Badge variant="secondary" className="px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer gap-1.5">
+                    <MapPin className="h-3 w-3" />
+                    {terr.name}
+                  </Badge>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/explore/territories">{t("common.seeMore")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Your Houses ─── */}
+      <section className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24 text-center">
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">Your fields of impact</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
@@ -235,10 +312,7 @@ export default function ImpactLanding() {
                 return (
                   <motion.div key={house.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
                     <Link to={`/topics/${slug}`}>
-                      <Badge
-                        variant="secondary"
-                        className="px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
-                      >
+                      <Badge variant="secondary" className="px-4 py-2 text-sm hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
                         {house.name}
                       </Badge>
                     </Link>
@@ -259,10 +333,34 @@ export default function ImpactLanding() {
         </div>
       </section>
 
-      {/* ─── Featured Missions & Guilds ─── */}
+      {/* ─── Trust Graph Teaser ─── */}
+      <section className="border-t border-border">
+        <div className="container py-16 md:py-24 text-center max-w-2xl mx-auto">
+          <TrendingUp className="h-8 w-8 text-primary mx-auto mb-4" />
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-display text-2xl md:text-3xl font-bold mb-3"
+          >
+            {t("landing.impact.trust.title")}
+          </motion.h2>
+          <p className="text-muted-foreground mb-6 max-w-lg mx-auto">{t("landing.impact.trust.sub")}</p>
+          <div className="flex flex-wrap gap-2 justify-center mb-6">
+            {(t("landing.impact.trust.dimensions", { returnObjects: true }) as string[]).map((dim: string) => (
+              <Badge key={dim} variant="outline" className="text-xs">{dim}</Badge>
+            ))}
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/about">{t("common.seeMore")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* ─── Featured Missions, Guilds & Services ─── */}
       <section className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24">
-          <div className="grid gap-12 lg:grid-cols-2">
+          <div className="grid gap-12 lg:grid-cols-3">
             {/* Missions */}
             <div>
               <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
@@ -275,7 +373,7 @@ export default function ImpactLanding() {
                 ) : missions.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No featured missions yet — launch one!</p>
                 ) : (
-                  missions.map((q, i) => (
+                  missions.map((q: any, i: number) => (
                     <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
                       <Link to={`/quests/${q.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all">
                         <div className="flex items-center justify-between mb-1">
@@ -305,7 +403,7 @@ export default function ImpactLanding() {
                 ) : guilds.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No guilds yet — start one!</p>
                 ) : (
-                  guilds.map((g, i) => (
+                  guilds.map((g: any, i: number) => (
                     <motion.div key={g.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
                       <Link to={`/guilds/${g.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-accent/30 transition-all">
                         <div className="flex items-center gap-3">
@@ -330,6 +428,38 @@ export default function ImpactLanding() {
                 <Link to="/explore">See all Guilds <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
             </div>
+
+            {/* Services */}
+            <div>
+              <h2 className="font-display text-xl font-bold mb-1 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-primary" /> {t("landing.impact.services.title")}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">{t("landing.impact.services.sub")}</p>
+              <div className="space-y-3">
+                {loadingServices ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
+                ) : services.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("landing.services.empty")}</p>
+                ) : (
+                  services.map((s: any, i: number) => (
+                    <motion.div key={s.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-display font-semibold text-sm">{s.title}</h3>
+                          {s.price_amount != null && (
+                            <Badge className="bg-primary/10 text-primary border-0 text-xs">{s.price_amount} {s.price_currency || "€"}</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{s.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Button variant="ghost" size="sm" asChild className="mt-4">
+                <Link to="/services">{t("landing.services.seeAll")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -344,28 +474,42 @@ export default function ImpactLanding() {
             transition={{ duration: 0.6 }}
           >
             <Heart className="h-8 w-8 text-primary mx-auto mb-6" />
-            <h2 className="font-display text-2xl md:text-3xl font-bold mb-6">Why this network exists</h2>
+            <h2 className="font-display text-2xl md:text-3xl font-bold mb-6">{t("landing.impact.manifesto.title")}</h2>
             <p className="text-muted-foreground leading-relaxed text-lg">
-              We believe systemic change needs collective intelligence, aligned stakeholders, and shared missions.
+              {t("landing.impact.manifesto.p1")}
             </p>
             <p className="text-muted-foreground leading-relaxed text-lg mt-4 font-medium">
-              This is a place to coordinate, collaborate, and multiply your impact across ecosystems.
+              {t("landing.impact.manifesto.p2")}
             </p>
           </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Progression ─── */}
+      <LandingProgressionSection persona="impact" />
+
+      {/* ─── Organization CTA ─── */}
+      <section className="border-t border-border bg-muted/40">
+        <div className="container py-16 md:py-24 text-center max-w-xl mx-auto">
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">{t("landing.impact.org.title")}</h2>
+          <p className="text-muted-foreground mb-6">{t("landing.impact.org.sub")}</p>
+          <Button size="lg" asChild>
+            <Link to="/landing/org">{t("landing.impact.org.cta")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
+          </Button>
         </div>
       </section>
 
       {/* ─── Final CTA ─── */}
       <section className="border-t border-border bg-primary/5">
         <div className="container py-16 text-center">
-          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">Ready to make an impact?</h2>
-          <p className="text-muted-foreground mb-6">Join a growing network of changemakers across territories.</p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">{t("landing.impact.cta.title")}</h2>
+          <p className="text-muted-foreground mb-6">{t("landing.impact.cta.sub")}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button size="lg" asChild>
-              <Link to="/welcome">Create your account <ArrowRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/welcome">{t("landing.impact.cta.btn1")} <ArrowRight className="h-4 w-4 ml-1" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/explore">Explore the platform</Link>
+              <Link to="/explore">{t("landing.impact.cta.btn2")}</Link>
             </Button>
           </div>
         </div>
