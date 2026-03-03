@@ -1383,6 +1383,13 @@
     "actionsUndone": "Actions annulées.",
     "errorRetry": "Désolé, une erreur s'est produite. Réessayez.",
     "openPi": "Ouvrir Pi, votre guide IA",
-    "piTitle": "Pi — votre guide IA"
+    "piTitle": "Pi — votre guide IA",
+    "skippedAlternatives": "Pas de problème ! Voici d'autres options :",
+    "suggestModify": "Modifier la proposition",
+    "suggestModifyPrompt": "Peux-tu modifier la proposition précédente ?",
+    "suggestSearchExisting": "Chercher dans mes éléments",
+    "suggestSearchExistingPrompt": "Cherche dans mes quêtes, guildes et services existants quelque chose de similaire",
+    "suggestDifferent": "Essayer autrement",
+    "suggestDifferentPrompt": "Laisse-moi essayer une approche différente"
   }
 }

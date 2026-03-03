@@ -1383,6 +1383,13 @@
     "actionsUndone": "Actions undone.",
     "errorRetry": "Sorry, an error occurred. Please try again.",
     "openPi": "Open Pi, your AI guide",
-    "piTitle": "Pi — your AI guide"
+    "piTitle": "Pi — your AI guide",
+    "skippedAlternatives": "No problem! Here are some other options:",
+    "suggestModify": "Modify the proposal",
+    "suggestModifyPrompt": "Can you modify the previous proposal?",
+    "suggestSearchExisting": "Search my existing items",
+    "suggestSearchExistingPrompt": "Search my existing quests, guilds, and services for something similar",
+    "suggestDifferent": "Try something different",
+    "suggestDifferentPrompt": "Let me try a different approach"
   }
 }

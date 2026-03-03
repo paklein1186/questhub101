@@ -13,6 +13,7 @@ import { usePiPanel } from "@/hooks/usePiPanel";
 import { usePiConversationMutations } from "@/hooks/usePiConversations";
 
 type ProposedAction = { name: string; args: any };
+type FollowUpSuggestion = { label: string; prompt: string };
 
 type ChatMessage = {
   id: string;
@@ -20,6 +21,7 @@ type ChatMessage = {
   text: string;
   proposedActions?: ProposedAction[];
   pendingConfirmation?: boolean;
+  followUpSuggestions?: FollowUpSuggestion[];
   meta?: {
     createdEntities?: { type: string; id: string }[];
     updatedEntities?: { type: string; id: string }[];
@@ -49,7 +51,8 @@ function actionSummary(action: ProposedAction): string {
   if (name === "create_entity" || name === "prefill_form") {
     return `Create ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
   }
-  if (name === "update_entity") return `Update ${entityLabel(args?.type || "entity")}`;
+  if (name === "update_entity") return `Update ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
+  if (name === "add_subtask") return `Add subtask${args?.title ? `: "${args.title}"` : ""} to quest`;
   if (name === "link_entities") return `Link ${entityLabel(args?.from_type)} → ${args?.relation} → ${entityLabel(args?.to_type)}`;
   return name;
 }
@@ -161,12 +164,14 @@ export function PiChat({ className }: PiChatProps) {
       if (error) throw error;
 
       const proposedActions = data.proposedActions || [];
+      const followUpSuggestions = data.followUpSuggestions || [];
       const assistantMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
         text: data.assistantMessage,
         proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
         pendingConfirmation: proposedActions.length > 0,
+        followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
       };
 
       const updatedMessages = [...nextMessages, assistantMsg];
@@ -227,13 +232,118 @@ export function PiChat({ className }: PiChatProps) {
     }
   };
 
-  const rejectActions = (msgId: string) => {
-    const updated = messages.map((m) =>
-      m.id === msgId ? { ...m, pendingConfirmation: false, proposedActions: undefined } : m
-    );
-    setMessages(updated);
-    if (conversationId) persistMessages(updated, conversationId);
+  const rejectActions = async (msgId: string) => {
+    const msg = messages.find((m) => m.id === msgId);
+    const skippedActions = msg?.proposedActions;
+
+    // Call LLM again with skip context to get follow-up suggestions
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ctg-guide", {
+        body: {
+          message: `[SYSTEM: User skipped these proposed actions: ${skippedActions?.map(a => actionSummary(a)).join(", ")}. Provide alternative suggestions. Include followUpSuggestions in your response.]`,
+          contextType,
+          contextId: contextId ?? null,
+          mode: "propose",
+        },
+      });
+
+      if (!error && data?.followUpSuggestions?.length) {
+        const updated = messages.map((m) =>
+          m.id === msgId
+            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: data.followUpSuggestions }
+            : m
+        );
+        // Add assistant follow-up message
+        const followUpMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: data.assistantMessage || t("pi.skippedAlternatives"),
+          proposedActions: data.proposedActions?.length ? data.proposedActions : undefined,
+          pendingConfirmation: data.proposedActions?.length > 0,
+          followUpSuggestions: !data.proposedActions?.length ? data.followUpSuggestions : undefined,
+        };
+        const updatedWithFollow = [...updated, followUpMsg];
+        setMessages(updatedWithFollow);
+        if (conversationId) persistMessages(updatedWithFollow, conversationId);
+      } else {
+        // Fallback: just clear actions and show default suggestions
+        const defaultSuggestions: FollowUpSuggestion[] = [
+          { label: t("pi.suggestModify"), prompt: t("pi.suggestModifyPrompt") },
+          { label: t("pi.suggestSearchExisting"), prompt: t("pi.suggestSearchExistingPrompt") },
+          { label: t("pi.suggestDifferent"), prompt: t("pi.suggestDifferentPrompt") },
+        ];
+        const updated = messages.map((m) =>
+          m.id === msgId
+            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: defaultSuggestions }
+            : m
+        );
+        setMessages(updated);
+        if (conversationId) persistMessages(updated, conversationId);
+      }
+    } catch {
+      // On error, just clear with defaults
+      const updated = messages.map((m) =>
+        m.id === msgId ? { ...m, pendingConfirmation: false, proposedActions: undefined } : m
+      );
+      setMessages(updated);
+      if (conversationId) persistMessages(updated, conversationId);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleSuggestionClick = useCallback((prompt: string) => {
+    setInput(prompt);
+    // Use a microtask to ensure input is set before sending
+    queueMicrotask(() => {
+      // Directly invoke the send logic with the prompt
+      const text = prompt.trim();
+      if (!text || isLoading || !session?.user?.id) return;
+      if (!isChatActive) setChatActive(true);
+
+      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
+      const nextMessages = [...messages, userMsg];
+      setMessages(nextMessages);
+      setInput("");
+      setIsLoading(true);
+
+      (async () => {
+        let cId = conversationId;
+        if (!cId) {
+          try {
+            const conv = await createConversation({ title: text.slice(0, 60), modelId: "gemini-flash", contextType, contextId, messages: [userMsg] });
+            if (conv) { cId = conv.id; setConversationId(cId); setActiveConversation(cId); }
+          } catch (e) { console.error("Failed to create conversation:", e); }
+        }
+        try {
+          const { data, error } = await supabase.functions.invoke("ctg-guide", {
+            body: { message: text, contextType, contextId: contextId ?? null, mode: "propose" },
+          });
+          if (error) throw error;
+          const proposedActions = data.proposedActions || [];
+          const followUpSuggestions = data.followUpSuggestions || [];
+          const assistantMsg: ChatMessage = {
+            id: crypto.randomUUID(), role: "assistant", text: data.assistantMessage,
+            proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
+            pendingConfirmation: proposedActions.length > 0,
+            followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
+          };
+          const updatedMessages = [...nextMessages, assistantMsg];
+          setMessages(updatedMessages);
+          if (cId) persistMessages(updatedMessages, cId);
+        } catch (e: any) {
+          console.error("Pi error:", e);
+          const errMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: t("pi.errorRetry") };
+          const updatedMessages = [...nextMessages, errMsg];
+          setMessages(updatedMessages);
+          if (cId) persistMessages(updatedMessages, cId);
+        } finally {
+          setIsLoading(false);
+        }
+      })();
+    });
+  }, [messages, isLoading, session, isChatActive, conversationId, contextType, contextId]);
 
   const undoActions = async (msgId: string) => {
     const msg = messages.find((m) => m.id === msgId);
@@ -324,6 +434,21 @@ export function PiChat({ className }: PiChatProps) {
                   </div>
                 ) : null}
 
+                {/* Follow-up suggestion chips */}
+                {msg.followUpSuggestions?.length && !msg.pendingConfirmation ? (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {msg.followUpSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSuggestionClick(s.prompt)}
+                        className="text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 transition-colors cursor-pointer"
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 {/* Entity chips */}
                 {msg.meta?.createdEntities?.length ? (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -380,7 +505,7 @@ export function PiChat({ className }: PiChatProps) {
             className="flex-1 resize-none border-0 bg-transparent text-sm focus-visible:ring-0 min-h-[20px] max-h-[120px] p-0"
             rows={1}
           />
-          <Button size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
+          <Button data-pi-send size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>

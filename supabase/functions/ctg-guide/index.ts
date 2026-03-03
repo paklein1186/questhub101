@@ -451,6 +451,46 @@ async function buildContextSummary(
     `draft_quests: ${fmtQuests(draftQuests)}`,
   ].join("\n");
 
+  // ---------- [USER_ACTIVE_QUESTS] ----------
+  const { data: activeQuestsData } = await sb
+    .from("quest_participants")
+    .select("quest_id, role, quests(id, title, status, quest_type, description, is_draft)")
+    .eq("user_id", userId)
+    .in("status", ["ACTIVE", "ACCEPTED"])
+    .order("created_at", { ascending: false })
+    .limit(15);
+
+  const activeQuests = (activeQuestsData || [])
+    .filter((qp: any) => qp.quests && !qp.quests.is_deleted)
+    .map((qp: any) => qp.quests);
+
+  const activeQuestsSection = [
+    "[USER_ACTIVE_QUESTS]",
+    activeQuests.length
+      ? activeQuests.map((q: any) => `"${q.title}" (id: ${q.id}, status: ${q.status}, type: ${q.quest_type || "?"}, draft: ${q.is_draft})`).join("; ")
+      : "none",
+  ].join("\n");
+
+  // ---------- [USER_GUILDS_FULL] ----------
+  const userGuildsSection = memberships.length
+    ? "[USER_GUILDS_FULL]\n" + memberships.map((m: any) => `"${m.guilds?.name || "?"}" (id: ${m.guild_id}, role: ${m.role})`).join("; ")
+    : "[USER_GUILDS_FULL]\nnone";
+
+  // ---------- [USER_SERVICES] ----------
+  const { data: userServicesData } = await sb
+    .from("services")
+    .select("id, name, is_active")
+    .eq("provider_user_id", userId)
+    .eq("is_deleted", false)
+    .limit(10);
+
+  const userServicesSection = [
+    "[USER_SERVICES]",
+    (userServicesData || []).length
+      ? (userServicesData || []).map((s: any) => `"${s.name}" (id: ${s.id}, active: ${s.is_active})`).join("; ")
+      : "none",
+  ].join("\n");
+
   // ---------- [ASSISTANT_HISTORY] ----------
   let historySection = "[ASSISTANT_HISTORY]\nlast_actions: none";
   if (sessionId) {
@@ -481,7 +521,7 @@ async function buildContextSummary(
   }
 
   // ---------- Assemble ----------
-  return [userSection, "", contextSection, "", nearbySection, "", draftsSection, "", historySection]
+  return [userSection, "", contextSection, "", nearbySection, "", draftsSection, "", activeQuestsSection, "", userGuildsSection, "", userServicesSection, "", historySection]
     .filter(Boolean)
     .join("\n");
 }
@@ -547,6 +587,7 @@ You have access to these abstract actions (the server will execute them):
 3) link_entities(from_type, from_id, relation, to_type, to_id) → connects two entities
 4) prefill_form(type, draft_id, fields) → pre-fills/creates a draft entity
 5) create_discussion_room(scope_type, scope_id, name, description?) → creates a discussion room in a guild or quest. scope_type is "GUILD" or "QUEST", scope_id is the entity id.
+6) add_subtask(quest_id, title, description?) → adds a subtask to an existing quest
 
 Valid entity types: user, guild, quest, service, territory, event, living_system, post
 
@@ -571,6 +612,25 @@ IMPORTANT schema notes:
 - Include raw_input in fields when creating entities to preserve the user's original text.
 - For IDs of entities created in the same call, use placeholder "$last_<type>" (e.g. "$last_quest", "$last_guild") and the server will resolve them.
 - ALWAYS use actual UUIDs from the context summary when referencing existing entities.
+
+CRITICAL — EXISTING ENTITY AWARENESS:
+- BEFORE proposing to create a new quest, ALWAYS check [USER_ACTIVE_QUESTS] and [DRAFTS] for quests with similar titles or themes.
+- If a matching quest already exists, prefer update_entity or add_subtask on the existing quest instead of creating a new one.
+- Use fuzzy matching: "Reach out to potential partners" should match "Reach to other networks" or "Oslo Project – Reach to other networks".
+- When adding tasks/steps to a project, use add_subtask(quest_id, title, description) to add them to the existing quest.
+- Similarly, check [USER_GUILDS_FULL] before creating guilds, and [USER_SERVICES] before creating services.
+- Only create a new entity if no similar one exists in the user's data.
+
+When user SKIPS proposed actions, include a "followUpSuggestions" array in your response with 2-3 alternative clickable options:
+{
+  "actions": [],
+  "assistant_message": "No problem! Here are some alternatives:",
+  "followUpSuggestions": [
+    { "label": "Modify the title", "prompt": "Modify the quest title" },
+    { "label": "Add to existing quest", "prompt": "Add this as a subtask to my existing quest" },
+    { "label": "Search existing quests", "prompt": "Search my quests for something similar" }
+  ]
+}
 ${contextHints[contextType] || ""}
 
 Here is the CTG context summary for this conversation:
@@ -579,19 +639,22 @@ ${contextSummary}
 Your output MUST be valid JSON with no markdown fences:
 {
   "actions": [
-    { "name": "create_entity" | "update_entity" | "link_entities" | "prefill_form", "args": { ... } }
+    { "name": "create_entity" | "update_entity" | "link_entities" | "prefill_form" | "add_subtask", "args": { ... } }
   ],
-  "assistant_message": "Your answer to the user"
+  "assistant_message": "Your answer to the user",
+  "followUpSuggestions": [] 
 }
 
 Rules:
 - Prefer EDIT or PREFILL an existing draft (from [DRAFTS] section) instead of creating duplicates.
+- ALWAYS check [USER_ACTIVE_QUESTS] for existing quests before creating new ones. This is CRITICAL.
 - Infer as many fields as you safely can (title, description, tags, territories, skills, dates).
 - Preserve the richness of the original user text by including it in a raw_input field inside fields when creating entities.
 - If a crucial field is missing, still create a draft entity (is_draft: true) and ask a short follow-up question.
 - Keep assistant_message short, practical, and focused on what was done and what is needed next.
 - If unsure whether to create or reuse, prefer reusing entities mentioned in the context.
-- Check [ASSISTANT_HISTORY] to avoid repeating the same actions.`;
+- Check [ASSISTANT_HISTORY] to avoid repeating the same actions.
+- When providing followUpSuggestions, make them contextually relevant to what was just skipped.`;
 }
 
 // =====================================================================
@@ -845,7 +908,7 @@ serve(async (req) => {
 
       // First pass: create/update
       for (const action of pendingActions) {
-        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity" && action.name !== "create_discussion_room") continue;
+        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity" && action.name !== "create_discussion_room" && action.name !== "add_subtask") continue;
         const result: any = { name: action.name, args: action.args, success: false };
         try {
           if (action.name === "create_entity" || action.name === "prefill_form") {
@@ -923,6 +986,34 @@ serve(async (req) => {
               else {
                 result.success = true;
                 result.createdEntity = { type: "discussion_room", id: newRoom.id };
+                createdEntities.push(result.createdEntity);
+              }
+            }
+          } else if (action.name === "add_subtask") {
+            const questId = action.args?.quest_id;
+            const subtaskTitle = action.args?.title;
+            if (!questId || !subtaskTitle) { result.error = "Missing quest_id or title"; }
+            else {
+              // Get current max sort_order for subtasks
+              const { data: existingSubs } = await sb.from("quest_subtasks")
+                .select("sort_order")
+                .eq("quest_id", questId)
+                .order("sort_order", { ascending: false })
+                .limit(1);
+              const maxSort = existingSubs?.[0]?.sort_order ?? -1;
+
+              const { data: newSubtask, error: subErr } = await sb.from("quest_subtasks").insert({
+                quest_id: questId,
+                title: subtaskTitle,
+                description: action.args?.description || null,
+                created_by_user_id: userId,
+                sort_order: maxSort + 1,
+                status: "TODO",
+              }).select("id").single();
+              if (subErr) { result.error = subErr.message; }
+              else {
+                result.success = true;
+                result.createdEntity = { type: "subtask", id: newSubtask.id };
                 createdEntities.push(result.createdEntity);
               }
             }
@@ -1045,7 +1136,7 @@ serve(async (req) => {
     const rawContent = aiData.choices?.[0]?.message?.content || "";
 
     // --- Parse LLM JSON ---
-    let parsed: { actions: any[]; assistant_message: string };
+    let parsed: { actions: any[]; assistant_message: string; followUpSuggestions?: any[] };
     try {
       const cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
       parsed = JSON.parse(cleaned);
@@ -1068,6 +1159,7 @@ serve(async (req) => {
       sessionId: effectiveSessionId,
       assistantMessage: parsed.assistant_message,
       proposedActions: parsed.actions || [],
+      followUpSuggestions: parsed.followUpSuggestions || [],
     });
   } catch (e: any) {
     console.error("ctg-guide error:", e);
