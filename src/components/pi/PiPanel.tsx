@@ -9,6 +9,7 @@ import { PiModelSelector } from "./PiModelSelector";
 import { PiRecentQuests } from "./PiRecentQuests";
 import { PiRecentConversations } from "./PiRecentConversations";
 import { PiChat } from "./PiChat";
+import { PiMilestoneBanner } from "./PiMilestoneBanner";
 import { cn } from "@/lib/utils";
 
 const BREAKPOINT_OVERLAY = 1280;
@@ -187,6 +188,9 @@ export function PiPanel() {
               </button>
               {convsOpen && <PiRecentConversations />}
             </div>
+
+            {/* Milestone banner */}
+            <PiMilestoneBanner />
 
             {/* Chat area */}
             <PiChat className="flex-1 min-h-0" />

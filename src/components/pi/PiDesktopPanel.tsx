@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PiModelSelector } from "./PiModelSelector";
 import { PiRecentConversations } from "./PiRecentConversations";
 import { PiChat } from "./PiChat";
+import { PiMilestoneBanner } from "./PiMilestoneBanner";
 import { cn } from "@/lib/utils";
 
 /**
@@ -157,6 +158,9 @@ export function PiDesktopPanel() {
             </button>
             {convsOpen && <PiRecentConversations />}
           </div>
+
+          {/* Milestone banner */}
+          <PiMilestoneBanner />
 
           {/* Chat area */}
           <PiChat className="flex-1 min-h-0" />
