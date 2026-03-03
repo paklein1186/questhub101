@@ -10,8 +10,8 @@ import { NotificationProvider } from "@/hooks/useNotifications";
 import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
 import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
 import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
-import { PiSidePanelProvider } from "@/components/assistant/PiSidePanelContext";
-import { PiSidePanel } from "@/components/assistant/PiSidePanel";
+import { PiPanelProvider } from "@/components/pi/PiPanelProvider";
+import { PiPanel } from "@/components/pi/PiPanel";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
@@ -180,7 +180,7 @@ const App = () => (
           <NotificationProvider currentUserId="">
             <PersonaThemeProvider>
             <ChatBubbleProvider>
-            <PiSidePanelProvider>
+            <PiPanelProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -188,7 +188,7 @@ const App = () => (
             
             <GuestBauhausShape />
             <ChatBubbleOverlay />
-            <PiSidePanel />
+            <PiPanel />
             <BugReportBubble />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
