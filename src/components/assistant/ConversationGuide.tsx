@@ -523,6 +523,7 @@ export default function ConversationGuide({
         text: data.assistantMessage,
         proposedActions: hasActions ? proposedActions : undefined,
         pendingConfirmation: hasActions,
+        choices: data.choices || undefined,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (e: any) {
