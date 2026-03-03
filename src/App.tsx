@@ -352,7 +352,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
-            </PiSidePanelProvider>
+            </PiPanelProvider>
             </ChatBubbleProvider>
             </PersonaThemeProvider>
           </NotificationProvider>
