@@ -6,26 +6,58 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
+/**
+ * Compute lightweight nudge count based on user onboarding progress.
+ * Returns the number of key milestones not yet completed.
+ */
+function useNudgeCount(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["pi-nudges", userId],
+    enabled: !!userId,
+    refetchInterval: 5 * 60_000, // every 5 min
+    staleTime: 2 * 60_000,
+    queryFn: async () => {
+      if (!userId) return 0;
+      let nudges = 0;
+
+      // 1. Has the user joined at least one guild?
+      const { count: guildCount } = await supabase
+        .from("guild_members")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (!guildCount || guildCount === 0) nudges++;
+
+      // 2. Has the user created at least one quest?
+      const { count: questCreated } = await supabase
+        .from("quests")
+        .select("id", { count: "exact", head: true })
+        .eq("created_by_user_id", userId);
+      if (!questCreated || questCreated === 0) nudges++;
+
+      // 3. Has the user completed their profile bio?
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("bio, avatar_url")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!profile?.bio || profile.bio.trim().length < 20) nudges++;
+      if (!profile?.avatar_url) nudges++;
+
+      return nudges;
+    },
+  });
+}
+
 export function PiFloatingButton() {
   const { session } = useAuth();
   const { togglePiPanel, isOpen } = usePiPanel();
   const { t } = useTranslation();
 
-  const { data: creditsBalance } = useQuery({
-    queryKey: ["pi-credits-balance", session?.user?.id],
-    enabled: !!session?.user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("credits_balance")
-        .eq("user_id", session!.user.id)
-        .maybeSingle();
-      return (data as any)?.credits_balance ?? 0;
-    },
-    refetchInterval: 60_000,
-  });
+  const { data: nudgeCount } = useNudgeCount(session?.user?.id);
 
   if (!session) return null;
+
+  const badgeCount = nudgeCount ?? 0;
 
   return (
     <button
@@ -41,9 +73,9 @@ export function PiFloatingButton() {
       title={t("pi.piTitle")}
     >
       <Sparkles className="h-4 w-4" />
-      {creditsBalance != null && !isOpen && (
-        <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent text-accent-foreground px-1 text-[9px] font-bold shadow-sm">
-          {creditsBalance > 999 ? "999+" : creditsBalance}
+      {badgeCount > 0 && !isOpen && (
+        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground px-1 text-[9px] font-bold shadow-sm animate-in fade-in zoom-in">
+          {badgeCount}
         </span>
       )}
     </button>

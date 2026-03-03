@@ -4,7 +4,7 @@ import { BauhausShape } from "@/components/home/BauhausShape";
 import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search, Pause, Play } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
@@ -491,15 +491,6 @@ export default function HomeFeed() {
         <BauhausShape />
       </BauhausPausedContext.Provider>
 
-      {/* Discrete pause/play toggle — bottom-left */}
-      <button
-        onClick={() => setBauhausPaused((p) => !p)}
-        className="fixed top-20 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-muted/60 backdrop-blur-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/90 transition-all duration-200"
-        aria-label={bauhausPaused ? "Resume animation" : "Pause animation"}
-        title={bauhausPaused ? "Resume animation" : "Pause animation"}>
-        
-        {bauhausPaused ? <Play size={14} /> : <Pause size={14} />}
-      </button>
       <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
 
         {!isPiOpen && (
