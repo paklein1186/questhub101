@@ -417,6 +417,14 @@ export default function ConversationGuide({
     storeMessages(contextType, contextId, messages);
   }, [messages, contextType, contextId]);
 
+  // Handle prefill prompt
+  useEffect(() => {
+    if (prefillPrompt) {
+      setInput(prefillPrompt);
+      onPrefillConsumed?.();
+    }
+  }, [prefillPrompt]);
+
   if (!session) return null;
 
   // Clear undo flags from all messages (called when a new prompt comes in)
