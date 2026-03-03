@@ -8,6 +8,8 @@ export interface SearchResult {
   title: string;
   subtitle?: string;
   url: string;
+  imageUrl?: string;
+  logoUrl?: string;
   trustScore?: number;
   trustTopTags?: string[];
   trustCount?: number;
