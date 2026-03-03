@@ -119,6 +119,12 @@ export function GlobalSearchDialog() {
           placeholder={t("search.inputPlaceholder")}
           value={query}
           onValueChange={setQuery}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim().length >= 1) {
+              e.preventDefault();
+              handleAdvanced();
+            }
+          }}
         />
         <CommandList>
           {query.trim().length >= 2 && results.length === 0 && (

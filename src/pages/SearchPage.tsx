@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Search, Filter, Users, Shield, Compass, Briefcase, Building2, Boxes, Loader2, MapPin } from "lucide-react";
 import { UnitCoverImage, type UnitType } from "@/components/UnitCoverImage";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,9 +159,18 @@ export default function SearchPage() {
                   <div className="space-y-2">
                     {items.map((item) => (
                       <Link key={`${item.type}-${item.id}`} to={item.url}>
-                        <Card className="hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
-                          <CardContent className="p-0 flex items-stretch gap-0">
-                            <UnitCoverImage type={item.type as UnitType} imageUrl={(item as any).imageUrl} logoUrl={(item as any).logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
+                      <Card className="hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
+                          <CardContent className="p-0 flex items-center gap-0">
+                            {item.type === "USER" ? (
+                              <div className="w-16 h-16 shrink-0 flex items-center justify-center ml-2">
+                                <Avatar className="h-12 w-12">
+                                  <AvatarImage src={(item as any).imageUrl ?? undefined} alt={item.title} />
+                                  <AvatarFallback className="text-sm font-medium">{item.title?.charAt(0) ?? "?"}</AvatarFallback>
+                                </Avatar>
+                              </div>
+                            ) : (
+                              <UnitCoverImage type={item.type as UnitType} imageUrl={(item as any).imageUrl} logoUrl={(item as any).logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
+                            )}
                              <div className="p-4 min-w-0 flex flex-col justify-center flex-1">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <Badge variant="outline" className="text-[10px] shrink-0">{item.type}</Badge>
