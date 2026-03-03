@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb } from "lucide-react";
+import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -228,16 +228,20 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
 }
 
 function QuestsSubTabs() {
-  const [sub, setSub] = useState<"quests" | "ideas">("quests");
+  const [sub, setSub] = useState<"quests" | "ideas" | "missions">("quests");
   return (
     <div>
       <div className="flex gap-2 mb-4">
         <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>Quests</Button>
+        <Button variant={sub === "missions" ? "default" : "outline"} size="sm" onClick={() => setSub("missions")}>
+          <Target className="h-3.5 w-3.5 mr-1" /> Missions
+        </Button>
         <Button variant={sub === "ideas" ? "default" : "outline"} size="sm" onClick={() => setSub("ideas")}>
           <Lightbulb className="h-3.5 w-3.5 mr-1" /> Ideas
         </Button>
       </div>
       {sub === "quests" && <QuestsMarketplace bare />}
+      {sub === "missions" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
       {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
     </div>
   );
