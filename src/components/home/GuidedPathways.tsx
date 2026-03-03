@@ -207,6 +207,7 @@ interface Props {
   userName: string;
   userId?: string;
   isOrgRep?: boolean;
+  onActionSelected?: (prompt?: string) => void;
 }
 
 export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
