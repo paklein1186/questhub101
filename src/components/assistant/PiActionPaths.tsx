@@ -3,6 +3,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import type { UserEntities } from "@/hooks/useUserEntities";
 
 type ActionType = "navigate" | "prompt";
 
@@ -143,9 +144,10 @@ const ACTION_PATHS: ActionPath[] = [
 interface PiActionPathsProps {
   onPromptSelect: (prompt: string) => void;
   onClose?: () => void;
+  userEntities?: UserEntities | null;
 }
 
-export function PiActionPaths({ onPromptSelect, onClose }: PiActionPathsProps) {
+export function PiActionPaths({ onPromptSelect, onClose, userEntities }: PiActionPathsProps) {
   const [openId, setOpenId] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -158,7 +160,25 @@ export function PiActionPaths({ onPromptSelect, onClose }: PiActionPathsProps) {
       navigate(action.route);
       onClose?.();
     } else if (action.type === "prompt" && action.prompt) {
-      onPromptSelect(action.prompt);
+      // Enrich prompt with user's entities for context
+      let enrichedPrompt = action.prompt;
+      if (userEntities) {
+        const parts: string[] = [];
+        if (userEntities.quests?.length) {
+          parts.push(
+            `My active quests: ${userEntities.quests.map((q) => `"${q.title}" (id: ${q.id})`).join(", ")}`
+          );
+        }
+        if (userEntities.guilds?.length) {
+          parts.push(
+            `My guilds: ${userEntities.guilds.map((g) => `"${g.name}" (id: ${g.id})`).join(", ")}`
+          );
+        }
+        if (parts.length) {
+          enrichedPrompt += "\n\n" + parts.join("\n");
+        }
+      }
+      onPromptSelect(enrichedPrompt);
     }
   };
 
