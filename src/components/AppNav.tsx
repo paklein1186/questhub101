@@ -16,7 +16,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
+import { usePiPanel } from "@/hooks/usePiPanel";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,7 +81,7 @@ export function AppNav() {
   const { data: flags = [] } = useFeatureFlags();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { togglePanel } = usePiSidePanel();
+  const { togglePiPanel: togglePanel, isOpen: isPiOpen } = usePiPanel();
 
   const { data: creditsBalance } = useQuery({
     queryKey: ["nav-credits-balance", session?.user?.id],
