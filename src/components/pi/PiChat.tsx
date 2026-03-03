@@ -77,6 +77,7 @@ export function PiChat({ className }: PiChatProps) {
     isChatActive,
     prefillPrompt,
     setPrefillPrompt,
+    closePiPanel,
   } = usePiPanel();
   const { createConversation, updateConversation } = usePiConversationMutations();
 
