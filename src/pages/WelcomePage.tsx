@@ -66,7 +66,7 @@ export default function WelcomePage() {
       title: t("landing.welcome.personas.organization.title"),
       subtitle: t("landing.welcome.personas.organization.subtitle"),
       tagline: t("landing.welcome.personas.organization.tagline"),
-      path: "/organizations",
+      path: "/landing/organization",
       gradient: "from-blue-500/15 to-indigo-500/10",
       accentClass: "text-blue-500",
       borderHover: "hover:border-blue-400/50",

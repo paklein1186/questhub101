@@ -142,6 +142,7 @@ import ImpactLanding from "./pages/ImpactLanding";
 import WelcomePage from "./pages/WelcomePage";
 import BrowseLanding from "./pages/BrowseLanding";
 import OrganizationsLanding from "./pages/OrganizationsLanding";
+const OrganizationLanding = lazy(() => import("./pages/OrganizationLanding"));
 import OrganizationOnboarding from "./pages/OrganizationOnboarding";
 import OrganizationNextSteps from "./pages/OrganizationNextSteps";
 import ProfileEnrichment from "./pages/ProfileEnrichment";
@@ -211,6 +212,7 @@ const App = () => (
                 <Route path="/landing/hybrid" element={<HybridLanding />} />
                 <Route path="/landing/impact" element={<ImpactLanding />} />
                 <Route path="/landing/browse" element={<BrowseLanding />} />
+                <Route path="/landing/organization" element={<OrganizationLanding />} />
                 <Route path="/organizations" element={<OrganizationsLanding />} />
                 <Route path="/onboarding/organization" element={<RequireAuth><OrganizationOnboarding /></RequireAuth>} />
                 <Route path="/organizations/:id/next-steps" element={<RequireAuth><OrganizationNextSteps /></RequireAuth>} />
