@@ -642,8 +642,20 @@ Your output MUST be valid JSON with no markdown fences:
     { "name": "create_entity" | "update_entity" | "link_entities" | "prefill_form" | "add_subtask", "args": { ... } }
   ],
   "assistant_message": "Your answer to the user",
-  "followUpSuggestions": [] 
+  "followUpSuggestions": [],
+  "choices": []
 }
+
+When you need to disambiguate (e.g., "which quest?", "which guild?"), add a "choices" array:
+{
+  "message": "Which quest do you want to update?",
+  "choices": [
+    { "label": "Solar Farm Initiative", "route": "/quests/abc-123", "meta": "Active · 3 participants" },
+    { "label": "Youth Hub Reforestation", "route": "/quests/def-456", "meta": "Active · 7 participants" }
+  ],
+  "actions": []
+}
+Populate choices from the context sections. Maximum 5 choices.
 
 Rules:
 - Prefer EDIT or PREFILL an existing draft (from [DRAFTS] section) instead of creating duplicates.
@@ -1136,7 +1148,7 @@ serve(async (req) => {
     const rawContent = aiData.choices?.[0]?.message?.content || "";
 
     // --- Parse LLM JSON ---
-    let parsed: { actions: any[]; assistant_message: string; followUpSuggestions?: any[] };
+    let parsed: { actions: any[]; assistant_message: string; followUpSuggestions?: any[]; choices?: any[] };
     try {
       const cleaned = rawContent.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
       parsed = JSON.parse(cleaned);
@@ -1160,6 +1172,7 @@ serve(async (req) => {
       assistantMessage: parsed.assistant_message,
       proposedActions: parsed.actions || [],
       followUpSuggestions: parsed.followUpSuggestions || [],
+      choices: parsed.choices || [],
     });
   } catch (e: any) {
     console.error("ctg-guide error:", e);
