@@ -248,7 +248,7 @@ export default function CallRoom() {
       if (normalized) return normalized;
     }
     return `gamechanger-${booking.id}`;
-  }, [booking]);
+  }, [booking?.call_url, booking?.id]);
 
   const [jitsiError, setJitsiError] = useState(false);
   const handleJitsiError = useCallback(() => setJitsiError(true), []);
