@@ -247,10 +247,11 @@ export default function CallRoom() {
       const normalized = normalizeRoomName(booking.call_url);
       if (normalized) return normalized;
     }
-    return `changethegame-${booking.id}`;
+    return `gamechanger-${booking.id}`;
   }, [booking]);
 
   const [jitsiError, setJitsiError] = useState(false);
+  const handleJitsiError = useCallback(() => setJitsiError(true), []);
 
   // Panel collapsed on mobile
   const [panelOpen, setPanelOpen] = useState(true);
@@ -348,7 +349,7 @@ export default function CallRoom() {
               roomName={roomName}
               displayName={currentUser.name || "Participant"}
               avatarUrl={currentUser.avatarUrl}
-              onError={() => setJitsiError(true)}
+              onError={handleJitsiError}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full bg-muted/20 rounded-xl p-8 text-center">
