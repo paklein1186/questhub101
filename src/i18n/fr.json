@@ -800,6 +800,223 @@
         "organization": { "title": "Je représente une organisation", "subtitle": "Institution publique, entreprise, université, fondation ou ONG", "tagline": "Contribuez, collaborez, lancez des initiatives dans l'écosystème" },
         "browse": { "title": "J'explore", "subtitle": "Je veux voir ce qu'il y a avant de choisir", "tagline": "Parcourez les quêtes, communautés et services" }
       }
+    },
+    "stats": {
+      "quests": "missions actives",
+      "guilds": "guildes",
+      "territories": "territoires",
+      "members": "membres"
+    },
+    "progression": {
+      "title": "Comment vous progressez ici",
+      "sub": "Chaque {{unit}} rapporte des XP. Les XP débloquent des droits de gouvernance.",
+      "levels": "Niveaux {{levels}}"
+    },
+    "services": {
+      "empty": "Aucun service pour le moment — soyez le premier à en proposer !",
+      "seeAll": "Voir tous les services"
+    },
+    "impact": {
+      "hero": {
+        "badge": "Missions · Guildes · Territoires",
+        "title1": "Un espace pour les",
+        "title2": "opérateurs,",
+        "title3": "bâtisseurs,",
+        "title4": "catalyseurs.",
+        "sub": "Trouvez des missions, des collaborateurs, des guildes et des partenaires pour faire avancer les territoires.",
+        "cta1": "Lancer une Mission",
+        "cta2": "Proposer un Service",
+        "cta3": "Rejoindre une Guilde",
+        "piLink": "Besoin d'orientation ? Parlez à Pi."
+      },
+      "whatYouCanDo": "Ce que vous pouvez faire",
+      "cards": {
+        "mission": { "title": "Lancer une Mission", "text": "Partagez un défi, un projet ou une transformation que vous voulez conduire." },
+        "service": { "title": "Offrir votre Expertise", "text": "Conseil, facilitation, gouvernance, design, ingénierie, recherche." },
+        "guild": { "title": "Rejoindre une Guilde", "text": "Collaborez avec des réseaux structurés à travers les territoires et les écosystèmes." }
+      },
+      "territory": {
+        "title": "Ancré dans les territoires",
+        "sub": "Les missions sur changethegame sont toujours liées à un lieu — une biorégion, une ville, un bassin versant. Votre travail laisse une trace.",
+        "active": "{{count}} missions actives",
+        "stewards": "{{count}} stewards"
+      },
+      "trust": {
+        "title": "Une réputation visible",
+        "sub": "Le Graphe de Confiance rend votre parcours visible — sur 5 dimensions, endorsé par vos collaborateurs.",
+        "dimensions": ["Compétence", "Fiabilité", "Collaboration", "Intendance", "Finance"]
+      },
+      "services": {
+        "title": "Réserver ou proposer une expertise",
+        "sub": "Consultants, facilitateurs, coachs, chercheurs — trouvez-en un ou devenez-le."
+      },
+      "org": {
+        "title": "Vous représentez une organisation ?",
+        "sub": "Fondations, ONG, entreprises et institutions ont leur propre chemin.",
+        "cta": "Rejoindre en tant qu'Organisation"
+      },
+      "manifesto": {
+        "title": "Pourquoi ce réseau existe",
+        "p1": "Nous croyons que le changement systémique nécessite une intelligence collective, des parties prenantes alignées et des missions partagées.",
+        "p2": "C'est un espace pour coordonner, collaborer et démultiplier votre impact à travers les écosystèmes."
+      },
+      "cta": {
+        "title": "Prêt·e à avoir un impact ?",
+        "sub": "Rejoignez un réseau croissant d'acteurs du changement à travers les territoires.",
+        "btn1": "Créer votre compte",
+        "btn2": "Explorer la plateforme"
+      }
+    },
+    "creative": {
+      "hero": {
+        "badge": "Art · Expression · Collaboration",
+        "title1": "Un monde pour les",
+        "title2": "créateurs,",
+        "title3": "rêveurs,",
+        "title4": "faiseurs.",
+        "sub": "Votre art, vos histoires, votre mouvement, votre son — trouvez ici votre communauté.",
+        "cta1": "Commencer une Création",
+        "cta2": "Proposer une Skill Session",
+        "cta3": "Rejoindre un Cercle ou Studio",
+        "piLink": "Ou demandez à la Muse de vous guider"
+      },
+      "muse": {
+        "title": "Rencontrez votre Muse",
+        "sub": "Chaque Maison des Arts a son propre guide IA — un compagnon créatif façonné autour de votre pratique.",
+        "discover": "Découvrir votre Muse"
+      },
+      "sessions": {
+        "title": "Sessions de Compétences & Formations",
+        "sub": "Apprenez des pairs, partagez votre savoir-faire, monétisez votre pratique."
+      },
+      "ensembles": {
+        "title": "Cercles & Ensembles",
+        "sub": "De petits groupes créatifs où les choses se font ensemble.",
+        "cta": "Trouver un Cercle"
+      },
+      "monetize": {
+        "title": "Vivre de votre pratique",
+        "step1": "Publier une Skill Session",
+        "step2": "Être Réservé·e",
+        "step3": "Gagner XP + Revenus"
+      },
+      "manifesto": {
+        "title": "Pourquoi les créatifs ont leur place ici",
+        "p1": "L'art n'appartient pas aux silos. Le travail le plus significatif se produit aux intersections — entre les disciplines, entre les personnes, entre l'imagination et le monde.",
+        "p2": "changethegame est conçu pour les créateurs qui veulent que leur travail compte au-delà de la toile."
+      },
+      "cta": {
+        "title": "Prêt·e à créer ?",
+        "sub": "Rejoignez un monde où votre pratique trouve son audience, ses collaborateurs et son impact.",
+        "btn1": "Créer votre compte",
+        "btn2": "Explorer les Maisons des Arts"
+      }
+    },
+    "hybrid": {
+      "hero": {
+        "badge": "Impact · Créativité · Les deux",
+        "title1": "Ni l'un.",
+        "title2": "Ni l'autre.",
+        "title3": "Les deux.",
+        "sub": "Vous naviguez entre imagination et structure. changethegame est conçu pour ça.",
+        "cta1": "Lancer une Quête",
+        "cta2": "Proposer une Session ou Service",
+        "cta3": "Trouver votre Espace",
+        "piLink": "Vous ne savez pas par où commencer ? Parlez à Pi."
+      },
+      "dualTrack": {
+        "title": "Un double parcours XP — pour le et/et",
+        "sub": "Vous gagnez des XP en spécialisation Maker et en Intendance simultanément. Pas de soit/ou.",
+        "maker": { "label": "XP Maker", "desc": "Gagné par les créations, sessions de compétences et formations" },
+        "steward": { "label": "XP Intendance", "desc": "Gagné par les missions, la gouvernance et les contributions territoriales" }
+      },
+      "examples": {
+        "title": "Qui appelle cela chez soi",
+        "items": [
+          { "role": "Entrepreneur social", "desc": "Conduit des missions d'impact et vend des sessions de stratégie" },
+          { "role": "Artiste-facilitateur·rice", "desc": "Anime des ateliers créatifs et siège dans des conseils de guilde" },
+          { "role": "Designer-consultant·e", "desc": "Propose à la fois des services de design et une facilitation de gouvernance" }
+        ]
+      },
+      "manifesto": {
+        "title": "Pourquoi les personnes hybrides ont leur place ici",
+        "p1": "Certaines personnes ne rentrent pas dans une seule case — elles naviguent entre imagination et structure.",
+        "p2": "changethegame est conçu pour elles : un endroit où les idées peuvent devenir des systèmes, et où les systèmes peuvent inspirer l'imagination."
+      },
+      "cta": {
+        "title": "Prêt·e à relier les deux mondes ?",
+        "sub": "Rejoignez un réseau où créativité et impact s'amplifient mutuellement.",
+        "btn1": "Créer votre compte",
+        "btn2": "Explorer d'abord"
+      }
+    },
+    "browse": {
+      "hero": {
+        "badge": "Découvrir · Connecter · Contribuer",
+        "title1": "Un réseau pour les",
+        "title2": "acteurs du changement,",
+        "title3": "créateurs,",
+        "title4": "bâtisseurs.",
+        "sub": "Parcourez les quêtes, communautés et services — voyez si c'est le bon endroit pour vous.",
+        "cta1": "Tout parcourir",
+        "cta2": "Créer un compte",
+        "piLink": "Vous ne savez pas quel chemin vous appartient ? Parlez à Pi."
+      },
+      "quiz": {
+        "title": "Trouvez votre chemin",
+        "sub": "Trois questions pour trouver votre place.",
+        "q1": "Je suis ici principalement pour…",
+        "q1Options": ["Créer & exprimer", "Changer les systèmes & territoires", "Les deux également", "Apprendre & explorer"],
+        "q1Routes": ["/landing/creative", "/landing/impact", "/landing/hybrid", "/landing/browse"],
+        "result": "D'après vos réponses, nous suggérons :",
+        "tryPath": "Essayer ce chemin"
+      },
+      "piCta": {
+        "title": "Demandez à Pi — votre guide IA",
+        "sub": "Décrivez ce que vous cherchez en une phrase. Pi vous suggérera le bon chemin, les bonnes quêtes et les bonnes personnes.",
+        "btn": "Parler à Pi"
+      }
+    },
+    "org": {
+      "hero": {
+        "badge": "Organisations · Institutions · Impact",
+        "title1": "Votre organisation,",
+        "title2": "ancrée dans des",
+        "title3": "écosystèmes vivants.",
+        "sub": "Connectez votre institution à un réseau d'acteurs du changement, de guildes et de territoires.",
+        "cta1": "Rejoindre en tant qu'Organisation",
+        "cta2": "En savoir plus",
+        "piLink": "Des questions ? Parlez à Pi."
+      },
+      "types": {
+        "title": "Qui rejoint en tant qu'organisation",
+        "public": { "label": "Secteur public", "desc": "Agences gouvernementales, collectivités, institutions publiques" },
+        "corp": { "label": "Entreprises", "desc": "Sociétés apportant innovation et ressources à l'écosystème" },
+        "academic": { "label": "Académiques & Recherche", "desc": "Universités, laboratoires et institutions de recherche" },
+        "foundation": { "label": "Fondations", "desc": "Organisations philanthropiques conduisant le changement systémique" },
+        "ngo": { "label": "ONG", "desc": "Organisations à but non lucratif travaillant sur l'impact social et environnemental" }
+      },
+      "steps": {
+        "title": "Comment ça marche",
+        "s1": { "n": "01", "title": "Créez votre profil", "desc": "Ajoutez les détails de votre organisation — ou laissez l'IA analyser votre site web pour le remplir automatiquement." },
+        "s2": { "n": "02", "title": "L'IA cartographie votre mission", "desc": "Nous associons vos thématiques, territoires et causes à l'écosystème." },
+        "s3": { "n": "03", "title": "Lancez des opportunités", "desc": "Publiez des quêtes, offres d'emploi ou appels à candidatures pour trouver des talents alignés." },
+        "s4": { "n": "04", "title": "Rencontrez les bâtisseurs", "desc": "Découvrez des guildes, utilisateurs et pods alignés avec votre mission." }
+      },
+      "why": {
+        "title": "Pourquoi les organisations rejoignent",
+        "access": { "title": "Accéder aux talents", "desc": "Trouvez des personnes et guildes qualifiées alignées avec votre mission." },
+        "cfp": { "title": "Lancer des appels à propositions", "desc": "Créez des quêtes monétisées ouvertes à tout l'écosystème." },
+        "coop": { "title": "Co-créer avec des guildes", "desc": "Collaborez avec des communautés animées par une mission." },
+        "territory": { "title": "Impact territorial", "desc": "Renforcez votre présence dans des territoires spécifiques." },
+        "discover": { "title": "Découvrir les innovations", "desc": "Explorez les pratiques régénératives et nouvelles approches." }
+      },
+      "cta": {
+        "title": "Prêt·e à rejoindre l'écosystème ?",
+        "sub": "Connectez votre organisation à un réseau vivant d'acteurs du changement.",
+        "btn1": "Rejoindre en tant qu'Organisation",
+        "btn2": "Explorer la plateforme"
+      }
     }
   },
   "notifications": {
