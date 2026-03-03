@@ -108,8 +108,7 @@ Return 2-4 actions maximum. The "recommended" object should contain 0-3 items pe
 - HYBRID: blend both perspectives`;
 
 async function fetchPlatformContent(supabaseAdmin: any, userId: string) {
-  // Fetch recent/relevant content in parallel for context
-  const [questsRes, guildsRes, eventsRes, servicesRes, coursesRes, usersRes, userGuildsRes, userQuestsRes] = await Promise.all([
+  const [questsRes, guildsRes, eventsRes, servicesRes, coursesRes, usersRes, userGuildsRes, userQuestsRes, userTopicsRes, userTerrsRes] = await Promise.all([
     supabaseAdmin.from("quests").select("id, title, status").eq("is_deleted", false).order("created_at", { ascending: false }).limit(30),
     supabaseAdmin.from("guilds").select("id, name, type").eq("is_deleted", false).eq("is_draft", false).order("created_at", { ascending: false }).limit(30),
     supabaseAdmin.from("guild_events").select("id, title, guild_id, start_at, status").eq("is_cancelled", false).order("start_at", { ascending: false }).limit(20),
@@ -117,18 +116,36 @@ async function fetchPlatformContent(supabaseAdmin: any, userId: string) {
     supabaseAdmin.from("courses").select("id, title, level").eq("is_deleted", false).eq("is_published", true).order("created_at", { ascending: false }).limit(20),
     supabaseAdmin.from("profiles").select("id, display_name, role").limit(30),
     supabaseAdmin.from("guild_members").select("guild_id, guilds(id, name)").eq("user_id", userId).limit(20),
-    supabaseAdmin.from("quest_members").select("quest_id, quests(id, title)").eq("user_id", userId).limit(20),
+    supabaseAdmin.from("quest_participants").select("quest_id, quests(id, title)").eq("user_id", userId).limit(20),
+    supabaseAdmin.from("user_topics").select("topic_id").eq("user_id", userId),
+    supabaseAdmin.from("user_territories").select("territory_id").eq("user_id", userId),
   ]);
+
+  const userTopicIds = (userTopicsRes.data || []).map((r: any) => r.topic_id);
+  const userTerritoryIds = (userTerrsRes.data || []).map((r: any) => r.territory_id);
+  const userQuestIds = (userQuestsRes.data || []).map((m: any) => m.quest_id);
+  const userGuildIds = (userGuildsRes.data || []).map((m: any) => m.guild_id);
 
   const lines: string[] = [];
 
   if (questsRes.data?.length) {
+    // Score and filter quests — exclude ones user already belongs to
+    const scored = questsRes.data
+      .map((q: any) => {
+        if (userQuestIds.includes(q.id)) return null;
+        return q;
+      })
+      .filter(Boolean)
+      .slice(0, 10);
     lines.push("## Available Quests");
-    for (const q of questsRes.data) lines.push(`- "${q.title}" (id: ${q.id}, status: ${q.status})`);
+    for (const q of scored) lines.push(`- "${q.title}" (id: ${q.id}, status: ${q.status})`);
   }
   if (guildsRes.data?.length) {
+    const scored = guildsRes.data
+      .filter((g: any) => !userGuildIds.includes(g.id))
+      .slice(0, 10);
     lines.push("## Available Guilds");
-    for (const g of guildsRes.data) lines.push(`- "${g.name}" (id: ${g.id}, type: ${g.type})`);
+    for (const g of scored) lines.push(`- "${g.name}" (id: ${g.id}, type: ${g.type})`);
   }
   if (eventsRes.data?.length) {
     lines.push("## Upcoming Events");
@@ -161,7 +178,16 @@ async function fetchPlatformContent(supabaseAdmin: any, userId: string) {
     }
   }
 
-  return lines.length > 0 ? "\n\nPLATFORM CONTENT:\n" + lines.join("\n") : "";
+  // Build userEntities for frontend
+  const userEntities = {
+    quests: (userQuestsRes.data || []).map((m: any) => ({ id: (m.quests as any)?.id, title: (m.quests as any)?.title })).filter((q: any) => q.id),
+    guilds: (userGuildsRes.data || []).map((m: any) => ({ id: (m.guilds as any)?.id, name: (m.guilds as any)?.name })).filter((g: any) => g.id),
+  };
+
+  return {
+    platformContent: lines.length > 0 ? "\n\nPLATFORM CONTENT:\n" + lines.join("\n") : "",
+    userEntities,
+  };
 }
 
 serve(async (req) => {
