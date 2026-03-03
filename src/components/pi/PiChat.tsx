@@ -11,6 +11,8 @@ import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { usePiConversationMutations } from "@/hooks/usePiConversations";
+import { PiActionPaths } from "@/components/assistant/PiActionPaths";
+import { useUserEntities } from "@/hooks/useUserEntities";
 
 type ProposedAction = { name: string; args: any };
 type FollowUpSuggestion = { label: string; prompt: string };
@@ -64,6 +66,8 @@ interface PiChatProps {
 export function PiChat({ className }: PiChatProps) {
   const { session } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const userEntities = useUserEntities(session?.user?.id);
   const navigate = useNavigate();
   const {
     activeConversationId,
