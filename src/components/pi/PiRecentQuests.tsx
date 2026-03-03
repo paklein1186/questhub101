@@ -19,8 +19,8 @@ export function PiRecentQuests() {
         .from("quest_participants")
         .select("quest_id, quests(id, title, status, updated_at)")
         .eq("user_id", userId!)
-        .eq("status", "ACTIVE")
-        .order("updated_at", { ascending: false })
+        .in("status", ["ACTIVE", "ACCEPTED"])
+        .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
       return (data || []).map((d: any) => d.quests).filter(Boolean);
