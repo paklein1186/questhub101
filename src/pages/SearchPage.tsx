@@ -164,12 +164,12 @@ export default function SearchPage() {
                             {item.type === "USER" ? (
                               <div className="w-16 h-16 shrink-0 flex items-center justify-center ml-2">
                                 <Avatar className="h-12 w-12">
-                                  <AvatarImage src={(item as any).imageUrl ?? undefined} alt={item.title} />
+                                  <AvatarImage src={item.imageUrl ?? undefined} alt={item.title} />
                                   <AvatarFallback className="text-sm font-medium">{item.title?.charAt(0) ?? "?"}</AvatarFallback>
                                 </Avatar>
                               </div>
                             ) : (
-                              <UnitCoverImage type={item.type as UnitType} imageUrl={(item as any).imageUrl} logoUrl={(item as any).logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
+                              <UnitCoverImage type={item.type as UnitType} imageUrl={item.imageUrl} logoUrl={item.logoUrl} name={item.title} height="h-20" className="w-20 shrink-0" />
                             )}
                              <div className="p-4 min-w-0 flex flex-col justify-center flex-1">
                               <div className="flex items-center gap-2 mb-0.5">
