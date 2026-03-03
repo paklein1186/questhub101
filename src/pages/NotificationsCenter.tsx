@@ -363,6 +363,7 @@ export default function NotificationsCenter() {
           </Button>
         </div>
       )}
+      </div>
     </PageShell>
   );
 }
