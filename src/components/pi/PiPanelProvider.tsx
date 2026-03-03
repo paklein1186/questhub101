@@ -17,6 +17,7 @@ export function PiPanelProvider({ children }: { children: ReactNode }) {
     selectedModel: getStoredModel(),
     contextType: "global",
     contextId: null,
+    prefillPrompt: null,
   });
 
   // Persist width

@@ -8,6 +8,7 @@ export interface PiPanelState {
   selectedModel: string;
   contextType: "global" | "onboarding" | "guild" | "quest" | "territory";
   contextId: string | null;
+  prefillPrompt: string | null;
 }
 
 interface PiPanelContextType extends PiPanelState {
@@ -19,6 +20,7 @@ interface PiPanelContextType extends PiPanelState {
   setChatActive: (v: boolean) => void;
   setSelectedModel: (m: string) => void;
   setContext: (contextType: PiPanelState["contextType"], contextId?: string | null) => void;
+  setPrefillPrompt: (prompt: string | null) => void;
 }
 
 const PiPanelContext = createContext<PiPanelContextType | null>(null);
