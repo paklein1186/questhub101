@@ -908,7 +908,7 @@ serve(async (req) => {
 
       // First pass: create/update
       for (const action of pendingActions) {
-        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity" && action.name !== "create_discussion_room") continue;
+        if (action.name !== "create_entity" && action.name !== "prefill_form" && action.name !== "update_entity" && action.name !== "create_discussion_room" && action.name !== "add_subtask") continue;
         const result: any = { name: action.name, args: action.args, success: false };
         try {
           if (action.name === "create_entity" || action.name === "prefill_form") {
