@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronRight, Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
+import { PiActionPaths } from "./PiActionPaths";
 
 // ---------- Types ----------
 type EntityRef = { type: string; id: string };
@@ -50,6 +52,9 @@ export type ConversationGuideProps = {
   inline?: boolean;
   /** When true, uses larger input/response areas (mobile overlay) */
   expanded?: boolean;
+  prefillPrompt?: string | null;
+  onPrefillConsumed?: () => void;
+  onClose?: () => void;
 };
 
 // ---------- Helpers ----------
