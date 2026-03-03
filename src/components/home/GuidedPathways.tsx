@@ -306,29 +306,25 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
 
   return (
     <>
-      {/* 6-pathway grid */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {displayedPathways.map((pw, i) => {
-          const Icon = pw.icon;
-          return (
-            <motion.button
-              key={pw.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => { setOpenPathway(pw.id); setPromptStep(null); setAiResult(null); }}
-              className="flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all text-left group"
-            >
-              <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">{i18nTitles[pw.id] || p(pw.title, persona)}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{i18nSubtitles[pw.id] || p(pw.subtitle, persona)}</p>
-              </div>
-            </motion.button>
-          );
-        })}
+      {/* 8 voies as horizontal chips */}
+      <div className="w-full flex flex-wrap justify-center gap-2">
+        {ACTION_PATHS.map((path, i) => (
+          <motion.button
+            key={path.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            onClick={() => { setOpenPathway(path.id); setPromptStep(null); setAiResult(null); }}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 rounded-full border transition-all cursor-pointer",
+              "hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm",
+              "border-border bg-card text-foreground"
+            )}
+          >
+            <span className="text-base leading-none">{path.icon}</span>
+            <span className="text-sm font-medium">{path.label}</span>
+          </motion.button>
+        ))}
       </div>
 
       {/* Unified modal */}
