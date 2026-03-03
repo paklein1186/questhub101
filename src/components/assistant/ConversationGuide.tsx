@@ -433,6 +433,7 @@ export default function ConversationGuide({
   const { session } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { data: userEntities } = useUserEntities();
 
   const [open, setOpen] = useState(inline);
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
@@ -647,6 +648,7 @@ export default function ConversationGuide({
     contextType,
     navigate,
     onClose,
+    userEntities,
   };
 
   // ─── Inline mode ───
