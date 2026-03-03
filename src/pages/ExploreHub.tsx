@@ -228,16 +228,20 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
 }
 
 function QuestsSubTabs() {
-  const [sub, setSub] = useState<"quests" | "ideas">("quests");
+  const [sub, setSub] = useState<"quests" | "ideas" | "missions">("quests");
   return (
     <div>
       <div className="flex gap-2 mb-4">
         <Button variant={sub === "quests" ? "default" : "outline"} size="sm" onClick={() => setSub("quests")}>Quests</Button>
+        <Button variant={sub === "missions" ? "default" : "outline"} size="sm" onClick={() => setSub("missions")}>
+          <Target className="h-3.5 w-3.5 mr-1" /> Missions
+        </Button>
         <Button variant={sub === "ideas" ? "default" : "outline"} size="sm" onClick={() => setSub("ideas")}>
           <Lightbulb className="h-3.5 w-3.5 mr-1" /> Ideas
         </Button>
       </div>
       {sub === "quests" && <QuestsMarketplace bare />}
+      {sub === "missions" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
       {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
     </div>
   );
