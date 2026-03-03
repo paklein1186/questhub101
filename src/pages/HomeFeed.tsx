@@ -4,7 +4,7 @@ import { BauhausShape } from "@/components/home/BauhausShape";
 import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search, Pause, Play } from "lucide-react";
+import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search } from "lucide-react";
 import { MilestonePopup } from "@/components/MilestonePopup";
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
