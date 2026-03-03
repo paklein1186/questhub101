@@ -516,8 +516,10 @@ export default function HomeFeed() {
 
             {/* ─── Guided Pathways ─── */}
             <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} onActionSelected={(prompt) => {
-              openPiPanel();
-              if (prompt) setPrefillPrompt(prompt);
+              if (prompt) {
+                openPiPanel();
+                setPrefillPrompt(prompt);
+              }
             }} />
           </>
         )}
