@@ -122,6 +122,7 @@ export default function ImpactLanding() {
   const { data: guilds = [], isLoading: loadingGuilds } = useFeaturedGuilds();
   const { data: userHouses = [] } = useUserHouses(user?.id);
   const { data: territories = [] } = useFeaturedTerritories();
+  const { data: services = [], isLoading: loadingServices } = useFeaturedServices();
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
 
@@ -435,10 +436,30 @@ export default function ImpactLanding() {
                 <Briefcase className="h-5 w-5 text-primary" /> {t("landing.impact.services.title")}
               </h2>
               <p className="text-sm text-muted-foreground mb-5">{t("landing.impact.services.sub")}</p>
-              <LandingServicesSection
-                titleKey="landing.impact.services.title"
-                subtitleKey="landing.impact.services.sub"
-              />
+              <div className="space-y-3">
+                {loadingServices ? (
+                  Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
+                ) : services.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("landing.services.empty")}</p>
+                ) : (
+                  services.map((s: any, i: number) => (
+                    <motion.div key={s.id} custom={i} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
+                      <Link to={`/services/${s.id}`} className="block rounded-xl border border-border bg-card p-4 hover:shadow-sm hover:border-primary/30 transition-all">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-display font-semibold text-sm">{s.title}</h3>
+                          {s.price_amount != null && (
+                            <Badge className="bg-primary/10 text-primary border-0 text-xs">{s.price_amount} {s.price_currency || "€"}</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{s.description}</p>
+                      </Link>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+              <Button variant="ghost" size="sm" asChild className="mt-4">
+                <Link to="/services">{t("landing.services.seeAll")} <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
+              </Button>
             </div>
           </div>
         </div>
