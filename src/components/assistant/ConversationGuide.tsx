@@ -328,6 +328,27 @@ function ChatBody({
                   </div>
                 )}
 
+                {/* Choices for disambiguation */}
+                {msg.choices && msg.choices.length > 0 && (
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    {msg.choices.map((choice, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          navigate(choice.route);
+                          onClose?.();
+                        }}
+                        className="flex items-start gap-2 w-full text-left px-3 py-2 rounded-lg border border-border bg-muted/40 hover:bg-accent/60 transition-colors text-sm"
+                      >
+                        <span className="flex-1">{choice.label}</span>
+                        {choice.meta && (
+                          <span className="text-[10px] text-muted-foreground shrink-0">{choice.meta}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Undo button */}
                 {msg.meta?.undoable && (
                   <div className="mt-2">
