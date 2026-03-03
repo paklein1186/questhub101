@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -47,16 +47,24 @@ export default function OrganizationsLanding() {
   const navigate = useNavigate();
   const [guestOpen, setGuestOpen] = useState(false);
   const [guestAction, setGuestAction] = useState("");
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (user) return;
     const dismissed = localStorage.getItem("guestAssistantDismissed");
     if (dismissed) return;
-    const timer = setTimeout(() => {
-      setGuestAction("learn about the organization path");
-      setGuestOpen(true);
-    }, 4000);
-    return () => clearTimeout(timer);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setGuestAction("get guidance");
+          setGuestOpen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (triggerRef.current) observer.observe(triggerRef.current);
+    return () => observer.disconnect();
   }, [user]);
 
   const handleGatedClick = (label: string, authRoute: string) => {
@@ -125,7 +133,7 @@ export default function OrganizationsLanding() {
       </section>
 
       {/* Why Join */}
-      <section className="border-t border-border bg-muted/40">
+      <section ref={triggerRef} className="border-t border-border bg-muted/40">
         <div className="container py-16 md:py-24">
           <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-12">Why join the ecosystem?</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
