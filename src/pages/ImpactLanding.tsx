@@ -201,7 +201,7 @@ export default function ImpactLanding() {
                 setGuestAction("get guidance");
                 setGuestOpen(true);
               } else {
-                openPi();
+                openPiPanel();
               }
             }}
           >
