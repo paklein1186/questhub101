@@ -24,6 +24,7 @@ import { useUnitAvailability, generateUnitSlots } from "@/hooks/useUnitAvailabil
 import { supabase } from "@/integrations/supabase/client";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useQueryClient } from "@tanstack/react-query";
+import { GuestContentGate } from "@/components/GuestContentGate";
 
 async function insertBookingNotification(params: {
   recipientUserId: string; bookingId: string; serviceTitle: string; requesterName: string; action: string;
@@ -392,9 +393,11 @@ export default function ServiceDetail() {
         </div>
 
         {svc.description && (
-          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
-            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{svc.description}</p>
-          </div>
+          <GuestContentGate blur>
+            <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl mb-4">
+              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{svc.description}</p>
+            </div>
+          </GuestContentGate>
         )}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {svcTopics.map((t: any) => <Badge key={t.id} variant="secondary"><Hash className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}

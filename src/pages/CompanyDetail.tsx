@@ -45,6 +45,7 @@ import { PartnershipsTab } from "@/components/partnership/PartnershipsTab";
 import { PartnersBlock } from "@/components/partnership/PartnersBlock";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { CompanyJobsTab } from "@/components/company/CompanyJobsTab";
 import { useJobPositionsForCompany } from "@/hooks/useJobPositions";
 import { TrustTab } from "@/components/trust/TrustTab";
@@ -222,7 +223,7 @@ export default function CompanyDetail() {
             </div>
         </div>
 
-        {company.description && <p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p>}
+        {company.description && <GuestContentGate blur><p className="text-muted-foreground max-w-2xl mb-3">{company.description}</p></GuestContentGate>}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {territories.map((t: any) => <Badge key={t.id} variant="outline" className="text-xs"><MapPin className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
           {topics.map((t: any) => <Badge key={t.id} variant="secondary" className="text-xs"><Compass className="h-3 w-3 mr-0.5" />{t.name}</Badge>)}
@@ -262,12 +263,14 @@ export default function CompanyDetail() {
         {/* Overview */}
         <TabsContent value="overview" className="mt-6 space-y-6">
           {company.description && (
-            <div>
-              <h3 className="font-display font-semibold mb-2">About</h3>
-              <div className="rounded-xl border border-border bg-card/50 p-4">
-                <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{company.description}</p>
+            <GuestContentGate blur>
+              <div>
+                <h3 className="font-display font-semibold mb-2">About</h3>
+                <div className="rounded-xl border border-border bg-card/50 p-4">
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{company.description}</p>
+                </div>
               </div>
-            </div>
+            </GuestContentGate>
           )}
 
           {/* Unit details */}

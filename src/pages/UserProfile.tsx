@@ -46,6 +46,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { TrustTab } from "@/components/trust/TrustTab";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { Leaf } from "lucide-react";
@@ -727,7 +728,7 @@ export default function UserProfile() {
             )}
 
             {/* Bio */}
-            {profile.bio && <AboutSection bio={profile.bio} />}
+            {profile.bio && <GuestContentGate blur><AboutSection bio={profile.bio} /></GuestContentGate>}
 
             {/* Activity summary */}
             <ActivitySummary
