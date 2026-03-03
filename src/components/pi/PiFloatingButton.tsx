@@ -31,11 +31,12 @@ export function PiFloatingButton() {
     <button
       onClick={togglePiPanel}
       className={cn(
-        "fixed bottom-16 left-4 z-50 flex flex-col items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110",
+        "fixed bottom-16 z-50 flex flex-col items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-110",
         isOpen
           ? "w-10 h-10 bg-primary text-primary-foreground"
           : "w-10 h-10 bg-primary/90 text-primary-foreground hover:bg-primary"
       )}
+      style={{ left: isOpen ? `${16}px` : '16px' }}
       aria-label={t("pi.openPi")}
       title={t("pi.piTitle")}
     >
