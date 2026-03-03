@@ -432,7 +432,7 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
                       {aiResult.suggestions.map((s: any, i: number) => (
                         <button
                           key={i}
-                          onClick={() => handleSuggestionClick(s.route || "/explore")}
+                          onClick={() => handleSuggestionClick({ route: s.route, prefill_params: s.prefill_params })}
                           className="w-full flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-accent/50 transition-all text-left"
                         >
                           <Sparkles className="h-4 w-4 text-primary shrink-0" />
