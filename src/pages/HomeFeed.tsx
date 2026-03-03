@@ -14,7 +14,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { useIsOrgRep } from "@/hooks/useIsOrgRep";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { usePiPanel } from "@/hooks/usePiPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
-import ConversationGuide from "@/components/assistant/ConversationGuide";
+
 
 /* ───────── Persona-specific config ───────── */
 
@@ -301,11 +301,7 @@ export default function HomeFeed() {
   // Org reps get a dedicated homepage persona overlay
   const effectivePersona = isOrgRep ? "ORG_REP" : persona;
 
-  const [mode, setMode] = useState<"free" | "guided">(() => {
-    const stored = localStorage.getItem("home-mode");
-    if (stored === "free" || stored === "guided") return stored;
-    return "guided";
-  });
+  const { openPiPanel } = usePiPanel();
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -321,11 +317,8 @@ export default function HomeFeed() {
 
   const userName = (authUser?.name || currentUser.name).split(" ")[0];
 
-  useEffect(() => {
-    localStorage.setItem("home-mode", mode);
-  }, [mode]);
 
-  const submitIntent = useCallback(async (text: string, source = "HOME_FREE") => {
+  const submitIntent = useCallback(async (text: string, source = "HOME_GUIDED") => {
     if (!text.trim()) return;
     setLoading(true);
     setResult(null);
@@ -349,7 +342,7 @@ export default function HomeFeed() {
     try {
       await supabase.from("feature_suggestions").insert({
         user_id: currentUser.id,
-        source: mode === "free" ? "HOME_FREE" : "HOME_GUIDED",
+        source: "HOME_GUIDED",
         persona_at_time: persona,
         original_text: input,
         user_explicit: true
@@ -359,7 +352,7 @@ export default function HomeFeed() {
     } catch {
       toast.error("Could not save idea");
     }
-  }, [input, currentUser.id, persona, mode]);
+  }, [input, currentUser.id, persona]);
 
   const handleSuggestionClick = (route: string, queryParams?: Record<string, string>) => {
     let target = route && route.startsWith("/") && !route.includes("://") ? route : "/explore";
@@ -528,38 +521,20 @@ export default function HomeFeed() {
 
         
 
-        {/* Free / Guided toggle */}
-        <div className="flex items-center gap-3 mb-6 sm:mb-8">
-          <span className={cn("text-sm font-medium transition-colors", mode === "free" ? "text-foreground" : "text-muted-foreground")}>
-            {t("home.free")}
-          </span>
-          <Switch
-            checked={mode === "guided"}
-            onCheckedChange={(checked) => {
-              setMode(checked ? "guided" : "free");
-              resetAll();
-            }} />
-          
-          <span className={cn("text-sm font-medium transition-colors", mode === "guided" ? "text-foreground" : "text-muted-foreground")}>
-            {t("home.guided")}
-          </span>
-        </div>
-
-        {/* ─── Free mode — Pi inline ─── */}
-        {mode === "free" &&
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
+        {/* Talk to Pi button */}
+        <motion.button
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full">
-          
-            <ConversationGuide contextType="global" inline className="min-h-[120px]" />
-          </motion.div>
-        }
+          transition={{ delay: 0.2 }}
+          onClick={() => openPiPanel()}
+          className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+        >
+          <Sparkles className="h-4 w-4" />
+          Talk to Pi
+        </motion.button>
 
-        {/* ─── Guided mode ─── */}
-        {mode === "guided" && !result &&
+        {/* ─── Guided Pathways ─── */}
         <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} />
-        }
 
         {/* ─── Territory Intent Flow ─── */}
         {result && isTerritory &&
