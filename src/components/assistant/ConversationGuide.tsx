@@ -613,6 +613,7 @@ export default function ConversationGuide({
     onNewConversation: startNewConversation,
     contextType,
     navigate,
+    onClose,
   };
 
   // ─── Inline mode ───
