@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { PiActionPaths } from "./PiActionPaths";
+import { useUserEntities } from "@/hooks/useUserEntities";
 
 // ---------- Types ----------
 type EntityRef = { type: string; id: string };
@@ -28,12 +29,19 @@ type ProposedAction = {
   args: any;
 };
 
+type Choice = {
+  label: string;
+  route: string;
+  meta?: string;
+};
+
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
   proposedActions?: ProposedAction[];
   pendingConfirmation?: boolean;
+  choices?: Choice[];
   meta?: {
     createdEntities?: EntityRef[];
     updatedEntities?: EntityRef[];
@@ -156,6 +164,7 @@ function ChatBody({
   contextType,
   navigate,
   onClose,
+  userEntities,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -169,6 +178,7 @@ function ChatBody({
   contextType: string;
   navigate: (to: string) => void;
   onClose?: () => void;
+  userEntities?: any;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pathsExpanded, setPathsExpanded] = useState(true);
@@ -213,6 +223,7 @@ function ChatBody({
                   setPathsExpanded(false);
                 }}
                 onClose={onClose}
+                userEntities={userEntities}
               />
             </motion.div>
           )}
@@ -317,6 +328,27 @@ function ChatBody({
                   </div>
                 )}
 
+                {/* Choices for disambiguation */}
+                {msg.choices && msg.choices.length > 0 && (
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    {msg.choices.map((choice, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          navigate(choice.route);
+                          onClose?.();
+                        }}
+                        className="flex items-start gap-2 w-full text-left px-3 py-2 rounded-lg border border-border bg-muted/40 hover:bg-accent/60 transition-colors text-sm"
+                      >
+                        <span className="flex-1">{choice.label}</span>
+                        {choice.meta && (
+                          <span className="text-[10px] text-muted-foreground shrink-0">{choice.meta}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Undo button */}
                 {msg.meta?.undoable && (
                   <div className="mt-2">
@@ -401,6 +433,7 @@ export default function ConversationGuide({
   const { session } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { data: userEntities } = useUserEntities();
 
   const [open, setOpen] = useState(inline);
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
@@ -491,6 +524,7 @@ export default function ConversationGuide({
         text: data.assistantMessage,
         proposedActions: hasActions ? proposedActions : undefined,
         pendingConfirmation: hasActions,
+        choices: data.choices || undefined,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (e: any) {
@@ -614,6 +648,7 @@ export default function ConversationGuide({
     contextType,
     navigate,
     onClose,
+    userEntities,
   };
 
   // ─── Inline mode ───

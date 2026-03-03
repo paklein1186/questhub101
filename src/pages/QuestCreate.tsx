@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
@@ -159,6 +159,15 @@ export default function QuestCreate() {
   const [rewardXp, setRewardXp] = useState("100");
   const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>();
   const [isDraft, setIsDraft] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  // Prefill from URL params (Pi integration)
+  useEffect(() => {
+    const prefillTitle = searchParams.get("prefill_title");
+    const prefillType = searchParams.get("prefill_type");
+    if (prefillTitle) setTitle(decodeURIComponent(prefillTitle));
+    if (prefillType) setQuestType(prefillType);
+  }, []);
   const [questStatus, setQuestStatus] = useState<string>("OPEN");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedTerritories, setSelectedTerritories] = useState<string[]>([]);
