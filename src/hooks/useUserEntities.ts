@@ -21,7 +21,7 @@ export function useUserEntities() {
           .eq("user_id", userId!)
           .limit(20),
         supabase
-          .from("quest_members")
+          .from("quest_participants")
           .select("quest_id, quests(id, title, status)")
           .eq("user_id", userId!)
           .limit(20),
