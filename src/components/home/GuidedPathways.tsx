@@ -210,7 +210,7 @@ interface Props {
   onActionSelected?: (prompt?: string) => void;
 }
 
-export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
+export function GuidedPathways({ persona, userName, userId, isOrgRep, onActionSelected }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [openPathway, setOpenPathway] = useState<string | null>(null);
