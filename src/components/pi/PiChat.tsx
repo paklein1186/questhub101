@@ -130,6 +130,16 @@ export function PiChat({ className }: PiChatProps) {
     autoResize();
   }, [input, autoResize]);
 
+  // Handle prefill prompt from external sources (e.g. GuidedPathways)
+  useEffect(() => {
+    if (prefillPrompt && session?.user?.id) {
+      const prompt = prefillPrompt;
+      setPrefillPrompt(null);
+      // Small delay to ensure panel is rendered
+      setTimeout(() => send(prompt), 200);
+    }
+  }, [prefillPrompt, session?.user?.id]);
+
   const persistMessages = useCallback(
     async (msgs: ChatMessage[], convId: string | null) => {
       if (!convId || !session?.user?.id) return;
