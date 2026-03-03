@@ -301,7 +301,7 @@ export default function HomeFeed() {
   // Org reps get a dedicated homepage persona overlay
   const effectivePersona = isOrgRep ? "ORG_REP" : persona;
 
-  const { openPiPanel } = usePiPanel();
+  const { openPiPanel, isOpen: isPiOpen, setPrefillPrompt } = usePiPanel();
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -502,39 +502,34 @@ export default function HomeFeed() {
       </button>
       <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
 
-        {/* Greeting */}
-        <p className="text-sm text-muted-foreground mb-1">{t("home.welcome")}, {userName}</p>
-        <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
-          {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
-        </h1>
-        <div className="mb-4 sm:mb-6" />
+        {!isPiOpen && (
+          <>
+            {/* Greeting */}
+            <p className="text-sm text-muted-foreground mb-1">{t("home.welcome")}, {userName}</p>
+            <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
+              {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
+            </h1>
+            <div className="mb-4 sm:mb-6" />
 
-        {/* Search shortcut */}
-        
+            {/* Talk to Pi button */}
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              onClick={() => openPiPanel()}
+              className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+            >
+              <Sparkles className="h-4 w-4" />
+              Talk to Pi
+            </motion.button>
 
-
-
-
-
-
-
-
-        
-
-        {/* Talk to Pi button */}
-        <motion.button
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          onClick={() => openPiPanel()}
-          className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
-        >
-          <Sparkles className="h-4 w-4" />
-          Talk to Pi
-        </motion.button>
-
-        {/* ─── Guided Pathways ─── */}
-        <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} />
+            {/* ─── Guided Pathways ─── */}
+            <GuidedPathways persona={persona} userName={userName} userId={currentUser.id} isOrgRep={isOrgRep} onActionSelected={(prompt) => {
+              openPiPanel();
+              if (prompt) setPrefillPrompt(prompt);
+            }} />
+          </>
+        )}
 
         {/* ─── Territory Intent Flow ─── */}
         {result && isTerritory &&

@@ -75,6 +75,8 @@ export function PiChat({ className }: PiChatProps) {
     contextType,
     contextId,
     isChatActive,
+    prefillPrompt,
+    setPrefillPrompt,
   } = usePiPanel();
   const { createConversation, updateConversation } = usePiConversationMutations();
 
@@ -127,6 +129,16 @@ export function PiChat({ className }: PiChatProps) {
   useEffect(() => {
     autoResize();
   }, [input, autoResize]);
+
+  // Handle prefill prompt from external sources (e.g. GuidedPathways)
+  useEffect(() => {
+    if (prefillPrompt && session?.user?.id) {
+      const prompt = prefillPrompt;
+      setPrefillPrompt(null);
+      // Small delay to ensure panel is rendered
+      setTimeout(() => send(prompt), 200);
+    }
+  }, [prefillPrompt, session?.user?.id]);
 
   const persistMessages = useCallback(
     async (msgs: ChatMessage[], convId: string | null) => {

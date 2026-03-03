@@ -207,9 +207,10 @@ interface Props {
   userName: string;
   userId?: string;
   isOrgRep?: boolean;
+  onActionSelected?: (prompt?: string) => void;
 }
 
-export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
+export function GuidedPathways({ persona, userName, userId, isOrgRep, onActionSelected }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [openPathway, setOpenPathway] = useState<string | null>(null);
@@ -362,19 +363,16 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
                           onClick={() => {
                             if (action.type === "navigate" && action.route) {
                               setOpenPathway(null);
+                              if (onActionSelected) {
+                                onActionSelected();
+                              }
                               navigate(action.route);
                             } else if (action.type === "prompt" && action.prompt) {
-                              setPromptStep({
-                                id: `${openPathway}-${idx}`,
-                                label: { DEFAULT: action.label },
-                                icon: Sparkles,
-                                behavior: "ai-prompt",
-                                promptText: { DEFAULT: action.prompt },
-                                aiCode: `VOIE_${pathIdx + 1}_${idx + 1}`,
-                              });
-                              setInput("");
-                              setAiResult(null);
-                              setTimeout(() => inputRef.current?.focus(), 150);
+                              // Close dialog and send prompt to Pi
+                              setOpenPathway(null);
+                              if (onActionSelected) {
+                                onActionSelected(action.prompt);
+                              }
                             }
                           }}
                           className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left group/item"
