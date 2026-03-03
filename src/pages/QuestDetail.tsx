@@ -50,6 +50,7 @@ import { useResolvedQuestHosts } from "@/hooks/useQuestHosts";
 import { QuestHostsDisplay, QuestCoHostsManager } from "@/components/quest/QuestCoHosts";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { UserSearchInput } from "@/components/UserSearchInput";
 import { sendInviteNotification } from "@/lib/inviteNotification";
 import { InviteLinkButton } from "@/components/InviteLinkButton";
@@ -700,9 +701,11 @@ export default function QuestDetail() {
           {(quest as any).is_boosted && <Badge className="bg-orange-500/10 text-orange-600 border-0">🔥 Boosted</Badge>}
         </div>
         {quest.description && (
-          <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
-            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{quest.description}</p>
-          </div>
+          <GuestContentGate blur>
+            <div className="rounded-xl border border-border bg-card/50 p-4 max-w-2xl">
+              <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{quest.description}</p>
+            </div>
+          </GuestContentGate>
         )}
         {(quest as any).website_url && (
           <a
@@ -967,7 +970,7 @@ export default function QuestDetail() {
         </Dialog>
       </motion.div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this quest"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         <div className="flex items-center gap-1">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
