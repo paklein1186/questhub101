@@ -22,7 +22,7 @@ export function PageShell({ children, bare }: PageShellProps) {
   return (
     <div
       className="min-h-screen flex flex-col transition-[margin] duration-300 ease-out"
-      style={{ marginRight: panelOffset ? `${piWidth}px` : undefined }}
+      style={{ marginLeft: panelOffset ? `${piWidth}px` : undefined }}
     >
       <AppNav />
       <main className={`flex-1 container py-4 sm:py-8 px-3 sm:px-4 ${hasBottomBar ? "pb-20" : ""}`}>{children}</main>

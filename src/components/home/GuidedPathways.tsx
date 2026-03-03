@@ -12,11 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { buildRoute } from "@/lib/routeHelpers";
 import type { PersonaType } from "@/lib/personaLabels";
+import { ACTION_PATHS } from "@/components/assistant/PiActionPaths";
 
 /* ────────── Types ────────── */
 
@@ -304,69 +306,90 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep }: Props) {
 
   return (
     <>
-      {/* 6-pathway grid */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {displayedPathways.map((pw, i) => {
-          const Icon = pw.icon;
-          return (
-            <motion.button
-              key={pw.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => { setOpenPathway(pw.id); setPromptStep(null); setAiResult(null); }}
-              className="flex items-center gap-4 p-5 rounded-2xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all text-left group"
-            >
-              <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                <Icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">{i18nTitles[pw.id] || p(pw.title, persona)}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{i18nSubtitles[pw.id] || p(pw.subtitle, persona)}</p>
-              </div>
-            </motion.button>
-          );
-        })}
+      {/* 8 voies as horizontal chips */}
+      <div className="w-full flex flex-wrap justify-center gap-2">
+        {ACTION_PATHS.map((path, i) => (
+          <motion.button
+            key={path.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            onClick={() => { setOpenPathway(path.id); setPromptStep(null); setAiResult(null); }}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 rounded-full border transition-all cursor-pointer",
+              "hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm",
+              "border-border bg-card text-foreground"
+            )}
+          >
+            <span className="text-base leading-none">{path.icon}</span>
+            <span className="text-sm font-medium">{path.label}</span>
+          </motion.button>
+        ))}
       </div>
 
-      {/* Unified modal */}
+      {/* Unified modal for voie actions */}
       <Dialog open={!!openPathway} onOpenChange={(open) => { if (!open) closeModal(); }}>
         <DialogContent className="sm:max-w-[520px] max-h-[85vh] overflow-y-auto p-0">
           <DialogHeader className="px-6 pt-6 pb-2">
-            <DialogTitle className="text-lg font-display">
-              {activePathway ? p(activePathway.title, persona) : ""}
+            <DialogTitle className="text-lg font-display flex items-center gap-2">
+              {(() => {
+                const ap = ACTION_PATHS.find(p => p.id === openPathway);
+                return ap ? <><span>{ap.icon}</span> {ap.label}</> : "";
+              })()}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              {activePathway ? p(activePathway.subtitle, persona) : ""}
+              Choose an action below
             </DialogDescription>
           </DialogHeader>
 
           <div className="px-6 pb-6 space-y-2">
             <AnimatePresence mode="wait">
-              {/* Sub-action list */}
-              {!promptStep && activePathway && (
+              {/* Action list from ACTION_PATHS */}
+              {!promptStep && openPathway && (
                 <motion.div
                   key="actions"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="space-y-1.5"
+                  className="space-y-1"
                 >
-                  {activePathway.subActions.map((sub) => {
-                    const SubIcon = sub.icon;
-                    return (
-                      <button
-                        key={sub.id}
-                        onClick={() => handleSubAction(sub)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left group/item"
-                      >
-                        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0 group-hover/item:bg-primary/10 transition-colors">
-                          <SubIcon className="h-4 w-4 text-muted-foreground group-hover/item:text-primary transition-colors" />
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{p(sub.label, persona)}</span>
-                      </button>
-                    );
-                  })}
+                  <ScrollArea className="max-h-[50vh]">
+                    {ACTION_PATHS.find(p => p.id === openPathway)?.actions.map((action, idx) => {
+                      const pathIdx = ACTION_PATHS.findIndex(p => p.id === openPathway);
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            if (action.type === "navigate" && action.route) {
+                              setOpenPathway(null);
+                              navigate(action.route);
+                            } else if (action.type === "prompt" && action.prompt) {
+                              setPromptStep({
+                                id: `${openPathway}-${idx}`,
+                                label: { DEFAULT: action.label },
+                                icon: Sparkles,
+                                behavior: "ai-prompt",
+                                promptText: { DEFAULT: action.prompt },
+                                aiCode: `VOIE_${pathIdx + 1}_${idx + 1}`,
+                              });
+                              setInput("");
+                              setAiResult(null);
+                              setTimeout(() => inputRef.current?.focus(), 150);
+                            }
+                          }}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/50 transition-colors text-left group/item"
+                        >
+                          <span className="text-xs text-muted-foreground font-mono w-6 shrink-0">
+                            {pathIdx + 1}.{idx + 1}
+                          </span>
+                          <span className="text-sm font-medium text-foreground flex-1">{action.label}</span>
+                          {action.type === "prompt" && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">Pi</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </ScrollArea>
                 </motion.div>
               )}
 

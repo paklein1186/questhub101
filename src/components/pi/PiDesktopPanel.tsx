@@ -12,7 +12,7 @@ import { PiChat } from "./PiChat";
 import { cn } from "@/lib/utils";
 
 /**
- * Desktop-only right-side Pi panel that pushes app content left when open.
+ * Desktop-only LEFT-side Pi panel that pushes app content right when open.
  * Mobile uses PiPanel (left overlay) instead.
  */
 export function PiDesktopPanel() {
@@ -47,7 +47,7 @@ export function PiDesktopPanel() {
     }
   }, [isOpen]);
 
-  // Resize logic — drag left edge to widen
+  // Resize logic — drag right edge to widen
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -60,8 +60,8 @@ export function PiDesktopPanel() {
 
       const onMouseMove = (ev: MouseEvent) => {
         if (!isResizing.current) return;
-        // Dragging left = larger panel
-        const delta = startX - ev.clientX;
+        // Dragging right = larger panel
+        const delta = ev.clientX - startX;
         setWidth(startWidth + delta);
       };
 
@@ -86,21 +86,21 @@ export function PiDesktopPanel() {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ x: "100%" }}
+          initial={{ x: "-100%" }}
           animate={{ x: 0 }}
-          exit={{ x: "100%" }}
+          exit={{ x: "-100%" }}
           transition={{ type: "spring", stiffness: 400, damping: 35 }}
-          className="fixed z-[56] top-0 bottom-0 right-0 flex flex-col bg-card border-l border-border shadow-[-4px_0_12px_rgba(0,0,0,0.06)]"
+          className="fixed z-[56] top-0 bottom-0 left-0 flex flex-col bg-card border-r border-border shadow-[4px_0_12px_rgba(0,0,0,0.06)]"
           style={{ width: `${width}px` }}
           role="complementary"
           aria-label={t("pi.panelLabel")}
         >
-          {/* Resize handle on left edge */}
+          {/* Resize handle on right edge */}
           <div
-            className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 transition-colors group z-10"
+            className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 transition-colors group z-10"
             onMouseDown={handleResizeStart}
           >
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-12 w-1 rounded-full bg-border group-hover:bg-primary/50 mx-auto" />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-1 rounded-full bg-border group-hover:bg-primary/50 mx-auto" />
           </div>
 
           {/* Header */}
