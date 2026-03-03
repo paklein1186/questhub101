@@ -389,6 +389,21 @@ export function PiChat({ className }: PiChatProps) {
                   </div>
                 ) : null}
 
+                {/* Follow-up suggestion chips */}
+                {msg.followUpSuggestions?.length && !msg.pendingConfirmation ? (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {msg.followUpSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSuggestionClick(s.prompt)}
+                        className="text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 transition-colors cursor-pointer"
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 {/* Entity chips */}
                 {msg.meta?.createdEntities?.length ? (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -445,7 +460,7 @@ export function PiChat({ className }: PiChatProps) {
             className="flex-1 resize-none border-0 bg-transparent text-sm focus-visible:ring-0 min-h-[20px] max-h-[120px] p-0"
             rows={1}
           />
-          <Button size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
+          <Button data-pi-send size="icon" variant="ghost" onClick={send} disabled={!input.trim() || isLoading} className="h-8 w-8 shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>
