@@ -16,7 +16,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { useUserRoles } from "@/lib/admin";
 import { useFeatureFlags, isFeatureEnabled } from "@/hooks/useFeatureFlags";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePiSidePanel } from "@/components/assistant/PiSidePanelContext";
+import { usePiPanel } from "@/hooks/usePiPanel";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,7 +81,7 @@ export function AppNav() {
   const { data: flags = [] } = useFeatureFlags();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { togglePanel } = usePiSidePanel();
+  const { togglePiPanel: togglePanel, isOpen: isPiOpen } = usePiPanel();
 
   const { data: creditsBalance } = useQuery({
     queryKey: ["nav-credits-balance", session?.user?.id],
@@ -171,13 +171,18 @@ export function AppNav() {
                     );
                   })}
 
-                  {/* Pi toggle */}
                   <button
                     onClick={togglePanel}
-                    className="flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors ml-1"
-                    title="Talk to Pi"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ml-1",
+                      isPiOpen
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                    )}
+                    aria-label="Ouvrir Pi, votre guide IA"
                   >
                     <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">Pi</span>
                   </button>
 
                   {/* Unified profile menu */}

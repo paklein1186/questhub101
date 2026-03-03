@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { usePiSidePanel } from "./PiSidePanelContext";
+import { usePiPanel } from "@/hooks/usePiPanel";
 
 /**
  * Invisible component that sets Pi's context when an entity page mounts.
@@ -12,7 +12,7 @@ export function PiContextSetter({
   contextType: "guild" | "quest" | "territory";
   contextId?: string | null;
 }) {
-  const { setContext } = usePiSidePanel();
+  const { setContext } = usePiPanel();
 
   useEffect(() => {
     setContext(contextType, contextId);
