@@ -6,10 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronRight, Send, Loader2, Sparkles, RotateCcw, Check, X, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
+import { PiActionPaths } from "./PiActionPaths";
 
 // ---------- Types ----------
 type EntityRef = { type: string; id: string };
@@ -50,6 +52,9 @@ export type ConversationGuideProps = {
   inline?: boolean;
   /** When true, uses larger input/response areas (mobile overlay) */
   expanded?: boolean;
+  prefillPrompt?: string | null;
+  onPrefillConsumed?: () => void;
+  onClose?: () => void;
 };
 
 // ---------- Helpers ----------
@@ -150,6 +155,7 @@ function ChatBody({
   onNewConversation,
   contextType,
   navigate,
+  onClose,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -162,18 +168,57 @@ function ChatBody({
   onNewConversation: () => void;
   contextType: string;
   navigate: (to: string) => void;
+  onClose?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [pathsExpanded, setPathsExpanded] = useState(true);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
+
+  // Collapse paths when first message appears
+  useEffect(() => {
+    if (messages.length > 0) {
+      setPathsExpanded(false);
+    }
+  }, [messages.length]);
 
   const hasMessages = messages.length > 0;
   const hasPending = messages.some((m) => m.pendingConfirmation);
 
   return (
     <>
+      {/* Quick Actions */}
+      <div className="border-b border-border">
+        <button
+          onClick={() => setPathsExpanded((v) => !v)}
+          className="flex items-center justify-between w-full px-3 py-2 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+        >
+          <span className="font-medium">Quick actions</span>
+          {pathsExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        </button>
+        <AnimatePresence>
+          {pathsExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <PiActionPaths
+                onPromptSelect={(prompt) => {
+                  setInput(prompt);
+                  setPathsExpanded(false);
+                }}
+                onClose={onClose}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Messages */}
       <ScrollArea
         className={`flex-1 px-3 py-2 ${hasMessages ? "min-h-[200px]" : "max-h-20"}`}
@@ -349,6 +394,9 @@ export default function ConversationGuide({
   className,
   inline = false,
   expanded = false,
+  prefillPrompt,
+  onPrefillConsumed,
+  onClose,
 }: ConversationGuideProps) {
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -368,6 +416,14 @@ export default function ConversationGuide({
   useEffect(() => {
     storeMessages(contextType, contextId, messages);
   }, [messages, contextType, contextId]);
+
+  // Handle prefill prompt
+  useEffect(() => {
+    if (prefillPrompt) {
+      setInput(prefillPrompt);
+      onPrefillConsumed?.();
+    }
+  }, [prefillPrompt]);
 
   if (!session) return null;
 
@@ -557,6 +613,7 @@ export default function ConversationGuide({
     onNewConversation: startNewConversation,
     contextType,
     navigate,
+    onClose,
   };
 
   // ─── Inline mode ───
