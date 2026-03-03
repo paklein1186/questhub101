@@ -191,6 +191,7 @@ const App = () => (
             <GuestBauhausShape />
             <ChatBubbleOverlay />
             <PiPanel />
+            <PiDesktopPanel />
             <PiFloatingButton />
             <BugReportBubble />
               <Routes>
