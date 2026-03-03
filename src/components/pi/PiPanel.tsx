@@ -65,7 +65,7 @@ export function PiPanel() {
 
       const onMouseMove = (ev: MouseEvent) => {
         if (!isResizing.current) return;
-        const delta = startX - ev.clientX;
+        const delta = ev.clientX - startX;
         setWidth(startWidth + delta);
       };
 
@@ -108,26 +108,26 @@ export function PiPanel() {
           {/* Panel */}
           <motion.div
             ref={panelRef}
-            initial={{ x: "100%" }}
+            initial={{ x: "-100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 400, damping: 35 }}
             className={cn(
-              "fixed z-[56] top-0 bottom-0 right-0 flex flex-col bg-card border-l border-border",
+              "fixed z-[56] top-0 bottom-0 left-0 flex flex-col bg-card border-r border-border",
               isFullscreen ? "w-screen" : "",
-              !isFullscreen && "shadow-[-4px_0_12px_rgba(0,0,0,0.06)]"
+              !isFullscreen && "shadow-[4px_0_12px_rgba(0,0,0,0.06)]"
             )}
             style={{ width: isFullscreen ? undefined : panelWidth }}
             role="complementary"
             aria-label="Panneau Pi"
           >
-            {/* Resize handle (desktop only) */}
+            {/* Resize handle on right edge (desktop only) */}
             {!isFullscreen && (
               <div
-                className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 transition-colors group z-10"
+                className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-primary/30 transition-colors group z-10"
                 onMouseDown={handleResizeStart}
               >
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-12 w-1 rounded-full bg-border group-hover:bg-primary/50 mx-auto" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-1 rounded-full bg-border group-hover:bg-primary/50 mx-auto" />
               </div>
             )}
 
