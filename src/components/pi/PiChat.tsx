@@ -517,6 +517,7 @@ export function PiChat({ className }: PiChatProps) {
         <PiActionPaths
           onPromptSelect={(prompt) => {
             setInput(prompt);
+            if (!isChatActive) setChatActive(true);
           }}
           userEntities={userEntities}
         />

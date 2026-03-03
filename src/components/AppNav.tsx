@@ -173,19 +173,6 @@ export function AppNav() {
 
 
 
-                  {/* Pi toggle */}
-                  <button
-                    onClick={togglePanel}
-                    title="Open Pi assistant"
-                    className={cn(
-                      "ml-1 h-8 w-8 rounded-full flex items-center justify-center transition-colors",
-                      isPiOpen
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                  </button>
 
                   {/* Unified profile menu */}
                   <DropdownMenu>
@@ -459,14 +446,8 @@ export function AppNav() {
                 </Link>
               );
             })}
-            {/* Pi tab */}
-            <button
-              onClick={togglePanel}
-              className="flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium text-muted-foreground transition-colors"
-            >
-              <Sparkles className="h-5 w-5" />
-              <span className="leading-none">Pi</span>
-            </button>
+
+
             {/* Me tab */}
             <Link
               to="/me"

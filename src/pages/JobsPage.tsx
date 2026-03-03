@@ -6,6 +6,7 @@ import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { AddJobDialog } from "@/components/AddJobDialog";
 import { useToast } from "@/hooks/use-toast";
 import JobsExplore from "./JobsExplore";
+import { PageShell } from "@/components/PageShell";
 
 export default function JobsPage() {
   const currentUser = useCurrentUser();
@@ -30,8 +31,8 @@ export default function JobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <PageShell>
+      <div className="space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <Briefcase className="h-7 w-7 text-primary" />
@@ -59,6 +60,6 @@ export default function JobsPage() {
         actionLabel="post a job"
       />
       {!isGuest && <AddJobDialog open={jobDialogOpen} onOpenChange={setJobDialogOpen} />}
-    </div>
+    </PageShell>
   );
 }
