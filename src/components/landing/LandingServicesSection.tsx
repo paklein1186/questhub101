@@ -21,7 +21,7 @@ export function LandingServicesSection({ titleKey, subtitleKey, accentColor = "t
     queryFn: async () => {
       const { data } = await supabase
         .from("services")
-        .select("id, title, description, price_amount, price_currency, provider:profiles(display_name)")
+        .select("id, title, description, price_amount, price_currency")
         .eq("is_deleted", false)
         .eq("is_published", true)
         .order("created_at", { ascending: false })
