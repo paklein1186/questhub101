@@ -17,6 +17,7 @@ export function PiPanelProvider({ children }: { children: ReactNode }) {
     selectedModel: getStoredModel(),
     contextType: "global",
     contextId: null,
+    prefillPrompt: null,
   });
 
   // Persist width
@@ -66,6 +67,10 @@ export function PiPanelProvider({ children }: { children: ReactNode }) {
     setState((p) => ({ ...p, contextType, contextId: contextId ?? null }));
   }, []);
 
+  const setPrefillPrompt = useCallback((prompt: string | null) => {
+    setState((p) => ({ ...p, prefillPrompt: prompt }));
+  }, []);
+
   return (
     <PiPanelContext.Provider
       value={{
@@ -78,6 +83,7 @@ export function PiPanelProvider({ children }: { children: ReactNode }) {
         setChatActive,
         setSelectedModel,
         setContext,
+        setPrefillPrompt,
       }}
     >
       {children}

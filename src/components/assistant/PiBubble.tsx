@@ -16,6 +16,9 @@ export function PiBubble({
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  // On desktop, Pi is handled by PiDesktopPanel — bubble is mobile-only
+  if (!isMobile) return null;
+
   return (
     <>
       {/* Floating bubble trigger — on mobile sits above bottom nav (~70px), centered */}

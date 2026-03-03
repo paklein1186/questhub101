@@ -85,7 +85,8 @@ export function PiPanel() {
     [width, setWidth]
   );
 
-  if (!session || !isOpen) return null;
+  // On desktop, PiDesktopPanel handles it — this panel is for mobile/tablet only
+  if (!session || !isOpen || !isMobile) return null;
 
   const isFullscreen = isMobile || windowWidth < 768;
   const isOverlay = windowWidth < BREAKPOINT_OVERLAY;

@@ -12,6 +12,7 @@ import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
 import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
 import { PiPanelProvider } from "@/components/pi/PiPanelProvider";
 import { PiPanel } from "@/components/pi/PiPanel";
+import { PiDesktopPanel } from "@/components/pi/PiDesktopPanel";
 import { PiFloatingButton } from "@/components/pi/PiFloatingButton";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
@@ -190,6 +191,7 @@ const App = () => (
             <GuestBauhausShape />
             <ChatBubbleOverlay />
             <PiPanel />
+            <PiDesktopPanel />
             <PiFloatingButton />
             <BugReportBubble />
               <Routes>
