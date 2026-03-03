@@ -1,12 +1,13 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Sparkles, ChevronDown, ChevronUp, Coins } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 import { PiModelSelector } from "./PiModelSelector";
-import { PiRecentQuests } from "./PiRecentQuests";
 import { PiRecentConversations } from "./PiRecentConversations";
 import { PiChat } from "./PiChat";
 import { cn } from "@/lib/utils";
@@ -28,13 +29,25 @@ export function PiDesktopPanel() {
   const isMobile = useIsMobile();
   const isResizing = useRef(false);
 
-  const [questsOpen, setQuestsOpen] = useState(true);
   const [convsOpen, setConvsOpen] = useState(true);
+
+  const { data: creditsBalance } = useQuery({
+    queryKey: ["pi-credits-balance", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("credits_balance")
+        .eq("user_id", session!.user.id)
+        .maybeSingle();
+      return (data as any)?.credits_balance ?? 0;
+    },
+    refetchInterval: 60_000,
+  });
 
   // Close volets when chat becomes active
   useEffect(() => {
     if (isChatActive) {
-      setQuestsOpen(false);
       setConvsOpen(false);
     }
   }, [isChatActive]);
@@ -42,7 +55,6 @@ export function PiDesktopPanel() {
   // Reset volets when panel opens fresh
   useEffect(() => {
     if (isOpen && !isChatActive) {
-      setQuestsOpen(true);
       setConvsOpen(true);
     }
   }, [isOpen]);
@@ -113,6 +125,12 @@ export function PiDesktopPanel() {
             </div>
             <div className="flex items-center gap-2">
               <PiModelSelector />
+              {creditsBalance != null && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                  <Coins className="h-3 w-3" />
+                  <span>{creditsBalance > 9999 ? "9999+" : creditsBalance}</span>
+                </div>
+              )}
               <button
                 onClick={closePiPanel}
                 className="h-7 w-7 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
@@ -121,23 +139,6 @@ export function PiDesktopPanel() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-          </div>
-
-          {/* Collapsible: Recent Quests */}
-          <div
-            className={cn(
-              "border-b border-border overflow-hidden transition-all duration-200 ease-out shrink-0",
-              questsOpen ? "max-h-[300px]" : "max-h-[36px]"
-            )}
-          >
-            <button
-              onClick={() => setQuestsOpen((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <span>{t("pi.recentQuests")}</span>
-              {questsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            </button>
-            {questsOpen && <PiRecentQuests />}
           </div>
 
           {/* Collapsible: Recent Conversations */}
