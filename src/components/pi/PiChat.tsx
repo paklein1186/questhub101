@@ -164,12 +164,14 @@ export function PiChat({ className }: PiChatProps) {
       if (error) throw error;
 
       const proposedActions = data.proposedActions || [];
+      const followUpSuggestions = data.followUpSuggestions || [];
       const assistantMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
         text: data.assistantMessage,
         proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
         pendingConfirmation: proposedActions.length > 0,
+        followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
       };
 
       const updatedMessages = [...nextMessages, assistantMsg];
