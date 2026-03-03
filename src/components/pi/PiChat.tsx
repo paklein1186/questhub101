@@ -13,6 +13,7 @@ import { usePiPanel } from "@/hooks/usePiPanel";
 import { usePiConversationMutations } from "@/hooks/usePiConversations";
 
 type ProposedAction = { name: string; args: any };
+type FollowUpSuggestion = { label: string; prompt: string };
 
 type ChatMessage = {
   id: string;
@@ -20,6 +21,7 @@ type ChatMessage = {
   text: string;
   proposedActions?: ProposedAction[];
   pendingConfirmation?: boolean;
+  followUpSuggestions?: FollowUpSuggestion[];
   meta?: {
     createdEntities?: { type: string; id: string }[];
     updatedEntities?: { type: string; id: string }[];
@@ -49,7 +51,8 @@ function actionSummary(action: ProposedAction): string {
   if (name === "create_entity" || name === "prefill_form") {
     return `Create ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
   }
-  if (name === "update_entity") return `Update ${entityLabel(args?.type || "entity")}`;
+  if (name === "update_entity") return `Update ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
+  if (name === "add_subtask") return `Add subtask${args?.title ? `: "${args.title}"` : ""} to quest`;
   if (name === "link_entities") return `Link ${entityLabel(args?.from_type)} → ${args?.relation} → ${entityLabel(args?.to_type)}`;
   return name;
 }
@@ -227,12 +230,74 @@ export function PiChat({ className }: PiChatProps) {
     }
   };
 
-  const rejectActions = (msgId: string) => {
-    const updated = messages.map((m) =>
-      m.id === msgId ? { ...m, pendingConfirmation: false, proposedActions: undefined } : m
-    );
-    setMessages(updated);
-    if (conversationId) persistMessages(updated, conversationId);
+  const rejectActions = async (msgId: string) => {
+    const msg = messages.find((m) => m.id === msgId);
+    const skippedActions = msg?.proposedActions;
+
+    // Call LLM again with skip context to get follow-up suggestions
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ctg-guide", {
+        body: {
+          message: `[SYSTEM: User skipped these proposed actions: ${skippedActions?.map(a => actionSummary(a)).join(", ")}. Provide alternative suggestions. Include followUpSuggestions in your response.]`,
+          contextType,
+          contextId: contextId ?? null,
+          mode: "propose",
+        },
+      });
+
+      if (!error && data?.followUpSuggestions?.length) {
+        const updated = messages.map((m) =>
+          m.id === msgId
+            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: data.followUpSuggestions }
+            : m
+        );
+        // Add assistant follow-up message
+        const followUpMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: data.assistantMessage || t("pi.skippedAlternatives"),
+          proposedActions: data.proposedActions?.length ? data.proposedActions : undefined,
+          pendingConfirmation: data.proposedActions?.length > 0,
+          followUpSuggestions: !data.proposedActions?.length ? data.followUpSuggestions : undefined,
+        };
+        const updatedWithFollow = [...updated, followUpMsg];
+        setMessages(updatedWithFollow);
+        if (conversationId) persistMessages(updatedWithFollow, conversationId);
+      } else {
+        // Fallback: just clear actions and show default suggestions
+        const defaultSuggestions: FollowUpSuggestion[] = [
+          { label: t("pi.suggestModify"), prompt: t("pi.suggestModifyPrompt") },
+          { label: t("pi.suggestSearchExisting"), prompt: t("pi.suggestSearchExistingPrompt") },
+          { label: t("pi.suggestDifferent"), prompt: t("pi.suggestDifferentPrompt") },
+        ];
+        const updated = messages.map((m) =>
+          m.id === msgId
+            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: defaultSuggestions }
+            : m
+        );
+        setMessages(updated);
+        if (conversationId) persistMessages(updated, conversationId);
+      }
+    } catch {
+      // On error, just clear with defaults
+      const updated = messages.map((m) =>
+        m.id === msgId ? { ...m, pendingConfirmation: false, proposedActions: undefined } : m
+      );
+      setMessages(updated);
+      if (conversationId) persistMessages(updated, conversationId);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSuggestionClick = (prompt: string) => {
+    setInput(prompt);
+    // Auto-send
+    setTimeout(() => {
+      const sendBtn = document.querySelector("[data-pi-send]") as HTMLButtonElement;
+      if (sendBtn) sendBtn.click();
+    }, 100);
   };
 
   const undoActions = async (msgId: string) => {
