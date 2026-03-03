@@ -16,16 +16,16 @@ interface Props {
 
 export function LandingServicesSection({ titleKey, subtitleKey, accentColor = "text-primary" }: Props) {
   const { t } = useTranslation();
-  const { data: services = [], isLoading } = useQuery({
+  const { data: services = [], isLoading } = useQuery<any[]>({
     queryKey: ["landing-featured-services"],
     queryFn: async () => {
-      const { data } = await (supabase
+      const { data } = await supabase
         .from("services")
         .select("id, title, description, price_amount, price_currency")
         .eq("is_deleted", false)
         .eq("is_published", true)
         .order("created_at", { ascending: false })
-        .limit(3) as any);
+        .limit(3);
       return (data ?? []) as any[];
     },
     staleTime: 300_000,
