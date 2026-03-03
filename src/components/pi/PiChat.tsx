@@ -15,7 +15,7 @@ import { PiActionPaths } from "@/components/assistant/PiActionPaths";
 import { useUserEntities } from "@/hooks/useUserEntities";
 
 type ProposedAction = { name: string; args: any };
-type FollowUpSuggestion = { label: string; prompt: string };
+type FollowUpSuggestion = { label: string; prompt?: string; route?: string };
 
 type ChatMessage = {
   id: string;
@@ -475,7 +475,14 @@ export function PiChat({ className }: PiChatProps) {
                     {msg.followUpSuggestions.map((s, i) => (
                       <button
                         key={i}
-                        onClick={() => handleSuggestionClick(s.prompt)}
+                        onClick={() => {
+                          if (s.route) {
+                            navigate(s.route);
+                            onClose?.();
+                          } else if (s.prompt) {
+                            handleSuggestionClick(s.prompt);
+                          }
+                        }}
                         className="text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 transition-colors cursor-pointer"
                       >
                         {s.label}

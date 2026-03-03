@@ -631,6 +631,21 @@ When user SKIPS proposed actions, include a "followUpSuggestions" array in your 
     { "label": "Search existing quests", "prompt": "Search my quests for something similar" }
   ]
 }
+
+IMPORTANT: followUpSuggestions can be either interactive prompts OR direct navigation links.
+- If the suggestion is about VIEWING, SEEING, EXPLORING, or BROWSING something that has a dedicated page, use "route" instead of "prompt":
+  { "label": "See quests in Belgium", "route": "/territories/TERRITORY_ID?tab=quests" }
+  { "label": "Explore Belgium territory", "route": "/territories/TERRITORY_ID" }
+  { "label": "Local guilds", "route": "/territories/TERRITORY_ID?tab=ecosystem" }
+  { "label": "View my bookings", "route": "/me/bookings" }
+  { "label": "Browse services", "route": "/services/marketplace" }
+- If the suggestion requires AI interaction, context, or user decisions, use "prompt":
+  { "label": "Help me write a description", "prompt": "Help me write a description for my quest" }
+
+Common routes: /territories/ID, /guilds/ID, /quests/ID, /explore, /services/marketplace, /me/bookings, /me/services, /work, /inbox, /courses/explore, /agents, /trust-graph.
+Use REAL entity IDs from the context sections (e.g. [USER_TERRITORIES], [USER_GUILDS_FULL]) when building routes.
+
+ALSO include followUpSuggestions (with route or prompt) in EVERY assistant response, not just after skips. Always suggest 2-3 relevant next steps.
 ${contextHints[contextType] || ""}
 
 Here is the CTG context summary for this conversation:
