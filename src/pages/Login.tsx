@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogIn, Loader2 } from "lucide-react";
+import { LogIn, Loader2, ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="h-4 w-4 mr-1.5" />
+        {t("common.back", "Back")}
+      </Button>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
