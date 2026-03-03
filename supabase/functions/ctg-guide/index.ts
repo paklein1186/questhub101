@@ -839,7 +839,6 @@ Level 4: 600 XP (Young Tree) | Level 5: 1,000 XP (Canopy Dweller) | Level 6: 1,5
 Level 7: 2,500 XP (Mycelium Runner) | Level 8: 4,000 XP (Watershed Walker)
 Level 9: 6,000 XP (Ecosystem Keeper) | Level 10: 10,000 XP (Bioregional Elder)`;
 }
-}
 
 // =====================================================================
 // Enrich actions with context + resolve placeholders
