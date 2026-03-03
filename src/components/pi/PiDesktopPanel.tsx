@@ -101,6 +101,7 @@ export function PiDesktopPanel() {
             onMouseDown={handleResizeStart}
           >
             <div className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-1 rounded-full bg-border group-hover:bg-primary/50 mx-auto" />
+          </div>
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-gradient-to-r from-primary/5 to-accent/5 shrink-0">
