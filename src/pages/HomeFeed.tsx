@@ -5,7 +5,7 @@ import { BauhausPausedContext } from "@/components/GuestBauhausShape";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Sparkles, Send, MessageCircle, Users, Briefcase, Heart, MapPin, Check, ChevronRight, Mic, MicOff, Search } from "lucide-react";
-import { MilestonePopup } from "@/components/MilestonePopup";
+// Milestone notifications now display inside the Pi panel
 import { useMilestoneChecker } from "@/hooks/useMilestones";
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -486,7 +486,7 @@ export default function HomeFeed() {
 
   return (
     <PageShell>
-      <MilestonePopup />
+      {/* Milestone notifications moved to Pi panel */}
       <BauhausPausedContext.Provider value={bauhausPaused}>
         <BauhausShape />
       </BauhausPausedContext.Provider>
