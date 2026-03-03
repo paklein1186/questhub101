@@ -19,14 +19,14 @@ export function LandingServicesSection({ titleKey, subtitleKey, accentColor = "t
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["landing-featured-services"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase
         .from("services")
         .select("id, title, description, price_amount, price_currency")
         .eq("is_deleted", false)
         .eq("is_published", true)
         .order("created_at", { ascending: false })
-        .limit(3);
-      return data ?? [];
+        .limit(3) as any);
+      return (data ?? []) as any[];
     },
     staleTime: 300_000,
   });
