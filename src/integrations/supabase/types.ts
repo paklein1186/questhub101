@@ -4849,6 +4849,36 @@ export type Database = {
           },
         ]
       }
+      pi_triggers: {
+        Row: {
+          created_at: string
+          delivered_at: string | null
+          id: string
+          status: string
+          trigger_data: Json | null
+          trigger_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          status?: string
+          trigger_data?: Json | null
+          trigger_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          status?: string
+          trigger_data?: Json | null
+          trigger_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pod_applications: {
         Row: {
           admin_note: string | null
