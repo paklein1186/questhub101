@@ -52,6 +52,83 @@ export type Database = {
           },
         ]
       }
+      action_cards: {
+        Row: {
+          button_label: string | null
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          depends_on: string[] | null
+          description: string | null
+          estimated_minutes: number | null
+          id: string
+          priority: string
+          sort_order: number
+          status: string
+          subtitle: string | null
+          title: string
+          tool_call: string | null
+          tool_params: Json | null
+          trust_reward: number
+          type: string
+          unlock_condition: string | null
+          user_id: string
+          xp_reward: number
+        }
+        Insert: {
+          button_label?: string | null
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          depends_on?: string[] | null
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          title: string
+          tool_call?: string | null
+          tool_params?: Json | null
+          trust_reward?: number
+          type: string
+          unlock_condition?: string | null
+          user_id: string
+          xp_reward?: number
+        }
+        Update: {
+          button_label?: string | null
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          depends_on?: string[] | null
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          title?: string
+          tool_call?: string | null
+          tool_params?: Json | null
+          trust_reward?: number
+          type?: string
+          unlock_condition?: string | null
+          user_id?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_cards_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "pi_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_log: {
         Row: {
           action_type: string
@@ -4633,6 +4710,7 @@ export type Database = {
           context_type: string | null
           created_at: string
           id: string
+          is_active: boolean
           messages: Json | null
           model_id: string | null
           title: string | null
@@ -4644,6 +4722,7 @@ export type Database = {
           context_type?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           messages?: Json | null
           model_id?: string | null
           title?: string | null
@@ -4655,6 +4734,7 @@ export type Database = {
           context_type?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
           messages?: Json | null
           model_id?: string | null
           title?: string | null
@@ -4662,6 +4742,112 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      pi_memories: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          key: string
+          session_id: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key: string
+          session_id?: string | null
+          tier: string
+          updated_at?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          key?: string
+          session_id?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      pi_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pi_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "pi_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pi_tool_logs: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          params: Json | null
+          result: Json | null
+          tool_name: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          params?: Json | null
+          result?: Json | null
+          tool_name: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          params?: Json | null
+          result?: Json | null
+          tool_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pi_tool_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "pi_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pod_applications: {
         Row: {
@@ -5648,6 +5834,8 @@ export type Database = {
           credit_reward: number | null
           description: string | null
           due_date: string | null
+          estimated_minutes: number | null
+          evidence_url: string | null
           id: string
           order_index: number
           priority: string
@@ -5665,6 +5853,8 @@ export type Database = {
           credit_reward?: number | null
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
+          evidence_url?: string | null
           id?: string
           order_index?: number
           priority?: string
@@ -5682,6 +5872,8 @@ export type Database = {
           credit_reward?: number | null
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
+          evidence_url?: string | null
           id?: string
           order_index?: number
           priority?: string
@@ -8113,6 +8305,66 @@ export type Database = {
           work_state?: string
         }
         Relationships: []
+      }
+      vision_bank: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          guild_id: string | null
+          id: string
+          seasonal_relevance: string | null
+          status: string
+          tags: string[]
+          territory_id: string | null
+          user_id: string
+          visibility: string
+          vision_text: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          guild_id?: string | null
+          id?: string
+          seasonal_relevance?: string | null
+          status?: string
+          tags?: string[]
+          territory_id?: string | null
+          user_id: string
+          visibility?: string
+          vision_text: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          guild_id?: string | null
+          id?: string
+          seasonal_relevance?: string | null
+          status?: string
+          tags?: string[]
+          territory_id?: string | null
+          user_id?: string
+          visibility?: string
+          vision_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vision_bank_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vision_bank_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       website_pages: {
         Row: {
