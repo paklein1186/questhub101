@@ -692,13 +692,189 @@ async function assembleContext(userId: string, sb: any, conversationId: string |
 }
 
 // =====================================================================
+// Session greeting logic
+// =====================================================================
+async function getSessionGreeting(userId: string, sb: any): Promise<{
+  type: string;
+  greetingContext: string;
+  daysSince?: number;
+  items?: any[];
+  streakDays?: number;
+  lastGoal?: string;
+}> {
+  // Check for existing conversations
+  const { count: convCount } = await sb
+    .from("pi_conversations")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+
+  // a) NEW user — no conversations at all
+  if (!convCount || convCount === 0) {
+    return {
+      type: "welcome_new",
+      greetingContext: "This is a brand new user who has never chatted with Pi. Use the Explorer path tone. Welcome them warmly and help them take their first step.",
+    };
+  }
+
+  // Fetch profile for last_active
+  const { data: profile } = await sb
+    .from("profiles")
+    .select("last_active, current_path, path_step, display_name, first_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const userName = profile?.display_name || profile?.first_name || null;
+  const now = new Date();
+
+  // b) RETURNING user — inactive for 14+ days
+  if (profile?.last_active) {
+    const lastActive = new Date(profile.last_active);
+    const daysSince = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince >= 14) {
+      // Fetch recent guild/territory activity
+      const { data: recentQuests } = await sb
+        .from("quests")
+        .select("id, title, created_at")
+        .eq("is_deleted", false)
+        .gte("created_at", lastActive.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      return {
+        type: "welcome_back",
+        daysSince,
+        items: recentQuests || [],
+        greetingContext: `User "${userName || "friend"}" has been away for ${daysSince} days. Welcome them back warmly. Mention what's new: ${JSON.stringify(recentQuests?.map((q: any) => q.title) || [])}. Offer a gentle re-entry point.`,
+      };
+    }
+  }
+
+  // c) URGENT items
+  const urgentItems: any[] = [];
+  const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+  const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+
+  // Quest deadlines < 48h
+  const { data: urgentQuests } = await sb
+    .from("quest_participants")
+    .select("quest_id, quests(id, title, deadline)")
+    .eq("user_id", userId)
+    .eq("status", "active");
+
+  for (const qp of urgentQuests || []) {
+    const q = (qp as any).quests;
+    if (q?.deadline && new Date(q.deadline) <= new Date(in48h)) {
+      urgentItems.push({ type: "quest_deadline", title: q.title, deadline: q.deadline, id: q.id });
+    }
+  }
+
+  // Unvoted proposals closing < 24h
+  const { data: openPolls } = await sb
+    .from("decision_polls")
+    .select("id, question, closes_at")
+    .eq("status", "open")
+    .lte("closes_at", in24h);
+
+  if (openPolls?.length) {
+    for (const poll of openPolls) {
+      const { count: voteCount } = await sb
+        .from("decision_poll_votes")
+        .select("id", { count: "exact", head: true })
+        .eq("poll_id", poll.id)
+        .eq("user_id", userId);
+      if (!voteCount || voteCount === 0) {
+        urgentItems.push({ type: "proposal_vote", title: poll.question, closes_at: poll.closes_at, id: poll.id });
+      }
+    }
+  }
+
+  // Unread guild invitations
+  const { data: pendingInvites } = await sb
+    .from("guild_members")
+    .select("guild_id, guilds(name)")
+    .eq("user_id", userId)
+    .eq("status", "INVITED")
+    .limit(3);
+
+  for (const inv of pendingInvites || []) {
+    urgentItems.push({ type: "guild_invite", title: (inv as any).guilds?.name, id: inv.guild_id });
+  }
+
+  if (urgentItems.length > 0) {
+    return {
+      type: "urgent_items",
+      items: urgentItems,
+      greetingContext: `User has ${urgentItems.length} urgent item(s) needing attention: ${JSON.stringify(urgentItems)}. Address the most urgent first. Be helpful but not alarming.`,
+    };
+  }
+
+  // d) STREAK at risk — check consecutive days with completed quests/observations
+  const { data: recentCompletions } = await sb
+    .from("contribution_logs")
+    .select("created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (recentCompletions?.length) {
+    const dates = new Set(recentCompletions.map((c: any) =>
+      new Date(c.created_at).toISOString().slice(0, 10)
+    ));
+    const today = now.toISOString().slice(0, 10);
+    let streakDays = 0;
+    const checkDate = new Date(now);
+    // Start from yesterday
+    checkDate.setDate(checkDate.getDate() - 1);
+    while (dates.has(checkDate.toISOString().slice(0, 10))) {
+      streakDays++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    if (streakDays >= 2 && !dates.has(today)) {
+      return {
+        type: "streak_reminder",
+        streakDays,
+        greetingContext: `User has a ${streakDays}-day contribution streak but hasn't contributed yet today! Motivate them to keep it going. Suggest something quick.`,
+      };
+    }
+  }
+
+  // e) Default NORMAL session — resume from last conversation
+  const { data: lastConv } = await sb
+    .from("pi_conversations")
+    .select("id, title, updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // Check medium-term memory for last goal
+  const { data: lastGoalMem } = await sb
+    .from("pi_memories")
+    .select("value")
+    .eq("user_id", userId)
+    .eq("key", "current_goal")
+    .eq("tier", "medium")
+    .maybeSingle();
+
+  return {
+    type: "resume",
+    lastGoal: lastGoalMem?.value || lastConv?.title || null,
+    greetingContext: lastGoalMem?.value
+      ? `User was previously working on: "${lastGoalMem.value}". Offer to continue or start something new.`
+      : lastConv?.title
+        ? `User's last conversation was about: "${lastConv.title}". Ask if they'd like to continue or explore something else.`
+        : `Returning user with no specific last goal. Greet warmly and offer options.`,
+  };
+}
+
+// =====================================================================
 // Main handler
 // =====================================================================
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, conversationId: incomingConvId, actionCardId } = await req.json();
+    const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest } = await req.json();
     if (!message) return jsonRes({ error: "message is required" }, 400);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
