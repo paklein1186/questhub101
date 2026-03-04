@@ -171,6 +171,58 @@ const TOOLS = [
       },
     },
   },
+  // ── Path tools ──
+  {
+    type: "function",
+    function: {
+      name: "advance_path_step",
+      description: "Advance the user to the next step in their current path. Call when the user completes the current step's objective.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  // ── Quest decomposition tools ──
+  {
+    type: "function",
+    function: {
+      name: "create_subtasks",
+      description: "Decompose a quest into sequential sub-tasks. First subtask starts active, rest are locked.",
+      parameters: {
+        type: "object",
+        properties: {
+          quest_id: { type: "string" },
+          subtasks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                step_number: { type: "number" },
+                title: { type: "string" },
+                description: { type: "string" },
+                estimated_minutes: { type: "number" },
+                xp_reward: { type: "number" },
+              },
+              required: ["step_number", "title", "description"],
+            },
+          },
+        },
+        required: ["quest_id", "subtasks"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "complete_subtask",
+      description: "Mark a subtask as completed, unlock the next one, and award XP. If last subtask, also complete the parent quest.",
+      parameters: {
+        type: "object",
+        properties: {
+          subtask_id: { type: "string" },
+        },
+        required: ["subtask_id"],
+      },
+    },
+  },
 ];
 
 // =====================================================================
@@ -186,7 +238,7 @@ async function executeToolCall(
     case "get_user_profile": {
       const { data } = await sb
         .from("profiles")
-        .select("user_id, first_name, last_name, display_name, bio, skills, avatar_url, credits_balance, xp")
+        .select("user_id, first_name, last_name, display_name, bio, skills, avatar_url, credits_balance, xp, current_path, path_step")
         .eq("user_id", userId)
         .maybeSingle();
       return data || { error: "Profile not found" };
@@ -200,7 +252,6 @@ async function executeToolCall(
         .eq("is_draft", false)
         .limit(params.limit || 5);
       if (params.territory_id) {
-        // join through quest_territories
         const { data: qtIds } = await sb
           .from("quest_territories")
           .select("quest_id")
@@ -272,7 +323,6 @@ async function executeToolCall(
     }
 
     case "award_xp": {
-      // Update profile XP
       const { data: profile } = await sb
         .from("profiles")
         .select("xp")
@@ -284,7 +334,6 @@ async function executeToolCall(
     }
 
     case "suggest_next_quest": {
-      // Get user's current quests to exclude them
       const { data: currentQuests } = await sb
         .from("quest_participants")
         .select("quest_id")
@@ -323,15 +372,167 @@ async function executeToolCall(
       return { stored: true, vision_id: data.id };
     }
 
+    // ── Path tools ──
+    case "advance_path_step": {
+      const { data: profile } = await sb
+        .from("profiles")
+        .select("current_path, path_step")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!profile?.current_path) return { error: "User has no active path" };
+
+      const newStep = (profile.path_step || 1) + 1;
+      if (newStep > 6) {
+        // Path complete!
+        await sb.from("profiles")
+          .update({ current_path: null, path_step: null })
+          .eq("user_id", userId);
+        return { action: "path_complete", completed_path: profile.current_path, celebration: true };
+      }
+      await sb.from("profiles")
+        .update({ path_step: newStep })
+        .eq("user_id", userId);
+      return { action: "path_advanced", path: profile.current_path, new_step: newStep, total_steps: 6 };
+    }
+
+    // ── Quest decomposition tools ──
+    case "create_subtasks": {
+      const rows = (params.subtasks || []).map((st: any, i: number) => ({
+        quest_id: params.quest_id,
+        user_id: userId,
+        step_number: st.step_number || i + 1,
+        title: st.title,
+        description: st.description,
+        estimated_minutes: st.estimated_minutes || null,
+        xp_reward: st.xp_reward || 0,
+        status: st.step_number === 1 || i === 0 ? "active" : "locked",
+      }));
+      const { data, error } = await sb
+        .from("quest_subtasks")
+        .insert(rows)
+        .select("id, step_number, title, status");
+      if (error) return { error: error.message };
+      return { created: true, subtasks: data };
+    }
+
+    case "complete_subtask": {
+      // Get the subtask
+      const { data: subtask } = await sb
+        .from("quest_subtasks")
+        .select("id, quest_id, step_number, xp_reward, user_id")
+        .eq("id", params.subtask_id)
+        .maybeSingle();
+      if (!subtask) return { error: "Subtask not found" };
+
+      // Mark as completed
+      await sb.from("quest_subtasks")
+        .update({ status: "completed", completed_at: new Date().toISOString() })
+        .eq("id", params.subtask_id);
+
+      // Award XP if any
+      if (subtask.xp_reward > 0) {
+        const { data: profile } = await sb.from("profiles").select("xp").eq("user_id", userId).maybeSingle();
+        await sb.from("profiles").update({ xp: (profile?.xp || 0) + subtask.xp_reward }).eq("user_id", userId);
+      }
+
+      // Check if there's a next subtask to unlock
+      const { data: nextSub } = await sb
+        .from("quest_subtasks")
+        .select("id")
+        .eq("quest_id", subtask.quest_id)
+        .eq("user_id", userId)
+        .eq("step_number", subtask.step_number + 1)
+        .maybeSingle();
+
+      if (nextSub) {
+        await sb.from("quest_subtasks")
+          .update({ status: "active" })
+          .eq("id", nextSub.id);
+        return {
+          completed: true,
+          xp_awarded: subtask.xp_reward,
+          next_subtask_unlocked: nextSub.id,
+          quest_complete: false,
+        };
+      }
+
+      // No next subtask — check if quest is done
+      const { count } = await sb
+        .from("quest_subtasks")
+        .select("id", { count: "exact", head: true })
+        .eq("quest_id", subtask.quest_id)
+        .eq("user_id", userId)
+        .neq("status", "completed");
+
+      if (count === 0) {
+        // All subtasks done — complete parent quest
+        await sb.from("quest_participants")
+          .update({ status: "completed" })
+          .eq("quest_id", subtask.quest_id)
+          .eq("user_id", userId);
+        return {
+          completed: true,
+          xp_awarded: subtask.xp_reward,
+          quest_complete: true,
+          quest_id: subtask.quest_id,
+        };
+      }
+
+      return { completed: true, xp_awarded: subtask.xp_reward, quest_complete: false };
+    }
+
     default:
       return { error: `Unknown tool: ${toolName}` };
   }
 }
 
 // =====================================================================
+// Path overlay prompts
+// =====================================================================
+const PATH_PROMPTS: Record<string, (step: number) => string> = {
+  explorer: (step) => `\n\n## ACTIVE PATH: THE EXPLORER 🌱
+The user is on step ${step} of 6.
+Guide them through: Welcome → Profile → Territory → Guild → First Quest → Celebration.
+Be warm, encouraging, introduce ONE concept per turn.
+Always end with a single clear next action.
+If they seem lost, simplify. If experienced, accelerate.`,
+
+  mapper: (step) => `\n\n## ACTIVE PATH: THE MAPPER 🗺️
+The user is on step ${step} of 6.
+Guide them through: Territory selection → Bioregional context → Sensors → Mapping quest → Community → Stewardship.
+Be grounded, scientific but accessible.
+Always connect to their specific territory.
+Use sensor data to make the territory feel alive.`,
+
+  builder: (step) => `\n\n## ACTIVE PATH: THE BUILDER 🏗️
+The user is on step ${step} of 6.
+Guide them through: Guild discovery → Join or Create → Mission design → Recruit → First collaboration → Governance.
+Be collaborative, energetic.
+Emphasize shared purpose and team dynamics.`,
+
+  quester: (step) => `\n\n## ACTIVE PATH: THE QUESTER ⚔️
+The user is on step ${step} of 6.
+Guide them through: Browse quests → First micro-quest → Skill matching → Quest chain → Team quest → Mastery.
+Be action-oriented, direct, motivating.
+Always provide the next tangible step.`,
+
+  weaver: (step) => `\n\n## ACTIVE PATH: THE WEAVER 🕸️
+The user is on step ${step} of 6.
+Guide them through: Value concepts → OVN introduction → Contribution logging → Credits flow → Inter-guild economics → System design.
+Be thoughtful, systems-oriented.
+Use metaphors of weaving and flows.`,
+
+  steward: (step) => `\n\n## ACTIVE PATH: THE STEWARD 🌳
+The user is on step ${step} of 6.
+Guide them through: Leadership philosophy → Consent governance → Facilitation → Mentoring → Community health → Succession.
+Be wise, patient, service-oriented.
+Model the leadership you're teaching.`,
+};
+
+// =====================================================================
 // System prompt
 // =====================================================================
-const SYSTEM_PROMPT = `You are Pi, the living AI guide of ChangeTheGame — a regenerative ecosystem
+const BASE_SYSTEM_PROMPT = `You are Pi, the living AI guide of ChangeTheGame — a regenerative ecosystem
 platform where humans collaborate to restore territories, build guilds,
 complete quests, and create new economic flows.
 
@@ -346,27 +547,52 @@ For every user input, follow this loop:
 4. ACT — Call tools when action is needed. Prefer action over explanation.
 5. REFLECT — After acting, suggest a natural next step.
 
-When you want to suggest actions the user can take, include a "suggestedActions" array
-in your response JSON. Each action should have: title, subtitle, buttonLabel,
-effortMinutes, xpReward, trustReward, priority (primary/secondary/optional),
-toolCall (tool name), toolParams (object).
+When suggesting actions, ALWAYS return them as structured action_cards in your
+response JSON. Each action card must have:
+
+{
+  "action_cards": [
+    {
+      "title": "Short action title",
+      "subtitle": "Context line",
+      "description": "Why this matters (1-2 sentences)",
+      "type": "instant | quick_input | guided_flow",
+      "button_label": "Click text",
+      "tool_call": "tool_name",
+      "tool_params": { },
+      "xp_reward": 0,
+      "trust_reward": 0,
+      "estimated_minutes": 0,
+      "priority": "primary | secondary",
+      "status": "ready | locked",
+      "unlock_condition": "text or null",
+      "depends_on": []
+    }
+  ]
+}
+
+ACTION CARD RULES:
+- Maximum 5 action cards per response
+- First card must be completable in under 2 minutes
+- Every card needs a button_label — no informational-only cards
+- If the user needs to do something before an action, insert a prerequisite
+  card and lock the dependent one
+- For overwhelmed users, return only 1-2 cards
+- For excited users, return 3-5 cards
+
+QUEST DECOMPOSITION:
+When a user accepts a complex quest (3+ objectives or estimated time > 60 minutes),
+use the create_subtasks tool to decompose it into sequential sub-tasks.
+Each sub-task should:
+- Be completable in under 30 minutes (ideally under 15)
+- Have a clear, specific deliverable
+- The FIRST sub-task must be trivially easy (< 5 minutes)
+- Sub-tasks unlock sequentially
 
 Always respond with valid JSON:
 {
   "message": "Your spoken response to the user",
-  "suggestedActions": [
-    {
-      "title": "Action title",
-      "subtitle": "Brief description",
-      "buttonLabel": "Do this",
-      "effortMinutes": 2,
-      "xpReward": 30,
-      "trustReward": 10,
-      "priority": "primary",
-      "toolCall": "tool_name",
-      "toolParams": {}
-    }
-  ],
+  "action_cards": [],
   "scene": {
     "screen": "screen_name or null",
     "navigate": "/route or null"
@@ -394,7 +620,7 @@ async function assembleContext(userId: string, sb: any, conversationId: string |
   const [profileRes, guildsRes, territoriesRes, questsRes, memoriesLongRes, memoriesMedRes, messagesRes] =
     await Promise.all([
       sb.from("profiles")
-        .select("user_id, first_name, last_name, display_name, bio, skills, avatar_url, xp, credits_balance")
+        .select("user_id, first_name, last_name, display_name, bio, skills, avatar_url, xp, credits_balance, current_path, path_step")
         .eq("user_id", userId)
         .maybeSingle(),
       sb.from("guild_members")
@@ -462,7 +688,7 @@ async function assembleContext(userId: string, sb: any, conversationId: string |
     2
   );
 
-  return { contextBlock, history };
+  return { contextBlock, history, profile };
 }
 
 // =====================================================================
@@ -472,7 +698,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { message, conversationId: incomingConvId } = await req.json();
+    const { message, conversationId: incomingConvId, actionCardId } = await req.json();
     if (!message) return jsonRes({ error: "message is required" }, 400);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -482,14 +708,12 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // User-scoped client for auth validation
     const sbUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: { user }, error: authErr } = await sbUser.auth.getUser();
     if (authErr || !user) return jsonRes({ error: "Unauthorized" }, 401);
 
-    // Service-role client for data operations
     const sb = createClient(supabaseUrl, supabaseServiceKey);
     const userId = user.id;
 
@@ -513,12 +737,18 @@ serve(async (req) => {
     });
 
     // Assemble context + history
-    const { contextBlock, history } = await assembleContext(userId, sb, conversationId);
+    const { contextBlock, history, profile } = await assembleContext(userId, sb, conversationId);
+
+    // Build system prompt with path overlay
+    let systemPrompt = BASE_SYSTEM_PROMPT;
+    if (profile?.current_path && PATH_PROMPTS[profile.current_path]) {
+      systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
+    }
 
     // Build messages for AI
     const aiMessages = [
-      { role: "system", content: SYSTEM_PROMPT + `\n\n[USER CONTEXT]\n${contextBlock}` },
-      ...history.slice(-18), // Keep last 18 history messages
+      { role: "system", content: systemPrompt + `\n\n[USER CONTEXT]\n${contextBlock}` },
+      ...history.slice(-18),
       { role: "user", content: message },
     ];
 
@@ -541,12 +771,8 @@ serve(async (req) => {
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI gateway error:", aiResponse.status, errText);
-      if (aiResponse.status === 429) {
-        return jsonRes({ error: "Rate limit exceeded. Please try again shortly." }, 429);
-      }
-      if (aiResponse.status === 402) {
-        return jsonRes({ error: "AI credits exhausted. Please top up." }, 402);
-      }
+      if (aiResponse.status === 429) return jsonRes({ error: "Rate limit exceeded. Please try again shortly." }, 429);
+      if (aiResponse.status === 402) return jsonRes({ error: "AI credits exhausted. Please top up." }, 402);
       return jsonRes({ error: "AI service error" }, 500);
     }
 
@@ -568,7 +794,6 @@ serve(async (req) => {
         const result = await executeToolCall(toolName, toolParams, userId, sb);
         toolResults.push({ tool: toolName, result });
 
-        // Log tool call
         await sb.from("pi_tool_logs").insert({
           conversation_id: conversationId,
           tool_name: toolName,
@@ -576,7 +801,6 @@ serve(async (req) => {
           result,
         });
 
-        // Collect actions for frontend
         if (result?.action) actions.push(result);
       }
 
@@ -611,20 +835,20 @@ serve(async (req) => {
       }
     }
 
-    // Parse the response — try JSON first, fall back to plain text
+    // Parse the response
     let responseText = choice?.message?.content || "I'm here. What would you like to explore?";
-    let suggestedActions: any[] = [];
+    let actionCards: any[] = [];
     let scene: any = null;
     let memoryOps: any[] = [];
     let nextPrompt: string | null = null;
     let emotion: string | null = null;
 
     try {
-      // Try to parse as JSON response
       const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const parsed = JSON.parse(cleaned);
       responseText = parsed.message || responseText;
-      suggestedActions = parsed.suggestedActions || [];
+      // Support both old "suggestedActions" and new "action_cards" keys
+      actionCards = parsed.action_cards || parsed.suggestedActions || [];
       scene = parsed.scene || null;
       memoryOps = parsed.memory?.store || [];
       nextPrompt = parsed.nextPrompt || null;
@@ -647,20 +871,59 @@ serve(async (req) => {
       );
     }
 
+    // Save action cards to DB
+    if (actionCards.length > 0) {
+      const cardRows = actionCards.map((c: any, i: number) => ({
+        conversation_id: conversationId,
+        user_id: userId,
+        type: c.type || "instant",
+        title: c.title,
+        subtitle: c.subtitle || null,
+        description: c.description || null,
+        status: c.status || "ready",
+        button_label: c.button_label || c.buttonLabel || "Do this",
+        tool_call: c.tool_call || c.toolCall || null,
+        tool_params: c.tool_params || c.toolParams || null,
+        xp_reward: c.xp_reward || c.xpReward || 0,
+        trust_reward: c.trust_reward || c.trustReward || 0,
+        estimated_minutes: c.estimated_minutes || c.effortMinutes || null,
+        unlock_condition: c.unlock_condition || c.unlockCondition || null,
+        priority: c.priority || "secondary",
+        sort_order: i,
+      }));
+      await sb.from("action_cards").insert(cardRows);
+    }
+
+    // Normalize action cards for frontend (support both naming conventions)
+    const normalizedCards = actionCards.map((c: any) => ({
+      title: c.title,
+      subtitle: c.subtitle,
+      description: c.description,
+      buttonLabel: c.button_label || c.buttonLabel || "Do this",
+      effortMinutes: c.estimated_minutes || c.effortMinutes,
+      xpReward: c.xp_reward || c.xpReward || 0,
+      trustReward: c.trust_reward || c.trustReward || 0,
+      priority: c.priority || "secondary",
+      status: c.status || "ready",
+      unlockCondition: c.unlock_condition || c.unlockCondition,
+      toolCall: c.tool_call || c.toolCall,
+      toolParams: c.tool_params || c.toolParams,
+    }));
+
     // Save Pi's response
     await sb.from("pi_messages").insert({
       conversation_id: conversationId,
       role: "pi",
       content: responseText,
       metadata: {
-        suggestedActions: suggestedActions.length > 0 ? suggestedActions : undefined,
+        suggestedActions: normalizedCards.length > 0 ? normalizedCards : undefined,
         scene,
         emotion,
         toolCalls: toolResults.length > 0 ? toolResults : undefined,
       },
     });
 
-    // Update conversation title and timestamp
+    // Update conversation
     await sb.from("pi_conversations").update({
       updated_at: new Date().toISOString(),
       title: message.slice(0, 60),
@@ -669,11 +932,14 @@ serve(async (req) => {
     return jsonRes({
       message: responseText,
       conversationId,
-      suggestedActions,
-      actions, // navigation/notification actions from tool calls
+      suggestedActions: normalizedCards,
+      actions,
       scene,
       nextPrompt,
       emotion,
+      pathInfo: profile?.current_path
+        ? { path: profile.current_path, step: profile.path_step || 1, totalSteps: 6 }
+        : null,
     });
   } catch (e: any) {
     console.error("pi-cognitive error:", e);
