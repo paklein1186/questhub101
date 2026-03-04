@@ -89,6 +89,7 @@ export function PiChat({ className }: PiChatProps) {
   const [conversationId, setConversationId] = useState<string | null>(activeConversationId);
   const [xpToast, setXpToast] = useState<number | null>(null);
   const [pathInfo, setPathInfo] = useState<{ path: string; step: number; totalSteps: number } | null>(null);
+  const [hasGreeted, setHasGreeted] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -107,6 +108,7 @@ export function PiChat({ className }: PiChatProps) {
       return;
     }
     setConversationId(activeConversationId);
+    setHasGreeted(true); // existing conversation = already greeted
     (async () => {
       const { data } = await supabase
         .from("pi_messages" as any)
@@ -129,6 +131,50 @@ export function PiChat({ className }: PiChatProps) {
       }
     })();
   }, [activeConversationId]);
+
+  // Auto-greeting: when chat opens with no conversation, trigger Pi's proactive greeting
+  useEffect(() => {
+    if (!session?.user?.id || hasGreeted || activeConversationId || isLoading || prefillPrompt) return;
+    if (!isChatActive) return; // only greet when chat is actually open
+
+    setHasGreeted(true);
+    setIsLoading(true);
+
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("pi-cognitive", {
+          body: { greeting: true },
+        });
+        if (error) throw error;
+
+        if (data?.conversationId) {
+          setConversationId(data.conversationId);
+          setActiveConversation(data.conversationId);
+        }
+        if (data?.pathInfo) setPathInfo(data.pathInfo);
+
+        const suggestedActions = (data?.suggestedActions || []).map((a: any) => ({
+          ...a,
+          status: a.status || "ready",
+        }));
+
+        const greetingMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: data?.message || "Welcome! How can I help you today?",
+          suggestedActions: suggestedActions.length > 0 ? suggestedActions : undefined,
+          nextPrompt: data?.nextPrompt,
+        };
+        setMessages([greetingMsg]);
+
+        if (data?.actions?.length) processActions(data.actions);
+      } catch (e) {
+        console.error("Greeting error:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [session?.user?.id, isChatActive, hasGreeted, activeConversationId, prefillPrompt]);
 
   // Auto-scroll
   const scrollToBottom = useCallback(() => {
