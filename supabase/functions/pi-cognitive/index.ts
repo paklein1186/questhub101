@@ -875,7 +875,7 @@ serve(async (req) => {
 
   try {
     const { message, conversationId: incomingConvId, actionCardId, greeting: isGreetingRequest } = await req.json();
-    if (!message) return jsonRes({ error: "message is required" }, 400);
+    if (!message && !isGreetingRequest) return jsonRes({ error: "message is required" }, 400);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return jsonRes({ error: "AI gateway not configured" }, 500);
@@ -891,6 +891,164 @@ serve(async (req) => {
     if (authErr || !user) return jsonRes({ error: "Unauthorized" }, 401);
 
     const sb = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Handle greeting request — get session context and generate Pi's opening
+    if (isGreetingRequest) {
+      const userId = user.id;
+      const greeting = await getSessionGreeting(userId, sb);
+
+      // Create a new conversation for the greeting
+      const { data: conv } = await sb
+        .from("pi_conversations")
+        .insert({ user_id: userId, title: "Session greeting", is_active: true })
+        .select("id")
+        .single();
+      if (!conv) return jsonRes({ error: "Failed to create conversation" }, 500);
+
+      const { contextBlock, profile } = await assembleContext(userId, sb, null);
+
+      let systemPrompt = BASE_SYSTEM_PROMPT;
+      if (profile?.current_path && PATH_PROMPTS[profile.current_path]) {
+        systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
+      }
+
+      systemPrompt += `\n\n## SESSION GREETING CONTEXT\n${greeting.greetingContext}\n\nGenerate a warm, proactive opening message. Do NOT wait for the user to speak first. Greet them and suggest what to do next based on the context above.`;
+
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt + `\n\n[USER CONTEXT]\n${contextBlock}` },
+            { role: "user", content: "SESSION_START" },
+          ],
+          tools: TOOLS,
+          temperature: 0.7,
+          max_tokens: 1500,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        return jsonRes({ error: "AI service error" }, 500);
+      }
+
+      const aiData = await aiResponse.json();
+      let choice = aiData.choices?.[0];
+
+      // Process tool calls
+      const actions: any[] = [];
+      if (choice?.message?.tool_calls?.length) {
+        const toolResults: any[] = [];
+        for (const tc of choice.message.tool_calls) {
+          const toolName = tc.function.name;
+          let toolParams: any = {};
+          try { toolParams = JSON.parse(tc.function.arguments || "{}"); } catch {}
+          const result = await executeToolCall(toolName, toolParams, userId, sb);
+          toolResults.push({ tool: toolName, result });
+          if (result?.action) actions.push(result);
+        }
+
+        const toolMessages = [
+          { role: "system", content: systemPrompt + `\n\n[USER CONTEXT]\n${contextBlock}` },
+          { role: "user", content: "SESSION_START" },
+          choice.message,
+          ...choice.message.tool_calls.map((tc: any, i: number) => ({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: JSON.stringify(toolResults[i]?.result || {}),
+          })),
+        ];
+        const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ model: "google/gemini-2.5-flash", messages: toolMessages, temperature: 0.7, max_tokens: 1500 }),
+        });
+        if (finalResponse.ok) {
+          const fd = await finalResponse.json();
+          choice = fd.choices?.[0];
+        }
+      }
+
+      let responseText = choice?.message?.content || "Welcome! How can I help you today?";
+      let actionCards: any[] = [];
+      let nextPrompt: string | null = null;
+
+      try {
+        const cleaned = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        responseText = parsed.message || responseText;
+        actionCards = parsed.action_cards || parsed.suggestedActions || [];
+        nextPrompt = parsed.nextPrompt || null;
+      } catch {}
+
+      // Save greeting as Pi message
+      const normalizedCards = actionCards.map((c: any) => ({
+        title: c.title,
+        subtitle: c.subtitle,
+        description: c.description,
+        buttonLabel: c.button_label || c.buttonLabel || "Do this",
+        effortMinutes: c.estimated_minutes || c.effortMinutes,
+        xpReward: c.xp_reward || c.xpReward || 0,
+        trustReward: c.trust_reward || c.trustReward || 0,
+        priority: c.priority || "secondary",
+        status: c.status || "ready",
+        unlockCondition: c.unlock_condition || c.unlockCondition,
+        toolCall: c.tool_call || c.toolCall,
+        toolParams: c.tool_params || c.toolParams,
+      }));
+
+      await sb.from("pi_messages").insert({
+        conversation_id: conv.id,
+        role: "pi",
+        content: responseText,
+        metadata: {
+          suggestedActions: normalizedCards.length > 0 ? normalizedCards : undefined,
+          greetingType: greeting.type,
+        },
+      });
+
+      // Save action cards to DB
+      if (actionCards.length > 0) {
+        const cardRows = actionCards.map((c: any, i: number) => ({
+          conversation_id: conv.id,
+          user_id: userId,
+          type: c.type || "instant",
+          title: c.title,
+          subtitle: c.subtitle || null,
+          description: c.description || null,
+          status: c.status || "ready",
+          button_label: c.button_label || c.buttonLabel || "Do this",
+          tool_call: c.tool_call || c.toolCall || null,
+          tool_params: c.tool_params || c.toolParams || null,
+          xp_reward: c.xp_reward || c.xpReward || 0,
+          trust_reward: c.trust_reward || c.trustReward || 0,
+          estimated_minutes: c.estimated_minutes || c.effortMinutes || null,
+          unlock_condition: c.unlock_condition || c.unlockCondition || null,
+          priority: c.priority || "secondary",
+          sort_order: i,
+        }));
+        await sb.from("action_cards").insert(cardRows);
+      }
+
+      return jsonRes({
+        message: responseText,
+        conversationId: conv.id,
+        suggestedActions: normalizedCards,
+        actions,
+        nextPrompt,
+        greetingType: greeting.type,
+        pathInfo: profile?.current_path
+          ? { path: profile.current_path, step: profile.path_step || 1, totalSteps: 6 }
+          : null,
+      });
+    }
     const userId = user.id;
 
     // Resolve or create conversation
