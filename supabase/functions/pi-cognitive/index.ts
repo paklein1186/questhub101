@@ -897,6 +897,27 @@ serve(async (req) => {
       const userId = user.id;
       const greeting = await getSessionGreeting(userId, sb);
 
+      // Fetch and consume pending pi_triggers
+      const { data: pendingTriggers } = await sb
+        .from("pi_triggers")
+        .select("id, trigger_type, trigger_data")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: true })
+        .limit(5);
+
+      let triggerContext = "";
+      if (pendingTriggers?.length) {
+        // Mark triggers as delivered
+        const triggerIds = pendingTriggers.map((t: any) => t.id);
+        await sb
+          .from("pi_triggers")
+          .update({ status: "delivered", delivered_at: new Date().toISOString() })
+          .in("id", triggerIds);
+
+        triggerContext = `\n\n## PENDING NOTIFICATIONS\nThe following events need the user's attention:\n${JSON.stringify(pendingTriggers.map((t: any) => ({ type: t.trigger_type, ...t.trigger_data })))}\nAddress the most important trigger naturally in your greeting.`;
+      }
+
       // Create a new conversation for the greeting
       const { data: conv } = await sb
         .from("pi_conversations")
@@ -912,7 +933,7 @@ serve(async (req) => {
         systemPrompt += PATH_PROMPTS[profile.current_path](profile.path_step || 1);
       }
 
-      systemPrompt += `\n\n## SESSION GREETING CONTEXT\n${greeting.greetingContext}\n\nGenerate a warm, proactive opening message. Do NOT wait for the user to speak first. Greet them and suggest what to do next based on the context above.`;
+      systemPrompt += `\n\n## SESSION GREETING CONTEXT\n${greeting.greetingContext}${triggerContext}\n\nGenerate a warm, proactive opening message. Do NOT wait for the user to speak first. Greet them and suggest what to do next based on the context above.`;
 
       const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
