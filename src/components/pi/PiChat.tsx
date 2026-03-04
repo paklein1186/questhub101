@@ -365,6 +365,7 @@ export function PiChat({ className }: PiChatProps) {
     setActiveConversation(null);
     setChatActive(false);
     setInput("");
+    setHasGreeted(false);
   };
 
   const hasMessages = messages.length > 0;
