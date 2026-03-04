@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.jaas-token]
 verify_jwt = false
+
+[functions.pi-cognitive]
+verify_jwt = false
