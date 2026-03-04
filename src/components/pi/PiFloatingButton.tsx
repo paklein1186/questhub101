@@ -8,33 +8,29 @@ import { cn } from "@/lib/utils";
 
 /**
  * Compute lightweight nudge count based on user onboarding progress.
- * Returns the number of key milestones not yet completed.
  */
 function useNudgeCount(userId: string | undefined) {
   return useQuery({
     queryKey: ["pi-nudges", userId],
     enabled: !!userId,
-    refetchInterval: 5 * 60_000, // every 5 min
+    refetchInterval: 5 * 60_000,
     staleTime: 2 * 60_000,
     queryFn: async () => {
       if (!userId) return 0;
       let nudges = 0;
 
-      // 1. Has the user joined at least one guild?
       const { count: guildCount } = await supabase
         .from("guild_members")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId);
       if (!guildCount || guildCount === 0) nudges++;
 
-      // 2. Has the user created at least one quest?
       const { count: questCreated } = await supabase
         .from("quests")
         .select("id", { count: "exact", head: true })
         .eq("created_by_user_id", userId);
       if (!questCreated || questCreated === 0) nudges++;
 
-      // 3. Has the user completed their profile bio?
       const { data: profile } = await supabase
         .from("profiles")
         .select("bio, avatar_url")
@@ -48,16 +44,38 @@ function useNudgeCount(userId: string | undefined) {
   });
 }
 
+/**
+ * Poll for pending pi_triggers to show notification badge.
+ */
+function usePendingTriggerCount(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["pi-triggers-pending", userId],
+    enabled: !!userId,
+    refetchInterval: 60_000, // every minute
+    staleTime: 30_000,
+    queryFn: async () => {
+      if (!userId) return 0;
+      const { count } = await supabase
+        .from("pi_triggers" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "pending");
+      return count || 0;
+    },
+  });
+}
+
 export function PiFloatingButton() {
   const { session } = useAuth();
   const { togglePiPanel, isOpen } = usePiPanel();
   const { t } = useTranslation();
 
   const { data: nudgeCount } = useNudgeCount(session?.user?.id);
+  const { data: triggerCount } = usePendingTriggerCount(session?.user?.id);
 
   if (!session) return null;
 
-  const badgeCount = nudgeCount ?? 0;
+  const badgeCount = (nudgeCount ?? 0) + (triggerCount ?? 0);
 
   return (
     <button
