@@ -88,6 +88,7 @@ export function PiChat({ className }: PiChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(activeConversationId);
   const [xpToast, setXpToast] = useState<number | null>(null);
+  const [pathInfo, setPathInfo] = useState<{ path: string; step: number; totalSteps: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -191,6 +192,9 @@ export function PiChat({ className }: PiChatProps) {
         setConversationId(data.conversationId);
         setActiveConversation(data.conversationId);
       }
+
+      // Update path info
+      if (data.pathInfo) setPathInfo(data.pathInfo);
 
       const suggestedActions = (data.suggestedActions || []).map((a: any) => ({
         ...a,
@@ -323,6 +327,25 @@ export function PiChat({ className }: PiChatProps) {
     <div className={`flex flex-col flex-1 min-h-0 ${className ?? ""}`}>
       {/* XP Toast */}
       {xpToast && <XpToast amount={xpToast} onDone={() => setXpToast(null)} />}
+
+      {/* Path indicator */}
+      {pathInfo && (
+        <div className="px-3 pt-2 pb-1">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/40 rounded-lg px-2.5 py-1.5">
+            <span>
+              {pathInfo.path === "explorer" && "🌱"}
+              {pathInfo.path === "mapper" && "🗺️"}
+              {pathInfo.path === "builder" && "🏗️"}
+              {pathInfo.path === "quester" && "⚔️"}
+              {pathInfo.path === "weaver" && "🕸️"}
+              {pathInfo.path === "steward" && "🌳"}
+            </span>
+            <span className="capitalize font-medium text-foreground">{pathInfo.path}</span>
+            <span>·</span>
+            <span>Step {pathInfo.step} of {pathInfo.totalSteps}</span>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <ScrollArea className="flex-1 px-3 py-3" ref={scrollRef}>

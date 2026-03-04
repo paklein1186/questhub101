@@ -5236,6 +5236,7 @@ export type Database = {
           contribution_index: number
           created_at: string
           credits_balance: number
+          current_path: string | null
           current_plan_code: string | null
           default_give_back_guild_id: string | null
           default_give_back_target_type: string
@@ -5266,6 +5267,7 @@ export type Database = {
           maker_xp: number
           milestone_popups_enabled: boolean
           name: string
+          path_step: number | null
           persona_confidence: number | null
           persona_source: string | null
           persona_type: string
@@ -5304,6 +5306,7 @@ export type Database = {
           contribution_index?: number
           created_at?: string
           credits_balance?: number
+          current_path?: string | null
           current_plan_code?: string | null
           default_give_back_guild_id?: string | null
           default_give_back_target_type?: string
@@ -5334,6 +5337,7 @@ export type Database = {
           maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
+          path_step?: number | null
           persona_confidence?: number | null
           persona_source?: string | null
           persona_type?: string
@@ -5372,6 +5376,7 @@ export type Database = {
           contribution_index?: number
           created_at?: string
           credits_balance?: number
+          current_path?: string | null
           current_plan_code?: string | null
           default_give_back_guild_id?: string | null
           default_give_back_target_type?: string
@@ -5402,6 +5407,7 @@ export type Database = {
           maker_xp?: number
           milestone_popups_enabled?: boolean
           name?: string
+          path_step?: number | null
           persona_confidence?: number | null
           persona_source?: string | null
           persona_type?: string
