@@ -10,26 +10,40 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 import { usePiPanel } from "@/hooks/usePiPanel";
-import { usePiConversationMutations } from "@/hooks/usePiConversations";
 import { PiActionPaths } from "@/components/assistant/PiActionPaths";
 import { useUserEntities } from "@/hooks/useUserEntities";
+import { PiActionCard, XpToast } from "@/components/pi/PiActionCard";
+import { toast } from "sonner";
 
-type ProposedAction = { name: string; args: any };
-type FollowUpSuggestion = { label: string; prompt?: string; route?: string };
+type SuggestedAction = {
+  title: string;
+  subtitle?: string;
+  description?: string;
+  buttonLabel: string;
+  effortMinutes?: number;
+  xpReward?: number;
+  trustReward?: number;
+  priority: "primary" | "secondary" | "optional";
+  toolCall?: string;
+  toolParams?: any;
+  status: "ready" | "locked" | "in_progress" | "completed";
+  unlockCondition?: string;
+};
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
-  proposedActions?: ProposedAction[];
-  pendingConfirmation?: boolean;
-  followUpSuggestions?: FollowUpSuggestion[];
+  suggestedActions?: SuggestedAction[];
+  followUpSuggestions?: { label: string; prompt?: string; route?: string }[];
   meta?: {
     createdEntities?: { type: string; id: string }[];
     updatedEntities?: { type: string; id: string }[];
     links?: { fromType: string; fromId: string; relation: string; toType: string; toId: string }[];
     undoable?: boolean;
   };
+  scene?: { screen?: string; navigate?: string };
+  nextPrompt?: string | null;
 };
 
 function entityRoute(type: string, id: string): string {
@@ -46,17 +60,6 @@ function entityLabel(type: string): string {
     living_system: "Living System", service: "Service",
   };
   return map[type] || type;
-}
-
-function actionSummary(action: ProposedAction): string {
-  const { name, args } = action;
-  if (name === "create_entity" || name === "prefill_form") {
-    return `Create ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
-  }
-  if (name === "update_entity") return `Update ${entityLabel(args?.type || "entity")}${args?.fields?.title ? `: "${args.fields.title}"` : ""}`;
-  if (name === "add_subtask") return `Add subtask${args?.title ? `: "${args.title}"` : ""} to quest`;
-  if (name === "link_entities") return `Link ${entityLabel(args?.from_type)} → ${args?.relation} → ${entityLabel(args?.to_type)}`;
-  return name;
 }
 
 interface PiChatProps {
@@ -79,12 +82,12 @@ export function PiChat({ className }: PiChatProps) {
     setPrefillPrompt,
     closePiPanel,
   } = usePiPanel();
-  const { createConversation, updateConversation } = usePiConversationMutations();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(activeConversationId);
+  const [xpToast, setXpToast] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -95,7 +98,7 @@ export function PiChat({ className }: PiChatProps) {
     ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
   }, []);
 
-  // Load conversation from DB when activeConversationId changes
+  // Load conversation messages from pi_messages table
   useEffect(() => {
     if (!activeConversationId) {
       setMessages([]);
@@ -105,12 +108,23 @@ export function PiChat({ className }: PiChatProps) {
     setConversationId(activeConversationId);
     (async () => {
       const { data } = await supabase
-        .from("pi_conversations" as any)
-        .select("messages")
-        .eq("id", activeConversationId)
-        .single();
+        .from("pi_messages" as any)
+        .select("id, role, content, metadata, created_at")
+        .eq("conversation_id", activeConversationId)
+        .order("created_at", { ascending: true });
       if (data) {
-        setMessages((data as any).messages || []);
+        setMessages(
+          (data as any[]).map((m) => ({
+            id: m.id,
+            role: m.role === "pi" ? "assistant" : "user",
+            text: m.content,
+            suggestedActions: m.metadata?.suggestedActions?.map((a: any) => ({
+              ...a,
+              status: a.status || "ready",
+            })),
+            scene: m.metadata?.scene,
+          }))
+        );
       }
     })();
   }, [activeConversationId]);
@@ -122,41 +136,37 @@ export function PiChat({ className }: PiChatProps) {
     });
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isChatActive, scrollToBottom]);
+  useEffect(() => { scrollToBottom(); }, [messages, isChatActive, scrollToBottom]);
+  useEffect(() => { autoResize(); }, [input, autoResize]);
 
-  // Auto-resize textarea when input changes programmatically
-  useEffect(() => {
-    autoResize();
-  }, [input, autoResize]);
-
-  // Handle prefill prompt from external sources (e.g. GuidedPathways)
+  // Handle prefill prompt
   useEffect(() => {
     if (prefillPrompt && session?.user?.id) {
       const prompt = prefillPrompt;
       setPrefillPrompt(null);
-      // Small delay to ensure panel is rendered
       setTimeout(() => send(prompt), 200);
     }
   }, [prefillPrompt, session?.user?.id]);
 
-  const persistMessages = useCallback(
-    async (msgs: ChatMessage[], convId: string | null) => {
-      if (!convId || !session?.user?.id) return;
-      await updateConversation(convId, {
-        messages: msgs as any,
-        title: msgs.find((m) => m.role === "user")?.text?.slice(0, 60) || "Conversation",
-      });
-    },
-    [session, updateConversation]
-  );
+  // Process navigation/notification actions from response
+  const processActions = (actions: any[]) => {
+    for (const action of actions) {
+      if (action.action === "navigate" && action.screen) {
+        navigate(action.screen);
+      }
+      if (action.action === "notification") {
+        toast(action.title, { description: action.message });
+      }
+      if (action.action === "award_xp") {
+        setXpToast(action.amount);
+      }
+    }
+  };
 
   const send = async (overrideText?: string, displayText?: string) => {
     const text = (overrideText ?? input).trim();
     if (!text || isLoading || !session?.user?.id) return;
 
-    // Mark chat as active (collapses volets)
     if (!isChatActive) setChatActive(true);
 
     const shownText = displayText ?? text;
@@ -166,53 +176,45 @@ export function PiChat({ className }: PiChatProps) {
     setInput("");
     setIsLoading(true);
 
-    // Create conversation in DB if needed
-    let cId = conversationId;
-    if (!cId) {
-      try {
-        const conv = await createConversation({
-          title: text.slice(0, 60),
-          modelId: "gemini-flash",
-          contextType,
-          contextId,
-          messages: [userMsg],
-        });
-        if (conv) {
-          cId = conv.id;
-          setConversationId(cId);
-          setActiveConversation(cId);
-        }
-      } catch (e) {
-        console.error("Failed to create conversation:", e);
-      }
-    }
-
     try {
-      const { data, error } = await supabase.functions.invoke("ctg-guide", {
+      const { data, error } = await supabase.functions.invoke("pi-cognitive", {
         body: {
           message: text,
-          contextType,
-          contextId: contextId ?? null,
-          mode: "propose",
+          conversationId,
         },
       });
 
       if (error) throw error;
 
-      const proposedActions = data.proposedActions || [];
-      const followUpSuggestions = data.followUpSuggestions || [];
+      // Update conversation ID from response
+      if (data.conversationId && !conversationId) {
+        setConversationId(data.conversationId);
+        setActiveConversation(data.conversationId);
+      }
+
+      const suggestedActions = (data.suggestedActions || []).map((a: any) => ({
+        ...a,
+        status: a.status || "ready",
+      }));
+
       const assistantMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        text: data.assistantMessage,
-        proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
-        pendingConfirmation: proposedActions.length > 0,
-        followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
+        text: data.message,
+        suggestedActions: suggestedActions.length > 0 ? suggestedActions : undefined,
+        scene: data.scene,
+        nextPrompt: data.nextPrompt,
       };
 
-      const updatedMessages = [...nextMessages, assistantMsg];
-      setMessages(updatedMessages);
-      if (cId) persistMessages(updatedMessages, cId);
+      setMessages([...nextMessages, assistantMsg]);
+
+      // Process side-effect actions
+      if (data.actions?.length) processActions(data.actions);
+
+      // Handle scene navigation
+      if (data.scene?.navigate) {
+        setTimeout(() => navigate(data.scene.navigate), 500);
+      }
     } catch (e: any) {
       console.error("Pi error:", e);
       const errMsg: ChatMessage = {
@@ -220,187 +222,90 @@ export function PiChat({ className }: PiChatProps) {
         role: "assistant",
         text: t("pi.errorRetry"),
       };
-      const updatedMessages = [...nextMessages, errMsg];
-      setMessages(updatedMessages);
-      if (cId) persistMessages(updatedMessages, cId);
+      setMessages([...nextMessages, errMsg]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const confirmActions = async (msgId: string) => {
+  // Execute an action card
+  const executeAction = async (msgId: string, actionIndex: number) => {
     const msg = messages.find((m) => m.id === msgId);
-    if (!msg?.proposedActions?.length) return;
+    const action = msg?.suggestedActions?.[actionIndex];
+    if (!action || !action.toolCall) return;
 
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("ctg-guide", {
-        body: {
-          mode: "execute",
-          pendingActions: msg.proposedActions,
-          contextType,
-          contextId: contextId ?? null,
-        },
-      });
-      if (error) throw error;
-
-      const updated = messages.map((m) =>
+    // Update action status to in_progress
+    setMessages((prev) =>
+      prev.map((m) =>
         m.id === msgId
           ? {
               ...m,
-              pendingConfirmation: false,
-              proposedActions: undefined,
-              meta: {
-                createdEntities: data.createdEntities || [],
-                updatedEntities: data.updatedEntities || [],
-                links: data.links || [],
-                undoable: (data.createdEntities || []).length > 0,
-              },
+              suggestedActions: m.suggestedActions?.map((a, i) =>
+                i === actionIndex ? { ...a, status: "in_progress" as const } : a
+              ),
             }
           : m
-      );
-      setMessages(updated);
-      if (conversationId) persistMessages(updated, conversationId);
-    } catch (e) {
-      console.error("Execute error:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      )
+    );
 
-  const rejectActions = async (msgId: string) => {
-    const msg = messages.find((m) => m.id === msgId);
-    const skippedActions = msg?.proposedActions;
-
-    // Call LLM again with skip context to get follow-up suggestions
-    setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("ctg-guide", {
+      const { data, error } = await supabase.functions.invoke("pi-cognitive", {
         body: {
-          message: `[SYSTEM: User skipped these proposed actions: ${skippedActions?.map(a => actionSummary(a)).join(", ")}. Provide alternative suggestions. Include followUpSuggestions in your response.]`,
-          contextType,
-          contextId: contextId ?? null,
-          mode: "propose",
+          message: `EXECUTE_ACTION: ${JSON.stringify({ tool: action.toolCall, params: action.toolParams })}`,
+          conversationId,
         },
       });
 
-      if (!error && data?.followUpSuggestions?.length) {
-        const updated = messages.map((m) =>
+      if (error) throw error;
+
+      // Update action status to completed
+      setMessages((prev) =>
+        prev.map((m) =>
           m.id === msgId
-            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: data.followUpSuggestions }
+            ? {
+                ...m,
+                suggestedActions: m.suggestedActions?.map((a, i) =>
+                  i === actionIndex ? { ...a, status: "completed" as const } : a
+                ),
+              }
             : m
-        );
-        // Add assistant follow-up message
-        const followUpMsg: ChatMessage = {
+        )
+      );
+
+      // Show XP toast
+      if (action.xpReward && action.xpReward > 0) {
+        setXpToast(action.xpReward);
+      }
+
+      // Process any returned actions
+      if (data?.actions?.length) processActions(data.actions);
+
+      // Add confirmation message if Pi responded
+      if (data?.message) {
+        const confirmMsg: ChatMessage = {
           id: crypto.randomUUID(),
           role: "assistant",
-          text: data.assistantMessage || t("pi.skippedAlternatives"),
-          proposedActions: data.proposedActions?.length ? data.proposedActions : undefined,
-          pendingConfirmation: data.proposedActions?.length > 0,
-          followUpSuggestions: !data.proposedActions?.length ? data.followUpSuggestions : undefined,
+          text: data.message,
+          nextPrompt: data.nextPrompt,
         };
-        const updatedWithFollow = [...updated, followUpMsg];
-        setMessages(updatedWithFollow);
-        if (conversationId) persistMessages(updatedWithFollow, conversationId);
-      } else {
-        // Fallback: just clear actions and show default suggestions
-        const defaultSuggestions: FollowUpSuggestion[] = [
-          { label: t("pi.suggestModify"), prompt: t("pi.suggestModifyPrompt") },
-          { label: t("pi.suggestSearchExisting"), prompt: t("pi.suggestSearchExistingPrompt") },
-          { label: t("pi.suggestDifferent"), prompt: t("pi.suggestDifferentPrompt") },
-        ];
-        const updated = messages.map((m) =>
-          m.id === msgId
-            ? { ...m, pendingConfirmation: false, proposedActions: undefined, followUpSuggestions: defaultSuggestions }
-            : m
-        );
-        setMessages(updated);
-        if (conversationId) persistMessages(updated, conversationId);
+        setMessages((prev) => [...prev, confirmMsg]);
       }
-    } catch {
-      // On error, just clear with defaults
-      const updated = messages.map((m) =>
-        m.id === msgId ? { ...m, pendingConfirmation: false, proposedActions: undefined } : m
+    } catch (e: any) {
+      console.error("Action execution error:", e);
+      // Revert to ready state
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId
+            ? {
+                ...m,
+                suggestedActions: m.suggestedActions?.map((a, i) =>
+                  i === actionIndex ? { ...a, status: "ready" as const } : a
+                ),
+              }
+            : m
+        )
       );
-      setMessages(updated);
-      if (conversationId) persistMessages(updated, conversationId);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSuggestionClick = useCallback((prompt: string) => {
-    setInput(prompt);
-    // Use a microtask to ensure input is set before sending
-    queueMicrotask(() => {
-      // Directly invoke the send logic with the prompt
-      const text = prompt.trim();
-      if (!text || isLoading || !session?.user?.id) return;
-      if (!isChatActive) setChatActive(true);
-
-      const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", text };
-      const nextMessages = [...messages, userMsg];
-      setMessages(nextMessages);
-      setInput("");
-      setIsLoading(true);
-
-      (async () => {
-        let cId = conversationId;
-        if (!cId) {
-          try {
-            const conv = await createConversation({ title: text.slice(0, 60), modelId: "gemini-flash", contextType, contextId, messages: [userMsg] });
-            if (conv) { cId = conv.id; setConversationId(cId); setActiveConversation(cId); }
-          } catch (e) { console.error("Failed to create conversation:", e); }
-        }
-        try {
-          const { data, error } = await supabase.functions.invoke("ctg-guide", {
-            body: { message: text, contextType, contextId: contextId ?? null, mode: "propose" },
-          });
-          if (error) throw error;
-          const proposedActions = data.proposedActions || [];
-          const followUpSuggestions = data.followUpSuggestions || [];
-          const assistantMsg: ChatMessage = {
-            id: crypto.randomUUID(), role: "assistant", text: data.assistantMessage,
-            proposedActions: proposedActions.length > 0 ? proposedActions : undefined,
-            pendingConfirmation: proposedActions.length > 0,
-            followUpSuggestions: followUpSuggestions.length > 0 && !proposedActions.length ? followUpSuggestions : undefined,
-          };
-          const updatedMessages = [...nextMessages, assistantMsg];
-          setMessages(updatedMessages);
-          if (cId) persistMessages(updatedMessages, cId);
-        } catch (e: any) {
-          console.error("Pi error:", e);
-          const errMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: t("pi.errorRetry") };
-          const updatedMessages = [...nextMessages, errMsg];
-          setMessages(updatedMessages);
-          if (cId) persistMessages(updatedMessages, cId);
-        } finally {
-          setIsLoading(false);
-        }
-      })();
-    });
-  }, [messages, isLoading, session, isChatActive, conversationId, contextType, contextId]);
-
-  const undoActions = async (msgId: string) => {
-    const msg = messages.find((m) => m.id === msgId);
-    if (!msg?.meta?.createdEntities?.length) return;
-
-    setIsLoading(true);
-    try {
-      await supabase.functions.invoke("ctg-guide", {
-        body: { mode: "undo", createdEntities: msg.meta.createdEntities, contextType, contextId },
-      });
-      const updated = messages.map((m) =>
-        m.id === msgId
-          ? { ...m, meta: { ...m.meta, undoable: false, createdEntities: [], links: [] }, text: m.text + `\n\n*⏪ ${t("pi.actionsUndone")}*` }
-          : m
-      );
-      setMessages(updated);
-      if (conversationId) persistMessages(updated, conversationId);
-    } catch (e) {
-      console.error("Undo error:", e);
-    } finally {
-      setIsLoading(false);
+      toast.error("Action failed. Please try again.");
     }
   };
 
@@ -416,6 +321,9 @@ export function PiChat({ className }: PiChatProps) {
 
   return (
     <div className={`flex flex-col flex-1 min-h-0 ${className ?? ""}`}>
+      {/* XP Toast */}
+      {xpToast && <XpToast amount={xpToast} onDone={() => setXpToast(null)} />}
+
       {/* Messages */}
       <ScrollArea className="flex-1 px-3 py-3" ref={scrollRef}>
         {!hasMessages && (
@@ -434,45 +342,59 @@ export function PiChat({ className }: PiChatProps) {
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} gap-2`}>
               {msg.role === "assistant" && (
                 <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-bold text-primary">π</span>
                 </div>
               )}
-              <div
-                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm ${
-                  msg.role === "user"
-                    ? "bg-primary/10 text-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1.5 [&>p:last-child]:mb-0">
-                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+              <div className={`max-w-[85%] ${msg.role === "user" ? "" : ""}`}>
+                <div
+                  className={`rounded-2xl px-3.5 py-2.5 text-sm ${
+                    msg.role === "user"
+                      ? "bg-primary/10 text-foreground"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-1.5 [&>p:last-child]:mb-0">
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </div>
                 </div>
 
-                {/* Proposed actions */}
-                {msg.pendingConfirmation && msg.proposedActions?.length ? (
-                  <div className="mt-2.5 space-y-1.5">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                      {t("pi.proposedActions")}
-                    </p>
-                    {msg.proposedActions.map((a, i) => (
-                      <div key={i} className="text-xs px-2 py-1.5 rounded-lg bg-background/60 border border-border">
-                        {actionSummary(a)}
-                      </div>
+                {/* Action Cards */}
+                {msg.suggestedActions?.length ? (
+                  <div className="mt-2 space-y-2">
+                    {msg.suggestedActions.map((action, i) => (
+                      <PiActionCard
+                        key={i}
+                        title={action.title}
+                        subtitle={action.subtitle}
+                        description={action.description}
+                        effortMinutes={action.effortMinutes}
+                        xpReward={action.xpReward}
+                        trustReward={action.trustReward}
+                        buttonLabel={action.buttonLabel || "Do this"}
+                        status={action.status}
+                        unlockCondition={action.unlockCondition}
+                        priority={action.priority || "secondary"}
+                        onExecute={() => executeAction(msg.id, i)}
+                      />
                     ))}
-                    <div className="flex gap-1.5 pt-1">
-                      <Button size="sm" className="h-7 text-xs gap-1" onClick={() => confirmActions(msg.id)}>
-                        <Check className="h-3 w-3" /> {t("pi.confirm")}
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={() => rejectActions(msg.id)}>
-                        <X className="h-3 w-3" /> {t("pi.skip")}
-                      </Button>
-                    </div>
                   </div>
                 ) : null}
 
+                {/* Next prompt suggestion */}
+                {msg.nextPrompt && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => send(msg.nextPrompt!)}
+                      className="text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 transition-colors cursor-pointer"
+                    >
+                      {msg.nextPrompt}
+                    </button>
+                  </div>
+                )}
+
                 {/* Follow-up suggestion chips */}
-                {msg.followUpSuggestions?.length && !msg.pendingConfirmation ? (
-                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {msg.followUpSuggestions?.length ? (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
                     {msg.followUpSuggestions.map((s, i) => (
                       <button
                         key={i}
@@ -481,7 +403,7 @@ export function PiChat({ className }: PiChatProps) {
                             navigate(s.route);
                             closePiPanel();
                           } else if (s.prompt) {
-                            handleSuggestionClick(s.prompt);
+                            send(s.prompt);
                           }
                         }}
                         className="text-[11px] px-2.5 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary hover:bg-primary/15 transition-colors cursor-pointer"
@@ -506,7 +428,7 @@ export function PiChat({ className }: PiChatProps) {
 
                 {msg.meta?.undoable && (
                   <div className="mt-2">
-                    <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1" onClick={() => undoActions(msg.id)}>
+                    <Button size="sm" variant="outline" className="h-6 text-[10px] gap-1">
                       <Undo2 className="h-3 w-3" /> {t("pi.undo")}
                     </Button>
                   </div>
@@ -518,7 +440,7 @@ export function PiChat({ className }: PiChatProps) {
           {isLoading && (
             <div className="flex justify-start gap-2">
               <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-bold text-primary">π</span>
               </div>
               <div className="bg-muted rounded-2xl px-3.5 py-2.5 text-sm flex items-center gap-2 text-muted-foreground">
                 <span className="flex gap-1">
