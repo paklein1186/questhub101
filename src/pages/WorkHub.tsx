@@ -61,8 +61,8 @@ export default function WorkHub() {
   const { data: myCompanies } = useMyCompanyMemberships(currentUser.id || "");
 
   const questsList = myQuests || [];
-  const ideasList = questsList.filter((qp: any) => (qp.quests?.status as string) === "IDEA");
-  const nonIdeaQuests = questsList.filter((qp: any) => (qp.quests?.status as string) !== "IDEA");
+  const ideasList = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) === "IDEA");
+  const nonIdeaQuests = questsList.filter((qp: any) => (qp.quests?.quest_nature as string) !== "IDEA");
   const podsList = myPods || [];
   const servicesList = myServices || [];
   const guildsList = myGuilds || [];
