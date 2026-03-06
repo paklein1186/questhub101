@@ -5474,6 +5474,7 @@ export type Database = {
           xp_level: number
           xp_pending: number
           xp_recent_12m: number
+          xp_total: number
         }
         Insert: {
           allow_wall_comments?: boolean
@@ -5545,6 +5546,7 @@ export type Database = {
           xp_level?: number
           xp_pending?: number
           xp_recent_12m?: number
+          xp_total?: number
         }
         Update: {
           allow_wall_comments?: boolean
@@ -5616,6 +5618,7 @@ export type Database = {
           xp_level?: number
           xp_pending?: number
           xp_recent_12m?: number
+          xp_total?: number
         }
         Relationships: [
           {
@@ -9260,6 +9263,7 @@ export type Database = {
           weight: number
         }[]
       }
+      get_user_ctg_summary: { Args: { p_user_id: string }; Returns: Json }
       get_user_id_by_email: {
         Args: { lookup_email: string }
         Returns: {
@@ -9570,12 +9574,7 @@ export type Database = {
         | "natural_system"
       trust_status: "active" | "outdated" | "retracted"
       trust_visibility: "public" | "network" | "private"
-      xp_transaction_type:
-        | "PURCHASE"
-        | "ACTION_SPEND"
-        | "REWARD"
-        | "ADJUSTMENT"
-        | "REFUND"
+      xp_transaction_type: "ACTION_SPEND" | "REWARD" | "ADJUSTMENT" | "REFUND"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -9855,13 +9854,7 @@ export const Constants = {
       ],
       trust_status: ["active", "outdated", "retracted"],
       trust_visibility: ["public", "network", "private"],
-      xp_transaction_type: [
-        "PURCHASE",
-        "ACTION_SPEND",
-        "REWARD",
-        "ADJUSTMENT",
-        "REFUND",
-      ],
+      xp_transaction_type: ["ACTION_SPEND", "REWARD", "ADJUSTMENT", "REFUND"],
     },
   },
 } as const
