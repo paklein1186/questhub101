@@ -35,7 +35,7 @@ function useFeaturedMissions() {
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .eq("is_featured", true)
-        .in("quest_type", ["ACTION", "PROJECT", "PARTNERSHIP", "FUNDING"])
+        .in("quest_nature", ["ACTION", "PROJECT", "PARTNERSHIP", "FUNDING"])
         .order("created_at", { ascending: false })
         .limit(3);
       return (data ?? []) as any[];

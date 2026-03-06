@@ -351,7 +351,7 @@ export default function NaturalSystemPage() {
                         <Link key={q.id} to={`/quests/${q.id}`} className="flex items-center gap-2 rounded-lg p-2 hover:bg-muted/50 transition-colors">
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium text-foreground truncate">{q.title}</p>
-                            <p className="text-[10px] text-muted-foreground">{q.quest_type} · {q.status}</p>
+                            <p className="text-[10px] text-muted-foreground">{q.quest_nature} · {q.status}</p>
                           </div>
                           <Badge variant="outline" className="text-[10px] py-0 shrink-0">{q.status}</Badge>
                         </Link>
