@@ -83,19 +83,21 @@ export function AppNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { togglePiPanel: togglePanel, isOpen: isPiOpen } = usePiPanel();
 
-  const { data: creditsBalance } = useQuery({
-    queryKey: ["nav-credits-balance", session?.user?.id],
+  const { data: navBalances } = useQuery({
+    queryKey: ["nav-balances", session?.user?.id],
     enabled: !!session?.user?.id,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance")
+        .select("credits_balance, ctg_balance")
         .eq("user_id", session!.user.id)
         .maybeSingle();
-      return (data as any)?.credits_balance ?? 0;
+      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0 };
     },
     refetchInterval: 60_000,
   });
+  const creditsBalance = navBalances?.credits ?? 0;
+  const ctgBalance = navBalances?.ctg ?? 0;
 
   const handleLogout = async () => {
     await signOut();
