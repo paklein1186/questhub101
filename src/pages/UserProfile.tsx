@@ -532,11 +532,9 @@ export default function UserProfile() {
                       </Badge>
                     </Link>
                   )}
-                  {canSeePrivate && (
-                    <span className="flex items-center gap-1 text-xs font-medium">
-                      <Coins className="h-3 w-3 text-primary" /> {profile.creditsBalance} Credits
-                    </span>
-                  )}
+                  <span className="flex items-center gap-1 text-xs font-medium">
+                    <Zap className="h-3 w-3 text-primary" /> {profile.xp} XP
+                  </span>
                 </div>
               </div>
             </div>
