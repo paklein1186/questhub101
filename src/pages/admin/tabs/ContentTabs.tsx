@@ -326,7 +326,7 @@ export function QuestsTab() {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="OPEN">Open</SelectItem>
-            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
             <SelectItem value="COMPLETED">Completed</SelectItem>
             <SelectItem value="CANCELLED">Cancelled</SelectItem>
           </SelectContent>

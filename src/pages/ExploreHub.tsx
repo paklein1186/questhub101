@@ -242,7 +242,7 @@ function QuestsSubTabs() {
       </div>
       {sub === "quests" && <QuestsMarketplace bare />}
       {sub === "missions" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
-      {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
+      {sub === "ideas" && <QuestsMarketplace bare natureFilter="IDEA" />}
     </div>
   );
 }
@@ -264,7 +264,7 @@ function JobsSubTabs() {
       </div>
       {sub === "positions" && <JobsExplore bare />}
       {sub === "quests" && <QuestsMarketplace bare statusFilter="OPEN_OR_PROPOSALS" />}
-      {sub === "ideas" && <QuestsMarketplace bare statusFilter="IDEA" />}
+      {sub === "ideas" && <QuestsMarketplace bare natureFilter="IDEA" />}
     </div>
   );
 }

@@ -515,11 +515,13 @@ export default function Onboarding() {
       });
 
       if (wantsProject && projectTitle.trim()) {
-        const questStatus = projectStatus === "COMPLETED" ? "COMPLETED" : projectStatus === "ONGOING" ? "IN_PROGRESS" : "OPEN";
+        const questStatus = projectStatus === "COMPLETED" ? "COMPLETED" : "OPEN";
+        const questNature = "PROJECT";
         const { data: quest } = await supabase.from("quests").insert({
           title: projectTitle.trim(),
           description: projectDesc.trim() || null,
           status: questStatus,
+          quest_nature: questNature,
           created_by_user_id: authUser.id,
           cover_image_url: projectImage || null,
           is_draft: false,

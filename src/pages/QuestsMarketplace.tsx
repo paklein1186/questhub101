@@ -77,7 +77,7 @@ function CreateQuestButton() {
   );
 }
 
-export default function QuestsMarketplace({ bare, statusFilter: externalStatusFilter }: { bare?: boolean; statusFilter?: string }) {
+export default function QuestsMarketplace({ bare, statusFilter: externalStatusFilter, natureFilter }: { bare?: boolean; statusFilter?: string; natureFilter?: string }) {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hideCompleted, setHideCompleted] = useState(true);
@@ -101,12 +101,12 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
     if (hideCompleted && (q.status === "COMPLETED" || q.status === "CANCELLED")) return false;
     const qStatus = q.status as string;
-    // When showing ideas specifically, only show IDEA nature
-    if (externalStatusFilter === "IDEA" && (q as any).quest_nature !== "IDEA") return false;
+    // When filtering by nature (e.g. IDEAS)
+    if (natureFilter && (q as any).quest_nature !== natureFilter) return false;
     // When showing open quests for Jobs subtab
     if (externalStatusFilter === "OPEN_OR_PROPOSALS" && qStatus !== "OPEN" && qStatus !== "OPEN_FOR_PROPOSALS") return false;
-    // When NOT showing ideas, hide IDEA quests
-    if (!externalStatusFilter && (q as any).quest_nature === "IDEA") return false;
+    // When NOT showing ideas and no nature filter, hide IDEA quests
+    if (!natureFilter && !externalStatusFilter && (q as any).quest_nature === "IDEA") return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
     if (effectiveStatusFilter !== "all" && !externalStatusFilter && qStatus !== effectiveStatusFilter) return false;

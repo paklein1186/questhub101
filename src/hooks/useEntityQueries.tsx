@@ -829,7 +829,7 @@ export function useUserQuestParticipations(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_participants")
-        .select("*, quests(id, title, reward_xp, status, company_id, cover_image_url)")
+        .select("*, quests(id, title, reward_xp, status, company_id, cover_image_url, quest_nature)")
         .eq("user_id", userId!);
       if (error) throw error;
       return data;
