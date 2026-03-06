@@ -22,7 +22,7 @@ import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { QuestBudgetWizard } from "@/components/quest/QuestBudgetWizard";
-import { QUEST_TYPES, QUEST_TYPE_LABELS } from "@/lib/questTypes";
+import { QUEST_TYPES } from "@/lib/questTypes";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -355,7 +355,6 @@ export default function QuestCreate() {
           mission_budget_min: missionBudgetMin ? Number(missionBudgetMin) : null,
           mission_budget_max: missionBudgetMax ? Number(missionBudgetMax) : null,
           payment_type: paymentType,
-          quest_type: questType,
           quest_nature: questNature,
         } as any)
         .select()

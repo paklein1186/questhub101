@@ -59,14 +59,10 @@ import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { TrustNodeType } from "@/types/enums";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
 import {
-  QUEST_TYPES,
-  QUEST_TYPE_LABELS,
-  QUEST_TYPE_COLORS,
   QUEST_NATURE_LABELS,
   QUEST_NATURE_COLORS,
   QUEST_NATURE_ICONS,
   isMission,
-  type QuestType,
 } from "@/lib/questTypes";
 import { QuestNature } from "@/types/enums";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
@@ -348,7 +344,7 @@ export default function QuestDetail() {
   const [editFundingGoal, setEditFundingGoal] = useState("");
   const [editTopics, setEditTopics] = useState<string[]>([]);
   const [editTerritories, setEditTerritories] = useState<string[]>([]);
-  const [editQuestType, setEditQuestType] = useState("ACTION");
+  const [editQuestNature, setEditQuestNature] = useState("PROJECT");
   const [editGuildId, setEditGuildId] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -466,7 +462,7 @@ export default function QuestDetail() {
     setEditFundingGoal(String((quest as any).funding_goal_credits ?? ""));
     setEditTopics(topics.map((t: any) => t.id));
     setEditTerritories(territories.map((t: any) => t.id));
-    setEditQuestType((quest as any).quest_type || "ACTION");
+    setEditQuestNature((quest as any).quest_nature || "PROJECT");
     setEditGuildId(quest.guild_id || null);
     setEditFundingType((quest as any).funding_type || "CREDITS");
     setEditOpen(true);
@@ -495,7 +491,7 @@ export default function QuestDetail() {
       credit_budget: Number(editCreditBudget) || 0,
       allow_fundraising: editAllowFundraising,
       funding_goal_credits: editFundingGoal ? Number(editFundingGoal) : null,
-      quest_type: editQuestType,
+      quest_nature: editQuestNature,
       funding_type: editFundingType,
     } as any).eq("id", quest.id);
 
@@ -872,12 +868,12 @@ export default function QuestDetail() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><label className="text-sm font-medium mb-1 block">{t("filters.questType")}</label>
-                <Select value={editQuestType} onValueChange={setEditQuestType}>
+              <div><label className="text-sm font-medium mb-1 block">Quest Nature</label>
+                <Select value={editQuestNature} onValueChange={setEditQuestNature}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {QUEST_TYPES.map(qt => (
-                      <SelectItem key={qt} value={qt}>{t(`questTypes.${qt}`)}</SelectItem>
+                    {(Object.values(QuestNature) as QuestNature[]).map(n => (
+                      <SelectItem key={n} value={n}>{QUEST_NATURE_ICONS[n]} {QUEST_NATURE_LABELS[n]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

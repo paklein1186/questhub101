@@ -340,7 +340,7 @@ async function buildContextSummary(
   if (contextType === "quest" && contextId) {
     const [questRes, participantsRes, affiliationsRes, questTerrsRes, nsLinkRes] = await Promise.all([
       sb.from("quests")
-        .select("id, title, description, status, quest_type, guild_id, natural_system_id, is_draft, created_by_user_id")
+        .select("id, title, description, status, quest_nature, guild_id, natural_system_id, is_draft, created_by_user_id")
         .eq("id", contextId)
         .maybeSingle(),
       sb.from("quest_participants")
