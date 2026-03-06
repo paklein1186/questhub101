@@ -22,7 +22,6 @@ import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { QuestBudgetWizard } from "@/components/quest/QuestBudgetWizard";
-import { QUEST_TYPES } from "@/lib/questTypes";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -172,7 +171,7 @@ export default function QuestCreate() {
     const prefillTitle = searchParams.get("prefill_title");
     const prefillType = searchParams.get("prefill_type");
     if (prefillTitle) setTitle(decodeURIComponent(prefillTitle));
-    if (prefillType) setQuestType(prefillType);
+    if (prefillType) setQuestNature(prefillType as QuestNature);
   }, []);
   const [questStatus, setQuestStatus] = useState<string>("OPEN");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -191,7 +190,6 @@ export default function QuestCreate() {
   const [missionBudgetMin, setMissionBudgetMin] = useState("");
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
   const [paymentType, setPaymentType] = useState("INVOICE");
-  const [questType, setQuestType] = useState("ACTION");
   const [questNature, setQuestNature] = useState(QuestNature.PROJECT);
   const [websiteUrl, setWebsiteUrl] = useState("");
 
