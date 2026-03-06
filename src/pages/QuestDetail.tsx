@@ -58,7 +58,17 @@ import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { GiveTrustButton } from "@/components/GiveTrustButton";
 import { TrustNodeType } from "@/types/enums";
 import { useTopics, useTerritories } from "@/hooks/useSupabaseData";
-import { QUEST_TYPES, QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
+import {
+  QUEST_TYPES,
+  QUEST_TYPE_LABELS,
+  QUEST_TYPE_COLORS,
+  QUEST_NATURE_LABELS,
+  QUEST_NATURE_COLORS,
+  QUEST_NATURE_ICONS,
+  isMission,
+  type QuestType,
+} from "@/lib/questTypes";
+import { QuestNature } from "@/types/enums";
 import { GuildRitualsTab } from "@/components/guild/GuildRitualsTab";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { TrustTab } from "@/components/trust/TrustTab";
@@ -618,10 +628,16 @@ export default function QuestDetail() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
           <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
-          <div className="flex items-center gap-2">
-            {(quest as any).quest_type && (
-              <Badge variant="outline" className={QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}>
-                {t(`questTypes.${(quest as any).quest_type}`)}
+          <div className="flex items-center gap-2 flex-wrap">
+            {(quest as any).quest_nature && (quest as any).quest_nature !== "PROJECT" && (
+              <Badge variant="outline" className={QUEST_NATURE_COLORS[(quest as any).quest_nature as QuestNature] || ''}>
+                {QUEST_NATURE_ICONS[(quest as any).quest_nature as QuestNature]}{" "}
+                {QUEST_NATURE_LABELS[(quest as any).quest_nature as QuestNature]}
+              </Badge>
+            )}
+            {isMission(quest as any) && (quest as any).quest_nature !== "MISSION" && (
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
+                💰 Mission
               </Badge>
             )}
             <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
