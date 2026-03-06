@@ -91,6 +91,7 @@ export interface ExploreFilterConfig {
   showRole?: boolean;           // user role
   showQuestType?: boolean;      // quest nature (Level 1)
   showMission?: boolean;        // mission-only toggle
+}
 
 interface Props {
   filters: ExploreFilterValues;
