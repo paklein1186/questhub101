@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Compass, Loader2, Sparkles, X, RotateCcw, Check, Tag, Globe, Lightbulb } from "lucide-react";
+import { QuestNature } from "@/types/enums";
+import {
+  QUEST_NATURE_LABELS,
+  QUEST_NATURE_DESCRIPTIONS,
+  QUEST_NATURE_ICONS,
+} from "@/lib/questTypes";
 import { UrlScrapePanel } from "@/components/UrlScrapePanel";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -186,6 +192,7 @@ export default function QuestCreate() {
   const [missionBudgetMax, setMissionBudgetMax] = useState("");
   const [paymentType, setPaymentType] = useState("INVOICE");
   const [questType, setQuestType] = useState("ACTION");
+  const [questNature, setQuestNature] = useState(QuestNature.PROJECT);
   const [websiteUrl, setWebsiteUrl] = useState("");
 
   // Co-hosts state
@@ -318,7 +325,8 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
-      const finalStatus = isDraft ? "DRAFT" : questStatus;
+      // IDEAs always save as DRAFT — they live in the Idea Pool, not the Marketplace
+      const finalStatus = (isDraft || questNature === QuestNature.IDEA) ? "DRAFT" : questStatus;
 
       const { data: quest, error } = await supabase
         .from("quests")
@@ -348,6 +356,7 @@ export default function QuestCreate() {
           mission_budget_max: missionBudgetMax ? Number(missionBudgetMax) : null,
           payment_type: paymentType,
           quest_type: questType,
+          quest_nature: questNature,
         } as any)
         .select()
         .single();
@@ -652,36 +661,54 @@ export default function QuestCreate() {
           </div>
 
           <div>
-            <Label htmlFor="questType">{t("filters.questType")}</Label>
-            <select
-              id="questType"
-              value={questType}
-              onChange={(e) => setQuestType(e.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              {QUEST_TYPES.map(qt => (
-                <option key={qt} value={qt}>{t(`questTypes.${qt}`)}</option>
+            <Label className="text-sm font-semibold">Quest Nature *</Label>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-2">
+              What kind of intent is this?
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {(Object.values(QuestNature) as QuestNature[]).map((nature) => (
+                <button
+                  key={nature}
+                  type="button"
+                  onClick={() => setQuestNature(nature)}
+                  className={`rounded-lg border px-3 py-2.5 text-left transition-all ${
+                    questNature === nature
+                      ? "border-primary bg-primary/10 ring-1 ring-primary"
+                      : "border-border bg-background hover:border-muted-foreground/40"
+                  }`}
+                >
+                  <span className="text-lg leading-none">{QUEST_NATURE_ICONS[nature]}</span>
+                  <p className="text-sm font-medium mt-1">{QUEST_NATURE_LABELS[nature]}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                    {QUEST_NATURE_DESCRIPTIONS[nature]}
+                  </p>
+                </button>
               ))}
-          </select>
+            </div>
+
+            {questNature === QuestNature.IDEA && (
+              <p className="mt-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                💡 Ideas are saved as drafts — not published to the Marketplace until promoted.
+              </p>
+            )}
           </div>
 
-          <div>
-            <Label htmlFor="questStatus">Status</Label>
-            <select
-              id="questStatus"
-              value={questStatus}
-              onChange={(e) => setQuestStatus(e.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="IDEA">Idea</option>
-              <option value="OPEN">Open</option>
-              <option value="OPEN_FOR_PROPOSALS">Open for proposals</option>
-              <option value="IN_PROGRESS">In progress</option>
-              <option value="ACTIVE">Active</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+          {/* Status — only shown for non-IDEA natures */}
+          {questNature !== QuestNature.IDEA && (
+            <div>
+              <Label htmlFor="questStatus">Initial Status</Label>
+              <select
+                id="questStatus"
+                value={questStatus}
+                onChange={(e) => setQuestStatus(e.target.value)}
+                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="OPEN">Open — visible and accepting interest</option>
+                <option value="OPEN_FOR_PROPOSALS">Open for Proposals</option>
+                <option value="ACTIVE">Active — contributors confirmed</option>
+              </select>
+            </div>
+          )}
 
           {/* AI Generation Section */}
           <Card className="p-4 border-primary/30 bg-primary/5 space-y-3">
