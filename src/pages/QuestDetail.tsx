@@ -847,12 +847,10 @@ export default function QuestDetail() {
                 <Select value={editStatus} onValueChange={v => setEditStatus(v as QuestStatus)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={QuestStatus.IDEA}>Idea</SelectItem>
                     <SelectItem value={QuestStatus.DRAFT}>Draft</SelectItem>
                     <SelectItem value={QuestStatus.OPEN}>Open</SelectItem>
                     <SelectItem value={QuestStatus.OPEN_FOR_PROPOSALS}>Open for Proposals</SelectItem>
                     <SelectItem value={QuestStatus.ACTIVE}>Active</SelectItem>
-                    <SelectItem value={QuestStatus.IN_PROGRESS}>In Progress</SelectItem>
                     <SelectItem value={QuestStatus.COMPLETED}>Completed</SelectItem>
                     <SelectItem value={QuestStatus.CANCELLED}>Cancelled</SelectItem>
                   </SelectContent>
