@@ -2108,6 +2108,153 @@ export type Database = {
         }
         Relationships: []
       }
+      ctg_commons_wallet: {
+        Row: {
+          balance: number
+          id: string
+          lifetime_received: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          lifetime_received?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          lifetime_received?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ctg_emission_rules: {
+        Row: {
+          commons_share_percent: number
+          contribution_type: string
+          created_at: string
+          ctg_amount: number
+          id: string
+          is_active: boolean
+        }
+        Insert: {
+          commons_share_percent?: number
+          contribution_type: string
+          created_at?: string
+          ctg_amount?: number
+          id?: string
+          is_active?: boolean
+        }
+        Update: {
+          commons_share_percent?: number
+          contribution_type?: string
+          created_at?: string
+          ctg_amount?: number
+          id?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
+      ctg_exchange_rates: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          rate_ctg_to_credits: number
+          reason: string | null
+          set_by_user_id: string
+          valid_from: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          rate_ctg_to_credits?: number
+          reason?: string | null
+          set_by_user_id: string
+          valid_from?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          rate_ctg_to_credits?: number
+          reason?: string | null
+          set_by_user_id?: string
+          valid_from?: string
+        }
+        Relationships: []
+      }
+      ctg_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          counterpart_user_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          counterpart_user_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          counterpart_user_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ctg_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          lifetime_earned: number
+          lifetime_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       decision_poll_votes: {
         Row: {
           created_at: string
@@ -5266,6 +5413,7 @@ export type Database = {
           contribution_index: number
           created_at: string
           credits_balance: number
+          ctg_balance: number
           current_path: string | null
           current_plan_code: string | null
           default_give_back_guild_id: string | null
@@ -5336,6 +5484,7 @@ export type Database = {
           contribution_index?: number
           created_at?: string
           credits_balance?: number
+          ctg_balance?: number
           current_path?: string | null
           current_plan_code?: string | null
           default_give_back_guild_id?: string | null
@@ -5406,6 +5555,7 @@ export type Database = {
           contribution_index?: number
           created_at?: string
           credits_balance?: number
+          ctg_balance?: number
           current_path?: string | null
           current_plan_code?: string | null
           default_give_back_guild_id?: string | null
