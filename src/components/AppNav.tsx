@@ -172,7 +172,7 @@ export function AppNav() {
                       </Link>
                     );
                   })}
-import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
+
 
 
 
