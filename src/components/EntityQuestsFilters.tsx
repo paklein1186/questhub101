@@ -11,7 +11,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   DRAFT: { label: "Draft", color: "bg-muted text-muted-foreground" },
   OPEN: { label: "Open", color: "bg-sky-500/10 text-sky-700 border-sky-500/30" },
   OPEN_FOR_PROPOSALS: { label: "Proposals", color: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-  IN_PROGRESS: { label: "In Progress", color: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
   ACTIVE: { label: "Active", color: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
   COMPLETED: { label: "Completed", color: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
   CANCELLED: { label: "Cancelled", color: "bg-destructive/10 text-destructive border-destructive/30" },
@@ -21,7 +20,6 @@ const KANBAN_COLUMNS = [
   { key: "DRAFT", label: "Draft" },
   { key: "OPEN_FOR_PROPOSALS", label: "Proposals" },
   { key: "ACTIVE", label: "Active" },
-  { key: "IN_PROGRESS", label: "In Progress" },
   { key: "COMPLETED", label: "Completed" },
 ];
 
@@ -69,7 +67,7 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
       );
     }
     if (sortBy === "status") {
-      const ORDER: Record<string, number> = { ACTIVE: 0, IN_PROGRESS: 1, OPEN_FOR_PROPOSALS: 2, OPEN: 3, DRAFT: 4, COMPLETED: 5, CANCELLED: 6 };
+      const ORDER: Record<string, number> = { ACTIVE: 0, OPEN_FOR_PROPOSALS: 1, OPEN: 2, DRAFT: 3, COMPLETED: 4, CANCELLED: 5 };
       result.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
     } else if (sortBy === "recent") {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());

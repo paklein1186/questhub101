@@ -15,7 +15,7 @@ interface GuildKanbanBoardProps {
 
 const COLUMNS = [
   { key: "OPEN", label: "Open", color: "border-blue-400/50 bg-blue-50/30 dark:bg-blue-950/20" },
-  { key: "IN_PROGRESS", label: "In Progress", color: "border-amber-400/50 bg-amber-50/30 dark:bg-amber-950/20" },
+  { key: "ACTIVE", label: "Active", color: "border-amber-400/50 bg-amber-50/30 dark:bg-amber-950/20" },
   { key: "COMPLETED", label: "Completed", color: "border-emerald-400/50 bg-emerald-50/30 dark:bg-emerald-950/20" },
 ];
 

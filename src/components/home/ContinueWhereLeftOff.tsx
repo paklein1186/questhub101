@@ -30,7 +30,7 @@ export function ContinueWhereLeftOff({ userId }: Props) {
           .eq("applicant_user_id", userId).eq("status", "PENDING").limit(5),
         supabase.from("quests").select("id, title, status, cover_image_url")
           .eq("created_by_user_id", userId).eq("is_deleted", false)
-          .in("status", ["OPEN", "ACTIVE", "IN_PROGRESS", "OPEN_FOR_PROPOSALS"])
+          .in("status", ["OPEN", "ACTIVE", "OPEN_FOR_PROPOSALS"])
           .limit(3),
       ]);
 

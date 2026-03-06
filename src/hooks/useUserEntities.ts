@@ -40,7 +40,7 @@ export function useUserEntities() {
           .filter(
             (q: any) =>
               q.id &&
-              (q.status === "ACTIVE" || q.status === "IN_PROGRESS" || q.status === "OPEN")
+              (q.status === "ACTIVE" || q.status === "OPEN")
           ),
       };
     },

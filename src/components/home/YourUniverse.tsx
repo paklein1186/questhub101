@@ -26,7 +26,7 @@ export function YourUniverse({ userId, userTopicIds, userTerritoryIds }: Props) 
         // Quests matching user's topics
         supabase.from("quests").select("id, title, description, reward_xp, status, quest_topics(topic_id), guilds(name)")
           .eq("is_deleted", false).eq("is_draft", false)
-          .in("status", ["OPEN", "IN_PROGRESS"])
+          .in("status", ["OPEN", "ACTIVE"])
           .order("created_at", { ascending: false }).limit(20),
         // Guilds
         supabase.from("guilds").select("id, name, logo_url, type, guild_topics(topic_id, topics(name))")
