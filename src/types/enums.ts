@@ -16,14 +16,32 @@ export enum GuildMemberRole {
 }
 
 export enum QuestStatus {
-  IDEA = "IDEA",
-  DRAFT = "DRAFT",
-  OPEN = "OPEN",
+  DRAFT              = "DRAFT",
+  OPEN               = "OPEN",
   OPEN_FOR_PROPOSALS = "OPEN_FOR_PROPOSALS",
-  ACTIVE = "ACTIVE",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
+  ACTIVE             = "ACTIVE",
+  COMPLETED          = "COMPLETED",
+  CANCELLED          = "CANCELLED",
+}
+
+/**
+ * Quest Nature — what *kind* of intent this quest represents.
+ * Stored in the `quest_nature` DB column (text, default "PROJECT").
+ * IDEA is a pre-quest seed; it stays DRAFT status until promoted.
+ */
+export enum QuestNature {
+  IDEA        = "IDEA",
+  PROJECT     = "PROJECT",
+  MISSION     = "MISSION",
+  ACTION      = "ACTION",
+  EVENT       = "EVENT",
+  LEARNING    = "LEARNING",
+  SERVICE     = "SERVICE",
+  RESOURCE    = "RESOURCE",
+  FUNDING     = "FUNDING",
+  PARTNERSHIP = "PARTNERSHIP",
+  CONTACT     = "CONTACT",
+  PLACE       = "PLACE",
 }
 
 export enum ProposalStatus {
