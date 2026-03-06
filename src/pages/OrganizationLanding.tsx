@@ -57,7 +57,7 @@ function useFeaturedQuests() {
         .from("quests")
         .select("id, title, description, reward_xp, is_featured")
         .eq("is_deleted", false).eq("is_draft", false).eq("is_featured", true)
-        .in("quest_type", ["ACTION", "PROJECT", "FUNDING", "PARTNERSHIP"])
+        .in("quest_nature", ["ACTION", "PROJECT", "FUNDING", "PARTNERSHIP"])
         .order("created_at", { ascending: false }).limit(6);
       return (data ?? []) as any[];
     },

@@ -39,7 +39,7 @@ function useFeaturedCreations() {
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .eq("is_featured", true)
-        .in("quest_type", ["SERVICE", "EVENT", "RESOURCE", "LEARNING"])
+        .in("quest_nature", ["SERVICE", "EVENT", "RESOURCE", "LEARNING"])
         .order("created_at", { ascending: false })
         .limit(6);
       return data ?? [];

@@ -16,7 +16,8 @@ import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSup
 import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
-import { QUEST_TYPE_LABELS, QUEST_TYPE_COLORS, type QuestType } from "@/lib/questTypes";
+import { QUEST_NATURE_LABELS, QUEST_NATURE_COLORS, QUEST_NATURE_ICONS, isMission } from "@/lib/questTypes";
+import { QuestNature } from "@/types/enums";
 
 function CreateQuestButton() {
   const [open, setOpen] = useState(false);
@@ -100,17 +101,18 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (q.is_draft && !isAdm && q.created_by_user_id !== currentUser.id) return false;
     if (hideCompleted && (q.status === "COMPLETED" || q.status === "CANCELLED")) return false;
     const qStatus = q.status as string;
-    // When showing ideas specifically, only show IDEA status
-    if (externalStatusFilter === "IDEA" && qStatus !== "IDEA") return false;
+    // When showing ideas specifically, only show IDEA nature
+    if (externalStatusFilter === "IDEA" && (q as any).quest_nature !== "IDEA") return false;
     // When showing open quests for Jobs subtab
     if (externalStatusFilter === "OPEN_OR_PROPOSALS" && qStatus !== "OPEN" && qStatus !== "OPEN_FOR_PROPOSALS") return false;
     // When NOT showing ideas, hide IDEA quests
-    if (!externalStatusFilter && qStatus === "IDEA") return false;
+    if (!externalStatusFilter && (q as any).quest_nature === "IDEA") return false;
     if (filters.topicIds.length > 0 && !q.quest_topics?.some((qt: any) => filters.topicIds.includes(qt.topic_id))) return false;
     if (filters.territoryIds.length > 0 && !q.quest_territories?.some((qt: any) => filters.territoryIds.includes(qt.territory_id))) return false;
     if (effectiveStatusFilter !== "all" && !externalStatusFilter && qStatus !== effectiveStatusFilter) return false;
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
-    if (filters.questType !== "all" && (q as any).quest_type !== filters.questType) return false;
+    if (filters.questType !== "all" && (q as any).quest_nature !== filters.questType) return false;
+    if (filters.missionOnly && !isMission(q as any)) return false;
     return true;
   }), filters.sortBy);
 
@@ -137,7 +139,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true }}
+          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true, showMission: true }}
           houseFilter={{
             active: hf.houseFilterActive,
             onToggle: hf.setHouseFilterActive,
@@ -183,9 +185,9 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-display font-semibold">{quest.title}</h3>
-                      {(quest as any).quest_type && (
-                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${QUEST_TYPE_COLORS[(quest as any).quest_type as QuestType] || ''}`}>
-                          {t(`questTypes.${(quest as any).quest_type}`)}
+                      {(quest as any).quest_nature && (
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${QUEST_NATURE_COLORS[(quest as any).quest_nature as QuestNature] || ''}`}>
+                          {QUEST_NATURE_ICONS[(quest as any).quest_nature as QuestNature]} {QUEST_NATURE_LABELS[(quest as any).quest_nature as QuestNature]}
                         </Badge>
                       )}
                     </div>

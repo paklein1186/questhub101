@@ -72,7 +72,7 @@ export interface NsQuest {
   id: string;
   title: string;
   status: string;
-  quest_type: string;
+  quest_nature: string;
   created_at: string;
   completed_at: string | null;
   credit_budget: number | null;
@@ -87,7 +87,7 @@ export function useNsQuests(naturalSystemId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests" as any)
-        .select("id, title, status, quest_type, created_at, completed_at, credit_budget, xp_reward")
+        .select("id, title, status, quest_nature, created_at, completed_at, credit_budget, xp_reward")
         .eq("natural_system_id", naturalSystemId!)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })

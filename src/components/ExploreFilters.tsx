@@ -13,7 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
 import { QuestStatus, MonetizationType, CourseLevel, PodType, GuildType } from "@/types/enums";
-import { QUEST_TYPES, QUEST_TYPE_LABELS, type QuestType } from "@/lib/questTypes";
+import { QuestNature } from "@/types/enums";
+import { QUEST_NATURE_LABELS } from "@/lib/questTypes";
 import { UniverseToggle } from "@/components/UniverseToggle";
 import { type UniverseMode, defaultUniverseForPersona, HOUSE_DEFINITIONS, getHouseLabel, getHouseIcon } from "@/lib/universeMapping";
 
@@ -59,6 +60,7 @@ export interface ExploreFilterValues {
   role: string;
   sortBy: ExploreSortBy;
   questType: string;
+  missionOnly: boolean;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -73,6 +75,7 @@ export const defaultFilters: ExploreFilterValues = {
   role: "all",
   sortBy: "most_recent",
   questType: "all",
+  missionOnly: false,
 };
 
 // Which filter sections to show per page
@@ -86,7 +89,8 @@ export interface ExploreFilterConfig {
   showGuildType?: boolean;
   showPrice?: boolean;          // free/paid for services & courses
   showRole?: boolean;           // user role
-  showQuestType?: boolean;      // quest type (Level 1)
+  showQuestType?: boolean;      // quest nature (Level 1)
+  showMission?: boolean;        // mission-only toggle
 }
 
 interface Props {
@@ -181,7 +185,8 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
     (filters.guildType !== "all" ? 1 : 0) +
     (filters.price !== "all" ? 1 : 0) +
     (filters.role !== "all" ? 1 : 0) +
-    (filters.questType !== "all" ? 1 : 0);
+    (filters.questType !== "all" ? 1 : 0) +
+    (filters.missionOnly ? 1 : 0);
 
   const clearAll = () => onChange({ ...defaultFilters });
 
@@ -284,16 +289,30 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
 
             {config.showQuestType && (
               <div>
-                <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.questType")}</p>
+                <p className="text-xs font-medium mb-1.5 text-muted-foreground">Nature</p>
                 <Select value={filters.questType} onValueChange={v => set({ questType: v })}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("filters.allTypes")}</SelectItem>
-                    {QUEST_TYPES.map(qt => (
-                      <SelectItem key={qt} value={qt}>{t(`questTypes.${qt}`)}</SelectItem>
+                    {(Object.values(QuestNature) as QuestNature[]).map(n => (
+                      <SelectItem key={n} value={n}>{QUEST_NATURE_LABELS[n]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {config.showMission && (
+              <div className="flex items-center gap-3 pt-5">
+                <input type="checkbox" id="missionOnly"
+                  checked={filters.missionOnly}
+                  onChange={e => set({ missionOnly: e.target.checked })}
+                  className="h-4 w-4 rounded border-border" />
+                <label htmlFor="missionOnly"
+                  className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                  💰 Missions only
+                  <span className="text-xs text-muted-foreground font-normal">(funded quests)</span>
+                </label>
               </div>
             )}
 
