@@ -9009,6 +9009,24 @@ export type Database = {
       }
     }
     Functions: {
+      admin_deduct_ctg: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_note?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      admin_grant_ctg: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_note?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       apply_monthly_demurrage: {
         Args: { _fade_rate?: number }
         Returns: {
@@ -9054,6 +9072,10 @@ export type Database = {
           system_name: string
           total_distributed: number
         }[]
+      }
+      exchange_ctg_to_credits: {
+        Args: { p_ctg_amount: number; p_user_id: string }
+        Returns: Json
       }
       get_co_occurring_natural_systems: {
         Args: { p_natural_system_id: string }
@@ -9339,6 +9361,10 @@ export type Database = {
           users_processed: number
         }[]
       }
+      set_ctg_exchange_rate: {
+        Args: { p_admin_id: string; p_new_rate: number; p_reason?: string }
+        Returns: Json
+      }
       set_user_role:
         | {
             Args: {
@@ -9376,6 +9402,15 @@ export type Database = {
           _target_type: string
         }
         Returns: undefined
+      }
+      transfer_ctg: {
+        Args: {
+          p_amount: number
+          p_from_user_id: string
+          p_note?: string
+          p_to_user_id: string
+        }
+        Returns: Json
       }
       update_living_system_external_data: {
         Args: { p_natural_system_id: string }
