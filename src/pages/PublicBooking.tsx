@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Clock, Euro, MapPin, Hash, CalendarClock, Video,
-  ChevronLeft, ChevronRight, Shield, Check, ArrowRight,
+  ChevronLeft, ChevronRight, Shield, Check, ArrowRight, Home,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
