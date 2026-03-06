@@ -6136,7 +6136,6 @@ export type Database = {
           priority: string
           public_visibility: string
           quest_nature: string | null
-          quest_type: string
           reward_currency: string
           reward_xp: number
           status: Database["public"]["Enums"]["quest_status"]
@@ -6191,7 +6190,6 @@ export type Database = {
           priority?: string
           public_visibility?: string
           quest_nature?: string | null
-          quest_type?: string
           reward_currency?: string
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]
@@ -6246,7 +6244,6 @@ export type Database = {
           priority?: string
           public_visibility?: string
           quest_nature?: string | null
-          quest_type?: string
           reward_currency?: string
           reward_xp?: number
           status?: Database["public"]["Enums"]["quest_status"]

@@ -247,7 +247,7 @@ async function executeToolCall(
     case "search_quests": {
       let query = sb
         .from("quests")
-        .select("id, title, description, status, quest_type, difficulty, xp_reward")
+        .select("id, title, description, status, quest_nature, difficulty, xp_reward")
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .limit(params.limit || 5);
@@ -342,7 +342,7 @@ async function executeToolCall(
 
       let query = sb
         .from("quests")
-        .select("id, title, description, quest_type, difficulty, xp_reward")
+        .select("id, title, description, quest_nature, difficulty, xp_reward")
         .eq("is_deleted", false)
         .eq("is_draft", false)
         .eq("status", "open")
@@ -632,7 +632,7 @@ async function assembleContext(userId: string, sb: any, conversationId: string |
         .eq("user_id", userId)
         .limit(5),
       sb.from("quest_participants")
-        .select("quest_id, status, quests(id, title, status, quest_type)")
+        .select("quest_id, status, quests(id, title, status, quest_nature)")
         .eq("user_id", userId)
         .eq("status", "active")
         .limit(10),
@@ -666,7 +666,7 @@ async function assembleContext(userId: string, sb: any, conversationId: string |
   const quests = (questsRes.data || []).map((q: any) => ({
     id: q.quest_id,
     title: q.quests?.title,
-    type: q.quests?.quest_type,
+    type: q.quests?.quest_nature,
     status: q.status,
   }));
   const longMemories = (memoriesLongRes.data || []).reduce((acc: any, m: any) => {
