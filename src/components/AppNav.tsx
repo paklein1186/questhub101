@@ -234,6 +234,11 @@ export function AppNav() {
                           <span className="text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
                         </Link>
                       </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/me?tab=wallet" className="cursor-pointer justify-between">
+                          <CTGBalanceBadge balance={ctgBalance} size="sm" />
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <LanguageSwitcherInline />
                       {showAdmin && (
@@ -350,6 +355,10 @@ export function AppNav() {
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
                             <Coins className="h-4 w-4" /> {t("wallet.credits")}
                             <span className="ml-auto text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
+                          </Link>
+                          <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)}
+                            className="flex items-center px-3 py-2">
+                            <CTGBalanceBadge balance={ctgBalance} size="sm" />
                           </Link>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
