@@ -333,7 +333,7 @@ export function WorkTasksTab() {
 
   for (const q of participantQuests) {
     if (myQuests.some((mq: any) => mq.id === q.id)) continue;
-    if (["COMPLETED", "CANCELLED", "DONE", "IDEA"].includes(q.status)) continue;
+    if (["COMPLETED", "CANCELLED", "DONE"].includes(q.status)) continue;
     const hasActive = questSubtaskMap.get(q.id)?.hasActiveSubtasks || false;
     if (hasActive) continue;
     unified.push({

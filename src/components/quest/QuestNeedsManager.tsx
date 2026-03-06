@@ -28,13 +28,13 @@ export const NEED_CATEGORIES = [
 
 export const NEED_STATUSES = [
   { value: "OPEN", label: "Open" },
-  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "ACTIVE", label: "Active" },
   { value: "MET", label: "Met" },
 ];
 
 const statusColors: Record<string, string> = {
   OPEN: "bg-primary/10 text-primary border-primary/30",
-  IN_PROGRESS: "bg-amber-500/10 text-amber-700 border-amber-500/30",
+  ACTIVE: "bg-amber-500/10 text-amber-700 border-amber-500/30",
   MET: "bg-green-500/10 text-green-700 border-green-500/30",
 };
 
