@@ -295,6 +295,13 @@ export default function PublicBooking() {
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
 
+          {/* Home button */}
+          <div className="flex justify-start mb-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-1.5 text-muted-foreground hover:text-foreground">
+              <Home className="h-4 w-4" /> Home
+            </Button>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-8">
             {svc.image_url && (
