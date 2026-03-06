@@ -6135,6 +6135,7 @@ export type Database = {
           price_fiat: number
           priority: string
           public_visibility: string
+          quest_nature: string | null
           quest_type: string
           reward_currency: string
           reward_xp: number
@@ -6189,6 +6190,7 @@ export type Database = {
           price_fiat?: number
           priority?: string
           public_visibility?: string
+          quest_nature?: string | null
           quest_type?: string
           reward_currency?: string
           reward_xp?: number
@@ -6243,6 +6245,7 @@ export type Database = {
           price_fiat?: number
           priority?: string
           public_visibility?: string
+          quest_nature?: string | null
           quest_type?: string
           reward_currency?: string
           reward_xp?: number
