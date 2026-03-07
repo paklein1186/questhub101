@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
@@ -150,6 +151,12 @@ export default function CompanyDetail() {
       image_url: svcImageUrl || null, is_draft: svcDraft,
     } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
+    notifyEntityFollowersAndMembers({
+      entityType: "COMPANY", entityId: company.id, entityName: company.name,
+      actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_SERVICE",
+      title: `New service: ${svcTitle.trim()}`, body: `A new service was added in ${company.name}`,
+      deepLinkUrl: `/companies/${company.id}`,
+    });
     qc.invalidateQueries({ queryKey: ["services-for-company", id] });
     setSvcOpen(false); setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);

@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useMemo } from "react";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { Switch } from "@/components/ui/switch";
@@ -379,6 +380,12 @@ export default function GuildDetail() {
       owner_type: "GUILD", owner_id: guild.id,
     } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
+    notifyEntityFollowersAndMembers({
+      entityType: "GUILD", entityId: guild.id, entityName: guild.name,
+      actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_SERVICE",
+      title: `New service: ${svcTitle.trim()}`, body: `A new service was added in ${guild.name}`,
+      deepLinkUrl: `/guilds/${guild.id}?tab=services`,
+    });
     qc.invalidateQueries({ queryKey: ["services-for-guild", id] });
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
@@ -756,7 +763,7 @@ export default function GuildDetail() {
 
         {(fc as any).events && (
           <TabsContent value="events" className="mt-6">
-            <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+            <GuildEvents guildId={guild.id} guildName={guild.name} isMember={isMember} isAdmin={isAdmin} />
           </TabsContent>
         )}
 
