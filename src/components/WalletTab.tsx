@@ -81,7 +81,7 @@ export function WalletTab() {
   });
 
   // $CTG Token balance
-  const { data: gamebBalance } = useQuery({
+  const { data: coinsBalance } = useQuery({
     queryKey: ["coins-balance", userId],
     enabled: !!userId,
     queryFn: async () => {
