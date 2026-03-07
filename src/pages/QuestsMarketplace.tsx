@@ -245,11 +245,6 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                             <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
                           </Badge>
                         )}
-                        {showXp && (
-                          <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Zap className="h-3 w-3 text-primary" /> {xp} XP
-                          </Badge>
-                        )}
                         {credits > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
                             <Coins className="h-3 w-3 text-primary" /> {credits} Credits
