@@ -583,7 +583,10 @@ export default function UserProfile() {
 
           {/* Row 2: XP + Topics + Territories — full width, aligned under name */}
           <div className="space-y-2 pl-0 sm:pl-24">
-            <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
+            <div className="flex items-center gap-3 flex-wrap">
+              <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
+              <CTGBalanceBadge balance={profile.ctgBalance} size="sm" />
+            </div>
 
             {(() => {
               const impactTopics = topics.filter((t: any) => (t.universe_type ?? "impact") === "impact");
