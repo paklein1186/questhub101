@@ -160,6 +160,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
+  const { setOpen: setEconomyOpen } = useEconomyModal();
   const currentUser = useCurrentUser();
   const { persona, updatePersona, lexiconOverride, setLexiconOverride } = usePersona();
   const { user: authUser, updatePassword, signOut, refreshProfile } = useAuth();
