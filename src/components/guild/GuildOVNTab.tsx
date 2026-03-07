@@ -230,7 +230,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         territoryMap = new Map((territories || []).map((t) => [t.id, t.name]));
       }
 
-      return { contribs: contribs || [], pieLogs: pieLogs || [], quests: quests || [], profileMap, territoryMap };
+      return { contribs: contribs || [], pieLogs: pieLogs || [], quests: quests || [], profileMap, territoryMap, prevContribs };
     },
   });
 
