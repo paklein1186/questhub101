@@ -33,15 +33,6 @@ export enum QuestNature {
   IDEA        = "IDEA",
   PROJECT     = "PROJECT",
   MISSION     = "MISSION",
-  ACTION      = "ACTION",
-  EVENT       = "EVENT",
-  LEARNING    = "LEARNING",
-  SERVICE     = "SERVICE",
-  RESOURCE    = "RESOURCE",
-  FUNDING     = "FUNDING",
-  PARTNERSHIP = "PARTNERSHIP",
-  CONTACT     = "CONTACT",
-  PLACE       = "PLACE",
 }
 
 export enum ProposalStatus {

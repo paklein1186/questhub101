@@ -119,13 +119,13 @@ export function ContributionLogPanel({
 
   // Simple mode: estimated tokens
   const simpleEstimatedTokens = useMemo(() => {
-    if (!questBudgetGamebTokens || questBudgetGamebTokens <= 0) return null;
+    if (!questCoinBudget || questCoinBudget <= 0) return null;
     const totalGuildWU = contributions.reduce((s, c) => s + (Number((c as any).weighted_units) || 0), 0) + weightedUnits;
     if (totalGuildWU <= 0) return null;
     const overheadPct = (guildPercent + territoryPercent + ctgPercent) / 100;
-    const pool = questBudgetGamebTokens * (1 - overheadPct);
+    const pool = questCoinBudget * (1 - overheadPct);
     return Math.round((weightedUnits / totalGuildWU) * pool * 100) / 100;
-  }, [questBudgetGamebTokens, contributions, weightedUnits, guildPercent, territoryPercent, ctgPercent]);
+  }, [questCoinBudget, contributions, weightedUnits, guildPercent, territoryPercent, ctgPercent]);
 
   const handleSubmit = async () => {
     if (!formTitle.trim()) return;
@@ -164,16 +164,16 @@ export function ContributionLogPanel({
   const handleDistribute = async () => {
     if (distributing) return;
     setDistributing(true);
-    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
-    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
-    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
-    const contributorPool = Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+    const guildAmt = Math.round(questCoinBudget * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questCoinBudget * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questCoinBudget * (ctgPercent / 100) * 100) / 100;
+    const contributorPool = Math.round((questCoinBudget - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
     await calculateAndDistribute({
       questId,
       contributorPoolTokens: contributorPool,
       guildId: guildId ?? null,
       guildTokens: guildAmt,
-      territoryId: undefined, // TODO: pass territory_id when available on quest props
+      territoryId: undefined,
       territoryTokens: territoryAmt,
       ctgTokens: ctgAmt,
     });
@@ -188,11 +188,11 @@ export function ContributionLogPanel({
 
   // Preview simulation for distribution dialog
   const previewData = useMemo(() => {
-    if (totalWeightedUnits === 0 || questBudgetGamebTokens <= 0) return [];
-    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
-    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
-    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
-    const pool = Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+    if (totalWeightedUnits === 0 || questCoinBudget <= 0) return [];
+    const guildAmt = Math.round(questCoinBudget * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questCoinBudget * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questCoinBudget * (ctgPercent / 100) * 100) / 100;
+    const pool = Math.round((questCoinBudget - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
 
     const byContributor = new Map<string, { wu: number; name: string }>();
     contributions.forEach((c) => {
@@ -206,14 +206,14 @@ export function ContributionLogPanel({
       const sharePct = totalWeightedUnits > 0 ? wu / totalWeightedUnits : 0;
       return { userId: uid, name, wu, sharePct, tokens: Math.round(sharePct * pool * 100) / 100 };
     }).sort((a, b) => b.wu - a.wu);
-  }, [contributions, totalWeightedUnits, questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
+  }, [contributions, totalWeightedUnits, questCoinBudget, guildPercent, territoryPercent, ctgPercent]);
 
   const previewContributorPool = useMemo(() => {
-    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
-    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
-    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
-    return Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
-  }, [questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
+    const guildAmt = Math.round(questCoinBudget * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questCoinBudget * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questCoinBudget * (ctgPercent / 100) * 100) / 100;
+    return Math.round((questCoinBudget - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+  }, [questCoinBudget, guildPercent, territoryPercent, ctgPercent]);
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -228,7 +228,7 @@ export function ContributionLogPanel({
         </button>
 
         <div className="flex gap-1.5">
-          {isOwner && contributions.length > 0 && questBudgetGamebTokens > 0 && (
+          {isOwner && contributions.length > 0 && questCoinBudget > 0 && (
             valuePieCalculated ? (
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled>
                 <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Distribué ✓
@@ -510,7 +510,7 @@ export function ContributionLogPanel({
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Budget total</p>
-                <p className="font-bold text-emerald-600">{questBudgetGamebTokens} 🟩</p>
+                <p className="font-bold text-emerald-600">{questCoinBudget} 🟩</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Pool contributeurs</p>
@@ -518,11 +518,11 @@ export function ContributionLogPanel({
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Guilde ({guildPercent}%)</p>
-                <p className="font-medium">{Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100}</p>
+                <p className="font-medium">{Math.round(questCoinBudget * (guildPercent / 100) * 100) / 100}</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Territoire ({territoryPercent}%) + CTG ({ctgPercent}%)</p>
-                <p className="font-medium">{Math.round(questBudgetGamebTokens * ((territoryPercent + ctgPercent) / 100) * 100) / 100}</p>
+                <p className="font-medium">{Math.round(questCoinBudget * ((territoryPercent + ctgPercent) / 100) * 100) / 100}</p>
               </div>
             </div>
 
