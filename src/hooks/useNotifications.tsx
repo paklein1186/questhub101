@@ -708,7 +708,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       if (data?.name) podName = data.name;
     } catch { /* silent */ }
     await addNotification({
-      userId: targetUserId, type: NotificationType.POD_CREATED,
+      userId: targetUserId, type: NotificationType.USER_INVITED_TO_UNIT,
       title: "Pod invitation", body: `You were invited to ${podName}`,
       relatedEntityType: NotificationEntityType.POD, relatedEntityId: podId,
       deepLinkUrl: `/pods/${podId}`,

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MentionTextarea, extractMentionIds, extractAllMentions, renderMentions, type MentionedEntity } from "@/components/MentionTextarea";
 import { processMentions } from "@/lib/mentionNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -185,6 +186,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { notifyPodMessage } = useNotifications();
 
   const { data: thread } = useUnitChatThread(entityType, entityId);
   const { data: messages = [] } = useUnitChatMessages(thread?.id);
@@ -242,6 +244,11 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
       setInput("");
       setPendingEntityMentions([]);
       qc.invalidateQueries({ queryKey: ["unit-chat-messages", threadId] });
+
+      // Notify pod members of new message
+      if (entityType === "POD") {
+        notifyPodMessage({ podId: entityId, authorId: currentUser.id, snippet: msg.trim().slice(0, 100) });
+      }
 
       // Process mentions for notifications
       if (inserted?.id) {
