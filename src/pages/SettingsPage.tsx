@@ -706,6 +706,7 @@ export default function SettingsPage() {
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => { clearAllHints(); window.location.reload(); }}>
                       Reset all page hints
+                    </Button>
                   </Section>
                 </div>
               )}
