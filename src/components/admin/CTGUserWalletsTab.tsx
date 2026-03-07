@@ -186,7 +186,7 @@ export function CTGUserWalletsTab() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom ou email..."
+            placeholder="Search by name or email..."
             className="pl-9"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -199,10 +199,10 @@ export function CTGUserWalletsTab() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les wallets</SelectItem>
-              <SelectItem value="positive">Solde &gt; 0</SelectItem>
-              <SelectItem value="active_month">Actifs ce mois</SelectItem>
-              <SelectItem value="negative">Solde négatif ⚠️</SelectItem>
+              <SelectItem value="all">All wallets</SelectItem>
+              <SelectItem value="positive">Balance &gt; 0</SelectItem>
+              <SelectItem value="active_month">Active this month</SelectItem>
+              <SelectItem value="negative">Negative balance ⚠️</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -225,12 +225,12 @@ export function CTGUserWalletsTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Utilisateur</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="text-right">Solde</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
                 <TableHead className="text-right hidden lg:table-cell">Earned</TableHead>
                 <TableHead className="text-right hidden lg:table-cell">Spent</TableHead>
-                <TableHead className="hidden sm:table-cell">Dernière tx</TableHead>
+                <TableHead className="hidden sm:table-cell">Last tx</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -238,14 +238,14 @@ export function CTGUserWalletsTab() {
               {isLoading && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    Chargement…
+                    Loading…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    Aucun wallet trouvé.
+                    No wallets found.
                   </TableCell>
                 </TableRow>
               )}
@@ -270,7 +270,7 @@ export function CTGUserWalletsTab() {
                       </Avatar>
                       <span className="text-sm font-medium truncate max-w-[140px]">{w.name}</span>
                       {w.balance < 0 && (
-                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Négatif</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Negative</Badge>
                       )}
                       {w.zeroSince30 && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive/40">
@@ -283,13 +283,13 @@ export function CTGUserWalletsTab() {
                     {w.email}
                   </TableCell>
                   <TableCell className={`text-right font-mono tabular-nums text-sm font-semibold ${w.balance < 0 ? "text-destructive" : ""}`}>
-                    {w.balance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right hidden lg:table-cell text-sm tabular-nums text-muted-foreground">
-                    {w.lifetime_earned.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.lifetime_earned.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right hidden lg:table-cell text-sm tabular-nums text-muted-foreground">
-                    {w.lifetime_spent.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.lifetime_spent.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-xs text-muted-foreground whitespace-nowrap">
                     {w.last_tx_date
