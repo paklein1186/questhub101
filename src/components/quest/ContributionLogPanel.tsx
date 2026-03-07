@@ -487,6 +487,74 @@ export function ContributionLogPanel({
           </p>
         </>
       )}
+
+      {/* Distribution Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Scale className="h-4 w-4 text-emerald-600" /> Prévisualisation du Value Pie
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {/* Budget breakdown */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Budget total</p>
+                <p className="font-bold text-emerald-600">{questBudgetGamebTokens} 🟩</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Pool contributeurs</p>
+                <p className="font-bold text-emerald-600">{previewContributorPool} 🟩</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Guilde ({guildPercent}%)</p>
+                <p className="font-medium">{Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100}</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Territoire ({territoryPercent}%) + CTG ({ctgPercent}%)</p>
+                <p className="font-medium">{Math.round(questBudgetGamebTokens * ((territoryPercent + ctgPercent) / 100) * 100) / 100}</p>
+              </div>
+            </div>
+
+            {/* Contributor preview list */}
+            <div className="space-y-1 max-h-[200px] overflow-y-auto">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
+                <span>Contributeur</span>
+                <span className="text-right">Part %</span>
+                <span className="text-right">🟩 Tokens</span>
+              </div>
+              {previewData.map((p) => (
+                <div key={p.userId} className="grid grid-cols-[1fr_auto_auto] gap-2 text-xs items-center">
+                  <span className="truncate">{p.name}</span>
+                  <span className="text-right text-muted-foreground">{(p.sharePct * 100).toFixed(1)}%</span>
+                  <span className="text-right font-medium text-emerald-600">{p.tokens}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[10px] text-muted-foreground italic">
+              Ces montants sont des estimations basées sur les contributions actuelles.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>Annuler</Button>
+            <Button
+              size="sm"
+              className="gap-1"
+              onClick={async () => {
+                setShowPreviewDialog(false);
+                await handleDistribute();
+              }}
+              disabled={distributing}
+            >
+              <Scale className="h-3 w-3" /> {distributing ? "Distribution…" : "Confirmer et distribuer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
