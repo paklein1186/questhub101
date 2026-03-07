@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -103,21 +103,21 @@ function CTGOverviewTab() {
   };
 
   const stats = [
-    { label: "$CTG en circulation", value: metrics?.totalCirculation ?? 0, icon: Wallet, color: "text-emerald-600" },
-    { label: "Total émis", value: metrics?.totalEmitted ?? 0, icon: TrendingUp, color: "text-blue-600" },
-    { label: "Wallet Communs", value: metrics?.commonsBalance ?? 0, icon: Globe, color: "text-amber-600" },
-    { label: "Wallets actifs", value: metrics?.activeWallets ?? 0, icon: Users, color: "text-violet-600", isCount: true },
-    { label: "Taux de change", value: metrics?.exchangeRate ?? 0, icon: ArrowLeftRight, color: "text-cyan-600", suffix: " credits/$CTG" },
-    { label: "Volume échanges 30j", value: metrics?.exchangeVolume ?? 0, icon: BarChart3, color: "text-rose-600" },
+    { label: "$CTG in circulation", value: metrics?.totalCirculation ?? 0, icon: Wallet, color: "text-emerald-600" },
+    { label: "Total emitted", value: metrics?.totalEmitted ?? 0, icon: TrendingUp, color: "text-blue-600" },
+    { label: "Commons Wallet", value: metrics?.commonsBalance ?? 0, icon: Globe, color: "text-amber-600" },
+    { label: "Active wallets", value: metrics?.activeWallets ?? 0, icon: Users, color: "text-violet-600", isCount: true },
+    { label: "Exchange rate", value: metrics?.exchangeRate ?? 0, icon: ArrowLeftRight, color: "text-cyan-600", suffix: " credits/$CTG" },
+    { label: "Exchange volume 30d", value: metrics?.exchangeVolume ?? 0, icon: BarChart3, color: "text-rose-600" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Vue Globale</h3>
+        <h3 className="text-lg font-semibold">Overview</h3>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-          Rafraîchir
+          Refresh
         </Button>
       </div>
 
@@ -134,7 +134,7 @@ function CTGOverviewTab() {
                   ? "—"
                   : s.isCount
                   ? s.value
-                  : `${s.value.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${s.suffix ?? ""}`}
+                  : `${s.value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}${s.suffix ?? ""}`}
               </p>
             </CardContent>
           </Card>
@@ -143,7 +143,7 @@ function CTGOverviewTab() {
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Émissions quotidiennes $CTG — 30 derniers jours</CardTitle>
+          <CardTitle className="text-sm font-medium">Daily $CTG Emissions — Last 30 days</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64">
@@ -154,7 +154,7 @@ function CTGOverviewTab() {
                 <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
                 <Tooltip
                   contentStyle={{ borderRadius: 8, fontSize: 13 }}
-                  formatter={(val: number) => [`${val} $CTG`, "Émis"]}
+                  formatter={(val: number) => [`${val} $CTG`, "Emitted"]}
                 />
                 <Line
                   type="monotone"
@@ -250,14 +250,14 @@ function CTGExchangeRatesTab() {
         p_reason: reason.trim(),
       });
       if (error) throw error;
-      toast.success(`Nouveau taux appliqué : 1 $CTG = ${rateNum} credits`);
+      toast.success(`New rate applied: 1 $CTG = ${rateNum} credits`);
       setNewRate("");
       setReason("");
       queryClient.invalidateQueries({ queryKey: ["admin-ctg-current-rate"] });
       queryClient.invalidateQueries({ queryKey: ["admin-ctg-rate-history"] });
       queryClient.invalidateQueries({ queryKey: ["admin-ctg-metrics"] });
     } catch (e: any) {
-      toast.error(e.message ?? "Erreur lors de la mise à jour du taux");
+      toast.error(e.message ?? "Error updating the rate");
     } finally {
       setSubmitting(false);
     }
@@ -272,11 +272,11 @@ function CTGExchangeRatesTab() {
         <div className="flex items-start gap-3 rounded-lg border border-yellow-500/40 bg-yellow-50/50 dark:bg-yellow-900/10 p-4">
           <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
-              Aucun ajustement du taux depuis {daysSinceLastChange} jours
+             <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
+              No rate adjustment for {daysSinceLastChange} days
             </p>
             <p className="text-xs text-yellow-700/80 dark:text-yellow-500/80 mt-0.5">
-              Pensez à vérifier la pertinence économique du taux de change actuel.
+              Consider reviewing the economic relevance of the current exchange rate.
             </p>
           </div>
         </div>
@@ -287,7 +287,7 @@ function CTGExchangeRatesTab() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <ArrowLeftRight className="h-5 w-5 text-primary" />
-            Taux actuel
+            Current Rate
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -298,7 +298,7 @@ function CTGExchangeRatesTab() {
             <span className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
               {currentRate?.valid_from
-                ? format(new Date(currentRate.valid_from), "dd MMM yyyy HH:mm", { locale: fr })
+                ? format(new Date(currentRate.valid_from), "dd MMM yyyy HH:mm", { locale: enUS })
                 : "—"}
             </span>
             <span className="flex items-center gap-1">
@@ -315,33 +315,33 @@ function CTGExchangeRatesTab() {
       {/* New rate form */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Définir un nouveau taux</CardTitle>
-          <CardDescription>Le nouveau taux s'appliquera immédiatement à tous les échanges.</CardDescription>
+          <CardTitle className="text-base">Set a new rate</CardTitle>
+          <CardDescription>The new rate will apply immediately to all exchanges.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="new-rate">Nouveau taux (credits par $CTG)</Label>
+              <Label htmlFor="new-rate">New rate (credits per $CTG)</Label>
               <Input
                 id="new-rate"
                 type="number"
                 min={1}
                 max={1000}
                 step={1}
-                placeholder="ex : 10"
+                placeholder="e.g. 10"
                 value={newRate}
                 onChange={(e) => setNewRate(e.target.value)}
               />
               {newRate && !isValidRate && (
-                <p className="text-xs text-destructive">Valeur entre 1 et 1000, sans décimales.</p>
+                <p className="text-xs text-destructive">Value between 1 and 1000, no decimals.</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="rate-reason">Raison du changement *</Label>
+              <Label htmlFor="rate-reason">Reason for change *</Label>
               <Textarea
                 id="rate-reason"
                 maxLength={500}
-                placeholder="Justifiez le changement de taux..."
+                placeholder="Justify the rate change..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="resize-none h-20"
@@ -352,29 +352,29 @@ function CTGExchangeRatesTab() {
 
           {isValidRate && (
             <div className="rounded-md bg-muted/60 p-3 text-sm space-y-1">
-              <p className="font-medium">Aperçu avec ce taux :</p>
-              <p>100 $CTG = <strong>{(100 * rateNum).toLocaleString("fr-FR")}</strong> credits</p>
-              <p>1 000 $CTG = <strong>{(1000 * rateNum).toLocaleString("fr-FR")}</strong> credits</p>
+              <p className="font-medium">Preview with this rate:</p>
+              <p>100 $CTG = <strong>{(100 * rateNum).toLocaleString("en-US")}</strong> credits</p>
+              <p>1,000 $CTG = <strong>{(1000 * rateNum).toLocaleString("en-US")}</strong> credits</p>
             </div>
           )}
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button disabled={!canSubmit || submitting}>
-                {submitting ? "Application..." : "Appliquer le nouveau taux"}
+                {submitting ? "Applying..." : "Apply new rate"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Confirmer le changement de taux</AlertDialogTitle>
+                <AlertDialogTitle>Confirm rate change</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Êtes-vous sûr ? Le taux <strong>1 $CTG = {rateNum} credits</strong> s'applique immédiatement
-                  à tous les échanges sur la plateforme.
+                  Are you sure? The rate <strong>1 $CTG = {rateNum} credits</strong> will apply immediately
+                  to all exchanges on the platform.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSubmit}>Confirmer</AlertDialogAction>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSubmit}>Confirm</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -384,17 +384,17 @@ function CTGExchangeRatesTab() {
       {/* History table */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Historique des taux</CardTitle>
+          <CardTitle className="text-base">Rate History</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Taux</TableHead>
-                <TableHead>Défini par</TableHead>
-                <TableHead>Raison</TableHead>
-                <TableHead>Statut</TableHead>
+                 <TableHead>Date</TableHead>
+                <TableHead className="text-right">Rate</TableHead>
+                <TableHead>Set by</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -409,12 +409,12 @@ function CTGExchangeRatesTab() {
                   <TableCell className="text-sm">{r.setterName}</TableCell>
                   <TableCell className="text-sm max-w-[200px] truncate">{r.reason ?? "—"}</TableCell>
                   <TableCell>
-                    {r.active ? (
+                     {r.active ? (
                       <Badge variant="default" className="gap-1">
-                        <Check className="h-3 w-3" /> Actif
+                        <Check className="h-3 w-3" /> Active
                       </Badge>
                     ) : (
-                      <Badge variant="secondary">Archivé</Badge>
+                      <Badge variant="secondary">Archived</Badge>
                     )}
                   </TableCell>
                 </TableRow>
@@ -422,7 +422,7 @@ function CTGExchangeRatesTab() {
               {(history?.rows ?? []).length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    Aucun historique de taux.
+                    No rate history.
                   </TableCell>
                 </TableRow>
               )}
@@ -460,15 +460,15 @@ export default function AdminEconomyCTG() {
         <h2 className="font-display text-2xl font-bold">$CTG Token</h2>
       </div>
       <p className="text-sm text-muted-foreground max-w-xl">
-        Administration du token $CTG : métriques globales, taux de change, wallets utilisateurs et règles d'émission.
+        $CTG token administration: global metrics, exchange rates, user wallets and emission rules.
       </p>
 
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Vue Globale</TabsTrigger>
-          <TabsTrigger value="rates">Taux de Change</TabsTrigger>
-          <TabsTrigger value="wallets">Wallets Utilisateurs</TabsTrigger>
-          <TabsTrigger value="rules">Règles d'Émission</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="rates">Exchange Rates</TabsTrigger>
+          <TabsTrigger value="wallets">User Wallets</TabsTrigger>
+          <TabsTrigger value="rules">Emission Rules</TabsTrigger>
         </TabsList>
         <TabsContent value="overview"><CTGOverviewTab /></TabsContent>
         <TabsContent value="rates"><CTGExchangeRatesTab /></TabsContent>
