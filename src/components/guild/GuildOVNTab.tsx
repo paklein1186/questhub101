@@ -110,7 +110,7 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
       // Quests metadata
       const { data: quests } = await supabase
         .from("quests" as any)
-        .select("id, title, gameb_token_budget, value_pie_calculated, territory_id")
+        .select("id, title, gameb_token_budget, guild_percent, value_pie_calculated, territory_id")
         .in("id", questIds);
 
       // Profiles
@@ -185,19 +185,22 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
   // ── Quest Breakdown ───────────────────────────────────────
   const questAggs: QuestAgg[] = quests.map((q: any) => {
     const qContribs = contribs.filter((c: any) => c.quest_id === q.id);
-    const qPie = pieLogs.filter((p: any) => p.quest_id === q.id);
     const uniqueContributors = new Set(qContribs.map((c: any) => c.user_id)).size;
-    const guildShare = 0; // TODO: compute from redistribution rules
+    const budget = Number(q.gameb_token_budget) || 0;
+    const guildPct = q.guild_percent != null ? Number(q.guild_percent) : 15;
+    const guildShare = Math.round(budget * (guildPct / 100) * 100) / 100;
     return {
       quest_id: q.id,
       quest_title: q.title,
       territory_name: q.territory_id ? territoryMap.get(q.territory_id) || null : null,
-      budget_gameb: Number(q.gameb_token_budget) || 0,
+      budget_gameb: budget,
       contributor_count: uniqueContributors,
       guild_share: guildShare,
       value_pie_calculated: q.value_pie_calculated || false,
     };
   });
+
+  const totalGuildShare = questAggs.reduce((s, q) => s + q.guild_share, 0);
 
   // ── Task Type Breakdown ───────────────────────────────────
   const taskTypeMap = new Map<string, TaskTypeAgg>();
@@ -259,7 +262,7 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
       </div>
 
       {/* Headline Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="border-emerald-500/20">
           <CardContent className="p-4 text-center">
             <Coins className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
@@ -286,6 +289,13 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
             <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{avgSharePerContributor.toFixed(1)}</p>
             <p className="text-[10px] text-muted-foreground">Avg 🟩 Tokens / Contributor</p>
+          </CardContent>
+        </Card>
+        <Card className="border-violet-500/20">
+          <CardContent className="p-4 text-center">
+            <span className="text-lg mx-auto mb-1 block">🏛️</span>
+            <p className="text-2xl font-bold text-violet-600">{totalGuildShare.toFixed(0)}</p>
+            <p className="text-[10px] text-muted-foreground">🟩 Tokens (part guilde)</p>
           </CardContent>
         </Card>
       </div>
@@ -400,9 +410,10 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
             </div>
           )}
           <div className="space-y-1">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
               <span>Quest</span>
               <span className="text-right">Budget</span>
+              <span className="text-right">Part Guilde</span>
               <span className="text-right">Contributors</span>
               <span className="text-right">Territory</span>
               <span className="text-right">Status</span>
@@ -411,10 +422,11 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
               <Link
                 key={q.quest_id}
                 to={`/quests/${q.quest_id}`}
-                className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
+                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
               >
                 <span className="truncate">{q.quest_title}</span>
                 <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
+                <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
                 <span className="text-right">{q.contributor_count}</span>
                 <span className="text-right text-muted-foreground">{q.territory_name || "—"}</span>
                 <Badge variant={q.value_pie_calculated ? "default" : "secondary"} className="text-[9px] justify-self-end">
