@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Star, Search, Coins, Filter, Pencil } from "lucide-react";
+import { Plus, Star, Search, Coins, Filter, Pencil, LayoutList, LayoutGrid, Columns3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -56,6 +56,7 @@ export function ProfileQuestsTab({
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "grid" | "kanban">("grid");
   const [highlightsOpen, setHighlightsOpen] = useState(false);
   const [highlightSearch, setHighlightSearch] = useState("");
 
