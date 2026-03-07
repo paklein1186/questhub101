@@ -208,7 +208,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Switch id="bw-monetized" checked={props.isMonetized} onCheckedChange={props.setIsMonetized} />
                 <Label htmlFor="bw-monetized" className="text-xs font-medium flex items-center gap-1">
                   Monetize this quest
-                  <Tip>Enable GameB Tokens and/or fiat payment for this quest.</Tip>
+                  <Tip>Enable $CTG and/or fiat payment for this quest.</Tip>
                 </Label>
               </div>
 
@@ -216,7 +216,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                      <Label htmlFor="bw-creditReward" className="text-xs flex items-center gap-1">
-                       🟩 GameB Token reward <Tip>GameB Tokens distributed to each participant on completion. Backed by fiat.</Tip>
+                       🟩 $CTG reward <Tip>$CTG distributed to each participant on completion. Backed by fiat.</Tip>
                     </Label>
                     <Input
                       id="bw-creditReward"
@@ -274,14 +274,14 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <div className="space-y-3 pt-1">
                   <div>
                     <Label className="text-xs flex items-center gap-1">
-                       Pot currency <Tip>Use GameB Tokens or fiat euros to fund accepted proposals.</Tip>
+                       Pot currency <Tip>Use $CTG or fiat euros to fund accepted proposals.</Tip>
                     </Label>
                     <Select value={props.fundingType} onValueChange={(v) => props.setFundingType(v as "CREDITS" | "FIAT")}>
                       <SelectTrigger className="mt-1 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CREDITS">🟩 GameB Tokens</SelectItem>
+                        <SelectItem value="CREDITS">🟩 $CTG</SelectItem>
                         <SelectItem value="FIAT">Fiat (€)</SelectItem>
                       </SelectContent>
                     </Select>
