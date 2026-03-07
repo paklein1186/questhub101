@@ -1407,7 +1407,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <DialogDescription>
               {convertStep === "unit"
                 ? "Choose which entity to attach this quest to, or create it as a personal quest."
-                : "Select topics and territories for this quest."}
+                : convertStep === "tags"
+                ? "Select topics and territories for this quest."
+                : "Configure the budget and value distribution for this quest."}
             </DialogDescription>
           </DialogHeader>
 
