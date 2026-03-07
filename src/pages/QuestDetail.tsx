@@ -1240,6 +1240,7 @@ export default function QuestDetail() {
             questId={quest.id}
             questOwnerId={quest.created_by_user_id}
             guildId={quest.guild_id}
+            territoryId={territories.length > 0 ? territories[0].id : null}
             isCoHost={isCollaborator}
             isGuildAdmin={isGuildAdmin}
           />
