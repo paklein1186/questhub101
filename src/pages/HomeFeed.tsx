@@ -24,6 +24,9 @@ import { GuidedPathways } from "@/components/home/GuidedPathways";
 import { MyTaskBoard } from "@/components/home/MyTaskBoard";
 import { FollowingActivity } from "@/components/home/FollowingActivity";
 import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept for potential reuse
+import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
+import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 
 /* ───────── Persona-specific config ───────── */
@@ -296,6 +299,7 @@ export default function HomeFeed() {
   const { user: authUser } = useAuth();
   const { persona } = usePersona();
   const isOrgRep = useIsOrgRep();
+  const { progress, steps } = useOnboardingProgress();
   useMilestoneChecker();
 
   // Org reps get a dedicated homepage persona overlay
@@ -486,6 +490,7 @@ export default function HomeFeed() {
 
   return (
     <PageShell>
+      <SectionBanner {...HINTS.banners.home} />
       {/* Milestone notifications moved to Pi panel */}
       <BauhausPausedContext.Provider value={bauhausPaused}>
         <BauhausShape />
@@ -494,12 +499,17 @@ export default function HomeFeed() {
       {/* When Pi is open, show tasks at the top with no hero spacing */}
       {isPiOpen ? (
         <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-12 space-y-8 sm:space-y-10">
+          <PathwayCards persona={persona} progress={progress} steps={steps} />
           {currentUser.id && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-base font-semibold text-foreground">My Task Board</h2>
+                <HintTooltip {...HINTS.tooltips.taskBoard} />
+              </div>
               <MyTaskBoard userId={currentUser.id} />
             </motion.div>
           )}
@@ -609,7 +619,14 @@ export default function HomeFeed() {
           {/* Task Board — below the AI section */}
           {currentUser.id &&
           <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
-              <MyTaskBoard userId={currentUser.id} />
+              <PathwayCards persona={persona} progress={progress} steps={steps} />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h2 className="text-base font-semibold text-foreground">My Task Board</h2>
+                  <HintTooltip {...HINTS.tooltips.taskBoard} />
+                </div>
+                <MyTaskBoard userId={currentUser.id} />
+              </div>
               <FollowingActivity />
             </div>
           }
