@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target } from "lucide-react";
+import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTabOrder } from "@/hooks/useTabOrder";
@@ -75,6 +76,7 @@ export default function ExploreHub() {
         <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
       </div>
 
+      <SectionBanner {...HINTS.banners.explore} />
       <ExploreTabsInner tab={tab} onTabChange={handleTabChange} isGuest={isGuest} isCreative={isCreative} currentUserId={currentUser.id} label={label}>
 
         <TabsContent value="entities">
@@ -202,16 +204,16 @@ export default function ExploreHub() {
 function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId, label, children }: any) {
   const { t } = useTranslation();
   const exploreTabs: TabDefinition[] = useMemo(() => [
-    { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")}</> },
-    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")}</>, visible: !isGuest },
+    { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")} <HintTooltip {...HINTS.tooltips.exploreEntities} /></> },
+    { value: "quests", label: <><Swords className="h-3.5 w-3.5 mr-1" /> {t("explore.quests")} <HintTooltip {...HINTS.tooltips.exploreQuests} /></>, visible: !isGuest },
     { value: "services", label: <><Wrench className="h-3.5 w-3.5 mr-1" /> {t("explore.services")}</>, visible: !isGuest },
-    { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")}</> },
+    { value: "agents", label: <><Bot className="h-3.5 w-3.5 mr-1" /> {t("tabs.agents")} <HintTooltip {...HINTS.tooltips.exploreAgents} /></> },
     { value: "jobs", label: <><Briefcase className="h-3.5 w-3.5 mr-1" /> {t("tabs.jobs")}</>, visible: !isCreative },
-    { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")}</> },
+    { value: "houses", label: <><Tag className="h-3.5 w-3.5 mr-1" /> {t("tabs.topics")} <HintTooltip {...HINTS.tooltips.exploreHouses} /></> },
     { value: "courses", label: <><BookOpen className="h-3.5 w-3.5 mr-1" /> {t("explore.courses")}</> },
     { value: "users", label: <><Users className="h-3.5 w-3.5 mr-1" /> {t("tabs.humans")}</>, visible: !isGuest },
-    { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> {t("tabs.territories")}</>, visible: !isGuest },
-    { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> {t("tabs.matchmaker")}</>, visible: !!currentUserId },
+    { value: "territories", label: <><Map className="h-3.5 w-3.5 mr-1" /> {t("tabs.territories")} <HintTooltip {...HINTS.tooltips.exploreTerritories} /></>, visible: !isGuest },
+    { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 mr-1" /> {t("tabs.matchmaker")} <HintTooltip {...HINTS.tooltips.exploreMatchmaker} /></>, visible: !!currentUserId },
   ], [isGuest, isCreative, currentUserId, label, t]);
 
   const defaultOrder = useMemo(() => exploreTabs.filter(t => t.visible !== false).map(t => t.value), [exploreTabs]);
