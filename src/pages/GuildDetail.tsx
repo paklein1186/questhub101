@@ -578,7 +578,7 @@ export default function GuildDetail() {
         </TabsContent>
 
         <TabsContent value="ovn" className="mt-6">
-          <GuildOVNTab guildId={guild.id} guildName={guild.name} />
+          <GuildOVNTab guildId={guild.id} guildName={guild.name} isMember={isMember} currentUserId={currentUser.id} />
         </TabsContent>
 
         <TabsContent value="monetization" className="mt-6">
