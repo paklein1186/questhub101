@@ -125,8 +125,8 @@ export function ContributionLogPanel({
         title: formTitle.trim(),
         description: formDescription.trim() || null,
         hours_logged: formHours ? parseFloat(formHours) : null,
-        task_type: formTaskType,
-        base_units: baseUnitsNum,
+        task_type: effectiveTaskType,
+        base_units: effectiveBaseUnits,
         weight_factor: currentWeight,
         weighted_units: weightedUnits,
         ip_licence: "CC-BY-SA",
@@ -136,9 +136,9 @@ export function ContributionLogPanel({
     setFormDescription("");
     setFormHours("");
     setFormBaseUnits("");
+    setFormTaskType("general");
     setShowForm(false);
     setSubmitting(false);
-    // Force refetch
     window.dispatchEvent(new Event("contribution-logged"));
   };
 
