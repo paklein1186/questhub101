@@ -46,12 +46,12 @@ const TX_TYPE_LABELS: Record<string, string> = {
   GIVE_BACK: "Give-back contribution",
 };
 
-const GAMEB_TX_LABELS: Record<string, string> = {
+const COIN_TX_LABELS: Record<string, string> = {
   quest_earned: "Earned from quest",
   quest_funded: "Quest funded",
   redistribution: "Redistribution share",
   withdrawal: "Fiat withdrawal",
-  fiat_deposit: "Fiat deposit → Tokens",
+  fiat_deposit: "Fiat deposit → Coins",
 };
 
 export function WalletTab() {
@@ -63,7 +63,7 @@ export function WalletTab() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [txFilter, setTxFilter] = useState("all");
   const [transferOpen, setTransferOpen] = useState(false);
-  const [activeWallet, setActiveWallet] = useState<"platform" | "gameb" | "ctg">("platform");
+  const [activeWallet, setActiveWallet] = useState<"platform" | "coins" | "ctg">("platform");
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
@@ -285,6 +285,14 @@ export function WalletTab() {
             className="gap-1.5"
           >
             🔷 Platform Credits
+          </Button>
+          <Button
+            variant={activeWallet === "coins" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveWallet("coins")}
+            className="gap-1.5"
+          >
+            🟩 Coins
           </Button>
           <Button
             variant={activeWallet === "ctg" ? "default" : "outline"}

@@ -330,7 +330,7 @@ export function ContributionLogPanel({
                     <p className="text-xs text-muted-foreground">
                       Pour cette guilde, {formHours}h = <span className="font-medium text-foreground">{weightedUnits}</span> weighted units ≈{" "}
                       <span className="font-medium text-emerald-600">
-                        {simpleEstimatedTokens !== null ? `${simpleEstimatedTokens} GameB Tokens estimés` : "— GameB Tokens estimés"}
+                        {simpleEstimatedTokens !== null ? `${simpleEstimatedTokens} Coins estimés` : "— Coins estimés"}
                       </span>
                     </p>
                   )}
