@@ -953,6 +953,10 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
     toast({ title: enabled ? "Push notifications enabled" : "Push notifications disabled" });
   };
 
+  const toggle = (key: keyof typeof prefs, label_text: string) => (
+    <NotifToggle label={label_text} checked={!!prefs[key]} onChange={(v) => updatePrefs({ [key]: v })} />
+  );
+
   // Compute next digest date
   const getNextDigestDay = () => {
     if (prefs.digest_frequency === "never") return null;
