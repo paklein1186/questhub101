@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = "https://questhub101.lovable.app";
+const APP_URL = "https://changethegame.xyz";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
         <h2 style="color: #1a1a2e; margin-bottom: 8px;">You're invited to join a quest!</h2>
         <p style="color: #444; line-height: 1.6;">
           <strong>${safeInviter}</strong> has invited you to collaborate on 
-          <strong>"${safeTitle}"</strong> on Game Changers.
+          <strong>"${safeTitle}"</strong> on changethegame.
         </p>
         <a href="${signupUrl}" 
            style="display: inline-block; margin-top: 20px; padding: 12px 28px; background: #6d28d9; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600;">
@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${resendKey}`,
       },
       body: JSON.stringify({
-        from: "Game Changers <hello@changethegame.xyz>",
+        from: "changethegame <hello@changethegame.xyz>",
         to: [email],
         subject: `${safeInviter} invited you to join "${safeTitle}"`,
         html: emailHtml,

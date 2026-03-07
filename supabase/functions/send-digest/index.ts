@@ -7,7 +7,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const BASE_URL = "https://questhub101.lovable.app";
+const BASE_URL = "https://changethegame.xyz";
 
 const FREQUENCY_INTERVALS: Record<string, number> = {
   three_days: 3 * 24 * 60 * 60 * 1000,
