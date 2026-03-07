@@ -1,15 +1,66 @@
 import { ContentPageShell } from "@/components/ContentPageShell";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import {
   Users, Zap, Shield, Leaf, Coins, BarChart3, Scale, Heart,
-  Network, Target, FileText, ArrowRight, Globe, Sparkles
+  Network, Target, FileText, ArrowRight, Globe, Sparkles, Activity
 } from "lucide-react";
 
 interface Props {
   embedded?: boolean;
 }
 
+// ── Live stats hook ─────────────────────────────────────────
+function useOVNStats() {
+  return useQuery({
+    queryKey: ["ovn-page-stats"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [tokensRes, questsRes, contribRes, guildsRes] = await Promise.all([
+        supabase.from("gameb_token_transactions" as any).select("amount").eq("type", "quest_payout"),
+        supabase.from("quests").select("id", { count: "exact", head: true }).eq("value_pie_calculated", true as any),
+        supabase.from("contribution_logs" as any).select("user_id").gte("created_at", thirtyDaysAgo.toISOString()),
+        supabase.from("guilds").select("id", { count: "exact", head: true }).eq("is_deleted", false),
+      ]);
+
+      const totalTokens = ((tokensRes.data as any[]) || []).reduce((s: number, r: any) => s + (Number(r.amount) || 0), 0);
+      const questCount = questsRes.count || 0;
+      const distinctUsers = new Set(((contribRes.data as any[]) || []).map((r: any) => r.user_id)).size;
+      const guildCount = guildsRes.count || 0;
+
+      return { totalTokens, questCount, distinctUsers, guildCount };
+    },
+  });
+}
+
+// ── Recent value-pie quests hook ────────────────────────────
+function useRecentValuePieQuests() {
+  return useQuery({
+    queryKey: ["ovn-recent-vp-quests"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quests")
+        .select("id, title, created_at, gameb_token_budget")
+        .eq("value_pie_calculated", true as any)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return (data || []) as { id: string; title: string; created_at: string; gameb_token_budget: number }[];
+    },
+  });
+}
+
 export default function OpenValueNetworkPage({ embedded }: Props) {
+  const { data: stats } = useOVNStats();
+  const { data: recentQuests } = useRecentValuePieQuests();
+
   return (
     <ContentPageShell
       title="CTG Open Value System"
@@ -28,6 +79,26 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             ecosystems around shared outcomes — not hierarchy.
           </p>
           <p className="text-muted-foreground mt-3">This page explains, in one view, how value circulates.</p>
+        </section>
+
+        {/* ── PART A: Live Stats ── */}
+        <section className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              OVN en temps réel
+            </h2>
+            <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />
+              Données en temps réel
+            </Badge>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="GameB Tokens distribués" value={stats?.totalTokens ?? 0} icon="🟩" />
+            <StatCard label="Quêtes Value Pie" value={stats?.questCount ?? 0} icon="🥧" />
+            <StatCard label="Contributeurs ce mois" value={stats?.distinctUsers ?? 0} icon="👥" />
+            <StatCard label="Guildes actives" value={stats?.guildCount ?? 0} icon="⚔️" />
+          </div>
         </section>
 
         {/* 1. Nodes */}
@@ -56,8 +127,8 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             {[
               { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
-              { icon: <Coins className="h-4 w-4 text-blue-500" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <Leaf className="h-4 w-4 text-emerald-500" />, label: "🟩 GameB Tokens", desc: "Mission value" },
+              { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
+              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🟩 GameB Tokens", desc: "Mission value" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
@@ -138,12 +209,12 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           icon={<Coins className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-2 gap-4 mt-2">
-            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
               <p className="font-medium text-foreground mb-2">🔷 Platform Credits (non-monetary)</p>
               <p className="text-xs text-muted-foreground mb-2">Feature fuel for gamification, quotas, boosts. Cannot be withdrawn.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
                 {["Monthly plan allocation", "Top-up purchases", "Creating quests beyond quota", "Boosting visibility", "Gamified actions & streaks"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-blue-500 shrink-0" />{s}</li>
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
@@ -160,27 +231,15 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with GameB Tokens.</p>
         </Section>
 
-        {/* 5. Redistribution */}
+        {/* ── PART B: Animated Token Flow Diagram ── */}
         <Section
           number="5"
           title="Transparent Redistribution"
           icon={<BarChart3 className="h-5 w-5" />}
         >
           <p>At the end of each quest, GameB Tokens automatically split into:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
-            {[
-              { label: "Contributors", desc: "Major share", pct: "~60%" },
-              { label: "Guild", desc: "Standards & arbitration", pct: "~15%" },
-              { label: "Territory", desc: "Coordination & investment", pct: "~10%" },
-              { label: "CTG Platform", desc: "Maintenance", pct: "~10%" },
-              { label: "Living System", desc: "Ecological logging", pct: "~5%" },
-            ].map((r) => (
-              <div key={r.label} className="rounded-lg border border-border bg-muted/30 p-3 text-center">
-                <p className="text-lg font-bold text-primary">{r.pct}</p>
-                <p className="text-xs font-medium">{r.label}</p>
-                <p className="text-[10px] text-muted-foreground">{r.desc}</p>
-              </div>
-            ))}
+          <div className="mt-6">
+            <TokenFlowDiagram />
           </div>
           <p className="mt-4 text-muted-foreground italic">
             No hidden fees. No negotiation. No power games.<br />
@@ -271,8 +330,128 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             This is what the CTG Open Value System is built for.
           </p>
         </section>
+
+        {/* ── PART C: Recent Value Pie Quests ── */}
+        <section className="rounded-xl border border-border bg-card p-6 space-y-4">
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            Quêtes récentes avec Value Pie
+          </h2>
+          {recentQuests && recentQuests.length > 0 ? (
+            <div className="grid sm:grid-cols-3 gap-3">
+              {recentQuests.map((q) => (
+                <Link
+                  key={q.id}
+                  to={`/quests/${q.id}`}
+                  className="rounded-lg border border-border bg-muted/30 p-4 hover:border-primary/40 hover:bg-primary/5 transition-all group"
+                >
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                    {q.title}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                    <span>{format(new Date(q.created_at), "dd MMM yyyy")}</span>
+                    {q.gameb_token_budget > 0 && (
+                      <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600">
+                        🟩 {q.gameb_token_budget}
+                      </Badge>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">
+              Les premières quêtes distribuées apparaîtront ici.
+            </p>
+          )}
+        </section>
       </div>
     </ContentPageShell>
+  );
+}
+
+// ── Stat card ───────────────────────────────────────────────
+function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
+      <span className="text-lg">{icon}</span>
+      <p className="text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+      <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+    </div>
+  );
+}
+
+// ── Token Flow Diagram ──────────────────────────────────────
+const FLOW_NODES = [
+  { label: "Contributeurs", pct: 60, angle: -90, color: "hsl(var(--primary))" },
+  { label: "Guilde", pct: 15, angle: -30, color: "hsl(var(--primary))" },
+  { label: "Territoire", pct: 10, angle: 30, color: "hsl(var(--primary))" },
+  { label: "CTG", pct: 10, angle: 150, color: "hsl(var(--primary))" },
+  { label: "Système Vivant", pct: 5, angle: 210, color: "hsl(var(--primary))" },
+];
+
+function TokenFlowDiagram() {
+  const cx = 200, cy = 160, r = 120;
+
+  return (
+    <div className="flex justify-center">
+      <div className="relative" style={{ width: 400, height: 320 }}>
+        <svg viewBox="0 0 400 320" className="w-full h-full" aria-label="Token flow diagram">
+          <style>{`
+            @keyframes travel {
+              0% { offset-distance: 0%; opacity: 0; }
+              10% { opacity: 1; }
+              90% { opacity: 1; }
+              100% { offset-distance: 100%; opacity: 0; }
+            }
+          `}</style>
+          {FLOW_NODES.map((node, i) => {
+            const rad = (node.angle * Math.PI) / 180;
+            const tx = cx + r * Math.cos(rad);
+            const ty = cy + r * Math.sin(rad);
+            const pathId = `flow-path-${i}`;
+            return (
+              <g key={node.label}>
+                {/* Line */}
+                <path
+                  id={pathId}
+                  d={`M ${cx} ${cy} L ${tx} ${ty}`}
+                  stroke="hsl(var(--border))"
+                  strokeWidth="1.5"
+                  fill="none"
+                  strokeDasharray="4 3"
+                />
+                {/* Animated dot */}
+                <circle
+                  r="3"
+                  fill="hsl(var(--primary))"
+                  style={{
+                    offsetPath: `path('M ${cx} ${cy} L ${tx} ${ty}')`,
+                    animation: `travel 2.5s ease-in-out ${i * 0.4}s infinite`,
+                  }}
+                />
+                {/* Destination node */}
+                <circle cx={tx} cy={ty} r="28" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+                <text x={tx} y={ty - 6} textAnchor="middle" className="text-[9px] fill-foreground font-medium">
+                  {node.label}
+                </text>
+                <text x={tx} y={ty + 10} textAnchor="middle" className="text-[11px] fill-primary font-bold">
+                  {node.pct}%
+                </text>
+              </g>
+            );
+          })}
+          {/* Center node */}
+          <circle cx={cx} cy={cy} r="36" fill="hsl(var(--primary) / 0.1)" stroke="hsl(var(--primary))" strokeWidth="2" />
+          <text x={cx} y={cy - 6} textAnchor="middle" className="text-[10px] fill-foreground font-semibold">
+            Quest Budget
+          </text>
+          <text x={cx} y={cy + 10} textAnchor="middle" className="text-[12px]">
+            🟩
+          </text>
+        </svg>
+      </div>
+    </div>
   );
 }
 
