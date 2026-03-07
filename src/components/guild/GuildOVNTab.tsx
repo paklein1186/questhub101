@@ -652,86 +652,8 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           </Card>
         );
       })()}
-          if (!currentUserId || !proposalTaskType || proposalJustification.length < 20) return;
-          setSubmitting(true);
-          try {
-            const { error } = await supabase.from("guild_decisions" as any).insert({
-              guild_id: guildId,
-              proposed_by: currentUserId,
-              type: "weight_change",
-              title: `Modifier le poids de ${proposalTaskType} de ${currentWeightForProposal} à ${proposalWeight}`,
-              description: proposalJustification,
-              status: "open",
-            });
-            if (error) throw error;
-            toast({ title: "Proposition soumise aux membres de la guilde" });
-            setShowProposalDialog(false);
-            setProposalTaskType("");
-            setProposalWeight("1.0");
-            setProposalJustification("");
-          } catch (e) {
-            toast({ title: "Erreur", description: "Impossible de soumettre la proposition", variant: "destructive" });
-          } finally {
-            setSubmitting(false);
-          }
-        };
 
-        return (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                ⚖️ Barème de valeur de la guilde
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!hasCustomWeights && (
-                <p className="text-xs text-muted-foreground mb-3 italic">
-                  Barème par défaut — toutes les tâches valent 1.0
-                </p>
-              )}
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-border text-muted-foreground">
-                      <th className="text-left py-1.5 font-medium">Type de tâche</th>
-                      <th className="text-center py-1.5 font-medium w-10">Icône</th>
-                      <th className="text-right py-1.5 font-medium">Multiplicateur</th>
-                      <th className="text-right py-1.5 font-medium">Exemple</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allTypes.map((t) => (
-                      <tr key={t.task_type} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                        <td className="py-1.5 capitalize">{t.task_type}</td>
-                        <td className="py-1.5 text-center">{t.emoji}</td>
-                        <td className="py-1.5 text-right font-bold text-primary">{t.weight.toFixed(1)}</td>
-                        <td className="py-1.5 text-right text-muted-foreground">1h = {t.weight.toFixed(1)} wu</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
 
-              {isMember && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="text-xs mt-2 p-0 h-auto"
-                  onClick={() => setShowProposalDialog(true)}
-                >
-                  Proposer un changement
-                </Button>
-              )}
-
-              {lastUpdated && lastUpdated !== "" && (
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  Dernière modification : {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true, locale: fr })}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })()}
 
       {/* Proposal Dialog */}
       <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
