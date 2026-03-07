@@ -179,8 +179,8 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
           ? `You've been made a host of "${pod.name}"`
           : `Your host role in "${pod.name}" was changed`,
         related_entity_type: "POD",
-        related_entity_id: id,
-        deep_link_url: `/pods/${id}`,
+        related_entity_id: podId,
+        deep_link_url: `/pods/${podId}`,
       });
     }
     refetchMembers();
