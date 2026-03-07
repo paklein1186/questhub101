@@ -232,9 +232,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                     const credits = Number((quest as any).credit_reward) || 0;
                     const showGameb = gameb > 0;
                     const showFiat = fiat > 0;
-                    // Show XP only if no $CTG and no fiat
-                    const showXp = xp > 0 && !showGameb && !showFiat;
-                    if (!showGameb && !showFiat && !showXp && credits <= 0) return null;
+                    const showXp = false;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {showGameb && (
