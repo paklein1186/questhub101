@@ -502,6 +502,20 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
       await supabase.from("decision_poll_votes").insert({
         poll_id: decision.id, user_id: currentUserId, option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
       } as any);
+
+      // Notify decision creator about the new vote (fire-and-forget)
+      if (decision.created_by && decision.created_by !== currentUserId) {
+        const truncQ = (decision.question || "").length > 60 ? decision.question.slice(0, 57) + "…" : decision.question;
+        supabase.from("notifications").insert({
+          user_id: decision.created_by,
+          type: "ENTITY_NEW_DECISION",
+          title: "Someone responded to your decision",
+          body: `A member responded to "${truncQ}"`,
+          related_entity_type: decision.entity_type,
+          related_entity_id: decision.entity_id,
+          deep_link_url: `/${decision.entity_type === "COMPANY" ? "companies" : "guilds"}/${decision.entity_id}?tab=decisions&decision=${decision.id}`,
+        } as any).then(undefined, () => {});
+      }
     }
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
     onRefresh();
