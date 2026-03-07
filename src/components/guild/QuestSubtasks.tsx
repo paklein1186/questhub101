@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -38,6 +39,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
+  const { notifyContributionLogged } = useNotifications();
   const qc = useQueryClient();
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -162,6 +164,17 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             ip_licence: "CC-BY-SA",
           } as any);
           qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
+
+          // Notify the contributor if it's not the current user
+          if (assigneeId !== currentUser.id) {
+            notifyContributionLogged({
+              contributorUserId: assigneeId,
+              questTitle: subtask?.title || "a subtask",
+              amount: weightedUnits,
+              unit: "WU",
+              entityName: guildId || questId,
+            });
+          }
         }
       } catch (e) {
         console.error("Failed to log contribution from subtask", e);

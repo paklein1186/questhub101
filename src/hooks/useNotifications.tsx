@@ -79,6 +79,8 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.DIRECT_MESSAGE_RECEIVED:
     case NotificationType.MESSAGE_PRIVATE:
       return "notifyOnPodMessages";
+    case NotificationType.CONTRIBUTION_LOGGED:
+      return "notifyOnXpAndAchievements";
     default:
       return null;
   }
@@ -253,6 +255,7 @@ interface NotificationStore {
   notifyRitualCreated: (params: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => void;
   notifyBulkMention: (params: { mentionType: "members" | "followers"; entityType: string; entityId: string; authorUserId: string; authorName: string; snippet: string; targetType: string; targetId: string }) => void;
   notifyFollowedEntityNewPost: (params: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => void;
+  notifyContributionLogged: (params: { contributorUserId: string; questTitle: string; amount: number; unit: string; entityName: string }) => void;
 }
 
 const NotificationContext = createContext<NotificationStore>(null!);
@@ -1051,6 +1054,21 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [userId, addNotification]);
 
+  // ── Trigger: Contribution logged for another user ──
+
+  const notifyContributionLogged = useCallback(async ({ contributorUserId, questTitle, amount, unit, entityName }: any) => {
+    if (contributorUserId === userId) return;
+    await addNotification({
+      userId: contributorUserId,
+      type: NotificationType.CONTRIBUTION_LOGGED,
+      title: "Contribution recorded",
+      body: `${amount} ${unit} logged for "${questTitle}" in ${entityName}`,
+      relatedEntityType: "GUILD",
+      relatedEntityId: entityName,
+      deepLinkUrl: "/me?tab=contributions",
+    });
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
@@ -1063,6 +1081,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
       notifyDecisionCreated, notifyRitualCreated, notifyBulkMention,
       notifyFollowedEntityNewPost,
+      notifyContributionLogged,
     }}>
       {children}
     </NotificationContext.Provider>
