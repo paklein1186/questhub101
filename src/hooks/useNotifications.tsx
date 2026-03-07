@@ -841,7 +841,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  // ── Trigger: Decision created — notify entity members (with preference check) ──
+  // ── Trigger: Decision created — notify entity members via addNotification ──
 
   const notifyDecisionCreated = useCallback(async ({ entityType, entityId, entityName, question, creatorUserId, decisionId }: any) => {
     try {
@@ -852,39 +852,29 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       const { data: members } = await supabase.from(memberTable as any).select("user_id").eq(idCol, entityId).limit(200);
       if (!members?.length) return;
 
-      const memberIds = (members as any[]).filter((m: any) => m.user_id !== creatorUserId).map((m: any) => m.user_id);
-      if (memberIds.length === 0) return;
-
-      // Fetch notification preferences to respect guild_activity opt-out
-      const { data: prefs } = await supabase
-        .from("notification_preferences")
-        .select("user_id, notify_guild_activity")
-        .in("user_id", memberIds);
-      const optedOut = new Set((prefs ?? []).filter((p: any) => p.notify_guild_activity === false).map((p: any) => p.user_id));
-
       const dId = decisionId || entityId;
       const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=decisions&decision=${dId}`;
       const truncQ = question.length > 60 ? question.slice(0, 57) + "…" : question;
-      const notifRows = memberIds
-        .filter((uid: string) => !optedOut.has(uid))
-        .map((uid: string) => ({
-          user_id: uid,
-          type: "ENTITY_NEW_DECISION",
+      const targets = (members as any[]).filter((m: any) => m.user_id !== creatorUserId);
+
+      for (let i = 0; i < targets.length; i++) {
+        await addNotification({
+          userId: targets[i].user_id,
+          type: NotificationType.ENTITY_NEW_DECISION,
           title: `New decision in ${entityName}`,
           body: `"${truncQ}"`,
-          related_entity_type: entityType,
-          related_entity_id: entityId,
-          deep_link_url: deepLink,
-        }));
-      if (notifRows.length > 0) {
-        await supabase.from("notifications").insert(notifRows as any);
+          relatedEntityType: entityType,
+          relatedEntityId: entityId,
+          deepLinkUrl: deepLink,
+        });
+        if (targets.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
     } catch (err) {
       console.error("[Notifications] notifyDecisionCreated error:", err);
     }
-  }, []);
+  }, [addNotification]);
 
-  // ── Trigger: Ritual created — notify entity members ──
+  // ── Trigger: Ritual created — notify entity members via addNotification ──
 
   const notifyRitualCreated = useCallback(async ({ entityType, entityId, entityName, ritualTitle, creatorUserId }: any) => {
     try {
@@ -896,26 +886,26 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       if (!members?.length) return;
 
       const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=rituals`;
-      const notifRows = (members as any[])
-        .filter((m: any) => m.user_id !== creatorUserId)
-        .map((m: any) => ({
-          user_id: m.user_id,
-          type: "ENTITY_NEW_RITUAL",
+      const targets = (members as any[]).filter((m: any) => m.user_id !== creatorUserId);
+
+      for (let i = 0; i < targets.length; i++) {
+        await addNotification({
+          userId: targets[i].user_id,
+          type: NotificationType.ENTITY_NEW_RITUAL,
           title: `New ritual in ${entityName}`,
           body: `"${ritualTitle}"`,
-          related_entity_type: entityType,
-          related_entity_id: entityId,
-          deep_link_url: deepLink,
-        }));
-      if (notifRows.length > 0) {
-        await supabase.from("notifications").insert(notifRows as any);
+          relatedEntityType: entityType,
+          relatedEntityId: entityId,
+          deepLinkUrl: deepLink,
+        });
+        if (targets.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
     } catch (err) {
       console.error("[Notifications] notifyRitualCreated error:", err);
     }
-  }, []);
+  }, [addNotification]);
 
-  // ── Trigger: Bulk @members / @followers mention ──
+  // ── Trigger: Bulk @members / @followers mention via addNotification ──
 
   const notifyBulkMention = useCallback(async ({ mentionType, entityType, entityId, authorUserId, authorName, snippet, targetType, targetId }: any) => {
     try {
@@ -933,32 +923,34 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         const { data } = await supabase.from(cfg.table as any).select("user_id").eq(cfg.col, entityId).limit(500);
         (data ?? []).forEach((r: any) => { if (r.user_id !== authorUserId) userIds.push(r.user_id); });
       } else {
-        // followers
         const { data } = await supabase.from("follows").select("follower_id").eq("target_type", entityType).eq("target_id", entityId).limit(500);
         (data ?? []).forEach((r: any) => { if (r.follower_id !== authorUserId) userIds.push(r.follower_id); });
       }
 
-      if (userIds.length === 0) return;
+      const uniqueIds = [...new Set(userIds)];
+      if (uniqueIds.length === 0) return;
 
       const truncSnippet = snippet.length > 60 ? snippet.slice(0, 57) + "…" : snippet;
       const deepLink = buildNotifDeepLink(targetType, targetId);
-      const notifRows = [...new Set(userIds)].map((uid) => ({
-        user_id: uid,
-        type: mentionType === "members" ? "BULK_MENTION_MEMBERS" : "BULK_MENTION_FOLLOWERS",
-        title: mentionType === "members" ? "All members were mentioned" : "All followers were mentioned",
-        body: `${authorName} mentioned @${mentionType} in a comment: "${truncSnippet}"`,
-        related_entity_type: targetType,
-        related_entity_id: targetId,
-        deep_link_url: deepLink,
-      }));
+      const notifType = mentionType === "members" ? NotificationType.BULK_MENTION_MEMBERS : NotificationType.BULK_MENTION_FOLLOWERS;
 
-      if (notifRows.length > 0) {
-        await supabase.from("notifications").insert(notifRows as any);
+      for (let i = 0; i < uniqueIds.length; i++) {
+        await addNotification({
+          userId: uniqueIds[i],
+          type: notifType,
+          title: mentionType === "members" ? "All members were mentioned" : "All followers were mentioned",
+          body: `${authorName} mentioned @${mentionType} in a comment: "${truncSnippet}"`,
+          relatedEntityType: targetType,
+          relatedEntityId: targetId,
+          deepLinkUrl: deepLink,
+          
+        });
+        if (uniqueIds.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
     } catch (err) {
       console.error("[Notifications] notifyBulkMention error:", err);
     }
-  }, []);
+  }, [addNotification]);
 
   // ── Trigger: Notify followers of quest creator (no guild context) ──
 
