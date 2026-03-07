@@ -297,9 +297,76 @@ export function ProfileQuestsTab({
           </div>
         </div>
 
-        {/* Table */}
+        {/* Quest display */}
         {tableQuests.length === 0 ? (
           <p className="text-sm text-muted-foreground py-4">No quests match filters.</p>
+        ) : viewMode === "kanban" ? (
+          (() => {
+            const groups: Record<string, Quest[]> = {};
+            const statusOrder = ["DRAFT", "OPEN_FOR_PROPOSALS", "ACTIVE", "COMPLETED"];
+            statusOrder.forEach((s) => { groups[s] = []; });
+            tableQuests.forEach((q) => {
+              const key = statusOrder.includes(q.status) ? q.status : "ACTIVE";
+              groups[key].push(q);
+            });
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {statusOrder.map((status) => {
+                  const st = STATUS_LABELS[status];
+                  return (
+                    <div key={status} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className={cn("text-[10px]", st?.color)}>{st?.label || status}</Badge>
+                        <span className="text-[10px] text-muted-foreground">({groups[status].length})</span>
+                      </div>
+                      <div className="space-y-2">
+                        {groups[status].map((q) => (
+                          <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card p-3 hover:border-primary/30 transition-all">
+                            <h4 className="font-display text-sm font-semibold truncate">{q.title}</h4>
+                            {q.guild && <p className="text-[10px] text-muted-foreground truncate mt-0.5">{q.guild.name}</p>}
+                            <Badge variant="secondary" className="text-[10px] capitalize mt-1.5">{q.source === "created" ? "Creator" : q.role || "Participant"}</Badge>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
+        ) : viewMode === "grid" ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {tableQuests.map((q) => {
+              const isH = highlightSet.has(q.id);
+              const st = STATUS_LABELS[q.status];
+              return (
+                <div key={q.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all relative group">
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => toggleHighlight(q.id)}
+                      className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent/50"
+                      title={isH ? "Remove highlight" : "Highlight quest"}
+                    >
+                      <Star className={cn("h-3.5 w-3.5", isH ? "text-amber-500 fill-amber-500" : "text-muted-foreground/40")} />
+                    </button>
+                  )}
+                  <Link to={`/quests/${q.id}`} className="block">
+                    <UnitCoverImage type="QUEST" imageUrl={q.cover_image_url} height="h-24" />
+                    <div className="p-4">
+                      <h4 className="font-display font-semibold truncate">{q.title}</h4>
+                      {q.guild && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{q.guild.name}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <Badge variant="outline" className={cn("text-[10px]", st?.color)}>{st?.label || q.status}</Badge>
+                        <Badge variant="secondary" className="text-[10px] capitalize">{q.source === "created" ? "Creator" : q.role || "Participant"}</Badge>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="rounded-xl border border-border overflow-hidden">
             <table className="w-full text-sm">
@@ -330,16 +397,9 @@ export function ProfileQuestsTab({
                         </td>
                       )}
                       <td className="py-2.5 px-3">
-                        <Link
-                          to={`/quests/${q.id}`}
-                          className="font-medium hover:text-primary transition-colors line-clamp-1"
-                        >
-                          {q.title}
-                        </Link>
+                        <Link to={`/quests/${q.id}`} className="font-medium hover:text-primary transition-colors line-clamp-1">{q.title}</Link>
                         <div className="sm:hidden mt-1">
-                          <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
-                            {st?.label || q.status}
-                          </Badge>
+                          <Badge variant="outline" className={cn("text-[10px]", st?.color)}>{st?.label || q.status}</Badge>
                         </div>
                       </td>
                        <td className="py-2.5 px-3 hidden sm:table-cell">
@@ -356,14 +416,10 @@ export function ProfileQuestsTab({
                          )}
                        </td>
                        <td className="py-2.5 px-3 hidden sm:table-cell">
-                         <Badge variant="outline" className={cn("text-[10px]", st?.color)}>
-                           {st?.label || q.status}
-                         </Badge>
+                         <Badge variant="outline" className={cn("text-[10px]", st?.color)}>{st?.label || q.status}</Badge>
                        </td>
                       <td className="py-2.5 px-3 hidden md:table-cell">
-                        <Badge variant="secondary" className="text-[10px] capitalize">
-                          {q.source === "created" ? "Creator" : q.role || "Participant"}
-                        </Badge>
+                        <Badge variant="secondary" className="text-[10px] capitalize">{q.source === "created" ? "Creator" : q.role || "Participant"}</Badge>
                       </td>
                     </tr>
                   );
