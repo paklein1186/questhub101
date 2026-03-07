@@ -94,7 +94,7 @@ export default function AdminCommunityUsers() {
                 <TableCell className="text-sm text-muted-foreground">{p.email}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className="capitalize text-xs">
-                    {p.role?.toLowerCase().replace("_", " ")}
+                    {p.role?.toLowerCase().replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">{p.xp}</TableCell>

@@ -166,7 +166,7 @@ export function YourUniverse({ userId, userTopicIds, userTerritoryIds }: Props) 
                     <CircleDot className="h-4 w-4 text-primary shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{pod.name}</p>
-                      <Badge variant="outline" className="text-[10px] capitalize">{pod.type.toLowerCase().replace("_", " ")}</Badge>
+                      <Badge variant="outline" className="text-[10px] capitalize">{pod.type.toLowerCase().replace(/_/g, " ")}</Badge>
                     </div>
                   </Link>
                 </motion.div>

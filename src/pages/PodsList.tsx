@@ -221,7 +221,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
                     {pod.type === PodType.QUEST_POD
                       ? <Compass className="h-4 w-4 text-primary" />
                       : <BookOpen className="h-4 w-4 text-primary" />}
-                    <Badge variant="secondary" className="text-[10px] capitalize">{pod.type.replace("_", " ").toLowerCase()}</Badge>
+                    <Badge variant="secondary" className="text-[10px] capitalize">{pod.type.replace(/_/g, " ").toLowerCase()}</Badge>
                     <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1"><Users className="h-3 w-3" /> {isLoggedIn ? memberCount : `~${approxCount(memberCount)}`}</span>
                   </div>
                   <h3 className="font-display font-semibold text-lg">{pod.name}</h3>

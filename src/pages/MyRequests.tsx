@@ -66,7 +66,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
                 <div>
                   <Link to={`/bookings/${b.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title ?? "Booking"}</Link>
                 </div>
-                <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace("_", " ")}</Badge>
+                <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace(/_/g, " ")}</Badge>
               </div>
 
               {/* Provider info */}
@@ -91,7 +91,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
               )}
 
               {b.amount != null && b.amount > 0 && (
-                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace("_", " ") || "N/A"}</p>
+                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</p>
               )}
 
               {(b.status === "CONFIRMED" || b.status === "ACCEPTED") && (

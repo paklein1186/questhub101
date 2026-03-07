@@ -135,7 +135,7 @@ export function MyPodsTab({ userId }: { userId: string }) {
           <Link key={p.id} to={`/pods/${p.id}`} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-muted/50 transition-colors">
             <div>
               <p className="text-sm font-medium">{p.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">{p.type?.toLowerCase().replace("_", " ")}</p>
+              <p className="text-xs text-muted-foreground capitalize">{p.type?.toLowerCase().replace(/_/g, " ")}</p>
             </div>
             <Badge variant="outline" className="text-[10px]">{p.memberRole}</Badge>
           </Link>

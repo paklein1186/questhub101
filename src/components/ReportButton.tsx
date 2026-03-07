@@ -53,7 +53,7 @@ export function ReportButton({ targetType, targetId, variant = "sm" }: ReportBut
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Report {targetType.toLowerCase().replace("_", " ")}</DialogTitle>
+          <DialogTitle>Report {targetType.toLowerCase().replace(/_/g, " ")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
           <p className="text-sm text-muted-foreground">
