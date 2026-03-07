@@ -73,6 +73,7 @@ import { TopTrustedMembers } from "@/components/trust/TopTrustedMembers";
 import { QuestLivingTab } from "@/components/living/QuestLivingTab";
 import { ExternalLinksPanel, type ExternalLinkItem } from "@/components/guild/ExternalLinksPanel";
 import { Leaf } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -431,6 +432,21 @@ export default function QuestDetail() {
       await supabase.from("quest_updates").insert({
         quest_id: quest.id, author_id: currentUser.id, title: uTitle.trim(), content: uContent.trim(), image_url: uImageUrl || null, type: uType, is_draft: uDraft, visibility: uVisibility,
       } as any);
+
+      // Notify participants & followers for published (non-draft) updates
+      if (!uDraft) {
+        const { data: inserted } = await supabase
+          .from("quest_updates")
+          .select("id")
+          .eq("quest_id", quest.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        if (inserted?.id) {
+          notifyQuestUpdate({ questId: quest.id, questUpdateId: inserted.id, updateTitle: uTitle.trim() });
+        }
+        notifyFollowersQuestCreated({ questId: quest.id, questTitle: quest.title });
+      }
     }
     qc.invalidateQueries({ queryKey: ["quest-updates", id] });
     setUpdateOpen(false); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setEditingUpdateId(null);
