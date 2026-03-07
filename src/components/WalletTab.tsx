@@ -287,14 +287,6 @@ export function WalletTab() {
             🔷 Platform Credits
           </Button>
           <Button
-            variant={activeWallet === "gameb" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveWallet("gameb")}
-            className="gap-1.5"
-          >
-            🟩 $CTG
-          </Button>
-          <Button
             variant={activeWallet === "ctg" ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveWallet("ctg")}
