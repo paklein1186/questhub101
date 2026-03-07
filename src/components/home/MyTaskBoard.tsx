@@ -975,6 +975,25 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
     qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+
+    // Auto contribution log for quest creation
+    try {
+      await supabase.from("contribution_logs" as any).insert({
+        user_id: userId,
+        quest_id: questId,
+        contribution_type: "other",
+        title: "Création de la quête depuis tâche personnelle",
+        task_type: "coordination",
+        base_units: 1,
+        weight_factor: 1.0,
+        weighted_units: 1.0,
+        ip_licence: "CC-BY-SA",
+      } as any);
+      qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+    } catch (e) {
+      console.error("Auto contribution log failed:", e);
+    }
+
     setConverting(false);
     setUnitPickerOpen(false);
     setPendingConvertTask(null);
