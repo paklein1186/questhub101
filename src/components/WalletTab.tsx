@@ -223,6 +223,7 @@ export function WalletTab() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <EconomyModal open={economyOpen} onClose={closeEconomy} persona={persona} mode={economyMode} />
         <SectionBanner {...HINTS.banners.walletFirst} />
         {/* ═══ HEADER ═══ */}
         <div className="space-y-2">
