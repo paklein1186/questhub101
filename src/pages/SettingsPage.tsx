@@ -11,7 +11,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare,
+  Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare, Mail,
   History, Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
