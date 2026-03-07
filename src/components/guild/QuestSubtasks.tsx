@@ -130,41 +130,43 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     }
 
     // Auto-insert contribution log with deduplication
-    try {
-      const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
-      const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
-      const weightedUnits = baseUnits * weightFactor;
-      const logTitle = "✓ " + (subtask?.title || "");
+    (async () => {
+      try {
+        const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
+        const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
+        const weightedUnits = baseUnits * weightFactor;
+        const logTitle = "✓ " + (subtask?.title || "");
 
-      // Deduplication guard
-      const { data: existing } = await supabase
-        .from("contribution_logs" as any)
-        .select("id")
-        .eq("quest_id", questId)
-        .eq("user_id", assigneeId)
-        .eq("contribution_type", "subtask_completed")
-        .eq("title", logTitle)
-        .limit(1);
+        // Deduplication guard
+        const { data: existing } = await supabase
+          .from("contribution_logs" as any)
+          .select("id")
+          .eq("quest_id", questId)
+          .eq("user_id", assigneeId)
+          .eq("contribution_type", "subtask_completed")
+          .eq("title", logTitle)
+          .limit(1);
 
-      if (!existing || existing.length === 0) {
-        await supabase.from("contribution_logs" as any).insert({
-          user_id: assigneeId,
-          quest_id: questId,
-          guild_id: guildId || null,
-          subtask_id: subtaskId,
-          contribution_type: "subtask_completed",
-          title: logTitle,
-          task_type: "general",
-          base_units: baseUnits,
-          weight_factor: weightFactor,
-          weighted_units: weightedUnits,
-          ip_licence: "CC-BY-SA",
-        } as any);
-        qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
+        if (!existing || existing.length === 0) {
+          await supabase.from("contribution_logs" as any).insert({
+            user_id: assigneeId,
+            quest_id: questId,
+            guild_id: guildId || null,
+            subtask_id: subtaskId,
+            contribution_type: "subtask_completed",
+            title: logTitle,
+            task_type: "general",
+            base_units: baseUnits,
+            weight_factor: weightFactor,
+            weighted_units: weightedUnits,
+            ip_licence: "CC-BY-SA",
+          } as any);
+          qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
+        }
+      } catch (e) {
+        console.error("Failed to log contribution from subtask", e);
       }
-    } catch (e) {
-      console.error("Failed to log contribution from subtask", e);
-    }
+    })();
 
     // Invalidate contribution logs
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
