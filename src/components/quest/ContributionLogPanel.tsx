@@ -181,6 +181,34 @@ export function ContributionLogPanel({
   const uniqueContributors = new Set(contributions.map((c) => c.user_id)).size;
   const verified = contributions.filter((c) => c.status === "verified").length;
 
+  // Preview simulation for distribution dialog
+  const previewData = useMemo(() => {
+    if (totalWeightedUnits === 0 || questBudgetGamebTokens <= 0) return [];
+    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
+    const pool = Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+
+    const byContributor = new Map<string, { wu: number; name: string }>();
+    contributions.forEach((c) => {
+      const wu = Number((c as any).weighted_units) || 0;
+      const existing = byContributor.get(c.user_id);
+      if (existing) { existing.wu += wu; }
+      else { byContributor.set(c.user_id, { wu, name: c.profile?.name || "Unknown" }); }
+    });
+
+    return Array.from(byContributor.entries()).map(([uid, { wu, name }]) => {
+      const sharePct = totalWeightedUnits > 0 ? wu / totalWeightedUnits : 0;
+      return { userId: uid, name, wu, sharePct, tokens: Math.round(sharePct * pool * 100) / 100 };
+    }).sort((a, b) => b.wu - a.wu);
+  }, [contributions, totalWeightedUnits, questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
+
+  const previewContributorPool = useMemo(() => {
+    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
+    return Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+  }, [questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
   return (
     <div className="space-y-3">
       {/* Header */}
