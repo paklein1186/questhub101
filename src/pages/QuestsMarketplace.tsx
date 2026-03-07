@@ -232,7 +232,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                     const credits = Number((quest as any).credit_reward) || 0;
                     const showGameb = gameb > 0;
                     const showFiat = fiat > 0;
-                    const showXp = false;
+                    if (!showGameb && !showFiat && credits <= 0) return null;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {showGameb && (
