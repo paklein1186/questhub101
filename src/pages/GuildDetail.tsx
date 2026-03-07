@@ -209,8 +209,8 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
   );
 }
 
-/** AI Studio — single panel with internal mode toggle instead of nested tabs */
-type AIMode = "chat" | "facilitate" | "memory" | "matchmaker" | "agents";
+/** AI Studio — single panel with internal mode toggle: Chat · Tools · Memory · Agents */
+type AIMode = "chat" | "tools" | "memory" | "agents";
 
 function AIStudioPanel({ guild, isAdmin, isMember }: {
   guild: any; isAdmin: boolean; isMember: boolean;
@@ -219,9 +219,8 @@ function AIStudioPanel({ guild, isAdmin, isMember }: {
 
   const modes: { key: AIMode; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
     { key: "chat", label: "Chat", icon: <Bot className="h-3.5 w-3.5" /> },
-    { key: "facilitate", label: "Facilitator", icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { key: "tools", label: "Tools", icon: <Sparkles className="h-3.5 w-3.5" /> },
     { key: "memory", label: "Memory", icon: <Brain className="h-3.5 w-3.5" /> },
-    { key: "matchmaker", label: "Matchmaker", icon: <Sparkles className="h-3.5 w-3.5" />, adminOnly: true },
     { key: "agents", label: "Agents", icon: <Bot className="h-3.5 w-3.5" />, adminOnly: true },
   ];
 
@@ -251,14 +250,11 @@ function AIStudioPanel({ guild, isAdmin, isMember }: {
       {mode === "chat" && (
         <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
       )}
-      {mode === "facilitate" && (
+      {mode === "tools" && (
         <FacilitatorPanel entityType="GUILD" entityId={guild.id} entityName={guild.name} isAdmin={isAdmin} />
       )}
       {mode === "memory" && (
         <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
-      )}
-      {mode === "matchmaker" && isAdmin && (
-        <MatchmakerPanel matchType="guild" guildId={guild.id} />
       )}
       {mode === "agents" && isAdmin && (
         <UnitAgentsTab unitType="guild" unitId={guild.id} unitName={guild.name} isAdmin={isAdmin} />
@@ -300,7 +296,7 @@ export default function GuildDetail() {
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
-  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", matchmaker: "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-revenue" };
+  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-revenue" };
   const rawTab = guildSp.get("tab") || "overview";
   const activeTab = legacyTabMap[rawTab] || rawTab;
   const setActiveTab = (v: string) => setGuildSp(prev => {
@@ -495,6 +491,7 @@ export default function GuildDetail() {
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
             { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span></>, visible: isMember },
+            { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Matchmaker</span></>, visible: isAdmin },
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
@@ -771,6 +768,13 @@ export default function GuildDetail() {
               isAdmin={isAdmin}
               isMember={isMember}
             />
+          </TabsContent>
+        )}
+
+        {/* Matchmaker — separate admin tool */}
+        {isAdmin && (
+          <TabsContent value="matchmaker" className="mt-6">
+            <MatchmakerPanel matchType="guild" guildId={guild.id} />
           </TabsContent>
         )}
       </Tabs>
