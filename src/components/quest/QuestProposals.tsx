@@ -513,9 +513,9 @@ export function QuestProposals({
                         <CreditCard className="h-3 w-3 mr-1" /> €{proposal.requested_fiat}
                       </Badge>
                     )}
-                    {proposal.requested_currency && proposal.requested_currency !== "CREDITS" && (
+                    {proposal.requested_currency && (
                       <Badge variant="outline" className="text-[10px] capitalize">
-                        {proposal.requested_currency === "BOTH" ? "$CTG + Fiat" : "Fiat"}
+                        {{ CREDITS: "$CTG tokens", FIAT: "Coins (€)", BOTH: "$CTG + Fiat" }[proposal.requested_currency as string] ?? proposal.requested_currency}
                       </Badge>
                     )}
                     {/* Payment link — only active when accepted and fiat requested */}
