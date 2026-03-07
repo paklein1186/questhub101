@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   XP_REWARDS,
   XP_EVENT_TYPES,
@@ -34,6 +35,7 @@ interface CreditParams {
 export function useXpCredits() {
   const { toast } = useToast();
   const { session } = useAuth();
+  const { notifyXpGained } = useNotifications();
 
   // ── Grant XP (via secure RPC) ─────────────────────────────
   const grantXp = useCallback(
@@ -56,11 +58,13 @@ export function useXpCredits() {
         return;
       }
 
+      notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
+
       if (!silent) {
         toast({ title: `+${amount} XP`, description: formatXpType(params.type) });
       }
     },
-    [toast]
+    [toast, notifyXpGained]
   );
 
   // ── Grant Credits (via secure RPC) ────────────────────────
@@ -81,6 +85,14 @@ export function useXpCredits() {
         console.error("grant_user_credits error:", error.message);
         return;
       }
+
+      await supabase.from("notifications").insert({
+        user_id: userId,
+        type: "CREDIT_RECEIVED",
+        title: `+${params.amount} credits received`,
+        body: `You received ${params.amount} platform credits`,
+        deep_link_url: "/me?tab=wallet",
+      });
 
       if (!silent) {
         toast({ title: `+${params.amount} Credits`, description: params.source ?? "Credits earned" });
