@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { Coins, Users, Scale, TrendingUp, Leaf, PieChart as PieIcon, BarChart3 } from "lucide-react";
+import { Coins, Users, Scale, TrendingUp, TrendingDown, Leaf, PieChart as PieIcon, BarChart3, Gauge } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -79,6 +79,7 @@ const TASK_TYPE_EXAMPLES: Record<string, string> = {
 
 export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Props) {
   const [includeExternal, setIncludeExternal] = useState(false);
+  const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "all">("30d");
   const [showProposalDialog, setShowProposalDialog] = useState(false);
   const [proposalTaskType, setProposalTaskType] = useState("");
   const [proposalWeight, setProposalWeight] = useState("1.0");
@@ -156,16 +157,41 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     },
   });
 
+  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 0;
+
   // 2. Fetch contribution_logs for these quests
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["guild-ovn-data", guildId, questIds],
+    queryKey: ["guild-ovn-data", guildId, questIds, period],
     enabled: questIds.length > 0,
     queryFn: async () => {
-      // Contribution logs
-      const { data: contribs } = await supabase
+      // Contribution logs (with period filter)
+      let contribQuery = supabase
         .from("contribution_logs" as any)
         .select("user_id, quest_id, weighted_units, xp_earned, task_type, hours_logged, created_at, status")
         .in("quest_id", questIds);
+
+      if (period !== "all") {
+        const since = new Date();
+        since.setDate(since.getDate() - periodDays);
+        contribQuery = contribQuery.gte("created_at", since.toISOString());
+      }
+      const { data: contribs } = await contribQuery;
+
+      // Previous period contribs (for velocity comparison)
+      let prevContribs: any[] = [];
+      if (period !== "all" && periodDays > 0) {
+        const prevEnd = new Date();
+        prevEnd.setDate(prevEnd.getDate() - periodDays);
+        const prevStart = new Date();
+        prevStart.setDate(prevStart.getDate() - periodDays * 2);
+        const { data: prev } = await supabase
+          .from("contribution_logs" as any)
+          .select("weighted_units")
+          .in("quest_id", questIds)
+          .gte("created_at", prevStart.toISOString())
+          .lt("created_at", prevEnd.toISOString());
+        prevContribs = prev || [];
+      }
 
       // Value pie logs
       const { data: pieLogs } = await supabase
@@ -204,7 +230,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         territoryMap = new Map((territories || []).map((t) => [t.id, t.name]));
       }
 
-      return { contribs: contribs || [], pieLogs: pieLogs || [], quests: quests || [], profileMap, territoryMap };
+      return { contribs: contribs || [], pieLogs: pieLogs || [], quests: quests || [], profileMap, territoryMap, prevContribs };
     },
   });
 
@@ -212,7 +238,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     return <p className="text-sm text-muted-foreground p-4">Loading OVN data…</p>;
   }
 
-  const { contribs, pieLogs, quests, profileMap, territoryMap } = rawData;
+  const { contribs, pieLogs, quests, profileMap, territoryMap, prevContribs } = rawData;
 
   // ── Aggregate Contributors ────────────────────────────────
   const contributorMap = new Map<string, ContributorAgg>();
@@ -247,6 +273,23 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   const totalGamebTokens = contributors.reduce((s, c) => s + c.total_gameb_tokens, 0);
   const totalContributors = contributors.length;
   const avgSharePerContributor = totalContributors > 0 ? totalGamebTokens / totalContributors : 0;
+
+  // ── Active contributors (last 30 days regardless of period) ──
+  const now = Date.now();
+  const recentIds = new Set(
+    contribs
+      .filter((c: any) => (now - new Date(c.created_at).getTime()) / 86400000 <= 30)
+      .map((c: any) => c.user_id)
+  );
+
+  // ── Velocity ──────────────────────────────────────────────
+  const effectiveDays = periodDays > 0 ? periodDays : Math.max(1, contribs.length > 0
+    ? (now - new Date((contribs as any[])[contribs.length - 1].created_at).getTime()) / 86400000
+    : 1);
+  const currentVelocity = effectiveDays > 0 ? totalWeightedUnits / (effectiveDays / 7) : 0;
+  const prevWu = prevContribs.reduce((s: number, c: any) => s + (Number(c.weighted_units) || 0), 0);
+  const prevVelocity = periodDays > 0 ? prevWu / (periodDays / 7) : 0;
+  const velocityTrend = periodDays === 0 ? "neutral" : currentVelocity > prevVelocity ? "up" : currentVelocity < prevVelocity ? "down" : "neutral";
 
   // ── Quest Breakdown ───────────────────────────────────────
   const questAggs: QuestAgg[] = quests.map((q: any) => {
@@ -323,12 +366,27 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   return (
     <div className="space-y-6">
-      {/* Toggle */}
-      <div className="flex items-center gap-2">
-        <Switch id="external-toggle" checked={includeExternal} onCheckedChange={setIncludeExternal} />
-        <Label htmlFor="external-toggle" className="text-xs text-muted-foreground cursor-pointer">
-          Include external quests with contributors from this guild
-        </Label>
+      {/* Toggle + Period selector */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Switch id="external-toggle" checked={includeExternal} onCheckedChange={setIncludeExternal} />
+          <Label htmlFor="external-toggle" className="text-xs text-muted-foreground cursor-pointer">
+            Include external quests with contributors from this guild
+          </Label>
+        </div>
+        <div className="flex items-center gap-1">
+          {(["7d", "30d", "90d", "all"] as const).map((p) => (
+            <Button
+              key={p}
+              variant={period === p ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2.5"
+              onClick={() => setPeriod(p)}
+            >
+              {p === "7d" ? "7j" : p === "30d" ? "30j" : p === "90d" ? "90j" : "Tout"}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Headline Metrics */}
@@ -368,6 +426,17 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
             <p className="text-[10px] text-muted-foreground">🟩 Tokens (part guilde)</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Velocity indicator */}
+      <div className="flex items-center gap-2 text-xs">
+        <Gauge className="h-4 w-4 text-muted-foreground" />
+        <span className="text-muted-foreground">Vélocité :</span>
+        <span className={`font-semibold ${velocityTrend === "up" ? "text-emerald-600" : velocityTrend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
+          {currentVelocity.toFixed(1)} wu/semaine
+        </span>
+        {velocityTrend === "up" && <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
+        {velocityTrend === "down" && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
       </div>
 
       {/* Contributor Value Pie + Ranking */}
@@ -445,6 +514,9 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     </Avatar>
                     <span className="truncate">{c.name}</span>
                     <Badge variant="secondary" className="text-[9px]">{c.contribution_count}</Badge>
+                    {recentIds.has(c.user_id) && (
+                      <Badge variant="default" className="text-[9px] bg-emerald-500">Actif</Badge>
+                    )}
                   </div>
                   <span className="text-right font-medium">{c.total_weighted_units.toFixed(1)}</span>
                   <span className="text-right font-medium text-emerald-600">{c.total_gameb_tokens.toFixed(0)}</span>
