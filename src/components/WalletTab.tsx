@@ -25,6 +25,7 @@ import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
 import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
+import { CTGWalletSection } from "@/components/CTGWalletSection";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -62,7 +63,7 @@ export function WalletTab() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [txFilter, setTxFilter] = useState("all");
   const [transferOpen, setTransferOpen] = useState(false);
-  const [activeWallet, setActiveWallet] = useState<"platform" | "gameb">("platform");
+  const [activeWallet, setActiveWallet] = useState<"platform" | "gameb" | "ctg">("platform");
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
@@ -129,12 +130,13 @@ export function WalletTab() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("total_shares_a, total_shares_b, governance_weight, is_cooperative_member")
+        .select("total_shares_a, total_shares_b, governance_weight, is_cooperative_member, ctg_balance")
         .eq("user_id", userId!)
         .single();
       return data;
     },
   });
+  const ctgBal = Number((profileShares as any)?.ctg_balance ?? 0);
 
   const filteredTx = transactions.filter((tx: any) => {
     if (txFilter === "all") return true;
@@ -223,7 +225,7 @@ export function WalletTab() {
         </div>
 
         {/* ═══ 5 VALUE TILES ═══ */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {/* Fiat */}
           <ValueTile icon={<Banknote className="h-5 w-5" />} label="Fiat Balance" emoji="💶"
             tooltip="Your earnings from paid missions and services. Paid via Stripe.">
@@ -245,6 +247,15 @@ export function WalletTab() {
             value={gamebBal}
             tooltip="Fiat-backed mission tokens. Earned from quests funded by real money. Withdrawable to fiat.">
             <p className="text-[10px] text-muted-foreground mt-1">Mission value</p>
+          </ValueTile>
+
+          {/* $CTG */}
+          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG Token" emoji="🌱"
+            value={ctgBal}
+            tooltip="Cooperative currency earned through contributions. Exchangeable for credits.">
+            <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
+              View Wallet
+            </Button>
           </ValueTile>
 
           {/* XP */}
@@ -290,7 +301,18 @@ export function WalletTab() {
           >
             🟩 GameB Tokens
           </Button>
+          <Button
+            variant={activeWallet === "ctg" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveWallet("ctg")}
+            className="gap-1.5"
+          >
+            🌱 $CTG Token
+          </Button>
         </div>
+
+        {/* ═══ $CTG WALLET ═══ */}
+        {activeWallet === "ctg" && <CTGWalletSection />}
 
         {/* ═══ PLATFORM CREDITS WALLET ═══ */}
         {activeWallet === "platform" && (
