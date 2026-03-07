@@ -807,6 +807,9 @@ export default function SettingsPage() {
               {/* ── Activity History ── */}
               {activeTab === "history" && <ActivityHistoryTab />}
 
+              {/* ── Mon OVN ── */}
+              {activeTab === "ovn" && <MonOVNPanel userId={currentUser.id} />}
+
               {/* ── Website ── */}
               {activeTab === "website" && (
                 <div className="space-y-6">
