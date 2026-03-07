@@ -21,6 +21,7 @@ interface Props {
   questId: string;
   questOwnerId: string;
   guildId?: string | null;
+  territoryId?: string | null;
   questCoinBudget?: number;
   guildPercent?: number;
   territoryPercent?: number;
@@ -70,6 +71,7 @@ export function ContributionLogPanel({
   questId,
   questOwnerId,
   guildId,
+  territoryId,
   questCoinBudget = 0,
   guildPercent = 10,
   territoryPercent = 5,
@@ -173,7 +175,7 @@ export function ContributionLogPanel({
       contributorPoolTokens: contributorPool,
       guildId: guildId ?? null,
       guildTokens: guildAmt,
-      territoryId: undefined,
+      territoryId: territoryId ?? undefined,
       territoryTokens: territoryAmt,
       ctgTokens: ctgAmt,
     });
