@@ -62,7 +62,7 @@ serve(async (req) => {
     for (const pref of dueUsers) {
       try {
         const userId = pref.user_id;
-        const interval = FREQUENCY_INTERVALS[pref.digest_frequency] ?? FREQUENCY_INTERVALS.three_days;
+        const interval = FREQUENCY_INTERVALS[pref.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
         const since = new Date(now - interval).toISOString();
 
         // Get user profile
