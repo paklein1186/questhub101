@@ -288,6 +288,7 @@ export default function GuildDetail() {
   const { data: guildServices } = useServicesForGuild(id, showMemberServices);
   const { data: guildQuests } = useQuestsForGuild(id);
   const currentUser = useCurrentUser();
+  const { persona } = usePersona();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
