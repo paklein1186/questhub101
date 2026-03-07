@@ -3396,6 +3396,50 @@ export type Database = {
         }
         Relationships: []
       }
+      guild_decisions: {
+        Row: {
+          created_at: string
+          description: string | null
+          guild_id: string
+          id: string
+          proposed_by: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          guild_id: string
+          id?: string
+          proposed_by: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          guild_id?: string
+          id?: string
+          proposed_by?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_decisions_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guild_docs: {
         Row: {
           content: string | null
