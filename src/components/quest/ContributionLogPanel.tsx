@@ -70,7 +70,7 @@ export function ContributionLogPanel({
   questId,
   questOwnerId,
   guildId,
-  questBudgetGamebTokens = 0,
+  questCoinBudget = 0,
   guildPercent = 10,
   territoryPercent = 5,
   ctgPercent = 5,

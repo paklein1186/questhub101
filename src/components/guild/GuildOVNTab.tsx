@@ -38,7 +38,7 @@ interface ContributorAgg {
   name: string;
   avatar_url: string | null;
   total_weighted_units: number;
-  total_gameb_tokens: number;
+  total_coins: number;
   total_xp: number;
   contribution_count: number;
 }
@@ -47,7 +47,7 @@ interface QuestAgg {
   quest_id: string;
   quest_title: string;
   territory_name: string | null;
-  budget_gameb: number;
+  budget_coins: number;
   contributor_count: number;
   guild_share: number;
   value_pie_calculated: boolean;
@@ -350,7 +350,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   // ── Bar chart data: tokens per quest ──────────────────────
   const barData = questAggs.map((q) => ({
     name: q.quest_title.length > 20 ? q.quest_title.slice(0, 20) + "…" : q.quest_title,
-    tokens: q.budget_gameb,
+    tokens: q.budget_coins,
     contributors: q.contributor_count,
   }));
 
@@ -519,7 +519,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     )}
                   </div>
                   <span className="text-right font-medium">{c.total_weighted_units.toFixed(1)}</span>
-                  <span className="text-right font-medium text-emerald-600">{c.total_gameb_tokens.toFixed(0)}</span>
+                  <span className="text-right font-medium text-emerald-600">{c.total_coins.toFixed(0)}</span>
                   <span className="text-right text-muted-foreground">{c.total_xp}</span>
                 </Link>
               ))}
@@ -573,7 +573,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                   className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
                 >
                   <span className="truncate">{q.quest_title}</span>
-                  <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
+                  <span className="text-right font-medium text-emerald-600">{q.budget_coins}</span>
                   <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
                   <span className={`text-right font-medium ${ratioColor}`}>{q.verification_ratio !== null ? `${q.verification_ratio}%` : "—"}</span>
                   <span className="text-right">{q.contributor_count}</span>
