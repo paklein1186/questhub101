@@ -62,7 +62,7 @@ export function WalletTab() {
   const [portalLoading, setPortalLoading] = useState(false);
   const [txFilter, setTxFilter] = useState("all");
   const [transferOpen, setTransferOpen] = useState(false);
-  const [activeWallet, setActiveWallet] = useState<"platform" | "gameb">("platform");
+  const [activeWallet, setActiveWallet] = useState<"platform" | "gameb" | "ctg">("platform");
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
