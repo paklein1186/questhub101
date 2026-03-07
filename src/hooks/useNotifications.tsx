@@ -837,9 +837,9 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  // ── Trigger: Decision created — notify entity members ──
+  // ── Trigger: Decision created — notify entity members (with preference check) ──
 
-  const notifyDecisionCreated = useCallback(async ({ entityType, entityId, entityName, question, creatorUserId }: any) => {
+  const notifyDecisionCreated = useCallback(async ({ entityType, entityId, entityName, question, creatorUserId, decisionId }: any) => {
     try {
       const memberTable = entityType === "GUILD" ? "guild_members" : entityType === "COMPANY" ? "company_members" : null;
       const idCol = entityType === "GUILD" ? "guild_id" : entityType === "COMPANY" ? "company_id" : null;
@@ -848,12 +848,23 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       const { data: members } = await supabase.from(memberTable as any).select("user_id").eq(idCol, entityId).limit(200);
       if (!members?.length) return;
 
-      const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=decisions`;
+      const memberIds = (members as any[]).filter((m: any) => m.user_id !== creatorUserId).map((m: any) => m.user_id);
+      if (memberIds.length === 0) return;
+
+      // Fetch notification preferences to respect guild_activity opt-out
+      const { data: prefs } = await supabase
+        .from("notification_preferences")
+        .select("user_id, notify_guild_activity")
+        .in("user_id", memberIds);
+      const optedOut = new Set((prefs ?? []).filter((p: any) => p.notify_guild_activity === false).map((p: any) => p.user_id));
+
+      const dId = decisionId || entityId;
+      const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=decisions&decision=${dId}`;
       const truncQ = question.length > 60 ? question.slice(0, 57) + "…" : question;
-      const notifRows = (members as any[])
-        .filter((m: any) => m.user_id !== creatorUserId)
-        .map((m: any) => ({
-          user_id: m.user_id,
+      const notifRows = memberIds
+        .filter((uid: string) => !optedOut.has(uid))
+        .map((uid: string) => ({
+          user_id: uid,
           type: "ENTITY_NEW_DECISION",
           title: `New decision in ${entityName}`,
           body: `"${truncQ}"`,
