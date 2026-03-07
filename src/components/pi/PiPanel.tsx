@@ -53,7 +53,7 @@ export function PiPanel() {
       setQuestsOpen(true);
       setConvsOpen(true);
     }
-  }, [isOpen]);
+  }, [isOpen, isChatActive]);
 
   // Resize logic
   const handleResizeStart = useCallback(
