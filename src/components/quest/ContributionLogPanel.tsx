@@ -51,6 +51,18 @@ const CONTRIBUTION_OPTIONS: { value: ContributionType; label: string }[] = [
   { value: "other", label: "Other contribution" },
 ];
 
+const TASK_TYPE_ICONS = [
+  { value: "research", emoji: "🔬", label: "Research" },
+  { value: "facilitation", emoji: "🤝", label: "Facilitation" },
+  { value: "coordination", emoji: "📅", label: "Coordination" },
+  { value: "creative", emoji: "🎨", label: "Creative" },
+  { value: "admin", emoji: "📋", label: "Admin" },
+  { value: "risk", emoji: "⚡", label: "Risk" },
+  { value: "development", emoji: "💻", label: "Development" },
+  { value: "design", emoji: "✏️", label: "Design" },
+  { value: "testing", emoji: "🧪", label: "Testing" },
+  { value: "documentation", emoji: "📄", label: "Docs" },
+] as const;
 export function ContributionLogPanel({
   questId,
   questOwnerId,
