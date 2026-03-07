@@ -36,7 +36,7 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortMode>("status");
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const availableStatuses = useMemo(() => {
     const s = new Set<string>();
