@@ -324,7 +324,7 @@ export function GuestOnboardingAssistant({ open, onOpenChange, actionLabel = "pe
       return;
     }
 
-    const roleMap: Record<string, string> = { creative: "CREATOR", impact: "GAMECHANGER", hybrid: "HYBRID", org_rep: "GAMECHANGER" };
+    const roleMap: Record<string, string> = { creative: "GAMECHANGER", impact: "GAMECHANGER", hybrid: "BOTH", org_rep: "ECOSYSTEM_BUILDER" };
     const role = roleMap[selectedPersona || ""] || "GAMECHANGER";
     const { error } = await signUp(email.trim(), password, name.trim(), role);
     setSigningUp(false);

@@ -198,9 +198,9 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       )}
                     </div>
                     {(() => {
-                      const gb = Number((quest as any).gameb_token_budget) || 0;
+                      const cr = Number((quest as any).credit_budget) || 0;
                       const fi = Number((quest as any).budget_min) || 0;
-                      if (gb > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-emerald-600">🟩 {gb}</span>;
+                      if (cr > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Coins className="h-4 w-4" /> {cr} Cr</span>;
                       if (fi > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><CreditCard className="h-4 w-4" /> {fi}€</span>;
                       return null;
                     })()}
@@ -238,28 +238,25 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                   )}
                   {/* Reward badges — prioritise $CTG / Fiat over XP */}
                   {(() => {
-                    const gameb = Number((quest as any).gameb_token_budget) || 0;
+                    const ctg = Number((quest as any).credit_reward) || 0;
                     const fiat = Number((quest as any).budget_min) || 0;
-                    const xp = quest.reward_xp || 0;
-                    const credits = Number((quest as any).credit_reward) || 0;
-                    const showGameb = gameb > 0;
-                    const showFiat = fiat > 0;
-                    if (!showGameb && !showFiat && credits <= 0) return null;
+                    const creditBudget = Number((quest as any).credit_budget) || 0;
+                    if (ctg <= 0 && fiat <= 0 && creditBudget <= 0) return null;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
-                        {showGameb && (
-                          <Badge variant="secondary" className="text-[10px] gap-0.5 border-emerald-500/30 text-emerald-600">
-                            🟩 {gameb} $CTG
+                        {creditBudget > 0 && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5">
+                            <Coins className="h-3 w-3 text-primary" /> {creditBudget} Credits
                           </Badge>
                         )}
-                        {showFiat && (
+                        {ctg > 0 && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5 border-emerald-500/30 text-emerald-600">
+                            🌱 {ctg} $CTG
+                          </Badge>
+                        )}
+                        {fiat > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
                             <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
-                          </Badge>
-                        )}
-                        {credits > 0 && (
-                          <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Coins className="h-3 w-3 text-primary" /> {credits} Credits
                           </Badge>
                         )}
                       </div>
