@@ -269,6 +269,32 @@ export function ProfileQuestsTab({
               <SelectItem value="joined">Joined</SelectItem>
             </SelectContent>
           </Select>
+          <div className="flex border border-border rounded-md overflow-hidden">
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              className="h-9 rounded-none px-2.5"
+              onClick={() => setViewMode("list")}
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              className="h-9 rounded-none px-2.5"
+              onClick={() => setViewMode("grid")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              className="h-9 rounded-none px-2.5"
+              onClick={() => setViewMode("kanban")}
+            >
+              <Columns3 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
 
         {/* Table */}
