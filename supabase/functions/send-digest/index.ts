@@ -200,6 +200,31 @@ serve(async (req) => {
 
         const periodLabel = pref.digest_frequency === "weekly" ? "this week" : "these past 3 days";
 
+        // ── Fetch unread notifications grouped by type ──
+        const { data: unreadNotifs } = await supabase
+          .from("notifications")
+          .select("type")
+          .eq("user_id", userId)
+          .eq("is_read", false)
+          .gte("created_at", since);
+
+        const notifCounts: Record<string, number> = {};
+        for (const n of unreadNotifs ?? []) {
+          notifCounts[n.type] = (notifCounts[n.type] || 0) + 1;
+        }
+
+        // ── Fetch XP gained since last digest ──
+        let xpGained = 0;
+        const { data: xpRows } = await supabase
+          .from("biopoints_transactions")
+          .select("amount")
+          .eq("user_id", userId)
+          .eq("type", "earn")
+          .gte("created_at", since);
+        if (xpRows) {
+          xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+        }
+
         // Build rich context for AI — network-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
@@ -220,7 +245,9 @@ serve(async (req) => {
             newQuests: newQuests.length,
             newEvents: newEvents.length,
             newMembersInYourGuilds: newGuildMembers,
+            xpGained,
           },
+          notificationCounts: notifCounts,
           topPosts,
           newQuests: newQuests.slice(0, 5).map((q: any) => ({
             title: q.title,
@@ -233,7 +260,7 @@ serve(async (req) => {
           })),
         };
 
-        // Call AI to generate network-focused digest
+        // Call AI to generate clustered digest
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -245,38 +272,46 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary. It's a curated news brief about what's happening around them.
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a clustered digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief grouped by category.
 
 Your output must be a JSON object:
 {
-  "subject": "compelling subject line (max 60 chars, curiosity-driven, mention a specific detail from the data)",
-  "greeting": "short warm greeting using their name (1 sentence)",
-  "network_highlights": [
-    {"icon": "emoji", "text": "one-line highlight about network activity"},
-    {"icon": "emoji", "text": "one-line highlight"},
-    {"icon": "emoji", "text": "one-line highlight"}
+  "subject": "compelling subject line mentioning a specific guild or activity (max 55 chars)",
+  "preheader": "short preview text shown in inbox before opening (max 90 chars)",
+  "greeting": "warm 1-line greeting using their name",
+  "clusters": [
+    {
+      "label": "🏛 Guild Activity",
+      "items": [
+        { "icon": "emoji", "text": "descriptive line about what happened", "link": "/relevant-deep-link" }
+      ]
+    }
   ],
-  "featured_posts": [
-    {"author": "name", "context": "guild/community name", "teaser": "compelling 1-line teaser of the post content", "link": "/explore"}
-  ],
-  "upcoming": [
-    {"label": "Event or Quest title", "detail": "guild name · date or context", "link": "/quests or /guilds/..."}
-  ],
-  "closing": "1 sentence motivational closing or gentle nudge"
+  "closing": "1 motivational sentence",
+  "cta_label": "Explore what's new",
+  "cta_url": "/explore"
 }
 
+Available cluster categories (use only those that have data):
+- "🏛 Guild Activity" — new posts, decisions, member joins in their guilds
+- "⚡ Quests & Projects" — new quests, quest updates, proposals
+- "📅 Upcoming Events" — events from guilds and followed entities
+- "🏆 Your Progress" — XP gained, achievements, credits received, contributions
+
 Rules:
-- Subject line should create curiosity: "3 new quests in Solar Builders this week" or "Your guilds are buzzing — here's what you missed"
-- Focus on NETWORK activity, not the user's own activity
-- If there's little activity, highlight the communities and topics they follow, suggest exploration
-- featured_posts: pick the most engaging 2-3 posts by upvotes or content quality. Tease the content to make them want to click.
-- Use real links: /explore, /quests, /guilds, /network, /services
+- Only include clusters that have items. Max 4 items per cluster. Max 4 clusters total.
+- Subject line should create curiosity: mention a specific guild name or count.
+- Preheader should complement the subject, not repeat it.
+- Use real deep links: /explore, /quests, /guilds, /network, /me, /me?tab=contributions
+- For guild-specific links use /guilds/GUILD_ID format if you have context, otherwise /explore
+- "Your Progress" cluster: summarize XP, achievements, credits in aggregate lines
+- If there's little activity, highlight communities and suggest exploration
 - Keep it punchy — this is a news brief, not a letter
-- ONLY output valid JSON`,
+- ONLY output valid JSON, no markdown fences`,
               },
               {
                 role: "user",
-                content: `Generate a network digest for:\n${JSON.stringify(userContext, null, 2)}`,
+                content: `Generate a clustered network digest for:\n${JSON.stringify(userContext, null, 2)}`,
               },
             ],
           }),
