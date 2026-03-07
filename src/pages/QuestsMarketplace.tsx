@@ -191,11 +191,6 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-display font-semibold">{quest.title}</h3>
-                      {(quest as any).quest_nature && (
-                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${QUEST_NATURE_COLORS[(quest as any).quest_nature as QuestNature] || ''}`}>
-                          {QUEST_NATURE_ICONS[(quest as any).quest_nature as QuestNature]} {QUEST_NATURE_LABELS[(quest as any).quest_nature as QuestNature]}
-                        </Badge>
-                      )}
                     </div>
                     {(() => {
                       const coins = Number((quest as any).coin_budget) || 0;
