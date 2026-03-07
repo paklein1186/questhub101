@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { Coins, Users, Scale, TrendingUp, Leaf, PieChart as PieIcon, BarChart3 } from "lucide-react";
+import { Coins, Users, Scale, TrendingUp, TrendingDown, Leaf, PieChart as PieIcon, BarChart3, Gauge } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -79,6 +79,7 @@ const TASK_TYPE_EXAMPLES: Record<string, string> = {
 
 export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Props) {
   const [includeExternal, setIncludeExternal] = useState(false);
+  const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "all">("30d");
   const [showProposalDialog, setShowProposalDialog] = useState(false);
   const [proposalTaskType, setProposalTaskType] = useState("");
   const [proposalWeight, setProposalWeight] = useState("1.0");
