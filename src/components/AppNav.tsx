@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
@@ -90,15 +90,16 @@ export function AppNav() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance, ctg_balance")
+        .select("credits_balance, ctg_balance, xp")
         .eq("user_id", session!.user.id)
         .maybeSingle();
-      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0 };
+      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0, xp: (data as any)?.xp ?? 0 };
     },
     refetchInterval: 60_000,
   });
   const creditsBalance = navBalances?.credits ?? 0;
   const ctgBalance = navBalances?.ctg ?? 0;
+  const xpBalance = navBalances?.xp ?? 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -229,17 +230,17 @@ export function AppNav() {
                           <User className="h-4 w-4 mr-2" /> {t("nav.myPublicProfile")}
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/me?tab=wallet" className="cursor-pointer justify-between">
-                          <span className="flex items-center gap-2"><Coins className="h-4 w-4" /> {t("wallet.credits")}</span>
-                          <span className="text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
+                      <div className="flex items-center gap-1.5 px-2 py-1.5">
+                        <Link to="/me?tab=wallet" className="inline-flex items-center gap-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
+                          <Coins className="h-3 w-3" /> {creditsBalance}
                         </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/me?tab=wallet" className="cursor-pointer justify-between">
-                          <CTGBalanceBadge balance={ctgBalance} size="sm" />
+                        <Link to="/me?tab=wallet" className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
+                          <span className="text-[10px]">🌱</span> {ctgBalance}
                         </Link>
-                      </DropdownMenuItem>
+                        <Link to="/me" className="inline-flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
+                          <Star className="h-3 w-3" /> {xpBalance} XP
+                        </Link>
+                      </div>
                       <DropdownMenuSeparator />
                       <LanguageSwitcherInline />
                       {showAdmin && (
@@ -352,15 +353,17 @@ export function AppNav() {
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
                             <User className="h-4 w-4" /> {t("nav.myPublicProfile")}
                           </Link>
-                          <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
-                            <Coins className="h-4 w-4" /> {t("wallet.credits")}
-                            <span className="ml-auto text-xs font-semibold text-primary">{creditsBalance ?? 0}</span>
-                          </Link>
-                          <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)}
-                            className="flex items-center px-3 py-2">
-                            <CTGBalanceBadge balance={ctgBalance} size="sm" />
-                          </Link>
+                          <div className="flex items-center gap-1.5 px-3 py-2">
+                            <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 px-2.5 py-1 text-xs font-medium">
+                              <Coins className="h-3 w-3" /> {creditsBalance}
+                            </Link>
+                            <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 text-xs font-medium">
+                              <span className="text-[10px]">🌱</span> {ctgBalance}
+                            </Link>
+                            <Link to="/me" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2.5 py-1 text-xs font-medium">
+                              <Star className="h-3 w-3" /> {xpBalance} XP
+                            </Link>
+                          </div>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
                             <Mail className="h-4 w-4" /> {t("nav.messages")}
