@@ -38,6 +38,7 @@ import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
 import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
+import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { UnitChat } from "@/components/UnitChat";
@@ -666,6 +667,7 @@ export default function QuestDetail() {
                 <p className="text-[10px] text-muted-foreground">Per participant on completion</p>
               </div>
             )}
+            <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {(quest as any).credit_budget > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">🏦 Credit Budget</p>
