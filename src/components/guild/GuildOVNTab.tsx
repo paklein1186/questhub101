@@ -238,7 +238,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     return <p className="text-sm text-muted-foreground p-4">Loading OVN data…</p>;
   }
 
-  const { contribs, pieLogs, quests, profileMap, territoryMap } = rawData;
+  const { contribs, pieLogs, quests, profileMap, territoryMap, prevContribs } = rawData;
 
   // ── Aggregate Contributors ────────────────────────────────
   const contributorMap = new Map<string, ContributorAgg>();
@@ -273,6 +273,23 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   const totalGamebTokens = contributors.reduce((s, c) => s + c.total_gameb_tokens, 0);
   const totalContributors = contributors.length;
   const avgSharePerContributor = totalContributors > 0 ? totalGamebTokens / totalContributors : 0;
+
+  // ── Active contributors (last 30 days regardless of period) ──
+  const now = Date.now();
+  const recentIds = new Set(
+    contribs
+      .filter((c: any) => (now - new Date(c.created_at).getTime()) / 86400000 <= 30)
+      .map((c: any) => c.user_id)
+  );
+
+  // ── Velocity ──────────────────────────────────────────────
+  const effectiveDays = periodDays > 0 ? periodDays : Math.max(1, contribs.length > 0
+    ? (now - new Date(contribs[contribs.length - 1].created_at).getTime()) / 86400000
+    : 1);
+  const currentVelocity = effectiveDays > 0 ? totalWeightedUnits / (effectiveDays / 7) : 0;
+  const prevWu = prevContribs.reduce((s: number, c: any) => s + (Number(c.weighted_units) || 0), 0);
+  const prevVelocity = periodDays > 0 ? prevWu / (periodDays / 7) : 0;
+  const velocityTrend = periodDays === 0 ? "neutral" : currentVelocity > prevVelocity ? "up" : currentVelocity < prevVelocity ? "down" : "neutral";
 
   // ── Quest Breakdown ───────────────────────────────────────
   const questAggs: QuestAgg[] = quests.map((q: any) => {
