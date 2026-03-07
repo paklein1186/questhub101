@@ -589,16 +589,6 @@ export default function SettingsPage() {
                         <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell us about yourself…" maxLength={1300} className="min-h-[140px]" />
                         <span className="text-xs text-muted-foreground text-right block mt-1">{bio?.length || 0}/1300</span>
                       </div>
-                      <div><label className="text-sm font-medium mb-1 block">Role</label>
-                        <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={UserRole.GAMECHANGER}>Gamechanger</SelectItem>
-                            <SelectItem value={UserRole.ECOSYSTEM_BUILDER}>Ecosystem Builder</SelectItem>
-                            <SelectItem value={UserRole.BOTH}>Both</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     <Button onClick={handleSaveProfile} disabled={profileSaving} className="w-full">
                         {profileSaving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />} Save profile
                        </Button>
