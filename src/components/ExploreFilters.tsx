@@ -61,6 +61,7 @@ export interface ExploreFilterValues {
   sortBy: ExploreSortBy;
   questType: string;
   missionOnly: boolean;
+  hasBudget: boolean;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -76,6 +77,7 @@ export const defaultFilters: ExploreFilterValues = {
   sortBy: "most_recent",
   questType: "all",
   missionOnly: false,
+  hasBudget: false,
 };
 
 // Which filter sections to show per page
@@ -91,6 +93,7 @@ export interface ExploreFilterConfig {
   showRole?: boolean;           // user role
   showQuestType?: boolean;      // quest nature (Level 1)
   showMission?: boolean;        // mission-only toggle
+  showHasBudget?: boolean;      // has budget/reward toggle
 }
 
 interface Props {
