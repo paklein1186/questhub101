@@ -191,7 +191,13 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                         </Badge>
                       )}
                     </div>
-                    <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Zap className="h-4 w-4" /> {quest.reward_xp}</span>
+                    {(() => {
+                      const gb = Number((quest as any).gameb_token_budget) || 0;
+                      const fi = Number((quest as any).budget_min) || 0;
+                      if (gb > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-emerald-600">🟩 {gb}</span>;
+                      if (fi > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><CreditCard className="h-4 w-4" /> {fi}€</span>;
+                      return null;
+                    })()}
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{quest.description}</p>
                   {(() => {
