@@ -14,6 +14,7 @@ export interface ProfileData {
   xpLevel: number;
   xpRecent12m: number;
   creditsBalance: number;
+  ctgBalance: number;
   contributionIndex: number;
   websiteUrl: string | null;
   twitterUrl: string | null;
@@ -48,7 +49,7 @@ export function useProfileData(userId: string | undefined) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance, website_url, twitter_url, linkedin_url, instagram_url, has_completed_onboarding, persona_type, persona_confidence")
+        .select("credits_balance, ctg_balance, website_url, twitter_url, linkedin_url, instagram_url, has_completed_onboarding, persona_type, persona_confidence")
         .eq("user_id", userId!)
         .single();
       return data;
@@ -235,6 +236,7 @@ export function useProfileData(userId: string | undefined) {
         xpLevel: (pub as any).xp_level ?? 1,
         xpRecent12m: (pub as any).xp_recent_12m ?? 0,
         creditsBalance: (priv as any)?.credits_balance ?? 0,
+        ctgBalance: (priv as any)?.ctg_balance ?? 0,
         contributionIndex: pub.contribution_index ?? 0,
         websiteUrl: (priv as any)?.website_url ?? null,
         twitterUrl: (priv as any)?.twitter_url ?? null,
