@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyPlatformAdmins } from "@/lib/notifyAdmins";
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -36,6 +37,13 @@ export function ReportButton({ targetType, targetId, variant = "sm" }: ReportBut
     setReason("");
     setOpen(false);
     toast({ title: "Report submitted", description: "An admin will review it shortly." });
+    notifyPlatformAdmins({
+      type: "SYSTEM_ABUSE_REPORT",
+      title: "New content report",
+      body: `${targetType} was reported`,
+      deepLinkUrl: "/admin/content/reports",
+      relatedEntityId: targetId,
+    });
   };
 
   return (

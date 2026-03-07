@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { notifyPlatformAdmins } from "@/lib/notifyAdmins";
 import { Bug, X, Send, ImagePlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +53,12 @@ export function BugReportBubble() {
       setPreview(null);
       setOpen(false);
       toast({ title: "Bug report sent!", description: "Thanks for helping us improve." });
+      notifyPlatformAdmins({
+        type: "SYSTEM_BUG_REPORT",
+        title: "New bug report",
+        body: text.trim().slice(0, 100) || "A bug was reported",
+        deepLinkUrl: "/admin/content/reports",
+      });
     } catch (e: any) {
       toast({ title: "Failed to send", description: e.message || "Please try again.", variant: "destructive" });
     } finally {
