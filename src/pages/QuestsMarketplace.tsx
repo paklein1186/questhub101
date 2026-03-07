@@ -232,9 +232,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                     const credits = Number((quest as any).credit_reward) || 0;
                     const showGameb = gameb > 0;
                     const showFiat = fiat > 0;
-                    // Show XP only if no $CTG and no fiat
-                    const showXp = xp > 0 && !showGameb && !showFiat;
-                    if (!showGameb && !showFiat && !showXp && credits <= 0) return null;
+                    if (!showGameb && !showFiat && credits <= 0) return null;
                     return (
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {showGameb && (
@@ -245,11 +243,6 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                         {showFiat && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
                             <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
-                          </Badge>
-                        )}
-                        {showXp && (
-                          <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Zap className="h-3 w-3 text-primary" /> {xp} XP
                           </Badge>
                         )}
                         {credits > 0 && (
