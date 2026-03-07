@@ -316,6 +316,62 @@ export function WalletTab() {
         {/* ═══ $CTG WALLET ═══ */}
         {activeWallet === "ctg" && <CTGWalletSection />}
 
+        {/* ═══ COINS WALLET ═══ */}
+        {activeWallet === "coins" && (
+          <>
+            <Section title="🟩 Coins — Mission Value" icon={<Banknote className="h-5 w-5" />}>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Your Coins Balance</p>
+                      <p className="text-2xl font-bold">{coinsBal} 🟩</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
+                      <p className="text-lg font-semibold">€{(coinsBal * 0.04).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Coins are earned from funded quests (Missions). They are fiat-backed and withdrawable via Stripe Connect.
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleRequestWithdrawal} disabled={coinsBal <= 0}>
+                    <Download className="h-4 w-4 mr-1" /> Withdraw to bank
+                  </Button>
+                  {!coinsBalance?.stripe_connect_onboarded && (
+                    <Button variant="outline" size="sm" onClick={handleStripeConnectOnboarding}>
+                      <CreditCard className="h-4 w-4 mr-1" /> Set up Stripe Connect
+                    </Button>
+                  )}
+                </div>
+
+                {/* Pending withdrawals */}
+                {withdrawals.length > 0 && (
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-medium text-muted-foreground">Recent withdrawals</h4>
+                    {withdrawals.map((w: any) => (
+                      <div key={w.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-muted/30 text-xs">
+                        <span>{w.amount_tokens} Coins → €{w.amount_fiat}</span>
+                        <Badge variant={w.status === "completed" ? "default" : "secondary"} className="text-[10px]">{w.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Section>
+
+            <Separator />
+
+            <Section title="Coins Transaction History" icon={<History className="h-5 w-5" />}>
+              <TxFilterBar value={txFilter} onChange={setTxFilter} />
+              <TxList loading={coinsTxLoading} items={filteredCoinsTx} labels={COIN_TX_LABELS} />
+            </Section>
+          </>
+        )}
+
         {/* ═══ PLATFORM CREDITS WALLET ═══ */}
         {activeWallet === "platform" && (
           <>
