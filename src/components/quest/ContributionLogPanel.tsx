@@ -26,6 +26,8 @@ interface Props {
   territoryPercent?: number;
   ctgPercent?: number;
   valuePieCalculated?: boolean;
+  isCoHost?: boolean;
+  isGuildAdmin?: boolean;
 }
 
 const TYPE_LABELS: Record<string, { label: string; icon: typeof FileText; color: string }> = {
@@ -73,6 +75,8 @@ export function ContributionLogPanel({
   territoryPercent = 5,
   ctgPercent = 5,
   valuePieCalculated = false,
+  isCoHost = false,
+  isGuildAdmin = false,
 }: Props) {
   const currentUser = useCurrentUser();
   const { data: contributions = [], isLoading } = useQuestContributions(questId);
@@ -95,6 +99,7 @@ export function ContributionLogPanel({
   const [submitting, setSubmitting] = useState(false);
 
   const isOwner = currentUser.id === questOwnerId;
+  const canVerify = isOwner || isCoHost || isGuildAdmin;
 
   // Build weight map from guild weights
   const weightMap = useMemo(() => {
@@ -444,6 +449,9 @@ export function ContributionLogPanel({
                           {c.status === "verified" && (
                             <Badge className="bg-emerald-500/10 text-emerald-600 border-0 text-[10px]">✓ Verified</Badge>
                           )}
+                          {c.status === "logged" && (Date.now() - new Date(c.created_at).getTime()) / 86400000 >= 14 && (
+                            <Badge variant="outline" className="text-amber-600 border-amber-400 text-[10px]">⏳ Auto-vérifié bientôt</Badge>
+                          )}
                           {wu > 0 && (
                             <span className="text-[10px] text-emerald-600 font-medium">{wu} wu</span>
                           )}
@@ -461,7 +469,7 @@ export function ContributionLogPanel({
                           {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
                         </span>
                       </div>
-                      {isOwner && c.status === "logged" && (
+                      {canVerify && c.status === "logged" && (
                         <Button
                           variant="ghost"
                           size="sm"
