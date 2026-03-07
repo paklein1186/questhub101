@@ -1,4 +1,5 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -320,6 +321,12 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       image_url: svcImageUrl || null,
     } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
+    notifyEntityFollowersAndMembers({
+      entityType: "GUILD", entityId: guildId, entityName: guild.name,
+      actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_SERVICE",
+      title: `New service: ${svcTitle.trim()}`, body: `A new service was added in ${guild.name}`,
+      deepLinkUrl: `/guilds/${guildId}?tab=services`,
+    });
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined);
     setCreateSvcOpen(false);
