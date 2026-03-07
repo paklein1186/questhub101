@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -16,7 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowUpRight, ArrowDownRight, Filter, Send, RefreshCw, Loader2, Info,
+  ArrowUpRight, ArrowDownRight, Filter, Send, RefreshCw, Loader2, Info, AlertTriangle, Check, ArrowLeft,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
@@ -290,79 +292,220 @@ function StatCard({ label, value, color }: { label: string; value: string | numb
   );
 }
 
-// ── Transfer Modal ──
+// ── Transfer Modal (2-step wizard) ──
 function TransferModal({ open, onOpenChange, onSuccess }: { open: boolean; onOpenChange: (v: boolean) => void; onSuccess: () => void }) {
+  const { session } = useAuth();
   const { toast } = useToast();
-  const [toUserId, setToUserId] = useState("");
+  const [step, setStep] = useState<1 | 2>(1);
+  const [search, setSearch] = useState("");
+  const [selectedUser, setSelectedUser] = useState<{ user_id: string; name: string; avatar_url: string | null } | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [recipientName, setRecipientName] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Lookup recipient
-  const lookupUser = async (id: string) => {
-    if (!id || id.length < 10) { setRecipientName(null); return; }
-    const { data } = await supabase.from("profiles_public").select("name").eq("user_id", id).maybeSingle();
-    setRecipientName(data?.name || null);
+  // User search (min 3 chars)
+  const { data: searchResults = [] } = useQuery({
+    queryKey: ["ctg-user-search", search],
+    enabled: search.length >= 3,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
+        .ilike("name", `%${search}%`)
+        .neq("user_id", session?.user?.id ?? "")
+        .limit(5);
+      return (data ?? []) as { user_id: string; name: string; avatar_url: string | null }[];
+    },
+  });
+
+  // Own balance
+  const { data: ownBalance = 0 } = useQuery({
+    queryKey: ["ctg-own-balance-modal", session?.user?.id],
+    enabled: !!session?.user?.id && open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("ctg_balance")
+        .eq("user_id", session!.user.id)
+        .maybeSingle();
+      return Number((data as any)?.ctg_balance ?? 0);
+    },
+  });
+
+  const amt = parseFloat(amount) || 0;
+  const newBalance = ownBalance - amt;
+
+  const reset = () => {
+    setStep(1); setSearch(""); setSelectedUser(null);
+    setAmount(""); setNote(""); setError(null);
   };
 
-  const handleTransfer = async () => {
-    const amt = parseFloat(amount);
-    if (!amt || amt <= 0) { toast({ title: "Invalid amount", variant: "destructive" }); return; }
-    setLoading(true);
+  const handleConfirm = async () => {
+    if (!selectedUser || amt <= 0) return;
+    setLoading(true); setError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("ctg-transfer", {
-        body: { to_user_id: toUserId, amount: amt, note: note || undefined },
+      const { data, error: fnErr } = await supabase.functions.invoke("ctg-transfer", {
+        body: { to_user_id: selectedUser.user_id, amount: amt, note: note || undefined },
       });
-      if (error) throw error;
+      if (fnErr) throw fnErr;
       if (data?.error) throw new Error(data.error);
-      toast({ title: `Sent ${amt} $CTG to ${data.transferred_to}` });
+      toast({ title: `✓ ${amt} $CTG sent to ${data.transferred_to}` });
       onSuccess();
       onOpenChange(false);
-      setToUserId(""); setAmount(""); setNote("");
+      reset();
     } catch (err: any) {
-      toast({ title: "Transfer failed", description: err.message, variant: "destructive" });
+      setError(err.message || "Transfer failed");
     } finally { setLoading(false); }
   };
+
+  // Reset on close
+  useEffect(() => { if (!open) reset(); }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><Send className="h-4 w-4" /> Send $CTG</DialogTitle>
-          <DialogDescription>Transfer $CTG tokens to another member.</DialogDescription>
+          <DialogDescription>
+            {step === 1 ? "Choose a recipient and amount." : "Review and confirm your transfer."}
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Recipient User ID</label>
-            <Input
-              value={toUserId}
-              onChange={(e) => { setToUserId(e.target.value); lookupUser(e.target.value); }}
-              placeholder="Paste user ID"
-            />
-            {recipientName && <p className="text-xs text-emerald-600 mt-1">→ {recipientName}</p>}
+
+        {step === 1 && (
+          <div className="space-y-4">
+            {/* User search */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Recipient</label>
+              {selectedUser ? (
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 mt-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={selectedUser.avatar_url || undefined} />
+                    <AvatarFallback>{selectedUser.name?.[0] || "?"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{selectedUser.name}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => { setSelectedUser(null); setSearch(""); }}>
+                    Change
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by name (min 3 chars)..."
+                    className="mt-1"
+                  />
+                  {searchResults.length > 0 && (
+                    <div className="border border-border rounded-lg mt-1 max-h-40 overflow-y-auto">
+                      {searchResults.map((u) => (
+                        <button
+                          key={u.user_id}
+                          type="button"
+                          className="w-full flex items-center gap-3 p-2.5 hover:bg-muted/50 transition-colors text-left"
+                          onClick={() => { setSelectedUser(u); setSearch(""); }}
+                        >
+                          <Avatar className="h-7 w-7">
+                            <AvatarImage src={u.avatar_url || undefined} />
+                            <AvatarFallback>{u.name?.[0] || "?"}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{u.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Amount ($CTG)</label>
+              <Input
+                type="number" value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0" min="0.01" step="0.01" max={ownBalance}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Available: {ownBalance.toLocaleString()} $CTG
+                {amt > 0 && <span className="ml-2">→ New balance: <strong>{Math.max(0, newBalance).toLocaleString()}</strong></span>}
+              </p>
+            </div>
+
+            {/* Note */}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Note (optional, max 200 chars)</label>
+              <Textarea
+                value={note} onChange={(e) => setNote(e.target.value.slice(0, 200))}
+                rows={2} placeholder="What's this for?"
+                className="mt-1"
+              />
+              <p className="text-[10px] text-muted-foreground text-right">{note.length}/200</p>
+            </div>
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Amount ($CTG)</label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" min="0.01" step="0.01" />
+        )}
+
+        {step === 2 && selectedUser && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={selectedUser.avatar_url || undefined} />
+                  <AvatarFallback>{selectedUser.name?.[0] || "?"}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm text-muted-foreground">Sending to</p>
+                  <p className="font-semibold">{selectedUser.name}</p>
+                </div>
+              </div>
+              <Separator />
+              <div className="text-center">
+                <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{amt} $CTG</p>
+                {note && <p className="text-xs text-muted-foreground mt-2 italic">"{note}"</p>}
+              </div>
+              <Separator />
+              <p className="text-xs text-muted-foreground text-center">
+                Your balance after: <strong>{Math.max(0, newBalance).toLocaleString()} $CTG</strong>
+              </p>
+            </div>
+            {error && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0" /> {error}
+              </div>
+            )}
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground">Note (optional)</label>
-            <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="What's this for?" />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={handleTransfer} disabled={loading || !toUserId || !amount} className="gap-1.5">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Send
-          </Button>
+        )}
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          {step === 2 && (
+            <Button variant="ghost" onClick={() => { setStep(1); setError(null); }} className="gap-1.5 mr-auto">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+          )}
+          {step === 1 ? (
+            <Button
+              onClick={() => setStep(2)}
+              disabled={!selectedUser || amt <= 0 || amt > ownBalance}
+              className="gap-1.5"
+            >
+              Preview <ArrowUpRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={handleConfirm} disabled={loading} className="gap-1.5">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Confirm Transfer
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-// ── Exchange Modal ──
+// ── Exchange Modal (with slider, debounced preview, 50% warning) ──
 function ExchangeModal({
   open, onOpenChange, balance, rate, onSuccess,
 }: {
@@ -371,9 +514,34 @@ function ExchangeModal({
   const { toast } = useToast();
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [previewCredits, setPreviewCredits] = useState<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const amt = parseFloat(amount) || 0;
-  const creditsPreview = rate ? Math.floor(amt * rate) : 0;
+  const isOver50 = balance > 0 && amt > balance * 0.5;
+  const localPreview = rate ? Math.floor(amt * rate) : 0;
+
+  // Debounced server preview
+  const fetchPreview = useCallback((ctgAmount: number) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (ctgAmount <= 0) { setPreviewCredits(null); return; }
+    debounceRef.current = setTimeout(async () => {
+      setPreviewLoading(true);
+      try {
+        const { data } = await supabase.functions.invoke("ctg-exchange", {
+          body: { ctg_amount: ctgAmount, preview: true },
+        });
+        if (data?.credits_you_will_receive != null) {
+          setPreviewCredits(data.credits_you_will_receive);
+        }
+      } catch { /* use local preview */ }
+      finally { setPreviewLoading(false); }
+    }, 500);
+  }, []);
+
+  useEffect(() => { fetchPreview(amt); }, [amt, fetchPreview]);
+  useEffect(() => { if (!open) { setAmount(""); setPreviewCredits(null); } }, [open]);
 
   const handleExchange = async () => {
     if (amt <= 0) return;
@@ -384,7 +552,7 @@ function ExchangeModal({
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      toast({ title: `Exchanged ${data.ctg_spent} $CTG → ${data.credits_received} credits` });
+      toast({ title: `✓ Exchange: ${data.ctg_spent} $CTG → ${data.credits_received} credits` });
       onSuccess();
       onOpenChange(false);
       setAmount("");
@@ -393,31 +561,59 @@ function ExchangeModal({
     } finally { setLoading(false); }
   };
 
+  const displayCredits = previewCredits ?? localPreview;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><RefreshCw className="h-4 w-4" /> Exchange $CTG → Credits</DialogTitle>
           <DialogDescription>
-            {rate ? `Current rate: 1 $CTG = ${rate} credits` : "Exchange is temporarily unavailable."}
+            {rate ? `Current rate: 1 $CTG = ${rate} credits` : "Exchange temporarily unavailable."}
           </DialogDescription>
         </DialogHeader>
         {rate ? (
-          <div className="space-y-4">
-            <div>
+          <div className="space-y-5">
+            {/* Slider */}
+            <div className="space-y-3">
               <label className="text-xs font-medium text-muted-foreground">Amount ($CTG)</label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" min="0.01" step="0.01" max={balance} />
-              <p className="text-xs text-muted-foreground mt-1">Balance: {balance.toLocaleString()} $CTG</p>
+              <Slider
+                value={[amt]}
+                onValueChange={([v]) => setAmount(String(v))}
+                min={0} max={Math.max(balance, 1)} step={0.5}
+                className="w-full"
+              />
+              <Input
+                type="number" value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0" min="0.01" step="0.01" max={balance}
+              />
+              <p className="text-xs text-muted-foreground">
+                Balance: {balance.toLocaleString()} $CTG
+              </p>
             </div>
+
+            {/* Preview */}
             {amt > 0 && (
-              <div className="rounded-lg border border-border bg-muted/50 p-3 text-center">
+              <div className="rounded-lg border border-border bg-muted/30 p-4 text-center space-y-1">
                 <p className="text-xs text-muted-foreground">You will receive</p>
-                <p className="text-2xl font-bold text-primary">{creditsPreview.toLocaleString()} credits</p>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-2xl font-bold text-primary">{displayCredits.toLocaleString()} credits</p>
+                  {previewLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              </div>
+            )}
+
+            {/* 50% warning */}
+            {isOver50 && (
+              <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-xs flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                This represents over 50% of your $CTG balance. Are you sure?
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground py-4">No active exchange rate is configured. Please try again later.</p>
+          <p className="text-sm text-muted-foreground py-4">No active exchange rate is configured.</p>
         )}
         <DialogFooter>
           <Button onClick={handleExchange} disabled={loading || !rate || amt <= 0 || amt > balance} className="gap-1.5">
