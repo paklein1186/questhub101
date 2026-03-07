@@ -369,22 +369,34 @@ export default function SettingsPage() {
         <h1 className="font-display text-2xl font-bold mb-6">{t("settings.title")}</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar nav */}
-          <nav className="md:w-56 shrink-0 space-y-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
-                  activeTab === tab.key
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <tab.icon className="h-4 w-4 shrink-0" />
-                {t(tab.label)}
-              </button>
-            ))}
+          {/* Sidebar nav — grouped */}
+          <nav className="md:w-56 shrink-0 space-y-3">
+            {SETTINGS_GROUPS.map((group) => {
+              const isGroupActive = group.tabs.some((t) => t.key === activeTab);
+              return (
+                <div key={group.groupLabel}>
+                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.groupLabel}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.tabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
+                          activeTab === tab.key
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4 shrink-0" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </nav>
 
           {/* Content */}
