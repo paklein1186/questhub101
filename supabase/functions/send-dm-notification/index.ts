@@ -161,7 +161,7 @@ serve(async (req) => {
         // Create in-app notification
         await supabase.from("notifications").insert({
           user_id: recipient.user_id,
-          type: "DIRECT_MESSAGE",
+          type: "DIRECT_MESSAGE_RECEIVED",
           title: conv.is_group ? `New message in ${conv.title || "group"}` : `New message from ${senderName}`,
           body: content.length > 100 ? content.slice(0, 97) + "..." : content,
           deep_link_url: `/inbox?conv=${conversationId}`,
@@ -191,7 +191,7 @@ serve(async (req) => {
               senderName,
               conversationTitle: conv.title || `Chat with ${senderName}`,
               messagePreview: content.length > 150 ? content.slice(0, 147) + "..." : content,
-              deepLink: `https://questhub101.lovable.app/inbox?conv=${conversationId}`,
+              deepLink: `https://changethegame.xyz/inbox?conv=${conversationId}`,
             });
 
             const emailResult = await sendEmailViaResend({
