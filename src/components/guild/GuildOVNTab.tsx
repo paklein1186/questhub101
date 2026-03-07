@@ -5,10 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Coins, Users, Scale, TrendingUp, Leaf, PieChart as PieIcon, BarChart3 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
+import { useGuildWeights, DEFAULT_TASK_TYPES } from "@/hooks/useValuePie";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const PIE_COLORS = [
   "hsl(142, 70%, 45%)", "hsl(200, 70%, 50%)", "hsl(262, 60%, 55%)",
@@ -20,6 +29,8 @@ const PIE_COLORS = [
 interface Props {
   guildId: string;
   guildName: string;
+  isMember?: boolean;
+  currentUserId?: string;
 }
 
 interface ContributorAgg {
@@ -54,8 +65,28 @@ interface TerritoryAgg {
   total_tokens: number;
 }
 
-export function GuildOVNTab({ guildId, guildName }: Props) {
+const TASK_TYPE_EMOJI: Record<string, string> = {
+  research: "🔬", facilitation: "🤝", coordination: "📅", creative: "🎨",
+  admin: "📋", risk: "⚡", development: "💻", design: "✏️",
+  testing: "🧪", documentation: "📄",
+};
+
+const TASK_TYPE_EXAMPLES: Record<string, string> = {
+  research: "Analyse documentaire", facilitation: "Animation d'atelier", coordination: "Planification sprint",
+  creative: "Création visuelle", admin: "Gestion administrative", risk: "Évaluation des risques",
+  development: "Code & intégration", design: "Maquettes UI/UX", testing: "Tests & QA", documentation: "Rédaction docs",
+};
+
+export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Props) {
   const [includeExternal, setIncludeExternal] = useState(false);
+  const [showProposalDialog, setShowProposalDialog] = useState(false);
+  const [proposalTaskType, setProposalTaskType] = useState("");
+  const [proposalWeight, setProposalWeight] = useState("1.0");
+  const [proposalJustification, setProposalJustification] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const { data: guildWeights = [] } = useGuildWeights(guildId);
 
   // 1. Fetch all quest IDs affiliated with this guild
   const { data: questIds = [] } = useQuery({
