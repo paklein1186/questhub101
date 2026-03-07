@@ -224,21 +224,42 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       />
                     </div>
                   )}
-                  {/* Reward badges */}
-                  {((quest as any).credit_reward > 0 || quest.reward_xp > 0) && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {quest.reward_xp > 0 && (
-                        <Badge variant="secondary" className="text-[10px] gap-0.5">
-                          <Zap className="h-3 w-3 text-primary" /> {quest.reward_xp} XP
-                        </Badge>
-                      )}
-                      {(quest as any).credit_reward > 0 && (
-                        <Badge variant="secondary" className="text-[10px] gap-0.5">
-                          <Coins className="h-3 w-3 text-primary" /> {(quest as any).credit_reward} Credits
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  {/* Reward badges — prioritise $CTG / Fiat over XP */}
+                  {(() => {
+                    const gameb = Number((quest as any).gameb_token_budget) || 0;
+                    const fiat = Number((quest as any).budget_min) || 0;
+                    const xp = quest.reward_xp || 0;
+                    const credits = Number((quest as any).credit_reward) || 0;
+                    const showGameb = gameb > 0;
+                    const showFiat = fiat > 0;
+                    // Show XP only if no $CTG and no fiat
+                    const showXp = xp > 0 && !showGameb && !showFiat;
+                    if (!showGameb && !showFiat && !showXp && credits <= 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {showGameb && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5 border-emerald-500/30 text-emerald-600">
+                            🟩 {gameb} $CTG
+                          </Badge>
+                        )}
+                        {showFiat && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5">
+                            <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
+                          </Badge>
+                        )}
+                        {showXp && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5">
+                            <Zap className="h-3 w-3 text-primary" /> {xp} XP
+                          </Badge>
+                        )}
+                        {credits > 0 && (
+                          <Badge variant="secondary" className="text-[10px] gap-0.5">
+                            <Coins className="h-3 w-3 text-primary" /> {credits} Credits
+                          </Badge>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{(quest as any).guilds?.name}</span>
                     <div className="flex gap-1.5 flex-wrap items-center">
