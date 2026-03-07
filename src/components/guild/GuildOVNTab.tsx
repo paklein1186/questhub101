@@ -428,6 +428,17 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         </Card>
       </div>
 
+      {/* Velocity indicator */}
+      <div className="flex items-center gap-2 text-xs">
+        <Gauge className="h-4 w-4 text-muted-foreground" />
+        <span className="text-muted-foreground">Vélocité :</span>
+        <span className={`font-semibold ${velocityTrend === "up" ? "text-emerald-600" : velocityTrend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
+          {currentVelocity.toFixed(1)} wu/semaine
+        </span>
+        {velocityTrend === "up" && <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
+        {velocityTrend === "down" && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
+      </div>
+
       {/* Contributor Value Pie + Ranking */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Pie Chart */}
