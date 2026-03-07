@@ -26,7 +26,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { formatDistanceToNow, subDays, format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -186,7 +186,7 @@ export function CTGUserWalletsTab() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher par nom ou email..."
+            placeholder="Search by name or email..."
             className="pl-9"
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
@@ -199,10 +199,10 @@ export function CTGUserWalletsTab() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les wallets</SelectItem>
-              <SelectItem value="positive">Solde &gt; 0</SelectItem>
-              <SelectItem value="active_month">Actifs ce mois</SelectItem>
-              <SelectItem value="negative">Solde négatif ⚠️</SelectItem>
+              <SelectItem value="all">All wallets</SelectItem>
+              <SelectItem value="positive">Balance &gt; 0</SelectItem>
+              <SelectItem value="active_month">Active this month</SelectItem>
+              <SelectItem value="negative">Negative balance ⚠️</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -225,12 +225,12 @@ export function CTGUserWalletsTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Utilisateur</TableHead>
+                <TableHead>User</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="text-right">Solde</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
                 <TableHead className="text-right hidden lg:table-cell">Earned</TableHead>
                 <TableHead className="text-right hidden lg:table-cell">Spent</TableHead>
-                <TableHead className="hidden sm:table-cell">Dernière tx</TableHead>
+                <TableHead className="hidden sm:table-cell">Last tx</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -238,14 +238,14 @@ export function CTGUserWalletsTab() {
               {isLoading && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    Chargement…
+                    Loading…
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    Aucun wallet trouvé.
+                    No wallets found.
                   </TableCell>
                 </TableRow>
               )}
@@ -270,7 +270,7 @@ export function CTGUserWalletsTab() {
                       </Avatar>
                       <span className="text-sm font-medium truncate max-w-[140px]">{w.name}</span>
                       {w.balance < 0 && (
-                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Négatif</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Negative</Badge>
                       )}
                       {w.zeroSince30 && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-destructive border-destructive/40">
@@ -283,17 +283,17 @@ export function CTGUserWalletsTab() {
                     {w.email}
                   </TableCell>
                   <TableCell className={`text-right font-mono tabular-nums text-sm font-semibold ${w.balance < 0 ? "text-destructive" : ""}`}>
-                    {w.balance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right hidden lg:table-cell text-sm tabular-nums text-muted-foreground">
-                    {w.lifetime_earned.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.lifetime_earned.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right hidden lg:table-cell text-sm tabular-nums text-muted-foreground">
-                    {w.lifetime_spent.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {w.lifetime_spent.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-xs text-muted-foreground whitespace-nowrap">
                     {w.last_tx_date
-                      ? formatDistanceToNow(new Date(w.last_tx_date), { addSuffix: true, locale: fr })
+                      ? formatDistanceToNow(new Date(w.last_tx_date), { addSuffix: true, locale: enUS })
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -402,21 +402,21 @@ function WalletDetailDialog({
           </DialogTitle>
           <DialogDescription className="flex items-center gap-1 text-xs">
             <Calendar className="h-3 w-3" />
-            Membre depuis {format(new Date(wallet.created_at), "dd MMM yyyy", { locale: fr })}
+            Member since {format(new Date(wallet.created_at), "dd MMM yyyy", { locale: enUS })}
           </DialogDescription>
         </DialogHeader>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mt-2">
           {[
-            { label: "Solde", value: wallet.balance },
+            { label: "Balance", value: wallet.balance },
             { label: "Lifetime earned", value: wallet.lifetime_earned },
             { label: "Lifetime spent", value: wallet.lifetime_spent },
           ].map((s) => (
             <div key={s.label} className="rounded-lg bg-muted/50 p-3 text-center">
               <p className="text-xs text-muted-foreground">{s.label}</p>
               <p className="text-lg font-bold tabular-nums">
-                {s.value.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                {s.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </p>
             </div>
           ))}
@@ -424,15 +424,15 @@ function WalletDetailDialog({
 
         {/* Transaction history */}
         <div className="mt-4">
-          <h4 className="text-sm font-semibold mb-2">Historique des transactions</h4>
+          <h4 className="text-sm font-semibold mb-2">Transaction History</h4>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead className="text-right">Montant</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="hidden sm:table-cell">Note</TableHead>
-                <TableHead className="text-right">Solde après</TableHead>
+                <TableHead className="text-right">Balance after</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -445,20 +445,20 @@ function WalletDetailDialog({
                     <Badge variant="outline" className="text-[10px]">{tx.type}</Badge>
                   </TableCell>
                   <TableCell className={`text-right font-mono tabular-nums text-sm ${tx.amount >= 0 ? "text-emerald-600" : "text-destructive"}`}>
-                    {tx.amount >= 0 ? "+" : ""}{tx.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {tx.amount >= 0 ? "+" : ""}{tx.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell text-xs text-muted-foreground max-w-[150px] truncate">
                     {tx.note ?? "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono tabular-nums text-sm">
-                    {tx.balance_after.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}
+                    {tx.balance_after.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               ))}
               {(txData?.rows ?? []).length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
-                    Aucune transaction.
+                    No transactions.
                   </TableCell>
                 </TableRow>
               )}
@@ -532,13 +532,13 @@ function WalletAdjustDialog({
       if (error) throw error;
       toast.success(
         action === "grant"
-          ? `✓ ${amtNum} $CTG octroyés à ${wallet.name}. Nouveau solde : ${newBalance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG`
-          : `✓ ${effectiveDeduction} $CTG déduits de ${wallet.name}. Nouveau solde : ${newBalance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG`
+          ? `✓ ${amtNum} $CTG granted to ${wallet.name}. New balance: ${newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG`
+          : `✓ ${effectiveDeduction} $CTG deducted from ${wallet.name}. New balance: ${newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG`
       );
       onSuccess();
       handleClose();
     } catch (e: any) {
-      toast.error(e.message ?? "Erreur lors de l'ajustement");
+      toast.error(e.message ?? "Error during adjustment");
     } finally {
       setSubmitting(false);
     }
@@ -559,10 +559,10 @@ function WalletAdjustDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <SlidersHorizontal className="h-5 w-5" />
-            Ajuster le solde de {wallet.name}
+            Adjust balance of {wallet.name}
           </DialogTitle>
           <DialogDescription>
-            Solde actuel : <strong>{wallet.balance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG</strong>
+            Current balance: <strong>{wallet.balance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG</strong>
           </DialogDescription>
         </DialogHeader>
 
@@ -571,17 +571,17 @@ function WalletAdjustDialog({
           <RadioGroup value={action} onValueChange={(v) => setAction(v as "grant" | "deduct")} className="flex gap-4">
             <div className="flex items-center gap-2">
               <RadioGroupItem value="grant" id="grant" />
-              <Label htmlFor="grant" className="cursor-pointer">Octroyer $CTG</Label>
+              <Label htmlFor="grant" className="cursor-pointer">Grant $CTG</Label>
             </div>
             <div className="flex items-center gap-2">
               <RadioGroupItem value="deduct" id="deduct" />
-              <Label htmlFor="deduct" className="cursor-pointer">Déduire $CTG</Label>
+              <Label htmlFor="deduct" className="cursor-pointer">Deduct $CTG</Label>
             </div>
           </RadioGroup>
 
           {/* Amount */}
           <div className="space-y-1.5">
-            <Label>Montant</Label>
+            <Label>Amount</Label>
             <Input
               type="number"
               min={0.01}
@@ -594,10 +594,10 @@ function WalletAdjustDialog({
 
           {/* Reason */}
           <div className="space-y-1.5">
-            <Label>Raison (10–500 caractères) *</Label>
+            <Label>Reason (10–500 characters) *</Label>
             <Textarea
               maxLength={500}
-              placeholder="Justification de l'ajustement..."
+              placeholder="Justify the adjustment..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="resize-none h-20"
@@ -610,9 +610,9 @@ function WalletAdjustDialog({
             <div className="flex items-start gap-2 rounded-md bg-yellow-50/60 dark:bg-yellow-900/10 border border-yellow-500/30 p-3">
               <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
               <p className="text-xs text-yellow-800 dark:text-yellow-400">
-                Le solde sera ramené à 0 $CTG (déduction partielle de{" "}
-                <strong>{effectiveDeduction.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</strong> $CTG
-                au lieu de {amtNum.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}).
+                Balance will be reduced to 0 $CTG (partial deduction of{" "}
+                <strong>{effectiveDeduction.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> $CTG
+                instead of {amtNum.toLocaleString("en-US", { minimumFractionDigits: 2 })}).
               </p>
             </div>
           )}
@@ -621,8 +621,8 @@ function WalletAdjustDialog({
           {isValidAmt && (
             <div className="rounded-md bg-muted/50 p-3">
               <p className="text-sm">
-                Nouveau solde après opération :{" "}
-                <strong>{newBalance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG</strong>
+                New balance after operation:{" "}
+                <strong>{newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG</strong>
               </p>
             </div>
           )}
@@ -631,21 +631,21 @@ function WalletAdjustDialog({
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="w-full" disabled={!canSubmit || submitting}>
-                {submitting ? "Traitement..." : "Confirmer l'ajustement"}
+                {submitting ? "Processing..." : "Confirm adjustment"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Confirmer l'ajustement</AlertDialogTitle>
+                <AlertDialogTitle>Confirm adjustment</AlertDialogTitle>
                 <AlertDialogDescription>
                   {action === "grant"
-                    ? `Octroyer ${amtNum} $CTG à ${wallet.name}. Nouveau solde : ${newBalance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG.`
-                    : `Déduire ${effectiveDeduction} $CTG de ${wallet.name}. Nouveau solde : ${newBalance.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG.`}
+                    ? `Grant ${amtNum} $CTG to ${wallet.name}. New balance: ${newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG.`
+                    : `Deduct ${effectiveDeduction} $CTG from ${wallet.name}. New balance: ${newBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG.`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSubmit}>Confirmer</AlertDialogAction>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSubmit}>Confirm</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

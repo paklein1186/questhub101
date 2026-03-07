@@ -187,31 +187,31 @@ export function CTGEmissionRulesTab() {
     <div className="space-y-6">
       {/* Actions bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h3 className="text-lg font-semibold">Règles d'émission</h3>
+        <h3 className="text-lg font-semibold">Emission Rules</h3>
         <div className="flex items-center gap-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" disabled={resetting}>
                 <RotateCcw className="h-4 w-4 mr-1.5" />
-                Valeurs par défaut
+                Reset to defaults
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Réinitialiser les règles ?</AlertDialogTitle>
+                <AlertDialogTitle>Reset rules?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Toutes les règles d'émission seront remises à leurs valeurs initiales. Cette action est irréversible.
+                  All emission rules will be restored to their initial values. This action is irreversible.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleReset}>Réinitialiser</AlertDialogAction>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           <Button size="sm" disabled={changedIds.length === 0 || saving} onClick={handleSave}>
             <Save className="h-4 w-4 mr-1.5" />
-            {saving ? "Sauvegarde…" : `Sauvegarder (${changedIds.length})`}
+            {saving ? "Saving…" : `Save (${changedIds.length})`}
           </Button>
         </div>
       </div>
@@ -222,17 +222,17 @@ export function CTGEmissionRulesTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Type de contribution</TableHead>
-                <TableHead className="text-right w-[130px]">$CTG émis</TableHead>
-                <TableHead className="text-right w-[130px]">Part communs %</TableHead>
-                <TableHead className="w-[80px] text-center">Actif</TableHead>
-                <TableHead className="hidden sm:table-cell">Modifié</TableHead>
+                <TableHead>Contribution type</TableHead>
+                <TableHead className="text-right w-[130px]">$CTG emitted</TableHead>
+                <TableHead className="text-right w-[130px]">Commons share %</TableHead>
+                <TableHead className="w-[80px] text-center">Active</TableHead>
+                <TableHead className="hidden sm:table-cell">Modified</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Chargement…</TableCell>
+                  <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Loading…</TableCell>
                 </TableRow>
               )}
               {(rules ?? []).map((r) => {
@@ -301,17 +301,17 @@ export function CTGEmissionRulesTab() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Sprout className="h-4 w-4 text-primary" />
-              Aperçu d'impact
+              Impact Preview
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Avec les règles actuelles, compléter une quête entière (1 quête + 5 sous-tâches)
-              rapporterait :{" "}
-              <strong className="text-foreground">{impact.contributorAmount} $CTG</strong> au contributeur
+              With the current rules, completing a full quest (1 quest + 5 subtasks)
+              would yield:{" "}
+              <strong className="text-foreground">{impact.contributorAmount} $CTG</strong> to the contributor
               {" "}+{" "}
-              <strong className="text-foreground">{impact.commonsAmount} $CTG</strong> aux communs
-              {" "}({impact.totalGross} $CTG brut total)
+              <strong className="text-foreground">{impact.commonsAmount} $CTG</strong> to the commons
+              {" "}({impact.totalGross} $CTG gross total)
             </p>
           </CardContent>
         </Card>
@@ -370,28 +370,28 @@ function CommonsWalletCard() {
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Globe className="h-5 w-5 text-primary" />
-          Wallet Communs
-        </CardTitle>
-        <CardDescription>Fonds collectifs alimentés par le pourcentage communs de chaque émission.</CardDescription>
+            Commons Wallet
+          </CardTitle>
+          <CardDescription>Collective funds fed by the commons percentage of each emission.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">Solde actuel</p>
+             <p className="text-xs text-muted-foreground">Current balance</p>
             <p className="text-2xl font-bold tabular-nums">
-              {(commons?.balance ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG
+              {(commons?.balance ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG
             </p>
           </div>
           <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground">Total reçu (lifetime)</p>
+             <p className="text-xs text-muted-foreground">Total received (lifetime)</p>
             <p className="text-2xl font-bold tabular-nums">
-              {(commons?.lifetime_received ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $CTG
+              {(commons?.lifetime_received ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })} $CTG
             </p>
           </div>
         </div>
 
         <div>
-          <p className="text-sm font-medium mb-2">Apports quotidiens aux communs — 30 derniers jours</p>
+          <p className="text-sm font-medium mb-2">Daily commons contributions — Last 30 days</p>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData ?? []}>

@@ -11,7 +11,7 @@ import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 interface Props {
   userId: string;
@@ -119,15 +119,15 @@ export function MonOVNPanel({ userId }: Props) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast({ title: "Lien copié !", description: "Partagez votre passeport OVN." });
+      toast({ title: "Link copied!", description: "Share your OVN passport." });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({ title: "Erreur", variant: "destructive" });
+      toast({ title: "Error", variant: "destructive" });
     }
   };
 
   if (isLoading || !data) {
-    return <p className="text-sm text-muted-foreground p-4">Chargement de votre identité OVN…</p>;
+    return <p className="text-sm text-muted-foreground p-4">Loading your OVN identity…</p>;
   }
 
   return (
@@ -135,11 +135,11 @@ export function MonOVNPanel({ userId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Scale className="h-5 w-5 text-primary" /> Mon OVN
+          <Scale className="h-5 w-5 text-primary" /> My OVN
         </h3>
         <Button size="sm" variant="outline" onClick={handleCopyPassport}>
           {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
-          Partager mon passeport
+          Share my passport
         </Button>
       </div>
 
@@ -168,14 +168,14 @@ export function MonOVNPanel({ userId }: Props) {
             <CardContent className="p-4 text-center">
               <Coins className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
               <p className="text-2xl font-bold text-emerald-600">{data.totalTokens.toFixed(0)}</p>
-              <p className="text-[10px] text-muted-foreground">🟩 Tokens reçus</p>
+              <p className="text-[10px] text-muted-foreground">🟩 Tokens received</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <CalendarCheck className="h-4 w-4 text-primary mx-auto mb-1" />
               <p className="text-2xl font-bold text-primary">{data.recentCount}</p>
-              <p className="text-[10px] text-muted-foreground">Contributions ce mois</p>
+              <p className="text-[10px] text-muted-foreground">Contributions this month</p>
             </CardContent>
           </Card>
         </div>
@@ -183,7 +183,7 @@ export function MonOVNPanel({ userId }: Props) {
         {/* Right: XP per guild bar chart */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">XP par guilde</CardTitle>
+            <CardTitle className="text-sm">XP by Guild</CardTitle>
           </CardHeader>
           <CardContent>
             {data.barData.length > 0 ? (
@@ -199,7 +199,7 @@ export function MonOVNPanel({ userId }: Props) {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">Aucune XP enregistrée.</p>
+              <p className="text-xs text-muted-foreground">No XP recorded.</p>
             )}
           </CardContent>
         </Card>
@@ -208,7 +208,7 @@ export function MonOVNPanel({ userId }: Props) {
       {/* Timeline: last contributions */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Mes dernières contributions</CardTitle>
+          <CardTitle className="text-sm">My Recent Contributions</CardTitle>
         </CardHeader>
         <CardContent>
           {data.last5.length > 0 ? (
@@ -222,7 +222,7 @@ export function MonOVNPanel({ userId }: Props) {
               {data.last5.map((c: any, i: number) => (
                 <div key={i} className="grid grid-cols-[auto_1fr_auto_auto] gap-3 items-center text-xs">
                   <span className="text-muted-foreground text-[10px] whitespace-nowrap">
-                    {formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: fr })}
+                    {formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: enUS })}
                   </span>
                   {c.quest_id ? (
                     <Link to={`/quests/${c.quest_id}`} className="truncate text-primary hover:underline">
@@ -237,7 +237,7 @@ export function MonOVNPanel({ userId }: Props) {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">Aucune contribution enregistrée.</p>
+            <p className="text-xs text-muted-foreground">No contributions recorded.</p>
           )}
         </CardContent>
       </Card>
