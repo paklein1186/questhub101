@@ -300,7 +300,7 @@ export default function GuildDetail() {
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
-  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai-guidance", matchmaker: "ai-guidance", facilitator: "ai-guidance", memory: "ai-guidance", agents: "ai-guidance", board: "overview" };
+  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", matchmaker: "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-revenue" };
   const rawTab = guildSp.get("tab") || "overview";
   const activeTab = legacyTabMap[rawTab] || rawTab;
   const setActiveTab = (v: string) => setGuildSp(prev => {
@@ -494,13 +494,13 @@ export default function GuildDetail() {
             { value: "human-interactions", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Human Interactions</span></>, visible: isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public") },
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
-            { value: "ai-guidance", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI Guidance</span></>, visible: isMember },
+            { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span></>, visible: isMember },
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
             { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
             { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span></> },
-            { value: "monetization", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isAdmin },
+            { value: "agent-revenue", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agent Revenue</span></>, visible: isAdmin },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
@@ -604,7 +604,7 @@ export default function GuildDetail() {
           <GuildOVNTab guildId={guild.id} guildName={guild.name} isMember={isMember} currentUserId={currentUser.id} />
         </TabsContent>
 
-        <TabsContent value="monetization" className="mt-6">
+        <TabsContent value="agent-revenue" className="mt-6">
           <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
         </TabsContent>
 
@@ -763,10 +763,10 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
-        {/* AI Guidance — clustered subtabs */}
+        {/* AI Studio — single panel with mode toggle */}
         {isMember && (
-          <TabsContent value="ai-guidance" className="mt-6">
-            <AIGuidanceCluster
+          <TabsContent value="ai" className="mt-6">
+            <AIStudioPanel
               guild={guild}
               isAdmin={isAdmin}
               isMember={isMember}
