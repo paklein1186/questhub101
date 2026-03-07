@@ -80,6 +80,7 @@ import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
+import { GuildCTGStat } from "@/components/ctg/CTGIntegrationWidgets";
 /** Extracted tabs bar with admin-reorderable tabs — order stored in guild features_config */
 function GuildTabsBar({ allTabs, defaultOrder, isAdmin, guildId, featuresConfig }: {
   allTabs: TabDefinition[]; defaultOrder: string[];

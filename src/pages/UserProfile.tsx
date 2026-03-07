@@ -49,6 +49,7 @@ import { TrustTab } from "@/components/trust/TrustTab";
 import { GuestContentGate } from "@/components/GuestContentGate";
 import { GraphView } from "@/components/graph/GraphView";
 import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
+import { ProfileCTGStats } from "@/components/ctg/CTGIntegrationWidgets";
 import { LivingTab } from "@/components/living/LivingTab";
 import { Leaf } from "lucide-react";
 

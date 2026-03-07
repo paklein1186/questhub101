@@ -38,6 +38,7 @@ import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
 import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
+import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { UnitChat } from "@/components/UnitChat";
