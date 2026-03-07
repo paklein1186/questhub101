@@ -90,16 +90,22 @@ export function AppNav() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance, ctg_balance, xp")
+        .select("credits_balance, ctg_balance, xp, coins_balance")
         .eq("user_id", session!.user.id)
         .maybeSingle();
-      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0, xp: (data as any)?.xp ?? 0 };
+      return {
+        credits: (data as any)?.credits_balance ?? 0,
+        ctg: (data as any)?.ctg_balance ?? 0,
+        xp: (data as any)?.xp ?? 0,
+        coins: (data as any)?.coins_balance ?? 0,
+      };
     },
     refetchInterval: 60_000,
   });
   const creditsBalance = navBalances?.credits ?? 0;
   const ctgBalance = navBalances?.ctg ?? 0;
   const xpBalance = navBalances?.xp ?? 0;
+  const coinsBalance = navBalances?.coins ?? 0;
 
   const handleLogout = async () => {
     await signOut();
@@ -234,6 +240,11 @@ export function AppNav() {
                         <Link to="/me?tab=wallet" className="inline-flex items-center gap-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
                           <Coins className="h-3 w-3" /> {creditsBalance}
                         </Link>
+                        {coinsBalance > 0 && (
+                          <Link to="/me?tab=wallet" className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
+                            <span className="text-[10px]">🟩</span> {coinsBalance}
+                          </Link>
+                        )}
                         <Link to="/me?tab=wallet" className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 text-xs font-medium hover:opacity-80 transition-opacity">
                           <span className="text-[10px]">🌱</span> {ctgBalance}
                         </Link>
@@ -357,6 +368,11 @@ export function AppNav() {
                             <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 px-2.5 py-1 text-xs font-medium">
                               <Coins className="h-3 w-3" /> {creditsBalance}
                             </Link>
+                            {coinsBalance > 0 && (
+                              <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 px-2.5 py-1 text-xs font-medium">
+                                <span className="text-[10px]">🟩</span> {coinsBalance}
+                              </Link>
+                            )}
                             <Link to="/me?tab=wallet" onClick={() => setMobileOpen(false)} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2.5 py-1 text-xs font-medium">
                               <span className="text-[10px]">🌱</span> {ctgBalance}
                             </Link>

@@ -36,7 +36,7 @@ serve(async (req) => {
 
     // Fetch withdrawal request
     const { data: withdrawal, error: wErr } = await supabase
-      .from("gameb_withdrawal_requests")
+      .from("coin_withdrawal_requests")
       .select("*")
       .eq("id", withdrawal_id)
       .eq("user_id", user.id)
@@ -48,7 +48,7 @@ serve(async (req) => {
     // Fetch user profile for Stripe Connect account
     const { data: profile } = await supabase
       .from("profiles")
-      .select("stripe_account_id, stripe_connect_onboarded, gameb_tokens_balance")
+      .select("stripe_account_id, stripe_connect_onboarded, coins_balance")
       .eq("user_id", user.id)
       .single();
 
@@ -56,9 +56,9 @@ serve(async (req) => {
       throw new Error("Stripe Connect account not set up. Please complete onboarding first.");
     }
 
-    const tokenBalance = profile.gameb_tokens_balance ?? 0;
+    const tokenBalance = profile.coins_balance ?? 0;
     if (tokenBalance < withdrawal.amount_tokens) {
-      throw new Error(`Insufficient GameB Token balance. You have ${tokenBalance}, requested ${withdrawal.amount_tokens}.`);
+      throw new Error(`Insufficient Coins balance. You have ${tokenBalance}, requested ${withdrawal.amount_tokens}.`);
     }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -73,7 +73,7 @@ serve(async (req) => {
       amount: amountCents,
       currency: withdrawal.currency?.toLowerCase() || "eur",
       destination: profile.stripe_account_id,
-      description: `GameB Token withdrawal: ${withdrawal.amount_tokens} tokens`,
+      description: `Coins withdrawal: ${withdrawal.amount_tokens} coins`,
       metadata: {
         withdrawal_id: withdrawal.id,
         user_id: user.id,
@@ -81,14 +81,14 @@ serve(async (req) => {
       },
     });
 
-    // Burn tokens from user balance
+    // Burn coins from user balance
     await supabase
       .from("profiles")
-      .update({ gameb_tokens_balance: tokenBalance - withdrawal.amount_tokens })
+      .update({ coins_balance: tokenBalance - withdrawal.amount_tokens })
       .eq("user_id", user.id);
 
     // Record the transaction
-    await supabase.from("gameb_token_transactions").insert({
+    await supabase.from("coin_transactions").insert({
       user_id: user.id,
       amount: -withdrawal.amount_tokens,
       type: "withdrawal",
@@ -101,7 +101,7 @@ serve(async (req) => {
 
     // Update withdrawal status
     await supabase
-      .from("gameb_withdrawal_requests")
+      .from("coin_withdrawal_requests")
       .update({
         status: "completed",
         processed_at: new Date().toISOString(),
@@ -120,7 +120,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("[PROCESS-GAMEB-WITHDRAWAL] Error:", msg);
+    console.error("[PROCESS-COIN-WITHDRAWAL] Error:", msg);
     return new Response(JSON.stringify({ error: msg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
