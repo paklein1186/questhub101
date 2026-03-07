@@ -21,7 +21,7 @@ interface Props {
   questId: string;
   questOwnerId: string;
   guildId?: string | null;
-  questBudgetGamebTokens?: number;
+  questCoinBudget?: number;
   guildPercent?: number;
   territoryPercent?: number;
   ctgPercent?: number;

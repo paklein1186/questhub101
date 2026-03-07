@@ -196,13 +196,13 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       // Value pie logs
       const { data: pieLogs } = await supabase
         .from("quest_value_pie_log" as any)
-        .select("contributor_id, quest_id, gameb_tokens_awarded, weighted_units, share_percent")
+        .select("contributor_id, quest_id, coins_awarded, weighted_units, share_percent")
         .in("quest_id", questIds);
 
       // Quests metadata
       const { data: quests } = await supabase
         .from("quests" as any)
-        .select("id, title, gameb_token_budget, guild_percent, value_pie_calculated, territory_id")
+        .select("id, title, coin_budget, guild_percent, value_pie_calculated, territory_id")
         .in("id", questIds);
 
       // Profiles
@@ -248,7 +248,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       name: profileMap.get(c.user_id)?.name || "Unknown",
       avatar_url: profileMap.get(c.user_id)?.avatar_url || null,
       total_weighted_units: 0,
-      total_gameb_tokens: 0,
+      total_coins: 0,
       total_xp: 0,
       contribution_count: 0,
     };
@@ -262,7 +262,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   pieLogs.forEach((p: any) => {
     const existing = contributorMap.get(p.contributor_id);
     if (existing) {
-      existing.total_gameb_tokens += Number(p.gameb_tokens_awarded) || 0;
+      existing.total_coins += Number(p.coins_awarded) || 0;
     }
   });
 
@@ -270,9 +270,9 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   // ── Headline Metrics ──────────────────────────────────────
   const totalWeightedUnits = contributors.reduce((s, c) => s + c.total_weighted_units, 0);
-  const totalGamebTokens = contributors.reduce((s, c) => s + c.total_gameb_tokens, 0);
+  const totalCoins = contributors.reduce((s, c) => s + c.total_coins, 0);
   const totalContributors = contributors.length;
-  const avgSharePerContributor = totalContributors > 0 ? totalGamebTokens / totalContributors : 0;
+  const avgSharePerContributor = totalContributors > 0 ? totalCoins / totalContributors : 0;
 
   // ── Active contributors (last 30 days regardless of period) ──
   const now = Date.now();
@@ -295,7 +295,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   const questAggs: QuestAgg[] = quests.map((q: any) => {
     const qContribs = contribs.filter((c: any) => c.quest_id === q.id);
     const uniqueContributors = new Set(qContribs.map((c: any) => c.user_id)).size;
-    const budget = Number(q.gameb_token_budget) || 0;
+    const budget = Number(q.coin_budget) || 0;
     const guildPct = q.guild_percent != null ? Number(q.guild_percent) : 15;
     const guildShare = Math.round(budget * (guildPct / 100) * 100) / 100;
     const totalCount = qContribs.length;
@@ -305,7 +305,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       quest_id: q.id,
       quest_title: q.title,
       territory_name: q.territory_id ? territoryMap.get(q.territory_id) || null : null,
-      budget_gameb: budget,
+      budget_coins: budget,
       contributor_count: uniqueContributors,
       guild_share: guildShare,
       value_pie_calculated: q.value_pie_calculated || false,
@@ -332,7 +332,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     if (!q.territory_id) return;
     const tName = territoryMap.get(q.territory_id) || "Unknown";
     const qPie = pieLogs.filter((p: any) => p.quest_id === q.id);
-    const tokens = qPie.reduce((s: number, p: any) => s + (Number(p.gameb_tokens_awarded) || 0), 0);
+    const tokens = qPie.reduce((s: number, p: any) => s + (Number(p.coins_awarded) || 0), 0);
     territoryAggMap.set(tName, (territoryAggMap.get(tName) || 0) + tokens);
   });
   const territoryAggs: TerritoryAgg[] = Array.from(territoryAggMap.entries())
