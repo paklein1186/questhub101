@@ -205,6 +205,7 @@ export default function QuestDetail() {
   const qc = useQueryClient();
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
+  const { notifyQuestUpdate, notifyFollowersQuestCreated } = useNotifications();
   const navigate = useNavigate();
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
