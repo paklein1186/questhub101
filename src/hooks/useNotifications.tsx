@@ -253,6 +253,7 @@ interface NotificationStore {
   notifyRitualCreated: (params: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => void;
   notifyBulkMention: (params: { mentionType: "members" | "followers"; entityType: string; entityId: string; authorUserId: string; authorName: string; snippet: string; targetType: string; targetId: string }) => void;
   notifyFollowedEntityNewPost: (params: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => void;
+  notifyContributionLogged: (params: { contributorUserId: string; questTitle: string; amount: number; unit: string; entityName: string }) => void;
 }
 
 const NotificationContext = createContext<NotificationStore>(null!);
@@ -1063,6 +1064,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
       notifyDecisionCreated, notifyRitualCreated, notifyBulkMention,
       notifyFollowedEntityNewPost,
+      notifyContributionLogged,
     }}>
       {children}
     </NotificationContext.Provider>
