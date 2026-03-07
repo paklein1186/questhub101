@@ -543,12 +543,12 @@ export function ContributionLogPanel({
             </div>
 
             <p className="text-[10px] text-muted-foreground italic">
-              Ces montants sont des estimations basées sur les contributions actuelles.
+              These amounts are estimates based on current contributions.
             </p>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>Annuler</Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>Cancel</Button>
             <Button
               size="sm"
               className="gap-1"
@@ -558,7 +558,7 @@ export function ContributionLogPanel({
               }}
               disabled={distributing}
             >
-              <Scale className="h-3 w-3" /> {distributing ? "Distribution…" : "Confirmer et distribuer"}
+              <Scale className="h-3 w-3" /> {distributing ? "Distributing…" : "Confirm and distribute"}
             </Button>
           </DialogFooter>
         </DialogContent>
