@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -23,6 +23,7 @@ interface QuestSubtasksProps {
   canManage: boolean;
   questBudgetGamebTokens?: number;
   valuePieCalculated?: boolean;
+  budgetGameb?: number;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -33,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false, budgetGameb = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -52,7 +53,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_subtasks" as any)
-        .select("*, priority")
+        .select("*, priority, gameb_weight")
         .eq("quest_id", questId)
         .order("order_index");
       if (error) throw error;
@@ -127,6 +128,30 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         }, true);
       }
     }
+
+    // Auto-insert contribution log with gameb_weight
+    try {
+      const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
+      const weightFactor = subtask?.gameb_weight > 0 ? Number(subtask.gameb_weight) : 1.0;
+      const weightedUnits = baseUnits * weightFactor;
+
+      supabase.from("contribution_logs" as any).insert({
+        user_id: assigneeId,
+        quest_id: questId,
+        guild_id: guildId || null,
+        subtask_id: subtaskId,
+        contribution_type: "subtask_completed",
+        title: "Sous-tâche complétée : " + (subtask?.title || ""),
+        task_type: "general",
+        base_units: baseUnits,
+        weight_factor: weightFactor,
+        weighted_units: weightedUnits,
+        ip_licence: "CC-BY-SA",
+      } as any).then(() => {});
+    } catch (e) {
+      console.error("Failed to log contribution from subtask", e);
+    }
+
     // Invalidate contribution logs
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
 
@@ -187,6 +212,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
 
   const updateSubtaskCredits = async (subtaskId: string, credits: number) => {
     await supabase.from("quest_subtasks" as any).update({ credit_reward: credits } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+  };
+
+  const updateSubtaskWeight = async (subtaskId: string, weight: number) => {
+    await supabase.from("quest_subtasks" as any).update({ gameb_weight: weight } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
@@ -330,6 +360,31 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
+            {/* GameB weight input */}
+            {canManage && (
+              <div className="flex items-center gap-0.5">
+                <Scale className="h-3 w-3 text-violet-500" />
+                <Input
+                  type="number"
+                  min={0.5}
+                  max={5.0}
+                  step={0.5}
+                  value={subtask.gameb_weight ?? 1.0}
+                  onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="Poids dans le Value Pie"
+                />
+              </div>
+            )}
+            {/* Estimated WU badge for assignee */}
+            {budgetGameb > 0 && subtask.assignee_user_id === currentUser.id && (() => {
+              const estWu = (subtask.credit_reward || 1) * (subtask.gameb_weight || 1.0);
+              return (
+                <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                  {estWu.toFixed(1)} wu estimés
+                </span>
+              );
+            })()}
             {canManage && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />

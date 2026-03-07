@@ -1,0 +1,1 @@
+ALTER TABLE public.quest_subtasks ADD COLUMN IF NOT EXISTS gameb_weight numeric NOT NULL DEFAULT 1.0;
