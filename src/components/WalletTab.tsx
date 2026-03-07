@@ -130,12 +130,13 @@ export function WalletTab() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("total_shares_a, total_shares_b, governance_weight, is_cooperative_member")
+        .select("total_shares_a, total_shares_b, governance_weight, is_cooperative_member, ctg_balance")
         .eq("user_id", userId!)
         .single();
       return data;
     },
   });
+  const ctgBal = Number((profileShares as any)?.ctg_balance ?? 0);
 
   const filteredTx = transactions.filter((tx: any) => {
     if (txFilter === "all") return true;
