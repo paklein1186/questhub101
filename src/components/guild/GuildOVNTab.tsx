@@ -514,6 +514,9 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     </Avatar>
                     <span className="truncate">{c.name}</span>
                     <Badge variant="secondary" className="text-[9px]">{c.contribution_count}</Badge>
+                    {recentIds.has(c.user_id) && (
+                      <Badge variant="default" className="text-[9px] bg-emerald-500">Actif</Badge>
+                    )}
                   </div>
                   <span className="text-right font-medium">{c.total_weighted_units.toFixed(1)}</span>
                   <span className="text-right font-medium text-emerald-600">{c.total_gameb_tokens.toFixed(0)}</span>
