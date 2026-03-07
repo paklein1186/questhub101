@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen, Scale
+  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen, Scale, Eye
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -82,6 +83,7 @@ export function ContributionLogPanel({
   const [expanded, setExpanded] = useState(true);
   const [distributing, setDistributing] = useState(false);
   const [advancedMode, setAdvancedMode] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
 
   // Form state
   const [formType, setFormType] = useState<ContributionType>("documentation");
@@ -179,6 +181,34 @@ export function ContributionLogPanel({
   const uniqueContributors = new Set(contributions.map((c) => c.user_id)).size;
   const verified = contributions.filter((c) => c.status === "verified").length;
 
+  // Preview simulation for distribution dialog
+  const previewData = useMemo(() => {
+    if (totalWeightedUnits === 0 || questBudgetGamebTokens <= 0) return [];
+    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
+    const pool = Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+
+    const byContributor = new Map<string, { wu: number; name: string }>();
+    contributions.forEach((c) => {
+      const wu = Number((c as any).weighted_units) || 0;
+      const existing = byContributor.get(c.user_id);
+      if (existing) { existing.wu += wu; }
+      else { byContributor.set(c.user_id, { wu, name: c.profile?.name || "Unknown" }); }
+    });
+
+    return Array.from(byContributor.entries()).map(([uid, { wu, name }]) => {
+      const sharePct = totalWeightedUnits > 0 ? wu / totalWeightedUnits : 0;
+      return { userId: uid, name, wu, sharePct, tokens: Math.round(sharePct * pool * 100) / 100 };
+    }).sort((a, b) => b.wu - a.wu);
+  }, [contributions, totalWeightedUnits, questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
+
+  const previewContributorPool = useMemo(() => {
+    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
+    return Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+  }, [questBudgetGamebTokens, guildPercent, territoryPercent, ctgPercent]);
   return (
     <div className="space-y-3">
       {/* Header */}
@@ -193,16 +223,21 @@ export function ContributionLogPanel({
         </button>
 
         <div className="flex gap-1.5">
-          {isOwner && contributions.length > 0 && !valuePieCalculated && questBudgetGamebTokens > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
-              onClick={handleDistribute}
-              disabled={distributing}
-            >
-              <Scale className="h-3 w-3" /> {distributing ? "Distributing…" : "Calculate Value Pie"}
-            </Button>
+          {isOwner && contributions.length > 0 && questBudgetGamebTokens > 0 && (
+            valuePieCalculated ? (
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled>
+                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Distribué ✓
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
+                onClick={() => setShowPreviewDialog(true)}
+              >
+                <Eye className="h-3 w-3" /> Prévisualiser la distribution
+              </Button>
+            )
           )}
           {currentUser.id && !valuePieCalculated && (
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowForm(!showForm)}>
@@ -452,6 +487,74 @@ export function ContributionLogPanel({
           </p>
         </>
       )}
+
+      {/* Distribution Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <Scale className="h-4 w-4 text-emerald-600" /> Prévisualisation du Value Pie
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {/* Budget breakdown */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Budget total</p>
+                <p className="font-bold text-emerald-600">{questBudgetGamebTokens} 🟩</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Pool contributeurs</p>
+                <p className="font-bold text-emerald-600">{previewContributorPool} 🟩</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Guilde ({guildPercent}%)</p>
+                <p className="font-medium">{Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100}</p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <p className="text-muted-foreground">Territoire ({territoryPercent}%) + CTG ({ctgPercent}%)</p>
+                <p className="font-medium">{Math.round(questBudgetGamebTokens * ((territoryPercent + ctgPercent) / 100) * 100) / 100}</p>
+              </div>
+            </div>
+
+            {/* Contributor preview list */}
+            <div className="space-y-1 max-h-[200px] overflow-y-auto">
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
+                <span>Contributeur</span>
+                <span className="text-right">Part %</span>
+                <span className="text-right">🟩 Tokens</span>
+              </div>
+              {previewData.map((p) => (
+                <div key={p.userId} className="grid grid-cols-[1fr_auto_auto] gap-2 text-xs items-center">
+                  <span className="truncate">{p.name}</span>
+                  <span className="text-right text-muted-foreground">{(p.sharePct * 100).toFixed(1)}%</span>
+                  <span className="text-right font-medium text-emerald-600">{p.tokens}</span>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[10px] text-muted-foreground italic">
+              Ces montants sont des estimations basées sur les contributions actuelles.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setShowPreviewDialog(false)}>Annuler</Button>
+            <Button
+              size="sm"
+              className="gap-1"
+              onClick={async () => {
+                setShowPreviewDialog(false);
+                await handleDistribute();
+              }}
+              disabled={distributing}
+            >
+              <Scale className="h-3 w-3" /> {distributing ? "Distribution…" : "Confirmer et distribuer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
