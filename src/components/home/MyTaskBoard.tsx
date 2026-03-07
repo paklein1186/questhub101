@@ -696,7 +696,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       const key = `${task.source}-${task.id}`;
       toast({
         title: "Task completed ✓",
-        description: task.title,
+        description: task.source === "subtask"
+          ? ((task as any).guildName ? "Contribution loggée dans " + (task as any).guildName : "Contribution loggée")
+          : task.title,
         action: (
           <ToastAction
             altText="Undo"
