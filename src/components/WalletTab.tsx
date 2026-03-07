@@ -80,7 +80,7 @@ export function WalletTab() {
     },
   });
 
-  // GameB Token balance
+  // $CTG Token balance
   const { data: gamebBalance } = useQuery({
     queryKey: ["gameb-balance", userId],
     enabled: !!userId,
@@ -94,7 +94,7 @@ export function WalletTab() {
     },
   });
 
-  // GameB Token transactions
+  // $CTG Token transactions
   const { data: gamebTx = [], isLoading: gamebTxLoading } = useQuery({
     queryKey: ["gameb-transactions", userId],
     enabled: !!userId,
@@ -177,7 +177,7 @@ export function WalletTab() {
   const handleRequestWithdrawal = async () => {
     const balance = Number(gamebBalance?.gameb_tokens_balance ?? 0);
     if (balance <= 0) {
-      toast({ title: "No tokens", description: "You have no GameB Tokens to withdraw.", variant: "destructive" });
+      toast({ title: "No tokens", description: "You have no $CTG to withdraw.", variant: "destructive" });
       return;
     }
     if (!gamebBalance?.stripe_connect_onboarded) {
@@ -192,7 +192,7 @@ export function WalletTab() {
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} GameB Tokens → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} $CTG → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -220,7 +220,7 @@ export function WalletTab() {
             <Wallet className="h-5 w-5 text-primary" /> Your Value Dashboard
           </h2>
           <p className="text-sm text-muted-foreground">
-            Two separate value systems: Platform Credits for features, GameB Tokens for missions.
+            Two separate value systems: Platform Credits for features, $CTG for missions.
           </p>
         </div>
 
@@ -242,8 +242,8 @@ export function WalletTab() {
             <p className="text-[10px] text-muted-foreground mt-1">Feature fuel</p>
           </ValueTile>
 
-          {/* GameB Tokens (🟩) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label="GameB Tokens" emoji="🟩"
+          {/* $CTG Tokens (🟩) */}
+          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG" emoji="🟩"
             value={gamebBal}
             tooltip="Fiat-backed mission tokens. Earned from quests funded by real money. Withdrawable to fiat.">
             <p className="text-[10px] text-muted-foreground mt-1">Mission value</p>
@@ -299,7 +299,7 @@ export function WalletTab() {
             onClick={() => setActiveWallet("gameb")}
             className="gap-1.5"
           >
-            🟩 GameB Tokens
+            🟩 $CTG
           </Button>
           <Button
             variant={activeWallet === "ctg" ? "default" : "outline"}
@@ -436,16 +436,16 @@ export function WalletTab() {
           </>
         )}
 
-        {/* ═══ GAMEB TOKENS WALLET ═══ */}
+        {/* ═══ $CTG TOKENS WALLET ═══ */}
         {activeWallet === "gameb" && (
           <>
-            <Section title="🟩 GameB Tokens — Mission Value" icon={<Leaf className="h-5 w-5" />}>
+            <Section title="🟩 $CTG — Mission Value" icon={<Leaf className="h-5 w-5" />}>
               <div className="space-y-4">
                 {/* Balance card */}
                 <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-500/5 p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Available GameB Tokens</p>
+                      <p className="text-xs text-muted-foreground mb-1">Available $CTG</p>
                       <p className="text-3xl font-bold text-emerald-600">{gamebBal}</p>
                       <p className="text-xs text-muted-foreground mt-1">≈ €{(gamebBal * 0.04).toFixed(2)} fiat backing</p>
                     </div>
@@ -478,7 +478,7 @@ export function WalletTab() {
                 {/* Explanation */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                    <p className="text-xs font-semibold text-foreground mb-2">GameB Tokens are earned from:</p>
+                    <p className="text-xs font-semibold text-foreground mb-2">$CTG are earned from:</p>
                     <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
                       <li>Completing funded quests</li>
                       <li>Milestone payouts</li>
@@ -487,7 +487,7 @@ export function WalletTab() {
                     </ul>
                   </div>
                   <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                    <p className="text-xs font-semibold text-foreground mb-2">GameB Tokens are used for:</p>
+                    <p className="text-xs font-semibold text-foreground mb-2">$CTG are used for:</p>
                     <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
                       <li>Funding quest budgets (fiat → tokens)</li>
                       <li>Paying contributors</li>
@@ -499,7 +499,7 @@ export function WalletTab() {
 
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" /> GameB Tokens represent <strong>real fiat value</strong> deposited by funders. They can be withdrawn to your bank account via Stripe Connect.
+                    <Info className="h-3 w-3" /> $CTG represent <strong>real fiat value</strong> deposited by funders. They can be withdrawn to your bank account via Stripe Connect.
                   </p>
                 </div>
               </div>
@@ -533,8 +533,8 @@ export function WalletTab() {
               </>
             )}
 
-            {/* GameB Token Transaction History */}
-            <Section title="GameB Token History" icon={<History className="h-5 w-5" />}>
+            {/* $CTG Token Transaction History */}
+            <Section title="$CTG History" icon={<History className="h-5 w-5" />}>
               <TxFilterBar value={txFilter} onChange={setTxFilter} />
               <TxList loading={gamebTxLoading} items={filteredGamebTx} labels={GAMEB_TX_LABELS} />
             </Section>
