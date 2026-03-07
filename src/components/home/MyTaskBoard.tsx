@@ -1511,6 +1511,78 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 <Button variant="outline" size="sm" onClick={() => setConvertStep("unit")} className="flex-1">
                   <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
                 </Button>
+                <Button size="sm" onClick={() => setConvertStep("budget")} className="flex-1">
+                  Suivant →
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {convertStep === "budget" && (
+            <div className="space-y-4 py-2">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                Budget & Répartition de valeur
+              </h3>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Budget GameB Tokens 🟩</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={convertBudget}
+                  onChange={(e) => setConvertBudget(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part Guilde</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertGuildPercent}%</span>
+                  </div>
+                  <Slider min={0} max={30} step={1} value={[convertGuildPercent]} onValueChange={([v]) => setConvertGuildPercent(v)} />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part Territoire</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertTerritoryPercent}%</span>
+                  </div>
+                  <Slider min={0} max={20} step={1} value={[convertTerritoryPercent]} onValueChange={([v]) => setConvertTerritoryPercent(v)} />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part $CTG</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertCtgPercent}%</span>
+                  </div>
+                  <Slider min={0} max={15} step={1} value={[convertCtgPercent]} onValueChange={([v]) => setConvertCtgPercent(v)} />
+                </div>
+                <p className="text-sm font-bold text-emerald-600">
+                  Part contributeurs : {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setConvertStep("tags")} className="flex-1">
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setConvertBudget("0");
+                    setConvertGuildPercent(15);
+                    setConvertTerritoryPercent(10);
+                    setConvertCtgPercent(5);
+                    finalizeConvertToQuest();
+                  }}
+                  disabled={converting}
+                  className="text-xs text-muted-foreground"
+                >
+                  Passer
+                </Button>
                 <Button size="sm" onClick={finalizeConvertToQuest} disabled={converting} className="flex-1">
                   {converting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Rocket className="h-3.5 w-3.5 mr-1" />}
                   Create Quest
