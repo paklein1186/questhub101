@@ -410,9 +410,10 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
             </div>
           )}
           <div className="space-y-1">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
               <span>Quest</span>
               <span className="text-right">Budget</span>
+              <span className="text-right">Part Guilde</span>
               <span className="text-right">Contributors</span>
               <span className="text-right">Territory</span>
               <span className="text-right">Status</span>
@@ -421,10 +422,11 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
               <Link
                 key={q.quest_id}
                 to={`/quests/${q.quest_id}`}
-                className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
+                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
               >
                 <span className="truncate">{q.quest_title}</span>
                 <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
+                <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
                 <span className="text-right">{q.contributor_count}</span>
                 <span className="text-right text-muted-foreground">{q.territory_name || "—"}</span>
                 <Badge variant={q.value_pie_calculated ? "default" : "secondary"} className="text-[9px] justify-self-end">
