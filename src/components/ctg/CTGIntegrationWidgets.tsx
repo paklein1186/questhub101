@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sprout } from "lucide-react";
 import { HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
-import { supabase } from "@/integrations/supabase/client";
-import { Sprout } from "lucide-react";
 
 /**
  * CTGEstimateBlock — shown in quest detail reward grid.
