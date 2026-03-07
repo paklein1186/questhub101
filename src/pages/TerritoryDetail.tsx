@@ -10,6 +10,7 @@ import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryPostsTab } from "@/components/territory/TerritoryPostsTab";
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
+import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 
 
 import { ShareLinkButton } from "@/components/ShareLinkButton";
@@ -107,12 +108,13 @@ export default function TerritoryDetail() {
         </div>
 
         {/* Tabs */}
+        <SectionBanner {...HINTS.banners.territoryFirst} />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="ecosystem">Ecosystem</TabsTrigger>
-            <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
+            <TabsTrigger value="ecosystem">Ecosystem <HintTooltip {...HINTS.tooltips.territoryEcosystem} /></TabsTrigger>
+            <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living <HintTooltip {...HINTS.tooltips.territoryLiving} /></TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
             <TabsTrigger value="contribute">Contribute</TabsTrigger>
             <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>

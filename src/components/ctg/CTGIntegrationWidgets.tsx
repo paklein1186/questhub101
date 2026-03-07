@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sprout } from "lucide-react";
+import { HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 
 /**
  * CTGEstimateBlock — shown in quest detail reward grid.
@@ -28,7 +29,7 @@ export function CTGEstimateBlock({ subtaskCount }: { subtaskCount: number }) {
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground font-medium">🌱 $CTG Estimate</p>
+      <p className="text-xs text-muted-foreground font-medium inline-flex items-center gap-1">🌱 $CTG Estimate <HintTooltip {...HINTS.tooltips.questCTG} /></p>
       <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
         <Sprout className="h-4 w-4" />
         ~{estimate} $CTG
