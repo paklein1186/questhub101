@@ -223,16 +223,21 @@ export function ContributionLogPanel({
         </button>
 
         <div className="flex gap-1.5">
-          {isOwner && contributions.length > 0 && !valuePieCalculated && questBudgetGamebTokens > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
-              onClick={handleDistribute}
-              disabled={distributing}
-            >
-              <Scale className="h-3 w-3" /> {distributing ? "Distributing…" : "Calculate Value Pie"}
-            </Button>
+          {isOwner && contributions.length > 0 && questBudgetGamebTokens > 0 && (
+            valuePieCalculated ? (
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" disabled>
+                <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Distribué ✓
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1 border-emerald-500/30 text-emerald-600"
+                onClick={() => setShowPreviewDialog(true)}
+              >
+                <Eye className="h-3 w-3" /> Prévisualiser la distribution
+              </Button>
+            )
           )}
           {currentUser.id && !valuePieCalculated && (
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowForm(!showForm)}>
