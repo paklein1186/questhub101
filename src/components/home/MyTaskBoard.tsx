@@ -15,7 +15,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
   ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X, Sun,
-  Circle, CircleDot, Timer, CheckCircle2,
+  Circle, CircleDot, Timer, CheckCircle2, Scale,
 } from "lucide-react";
 import { ConfettiSpark } from "./ConfettiSpark";
 import {
@@ -32,6 +32,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
 
@@ -189,10 +191,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [pendingConvertTask, setPendingConvertTask] = useState<UnifiedTask | null>(null);
   const [converting, setConverting] = useState(false);
-  const [convertStep, setConvertStep] = useState<"unit" | "tags">("unit");
+  const [convertStep, setConvertStep] = useState<"unit" | "tags" | "budget">("unit");
   const [convertSelectedUnit, setConvertSelectedUnit] = useState<UnitOption | null>(null);
   const [convertTopics, setConvertTopics] = useState<string[]>([]);
   const [convertTerritories, setConvertTerritories] = useState<string[]>([]);
+  const [convertBudget, setConvertBudget] = useState("");
+  const [convertGuildPercent, setConvertGuildPercent] = useState(15);
+  const [convertTerritoryPercent, setConvertTerritoryPercent] = useState(10);
+  const [convertCtgPercent, setConvertCtgPercent] = useState(5);
 
   const { data: allTopics } = useTopics();
   const { data: allTerritories } = useTerritories();
@@ -804,6 +810,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setConvertSelectedUnit(null);
     setConvertTopics([]);
     setConvertTerritories([]);
+    setConvertBudget("");
+    setConvertGuildPercent(15);
+    setConvertTerritoryPercent(10);
+    setConvertCtgPercent(5);
     setUnitPickerOpen(true);
   };
 
@@ -901,6 +911,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       created_by_user_id: userId,
       is_draft: false,
       status: "OPEN_FOR_PROPOSALS",
+      gameb_token_budget: parseFloat(convertBudget) || 0,
+      guild_percent: convertGuildPercent,
+      territory_percent: convertTerritoryPercent,
+      ctg_percent: convertCtgPercent,
     };
 
     if (unit && unit.type === "GUILD") {
@@ -961,6 +975,25 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
     qc.invalidateQueries({ queryKey: ["my-active-quests-home", userId] });
     qc.invalidateQueries({ queryKey: ["user-work-items", userId] });
+
+    // Auto contribution log for quest creation
+    try {
+      await supabase.from("contribution_logs" as any).insert({
+        user_id: userId,
+        quest_id: questId,
+        contribution_type: "other",
+        title: "Création de la quête depuis tâche personnelle",
+        task_type: "coordination",
+        base_units: 1,
+        weight_factor: 1.0,
+        weighted_units: 1.0,
+        ip_licence: "CC-BY-SA",
+      } as any);
+      qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+    } catch (e) {
+      console.error("Auto contribution log failed:", e);
+    }
+
     setConverting(false);
     setUnitPickerOpen(false);
     setPendingConvertTask(null);
@@ -1374,7 +1407,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <DialogDescription>
               {convertStep === "unit"
                 ? "Choose which entity to attach this quest to, or create it as a personal quest."
-                : "Select topics and territories for this quest."}
+                : convertStep === "tags"
+                ? "Select topics and territories for this quest."
+                : "Configure the budget and value distribution for this quest."}
             </DialogDescription>
           </DialogHeader>
 
@@ -1475,6 +1510,78 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setConvertStep("unit")} className="flex-1">
                   <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
+                </Button>
+                <Button size="sm" onClick={() => setConvertStep("budget")} className="flex-1">
+                  Suivant →
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {convertStep === "budget" && (
+            <div className="space-y-4 py-2">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Scale className="h-4 w-4 text-primary" />
+                Budget & Répartition de valeur
+              </h3>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Budget GameB Tokens 🟩</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={convertBudget}
+                  onChange={(e) => setConvertBudget(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part Guilde</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertGuildPercent}%</span>
+                  </div>
+                  <Slider min={0} max={30} step={1} value={[convertGuildPercent]} onValueChange={([v]) => setConvertGuildPercent(v)} />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part Territoire</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertTerritoryPercent}%</span>
+                  </div>
+                  <Slider min={0} max={20} step={1} value={[convertTerritoryPercent]} onValueChange={([v]) => setConvertTerritoryPercent(v)} />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Part $CTG</Label>
+                    <span className="text-xs font-medium text-muted-foreground">{convertCtgPercent}%</span>
+                  </div>
+                  <Slider min={0} max={15} step={1} value={[convertCtgPercent]} onValueChange={([v]) => setConvertCtgPercent(v)} />
+                </div>
+                <p className="text-sm font-bold text-emerald-600">
+                  Part contributeurs : {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setConvertStep("tags")} className="flex-1">
+                  <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setConvertBudget("0");
+                    setConvertGuildPercent(15);
+                    setConvertTerritoryPercent(10);
+                    setConvertCtgPercent(5);
+                    finalizeConvertToQuest();
+                  }}
+                  disabled={converting}
+                  className="text-xs text-muted-foreground"
+                >
+                  Passer
                 </Button>
                 <Button size="sm" onClick={finalizeConvertToQuest} disabled={converting} className="flex-1">
                   {converting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Rocket className="h-3.5 w-3.5 mr-1" />}
