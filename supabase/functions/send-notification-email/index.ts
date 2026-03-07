@@ -304,7 +304,23 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { notification_id } = await req.json();
+    let notification_id: string | null = null;
+    const body = await req.json();
+
+    // Handle direct call format: { notification_id }
+    if (body.notification_id) {
+      notification_id = body.notification_id;
+    }
+    // Handle Supabase DB webhook format: { type: "INSERT", record: { id, type, ... } }
+    else if (body.type === "INSERT" && body.record?.id) {
+      // Only process ALWAYS_EMAIL_TYPES immediately; skip DIGEST_ONLY
+      if (!ALWAYS_EMAIL_TYPES.has(body.record.type)) {
+        return new Response(JSON.stringify({ skipped: true, reason: "digest_only" }), {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      notification_id = body.record.id;
+    }
 
     if (!notification_id) {
       return new Response(JSON.stringify({ error: "notification_id required" }), {
