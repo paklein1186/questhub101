@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { SectionBanner, HINTS } from "@/components/onboarding/ContextualHint";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -67,6 +68,7 @@ export default function AgentsMarketplace({ bare }: { bare?: boolean }) {
 
   return (
     <Wrapper>
+      {!bare && <SectionBanner {...HINTS.banners.agents} />}
       {!bare && (
         <div className="mb-6">
           <h1 className="font-display text-3xl font-bold flex items-center gap-2">
