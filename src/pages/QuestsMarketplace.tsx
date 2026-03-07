@@ -269,7 +269,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                         </Badge>
                       )}
                       {quest.company_id && <Badge className="bg-accent text-accent-foreground border-0"><Building2 className="h-3 w-3 mr-0.5" />Client</Badge>}
-                      <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace("_", " ")}</Badge>
+                      <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge>
                       {(quest as any).price_fiat > 0 && (
                         <Badge variant="secondary"><CreditCard className="h-3 w-3 mr-0.5" />Paid</Badge>
                       )}

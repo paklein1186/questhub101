@@ -349,7 +349,7 @@ export function QuestsTab() {
               <TableRow key={quest.id}>
                 <TableCell><Link to={`/quests/${quest.id}`} className="font-medium hover:underline">{quest.title}</Link></TableCell>
                 <TableCell className="text-sm text-muted-foreground">{quest._guild}</TableCell>
-                <TableCell><Badge variant="outline" className="capitalize text-xs">{quest.status.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                <TableCell><Badge variant="outline" className="capitalize text-xs">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                 <TableCell><Badge variant="secondary" className="capitalize text-xs">{quest.monetization_type.toLowerCase()}</Badge></TableCell>
                 <TableCell className="text-right">{quest.reward_xp}</TableCell>
                 <TableCell><Switch checked={quest.is_featured} onCheckedChange={() => toggleFeatured(quest.id, quest.is_featured)} /></TableCell>
@@ -774,7 +774,7 @@ export function BookingsSection() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell><Badge variant="outline" className="text-xs capitalize">{(b.payment_status ?? "—").toLowerCase().replace("_", " ")}</Badge></TableCell>
+                <TableCell><Badge variant="outline" className="text-xs capitalize">{(b.payment_status ?? "—").toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                 <TableCell className="text-right text-sm">{b.amount != null ? `${b.amount} ${b.currency}` : "—"}</TableCell>
               </TableRow>
             ))}
