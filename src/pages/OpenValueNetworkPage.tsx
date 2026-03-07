@@ -90,7 +90,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             </h2>
             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />
-               Données en temps réel
+               Real-time data
              </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
