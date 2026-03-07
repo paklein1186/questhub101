@@ -108,7 +108,7 @@ export function SectionBanner({
   return (
     <div
       className={cn(
-        "relative flex items-start gap-3 rounded-lg border p-4",
+        "relative flex items-start gap-3 rounded-lg border p-4 my-4",
         variantStyles.wrapper,
         className
       )}
