@@ -66,7 +66,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
                 <div>
                   <Link to={`/bookings/${b.id}`} className="font-display font-semibold hover:text-primary transition-colors">{svc?.title ?? "Booking"}</Link>
                 </div>
-                <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace("_", " ")}</Badge>
+                <Badge className={`${statusColors[b.status] || ""} border-0 capitalize`}>{b.status.toLowerCase().replace(/_/g, " ")}</Badge>
               </div>
 
               {/* Provider info */}

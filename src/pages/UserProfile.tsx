@@ -789,7 +789,7 @@ export default function UserProfile() {
                           <div className="p-4">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Quest</p>
                             <h4 className="font-display font-semibold truncate">{item.data.title}</h4>
-                            <Badge variant="outline" className="text-[10px] capitalize mt-1">{(item.data.status || "draft").toLowerCase().replace("_", " ")}</Badge>
+                            <Badge variant="outline" className="text-[10px] capitalize mt-1">{(item.data.status || "draft").toLowerCase().replace(/_/g, " ")}</Badge>
                           </div>
                         </Link>
                       ) : (
@@ -1086,7 +1086,7 @@ export default function UserProfile() {
             listDialog === "companies" ? Building2 : Briefcase
           }
           items={
-            listDialog === "quests-created" ? filteredQuestsCreated.map((q: any) => ({ id: q.id, name: q.title, imageUrl: q.cover_image_url, subtitle: (q.status || "draft").toLowerCase().replace("_", " "), link: `/quests/${q.id}` })) :
+            listDialog === "quests-created" ? filteredQuestsCreated.map((q: any) => ({ id: q.id, name: q.title, imageUrl: q.cover_image_url, subtitle: (q.status || "draft").toLowerCase().replace(/_/g, " "), link: `/quests/${q.id}` })) :
             listDialog === "quests-joined" ? filteredQuestsJoined.map((qm: any) => ({ id: qm.questId || qm.quest_id || qm.quest?.id, name: qm.quest?.title || "Quest", imageUrl: qm.quest?.cover_image_url, link: `/quests/${qm.questId || qm.quest_id || qm.quest?.id}` })) :
             listDialog === "guilds" ? filteredGuilds.map((gm: any) => ({ id: gm.guildId, name: gm.guild?.name || "Guild", imageUrl: gm.guild?.logo_url, subtitle: gm.role?.toLowerCase(), link: `/guilds/${gm.guildId}` })) :
             listDialog === "pods" ? filteredPods.map((pm: any) => ({ id: pm.podId, name: pm.pod?.name || "Pod", subtitle: pm.role?.toLowerCase(), link: `/pods/${pm.podId}` })) :

@@ -567,7 +567,7 @@ export default function ExploreHouses({ bare }: Props) {
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{q.description}</p>
                   <div className="flex gap-2 mt-2">
                     <Badge variant="secondary" className="text-[10px]">{q.reward_xp} XP</Badge>
-                    <Badge variant="outline" className="text-[10px] capitalize">{q.status?.toLowerCase().replace("_", " ")}</Badge>
+                    <Badge variant="outline" className="text-[10px] capitalize">{q.status?.toLowerCase().replace(/_/g, " ")}</Badge>
                   </div>
                 </div>
               </Link>
