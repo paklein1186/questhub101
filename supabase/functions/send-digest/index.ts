@@ -10,7 +10,8 @@ const corsHeaders = {
 const BASE_URL = "https://changethegame.xyz";
 
 const FREQUENCY_INTERVALS: Record<string, number> = {
-  three_days: 3 * 24 * 60 * 60 * 1000,
+  twice_weekly: 3.5 * 24 * 60 * 60 * 1000,
+  three_days: 3 * 24 * 60 * 60 * 1000, // backwards compat alias
   weekly: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -44,7 +45,7 @@ serve(async (req) => {
 
     const now = Date.now();
     const dueUsers = prefs.filter((p) => {
-      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.three_days;
+      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
       if (!p.last_digest_sent_at) return true;
       return now - new Date(p.last_digest_sent_at).getTime() >= interval;
     });
@@ -61,7 +62,7 @@ serve(async (req) => {
     for (const pref of dueUsers) {
       try {
         const userId = pref.user_id;
-        const interval = FREQUENCY_INTERVALS[pref.digest_frequency] ?? FREQUENCY_INTERVALS.three_days;
+        const interval = FREQUENCY_INTERVALS[pref.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
         const since = new Date(now - interval).toISOString();
 
         // Get user profile
