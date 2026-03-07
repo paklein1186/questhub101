@@ -252,13 +252,11 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                         {ctg > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5 border-emerald-500/30 text-emerald-600">
                             🌱 {ctg} $CTG
-                          <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
                           </Badge>
                         )}
-                        {credits > 0 && (
+                        {fiat > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Coins className="h-3 w-3 text-primary" /> {credits} Credits
+                            <CreditCard className="h-3 w-3 text-primary" /> {fiat}€
                           </Badge>
                         )}
                       </div>
