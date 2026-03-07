@@ -543,34 +543,47 @@ function buildDigestFromTemplate(
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
-  // Network highlights
-  const highlights = (digest.network_highlights ?? [])
-    .map((h: any) => `
-      <tr>
-        <td style="padding:6px 12px 6px 0;font-size:18px;vertical-align:top;width:28px;">${h.icon || "📌"}</td>
-        <td style="padding:6px 0;font-size:15px;line-height:1.5;color:hsl(250,12%,30%);">${h.text}</td>
-      </tr>`)
-    .join("");
+  const clusters = (digest.clusters ?? []).slice(0, 4);
 
-  // Featured posts
-  const posts = (digest.featured_posts ?? [])
-    .map((p: any) => `
-      <div style="margin-bottom:12px;padding:14px 16px;background:hsl(250,30%,97%);border-radius:8px;border-left:3px solid hsl(262,83%,58%);">
-        <p style="font-size:13px;font-weight:600;color:hsl(262,83%,58%);margin:0 0 4px;">${p.author} · ${p.context}</p>
-        <p style="font-size:14px;color:hsl(250,12%,30%);margin:0;line-height:1.5;">${p.teaser}</p>
-      </div>`)
-    .join("");
+  const clustersHtml = clusters.map((cluster: any, idx: number) => {
+    const isProgress = (cluster.label || "").includes("Progress");
+    const bgStyle = isProgress
+      ? "background:hsl(142,40%,96%);border-radius:8px;padding:16px;"
+      : "";
 
-  // Upcoming events / quests
-  const upcoming = (digest.upcoming ?? [])
-    .map((u: any) => `
-      <tr>
-        <td style="padding:8px 0;border-bottom:1px solid hsl(250,18%,92%);">
-          <p style="font-size:14px;font-weight:600;color:hsl(250,30%,8%);margin:0;">${u.label}</p>
-          <p style="font-size:13px;color:hsl(250,12%,46%);margin:2px 0 0;">${u.detail}</p>
-        </td>
-      </tr>`)
-    .join("");
+    const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
+      const linkHtml = item.link
+        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
+        : "";
+      return `
+        <tr>
+          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
+          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
+            ${item.text} ${linkHtml}
+          </td>
+        </tr>`;
+    }).join("");
+
+    const divider = idx < clusters.length - 1
+      ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
+      : "";
+
+    return `
+      <div style="${bgStyle}margin-bottom:4px;">
+        <h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;letter-spacing:0.5px;">${cluster.label}</h3>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          ${itemsHtml}
+        </table>
+      </div>
+      ${divider}`;
+  }).join("");
+
+  const ctaLabel = digest.cta_label || "Explore what's new";
+  const ctaUrl = (digest.cta_url || "/explore").startsWith("http")
+    ? digest.cta_url
+    : `${BASE_URL}${digest.cta_url || "/explore"}`;
+
+  const preheader = digest.preheader || "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -580,6 +593,7 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}</span>
   <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
 
     <!-- Header -->
@@ -590,29 +604,16 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
     <!-- Card -->
     <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
 
-      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 16px;">${digest.greeting || `Hey ${userName},`}</h2>
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hey ${userName},`}</h2>
 
-      ${highlights ? `
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        ${highlights}
-      </table>` : ""}
+      ${clustersHtml}
 
-      ${posts ? `
-      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">📣 Worth a look</h3>
-      ${posts}` : ""}
-
-      ${upcoming ? `
-      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:24px 0 12px;text-transform:uppercase;letter-spacing:1px;">📅 Coming up</h3>
-      <table role="presentation" style="width:100%;border-collapse:collapse;">
-        ${upcoming}
-      </table>` : ""}
-
-      ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:24px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
+      ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:20px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
 
       <div style="margin-top:28px;">
-        <a href="${BASE_URL}/explore"
+        <a href="${ctaUrl}"
            style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
-          Explore what's new
+          ${ctaLabel}
         </a>
       </div>
 
