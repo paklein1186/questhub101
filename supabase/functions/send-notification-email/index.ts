@@ -391,7 +391,18 @@ serve(async (req) => {
     if (!profile?.email) {
       return new Response(JSON.stringify({ skipped: true, reason: "no_email" }), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+});
+
+/* SETUP: Configure Supabase DB Webhook
+   Dashboard → Database → Webhooks → Create a new webhook:
+   - Name: "notify-email-on-insert"
+   - Table: notifications
+   - Event: INSERT
+   - URL: {SUPABASE_URL}/functions/v1/send-notification-email
+   - HTTP Headers: Authorization: Bearer {SUPABASE_SERVICE_ROLE_KEY}
+   This fires automatically for every notification insert.
+   Types not in ALWAYS_EMAIL_TYPES are silently skipped (routed to digest instead).
+*/
     }
 
     const { subject, html } = buildNotificationEmail(notification, profile.name || "there");
