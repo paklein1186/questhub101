@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
+import { ValueIndicators } from "@/components/ValueIndicators";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
