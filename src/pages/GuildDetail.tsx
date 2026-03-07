@@ -77,6 +77,8 @@ import { GraphView } from "@/components/graph/GraphView";
 import { LivingTab } from "@/components/living/LivingTab";
 import { PendingAffiliationRequests } from "@/components/entity/PendingAffiliationRequests";
 import { Leaf, Network, Bot as BotIcon } from "lucide-react";
+import { SectionBanner, HintTooltip, EmptyHint, HINTS } from "@/components/onboarding/ContextualHint";
+import { usePersona } from "@/hooks/usePersona";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
@@ -286,6 +288,7 @@ export default function GuildDetail() {
   const { data: guildServices } = useServicesForGuild(id, showMemberServices);
   const { data: guildQuests } = useQuestsForGuild(id);
   const currentUser = useCurrentUser();
+  const { persona } = usePersona();
   const { toast } = useToast();
   const qc = useQueryClient();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.GUILD, id!);
@@ -488,6 +491,7 @@ export default function GuildDetail() {
         </div>
       </motion.div>
 
+      <SectionBanner {...HINTS.banners.guildFirst} />
       <Tabs value={activeTab} onValueChange={(v) => { if (!isLoggedIn && v !== "overview") { setAuthPromptAction("explore this guild"); setAuthPromptOpen(true); return; } setActiveTab(v); }}>
         {(() => {
           const allTabs: TabDefinition[] = [
@@ -497,15 +501,15 @@ export default function GuildDetail() {
             { value: "human-interactions", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Human Interactions</span></>, visible: isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public") },
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
-            { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span></>, visible: isMember },
+            { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span><HintTooltip {...HINTS.tooltips.guildAI} /></>, visible: isMember },
             { value: "matchmaker", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Matchmaker</span></>, visible: isAdmin },
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
-            { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
-            { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
-            { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
-            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span></> },
+            { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span><HintTooltip {...HINTS.tooltips.guildPartners} /></> },
+            { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span><HintTooltip {...HINTS.tooltips.guildTrust} /></> },
+            { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span><HintTooltip {...HINTS.tooltips.guildLiving} /></> },
+            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span><HintTooltip {...HINTS.tooltips.guildOVN} /></> },
             { value: "agent-settings", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agent Settings</span></>, visible: isAdmin },
-            { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
+            { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span><HintTooltip {...HINTS.tooltips.guildGraph} /></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
           return <GuildTabsBar allTabs={allTabs} defaultOrder={defaultOrder} isAdmin={isAdmin} guildId={guild.id} featuresConfig={fc} />;
@@ -686,7 +690,7 @@ export default function GuildDetail() {
           <EntityQuestsFilters quests={quests}>
             {(filtered, viewMode) => (
               <>
-                {filtered.length === 0 && <p className="text-muted-foreground">No quests match filters.</p>}
+                {filtered.length === 0 && <EmptyHint {...HINTS.empty.guildQuests} persona={persona} />}
                 <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                   {filtered.map((q: any) => (
                     <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
