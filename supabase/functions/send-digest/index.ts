@@ -10,7 +10,8 @@ const corsHeaders = {
 const BASE_URL = "https://changethegame.xyz";
 
 const FREQUENCY_INTERVALS: Record<string, number> = {
-  three_days: 3 * 24 * 60 * 60 * 1000,
+  twice_weekly: 3.5 * 24 * 60 * 60 * 1000,
+  three_days: 3 * 24 * 60 * 60 * 1000, // backwards compat alias
   weekly: 7 * 24 * 60 * 60 * 1000,
 };
 
