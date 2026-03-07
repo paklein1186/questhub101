@@ -315,7 +315,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map(s => (
-                    <SelectItem key={s} value={s} className="text-xs">{s.replace("_", " ")}</SelectItem>
+                    <SelectItem key={s} value={s} className="text-xs">{s.replace(/_/g, " ")}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -280,7 +280,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   <SelectContent>
                     <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
                     {Object.values(QuestStatus).map(s => (
-                      <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>
+                      <SelectItem key={s} value={s}>{s.toLowerCase().replace(/_/g, " ")}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -547,7 +547,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           })}
           {filters.status !== "all" && (
             <Badge variant="secondary" className="text-[10px]">
-              {filters.status.toLowerCase().replace("_", " ")}
+              {filters.status.toLowerCase().replace(/_/g, " ")}
               <button onClick={() => set({ status: "all" })} className="ml-1"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}
@@ -565,7 +565,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           )}
           {filters.podType !== "all" && (
             <Badge variant="secondary" className="text-[10px]">
-              {filters.podType.replace("_", " ").toLowerCase()}
+              {filters.podType.replace(/_/g, " ").toLowerCase()}
               <button onClick={() => set({ podType: "all" })} className="ml-1"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}

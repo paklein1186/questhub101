@@ -459,7 +459,7 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">{quest.description}</p>
                           <div className="flex gap-1.5 mt-2">
-                            <Badge variant="outline" className="text-xs capitalize">{(quest.status || "").toLowerCase().replace("_", " ")}</Badge>
+                            <Badge variant="outline" className="text-xs capitalize">{(quest.status || "").toLowerCase().replace(/_/g, " ")}</Badge>
                           </div>
                         </Link>
                       ))}

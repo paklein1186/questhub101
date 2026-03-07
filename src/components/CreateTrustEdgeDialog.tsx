@@ -350,7 +350,7 @@ export function CreateTrustEdgeDialog({
                     {filteredAutoTags.map((t) => (
                       <button key={t} onClick={() => addTag(t)} className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-muted transition-colors">
                         {t}
-                        {classifyTagSpecialization(t) && <span className="ml-1.5 text-[10px] text-muted-foreground">({classifyTagSpecialization(t)?.replace("_", " ")})</span>}
+                        {classifyTagSpecialization(t) && <span className="ml-1.5 text-[10px] text-muted-foreground">({classifyTagSpecialization(t)?.replace(/_/g, " ")})</span>}
                       </button>
                     ))}
                   </div>
