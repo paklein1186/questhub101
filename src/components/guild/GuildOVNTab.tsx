@@ -5,10 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Coins, Users, Scale, TrendingUp, Leaf, PieChart as PieIcon, BarChart3 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
+import { useGuildWeights, DEFAULT_TASK_TYPES } from "@/hooks/useValuePie";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const PIE_COLORS = [
   "hsl(142, 70%, 45%)", "hsl(200, 70%, 50%)", "hsl(262, 60%, 55%)",
@@ -20,6 +29,8 @@ const PIE_COLORS = [
 interface Props {
   guildId: string;
   guildName: string;
+  isMember?: boolean;
+  currentUserId?: string;
 }
 
 interface ContributorAgg {
@@ -54,8 +65,62 @@ interface TerritoryAgg {
   total_tokens: number;
 }
 
-export function GuildOVNTab({ guildId, guildName }: Props) {
+const TASK_TYPE_EMOJI: Record<string, string> = {
+  research: "🔬", facilitation: "🤝", coordination: "📅", creative: "🎨",
+  admin: "📋", risk: "⚡", development: "💻", design: "✏️",
+  testing: "🧪", documentation: "📄",
+};
+
+const TASK_TYPE_EXAMPLES: Record<string, string> = {
+  research: "Analyse documentaire", facilitation: "Animation d'atelier", coordination: "Planification sprint",
+  creative: "Création visuelle", admin: "Gestion administrative", risk: "Évaluation des risques",
+  development: "Code & intégration", design: "Maquettes UI/UX", testing: "Tests & QA", documentation: "Rédaction docs",
+};
+
+export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Props) {
   const [includeExternal, setIncludeExternal] = useState(false);
+  const [showProposalDialog, setShowProposalDialog] = useState(false);
+  const [proposalTaskType, setProposalTaskType] = useState("");
+  const [proposalWeight, setProposalWeight] = useState("1.0");
+  const [proposalJustification, setProposalJustification] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const { data: guildWeights = [] } = useGuildWeights(guildId);
+
+  // ── Barème helpers ──────────────────────────────────────────
+  const weightMap = useMemo(() => {
+    const m = new Map<string, number>();
+    guildWeights.forEach((w) => m.set(w.task_type, w.weight_factor));
+    return m;
+  }, [guildWeights]);
+
+  const currentWeightForProposal = proposalTaskType ? (weightMap.get(proposalTaskType) ?? 1.0) : 1.0;
+
+  const handleSubmitProposal = async () => {
+    if (!currentUserId || !proposalTaskType || proposalJustification.length < 20) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("guild_decisions" as any).insert({
+        guild_id: guildId,
+        proposed_by: currentUserId,
+        type: "weight_change",
+        title: `Modifier le poids de ${proposalTaskType} de ${currentWeightForProposal} à ${proposalWeight}`,
+        description: proposalJustification,
+        status: "open",
+      });
+      if (error) throw error;
+      toast({ title: "Proposition soumise aux membres de la guilde" });
+      setShowProposalDialog(false);
+      setProposalTaskType("");
+      setProposalWeight("1.0");
+      setProposalJustification("");
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de soumettre la proposition", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // 1. Fetch all quest IDs affiliated with this guild
   const { data: questIds = [] } = useQuery({
@@ -514,6 +579,137 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
           </Card>
         )}
       </div>
+
+      {/* ── Barème de valeur ─────────────────────────────────── */}
+      {(() => {
+        const hasCustomWeights = guildWeights.length > 0;
+        const allTypes = DEFAULT_TASK_TYPES.map((t) => ({
+          task_type: t,
+          emoji: TASK_TYPE_EMOJI[t] || "📦",
+          weight: weightMap.get(t) ?? 1.0,
+        }));
+
+        const lastUpdated = guildWeights.length > 0
+          ? guildWeights.reduce((latest, w) => {
+              const wDate = (w as any).updated_at;
+              return wDate && new Date(wDate) > new Date(latest) ? wDate : latest;
+            }, (guildWeights[0] as any).updated_at || "")
+          : null;
+
+        return (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                ⚖️ Barème de valeur de la guilde
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!hasCustomWeights && (
+                <p className="text-xs text-muted-foreground mb-3 italic">
+                  Barème par défaut — toutes les tâches valent 1.0
+                </p>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground">
+                      <th className="text-left py-1.5 font-medium">Type de tâche</th>
+                      <th className="text-center py-1.5 font-medium w-10">Icône</th>
+                      <th className="text-right py-1.5 font-medium">Multiplicateur</th>
+                      <th className="text-right py-1.5 font-medium">Exemple</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allTypes.map((t) => (
+                      <tr key={t.task_type} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                        <td className="py-1.5 capitalize">{t.task_type}</td>
+                        <td className="py-1.5 text-center">{t.emoji}</td>
+                        <td className="py-1.5 text-right font-bold text-primary">{t.weight.toFixed(1)}</td>
+                        <td className="py-1.5 text-right text-muted-foreground">1h = {t.weight.toFixed(1)} wu</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {isMember && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-xs mt-2 p-0 h-auto"
+                  onClick={() => setShowProposalDialog(true)}
+                >
+                  Proposer un changement
+                </Button>
+              )}
+
+              {lastUpdated && lastUpdated !== "" && (
+                <p className="text-[10px] text-muted-foreground mt-2">
+                  Dernière modification : {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true, locale: fr })}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+
+
+      {/* Proposal Dialog */}
+      <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Proposer un changement de barème</DialogTitle>
+            <DialogDescription>Soumettez une modification du multiplicateur pour un type de tâche.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-xs mb-1 block">Type de tâche</Label>
+              <Select value={proposalTaskType} onValueChange={setProposalTaskType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un type…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEFAULT_TASK_TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {TASK_TYPE_EMOJI[t] || "📦"} {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Nouveau multiplicateur (0.5 – 5.0)</Label>
+              <Input
+                type="number"
+                min={0.5}
+                max={5.0}
+                step={0.5}
+                value={proposalWeight}
+                onChange={(e) => setProposalWeight(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="text-xs mb-1 block">Justification (min 20 caractères)</Label>
+              <Textarea
+                value={proposalJustification}
+                onChange={(e) => setProposalJustification(e.target.value)}
+                placeholder="Expliquez pourquoi ce changement est pertinent…"
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowProposalDialog(false)}>Annuler</Button>
+            <Button
+              onClick={handleSubmitProposal}
+              disabled={submitting || !proposalTaskType || proposalJustification.length < 20}
+            >
+              Soumettre
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
