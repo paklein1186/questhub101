@@ -65,6 +65,40 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
       });
       toast({ title: `Partnership request sent to ${selectedEntity?.name ?? "partner"}!` });
       onOpenChange(false);
+
+      // Notify target entity admins
+      try {
+        const memberTable = tab === "GUILD" ? "guild_members" : "company_members";
+        const idCol = tab === "GUILD" ? "guild_id" : "company_id";
+        const { data: admins } = await supabase
+          .from(memberTable)
+          .select("user_id, role")
+          .eq(idCol, selectedId);
+        const adminIds = (admins ?? [])
+          .filter((m: any) => ["admin", "owner", "ADMIN", "OWNER"].includes(m.role))
+          .map((m: any) => m.user_id);
+
+        // Get source entity name for notification body
+        const srcTable = fromEntityType === "GUILD" ? "guilds" : "companies";
+        const { data: srcEntity } = await supabase.from(srcTable).select("name").eq("id", fromEntityId).maybeSingle();
+        const srcName = (srcEntity as any)?.name ?? "An entity";
+        const deepLink = tab === "GUILD" ? `/guilds/${selectedId}?tab=partners` : `/companies/${selectedId}?tab=partners`;
+
+        for (const adminId of adminIds) {
+          await supabase.from("notifications").insert({
+            user_id: adminId,
+            type: "UNIT_PARTNERSHIP_REQUEST",
+            title: "New partnership request",
+            body: `${srcName} has proposed a partnership`,
+            related_entity_type: tab,
+            related_entity_id: selectedId,
+            deep_link_url: deepLink,
+          });
+        }
+      } catch (e) {
+        console.warn("[partnership-notif] Failed to notify target admins", e);
+      }
+
       setSelectedId(null);
       setNotes("");
       setSearch("");

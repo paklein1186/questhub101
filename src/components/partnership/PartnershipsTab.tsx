@@ -9,6 +9,7 @@ import { usePartnershipsForEntity, usePartnerEntities, useUpdatePartnershipStatu
 import { ProposePartnershipDialog } from "./ProposePartnershipDialog";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   entityType: "GUILD" | "COMPANY";
@@ -50,6 +51,43 @@ export function PartnershipsTab({ entityType, entityId, isAdmin }: Props) {
     try {
       await updateStatus.mutateAsync({ id, status });
       toast({ title: status === "ACCEPTED" ? "Partnership accepted!" : status === "DECLINED" ? "Partnership declined" : "Request withdrawn" });
+
+      // Notify requesting entity admins when accepted
+      if (status === "ACCEPTED") {
+        try {
+          const partnership = (partnerships ?? []).find((p: any) => p.id === id);
+          if (partnership) {
+            const reqType = partnership.from_entity_type as "GUILD" | "COMPANY";
+            const reqId = partnership.from_entity_id as string;
+            const memberTable = reqType === "GUILD" ? "guild_members" : "company_members";
+            const idCol = reqType === "GUILD" ? "guild_id" : "company_id";
+            const { data: admins } = await supabase.from(memberTable).select("user_id, role").eq(idCol, reqId);
+            const adminIds = (admins ?? [])
+              .filter((m: any) => ["admin", "owner", "ADMIN", "OWNER"].includes(m.role))
+              .map((m: any) => m.user_id);
+
+            // Get accepting entity name
+            const srcTable = entityType === "GUILD" ? "guilds" : "companies";
+            const { data: srcEntity } = await supabase.from(srcTable).select("name").eq("id", entityId).maybeSingle();
+            const srcName = (srcEntity as any)?.name ?? "A partner";
+            const deepLink = reqType === "GUILD" ? `/guilds/${reqId}?tab=partners` : `/companies/${reqId}?tab=partners`;
+
+            for (const adminId of adminIds) {
+              await supabase.from("notifications").insert({
+                user_id: adminId,
+                type: "UNIT_PARTNERSHIP_ACCEPTED",
+                title: "Partnership accepted!",
+                body: `Your partnership with ${srcName} was accepted`,
+                related_entity_type: reqType,
+                related_entity_id: reqId,
+                deep_link_url: deepLink,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("[partnership-notif] Failed to notify requesting admins", e);
+        }
+      }
     } catch {
       toast({ title: "Action failed", variant: "destructive" });
     }
