@@ -336,6 +336,31 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
+            {/* GameB weight input */}
+            {canManage && (
+              <div className="flex items-center gap-0.5">
+                <Scale className="h-3 w-3 text-violet-500" />
+                <Input
+                  type="number"
+                  min={0.5}
+                  max={5.0}
+                  step={0.5}
+                  value={subtask.gameb_weight ?? 1.0}
+                  onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="Poids dans le Value Pie"
+                />
+              </div>
+            )}
+            {/* Estimated WU badge for assignee */}
+            {budgetGameb > 0 && subtask.assignee_user_id === currentUser.id && (() => {
+              const estWu = (subtask.credit_reward || 1) * (subtask.gameb_weight || 1.0);
+              return (
+                <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                  {estWu.toFixed(1)} wu estimés
+                </span>
+              );
+            })()}
             {canManage && (
               <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => deleteSubtask(subtask.id)}>
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
