@@ -90,15 +90,16 @@ export function AppNav() {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance, ctg_balance")
+        .select("credits_balance, ctg_balance, xp")
         .eq("user_id", session!.user.id)
         .maybeSingle();
-      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0 };
+      return { credits: (data as any)?.credits_balance ?? 0, ctg: (data as any)?.ctg_balance ?? 0, xp: (data as any)?.xp ?? 0 };
     },
     refetchInterval: 60_000,
   });
   const creditsBalance = navBalances?.credits ?? 0;
   const ctgBalance = navBalances?.ctg ?? 0;
+  const xpBalance = navBalances?.xp ?? 0;
 
   const handleLogout = async () => {
     await signOut();
