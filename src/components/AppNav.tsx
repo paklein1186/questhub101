@@ -241,7 +241,6 @@ export function AppNav() {
                           <Star className="h-3 w-3" /> {xpBalance} XP
                         </Link>
                       </div>
-                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <LanguageSwitcherInline />
                       {showAdmin && (
@@ -365,7 +364,6 @@ export function AppNav() {
                               <Star className="h-3 w-3" /> {xpBalance} XP
                             </Link>
                           </div>
-                          </Link>
                           <Link to="/inbox" onClick={() => setMobileOpen(false)}
                             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted">
                             <Mail className="h-4 w-4" /> {t("nav.messages")}
