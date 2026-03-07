@@ -200,6 +200,8 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
     };
   });
 
+  const totalGuildShare = questAggs.reduce((s, q) => s + q.guild_share, 0);
+
   // ── Task Type Breakdown ───────────────────────────────────
   const taskTypeMap = new Map<string, TaskTypeAgg>();
   contribs.forEach((c: any) => {
