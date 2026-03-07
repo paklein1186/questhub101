@@ -78,7 +78,7 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
       return "notifyOnFollowerActivity"; // mapped to follower activity for legacy compat
     case NotificationType.DIRECT_MESSAGE_RECEIVED:
     case NotificationType.MESSAGE_PRIVATE:
-      return "notifyOnComments"; // fallback
+      return "notifyOnPodMessages";
     default:
       return null;
   }
@@ -346,6 +346,8 @@ function mapLocalToDb(local: NotificationPreferences): Record<string, unknown> {
     notify_booking_status_changes: local.notifyOnBookings,
     notify_follower_activity: local.notifyOnFollowerActivity,
     notify_xp_and_achievements: local.notifyOnXpAndAchievements,
+    notify_guild_activity: local.notifyOnGuildActivity,
+    notify_pod_messages: local.notifyOnPodMessages,
     notification_frequency: local.notificationFrequency,
     push_enabled: local.pushEnabled,
   };
@@ -358,6 +360,8 @@ function mapDbToLocal(row: Record<string, unknown>): Partial<NotificationPrefere
     notifyOnBookings: row.notify_booking_status_changes as boolean ?? true,
     notifyOnFollowerActivity: row.notify_follower_activity as boolean ?? true,
     notifyOnXpAndAchievements: row.notify_xp_and_achievements as boolean ?? true,
+    notifyOnGuildActivity: row.notify_guild_activity as boolean ?? true,
+    notifyOnPodMessages: row.notify_pod_messages as boolean ?? true,
     notificationFrequency: (row.notification_frequency as any) ?? "INSTANT",
     pushEnabled: row.push_enabled as boolean ?? false,
   };
