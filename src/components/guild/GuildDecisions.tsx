@@ -514,7 +514,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
           related_entity_type: decision.entity_type,
           related_entity_id: decision.entity_id,
           deep_link_url: `/${decision.entity_type === "COMPANY" ? "companies" : "guilds"}/${decision.entity_id}?tab=decisions&decision=${decision.id}`,
-        } as any).then(() => {}).catch(() => {});
+        } as any).then(undefined, () => {});
       }
     }
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
