@@ -39,6 +39,7 @@ import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCre
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
+import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { UnitChat } from "@/components/UnitChat";
@@ -613,6 +614,7 @@ export default function QuestDetail() {
 
   return (
     <PageShell>
+      <SectionBanner {...HINTS.banners.questFirst} />
       <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back
       </Button>
@@ -659,17 +661,20 @@ export default function QuestDetail() {
           <h1 className="font-display text-3xl font-bold">{quest.title}</h1>
           <div className="flex items-center gap-2 flex-wrap">
             {(quest as any).quest_nature && (quest as any).quest_nature !== "PROJECT" && (
-              <Badge variant="outline" className={QUEST_NATURE_COLORS[(quest as any).quest_nature as QuestNature] || ''}>
-                {QUEST_NATURE_ICONS[(quest as any).quest_nature as QuestNature]}{" "}
-                {QUEST_NATURE_LABELS[(quest as any).quest_nature as QuestNature]}
-              </Badge>
+              <span className="inline-flex items-center gap-1">
+                <Badge variant="outline" className={QUEST_NATURE_COLORS[(quest as any).quest_nature as QuestNature] || ''}>
+                  {QUEST_NATURE_ICONS[(quest as any).quest_nature as QuestNature]}{" "}
+                  {QUEST_NATURE_LABELS[(quest as any).quest_nature as QuestNature]}
+                </Badge>
+                <HintTooltip {...HINTS.tooltips.questType} />
+              </span>
             )}
             {isMission(quest as any) && (quest as any).quest_nature !== "MISSION" && (
               <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/30">
                 💰 Mission
               </Badge>
             )}
-            <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP</span>
+            <span className="flex items-center gap-1.5 text-lg font-bold text-primary"><Zap className="h-5 w-5" /> {quest.reward_xp} XP <HintTooltip {...HINTS.tooltips.questXP} /></span>
           </div>
         </div>
 
