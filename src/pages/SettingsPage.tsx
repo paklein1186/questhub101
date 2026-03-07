@@ -64,30 +64,95 @@ import { Heart } from "lucide-react";
 import { MonOVNPanel } from "@/components/home/MonOVNPanel";
 
 
-const TABS = [
-  { key: "profile", label: "settings.profile", icon: UserCircle },
-  { key: "persona", label: "settings.persona", icon: Compass },
-  { key: "language", label: "settings.language", icon: Languages },
-  { key: "quests", label: "settings.quests", icon: Swords },
-  { key: "guilds", label: "settings.guilds", icon: Users },
-  { key: "pods", label: "settings.pods", icon: Users },
-  { key: "courses", label: "settings.courses", icon: GraduationCap },
-  { key: "services", label: "settings.services", icon: Briefcase },
-  { key: "calendar", label: "settings.calendar", icon: CalendarSync },
-  { key: "bookings", label: "settings.bookings", icon: CalendarCheck },
-  { key: "wallet", label: "settings.wallet", icon: Coins },
-  { key: "houses", label: "settings.houses", icon: Hash },
-  { key: "starred", label: "settings.starred", icon: Star },
-  { key: "notifications", label: "settings.notifications", icon: Bell },
-  { key: "account", label: "settings.account", icon: Shield },
-  { key: "privacy", label: "settings.privacy", icon: Eye },
-  { key: "referrals", label: "settings.referrals", icon: UserCircle },
-  { key: "apps", label: "settings.apps", icon: Plug },
-  { key: "history", label: "Activity History", icon: History },
-  { key: "ovn", label: "My Contributions", icon: Scale },
-  { key: "giveback", label: "Give-back", icon: Heart },
-  { key: "website", label: "Website", icon: Globe },
+type SettingsTab = { key: string; label: string; icon: React.ComponentType<{ className?: string }> };
+type SettingsGroup = { groupLabel: string; groupIcon: React.ComponentType<{ className?: string }>; tabs: SettingsTab[] };
+
+const SETTINGS_GROUPS: SettingsGroup[] = [
+  {
+    groupLabel: "Profile & Identity",
+    groupIcon: UserCircle,
+    tabs: [
+      { key: "profile", label: "Profile", icon: UserCircle },
+      { key: "persona", label: "Persona & Preferences", icon: Compass },
+      { key: "language", label: "Language", icon: Languages },
+    ],
+  },
+  {
+    groupLabel: "My Activity",
+    groupIcon: Swords,
+    tabs: [
+      { key: "quests", label: "Quests", icon: Swords },
+      { key: "guilds", label: "Guilds", icon: Users },
+      { key: "pods", label: "Pods", icon: Users },
+      { key: "courses", label: "Courses", icon: GraduationCap },
+      { key: "services", label: "Services", icon: Briefcase },
+    ],
+  },
+  {
+    groupLabel: "Calendar & Bookings",
+    groupIcon: CalendarSync,
+    tabs: [
+      { key: "calendar", label: "Calendar Sync", icon: CalendarSync },
+      { key: "bookings", label: "Bookings", icon: CalendarCheck },
+    ],
+  },
+  {
+    groupLabel: "Wallet & Economy",
+    groupIcon: Coins,
+    tabs: [
+      { key: "wallet", label: "Wallet", icon: Coins },
+      { key: "ovn", label: "My Contributions", icon: Scale },
+      { key: "giveback", label: "Give-back", icon: Heart },
+    ],
+  },
+  {
+    groupLabel: "My Network",
+    groupIcon: Hash,
+    tabs: [
+      { key: "houses", label: "Topics & Territories", icon: Hash },
+      { key: "starred", label: "Starred", icon: Star },
+    ],
+  },
+  {
+    groupLabel: "Notifications",
+    groupIcon: Bell,
+    tabs: [
+      { key: "notifications", label: "Notifications", icon: Bell },
+    ],
+  },
+  {
+    groupLabel: "Account & Privacy",
+    groupIcon: Shield,
+    tabs: [
+      { key: "account", label: "Account & Security", icon: Shield },
+      { key: "privacy", label: "Privacy", icon: Eye },
+      { key: "referrals", label: "Referrals", icon: UserCircle },
+      { key: "apps", label: "Connected Apps", icon: Plug },
+    ],
+  },
+  {
+    groupLabel: "Website",
+    groupIcon: Globe,
+    tabs: [
+      { key: "website", label: "Website", icon: Globe },
+    ],
+  },
+  {
+    groupLabel: "History",
+    groupIcon: History,
+    tabs: [
+      { key: "history", label: "Activity History", icon: History },
+    ],
+  },
 ];
+
+// Flat list for lookups
+const ALL_TABS = SETTINGS_GROUPS.flatMap((g) => g.tabs);
+
+// Find which group a tab belongs to
+function groupForTab(tabKey: string): string {
+  return SETTINGS_GROUPS.find((g) => g.tabs.some((t) => t.key === tabKey))?.groupLabel ?? "";
+}
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -304,22 +369,34 @@ export default function SettingsPage() {
         <h1 className="font-display text-2xl font-bold mb-6">{t("settings.title")}</h1>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar nav */}
-          <nav className="md:w-56 shrink-0 space-y-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
-                  activeTab === tab.key
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <tab.icon className="h-4 w-4 shrink-0" />
-                {t(tab.label)}
-              </button>
-            ))}
+          {/* Sidebar nav — grouped */}
+          <nav className="md:w-56 shrink-0 space-y-3">
+            {SETTINGS_GROUPS.map((group) => {
+              const isGroupActive = group.tabs.some((t) => t.key === activeTab);
+              return (
+                <div key={group.groupLabel}>
+                  <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.groupLabel}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.tabs.map((tab) => (
+                      <button
+                        key={tab.key}
+                        onClick={() => setActiveTab(tab.key)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left ${
+                          activeTab === tab.key
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4 shrink-0" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </nav>
 
           {/* Content */}
