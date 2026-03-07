@@ -225,7 +225,7 @@ export function WalletTab() {
         </div>
 
         {/* ═══ 5 VALUE TILES ═══ */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {/* Fiat */}
           <ValueTile icon={<Banknote className="h-5 w-5" />} label="Fiat Balance" emoji="💶"
             tooltip="Your earnings from paid missions and services. Paid via Stripe.">
@@ -240,13 +240,6 @@ export function WalletTab() {
             value={limits.userCredits}
             tooltip="Non-monetary credits for platform features, gamification, and quotas. Cannot be withdrawn.">
             <p className="text-[10px] text-muted-foreground mt-1">Feature fuel</p>
-          </ValueTile>
-
-          {/* $CTG Tokens (🟩) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG" emoji="🟩"
-            value={gamebBal}
-            tooltip="Fiat-backed mission tokens. Earned from quests funded by real money. Withdrawable to fiat.">
-            <p className="text-[10px] text-muted-foreground mt-1">Mission value</p>
           </ValueTile>
 
           {/* $CTG */}
@@ -292,14 +285,6 @@ export function WalletTab() {
             className="gap-1.5"
           >
             🔷 Platform Credits
-          </Button>
-          <Button
-            variant={activeWallet === "gameb" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveWallet("gameb")}
-            className="gap-1.5"
-          >
-            🟩 $CTG
           </Button>
           <Button
             variant={activeWallet === "ctg" ? "default" : "outline"}
@@ -436,110 +421,6 @@ export function WalletTab() {
           </>
         )}
 
-        {/* ═══ $CTG TOKENS WALLET ═══ */}
-        {activeWallet === "gameb" && (
-          <>
-            <Section title="🟩 $CTG — Mission Value" icon={<Leaf className="h-5 w-5" />}>
-              <div className="space-y-4">
-                {/* Balance card */}
-                <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-500/5 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-1">Available $CTG</p>
-                      <p className="text-3xl font-bold text-emerald-600">{gamebBal}</p>
-                      <p className="text-xs text-muted-foreground mt-1">≈ €{(gamebBal * 0.04).toFixed(2)} fiat backing</p>
-                    </div>
-                    <div className="text-5xl">🟩</div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={handleRequestWithdrawal}
-                      disabled={gamebBal <= 0}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                      <Download className="h-4 w-4 mr-1" /> Withdraw to Fiat
-                    </Button>
-                    {!gamebBalance?.stripe_connect_onboarded && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleStripeConnectOnboarding}
-                        className="text-xs border-amber-500/30 text-amber-600"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5 mr-1" /> Set up Stripe Connect
-                      </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Explanation */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                    <p className="text-xs font-semibold text-foreground mb-2">$CTG are earned from:</p>
-                    <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
-                      <li>Completing funded quests</li>
-                      <li>Milestone payouts</li>
-                      <li>Guild/territory redistribution</li>
-                      <li>Ecological impact rewards</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                    <p className="text-xs font-semibold text-foreground mb-2">$CTG are used for:</p>
-                    <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
-                      <li>Funding quest budgets (fiat → tokens)</li>
-                      <li>Paying contributors</li>
-                      <li>Guild/territory redistribution</li>
-                      <li>Withdrawing to fiat</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" /> $CTG represent <strong>real fiat value</strong> deposited by funders. They can be withdrawn to your bank account via Stripe Connect.
-                  </p>
-                </div>
-              </div>
-            </Section>
-
-            <Separator />
-
-            {/* Withdrawal requests */}
-            {withdrawals.length > 0 && (
-              <>
-                <Section title="Withdrawal Requests" icon={<Download className="h-5 w-5" />}>
-                  <div className="space-y-2">
-                    {withdrawals.map((w: any) => (
-                      <div key={w.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-border">
-                        <div>
-                          <p className="text-sm font-medium">{w.amount_tokens} tokens → €{Number(w.amount_fiat).toFixed(2)}</p>
-                          <p className="text-[10px] text-muted-foreground">{new Date(w.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <Badge variant={
-                          w.status === "completed" ? "default" :
-                          w.status === "rejected" ? "destructive" :
-                          "secondary"
-                        } className="text-[10px]">
-                          {w.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </Section>
-                <Separator />
-              </>
-            )}
-
-            {/* $CTG Token Transaction History */}
-            <Section title="$CTG History" icon={<History className="h-5 w-5" />}>
-              <TxFilterBar value={txFilter} onChange={setTxFilter} />
-              <TxList loading={gamebTxLoading} items={filteredGamebTx} labels={GAMEB_TX_LABELS} />
-            </Section>
-          </>
-        )}
 
         <Separator />
 
