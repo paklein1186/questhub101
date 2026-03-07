@@ -770,6 +770,13 @@ export default function GuildDetail() {
             />
           </TabsContent>
         )}
+
+        {/* Matchmaker — separate admin tool */}
+        {isAdmin && (
+          <TabsContent value="matchmaker" className="mt-6">
+            <MatchmakerPanel matchType="guild" guildId={guild.id} />
+          </TabsContent>
+        )}
       </Tabs>
       <PiContextSetter contextType="guild" contextId={id} />
     </PageShell>
