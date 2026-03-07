@@ -542,7 +542,7 @@ export default function GuildDetail() {
             </div>
           </div>
 
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
             <EntityFollowersCount entityId={guild.id} entityType="GUILD" />
             <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
             <button onClick={() => setActiveTab("quests")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{quests.length}</p><p className="text-sm text-muted-foreground">Quests</p></button>
@@ -555,6 +555,7 @@ export default function GuildDetail() {
               <p className="text-2xl font-bold text-muted-foreground flex items-center justify-center gap-1"><Coins className="h-5 w-5" />{membersCreditSum}</p>
               <p className="text-sm text-muted-foreground">Members' Credits</p>
             </div>
+            <GuildCTGStat guildId={guild.id} />
           </div>
 
           {/* Highlighted posts from Discussion/Posts tab */}
