@@ -70,7 +70,7 @@ export function MonOVNPanel({ userId }: Props) {
         (r: any) => new Date(r.created_at) >= thirtyDaysAgo
       ).length;
 
-      // Total gameb tokens received
+      // Total $CTG tokens received
       const { data: tokenRows } = await supabase
         .from("gameb_token_transactions" as any)
         .select("amount")

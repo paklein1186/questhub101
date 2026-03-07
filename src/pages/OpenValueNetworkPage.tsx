@@ -90,14 +90,14 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             </h2>
             <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse" />
-              Données en temps réel
-            </Badge>
+               Données en temps réel
+             </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="GameB Tokens distribués" value={stats?.totalTokens ?? 0} icon="🟩" />
-            <StatCard label="Quêtes Value Pie" value={stats?.questCount ?? 0} icon="🥧" />
-            <StatCard label="Contributeurs ce mois" value={stats?.distinctUsers ?? 0} icon="👥" />
-            <StatCard label="Guildes actives" value={stats?.guildCount ?? 0} icon="⚔️" />
+            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🟩" />
+            <StatCard label="Value Pie Quests" value={stats?.questCount ?? 0} icon="🥧" />
+            <StatCard label="Contributors this month" value={stats?.distinctUsers ?? 0} icon="👥" />
+            <StatCard label="Active guilds" value={stats?.guildCount ?? 0} icon="⚔️" />
           </div>
         </section>
 
@@ -128,7 +128,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
               { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🟩 GameB Tokens", desc: "Mission value" },
+              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🟩 $CTG", desc: "Mission value" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
@@ -205,7 +205,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         {/* 4. Dual Currency */}
         <Section
           number="4"
-          title="Dual Currency: Platform Credits & GameB Tokens"
+          title="Dual Currency: Platform Credits & $CTG"
           icon={<Coins className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-2 gap-4 mt-2">
@@ -219,7 +219,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               </ul>
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 GameB Tokens (fiat-backed)</p>
+              <p className="font-medium text-foreground mb-2">🟩 $CTG (fiat-backed)</p>
               <p className="text-xs text-muted-foreground mb-2">Mission value. Backed by real fiat. Withdrawable by contributors.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
                 {["Pre-funded quest budgets", "Contributor payouts", "Guild/Territory redistribution", "Ecological impact flows", "Fiat withdrawal via Stripe Connect"].map((s) => (
@@ -228,7 +228,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               </ul>
             </div>
           </div>
-          <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with GameB Tokens.</p>
+          <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with $CTG.</p>
         </Section>
 
         {/* ── PART B: Animated Token Flow Diagram ── */}
@@ -237,7 +237,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           title="Transparent Redistribution"
           icon={<BarChart3 className="h-5 w-5" />}
         >
-          <p>At the end of each quest, GameB Tokens automatically split into:</p>
+          <p>At the end of each quest, $CTG automatically split into:</p>
           <div className="mt-6">
             <TokenFlowDiagram />
           </div>
