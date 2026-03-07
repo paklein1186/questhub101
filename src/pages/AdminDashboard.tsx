@@ -908,13 +908,13 @@ function MarketplaceTab() {
                     <TableCell>
                       <Select value={b.status} onValueChange={(v) => setBookingStatus(b.id, v as BookingStatus)}>
                         <SelectTrigger className="h-7 w-[130px] text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>{Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}</SelectContent>
+                        <SelectContent>{Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace(/_/g, " ")}</SelectItem>)}</SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell>
                       <Select value={b.paymentStatus ?? PaymentStatus.NOT_REQUIRED} onValueChange={(v) => setPaymentStatus(b.id, v as PaymentStatus)}>
                         <SelectTrigger className="h-7 w-[120px] text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>{Object.values(PaymentStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}</SelectContent>
+                        <SelectContent>{Object.values(PaymentStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace(/_/g, " ")}</SelectItem>)}</SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell className="text-right text-sm">{b.amount != null ? `${b.amount} ${b.currency}` : "—"}</TableCell>
@@ -1262,7 +1262,7 @@ function ModerationTab() {
                   <TableRow key={c.id} className={c.isDeleted ? "opacity-50" : ""}>
                     <TableCell className="font-medium text-sm">{author?.name ?? "—"}</TableCell>
                     <TableCell className="text-sm max-w-xs truncate">{c.content}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize text-xs">{c.targetType.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className="capitalize text-xs">{c.targetType.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                     <TableCell className="text-right">{c.upvoteCount}</TableCell>
                     <TableCell>
                       <Button size="sm" variant={c.isDeleted ? "destructive" : "ghost"} className="h-7 px-2 text-xs" onClick={() => hideComment(c.id)}>

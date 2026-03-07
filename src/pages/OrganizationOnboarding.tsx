@@ -421,7 +421,7 @@ export default function OrganizationOnboarding() {
                   <div>
                     <h2 className="font-display text-xl font-bold">{orgName || "Unnamed Organization"}</h2>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      {orgType && <Badge variant="outline" className="text-xs capitalize">{orgType.replace("_", " ")}</Badge>}
+                      {orgType && <Badge variant="outline" className="text-xs capitalize">{orgType.replace(/_/g, " ")}</Badge>}
                       {sector && <span>{sector}</span>}
                       {scaleCategory && <Badge variant="secondary" className="text-xs capitalize">{scaleCategory}</Badge>}
                     </div>

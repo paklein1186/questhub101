@@ -328,7 +328,7 @@ export function CreateTrustEdgeDialog({
                     return (
                       <Badge key={tag} variant="secondary" className="cursor-pointer hover:bg-destructive/20 transition-colors" onClick={() => removeTag(tag)}>
                         {tag}
-                        {spec && <span className="ml-1 text-[10px] opacity-60">({spec.replace("_", " ")})</span>}
+                        {spec && <span className="ml-1 text-[10px] opacity-60">({spec.replace(/_/g, " ")})</span>}
                         <span className="ml-1 text-[10px]">×</span>
                       </Badge>
                     );

@@ -611,7 +611,7 @@ export default function ExploreHouses({ bare }: Props) {
                 <div className="p-4">
                   <h4 className="font-display font-semibold">{p.name}</h4>
                   <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
-                  <Badge variant="outline" className="text-[10px] mt-2 capitalize">{p.type?.toLowerCase().replace("_", " ")}</Badge>
+                  <Badge variant="outline" className="text-[10px] mt-2 capitalize">{p.type?.toLowerCase().replace(/_/g, " ")}</Badge>
                 </div>
               </Link>
             )} />

@@ -11,7 +11,7 @@ export default function AdminCommunityPods() {
 
   const enriched = useMemo(() => allPods.map(pod => ({
     ...pod,
-    _type: pod.type.toLowerCase().replace("_", " "),
+    _type: pod.type.toLowerCase().replace(/_/g, " "),
     _status: pod.is_draft ? "Draft" : "Active",
   })), [allPods]);
 
