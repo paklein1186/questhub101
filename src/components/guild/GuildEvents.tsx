@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,7 +50,7 @@ interface UnifiedItem {
   occurrenceId?: string;
 }
 
-export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
+export function GuildEvents({ guildId, guildName, isMember, isAdmin }: GuildEventsProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -231,6 +232,13 @@ export function GuildEvents({ guildId, isMember, isAdmin }: GuildEventsProps) {
     } as any);
     if (error) { toast({ title: "Failed to create event", variant: "destructive" }); return; }
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
+    const eName = guildName || "your guild";
+    notifyEntityFollowersAndMembers({
+      entityType: "GUILD", entityId: guildId, entityName: eName,
+      actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_EVENT",
+      title: `New event: ${title.trim()}`, body: `A new event was added in ${eName}`,
+      deepLinkUrl: `/guilds/${guildId}?tab=events`,
+    });
     setTitle(""); setDescription(""); setStartAt(""); setEndAt("");
     setLocationType("ONLINE"); setLocationText(""); setCallUrl("");
     setVisibility("GUILD_MEMBERS"); setMaxAttendees("");

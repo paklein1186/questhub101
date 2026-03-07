@@ -379,6 +379,12 @@ export default function GuildDetail() {
       owner_type: "GUILD", owner_id: guild.id,
     } as any);
     if (error) { toast({ title: "Failed to create service", variant: "destructive" }); return; }
+    notifyEntityFollowersAndMembers({
+      entityType: "GUILD", entityId: guild.id, entityName: guild.name,
+      actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_SERVICE",
+      title: `New service: ${svcTitle.trim()}`, body: `A new service was added in ${guild.name}`,
+      deepLinkUrl: `/guilds/${guild.id}?tab=services`,
+    });
     qc.invalidateQueries({ queryKey: ["services-for-guild", id] });
     setSvcTitle(""); setSvcDesc(""); setSvcDuration("60"); setSvcPrice("0");
     setSvcLocationType(OnlineLocationType.JITSI); setSvcImageUrl(undefined); setSvcDraft(false);
