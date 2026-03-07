@@ -128,6 +128,30 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         }, true);
       }
     }
+
+    // Auto-insert contribution log with gameb_weight
+    try {
+      const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
+      const weightFactor = subtask?.gameb_weight > 0 ? Number(subtask.gameb_weight) : 1.0;
+      const weightedUnits = baseUnits * weightFactor;
+
+      await supabase.from("contribution_logs" as any).insert({
+        user_id: assigneeId,
+        quest_id: questId,
+        guild_id: guildId || null,
+        subtask_id: subtaskId,
+        contribution_type: "subtask_completed",
+        title: "Sous-tâche complétée : " + (subtask?.title || ""),
+        task_type: "general",
+        base_units: baseUnits,
+        weight_factor: weightFactor,
+        weighted_units: weightedUnits,
+        ip_licence: "CC-BY-SA",
+      } as any);
+    } catch (e) {
+      console.error("Failed to log contribution from subtask", e);
+    }
+
     // Invalidate contribution logs
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
 
