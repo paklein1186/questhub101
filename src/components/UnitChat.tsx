@@ -186,6 +186,7 @@ export function UnitChat({ entityType, entityId, entityName }: UnitChatProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { notifyPodMessage } = useNotifications();
 
   const { data: thread } = useUnitChatThread(entityType, entityId);
   const { data: messages = [] } = useUnitChatMessages(thread?.id);
