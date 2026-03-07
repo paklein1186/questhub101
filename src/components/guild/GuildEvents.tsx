@@ -17,6 +17,7 @@ import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualCon
 
 interface GuildEventsProps {
   guildId: string;
+  guildName?: string;
   isMember: boolean;
   isAdmin: boolean;
 }

@@ -756,7 +756,7 @@ export default function GuildDetail() {
 
         {(fc as any).events && (
           <TabsContent value="events" className="mt-6">
-            <GuildEvents guildId={guild.id} isMember={isMember} isAdmin={isAdmin} />
+            <GuildEvents guildId={guild.id} guildName={guild.name} isMember={isMember} isAdmin={isAdmin} />
           </TabsContent>
         )}
 
