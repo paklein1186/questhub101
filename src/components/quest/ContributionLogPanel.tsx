@@ -214,9 +214,22 @@ export function ContributionLogPanel({
             </div>
           )}
 
-          {/* Log Form with task_type & base_units */}
+          {/* Log Form — Simple / Advanced */}
           {showForm && (
             <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-foreground">Nouvelle contribution</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[10px] text-muted-foreground"
+                  onClick={() => setAdvancedMode(!advancedMode)}
+                >
+                  {advancedMode ? "Mode simple ↑" : "Mode avancé ↓"}
+                </Button>
+              </div>
+
+              {/* Common fields: type dropdown, title */}
               <div className="flex gap-2">
                 <Select value={formType} onValueChange={(v) => setFormType(v as ContributionType)}>
                   <SelectTrigger className="w-[160px] h-8 text-xs">
@@ -235,62 +248,105 @@ export function ContributionLogPanel({
                   className="flex-1 h-8 text-sm"
                 />
               </div>
-              <Textarea
-                placeholder="Details (optional)"
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                rows={2}
-                className="text-sm"
-              />
-              {/* Value Pie Fields */}
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <label className="text-[10px] text-muted-foreground block mb-0.5">Task Type (for weight)</label>
-                  <Select value={formTaskType} onValueChange={setFormTaskType}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DEFAULT_TASK_TYPES.map((t) => (
-                        <SelectItem key={t} value={t} className="text-xs capitalize">
-                          {t} (×{weightMap.get(t)?.toFixed(1) ?? "1.0"})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-24">
-                  <label className="text-[10px] text-muted-foreground block mb-0.5">Base Units</label>
-                  <Input
-                    type="number"
-                    placeholder="e.g. hours"
-                    value={formBaseUnits}
-                    onChange={(e) => setFormBaseUnits(e.target.value)}
-                    className="h-8 text-sm"
-                    step="0.25"
-                    min="0"
+
+              {/* Simple mode: just hours */}
+              {!advancedMode && (
+                <>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="number"
+                      placeholder="Heures"
+                      value={formHours}
+                      onChange={(e) => setFormHours(e.target.value)}
+                      className="w-28 h-8 text-sm"
+                      step="0.25"
+                      min="0"
+                    />
+                    <span className="text-xs text-muted-foreground">heures</span>
+                  </div>
+                  {parseFloat(formHours) > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Pour cette guilde, {formHours}h = <span className="font-medium text-foreground">{weightedUnits}</span> weighted units ≈{" "}
+                      <span className="font-medium text-emerald-600">
+                        {simpleEstimatedTokens !== null ? `${simpleEstimatedTokens} GameB Tokens estimés` : "— GameB Tokens estimés"}
+                      </span>
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* Advanced mode: description, task type icon grid, base_units, weight preview */}
+              {advancedMode && (
+                <>
+                  <Textarea
+                    placeholder="Details (optional)"
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    rows={2}
+                    className="text-sm"
                   />
-                </div>
-                <div className="text-center px-2">
-                  <label className="text-[10px] text-muted-foreground block mb-0.5">Weight</label>
-                  <span className="text-sm font-medium">×{currentWeight.toFixed(1)}</span>
-                </div>
-                <div className="text-center px-2">
-                  <label className="text-[10px] text-muted-foreground block mb-0.5">Weighted</label>
-                  <span className="text-sm font-bold text-emerald-600">{weightedUnits}</span>
-                </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <Input
-                  type="number"
-                  placeholder="Hours (optional)"
-                  value={formHours}
-                  onChange={(e) => setFormHours(e.target.value)}
-                  className="w-28 h-8 text-sm"
-                  step="0.25"
-                  min="0"
-                />
-                <div className="flex-1" />
+
+                  {/* Task type icon grid */}
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1">Task Type</label>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {TASK_TYPE_ICONS.map((tt) => (
+                        <button
+                          key={tt.value}
+                          type="button"
+                          onClick={() => setFormTaskType(tt.value)}
+                          className={`flex flex-col items-center gap-0.5 rounded-md border p-1.5 text-[10px] transition-colors cursor-pointer ${
+                            formTaskType === tt.value
+                              ? "border-primary bg-primary/10 text-primary font-semibold"
+                              : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <span className="text-sm">{tt.emoji}</span>
+                          <span className="truncate w-full text-center">{tt.label}</span>
+                          <span className="text-[9px] opacity-60">×{(weightMap.get(tt.value) ?? 1.0).toFixed(1)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 items-end">
+                    <div className="w-24">
+                      <label className="text-[10px] text-muted-foreground block mb-0.5">Base Units</label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. hours"
+                        value={formBaseUnits}
+                        onChange={(e) => setFormBaseUnits(e.target.value)}
+                        className="h-8 text-sm"
+                        step="0.25"
+                        min="0"
+                      />
+                    </div>
+                    <div className="w-24">
+                      <label className="text-[10px] text-muted-foreground block mb-0.5">Hours</label>
+                      <Input
+                        type="number"
+                        placeholder="Hours"
+                        value={formHours}
+                        onChange={(e) => setFormHours(e.target.value)}
+                        className="h-8 text-sm"
+                        step="0.25"
+                        min="0"
+                      />
+                    </div>
+                    <div className="text-center px-2">
+                      <label className="text-[10px] text-muted-foreground block mb-0.5">Weight</label>
+                      <span className="text-sm font-medium">×{currentWeight.toFixed(1)}</span>
+                    </div>
+                    <div className="text-center px-2">
+                      <label className="text-[10px] text-muted-foreground block mb-0.5">Weighted</label>
+                      <span className="text-sm font-bold text-emerald-600">{weightedUnits}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-2 items-center justify-end">
                 <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowForm(false)}>Cancel</Button>
                 <Button size="sm" className="h-7" onClick={handleSubmit} disabled={!formTitle.trim() || submitting}>
                   Log
