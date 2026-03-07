@@ -985,7 +985,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       const cfg = tableCfg[entityType];
       if (cfg) {
         const { data: members } = await supabase.from(cfg.table as any).select("user_id").eq(cfg.col, entityId).limit(200);
-        for (const m of members ?? []) {
+        for (const m of (members ?? []) as any[]) {
           if (m.user_id === authorUserId) continue;
           notifiedSet.add(m.user_id);
           await addNotification({ userId: m.user_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: `Someone posted in ${entityName}`, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: `/` });
