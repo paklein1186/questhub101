@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -27,6 +27,8 @@ import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
 import { CTGWalletSection } from "@/components/CTGWalletSection";
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
+import { EconomyModal, useEconomyModal } from "@/components/onboarding/EconomyOnboarding";
+import { usePersona } from "@/hooks/usePersona";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -65,6 +67,12 @@ export function WalletTab() {
   const [txFilter, setTxFilter] = useState("all");
   const [transferOpen, setTransferOpen] = useState(false);
   const [activeWallet, setActiveWallet] = useState<"platform" | "coins" | "ctg">("platform");
+  const { persona } = usePersona();
+  const { open: economyOpen, close: closeEconomy, mode: economyMode, openIfNeeded } = useEconomyModal();
+
+  useEffect(() => {
+    openIfNeeded();
+  }, [openIfNeeded]);
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
@@ -215,6 +223,7 @@ export function WalletTab() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <EconomyModal open={economyOpen} onClose={closeEconomy} persona={persona} mode={economyMode} />
         <SectionBanner {...HINTS.banners.walletFirst} />
         {/* ═══ HEADER ═══ */}
         <div className="space-y-2">
