@@ -7,39 +7,26 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const EMAIL_WORTHY_TYPES = new Set([
-  "FOLLOWER_NEW",
-  "ENTITY_MENTIONED_IN_COMMENT",
-  "COMMENT",
-  "QUEST_COMMENT",
-  "POST_UPVOTED",
+const ALWAYS_EMAIL_TYPES = new Set([
   "BOOKING_REQUESTED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_UPDATED",
-  "GUILD_MEMBER_ADDED",
-  "GUILD_ROLE_CHANGED",
+  "USER_INVITED_TO_UNIT",
   "APPLICATION_APPROVED",
   "APPLICATION_REJECTED",
-  "ENTITY_JOIN_REQUEST",
-  "USER_INVITED_TO_UNIT",
-  "PARTNERSHIP_PROPOSED",
-  "QUEST_PROPOSAL_SUBMITTED",
-  "QUEST_PROPOSAL_ACCEPTED",
-  "QUEST_PROPOSAL_REJECTED",
-  "QUEST_FUNDED_CREDITS",
-  "ACHIEVEMENT_UNLOCKED",
-  "XP_GAINED",
-  "CREDIT_RECEIVED",
-  "milestone_completed",
   "TRUST_RENEWAL_DUE",
   "TRUST_EDGE_OUTDATED",
-  "FOLLOWED_USER_NEW_POST",
-  "FOLLOWED_ENTITY_NEW_POST",
-  "FOLLOWED_ENTITY_NEW_EVENT",
-  "FOLLOWED_ENTITY_NEW_QUEST",
-  "FOLLOWED_ENTITY_NEW_SERVICE",
-  "FOLLOWED_ENTITY_NEW_COURSE",
+]);
+
+const DIGEST_ONLY_TYPES = new Set([
+  "ENTITY_NEW_DECISION", "ENTITY_NEW_RITUAL", "GUILD_QUEST_CREATED",
+  "QUEST_UPDATE", "QUEST_CREATED", "FOLLOWED_ENTITY_NEW_POST",
+  "FOLLOWED_USER_NEW_POST", "FOLLOWED_ENTITY_NEW_EVENT",
+  "FOLLOWED_ENTITY_NEW_QUEST", "FOLLOWED_ENTITY_NEW_SERVICE",
+  "FOLLOWED_ENTITY_NEW_COURSE", "XP_GAINED", "ACHIEVEMENT_UNLOCKED",
+  "CREDIT_RECEIVED", "CONTRIBUTION_LOGGED", "FOLLOWER_NEW",
+  "POST_UPVOTED", "COMMENT", "QUEST_COMMENT",
 ]);
 
 function prefKeyForType(type: string): { key: string | null; alwaysSend: boolean } {
@@ -339,8 +326,14 @@ serve(async (req) => {
       });
     }
 
-    if (!EMAIL_WORTHY_TYPES.has(notification.type)) {
-      return new Response(JSON.stringify({ skipped: true, reason: "type_not_emailable" }), {
+    if (DIGEST_ONLY_TYPES.has(notification.type)) {
+      return new Response(JSON.stringify({ skipped: true, reason: "digest_only" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (!ALWAYS_EMAIL_TYPES.has(notification.type)) {
+      return new Response(JSON.stringify({ skipped: true, reason: "unmapped" }), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }

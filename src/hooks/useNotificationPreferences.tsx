@@ -82,7 +82,7 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_new_members_in_my_units: true,
   notify_daily_digest_in_app: true,
   notify_daily_digest_email: true,
-  digest_frequency: "three_days",
+  digest_frequency: "weekly",
   notification_frequency: "INSTANT",
   push_enabled: false,
 };
