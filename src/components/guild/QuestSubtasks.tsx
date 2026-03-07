@@ -135,7 +135,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       const weightFactor = subtask?.gameb_weight > 0 ? Number(subtask.gameb_weight) : 1.0;
       const weightedUnits = baseUnits * weightFactor;
 
-      await supabase.from("contribution_logs" as any).insert({
+      supabase.from("contribution_logs" as any).insert({
         user_id: assigneeId,
         quest_id: questId,
         guild_id: guildId || null,
@@ -147,7 +147,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         weight_factor: weightFactor,
         weighted_units: weightedUnits,
         ip_licence: "CC-BY-SA",
-      } as any);
+      } as any).then(() => {});
     } catch (e) {
       console.error("Failed to log contribution from subtask", e);
     }
