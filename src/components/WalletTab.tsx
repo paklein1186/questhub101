@@ -290,7 +290,18 @@ export function WalletTab() {
           >
             🟩 GameB Tokens
           </Button>
+          <Button
+            variant={activeWallet === "ctg" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveWallet("ctg")}
+            className="gap-1.5"
+          >
+            🌱 $CTG Token
+          </Button>
         </div>
+
+        {/* ═══ $CTG WALLET ═══ */}
+        {activeWallet === "ctg" && <CTGWalletSection />}
 
         {/* ═══ PLATFORM CREDITS WALLET ═══ */}
         {activeWallet === "platform" && (
