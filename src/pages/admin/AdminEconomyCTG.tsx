@@ -1,12 +1,29 @@
-import { useState } from "react";
-import { Sprout, RefreshCw, Wallet, TrendingUp, Globe, Users, ArrowLeftRight, BarChart3 } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  Sprout, RefreshCw, Wallet, TrendingUp, Globe, Users,
+  ArrowLeftRight, BarChart3, AlertTriangle, Check, Clock, User,
+  ChevronLeft, ChevronRight as ChevronRightIcon,
+} from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { format, subDays } from "date-fns";
+import { format, subDays, differenceInDays } from "date-fns";
+import { fr } from "date-fns/locale";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 /* ─── Sub-tab: Vue Globale ─── */
 function CTGOverviewTab() {
@@ -156,9 +173,280 @@ function CTGOverviewTab() {
   );
 }
 
-/* ─── Placeholder tabs for #11, #12, #13 ─── */
+/* ─── Sub-tab: Taux de Change ─── */
 function CTGExchangeRatesTab() {
-  return <p className="text-muted-foreground text-sm py-8 text-center">Section Taux de Change — à venir.</p>;
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [newRate, setNewRate] = useState("");
+  const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 10;
+
+  // Current active rate
+  const { data: currentRate } = useQuery({
+    queryKey: ["admin-ctg-current-rate"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ctg_exchange_rates")
+        .select("rate_ctg_to_credits, created_at, valid_from, reason, set_by_user_id, active")
+        .eq("active", true)
+        .order("valid_from", { ascending: false })
+        .limit(1)
+        .single();
+      if (!data) return null;
+      // Fetch setter name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", data.set_by_user_id)
+        .single();
+      return { ...data, setterName: profile?.name ?? data.set_by_user_id };
+    },
+    staleTime: 15_000,
+  });
+
+  // History
+  const { data: history } = useQuery({
+    queryKey: ["admin-ctg-rate-history", page],
+    queryFn: async () => {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data, count } = await supabase
+        .from("ctg_exchange_rates")
+        .select("id, rate_ctg_to_credits, created_at, valid_from, reason, set_by_user_id, active", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+      // Batch fetch setter names
+      const userIds = [...new Set((data ?? []).map((r) => r.set_by_user_id))];
+      const { data: profiles } = userIds.length
+        ? await supabase.from("profiles").select("user_id, name").in("user_id", userIds)
+        : { data: [] };
+      const nameMap = Object.fromEntries((profiles ?? []).map((p) => [p.user_id, p.name]));
+      return {
+        rows: (data ?? []).map((r) => ({ ...r, setterName: nameMap[r.set_by_user_id] ?? r.set_by_user_id })),
+        total: count ?? 0,
+      };
+    },
+    staleTime: 15_000,
+  });
+
+  const daysSinceLastChange = useMemo(() => {
+    if (!currentRate?.valid_from) return 0;
+    return differenceInDays(new Date(), new Date(currentRate.valid_from));
+  }, [currentRate]);
+
+  const rateNum = parseInt(newRate, 10);
+  const isValidRate = !isNaN(rateNum) && rateNum >= 1 && rateNum <= 1000;
+  const canSubmit = isValidRate && reason.trim().length > 0 && reason.length <= 500;
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !user) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.rpc("set_ctg_exchange_rate" as any, {
+        admin_id: user.id,
+        new_rate: rateNum,
+        reason: reason.trim(),
+      });
+      if (error) throw error;
+      toast.success(`Nouveau taux appliqué : 1 $CTG = ${rateNum} credits`);
+      setNewRate("");
+      setReason("");
+      queryClient.invalidateQueries({ queryKey: ["admin-ctg-current-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-ctg-rate-history"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-ctg-metrics"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Erreur lors de la mise à jour du taux");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const totalPages = Math.ceil((history?.total ?? 0) / PAGE_SIZE);
+
+  return (
+    <div className="space-y-6">
+      {/* 90-day warning */}
+      {daysSinceLastChange >= 90 && (
+        <div className="flex items-start gap-3 rounded-lg border border-yellow-500/40 bg-yellow-50/50 dark:bg-yellow-900/10 p-4">
+          <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
+              Aucun ajustement du taux depuis {daysSinceLastChange} jours
+            </p>
+            <p className="text-xs text-yellow-700/80 dark:text-yellow-500/80 mt-0.5">
+              Pensez à vérifier la pertinence économique du taux de change actuel.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Current rate card */}
+      <Card className="border-primary/30">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ArrowLeftRight className="h-5 w-5 text-primary" />
+            Taux actuel
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-3xl font-bold tabular-nums">
+            1 $CTG = {currentRate?.rate_ctg_to_credits ?? "—"} credits
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {currentRate?.valid_from
+                ? format(new Date(currentRate.valid_from), "dd MMM yyyy HH:mm", { locale: fr })
+                : "—"}
+            </span>
+            <span className="flex items-center gap-1">
+              <User className="h-3.5 w-3.5" />
+              {currentRate?.setterName ?? "—"}
+            </span>
+          </div>
+          {currentRate?.reason && (
+            <p className="text-sm text-muted-foreground italic">« {currentRate.reason} »</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* New rate form */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Définir un nouveau taux</CardTitle>
+          <CardDescription>Le nouveau taux s'appliquera immédiatement à tous les échanges.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="new-rate">Nouveau taux (credits par $CTG)</Label>
+              <Input
+                id="new-rate"
+                type="number"
+                min={1}
+                max={1000}
+                step={1}
+                placeholder="ex : 10"
+                value={newRate}
+                onChange={(e) => setNewRate(e.target.value)}
+              />
+              {newRate && !isValidRate && (
+                <p className="text-xs text-destructive">Valeur entre 1 et 1000, sans décimales.</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="rate-reason">Raison du changement *</Label>
+              <Textarea
+                id="rate-reason"
+                maxLength={500}
+                placeholder="Justifiez le changement de taux..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="resize-none h-20"
+              />
+              <p className="text-xs text-muted-foreground text-right">{reason.length}/500</p>
+            </div>
+          </div>
+
+          {isValidRate && (
+            <div className="rounded-md bg-muted/60 p-3 text-sm space-y-1">
+              <p className="font-medium">Aperçu avec ce taux :</p>
+              <p>100 $CTG = <strong>{(100 * rateNum).toLocaleString("fr-FR")}</strong> credits</p>
+              <p>1 000 $CTG = <strong>{(1000 * rateNum).toLocaleString("fr-FR")}</strong> credits</p>
+            </div>
+          )}
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button disabled={!canSubmit || submitting}>
+                {submitting ? "Application..." : "Appliquer le nouveau taux"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmer le changement de taux</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr ? Le taux <strong>1 $CTG = {rateNum} credits</strong> s'applique immédiatement
+                  à tous les échanges sur la plateforme.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSubmit}>Confirmer</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+      {/* History table */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Historique des taux</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Taux</TableHead>
+                <TableHead>Défini par</TableHead>
+                <TableHead>Raison</TableHead>
+                <TableHead>Statut</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(history?.rows ?? []).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="text-xs whitespace-nowrap">
+                    {format(new Date(r.created_at), "dd/MM/yyyy HH:mm")}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {r.rate_ctg_to_credits}
+                  </TableCell>
+                  <TableCell className="text-sm">{r.setterName}</TableCell>
+                  <TableCell className="text-sm max-w-[200px] truncate">{r.reason ?? "—"}</TableCell>
+                  <TableCell>
+                    {r.active ? (
+                      <Badge variant="default" className="gap-1">
+                        <Check className="h-3 w-3" /> Actif
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">Archivé</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(history?.rows ?? []).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    Aucun historique de taux.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4">
+              <p className="text-xs text-muted-foreground">
+                Page {page + 1} / {totalPages}
+              </p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 function CTGUserWalletsTab() {
   return <p className="text-muted-foreground text-sm py-8 text-center">Section Wallets Utilisateurs — à venir.</p>;
