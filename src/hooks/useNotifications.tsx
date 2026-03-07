@@ -398,8 +398,26 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         data: n.data as Record<string, unknown> | undefined,
       })) as Notification[];
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   });
+
+  // ── Realtime subscription for instant notification updates ──
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["notifications", userId] });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, qc]);
 
   // ── Load preferences from DB, fall back to localStorage ──
   const { data: dbPrefsRow } = useQuery({
