@@ -320,6 +320,19 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
               </div>
             )}
 
+            {config.showHasBudget && (
+              <div className="flex items-center gap-3 pt-5">
+                <input type="checkbox" id="hasBudget"
+                  checked={filters.hasBudget}
+                  onChange={e => set({ hasBudget: e.target.checked })}
+                  className="h-4 w-4 rounded border-border" />
+                <label htmlFor="hasBudget"
+                  className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                  🎁 Has budget / reward
+                  <span className="text-xs text-muted-foreground font-normal">(credits, $CTG, or fiat)</span>
+                </label>
+              </div>
+
             {config.showMonetization && (
               <div>
                 <p className="text-xs font-medium mb-1.5 text-muted-foreground">{t("filters.monetization")}</p>
