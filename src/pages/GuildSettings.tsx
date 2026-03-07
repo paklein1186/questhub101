@@ -259,6 +259,17 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
       );
     }
     qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+    // Notify followers only about profile update (skip if private)
+    if (guild.universe_visibility !== "private") {
+      notifyEntityFollowersAndMembers({
+        entityType: "GUILD", entityId: guildId, entityName: name.trim() || guild.name,
+        actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_UPDATE",
+        title: `${name.trim() || guild.name} updated their profile`,
+        body: "The guild you follow has new information",
+        deepLinkUrl: `/guilds/${guildId}`,
+        followersOnly: true,
+      });
+    }
     toast({ title: "Guild identity updated!" });
   };
 
@@ -274,6 +285,17 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
     notifyGuildMemberAdded({ guildId: guildId!, userId: selectedUserId });
     setInviteOpen(false);
     refetchMembers();
+    // Notify followers about new member (skip if private)
+    if (guild.universe_visibility !== "private") {
+      notifyEntityFollowersAndMembers({
+        entityType: "GUILD", entityId: guildId, entityName: guild.name,
+        actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_MEMBER",
+        title: "New member joined a guild you follow",
+        body: `${guild.name} has a new member`,
+        deepLinkUrl: `/guilds/${guildId}`,
+        followersOnly: true,
+      });
+    }
     toast({ title: "Member added!" });
   };
 

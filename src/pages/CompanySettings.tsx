@@ -1,4 +1,5 @@
 import { useParams, Link, useSearchParams } from "react-router-dom";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -146,6 +147,17 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
     sendInviteNotification({ invitedUserId: selectedUserId, inviterName: currentUser.name, entityType: "company", entityId: companyId, entityName: company?.name || "Organization" });
     setInviteOpen(false);
     qc.invalidateQueries({ queryKey: ["company-members", companyId] });
+    // Notify followers about new member (skip if private)
+    if (company.public_visibility !== "private") {
+      notifyEntityFollowersAndMembers({
+        entityType: "COMPANY", entityId: companyId, entityName: company.name,
+        actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_MEMBER",
+        title: "New member joined an organization you follow",
+        body: `${company.name} has a new member`,
+        deepLinkUrl: `/companies/${companyId}`,
+        followersOnly: true,
+      });
+    }
     toast({ title: "Member added!" });
   };
 
@@ -218,6 +230,17 @@ function CompanySettingsInner({ companyId, company }: { companyId: string; compa
     }
 
     qc.invalidateQueries({ queryKey: ["company", companyId] });
+    // Notify followers about profile update (skip if private)
+    if (company.public_visibility !== "private") {
+      notifyEntityFollowersAndMembers({
+        entityType: "COMPANY", entityId: companyId, entityName: name.trim() || company.name,
+        actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_UPDATE",
+        title: `${name.trim() || company.name} updated their profile`,
+        body: "The organization you follow has new information",
+        deepLinkUrl: `/companies/${companyId}`,
+        followersOnly: true,
+      });
+    }
     toast({ title: "Organization profile updated!" });
   };
 

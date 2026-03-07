@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export async function notifyEntityFollowersAndMembers({
   entityType, entityId, entityName, actorUserId, notifType, title, body, deepLinkUrl,
+  followersOnly = false,
 }: {
   entityType: string;
   entityId: string;
@@ -11,35 +12,38 @@ export async function notifyEntityFollowersAndMembers({
   title: string;
   body: string;
   deepLinkUrl: string;
+  followersOnly?: boolean;
 }) {
   try {
     const notifiedSet = new Set<string>();
     const rows: any[] = [];
 
-    // Members
-    const tableCfg: Record<string, { table: string; col: string }> = {
-      GUILD: { table: "guild_members", col: "guild_id" },
-      COMPANY: { table: "company_members", col: "company_id" },
-    };
-    const cfg = tableCfg[entityType];
-    if (cfg) {
-      const { data } = await supabase
-        .from(cfg.table as any)
-        .select("user_id")
-        .eq(cfg.col, entityId)
-        .limit(300);
-      for (const m of data ?? []) {
-        if ((m as any).user_id === actorUserId) continue;
-        notifiedSet.add((m as any).user_id);
-        rows.push({
-          user_id: (m as any).user_id,
-          type: notifType,
-          title,
-          body,
-          related_entity_type: entityType,
-          related_entity_id: entityId,
-          deep_link_url: deepLinkUrl,
-        });
+    // Members (skip if followersOnly)
+    if (!followersOnly) {
+      const tableCfg: Record<string, { table: string; col: string }> = {
+        GUILD: { table: "guild_members", col: "guild_id" },
+        COMPANY: { table: "company_members", col: "company_id" },
+      };
+      const cfg = tableCfg[entityType];
+      if (cfg) {
+        const { data } = await supabase
+          .from(cfg.table as any)
+          .select("user_id")
+          .eq(cfg.col, entityId)
+          .limit(300);
+        for (const m of data ?? []) {
+          if ((m as any).user_id === actorUserId) continue;
+          notifiedSet.add((m as any).user_id);
+          rows.push({
+            user_id: (m as any).user_id,
+            type: notifType,
+            title,
+            body,
+            related_entity_type: entityType,
+            related_entity_id: entityId,
+            deep_link_url: deepLinkUrl,
+          });
+        }
       }
     }
 
