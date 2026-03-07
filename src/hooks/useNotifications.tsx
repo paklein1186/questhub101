@@ -79,6 +79,8 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
     case NotificationType.DIRECT_MESSAGE_RECEIVED:
     case NotificationType.MESSAGE_PRIVATE:
       return "notifyOnPodMessages";
+    case NotificationType.CONTRIBUTION_LOGGED:
+      return "notifyOnXpAndAchievements";
     default:
       return null;
   }
