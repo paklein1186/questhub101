@@ -9,6 +9,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useUpdateBookingStatus } from "@/hooks/useEntityQueries";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { insertBookingNotification } from "@/lib/bookingNotification";
 
 interface IncomingBookingsProps {
   userId: string;
@@ -54,13 +55,25 @@ export function IncomingBookings({ userId }: IncomingBookingsProps) {
 
   const handleAccept = (bookingId: string) => {
     updateStatus.mutate({ bookingId, status: "ACCEPTED" }, {
-      onSuccess: () => toast({ title: "Booking accepted ✅" }),
+      onSuccess: () => {
+        toast({ title: "Booking accepted ✅" });
+        const booking = bookings.find((b: any) => b.id === bookingId);
+        if (booking?.requester_id) {
+          insertBookingNotification({ bookingId, serviceTitle: booking.services?.title || "your session", recipientUserId: booking.requester_id, action: "accepted", startDateTime: booking.start_date_time });
+        }
+      },
     });
   };
 
   const handleDecline = (bookingId: string) => {
     updateStatus.mutate({ bookingId, status: "CANCELLED" }, {
-      onSuccess: () => toast({ title: "Booking declined" }),
+      onSuccess: () => {
+        toast({ title: "Booking declined" });
+        const booking = bookings.find((b: any) => b.id === bookingId);
+        if (booking?.requester_id) {
+          insertBookingNotification({ bookingId, serviceTitle: booking.services?.title || "your session", recipientUserId: booking.requester_id, action: "declined" });
+        }
+      },
     });
   };
 

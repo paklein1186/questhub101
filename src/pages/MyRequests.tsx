@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMyBookings, useUpdateBookingStatus } from "@/hooks/useEntityQueries";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { insertBookingNotification } from "@/lib/bookingNotification";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-warning/10 text-warning",
@@ -33,7 +34,14 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
 
   const cancelBooking = (bookingId: string) => {
     updateStatus.mutate({ bookingId, status: "CANCELLED" }, {
-      onSuccess: () => toast({ title: "Booking cancelled" }),
+      onSuccess: () => {
+        toast({ title: "Booking cancelled" });
+        const booking = myRequests.find((b) => b.id === bookingId);
+        if (booking?.provider_user_id) {
+          const svc = booking.services as any;
+          insertBookingNotification({ bookingId, serviceTitle: svc?.title || "your session", recipientUserId: booking.provider_user_id, action: "cancelled" });
+        }
+      },
     });
   };
 
