@@ -375,11 +375,26 @@ export default function QuestDetail() {
   const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
+  // Check if user is admin of the guild
+  const { data: guildMembership } = useQuery({
+    queryKey: ["guild-membership-check", quest.guild_id, currentUser.id],
+    enabled: !!quest.guild_id && !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guild_members")
+        .select("role")
+        .eq("guild_id", quest.guild_id!)
+        .eq("user_id", currentUser.id!)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const isGuildAdmin = !!guildMembership && ["admin", "moderator", "owner"].includes(guildMembership.role);
+
   // Check if user is admin of a host or co-host entity
   const isHostAdmin = (() => {
     if (!resolvedHosts || resolvedHosts.length === 0) return false;
-    // This is a simplified check; full check would query guild_members/company_members
-    return false; // Host admin is checked via isOwner + isCollaborator for now
+    return false;
   })();
   const canPostUpdate = isOwner || isCollaborator || isHostAdmin;
 
@@ -1225,6 +1240,8 @@ export default function QuestDetail() {
             questId={quest.id}
             questOwnerId={quest.created_by_user_id}
             guildId={quest.guild_id}
+            isCoHost={isCollaborator}
+            isGuildAdmin={isGuildAdmin}
           />
         </TabsContent>
 
