@@ -6101,6 +6101,7 @@ export type Database = {
           due_date: string | null
           estimated_minutes: number | null
           evidence_url: string | null
+          gameb_weight: number
           id: string
           order_index: number
           priority: string
@@ -6120,6 +6121,7 @@ export type Database = {
           due_date?: string | null
           estimated_minutes?: number | null
           evidence_url?: string | null
+          gameb_weight?: number
           id?: string
           order_index?: number
           priority?: string
@@ -6139,6 +6141,7 @@ export type Database = {
           due_date?: string | null
           estimated_minutes?: number | null
           evidence_url?: string | null
+          gameb_weight?: number
           id?: string
           order_index?: number
           priority?: string

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -23,6 +23,7 @@ interface QuestSubtasksProps {
   canManage: boolean;
   questBudgetGamebTokens?: number;
   valuePieCalculated?: boolean;
+  budgetGameb?: number;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -33,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false, budgetGameb = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
