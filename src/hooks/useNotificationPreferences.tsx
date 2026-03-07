@@ -21,7 +21,7 @@ export interface NotificationPreferencesRow {
   notify_co_host_changes: boolean;
   notify_events_and_courses: boolean;
   notify_ai_flagged_content: boolean;
-  // User personal
+  // User personal (in-app toggles — kept)
   notify_booking_status_changes: boolean;
   notify_quest_updates_from_followed: boolean;
   notify_invitations_to_units: boolean;
@@ -31,7 +31,7 @@ export interface NotificationPreferencesRow {
   notify_mentions: boolean;
   notify_direct_messages_email: boolean;
   notify_direct_messages_in_app: boolean;
-  // Followed activity
+  // Followed activity (in-app toggles — kept)
   notify_new_posts_from_followed: boolean;
   notify_new_events_from_followed: boolean;
   notify_new_services_from_followed: boolean;
@@ -42,7 +42,10 @@ export interface NotificationPreferencesRow {
   // Digest
   notify_daily_digest_in_app: boolean;
   notify_daily_digest_email: boolean;
-  digest_frequency: string; // 'three_days' | 'weekly' | 'none'
+  digest_frequency: string; // 'twice_weekly' | 'weekly' | 'never'
+  // Instant email overrides (new simplified model)
+  instant_email_for_bookings: boolean;
+  instant_email_for_invites: boolean;
   // Delivery
   notification_frequency: string;
   push_enabled: boolean;
@@ -83,6 +86,8 @@ const DEFAULTS: NotificationPreferencesRow = {
   notify_daily_digest_in_app: true,
   notify_daily_digest_email: true,
   digest_frequency: "twice_weekly",
+  instant_email_for_bookings: true,
+  instant_email_for_invites: true,
   notification_frequency: "INSTANT",
   push_enabled: false,
 };

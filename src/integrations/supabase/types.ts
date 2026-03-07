@@ -4661,6 +4661,8 @@ export type Database = {
           created_at: string
           digest_frequency: string
           id: string
+          instant_email_for_bookings: boolean
+          instant_email_for_invites: boolean
           last_digest_sent_at: string | null
           notification_frequency: string
           notify_abuse_reports: boolean
@@ -4704,6 +4706,8 @@ export type Database = {
           created_at?: string
           digest_frequency?: string
           id?: string
+          instant_email_for_bookings?: boolean
+          instant_email_for_invites?: boolean
           last_digest_sent_at?: string | null
           notification_frequency?: string
           notify_abuse_reports?: boolean
@@ -4747,6 +4751,8 @@ export type Database = {
           created_at?: string
           digest_frequency?: string
           id?: string
+          instant_email_for_bookings?: boolean
+          instant_email_for_invites?: boolean
           last_digest_sent_at?: string | null
           notification_frequency?: string
           notify_abuse_reports?: boolean

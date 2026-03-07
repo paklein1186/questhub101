@@ -11,7 +11,7 @@ import {
   ToggleLeft, ToggleRight, ExternalLink, Loader2, Package,
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
-  Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare,
+  Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare, Mail,
   History, Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -957,6 +957,43 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
     <NotifToggle label={label_text} checked={!!prefs[key]} onChange={(v) => updatePrefs({ [key]: v })} />
   );
 
+  // Compute next digest date
+  const getNextDigestDay = () => {
+    if (prefs.digest_frequency === "never") return null;
+    const now = new Date();
+    const day = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 4=Thu
+    let daysUntilNext: number;
+    if (prefs.digest_frequency === "weekly") {
+      // Next Monday
+      daysUntilNext = (1 - day + 7) % 7 || 7;
+    } else {
+      // Twice weekly: next Mon or Thu
+      const daysToMon = (1 - day + 7) % 7;
+      const daysToThu = (4 - day + 7) % 7;
+      daysUntilNext = Math.min(daysToMon || 7, daysToThu || 7);
+    }
+    const next = new Date(now);
+    next.setUTCDate(now.getUTCDate() + daysUntilNext);
+    return next.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  };
+
+  // Unread notification count for digest preview
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["unread-notif-count", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", session!.user.id)
+        .eq("is_read", false);
+      return count ?? 0;
+    },
+    staleTime: 60_000,
+  });
+
+  const nextDigest = getNextDigestDay();
+
   return (
     <div className="space-y-6">
       {/* Global channel toggles */}
@@ -998,8 +1035,9 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </Section>
       )}
 
-       {/* Personal */}
+       {/* Personal in-app notifications */}
        <Section title="My Activity" icon={<Bell className="h-5 w-5" />}>
+         <p className="text-xs text-muted-foreground mb-3">In-app notification toggles for your personal activity.</p>
          <div className="space-y-3">
            {toggle("notify_booking_status_changes", "Booking status changes")}
            {toggle("notify_quest_updates_from_followed", `Updates from ${label("quest.label")}s I follow`)}
@@ -1013,7 +1051,7 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
 
        {/* Followed Activity */}
        <Section title="Followed Activity" icon={<Rss className="h-5 w-5" />}>
-         <p className="text-xs text-muted-foreground mb-3">Get notified when people or entities you follow publish new content.</p>
+         <p className="text-xs text-muted-foreground mb-3">In-app notifications when people or entities you follow publish new content.</p>
          <div className="space-y-3">
            {toggle("notify_new_posts_from_followed" as any, "New posts from people & entities I follow")}
            {toggle("notify_new_quests_from_followed" as any, `New ${label("quest.label")}s from entities I follow`)}
@@ -1055,51 +1093,77 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
         </div>
       </Section>
 
-      {/* AI Journey Digest */}
-      <Section title="AI Journey Digest" icon={<Rss className="h-5 w-5" />}>
+      {/* Email Digest & Instant Emails — simplified */}
+      <Section title="Email Digest" icon={<Rss className="h-5 w-5" />}>
         <p className="text-xs text-muted-foreground mb-3">
-          A personalized AI-generated summary of your journey, activity highlights, and suggested next steps on the platform.
+          Most notifications are bundled into a curated AI-powered digest email. Only time-sensitive items (bookings, invites) can be sent instantly.
         </p>
         <div className="space-y-4">
+          {/* Digest frequency */}
           <div className="flex items-center justify-between py-2">
             <div>
               <p className="text-sm font-medium">Digest frequency</p>
-              <p className="text-xs text-muted-foreground">How often you receive your AI journey digest</p>
+              <p className="text-xs text-muted-foreground">How often you receive your network digest email</p>
             </div>
-            <Select value={prefs.digest_frequency ?? "three_days"} onValueChange={(v) => updatePrefs({ digest_frequency: v } as any)}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <Select
+              value={prefs.digest_frequency ?? "twice_weekly"}
+              onValueChange={(v) => updatePrefs({ digest_frequency: v } as any)}
+            >
+              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="three_days">Every 3 days</SelectItem>
+                <SelectItem value="twice_weekly">Twice a week (Mon & Thu)</SelectItem>
                 <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="none">Don't send</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          {prefs.digest_frequency !== "none" && (
+
+          {/* Next digest preview */}
+          {nextDigest && (
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">
+                📬 Next digest: <span className="font-medium text-foreground">{nextDigest}</span>
+                {unreadCount > 0 && (
+                  <> · <span className="font-medium text-primary">{unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}</span> queued</>
+                )}
+              </p>
+            </div>
+          )}
+
+          {prefs.digest_frequency !== "never" && (
             <div className="space-y-3">
               {toggle("notify_daily_digest_in_app" as any, "Show digest in-app notifications")}
-              {toggle("notify_daily_digest_email" as any, "Receive digest by email")}
             </div>
           )}
         </div>
       </Section>
 
-      {/* Frequency */}
-      <Section title="Notification Frequency" icon={<Clock className="h-5 w-5" />}>
-        <div className="flex items-center justify-between py-2">
-          <div>
-            <p className="text-sm font-medium">Delivery frequency</p>
-            <p className="text-xs text-muted-foreground">How often you receive notifications and digest emails</p>
+      {/* Instant email overrides */}
+      <Section title="Instant Emails" icon={<Mail className="h-5 w-5" />}>
+        <p className="text-xs text-muted-foreground mb-3">
+          These time-sensitive notifications are sent as instant emails, not bundled in the digest.
+        </p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between py-1.5">
+            <div>
+              <p className="text-sm font-medium">Booking confirmations & updates</p>
+              <p className="text-xs text-muted-foreground">Get immediate email when a booking is confirmed, updated, or cancelled</p>
+            </div>
+            <Switch
+              checked={(prefs as any).instant_email_for_bookings !== false}
+              onCheckedChange={(v) => updatePrefs({ instant_email_for_bookings: v } as any)}
+            />
           </div>
-          <Select value={prefs.notification_frequency} onValueChange={(v) => updatePrefs({ notification_frequency: v })}>
-            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="INSTANT">Instant</SelectItem>
-              <SelectItem value="DAILY">Daily digest</SelectItem>
-              <SelectItem value="WEEKLY">Weekly digest</SelectItem>
-              <SelectItem value="NEVER">Never</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center justify-between py-1.5">
+            <div>
+              <p className="text-sm font-medium">Invitations & applications</p>
+              <p className="text-xs text-muted-foreground">Get immediate email when you're invited to a guild, quest, or pod</p>
+            </div>
+            <Switch
+              checked={(prefs as any).instant_email_for_invites !== false}
+              onCheckedChange={(v) => updatePrefs({ instant_email_for_invites: v } as any)}
+            />
+          </div>
         </div>
       </Section>
 
