@@ -12,7 +12,7 @@ import {
   CheckCircle, Crown, Check, ArrowRight, Download, AlertTriangle,
   Sparkles, Swords, Users, GraduationCap, CalendarCheck, Star,
   Coins, TrendingDown, Rss, Languages, CalendarSync, MessageSquare,
-  History,
+  History, Scale,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,7 @@ import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisib
 import { IcsFeedsManager } from "@/components/IcsFeedsManager";
 import { GiveBackSettingsSection } from "@/components/giveback/GiveBackSettingsSection";
 import { Heart } from "lucide-react";
+import { MonOVNPanel } from "@/components/home/MonOVNPanel";
 
 
 const TABS = [
@@ -83,6 +84,7 @@ const TABS = [
   { key: "referrals", label: "settings.referrals", icon: UserCircle },
   { key: "apps", label: "settings.apps", icon: Plug },
   { key: "history", label: "Activity History", icon: History },
+  { key: "ovn", label: "Mon OVN", icon: Scale },
   { key: "giveback", label: "Give-back", icon: Heart },
   { key: "website", label: "Website", icon: Globe },
 ];
@@ -804,6 +806,9 @@ export default function SettingsPage() {
 
               {/* ── Activity History ── */}
               {activeTab === "history" && <ActivityHistoryTab />}
+
+              {/* ── Mon OVN ── */}
+              {activeTab === "ovn" && <MonOVNPanel userId={currentUser.id} />}
 
               {/* ── Website ── */}
               {activeTab === "website" && (
