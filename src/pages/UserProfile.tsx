@@ -81,24 +81,6 @@ function XpWidget({ xp, xpRecent12m, level, userId }: { xp: number; xpRecent12m:
   const remaining = next ? next.minXp - xp : 0;
   const nextLabel = next ? LEVEL_LABELS[next.level] || `Level ${next.level}` : null;
 
-  // Fetch territory/country impact
-  const { data: territoryStats } = useQuery({
-    queryKey: ["user-territory-impact", userId],
-    queryFn: async () => {
-      const { data: ut } = await supabase
-        .from("user_territories")
-        .select("territory_id, territories(id, name, level)")
-        .eq("user_id", userId);
-      if (!ut?.length) return { territories: 0, countries: 0 };
-      const territoryCount = ut.length;
-      const countryCount = new Set(
-        (ut as any[]).filter((r) => r.territories?.level === "NATIONAL").map((r) => r.territory_id)
-      ).size;
-      return { territories: territoryCount, countries: countryCount };
-    },
-    enabled: !!userId,
-  });
-
   return (
     <div className="space-y-1.5 mt-2">
       <div className="flex items-center gap-3">
@@ -130,29 +112,6 @@ function XpWidget({ xp, xpRecent12m, level, userId }: { xp: number; xpRecent12m:
           </Tooltip>
         )}
       </div>
-
-      {/* Territory impact stats */}
-      {territoryStats && (territoryStats.territories > 0 || territoryStats.countries > 0) && (
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-          {territoryStats.territories > 0 && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex items-center gap-1">
-                  <MapIcon className="h-3 w-3" /> Active in {territoryStats.territories} territor{territoryStats.territories === 1 ? "y" : "ies"}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Cross-territory collaborations increase your impact multiplier.</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {territoryStats.countries > 0 && (
-            <span className="flex items-center gap-1">
-              <Globe className="h-3 w-3" /> {territoryStats.countries} countr{territoryStats.countries === 1 ? "y" : "ies"}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -534,9 +493,6 @@ export default function UserProfile() {
                       </Badge>
                     </Link>
                   )}
-                  <span className="flex items-center gap-1 text-xs font-medium">
-                    <Zap className="h-3 w-3 text-primary" /> {profile.xp} XP
-                  </span>
                 </div>
               </div>
             </div>
@@ -641,7 +597,11 @@ export default function UserProfile() {
               );
             })()}
 
-            <TerritoryLine territories={territories} />
+            {territories.length > 0 && (
+              <button onClick={() => setTab("territories")} className="w-fit">
+                <TerritoryLine territories={territories} />
+              </button>
+            )}
 
             {/* Enrichment CTA for own profile with no topics */}
             {isOwnProfile && topics.length === 0 && (
