@@ -61,7 +61,7 @@ export function PartnershipsTab({ entityType, entityId, isAdmin }: Props) {
             const reqId = partnership.from_entity_id as string;
             const memberTable = reqType === "GUILD" ? "guild_members" : "company_members";
             const idCol = reqType === "GUILD" ? "guild_id" : "company_id";
-            const { data: admins } = await supabase.from(memberTable).select("user_id, role").eq(idCol, reqId);
+            const { data: admins } = await supabase.from(memberTable as any).select("user_id, role").eq(idCol, reqId);
             const adminIds = (admins ?? [])
               .filter((m: any) => ["admin", "owner", "ADMIN", "OWNER"].includes(m.role))
               .map((m: any) => m.user_id);

@@ -71,7 +71,7 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
         const memberTable = tab === "GUILD" ? "guild_members" : "company_members";
         const idCol = tab === "GUILD" ? "guild_id" : "company_id";
         const { data: admins } = await supabase
-          .from(memberTable)
+          .from(memberTable as any)
           .select("user_id, role")
           .eq(idCol, selectedId);
         const adminIds = (admins ?? [])
