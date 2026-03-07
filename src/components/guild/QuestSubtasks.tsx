@@ -53,7 +53,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_subtasks" as any)
-        .select("*, priority")
+        .select("*, priority, gameb_weight")
         .eq("quest_id", questId)
         .order("order_index");
       if (error) throw error;
