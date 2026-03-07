@@ -45,7 +45,7 @@ serve(async (req) => {
 
     const now = Date.now();
     const dueUsers = prefs.filter((p) => {
-      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.three_days;
+      const interval = FREQUENCY_INTERVALS[p.digest_frequency] ?? FREQUENCY_INTERVALS.twice_weekly;
       if (!p.last_digest_sent_at) return true;
       return now - new Date(p.last_digest_sent_at).getTime() >= interval;
     });
