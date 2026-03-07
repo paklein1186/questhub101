@@ -646,7 +646,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         try {
           const { data: subtask } = await supabase
             .from("quest_subtasks" as any)
-            .select("id, title, quest_id, credit_reward")
+            .select("id, title, quest_id, credit_reward, assignee_user_id")
             .eq("id", task.id)
             .single();
 
@@ -657,26 +657,38 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               .eq("id", (subtask as any).quest_id)
               .single();
 
-            const creditReward = Number((subtask as any).credit_reward) || 0;
-            const baseUnits = creditReward > 0 ? creditReward : 1;
+            const wu = Number((subtask as any).credit_reward) || 1;
+            const logTitle = "✓ " + (subtask as any).title;
 
-            await supabase.from("contribution_logs" as any).insert({
-              user_id: userId,
-              quest_id: (subtask as any).quest_id,
-              guild_id: (quest as any)?.guild_id || null,
-              contribution_type: "subtask_completed",
-              title: "Sous-tâche complétée : " + (subtask as any).title,
-              task_type: "general",
-              base_units: baseUnits,
-              weight_factor: 1.0,
-              weighted_units: baseUnits,
-              ip_licence: "CC-BY-SA",
-            } as any);
+            // Deduplication guard
+            const { data: existing } = await supabase
+              .from("contribution_logs" as any)
+              .select("id")
+              .eq("quest_id", (subtask as any).quest_id)
+              .eq("user_id", userId)
+              .eq("contribution_type", "subtask_completed")
+              .eq("title", logTitle)
+              .limit(1);
+
+            if (!existing || existing.length === 0) {
+              await supabase.from("contribution_logs" as any).insert({
+                user_id: userId,
+                quest_id: (subtask as any).quest_id,
+                guild_id: (quest as any)?.guild_id ?? null,
+                contribution_type: "subtask_completed",
+                title: logTitle,
+                task_type: "general",
+                base_units: wu,
+                weight_factor: 1.0,
+                weighted_units: wu,
+                ip_licence: "CC-BY-SA",
+              } as any);
+            }
 
             qc.invalidateQueries({ queryKey: ["contribution-logs"] });
           }
         } catch (e) {
-          console.error("Auto contribution log failed:", e);
+          console.warn("[auto-log] contribution log failed", e);
         }
       }
 
@@ -703,7 +715,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       toast({
         title: "Task completed ✓",
         description: task.source === "subtask"
-          ? ((task as any).guildName ? "Contribution loggée dans " + (task as any).guildName : "Contribution loggée")
+          ? ((task as any).guildName ? `Contribution logged in ${(task as any).guildName}` : "Contribution logged to quest")
           : task.title,
         action: (
           <ToastAction

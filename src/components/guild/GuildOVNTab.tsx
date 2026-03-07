@@ -395,7 +395,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <CardContent className="p-4 text-center">
             <Coins className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
             <p className="text-2xl font-bold text-emerald-600">{totalCoins.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">🟩 Coins Distributed</p>
+            <p className="text-[10px] text-muted-foreground">🟡 $CTG Distributed</p>
           </CardContent>
         </Card>
         <Card>
@@ -416,14 +416,14 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{avgSharePerContributor.toFixed(1)}</p>
-            <p className="text-[10px] text-muted-foreground">Avg 🟩 Tokens / Contributor</p>
+            <p className="text-[10px] text-muted-foreground">Avg 🟡 $CTG / Contributor</p>
           </CardContent>
         </Card>
         <Card className="border-violet-500/20">
           <CardContent className="p-4 text-center">
             <span className="text-lg mx-auto mb-1 block">🏛️</span>
             <p className="text-2xl font-bold text-violet-600">{totalGuildShare.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">🟩 Tokens (guild share)</p>
+            <p className="text-[10px] text-muted-foreground">🟡 $CTG (guild share)</p>
           </CardContent>
         </Card>
       </div>
@@ -497,7 +497,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
               <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1 sticky top-0 bg-card">
                 <span>Contributor</span>
                 <span className="text-right">Wu</span>
-                <span className="text-right">🟩 Tokens</span>
+                <span className="text-right">🟡 $CTG</span>
                 <span className="text-right">XP</span>
               </div>
               {contributors.map((c, i) => (
@@ -546,7 +546,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                   <Tooltip
                     contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                   />
-                  <Bar dataKey="tokens" name="🟩 Budget" fill="hsl(142, 70%, 45%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="tokens" name="🟡 $CTG Budget" fill="hsl(45, 80%, 50%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -635,7 +635,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     <div key={ta.territory_name} className="space-y-0.5">
                       <div className="flex justify-between text-xs">
                         <span>{ta.territory_name}</span>
-                        <span className="text-emerald-600">{ta.total_tokens.toFixed(0)} 🟩 ({pct.toFixed(0)}%)</span>
+                        <span className="text-amber-600">{ta.total_tokens.toFixed(0)} 🟡 $CTG ({pct.toFixed(0)}%)</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                         <div
