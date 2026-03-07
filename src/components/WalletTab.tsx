@@ -225,7 +225,7 @@ export function WalletTab() {
         </div>
 
         {/* ═══ 5 VALUE TILES ═══ */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {/* Fiat */}
           <ValueTile icon={<Banknote className="h-5 w-5" />} label="Fiat Balance" emoji="💶"
             tooltip="Your earnings from paid missions and services. Paid via Stripe.">
@@ -240,13 +240,6 @@ export function WalletTab() {
             value={limits.userCredits}
             tooltip="Non-monetary credits for platform features, gamification, and quotas. Cannot be withdrawn.">
             <p className="text-[10px] text-muted-foreground mt-1">Feature fuel</p>
-          </ValueTile>
-
-          {/* $CTG Tokens (🟩) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG" emoji="🟩"
-            value={gamebBal}
-            tooltip="Fiat-backed mission tokens. Earned from quests funded by real money. Withdrawable to fiat.">
-            <p className="text-[10px] text-muted-foreground mt-1">Mission value</p>
           </ValueTile>
 
           {/* $CTG */}
