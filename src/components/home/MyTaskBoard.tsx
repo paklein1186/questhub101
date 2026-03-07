@@ -15,7 +15,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
   ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X, Sun,
-  Circle, CircleDot, Timer, CheckCircle2,
+  Circle, CircleDot, Timer, CheckCircle2, Scale,
 } from "lucide-react";
 import { ConfettiSpark } from "./ConfettiSpark";
 import {
@@ -32,6 +32,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { PriorityPicker, PRIORITY_ORDER, type Priority } from "@/components/PriorityPicker";
 import { GuildColorLabel } from "@/components/GuildColorLabel";
 
@@ -189,10 +191,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   const [pendingConvertTask, setPendingConvertTask] = useState<UnifiedTask | null>(null);
   const [converting, setConverting] = useState(false);
-  const [convertStep, setConvertStep] = useState<"unit" | "tags">("unit");
+  const [convertStep, setConvertStep] = useState<"unit" | "tags" | "budget">("unit");
   const [convertSelectedUnit, setConvertSelectedUnit] = useState<UnitOption | null>(null);
   const [convertTopics, setConvertTopics] = useState<string[]>([]);
   const [convertTerritories, setConvertTerritories] = useState<string[]>([]);
+  const [convertBudget, setConvertBudget] = useState("");
+  const [convertGuildPercent, setConvertGuildPercent] = useState(15);
+  const [convertTerritoryPercent, setConvertTerritoryPercent] = useState(10);
+  const [convertCtgPercent, setConvertCtgPercent] = useState(5);
 
   const { data: allTopics } = useTopics();
   const { data: allTerritories } = useTerritories();
@@ -804,6 +810,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     setConvertSelectedUnit(null);
     setConvertTopics([]);
     setConvertTerritories([]);
+    setConvertBudget("");
+    setConvertGuildPercent(15);
+    setConvertTerritoryPercent(10);
+    setConvertCtgPercent(5);
     setUnitPickerOpen(true);
   };
 
