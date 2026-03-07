@@ -448,9 +448,7 @@ function CTGExchangeRatesTab() {
     </div>
   );
 }
-function CTGUserWalletsTab() {
-  return <p className="text-muted-foreground text-sm py-8 text-center">Section Wallets Utilisateurs — à venir.</p>;
-}
+import { CTGUserWalletsTab } from "@/components/admin/CTGUserWalletsTab";
 function CTGEmissionRulesTab() {
   return <p className="text-muted-foreground text-sm py-8 text-center">Section Règles d'Émission — à venir.</p>;
 }
