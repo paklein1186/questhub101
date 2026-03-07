@@ -55,8 +55,8 @@ export const ECONOMY_LAYERS = [
       "Non-monetary platform utility credits for quotas, boosts, and gamification. Cannot be exchanged, withdrawn, or used for quest payouts. Gently fade by 1% per month to encourage circulation.",
   },
   {
-    key: "gameb",
-    label: "🟩 GameB Tokens",
+    key: "coins",
+    label: "🟩 Coins",
     purpose: "Fiat-backed mission value",
     icon: "Leaf",
     convertible: true,
