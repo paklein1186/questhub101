@@ -18,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
+import { SectionBanner, EmptyHint, HINTS } from "@/components/onboarding/ContextualHint";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { PostCard } from "@/components/feed/PostCard";
@@ -201,6 +202,7 @@ export default function NetworkHub() {
 
   return (
     <PageShell>
+      <SectionBanner {...HINTS.banners.network} />
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
           <Globe className="h-7 w-7 text-primary" /> {t("network.title")}
@@ -722,28 +724,7 @@ function FollowingFeedTab() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : sortedPosts.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
-          <Rss className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-          <p className="text-muted-foreground font-medium">
-            {filter !== "ALL"
-              ? "No posts matching this filter."
-              : "Your network feed is quiet for now."}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Start following people, guilds, companies or quests to see their updates here.
-          </p>
-          <div className="flex justify-center gap-2 pt-2">
-            <Button size="sm" variant="outline" asChild>
-              <Link to="/explore/users">Explore people</Link>
-            </Button>
-            <Button size="sm" variant="outline" asChild>
-              <Link to="/explore?tab=guilds">Find guilds</Link>
-            </Button>
-            <Button size="sm" variant="outline" asChild>
-              <Link to="/explore?tab=quests">Discover quests</Link>
-            </Button>
-          </div>
-        </div>
+        <EmptyHint {...HINTS.empty.networkFeed} persona={persona} />
       ) : (
         <div className={gridClass}>
           {sortedPosts.map((post) =>

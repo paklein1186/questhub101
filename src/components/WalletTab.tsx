@@ -26,6 +26,7 @@ import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
 import { CTGWalletSection } from "@/components/CTGWalletSection";
+import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   INITIAL_GRANT: "Welcome bonus",
@@ -214,6 +215,7 @@ export function WalletTab() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <SectionBanner {...HINTS.banners.walletFirst} />
         {/* ═══ HEADER ═══ */}
         <div className="space-y-2">
           <h2 className="font-display text-xl font-bold flex items-center gap-2">
@@ -250,14 +252,14 @@ export function WalletTab() {
           </ValueTile>
 
           {/* Platform Credits (🔷) */}
-          <ValueTile icon={<Coins className="h-5 w-5" />} label="Platform Credits" emoji="🔷"
+          <ValueTile icon={<Coins className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Platform Credits <HintTooltip {...HINTS.tooltips.creditFade} /></span>} emoji="🔷"
             value={limits.userCredits}
             tooltip="Non-monetary utility credits for platform features and quotas. Subject to 1%/month fade to encourage circulation.">
             <p className="text-[10px] text-muted-foreground mt-1">Utility fuel</p>
           </ValueTile>
 
           {/* $CTG Token (🟡) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG Token" emoji="🟡"
+          <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🟡"
             value={ctgBal}
             tooltip="Cooperative contribution token earned through verified work on quests. Distributed via the Value Pie.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
@@ -275,7 +277,7 @@ export function WalletTab() {
           </ValueTile>
 
           {/* Shares */}
-          <ValueTile icon={<Compass className="h-5 w-5" />} label="Shares" emoji="🧭"
+          <ValueTile icon={<Compass className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Shares <HintTooltip {...HINTS.tooltips.shares} /></span>} emoji="🧭"
             value={totalShares} tooltip={ECONOMY_LABELS.sharesNature}>
             {(profileShares as any)?.is_cooperative_member ? (
               <div className="flex gap-1 mt-1 flex-wrap">

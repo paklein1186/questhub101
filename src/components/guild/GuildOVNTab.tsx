@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { SectionBanner, HINTS } from "@/components/onboarding/ContextualHint";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -366,6 +367,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   return (
     <div className="space-y-6">
+      <SectionBanner {...HINTS.banners.ovnFirst} />
       {/* Toggle + Period selector */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
