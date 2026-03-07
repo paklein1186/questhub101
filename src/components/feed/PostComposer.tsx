@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCreatePost, type PostAttachment } from "@/hooks/useFeedPosts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   parseVideoUrl,
   isImageFile,
@@ -69,6 +70,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
   })();
   const { user: authUser } = useAuth();
   const createPost = useCreatePost();
+  const { notifyFollowedEntityNewPost } = useNotifications();
 
   const [content, setContent] = useState("");
   const [pendingMentions, setPendingMentions] = useState<MentionedUser[]>([]);
@@ -227,6 +229,26 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         visibility: showVisibilityPicker ? visibility : "public",
         roomId,
       });
+
+      // Notify entity members + followers for guild/company posts
+      if ((contextType === "GUILD" || contextType === "COMPANY") && contextId) {
+        try {
+          const tbl = contextType === "GUILD" ? "guilds" : "companies";
+          const { data: entity } = await supabase.from(tbl).select("name").eq("id", contextId).maybeSingle();
+          // Get the created post ID
+          const { data: latestPost } = await supabase.from("feed_posts").select("id").eq("author_user_id", currentUser.id).order("created_at", { ascending: false }).limit(1).single();
+          if (latestPost?.id) {
+            notifyFollowedEntityNewPost({ entityType: contextType, entityId: contextId, entityName: (entity as any)?.name || "your community", postId: latestPost.id, authorUserId: currentUser.id });
+          }
+          // Notify author's own followers
+          const { data: myFollowers } = await supabase.from("follows").select("follower_id").eq("target_type", "USER").eq("target_id", currentUser.id).limit(200);
+          for (const f of myFollowers ?? []) {
+            await supabase.from("notifications").insert({ user_id: f.follower_id, type: "FOLLOWED_USER_NEW_POST", title: "New post from someone you follow", body: `${currentUser.name || "Someone"} published a new post`, deep_link_url: "/" });
+          }
+        } catch (e) {
+          console.warn("[post-notif] Failed to notify", e);
+        }
+      }
 
       // Reset
       setContent("");
