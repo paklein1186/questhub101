@@ -230,7 +230,7 @@ export function QuestProposals({
       user_id: proposal.proposer_id,
       type: "QUEST_PROPOSAL_ACCEPTED",
       title: "Proposal accepted!",
-      body: `Your proposal "${proposal.title}" was accepted. +${proposal.requested_credits} GameB Tokens`,
+      body: `Your proposal "${proposal.title}" was accepted. +${proposal.requested_credits} $CTG`,
       related_entity_type: "QUEST",
       related_entity_id: questId,
       deep_link_url: `/quests/${questId}`,
@@ -238,7 +238,7 @@ export function QuestProposals({
 
     qc.invalidateQueries({ queryKey: ["quest-proposals", questId] });
     qc.invalidateQueries({ queryKey: ["quest", questId] });
-    toast({ title: "Proposal accepted", description: `${proposal.requested_credits} GameB Tokens transferred.` });
+    toast({ title: "Proposal accepted", description: `${proposal.requested_credits} $CTG transferred.` });
   };
 
   // ── Decline proposal ──────────────────────────────────
@@ -307,7 +307,7 @@ export function QuestProposals({
         user_id: questOwnerId,
         type: "QUEST_FUNDED_CREDITS",
         title: "Quest funded!",
-        body: `${currentUser.name || "Someone"} added ${amount} GameB Tokens to your quest.`,
+        body: `${currentUser.name || "Someone"} added ${amount} $CTG to your quest.`,
         related_entity_type: "QUEST",
         related_entity_id: questId,
         deep_link_url: `/quests/${questId}`,
@@ -320,7 +320,7 @@ export function QuestProposals({
     qc.invalidateQueries({ queryKey: ["profile-data"] });
     qc.invalidateQueries({ queryKey: ["plan-limits"] });
     setFundOpen(false); setFundAmount("");
-    toast({ title: `+${amount} GameB Tokens added to quest pot` });
+    toast({ title: `+${amount} $CTG added to quest pot` });
   };
 
   // ── Sort proposals ────────────────────────────────────
@@ -362,7 +362,7 @@ export function QuestProposals({
                     <Badge variant="outline" className={`text-xs ${campaign.status === "ACTIVE" ? "bg-green-500/10 text-green-700 border-green-500/30" : campaign.status === "COMPLETED" ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-orange-500/10 text-orange-700 border-orange-500/30"}`}>
                       {campaign.status}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "🟩 GameB Tokens"}</Badge>
+                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "🟩 $CTG"}</Badge>
                   </div>
                   <span className="text-lg font-bold text-primary">
                     {campaign.raised_amount} / {campaign.goal_amount} {unit}
@@ -381,7 +381,7 @@ export function QuestProposals({
                       <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5 mr-1" /> Contribute</Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Contribute GameB Tokens to "{campaign.title}"</DialogTitle></DialogHeader>
+                      <DialogHeader><DialogTitle>Contribute $CTG to "{campaign.title}"</DialogTitle></DialogHeader>
                       <div className="space-y-4 mt-2">
                         <div className="flex gap-2">
                           {[5, 10, 20, 50].map(v => (
@@ -390,7 +390,7 @@ export function QuestProposals({
                         </div>
                         <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
                         <Button onClick={() => fundQuest(Number(fundAmount) || 0, campaign)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
-                          <Coins className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} GameB Tokens
+                          <Coins className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
                         </Button>
                       </div>
                     </DialogContent>
@@ -435,9 +435,9 @@ export function QuestProposals({
                   <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CREDITS">🟩 GameB Tokens only</SelectItem>
+                      <SelectItem value="CREDITS">🟩 $CTG only</SelectItem>
                       <SelectItem value="FIAT">Fiat (€) only</SelectItem>
-                      <SelectItem value="BOTH">GameB Tokens + Fiat (€)</SelectItem>
+                      <SelectItem value="BOTH">$CTG + Fiat (€)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -515,7 +515,7 @@ export function QuestProposals({
                     )}
                     {proposal.requested_currency && proposal.requested_currency !== "CREDITS" && (
                       <Badge variant="outline" className="text-[10px] capitalize">
-                        {proposal.requested_currency === "BOTH" ? "GameB Tokens + Fiat" : "Fiat"}
+                        {proposal.requested_currency === "BOTH" ? "$CTG + Fiat" : "Fiat"}
                       </Badge>
                     )}
                     {/* Payment link — only active when accepted and fiat requested */}
