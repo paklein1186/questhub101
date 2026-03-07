@@ -61,6 +61,7 @@ export interface ExploreFilterValues {
   sortBy: ExploreSortBy;
   questType: string;
   missionOnly: boolean;
+  hasBudget: boolean;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -76,6 +77,7 @@ export const defaultFilters: ExploreFilterValues = {
   sortBy: "most_recent",
   questType: "all",
   missionOnly: false,
+  hasBudget: false,
 };
 
 // Which filter sections to show per page
@@ -91,6 +93,7 @@ export interface ExploreFilterConfig {
   showRole?: boolean;           // user role
   showQuestType?: boolean;      // quest nature (Level 1)
   showMission?: boolean;        // mission-only toggle
+  showHasBudget?: boolean;      // has budget/reward toggle
 }
 
 interface Props {
@@ -186,7 +189,8 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
     (filters.price !== "all" ? 1 : 0) +
     (filters.role !== "all" ? 1 : 0) +
     (filters.questType !== "all" ? 1 : 0) +
-    (filters.missionOnly ? 1 : 0);
+    (filters.missionOnly ? 1 : 0) +
+    (filters.hasBudget ? 1 : 0);
 
   const clearAll = () => onChange({ ...defaultFilters });
 
@@ -312,6 +316,20 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
                   💰 Missions only
                   <span className="text-xs text-muted-foreground font-normal">(funded quests)</span>
+                </label>
+              </div>
+            )}
+
+            {config.showHasBudget && (
+              <div className="flex items-center gap-3 pt-5">
+                <input type="checkbox" id="hasBudget"
+                  checked={filters.hasBudget}
+                  onChange={e => set({ hasBudget: e.target.checked })}
+                  className="h-4 w-4 rounded border-border" />
+                <label htmlFor="hasBudget"
+                  className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                  🎁 Has budget / reward
+                  <span className="text-xs text-muted-foreground font-normal">(credits, $CTG, or fiat)</span>
                 </label>
               </div>
             )}

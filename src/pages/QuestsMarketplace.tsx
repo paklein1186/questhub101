@@ -113,6 +113,12 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     if (filters.questType !== "all" && (q as any).quest_nature !== filters.questType) return false;
     if (filters.missionOnly && !isMission(q as any)) return false;
+    if (filters.hasBudget) {
+      const hasGameb = Number((q as any).gameb_token_budget) > 0;
+      const hasFiat = Number((q as any).budget_min) > 0 || Number((q as any).price_fiat) > 0;
+      const hasCredits = Number((q as any).credit_reward) > 0 || Number((q as any).credit_budget) > 0;
+      if (!hasGameb && !hasFiat && !hasCredits) return false;
+    }
     return true;
   }), filters.sortBy);
 
@@ -139,7 +145,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true, showMission: true }}
+          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true, showMission: true, showHasBudget: true }}
           houseFilter={{
             active: hf.houseFilterActive,
             onToggle: hf.setHouseFilterActive,
