@@ -157,9 +157,19 @@ export function ContributionLogPanel({
   const handleDistribute = async () => {
     if (distributing) return;
     setDistributing(true);
-    const overheadPct = (guildPercent + territoryPercent + ctgPercent) / 100;
-    const contributorPool = Math.round(questBudgetGamebTokens * (1 - overheadPct) * 100) / 100;
-    await calculateAndDistribute({ questId, contributorPoolTokens: contributorPool });
+    const guildAmt = Math.round(questBudgetGamebTokens * (guildPercent / 100) * 100) / 100;
+    const territoryAmt = Math.round(questBudgetGamebTokens * (territoryPercent / 100) * 100) / 100;
+    const ctgAmt = Math.round(questBudgetGamebTokens * (ctgPercent / 100) * 100) / 100;
+    const contributorPool = Math.round((questBudgetGamebTokens - guildAmt - territoryAmt - ctgAmt) * 100) / 100;
+    await calculateAndDistribute({
+      questId,
+      contributorPoolTokens: contributorPool,
+      guildId: guildId ?? null,
+      guildTokens: guildAmt,
+      territoryId: undefined, // TODO: pass territory_id when available on quest props
+      territoryTokens: territoryAmt,
+      ctgTokens: ctgAmt,
+    });
     setDistributing(false);
   };
 
