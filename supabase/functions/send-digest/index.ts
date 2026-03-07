@@ -200,6 +200,31 @@ serve(async (req) => {
 
         const periodLabel = pref.digest_frequency === "weekly" ? "this week" : "these past 3 days";
 
+        // ── Fetch unread notifications grouped by type ──
+        const { data: unreadNotifs } = await supabase
+          .from("notifications")
+          .select("type")
+          .eq("user_id", userId)
+          .eq("is_read", false)
+          .gte("created_at", since);
+
+        const notifCounts: Record<string, number> = {};
+        for (const n of unreadNotifs ?? []) {
+          notifCounts[n.type] = (notifCounts[n.type] || 0) + 1;
+        }
+
+        // ── Fetch XP gained since last digest ──
+        let xpGained = 0;
+        const { data: xpRows } = await supabase
+          .from("biopoints_transactions")
+          .select("amount")
+          .eq("user_id", userId)
+          .eq("type", "earn")
+          .gte("created_at", since);
+        if (xpRows) {
+          xpGained = xpRows.reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+        }
+
         // Build rich context for AI — network-first
         const topPosts = networkPosts.slice(0, 8).map((p: any) => ({
           author: authorNames[p.author_user_id] || "Someone",
@@ -220,7 +245,9 @@ serve(async (req) => {
             newQuests: newQuests.length,
             newEvents: newEvents.length,
             newMembersInYourGuilds: newGuildMembers,
+            xpGained,
           },
+          notificationCounts: notifCounts,
           topPosts,
           newQuests: newQuests.slice(0, 5).map((q: any) => ({
             title: q.title,
@@ -233,7 +260,7 @@ serve(async (req) => {
           })),
         };
 
-        // Call AI to generate network-focused digest
+        // Call AI to generate clustered digest
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -245,38 +272,46 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary. It's a curated news brief about what's happening around them.
+                content: `You are the digest writer for changethegame, a collaborative platform for changemakers and impact builders. Generate a clustered digest email focused on what's happening in the user's NETWORK — their guilds, followed topics, and communities. This is NOT a personal activity summary — it's a curated news brief grouped by category.
 
 Your output must be a JSON object:
 {
-  "subject": "compelling subject line (max 60 chars, curiosity-driven, mention a specific detail from the data)",
-  "greeting": "short warm greeting using their name (1 sentence)",
-  "network_highlights": [
-    {"icon": "emoji", "text": "one-line highlight about network activity"},
-    {"icon": "emoji", "text": "one-line highlight"},
-    {"icon": "emoji", "text": "one-line highlight"}
+  "subject": "compelling subject line mentioning a specific guild or activity (max 55 chars)",
+  "preheader": "short preview text shown in inbox before opening (max 90 chars)",
+  "greeting": "warm 1-line greeting using their name",
+  "clusters": [
+    {
+      "label": "🏛 Guild Activity",
+      "items": [
+        { "icon": "emoji", "text": "descriptive line about what happened", "link": "/relevant-deep-link" }
+      ]
+    }
   ],
-  "featured_posts": [
-    {"author": "name", "context": "guild/community name", "teaser": "compelling 1-line teaser of the post content", "link": "/explore"}
-  ],
-  "upcoming": [
-    {"label": "Event or Quest title", "detail": "guild name · date or context", "link": "/quests or /guilds/..."}
-  ],
-  "closing": "1 sentence motivational closing or gentle nudge"
+  "closing": "1 motivational sentence",
+  "cta_label": "Explore what's new",
+  "cta_url": "/explore"
 }
 
+Available cluster categories (use only those that have data):
+- "🏛 Guild Activity" — new posts, decisions, member joins in their guilds
+- "⚡ Quests & Projects" — new quests, quest updates, proposals
+- "📅 Upcoming Events" — events from guilds and followed entities
+- "🏆 Your Progress" — XP gained, achievements, credits received, contributions
+
 Rules:
-- Subject line should create curiosity: "3 new quests in Solar Builders this week" or "Your guilds are buzzing — here's what you missed"
-- Focus on NETWORK activity, not the user's own activity
-- If there's little activity, highlight the communities and topics they follow, suggest exploration
-- featured_posts: pick the most engaging 2-3 posts by upvotes or content quality. Tease the content to make them want to click.
-- Use real links: /explore, /quests, /guilds, /network, /services
+- Only include clusters that have items. Max 4 items per cluster. Max 4 clusters total.
+- Subject line should create curiosity: mention a specific guild name or count.
+- Preheader should complement the subject, not repeat it.
+- Use real deep links: /explore, /quests, /guilds, /network, /me, /me?tab=contributions
+- For guild-specific links use /guilds/GUILD_ID format if you have context, otherwise /explore
+- "Your Progress" cluster: summarize XP, achievements, credits in aggregate lines
+- If there's little activity, highlight communities and suggest exploration
 - Keep it punchy — this is a news brief, not a letter
-- ONLY output valid JSON`,
+- ONLY output valid JSON, no markdown fences`,
               },
               {
                 role: "user",
-                content: `Generate a network digest for:\n${JSON.stringify(userContext, null, 2)}`,
+                content: `Generate a clustered network digest for:\n${JSON.stringify(userContext, null, 2)}`,
               },
             ],
           }),
@@ -305,18 +340,19 @@ Rules:
         }
 
         // Create in-app notification
-        const highlightsText = (digest.network_highlights ?? []).map((h: any) => `${h.icon} ${h.text}`).join(" • ");
+        const clusterSummary = (digest.clusters ?? [])
+          .map((c: any) => `${c.label}: ${c.items?.length || 0}`)
+          .join(" • ");
         await supabase.from("notifications").insert({
           user_id: userId,
           type: "AI_JOURNEY_DIGEST",
           title: digest.subject ?? "Your network digest",
-          body: highlightsText || "Here's what's happening in your network.",
-          deep_link_url: "/explore",
+          body: clusterSummary || "Here's what's happening in your network.",
+          deep_link_url: digest.cta_url || "/explore",
           is_read: false,
           metadata: {
-            network_highlights: digest.network_highlights,
-            featured_posts: digest.featured_posts,
-            upcoming: digest.upcoming,
+            clusters: digest.clusters,
+            preheader: digest.preheader,
           },
         });
 
@@ -507,34 +543,47 @@ function buildDigestFromTemplate(
 }
 
 function buildDigestEmailHtml(digest: any, userName: string): string {
-  // Network highlights
-  const highlights = (digest.network_highlights ?? [])
-    .map((h: any) => `
-      <tr>
-        <td style="padding:6px 12px 6px 0;font-size:18px;vertical-align:top;width:28px;">${h.icon || "📌"}</td>
-        <td style="padding:6px 0;font-size:15px;line-height:1.5;color:hsl(250,12%,30%);">${h.text}</td>
-      </tr>`)
-    .join("");
+  const clusters = (digest.clusters ?? []).slice(0, 4);
 
-  // Featured posts
-  const posts = (digest.featured_posts ?? [])
-    .map((p: any) => `
-      <div style="margin-bottom:12px;padding:14px 16px;background:hsl(250,30%,97%);border-radius:8px;border-left:3px solid hsl(262,83%,58%);">
-        <p style="font-size:13px;font-weight:600;color:hsl(262,83%,58%);margin:0 0 4px;">${p.author} · ${p.context}</p>
-        <p style="font-size:14px;color:hsl(250,12%,30%);margin:0;line-height:1.5;">${p.teaser}</p>
-      </div>`)
-    .join("");
+  const clustersHtml = clusters.map((cluster: any, idx: number) => {
+    const isProgress = (cluster.label || "").includes("Progress");
+    const bgStyle = isProgress
+      ? "background:hsl(142,40%,96%);border-radius:8px;padding:16px;"
+      : "";
 
-  // Upcoming events / quests
-  const upcoming = (digest.upcoming ?? [])
-    .map((u: any) => `
-      <tr>
-        <td style="padding:8px 0;border-bottom:1px solid hsl(250,18%,92%);">
-          <p style="font-size:14px;font-weight:600;color:hsl(250,30%,8%);margin:0;">${u.label}</p>
-          <p style="font-size:13px;color:hsl(250,12%,46%);margin:2px 0 0;">${u.detail}</p>
-        </td>
-      </tr>`)
-    .join("");
+    const itemsHtml = (cluster.items ?? []).slice(0, 4).map((item: any) => {
+      const linkHtml = item.link
+        ? `<a href="${BASE_URL}${item.link}" style="color:hsl(262,83%,58%);text-decoration:underline;font-size:13px;">View →</a>`
+        : "";
+      return `
+        <tr>
+          <td style="padding:5px 10px 5px 0;font-size:16px;vertical-align:top;width:24px;">${item.icon || "•"}</td>
+          <td style="padding:5px 0;font-size:14px;line-height:1.5;color:hsl(250,12%,30%);">
+            ${item.text} ${linkHtml}
+          </td>
+        </tr>`;
+    }).join("");
+
+    const divider = idx < clusters.length - 1
+      ? `<hr style="border:none;border-top:1px solid hsl(250,18%,92%);margin:20px 0;" />`
+      : "";
+
+    return `
+      <div style="${bgStyle}margin-bottom:4px;">
+        <h3 style="font-size:15px;font-weight:700;color:hsl(262,83%,58%);margin:0 0 10px;letter-spacing:0.5px;">${cluster.label}</h3>
+        <table role="presentation" style="width:100%;border-collapse:collapse;">
+          ${itemsHtml}
+        </table>
+      </div>
+      ${divider}`;
+  }).join("");
+
+  const ctaLabel = digest.cta_label || "Explore what's new";
+  const ctaUrl = (digest.cta_url || "/explore").startsWith("http")
+    ? digest.cta_url
+    : `${BASE_URL}${digest.cta_url || "/explore"}`;
+
+  const preheader = digest.preheader || "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -544,6 +593,7 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:#f5f4fb;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}</span>
   <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
 
     <!-- Header -->
@@ -554,29 +604,16 @@ function buildDigestEmailHtml(digest: any, userName: string): string {
     <!-- Card -->
     <div style="background:#ffffff;border:1px solid hsl(250,18%,90%);border-top:none;border-radius:0 0 12px 12px;padding:32px 28px;">
 
-      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 16px;">${digest.greeting || `Hey ${userName},`}</h2>
+      <h2 style="font-size:20px;font-weight:600;color:hsl(250,30%,8%);margin:0 0 20px;">${digest.greeting || `Hey ${userName},`}</h2>
 
-      ${highlights ? `
-      <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-        ${highlights}
-      </table>` : ""}
+      ${clustersHtml}
 
-      ${posts ? `
-      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">📣 Worth a look</h3>
-      ${posts}` : ""}
-
-      ${upcoming ? `
-      <h3 style="font-size:15px;font-weight:700;color:hsl(250,30%,8%);margin:24px 0 12px;text-transform:uppercase;letter-spacing:1px;">📅 Coming up</h3>
-      <table role="presentation" style="width:100%;border-collapse:collapse;">
-        ${upcoming}
-      </table>` : ""}
-
-      ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:24px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
+      ${digest.closing ? `<p style="font-size:15px;line-height:1.6;color:hsl(250,12%,46%);margin:20px 0 0;font-style:italic;">${digest.closing}</p>` : ""}
 
       <div style="margin-top:28px;">
-        <a href="${BASE_URL}/explore"
+        <a href="${ctaUrl}"
            style="display:inline-block;background:hsl(262,83%,58%);color:#ffffff;padding:13px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
-          Explore what's new
+          ${ctaLabel}
         </a>
       </div>
 
