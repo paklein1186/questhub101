@@ -114,10 +114,10 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (filters.questType !== "all" && (q as any).quest_nature !== filters.questType) return false;
     if (filters.missionOnly && !isMission(q as any)) return false;
     if (filters.hasBudget) {
-      const hasGameb = Number((q as any).gameb_token_budget) > 0;
+      const hasCoins = Number((q as any).coin_budget) > 0;
       const hasFiat = Number((q as any).budget_min) > 0 || Number((q as any).price_fiat) > 0;
       const hasCredits = Number((q as any).credit_reward) > 0 || Number((q as any).credit_budget) > 0;
-      if (!hasGameb && !hasFiat && !hasCredits) return false;
+      if (!hasCoins && !hasFiat && !hasCredits) return false;
     }
     return true;
   }), filters.sortBy);
@@ -198,9 +198,9 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       )}
                     </div>
                     {(() => {
-                      const cr = Number((quest as any).credit_budget) || 0;
+                      const coins = Number((quest as any).coin_budget) || 0;
                       const fi = Number((quest as any).budget_min) || 0;
-                      if (cr > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><Coins className="h-4 w-4" /> {cr} Cr</span>;
+                      if (coins > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-emerald-600">🟩 {coins}</span>;
                       if (fi > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><CreditCard className="h-4 w-4" /> {fi}€</span>;
                       return null;
                     })()}

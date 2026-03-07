@@ -38,7 +38,7 @@ interface ContributorAgg {
   name: string;
   avatar_url: string | null;
   total_weighted_units: number;
-  total_gameb_tokens: number;
+  total_coins: number;
   total_xp: number;
   contribution_count: number;
 }
@@ -47,7 +47,7 @@ interface QuestAgg {
   quest_id: string;
   quest_title: string;
   territory_name: string | null;
-  budget_gameb: number;
+  budget_coins: number;
   contributor_count: number;
   guild_share: number;
   value_pie_calculated: boolean;
@@ -196,13 +196,13 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       // Value pie logs
       const { data: pieLogs } = await supabase
         .from("quest_value_pie_log" as any)
-        .select("contributor_id, quest_id, gameb_tokens_awarded, weighted_units, share_percent")
+        .select("contributor_id, quest_id, coins_awarded, weighted_units, share_percent")
         .in("quest_id", questIds);
 
       // Quests metadata
       const { data: quests } = await supabase
         .from("quests" as any)
-        .select("id, title, gameb_token_budget, guild_percent, value_pie_calculated, territory_id")
+        .select("id, title, coin_budget, guild_percent, value_pie_calculated, territory_id")
         .in("id", questIds);
 
       // Profiles
@@ -248,7 +248,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       name: profileMap.get(c.user_id)?.name || "Unknown",
       avatar_url: profileMap.get(c.user_id)?.avatar_url || null,
       total_weighted_units: 0,
-      total_gameb_tokens: 0,
+      total_coins: 0,
       total_xp: 0,
       contribution_count: 0,
     };
@@ -262,7 +262,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   pieLogs.forEach((p: any) => {
     const existing = contributorMap.get(p.contributor_id);
     if (existing) {
-      existing.total_gameb_tokens += Number(p.gameb_tokens_awarded) || 0;
+      existing.total_coins += Number(p.coins_awarded) || 0;
     }
   });
 
@@ -270,9 +270,9 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   // ── Headline Metrics ──────────────────────────────────────
   const totalWeightedUnits = contributors.reduce((s, c) => s + c.total_weighted_units, 0);
-  const totalGamebTokens = contributors.reduce((s, c) => s + c.total_gameb_tokens, 0);
+  const totalCoins = contributors.reduce((s, c) => s + c.total_coins, 0);
   const totalContributors = contributors.length;
-  const avgSharePerContributor = totalContributors > 0 ? totalGamebTokens / totalContributors : 0;
+  const avgSharePerContributor = totalContributors > 0 ? totalCoins / totalContributors : 0;
 
   // ── Active contributors (last 30 days regardless of period) ──
   const now = Date.now();
@@ -295,7 +295,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   const questAggs: QuestAgg[] = quests.map((q: any) => {
     const qContribs = contribs.filter((c: any) => c.quest_id === q.id);
     const uniqueContributors = new Set(qContribs.map((c: any) => c.user_id)).size;
-    const budget = Number(q.gameb_token_budget) || 0;
+    const budget = Number(q.coin_budget) || 0;
     const guildPct = q.guild_percent != null ? Number(q.guild_percent) : 15;
     const guildShare = Math.round(budget * (guildPct / 100) * 100) / 100;
     const totalCount = qContribs.length;
@@ -305,7 +305,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       quest_id: q.id,
       quest_title: q.title,
       territory_name: q.territory_id ? territoryMap.get(q.territory_id) || null : null,
-      budget_gameb: budget,
+      budget_coins: budget,
       contributor_count: uniqueContributors,
       guild_share: guildShare,
       value_pie_calculated: q.value_pie_calculated || false,
@@ -332,7 +332,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     if (!q.territory_id) return;
     const tName = territoryMap.get(q.territory_id) || "Unknown";
     const qPie = pieLogs.filter((p: any) => p.quest_id === q.id);
-    const tokens = qPie.reduce((s: number, p: any) => s + (Number(p.gameb_tokens_awarded) || 0), 0);
+    const tokens = qPie.reduce((s: number, p: any) => s + (Number(p.coins_awarded) || 0), 0);
     territoryAggMap.set(tName, (territoryAggMap.get(tName) || 0) + tokens);
   });
   const territoryAggs: TerritoryAgg[] = Array.from(territoryAggMap.entries())
@@ -350,7 +350,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   // ── Bar chart data: tokens per quest ──────────────────────
   const barData = questAggs.map((q) => ({
     name: q.quest_title.length > 20 ? q.quest_title.slice(0, 20) + "…" : q.quest_title,
-    tokens: q.budget_gameb,
+    tokens: q.budget_coins,
     contributors: q.contributor_count,
   }));
 
@@ -394,8 +394,8 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         <Card className="border-emerald-500/20">
           <CardContent className="p-4 text-center">
             <Coins className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-emerald-600">{totalGamebTokens.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">🟩 $CTG Distributed</p>
+            <p className="text-2xl font-bold text-emerald-600">{totalCoins.toFixed(0)}</p>
+            <p className="text-[10px] text-muted-foreground">🟩 Coins Distributed</p>
           </CardContent>
         </Card>
         <Card>
@@ -519,7 +519,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     )}
                   </div>
                   <span className="text-right font-medium">{c.total_weighted_units.toFixed(1)}</span>
-                  <span className="text-right font-medium text-emerald-600">{c.total_gameb_tokens.toFixed(0)}</span>
+                  <span className="text-right font-medium text-emerald-600">{c.total_coins.toFixed(0)}</span>
                   <span className="text-right text-muted-foreground">{c.total_xp}</span>
                 </Link>
               ))}
@@ -573,7 +573,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                   className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
                 >
                   <span className="truncate">{q.quest_title}</span>
-                  <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
+                  <span className="text-right font-medium text-emerald-600">{q.budget_coins}</span>
                   <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
                   <span className={`text-right font-medium ${ratioColor}`}>{q.verification_ratio !== null ? `${q.verification_ratio}%` : "—"}</span>
                   <span className="text-right">{q.contributor_count}</span>
@@ -630,7 +630,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
             <CardContent>
               <div className="space-y-1.5">
                 {territoryAggs.map((ta) => {
-                  const pct = totalGamebTokens > 0 ? (ta.total_tokens / totalGamebTokens * 100) : 0;
+                  const pct = totalCoins > 0 ? (ta.total_tokens / totalCoins * 100) : 0;
                   return (
                     <div key={ta.territory_name} className="space-y-0.5">
                       <div className="flex justify-between text-xs">

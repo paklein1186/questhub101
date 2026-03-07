@@ -21,9 +21,9 @@ interface QuestSubtasksProps {
   questOwnerId: string;
   guildId?: string | null;
   canManage: boolean;
-  questBudgetGamebTokens?: number;
+  questCoinBudget?: number;
   valuePieCalculated?: boolean;
-  budgetGameb?: number;
+  coinBudget?: number;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false, budgetGameb = 0 }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -53,7 +53,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quest_subtasks" as any)
-        .select("*, priority, gameb_weight")
+        .select("*, priority, contribution_weight")
         .eq("quest_id", questId)
         .order("order_index");
       if (error) throw error;
@@ -129,10 +129,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       }
     }
 
-    // Auto-insert contribution log with gameb_weight
+    // Auto-insert contribution log with contribution_weight
     try {
       const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
-      const weightFactor = subtask?.gameb_weight > 0 ? Number(subtask.gameb_weight) : 1.0;
+      const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
       const weightedUnits = baseUnits * weightFactor;
 
       supabase.from("contribution_logs" as any).insert({
@@ -157,7 +157,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
 
     // Check if ALL subtasks are now DONE → notify quest owner for Value Pie
     const allOtherDone = subtasks.every((s: any) => s.id === subtaskId || s.status === "DONE");
-    if (allOtherDone && subtasks.length > 0 && questBudgetGamebTokens > 0 && !valuePieCalculated) {
+    if (allOtherDone && subtasks.length > 0 && questCoinBudget > 0 && !valuePieCalculated) {
       toast({ title: "All tasks complete — the Value Pie is ready!" });
       // Notify quest owner
       if (questOwnerId && questOwnerId !== currentUser.id) {
@@ -172,7 +172,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         } as any).then(() => {});
       }
     }
-  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc, questOwnerId, questBudgetGamebTokens, valuePieCalculated, toast]);
+  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc, questOwnerId, questCoinBudget, valuePieCalculated, toast]);
 
   const undoSubtaskDone = useCallback((subtaskId: string) => {
     const timer = pendingTimers.current.get(subtaskId);
@@ -216,7 +216,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   };
 
   const updateSubtaskWeight = async (subtaskId: string, weight: number) => {
-    await supabase.from("quest_subtasks" as any).update({ gameb_weight: weight } as any).eq("id", subtaskId);
+    await supabase.from("quest_subtasks" as any).update({ contribution_weight: weight } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
@@ -369,7 +369,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                   min={0.5}
                   max={5.0}
                   step={0.5}
-                  value={subtask.gameb_weight ?? 1.0}
+                  value={subtask.contribution_weight ?? 1.0}
                   onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
                   className="w-14 h-6 text-[10px] text-center p-0"
                   title="Poids dans le Value Pie"
@@ -377,8 +377,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </div>
             )}
             {/* Estimated WU badge for assignee */}
-            {budgetGameb > 0 && subtask.assignee_user_id === currentUser.id && (() => {
-              const estWu = (subtask.credit_reward || 1) * (subtask.gameb_weight || 1.0);
+            {coinBudget > 0 && subtask.assignee_user_id === currentUser.id && (() => {
+              const estWu = (subtask.credit_reward || 1) * (subtask.contribution_weight || 1.0);
               return (
                 <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
                   {estWu.toFixed(1)} wu estimés

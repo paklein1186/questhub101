@@ -26,11 +26,11 @@ export function ValuePieChart({ questId }: Props) {
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading value pie…</p>;
   if (entries.length === 0) return null;
 
-  const totalTokens = entries.reduce((s, e) => s + e.gameb_tokens_awarded, 0);
+  const totalTokens = entries.reduce((s, e) => s + e.coins_awarded, 0);
 
   const chartData = entries.map((e, i) => ({
     name: e.profile?.name || "Unknown",
-    value: e.gameb_tokens_awarded,
+    value: e.coins_awarded,
     percent: e.share_percent * 100,
     fill: COLORS[i % COLORS.length],
   }));
@@ -40,7 +40,7 @@ export function ValuePieChart({ questId }: Props) {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <PieIcon className="h-4 w-4 text-emerald-500" />
-          🟩 Value Pie — $CTG Distribution
+          🟩 Value Pie — Coins Distribution
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -65,7 +65,7 @@ export function ValuePieChart({ questId }: Props) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${value} tokens`, "$CTG"]}
+                  formatter={(value: number) => [`${value} coins`, "🟩 Coins"]}
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                 />
               </PieChart>
@@ -78,7 +78,7 @@ export function ValuePieChart({ questId }: Props) {
               <span>Contributor</span>
               <span className="text-right">Units</span>
               <span className="text-right">Share</span>
-              <span className="text-right">🟩 Tokens</span>
+              <span className="text-right">🟩 Coins</span>
             </div>
             {entries.map((e, i) => (
               <div key={e.id} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center text-xs">
@@ -92,12 +92,12 @@ export function ValuePieChart({ questId }: Props) {
                 </div>
                 <span className="text-right text-muted-foreground">{e.weighted_units}</span>
                 <Badge variant="outline" className="text-[10px] justify-end">{(e.share_percent * 100).toFixed(1)}%</Badge>
-                <span className="text-right font-medium text-emerald-600">{e.gameb_tokens_awarded}</span>
+                <span className="text-right font-medium text-emerald-600">{e.coins_awarded}</span>
               </div>
             ))}
             <div className="border-t border-border pt-1 flex justify-between text-xs font-medium">
               <span>Total</span>
-              <span className="text-emerald-600">{totalTokens} 🟩 Tokens</span>
+              <span className="text-emerald-600">{totalTokens} 🟩 Coins</span>
             </div>
           </div>
         </div>

@@ -1148,6 +1148,102 @@ export type Database = {
           },
         ]
       }
+      coin_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          fiat_backing_amount: number | null
+          fiat_currency: string | null
+          id: string
+          quest_id: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          source: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          fiat_backing_amount?: number | null
+          fiat_currency?: string | null
+          id?: string
+          quest_id?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          fiat_backing_amount?: number | null
+          fiat_currency?: string | null
+          id?: string
+          quest_id?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      coin_withdrawal_requests: {
+        Row: {
+          admin_note: string | null
+          amount_fiat: number
+          amount_tokens: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          id: string
+          processed_at: string | null
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
+          stripe_connect_account_id: string | null
+          stripe_transfer_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_fiat: number
+          amount_tokens: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          processed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          stripe_connect_account_id?: string | null
+          stripe_transfer_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_fiat?: number
+          amount_tokens?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          processed_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          stripe_connect_account_id?: string | null
+          stripe_transfer_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comment_mentions: {
         Row: {
           comment_id: string
@@ -1297,6 +1393,7 @@ export type Database = {
           allow_agent_crawling: boolean
           allow_agent_subscription: boolean
           banner_url: string | null
+          coins_balance: number
           collaboration_interests: string[] | null
           contact_user_id: string | null
           created_at: string
@@ -1309,7 +1406,6 @@ export type Database = {
           feedpoint_default_posts: boolean
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
-          gameb_tokens_balance: number
           id: string
           instagram_url: string | null
           is_deleted: boolean
@@ -1336,6 +1432,7 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           banner_url?: string | null
+          coins_balance?: number
           collaboration_interests?: string[] | null
           contact_user_id?: string | null
           created_at?: string
@@ -1348,7 +1445,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_tokens_balance?: number
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -1375,6 +1471,7 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           banner_url?: string | null
+          coins_balance?: number
           collaboration_interests?: string[] | null
           contact_user_id?: string | null
           created_at?: string
@@ -1387,7 +1484,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_tokens_balance?: number
           id?: string
           instagram_url?: string | null
           is_deleted?: boolean
@@ -3172,102 +3268,6 @@ export type Database = {
         }
         Relationships: []
       }
-      gameb_token_transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          fiat_backing_amount: number | null
-          fiat_currency: string | null
-          id: string
-          quest_id: string | null
-          related_entity_id: string | null
-          related_entity_type: string | null
-          source: string | null
-          type: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          fiat_backing_amount?: number | null
-          fiat_currency?: string | null
-          id?: string
-          quest_id?: string | null
-          related_entity_id?: string | null
-          related_entity_type?: string | null
-          source?: string | null
-          type: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          fiat_backing_amount?: number | null
-          fiat_currency?: string | null
-          id?: string
-          quest_id?: string | null
-          related_entity_id?: string | null
-          related_entity_type?: string | null
-          source?: string | null
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      gameb_withdrawal_requests: {
-        Row: {
-          admin_note: string | null
-          amount_fiat: number
-          amount_tokens: number
-          completed_at: string | null
-          created_at: string
-          currency: string
-          id: string
-          processed_at: string | null
-          reviewed_at: string | null
-          reviewed_by_user_id: string | null
-          status: string
-          stripe_connect_account_id: string | null
-          stripe_transfer_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          admin_note?: string | null
-          amount_fiat: number
-          amount_tokens: number
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          id?: string
-          processed_at?: string | null
-          reviewed_at?: string | null
-          reviewed_by_user_id?: string | null
-          status?: string
-          stripe_connect_account_id?: string | null
-          stripe_transfer_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          admin_note?: string | null
-          amount_fiat?: number
-          amount_tokens?: number
-          completed_at?: string | null
-          created_at?: string
-          currency?: string
-          id?: string
-          processed_at?: string | null
-          reviewed_at?: string | null
-          reviewed_by_user_id?: string | null
-          status?: string
-          stripe_connect_account_id?: string | null
-          stripe_transfer_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       gratitude_donations: {
         Row: {
           amount_credits: number
@@ -3768,22 +3768,22 @@ export type Database = {
       }
       guild_wallets: {
         Row: {
+          coins_balance: number
           created_at: string
-          gameb_balance: number
           guild_id: string
           id: string
           updated_at: string
         }
         Insert: {
+          coins_balance?: number
           created_at?: string
-          gameb_balance?: number
           guild_id: string
           id?: string
           updated_at?: string
         }
         Update: {
+          coins_balance?: number
           created_at?: string
-          gameb_balance?: number
           guild_id?: string
           id?: string
           updated_at?: string
@@ -3804,6 +3804,7 @@ export type Database = {
           allow_agent_subscription: boolean
           application_questions: Json | null
           banner_url: string | null
+          coins_balance: number
           created_at: string
           created_by_user_id: string
           credits_balance: number
@@ -3818,7 +3819,6 @@ export type Database = {
           feedpoint_default_posts: boolean
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
-          gameb_tokens_balance: number
           id: string
           instagram_url: string | null
           is_approved: boolean
@@ -3853,6 +3853,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          coins_balance?: number
           created_at?: string
           created_by_user_id: string
           credits_balance?: number
@@ -3867,7 +3868,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_tokens_balance?: number
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -3902,6 +3902,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          coins_balance?: number
           created_at?: string
           created_by_user_id?: string
           credits_balance?: number
@@ -3916,7 +3917,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_tokens_balance?: number
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -5485,6 +5485,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           biopoints_balance: number
+          coins_balance: number
           community_xp: number
           contribution_index: number
           created_at: string
@@ -5503,7 +5504,6 @@ export type Database = {
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
           filter_by_houses: boolean
-          gameb_tokens_balance: number
           governance_weight: number
           has_completed_onboarding: boolean
           headline: string | null
@@ -5557,6 +5557,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           biopoints_balance?: number
+          coins_balance?: number
           community_xp?: number
           contribution_index?: number
           created_at?: string
@@ -5575,7 +5576,6 @@ export type Database = {
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
           filter_by_houses?: boolean
-          gameb_tokens_balance?: number
           governance_weight?: number
           has_completed_onboarding?: boolean
           headline?: string | null
@@ -5629,6 +5629,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           biopoints_balance?: number
+          coins_balance?: number
           community_xp?: number
           contribution_index?: number
           created_at?: string
@@ -5647,7 +5648,6 @@ export type Database = {
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
           filter_by_houses?: boolean
-          gameb_tokens_balance?: number
           governance_weight?: number
           has_completed_onboarding?: boolean
           headline?: string | null
@@ -6095,13 +6095,13 @@ export type Database = {
           assignee_user_id: string | null
           completed_at: string | null
           completed_by_user_id: string | null
+          contribution_weight: number
           created_at: string
           credit_reward: number | null
           description: string | null
           due_date: string | null
           estimated_minutes: number | null
           evidence_url: string | null
-          gameb_weight: number
           id: string
           order_index: number
           priority: string
@@ -6115,13 +6115,13 @@ export type Database = {
           assignee_user_id?: string | null
           completed_at?: string | null
           completed_by_user_id?: string | null
+          contribution_weight?: number
           created_at?: string
           credit_reward?: number | null
           description?: string | null
           due_date?: string | null
           estimated_minutes?: number | null
           evidence_url?: string | null
-          gameb_weight?: number
           id?: string
           order_index?: number
           priority?: string
@@ -6135,13 +6135,13 @@ export type Database = {
           assignee_user_id?: string | null
           completed_at?: string | null
           completed_by_user_id?: string | null
+          contribution_weight?: number
           created_at?: string
           credit_reward?: number | null
           description?: string | null
           due_date?: string | null
           estimated_minutes?: number | null
           evidence_url?: string | null
-          gameb_weight?: number
           id?: string
           order_index?: number
           priority?: string
@@ -6297,27 +6297,27 @@ export type Database = {
       }
       quest_value_pie_log: {
         Row: {
+          coins_awarded: number
           contributor_id: string
           created_at: string
-          gameb_tokens_awarded: number
           id: string
           quest_id: string
           share_percent: number
           weighted_units: number
         }
         Insert: {
+          coins_awarded?: number
           contributor_id: string
           created_at?: string
-          gameb_tokens_awarded?: number
           id?: string
           quest_id: string
           share_percent?: number
           weighted_units?: number
         }
         Update: {
+          coins_awarded?: number
           contributor_id?: string
           created_at?: string
-          gameb_tokens_awarded?: number
           id?: string
           quest_id?: string
           share_percent?: number
@@ -6329,6 +6329,9 @@ export type Database = {
         Row: {
           allow_fundraising: boolean
           boost_expires_at: string | null
+          coin_budget: number
+          coin_escrow: number
+          coin_escrow_status: string
           company_id: string | null
           cover_focal_y: number
           cover_image_url: string | null
@@ -6345,9 +6348,6 @@ export type Database = {
           funding_goal_credits: number | null
           funding_type: string
           fundraising_cancelled: boolean
-          gameb_token_budget: number
-          gameb_token_escrow: number
-          gameb_token_escrow_status: string
           guild_id: string | null
           id: string
           is_boosted: boolean
@@ -6383,6 +6383,9 @@ export type Database = {
         Insert: {
           allow_fundraising?: boolean
           boost_expires_at?: string | null
+          coin_budget?: number
+          coin_escrow?: number
+          coin_escrow_status?: string
           company_id?: string | null
           cover_focal_y?: number
           cover_image_url?: string | null
@@ -6399,9 +6402,6 @@ export type Database = {
           funding_goal_credits?: number | null
           funding_type?: string
           fundraising_cancelled?: boolean
-          gameb_token_budget?: number
-          gameb_token_escrow?: number
-          gameb_token_escrow_status?: string
           guild_id?: string | null
           id?: string
           is_boosted?: boolean
@@ -6437,6 +6437,9 @@ export type Database = {
         Update: {
           allow_fundraising?: boolean
           boost_expires_at?: string | null
+          coin_budget?: number
+          coin_escrow?: number
+          coin_escrow_status?: string
           company_id?: string | null
           cover_focal_y?: number
           cover_image_url?: string | null
@@ -6453,9 +6456,6 @@ export type Database = {
           funding_goal_credits?: number | null
           funding_type?: string
           fundraising_cancelled?: boolean
-          gameb_token_budget?: number
-          gameb_token_escrow?: number
-          gameb_token_escrow_status?: string
           guild_id?: string | null
           id?: string
           is_boosted?: boolean
@@ -7338,6 +7338,7 @@ export type Database = {
           allow_agent_crawling: boolean
           allow_agent_subscription: boolean
           auto_expand_perimeter: boolean
+          coins_balance: number
           created_at: string
           custom_perimeter_name: string | null
           deleted_at: string | null
@@ -7347,7 +7348,6 @@ export type Database = {
           feedpoint_default_posts: boolean
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
-          gameb_balance: number
           gameb_tokens_balance: number
           geojson: Json | null
           granularity:
@@ -7374,6 +7374,7 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           auto_expand_perimeter?: boolean
+          coins_balance?: number
           created_at?: string
           custom_perimeter_name?: string | null
           deleted_at?: string | null
@@ -7383,7 +7384,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_balance?: number
           gameb_tokens_balance?: number
           geojson?: Json | null
           granularity?:
@@ -7410,6 +7410,7 @@ export type Database = {
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           auto_expand_perimeter?: boolean
+          coins_balance?: number
           created_at?: string
           custom_perimeter_name?: string | null
           deleted_at?: string | null
@@ -7419,7 +7420,6 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
-          gameb_balance?: number
           gameb_tokens_balance?: number
           geojson?: Json | null
           granularity?:

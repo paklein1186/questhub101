@@ -292,13 +292,13 @@ export const GRACE_PERIOD_DAYS = 30;
 
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
-  moneyDisclaimer: "Mission budgets are funded in fiat (€) and converted to GameB Tokens. Platform Credits are never used for compensation.",
+  moneyDisclaimer: "Mission budgets are funded in fiat (€) and converted to Coins. Platform Credits are never used for compensation.",
   creditsDisclaimer: "Platform Credits are non-monetary feature-fuel. They power gamification, quotas, and platform actions. They cannot be exchanged for money or used for quest payouts.",
-  gamebDisclaimer: "GameB Tokens are fiat-backed mission units. Earned from funded quests and withdrawable to fiat via Stripe Connect.",
+  coinsDisclaimer: "Coins are fiat-backed mission units. Earned from funded quests and withdrawable to fiat via Stripe Connect.",
   upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use Platform Credits.",
   demurrageNotice: "Inactive Platform Credits are gradually redistributed to the ecosystem treasury (1%/month).",
   creditsNature: "🔷 Platform Credits — Feature fuel for quotas, boosts, and gamification. Non-monetary.",
-  gamebNature: "🟩 GameB Tokens — Fiat-backed mission value. Earned from quests, withdrawable to fiat.",
+  coinsNature: "🟩 Coins — Fiat-backed mission value. Earned from quests, withdrawable to fiat.",
   xpNature: "Reputation & contribution level — earned through participation, never purchased.",
   sharesNature: "Stewardship participation — long-term commitment to the platform's mission.",
 } as const;

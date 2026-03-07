@@ -23,7 +23,7 @@ function useOVNStats() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const [tokensRes, questsRes, contribRes, guildsRes] = await Promise.all([
-        supabase.from("gameb_token_transactions" as any).select("amount").eq("type", "quest_payout"),
+        supabase.from("coin_transactions" as any).select("amount").eq("type", "quest_payout"),
         supabase.from("quests").select("id", { count: "exact", head: true }).eq("value_pie_calculated", true as any),
         supabase.from("contribution_logs" as any).select("user_id").gte("created_at", thirtyDaysAgo.toISOString()),
         supabase.from("guilds").select("id", { count: "exact", head: true }).eq("is_deleted", false),
@@ -47,12 +47,12 @@ function useRecentValuePieQuests() {
     queryFn: async () => {
       const { data } = await supabase
         .from("quests")
-        .select("id, title, created_at, gameb_token_budget")
+        .select("id, title, created_at, coin_budget")
         .eq("value_pie_calculated", true as any)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(3);
-      return (data || []) as { id: string; title: string; created_at: string; gameb_token_budget: number }[];
+      return (data || []) as { id: string; title: string; created_at: string; coin_budget: number }[];
     },
   });
 }
@@ -350,9 +350,9 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                     <span>{format(new Date(q.created_at), "dd MMM yyyy")}</span>
-                    {q.gameb_token_budget > 0 && (
+                    {q.coin_budget > 0 && (
                       <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600">
-                        🟩 {q.gameb_token_budget}
+                        🟩 {q.coin_budget}
                       </Badge>
                     )}
                   </div>

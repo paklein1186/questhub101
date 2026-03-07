@@ -81,26 +81,26 @@ export function WalletTab() {
   });
 
   // $CTG Token balance
-  const { data: gamebBalance } = useQuery({
-    queryKey: ["gameb-balance", userId],
+  const { data: coinsBalance } = useQuery({
+    queryKey: ["coins-balance", userId],
     enabled: !!userId,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("gameb_tokens_balance, stripe_connect_onboarded")
+        .select("coins_balance, stripe_connect_onboarded")
         .eq("user_id", userId!)
         .single();
       return data as any;
     },
   });
 
-  // $CTG Token transactions
-  const { data: gamebTx = [], isLoading: gamebTxLoading } = useQuery({
-    queryKey: ["gameb-transactions", userId],
+  // Coins transactions
+  const { data: coinsTx = [], isLoading: coinsTxLoading } = useQuery({
+    queryKey: ["coins-transactions", userId],
     enabled: !!userId,
     queryFn: async () => {
       const { data } = await supabase
-        .from("gameb_token_transactions" as any)
+        .from("coin_transactions" as any)
         .select("*")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
@@ -111,11 +111,11 @@ export function WalletTab() {
 
   // Withdrawal requests
   const { data: withdrawals = [] } = useQuery({
-    queryKey: ["gameb-withdrawals", userId],
+    queryKey: ["coins-withdrawals", userId],
     enabled: !!userId,
     queryFn: async () => {
       const { data } = await supabase
-        .from("gameb_withdrawal_requests" as any)
+        .from("coin_withdrawal_requests" as any)
         .select("*")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false })
@@ -145,7 +145,7 @@ export function WalletTab() {
     return true;
   });
 
-  const filteredGamebTx = gamebTx.filter((tx: any) => {
+  const filteredCoinsTx = coinsTx.filter((tx: any) => {
     if (txFilter === "all") return true;
     if (txFilter === "earned") return tx.amount > 0;
     if (txFilter === "spent") return tx.amount < 0;
@@ -175,24 +175,24 @@ export function WalletTab() {
   };
 
   const handleRequestWithdrawal = async () => {
-    const balance = Number(gamebBalance?.gameb_tokens_balance ?? 0);
+    const balance = Number(coinsBalance?.coins_balance ?? 0);
     if (balance <= 0) {
-      toast({ title: "No tokens", description: "You have no $CTG to withdraw.", variant: "destructive" });
+      toast({ title: "No coins", description: "You have no Coins to withdraw.", variant: "destructive" });
       return;
     }
-    if (!gamebBalance?.stripe_connect_onboarded) {
+    if (!coinsBalance?.stripe_connect_onboarded) {
       toast({ title: "Stripe Connect required", description: "You need to set up your Stripe Connect account first.", variant: "destructive" });
       return;
     }
     try {
-      const { error } = await supabase.from("gameb_withdrawal_requests" as any).insert({
+      const { error } = await supabase.from("coin_withdrawal_requests" as any).insert({
         user_id: userId,
         amount_tokens: balance,
         amount_fiat: balance * 0.04,
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} $CTG → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -209,7 +209,7 @@ export function WalletTab() {
   };
 
   const totalShares = ((profileShares as any)?.total_shares_a ?? 0) + ((profileShares as any)?.total_shares_b ?? 0);
-  const gamebBal = Number(gamebBalance?.gameb_tokens_balance ?? 0);
+  const coinsBal = Number(coinsBalance?.coins_balance ?? 0);
 
   return (
     <TooltipProvider>

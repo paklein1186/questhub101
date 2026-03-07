@@ -72,7 +72,7 @@ export function MonOVNPanel({ userId }: Props) {
 
       // Total $CTG tokens received
       const { data: tokenRows } = await supabase
-        .from("gameb_token_transactions" as any)
+        .from("coin_transactions" as any)
         .select("amount")
         .eq("user_id", userId)
         .eq("type", "quest_payout");

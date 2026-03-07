@@ -18,7 +18,7 @@ export interface ValuePieEntry {
   contributor_id: string;
   weighted_units: number;
   share_percent: number;
-  gameb_tokens_awarded: number;
+  coins_awarded: number;
   created_at: string;
   profile?: { name: string; avatar_url: string | null };
 }
@@ -146,7 +146,7 @@ export function useValuePieActions() {
           contributor_id: contributorId,
           weighted_units: wu,
           share_percent: Math.round(sharePct * 10000) / 10000,
-          gameb_tokens_awarded: tokensAwarded,
+          coins_awarded: tokensAwarded,
         };
       });
 
@@ -164,19 +164,19 @@ export function useValuePieActions() {
         try {
           const { data: profile } = await supabase
             .from("profiles" as any)
-            .select("gameb_tokens_balance")
+            .select("coins_balance")
             .eq("user_id", entry.contributor_id)
             .single();
 
-          const currentBalance = Number((profile as any)?.gameb_tokens_balance ?? 0);
+          const currentBalance = Number((profile as any)?.coins_balance ?? 0);
           await supabase
             .from("profiles" as any)
-            .update({ gameb_tokens_balance: currentBalance + entry.gameb_tokens_awarded } as any)
+            .update({ coins_balance: currentBalance + entry.coins_awarded } as any)
             .eq("user_id", entry.contributor_id);
 
-          await supabase.from("gameb_token_transactions" as any).insert({
+          await supabase.from("coin_transactions" as any).insert({
             user_id: entry.contributor_id,
-            amount: entry.gameb_tokens_awarded,
+            amount: entry.coins_awarded,
             type: "quest_payout",
             description: `Value pie payout: ${(entry.share_percent * 100).toFixed(1)}% share`,
             related_entity_type: "quest",
@@ -194,23 +194,23 @@ export function useValuePieActions() {
           // Upsert guild wallet
           const { data: existing } = await supabase
             .from("guild_wallets" as any)
-            .select("gameb_balance")
+            .select("coins_balance")
             .eq("guild_id", params.guildId)
             .maybeSingle();
 
           if (existing) {
-            const curr = Number((existing as any).gameb_balance) || 0;
+            const curr = Number((existing as any).coins_balance) || 0;
             await supabase
               .from("guild_wallets" as any)
-              .update({ gameb_balance: curr + guildAmt } as any)
+              .update({ coins_balance: curr + guildAmt } as any)
               .eq("guild_id", params.guildId);
           } else {
             await supabase
               .from("guild_wallets" as any)
-              .insert({ guild_id: params.guildId, gameb_balance: guildAmt } as any);
+              .insert({ guild_id: params.guildId, coins_balance: guildAmt } as any);
           }
 
-          await supabase.from("gameb_token_transactions" as any).insert({
+          await supabase.from("coin_transactions" as any).insert({
             user_id: null,
             entity_type: "guild",
             entity_id: params.guildId,
@@ -236,17 +236,17 @@ export function useValuePieActions() {
             type: "quest_territory_share",
           } as any);
 
-          // Upsert territory gameb balance
+          // Upsert territory coins balance
           const { data: tData } = await supabase
             .from("territories")
-            .select("id, gameb_balance")
+            .select("id, coins_balance")
             .eq("id", params.territoryId)
             .maybeSingle();
 
-          const currBal = Number((tData as any)?.gameb_balance) || 0;
+          const currBal = Number((tData as any)?.coins_balance) || 0;
           await supabase
             .from("territories" as any)
-            .update({ gameb_balance: currBal + tAmt } as any)
+            .update({ coins_balance: currBal + tAmt } as any)
             .eq("id", params.territoryId);
         } catch (e) {
           console.error("Territory pool distribution failed", e);
@@ -256,7 +256,7 @@ export function useValuePieActions() {
       // 8. CTG PLATFORM FEE
       if ((params.ctgTokens ?? 0) > 0) {
         try {
-          await supabase.from("gameb_token_transactions" as any).insert({
+          await supabase.from("coin_transactions" as any).insert({
             user_id: null,
             entity_type: "platform",
             entity_id: "ctg",
@@ -282,7 +282,7 @@ export function useValuePieActions() {
       if (params.territoryId && (params.territoryTokens ?? 0) > 0) parts.push("territoire");
       if ((params.ctgTokens ?? 0) > 0) parts.push("CTG");
 
-      toast({ title: "🟩 Value Pie distribué!", description: parts.join(" + ") });
+      toast({ title: "🟩 Value Pie distributed!", description: parts.join(" + ") });
       qc.invalidateQueries({ queryKey: ["quest-value-pie"] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
       qc.invalidateQueries({ queryKey: ["guild-ovn-data"] });

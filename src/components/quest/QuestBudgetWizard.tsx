@@ -326,7 +326,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Switch id="bw-fundraising" checked={props.allowFundraising} onCheckedChange={props.setAllowFundraising} />
                 <Label htmlFor="bw-fundraising" className="text-xs font-medium flex items-center gap-1">
                   Community fundraising
-                  <Tip>Allow others to contribute GameB Tokens to this quest's budget.</Tip>
+                  <Tip>Allow others to contribute Coins to this quest's budget.</Tip>
                 </Label>
               </div>
             </div>
