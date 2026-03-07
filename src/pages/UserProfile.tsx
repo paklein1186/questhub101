@@ -48,6 +48,7 @@ import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant"
 import { TrustTab } from "@/components/trust/TrustTab";
 import { GuestContentGate } from "@/components/GuestContentGate";
 import { GraphView } from "@/components/graph/GraphView";
+import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
 import { LivingTab } from "@/components/living/LivingTab";
 import { Leaf } from "lucide-react";
 
