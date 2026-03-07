@@ -83,6 +83,7 @@ export function ContributionLogPanel({
   const [expanded, setExpanded] = useState(true);
   const [distributing, setDistributing] = useState(false);
   const [advancedMode, setAdvancedMode] = useState(false);
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
 
   // Form state
   const [formType, setFormType] = useState<ContributionType>("documentation");
