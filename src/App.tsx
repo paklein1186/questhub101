@@ -92,11 +92,7 @@ import MyCompanies from "./pages/MyCompanies";
 import SearchPage from "./pages/SearchPage";
 import ErrorPage from "./pages/ErrorPage";
 import OnboardingChecklist from "./pages/OnboardingChecklist";
-import TermsPage from "./pages/TermsPage";
-import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
-import ServicesMarketplace from "./pages/ServicesMarketplace";
-import CoursesExplore from "./pages/CoursesExplore";
 import CourseDetail from "./pages/CourseDetail";
 import CourseCreate from "./pages/CourseCreate";
 import LessonView from "./pages/LessonView";
@@ -112,7 +108,7 @@ import MyFollowing from "./pages/MyFollowing";
 import AboutPage from "./pages/AboutPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import SupportPage from "./pages/SupportPage";
-import ContactPage from "./pages/ContactPage";
+
 import SecurityPage from "./pages/SecurityPage";
 import QuestsInfoPage from "./pages/QuestsInfoPage";
 import GuildsInfoPage from "./pages/GuildsInfoPage";
@@ -128,12 +124,8 @@ import AIInfoPage from "./pages/AIInfoPage";
 import TerritoryAgentsInfoPage from "./pages/TerritoryAgentsInfoPage";
 import AIEthicsPage from "./pages/AIEthicsPage";
 import CommunityGuidelinesPage from "./pages/CommunityGuidelinesPage";
-import GovernancePage from "./pages/GovernancePage";
 import RoadmapPage from "./pages/RoadmapPage";
 import BugReportingPage from "./pages/BugReportingPage";
-import ManifestoPage from "./pages/ManifestoPage";
-import CooperativeVenturePage from "./pages/CooperativeVenturePage";
-import WhatComesNextPage from "./pages/WhatComesNextPage";
 import VisionHub from "./pages/VisionHub";
 import EcosystemHub from "./pages/EcosystemHub";
 import LegalHub from "./pages/LegalHub";
@@ -148,10 +140,6 @@ import OrganizationOnboarding from "./pages/OrganizationOnboarding";
 import OrganizationNextSteps from "./pages/OrganizationNextSteps";
 import ProfileEnrichment from "./pages/ProfileEnrichment";
 import SharesPage from "./pages/SharesPage";
-import RevenueModelsPage from "./pages/RevenueModelsPage";
-import CreditEconomyPage from "./pages/CreditEconomyPage";
-import UseCasesPage from "./pages/UseCasesPage";
-import ProductVisionPage from "./pages/ProductVisionPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryDetail";
 import InboxPage from "./pages/InboxPage";
@@ -181,7 +169,7 @@ const App = () => (
     <TooltipProvider>
       <AuthProvider>
         <CurrentUserProvider>
-          <NotificationProvider currentUserId="">
+          <NotificationProvider currentUserId="">{/* userId resolved from auth session inside provider */}
             <PersonaThemeProvider>
             <ChatBubbleProvider>
             <PiPanelProvider>
@@ -306,7 +294,7 @@ const App = () => (
                 <Route path="/profile/enrich" element={<RequireAuth><ProfileEnrichment /></RequireAuth>} />
                 <Route path="/me/bookings" element={<RequireAuth><MyBookings /></RequireAuth>} />
                 <Route path="/me/requests" element={<RequireAuth><MyRequests /></RequireAuth>} />
-                <Route path="/me/guilds" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+                <Route path="/me/guilds" element={<RequireAuth><MyGuilds /></RequireAuth>} />
                 <Route path="/me/availability" element={<RequireAuth><MyAvailability /></RequireAuth>} />
                 <Route path="/me/services" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
