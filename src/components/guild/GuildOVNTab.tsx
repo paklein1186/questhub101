@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 const PIE_COLORS = [
   "hsl(142, 70%, 45%)", "hsl(200, 70%, 50%)", "hsl(262, 60%, 55%)",
@@ -72,9 +72,9 @@ const TASK_TYPE_EMOJI: Record<string, string> = {
 };
 
 const TASK_TYPE_EXAMPLES: Record<string, string> = {
-  research: "Analyse documentaire", facilitation: "Animation d'atelier", coordination: "Planification sprint",
-  creative: "Création visuelle", admin: "Gestion administrative", risk: "Évaluation des risques",
-  development: "Code & intégration", design: "Maquettes UI/UX", testing: "Tests & QA", documentation: "Rédaction docs",
+  research: "Document analysis", facilitation: "Workshop facilitation", coordination: "Sprint planning",
+  creative: "Visual creation", admin: "Administrative management", risk: "Risk assessment",
+  development: "Code & integration", design: "UI/UX mockups", testing: "Testing & QA", documentation: "Documentation writing",
 };
 
 export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Props) {
@@ -106,18 +106,18 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         guild_id: guildId,
         proposed_by: currentUserId,
         type: "weight_change",
-        title: `Modifier le poids de ${proposalTaskType} de ${currentWeightForProposal} à ${proposalWeight}`,
+        title: `Change weight of ${proposalTaskType} from ${currentWeightForProposal} to ${proposalWeight}`,
         description: proposalJustification,
         status: "open",
       });
       if (error) throw error;
-      toast({ title: "Proposition soumise aux membres de la guilde" });
+      toast({ title: "Proposal submitted to guild members" });
       setShowProposalDialog(false);
       setProposalTaskType("");
       setProposalWeight("1.0");
       setProposalJustification("");
     } catch (e) {
-      toast({ title: "Erreur", description: "Impossible de soumettre la proposition", variant: "destructive" });
+      toast({ title: "Error", description: "Unable to submit the proposal", variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -383,7 +383,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
               className="h-7 text-xs px-2.5"
               onClick={() => setPeriod(p)}
             >
-              {p === "7d" ? "7j" : p === "30d" ? "30j" : p === "90d" ? "90j" : "Tout"}
+              {p === "7d" ? "7d" : p === "30d" ? "30d" : p === "90d" ? "90d" : "All"}
             </Button>
           ))}
         </div>
@@ -423,7 +423,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <CardContent className="p-4 text-center">
             <span className="text-lg mx-auto mb-1 block">🏛️</span>
             <p className="text-2xl font-bold text-violet-600">{totalGuildShare.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">🟩 Tokens (part guilde)</p>
+            <p className="text-[10px] text-muted-foreground">🟩 Tokens (guild share)</p>
           </CardContent>
         </Card>
       </div>
@@ -431,9 +431,9 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       {/* Velocity indicator */}
       <div className="flex items-center gap-2 text-xs">
         <Gauge className="h-4 w-4 text-muted-foreground" />
-        <span className="text-muted-foreground">Vélocité :</span>
+        <span className="text-muted-foreground">Velocity:</span>
         <span className={`font-semibold ${velocityTrend === "up" ? "text-emerald-600" : velocityTrend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
-          {currentVelocity.toFixed(1)} wu/semaine
+          {currentVelocity.toFixed(1)} wu/week
         </span>
         {velocityTrend === "up" && <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
         {velocityTrend === "down" && <TrendingDown className="h-3.5 w-3.5 text-red-500" />}
@@ -515,7 +515,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     <span className="truncate">{c.name}</span>
                     <Badge variant="secondary" className="text-[9px]">{c.contribution_count}</Badge>
                     {recentIds.has(c.user_id) && (
-                      <Badge variant="default" className="text-[9px] bg-emerald-500">Actif</Badge>
+                      <Badge variant="default" className="text-[9px] bg-emerald-500">Active</Badge>
                     )}
                   </div>
                   <span className="text-right font-medium">{c.total_weighted_units.toFixed(1)}</span>
@@ -555,8 +555,8 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
             <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
               <span>Quest</span>
               <span className="text-right">Budget</span>
-              <span className="text-right">Part Guilde</span>
-              <span className="text-right">Vérif.</span>
+              <span className="text-right">Guild Share</span>
+              <span className="text-right">Verif.</span>
               <span className="text-right">Contributors</span>
               <span className="text-right">Territory</span>
               <span className="text-right">Status</span>
@@ -672,23 +672,23 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                ⚖️ Barème de valeur de la guilde
+                ⚖️ Guild Value Scale
               </CardTitle>
             </CardHeader>
             <CardContent>
               {!hasCustomWeights && (
                 <p className="text-xs text-muted-foreground mb-3 italic">
-                  Barème par défaut — toutes les tâches valent 1.0
+                  Default scale — all tasks are worth 1.0
                 </p>
               )}
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground">
-                      <th className="text-left py-1.5 font-medium">Type de tâche</th>
-                      <th className="text-center py-1.5 font-medium w-10">Icône</th>
-                      <th className="text-right py-1.5 font-medium">Multiplicateur</th>
-                      <th className="text-right py-1.5 font-medium">Exemple</th>
+                       <th className="text-left py-1.5 font-medium">Task Type</th>
+                      <th className="text-center py-1.5 font-medium w-10">Icon</th>
+                      <th className="text-right py-1.5 font-medium">Multiplier</th>
+                      <th className="text-right py-1.5 font-medium">Example</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -711,13 +711,13 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                   className="text-xs mt-2 p-0 h-auto"
                   onClick={() => setShowProposalDialog(true)}
                 >
-                  Proposer un changement
+                  Propose a change
                 </Button>
               )}
 
               {lastUpdated && lastUpdated !== "" && (
                 <p className="text-[10px] text-muted-foreground mt-2">
-                  Dernière modification : {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true, locale: fr })}
+                  Last modified: {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true, locale: enUS })}
                 </p>
               )}
             </CardContent>
@@ -731,15 +731,15 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       <Dialog open={showProposalDialog} onOpenChange={setShowProposalDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Proposer un changement de barème</DialogTitle>
-            <DialogDescription>Soumettez une modification du multiplicateur pour un type de tâche.</DialogDescription>
+            <DialogTitle>Propose a scale change</DialogTitle>
+            <DialogDescription>Submit a multiplier change for a task type.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-xs mb-1 block">Type de tâche</Label>
+              <Label className="text-xs mb-1 block">Task type</Label>
               <Select value={proposalTaskType} onValueChange={setProposalTaskType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choisir un type…" />
+                  <SelectValue placeholder="Choose a type…" />
                 </SelectTrigger>
                 <SelectContent>
                   {DEFAULT_TASK_TYPES.map((t) => (
@@ -751,7 +751,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
               </Select>
             </div>
             <div>
-              <Label className="text-xs mb-1 block">Nouveau multiplicateur (0.5 – 5.0)</Label>
+              <Label className="text-xs mb-1 block">New multiplier (0.5 – 5.0)</Label>
               <Input
                 type="number"
                 min={0.5}
@@ -762,22 +762,22 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
               />
             </div>
             <div>
-              <Label className="text-xs mb-1 block">Justification (min 20 caractères)</Label>
+              <Label className="text-xs mb-1 block">Justification (min 20 characters)</Label>
               <Textarea
                 value={proposalJustification}
                 onChange={(e) => setProposalJustification(e.target.value)}
-                placeholder="Expliquez pourquoi ce changement est pertinent…"
+                placeholder="Explain why this change is relevant…"
                 className="min-h-[80px]"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowProposalDialog(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => setShowProposalDialog(false)}>Cancel</Button>
             <Button
               onClick={handleSubmitProposal}
               disabled={submitting || !proposalTaskType || proposalJustification.length < 20}
             >
-              Soumettre
+              Submit
             </Button>
           </DialogFooter>
         </DialogContent>
