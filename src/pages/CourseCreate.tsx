@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -122,6 +123,24 @@ export default function CourseCreate() {
       // Update topics/territories
       selectedTopics.forEach((topicId, i) => courseTopics.push({ id: `crst-${Date.now()}-${i}`, courseId: newCourse.id, topicId }));
       selectedTerritories.forEach((territoryId, i) => courseTerritories.push({ id: `crtr-${Date.now()}-${i}`, courseId: newCourse.id, territoryId }));
+      // Notify entity followers/members
+      if (providerType === "guild" && providerGuildId) {
+        const g = guilds.find(g => g.id === providerGuildId);
+        notifyEntityFollowersAndMembers({
+          entityType: "GUILD", entityId: providerGuildId, entityName: g?.name || "your guild",
+          actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_COURSE",
+          title: `New course: ${title.trim()}`, body: `A new course was added in ${g?.name || "your guild"}`,
+          deepLinkUrl: `/courses/${newCourse.id}`,
+        });
+      } else if (providerType === "company" && providerCompanyId) {
+        const c = companies.find(c => c.id === providerCompanyId);
+        notifyEntityFollowersAndMembers({
+          entityType: "COMPANY", entityId: providerCompanyId, entityName: c?.name || "your organization",
+          actorUserId: currentUser.id, notifType: "FOLLOWED_ENTITY_NEW_COURSE",
+          title: `New course: ${title.trim()}`, body: `A new course was added in ${c?.name || "your organization"}`,
+          deepLinkUrl: `/courses/${newCourse.id}`,
+        });
+      }
       toast({ title: "Course created!" });
       navigate(`/courses/${newCourse.id}/edit`);
       return;
