@@ -332,6 +332,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                   <span className="text-xs text-muted-foreground font-normal">(credits, $CTG, or fiat)</span>
                 </label>
               </div>
+            )}
 
             {config.showMonetization && (
               <div>
