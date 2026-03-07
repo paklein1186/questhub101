@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.pi-cognitive]
 verify_jwt = false
+
+[functions.send-welcome-email]
+verify_jwt = false

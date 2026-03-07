@@ -3,11 +3,15 @@
  * 
  * Minimal email layer for key platform events.
  * These are template generators that return email objects ready
- * to be sent via any email provider (Resend, etc.) once a backend is connected.
+ * to be sent via the send-notification-email edge function (preferred for server-side)
+ * or any email provider directly.
  * 
- * For now, they log to console and can be called from notification hooks.
+ * For server-side use, prefer the send-notification-email edge function
+ * which handles Resend delivery and idempotency.
+ * For client-side use, sendEmail() routes through the edge function automatically.
  */
 
+import { supabase } from "@/integrations/supabase/client";
 import type { User, Booking, Quest, QuestUpdate, Service } from "@/types";
 
 export interface EmailMessage {
@@ -17,7 +21,7 @@ export interface EmailMessage {
 }
 
 const APP_NAME = "changethegame";
-const BASE_URL = window?.location?.origin ?? "https://www.changethegame.xyz";
+const BASE_URL = "https://changethegame.xyz";
 
 function wrapTemplate(body: string): string {
   return `
@@ -132,9 +136,30 @@ export function questDigestEmail(
   };
 }
 
-// ─── Send helper (mock for now) ──────────────────────────────
+// ─── Send helper — routes through edge function ──────────────
+// For client-side use: invokes the send-notification-email edge function.
+// For server-side (edge functions), use Resend directly with RESEND_API_KEY.
 
-export function sendEmail(email: EmailMessage): void {
-  console.log(`📧 [EMAIL] To: ${email.to} | Subject: ${email.subject}`);
-  console.log(`📧 [EMAIL] Body preview:`, email.html.slice(0, 200) + "…");
+export async function sendEmail(email: EmailMessage): Promise<void> {
+  console.log(`📧 [EMAIL] Sending to: ${email.to} | Subject: ${email.subject}`);
+
+  try {
+    const { error } = await supabase.functions.invoke("send-notification-email", {
+      body: {
+        to: email.to,
+        subject: email.subject,
+        html: email.html,
+      },
+    });
+
+    if (error) {
+      console.error("📧 [EMAIL] Edge function error:", error);
+      throw error;
+    }
+
+    console.log(`📧 [EMAIL] Successfully queued for ${email.to}`);
+  } catch (err) {
+    console.error("📧 [EMAIL] Failed to send:", err);
+    // Log but don't throw — email failures shouldn't break app flow
+  }
 }

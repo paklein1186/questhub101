@@ -585,6 +585,11 @@ export default function Onboarding() {
         }
       }
 
+      // Send welcome email (fire-and-forget)
+      supabase.functions.invoke("send-welcome-email", {
+        body: { userId: authUser.id },
+      });
+
       await refreshProfile();
       setDirection(1);
       setStep(lastStepIndex);
