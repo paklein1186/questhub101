@@ -943,7 +943,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
           relatedEntityType: targetType,
           relatedEntityId: targetId,
           deepLinkUrl: deepLink,
-          alwaysSend: true,
+          
         });
         if (uniqueIds.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
