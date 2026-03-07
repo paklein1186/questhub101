@@ -84,7 +84,7 @@ const TABS = [
   { key: "referrals", label: "settings.referrals", icon: UserCircle },
   { key: "apps", label: "settings.apps", icon: Plug },
   { key: "history", label: "Activity History", icon: History },
-  { key: "ovn", label: "Mon OVN", icon: Scale },
+  { key: "ovn", label: "My Contributions", icon: Scale },
   { key: "giveback", label: "Give-back", icon: Heart },
   { key: "website", label: "Website", icon: Globe },
 ];
