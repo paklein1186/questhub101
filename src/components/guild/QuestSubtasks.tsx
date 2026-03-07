@@ -129,25 +129,39 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       }
     }
 
-    // Auto-insert contribution log with contribution_weight
+    // Auto-insert contribution log with deduplication
     try {
       const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
       const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
       const weightedUnits = baseUnits * weightFactor;
+      const logTitle = "✓ " + (subtask?.title || "");
 
-      supabase.from("contribution_logs" as any).insert({
-        user_id: assigneeId,
-        quest_id: questId,
-        guild_id: guildId || null,
-        subtask_id: subtaskId,
-        contribution_type: "subtask_completed",
-        title: "Sous-tâche complétée : " + (subtask?.title || ""),
-        task_type: "general",
-        base_units: baseUnits,
-        weight_factor: weightFactor,
-        weighted_units: weightedUnits,
-        ip_licence: "CC-BY-SA",
-      } as any).then(() => {});
+      // Deduplication guard
+      const { data: existing } = await supabase
+        .from("contribution_logs" as any)
+        .select("id")
+        .eq("quest_id", questId)
+        .eq("user_id", assigneeId)
+        .eq("contribution_type", "subtask_completed")
+        .eq("title", logTitle)
+        .limit(1);
+
+      if (!existing || existing.length === 0) {
+        await supabase.from("contribution_logs" as any).insert({
+          user_id: assigneeId,
+          quest_id: questId,
+          guild_id: guildId || null,
+          subtask_id: subtaskId,
+          contribution_type: "subtask_completed",
+          title: logTitle,
+          task_type: "general",
+          base_units: baseUnits,
+          weight_factor: weightFactor,
+          weighted_units: weightedUnits,
+          ip_licence: "CC-BY-SA",
+        } as any);
+        qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
+      }
     } catch (e) {
       console.error("Failed to log contribution from subtask", e);
     }
@@ -263,7 +277,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           if (isPending) {
             return (
               <div key={subtask.id} className="flex items-center gap-2 rounded-md border border-border bg-emerald-500/5 p-2">
-                <span className="flex-1 text-sm text-muted-foreground line-through">{subtask.title}</span>
+                <div className="flex-1">
+                  <span className="text-sm text-muted-foreground line-through">{subtask.title}</span>
+                  <span className="block text-[10px] text-amber-600">Contribution automatically logged</span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"

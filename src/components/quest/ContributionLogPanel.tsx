@@ -492,8 +492,8 @@ export function ContributionLogPanel({
           <ValuePieChart questId={questId} />
 
           {/* IP Licence note */}
-          <p className="text-[10px] text-muted-foreground">
-            All contributions are attributed and licensed under CC-BY-SA by default. Your work is immutably recorded.
+           <p className="text-[10px] text-muted-foreground">
+            All contributions are attributed under CC-BY-SA. $CTG token rewards are distributed proportionally to weighted contribution units.
           </p>
         </>
       )}
@@ -533,7 +533,7 @@ export function ContributionLogPanel({
               <div className="grid grid-cols-[1fr_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
                 <span>Contributeur</span>
                 <span className="text-right">Part %</span>
-                <span className="text-right">🟩 Tokens</span>
+                <span className="text-right">🟡 $CTG</span>
               </div>
               {previewData.map((p) => (
                 <div key={p.userId} className="grid grid-cols-[1fr_auto_auto] gap-2 text-xs items-center">
@@ -560,7 +560,7 @@ export function ContributionLogPanel({
               }}
               disabled={distributing}
             >
-              <Scale className="h-3 w-3" /> {distributing ? "Distributing…" : "Confirm and distribute"}
+              <Scale className="h-3 w-3" /> {distributing ? "Distributing $CTG…" : "Confirm and distribute"}
             </Button>
           </DialogFooter>
         </DialogContent>
