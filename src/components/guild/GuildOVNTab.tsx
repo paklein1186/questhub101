@@ -157,16 +157,41 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
     },
   });
 
+  const periodDays = period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 0;
+
   // 2. Fetch contribution_logs for these quests
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["guild-ovn-data", guildId, questIds],
+    queryKey: ["guild-ovn-data", guildId, questIds, period],
     enabled: questIds.length > 0,
     queryFn: async () => {
-      // Contribution logs
-      const { data: contribs } = await supabase
+      // Contribution logs (with period filter)
+      let contribQuery = supabase
         .from("contribution_logs" as any)
         .select("user_id, quest_id, weighted_units, xp_earned, task_type, hours_logged, created_at, status")
         .in("quest_id", questIds);
+
+      if (period !== "all") {
+        const since = new Date();
+        since.setDate(since.getDate() - periodDays);
+        contribQuery = contribQuery.gte("created_at", since.toISOString());
+      }
+      const { data: contribs } = await contribQuery;
+
+      // Previous period contribs (for velocity comparison)
+      let prevContribs: any[] = [];
+      if (period !== "all" && periodDays > 0) {
+        const prevEnd = new Date();
+        prevEnd.setDate(prevEnd.getDate() - periodDays);
+        const prevStart = new Date();
+        prevStart.setDate(prevStart.getDate() - periodDays * 2);
+        const { data: prev } = await supabase
+          .from("contribution_logs" as any)
+          .select("weighted_units")
+          .in("quest_id", questIds)
+          .gte("created_at", prevStart.toISOString())
+          .lt("created_at", prevEnd.toISOString());
+        prevContribs = prev || [];
+      }
 
       // Value pie logs
       const { data: pieLogs } = await supabase
