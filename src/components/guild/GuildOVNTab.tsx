@@ -40,6 +40,7 @@ interface QuestAgg {
   contributor_count: number;
   guild_share: number;
   value_pie_calculated: boolean;
+  verification_ratio: number | null;
 }
 
 interface TaskTypeAgg {
@@ -98,7 +99,7 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
       // Contribution logs
       const { data: contribs } = await supabase
         .from("contribution_logs" as any)
-        .select("user_id, quest_id, weighted_units, xp_earned, task_type, hours_logged, created_at")
+        .select("user_id, quest_id, weighted_units, xp_earned, task_type, hours_logged, created_at, status")
         .in("quest_id", questIds);
 
       // Value pie logs
@@ -189,6 +190,9 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
     const budget = Number(q.gameb_token_budget) || 0;
     const guildPct = q.guild_percent != null ? Number(q.guild_percent) : 15;
     const guildShare = Math.round(budget * (guildPct / 100) * 100) / 100;
+    const totalCount = qContribs.length;
+    const verifiedCount = qContribs.filter((c: any) => c.status === "verified").length;
+    const verificationRatio = totalCount > 0 ? Math.round(verifiedCount / totalCount * 100) : null;
     return {
       quest_id: q.id,
       quest_title: q.title,
@@ -197,6 +201,7 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
       contributor_count: uniqueContributors,
       guild_share: guildShare,
       value_pie_calculated: q.value_pie_calculated || false,
+      verification_ratio: verificationRatio,
     };
   });
 
@@ -410,30 +415,38 @@ export function GuildOVNTab({ guildId, guildName }: Props) {
             </div>
           )}
           <div className="space-y-1">
-            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
+            <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1">
               <span>Quest</span>
               <span className="text-right">Budget</span>
               <span className="text-right">Part Guilde</span>
+              <span className="text-right">Vérif.</span>
               <span className="text-right">Contributors</span>
               <span className="text-right">Territory</span>
               <span className="text-right">Status</span>
             </div>
-            {questAggs.map((q) => (
-              <Link
-                key={q.quest_id}
-                to={`/quests/${q.quest_id}`}
-                className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
-              >
-                <span className="truncate">{q.quest_title}</span>
-                <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
-                <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
-                <span className="text-right">{q.contributor_count}</span>
-                <span className="text-right text-muted-foreground">{q.territory_name || "—"}</span>
-                <Badge variant={q.value_pie_calculated ? "default" : "secondary"} className="text-[9px] justify-self-end">
-                  {q.value_pie_calculated ? "Distributed" : "Pending"}
-                </Badge>
-              </Link>
-            ))}
+            {questAggs.map((q) => {
+              const ratioColor = q.verification_ratio === null ? "text-muted-foreground"
+                : q.verification_ratio >= 80 ? "text-emerald-600"
+                : q.verification_ratio >= 50 ? "text-amber-600"
+                : "text-red-500";
+              return (
+                <Link
+                  key={q.quest_id}
+                  to={`/quests/${q.quest_id}`}
+                  className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-2 items-center text-xs hover:bg-muted/50 rounded p-1 transition-colors"
+                >
+                  <span className="truncate">{q.quest_title}</span>
+                  <span className="text-right font-medium text-emerald-600">{q.budget_gameb}</span>
+                  <span className="text-right font-medium text-violet-600">{q.guild_share > 0 ? q.guild_share.toFixed(0) : "—"}</span>
+                  <span className={`text-right font-medium ${ratioColor}`}>{q.verification_ratio !== null ? `${q.verification_ratio}%` : "—"}</span>
+                  <span className="text-right">{q.contributor_count}</span>
+                  <span className="text-right text-muted-foreground">{q.territory_name || "—"}</span>
+                  <Badge variant={q.value_pie_calculated ? "default" : "secondary"} className="text-[9px] justify-self-end">
+                    {q.value_pie_calculated ? "Distributed" : "Pending"}
+                  </Badge>
+                </Link>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
