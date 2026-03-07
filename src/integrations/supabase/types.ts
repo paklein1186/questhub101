@@ -3722,6 +3722,38 @@ export type Database = {
           },
         ]
       }
+      guild_wallets: {
+        Row: {
+          created_at: string
+          gameb_balance: number
+          guild_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gameb_balance?: number
+          guild_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gameb_balance?: number
+          guild_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guild_wallets_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: true
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guilds: {
         Row: {
           allow_agent_crawling: boolean
@@ -7268,6 +7300,7 @@ export type Database = {
           feedpoint_default_posts: boolean
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
+          gameb_balance: number
           gameb_tokens_balance: number
           geojson: Json | null
           granularity:
@@ -7303,6 +7336,7 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
+          gameb_balance?: number
           gameb_tokens_balance?: number
           geojson?: Json | null
           granularity?:
@@ -7338,6 +7372,7 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
+          gameb_balance?: number
           gameb_tokens_balance?: number
           geojson?: Json | null
           granularity?:
@@ -7762,6 +7797,48 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "territory_summaries_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      territory_token_flows: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          quest_id: string | null
+          territory_id: string
+          type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          quest_id?: string | null
+          territory_id: string
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          quest_id?: string | null
+          territory_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "territory_token_flows_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "territory_token_flows_territory_id_fkey"
             columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
