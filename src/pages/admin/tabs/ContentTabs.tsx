@@ -101,7 +101,7 @@ export function UsersRolesTab() {
               <TableRow key={p.user_id}>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{p.email}</TableCell>
-                <TableCell><Badge variant="secondary" className="capitalize text-xs">{p.role?.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                <TableCell><Badge variant="secondary" className="capitalize text-xs">{p.role?.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                 <TableCell className="text-right">
                   {editingId === p.user_id ? <Input type="number" value={editXp} onChange={(e) => setEditXp(Number(e.target.value))} className="w-20 h-8 text-right ml-auto" /> : p.xp}
                 </TableCell>
@@ -964,7 +964,7 @@ export function ModerationTab() {
                   <TableRow key={c.id} className={c.is_deleted ? "opacity-50" : ""}>
                     <TableCell className="font-medium text-sm">{c._author}</TableCell>
                     <TableCell className="text-sm max-w-xs truncate">{c.content}</TableCell>
-                    <TableCell><Badge variant="outline" className="capitalize text-xs">{c.target_type?.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                    <TableCell><Badge variant="outline" className="capitalize text-xs">{c.target_type?.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                     <TableCell className="text-right">{c.upvote_count}</TableCell>
                     <TableCell>
                       <Button size="sm" variant={c.is_deleted ? "destructive" : "ghost"} className="h-7 px-2 text-xs" onClick={() => toggleCommentVisibility(c.id, c.is_deleted)}>

@@ -985,7 +985,7 @@ export default function UserProfile() {
                       <h4 className="font-display font-semibold truncate">{pm.pod?.name}</h4>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Badge variant="secondary" className="text-[10px] capitalize">{pm.role?.toLowerCase()}</Badge>
-                        <Badge variant="outline" className="text-[10px] capitalize">{pm.pod?.type?.toLowerCase().replace("_", " ")}</Badge>
+                        <Badge variant="outline" className="text-[10px] capitalize">{pm.pod?.type?.toLowerCase().replace(/_/g, " ")}</Badge>
                       </div>
                     </div>
                   </div>

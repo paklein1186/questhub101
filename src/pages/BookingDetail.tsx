@@ -83,7 +83,7 @@ export default function BookingDetail() {
             </h1>
           </div>
           <Badge className={`${statusColors[booking.status] || ""} border-0 capitalize text-sm px-3 py-1`}>
-            {booking.status.toLowerCase().replace("_", " ")}
+            {booking.status.toLowerCase().replace(/_/g, " ")}
           </Badge>
         </div>
 
@@ -117,7 +117,7 @@ export default function BookingDetail() {
           <section className="rounded-xl border border-border bg-card p-5 mb-4">
             <h2 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Payment</h2>
             <p className="text-sm">
-              💰 €{booking.amount} {booking.currency} — <span className="capitalize">{booking.payment_status?.toLowerCase().replace("_", " ") || "N/A"}</span>
+              💰 €{booking.amount} {booking.currency} — <span className="capitalize">{booking.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</span>
             </p>
           </section>
         )}

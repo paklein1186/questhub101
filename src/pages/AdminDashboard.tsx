@@ -145,7 +145,7 @@ function UsersRolesTab() {
                   <TableCell className="font-medium">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{p.email}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="capitalize text-xs">{p.role?.toLowerCase().replace("_", " ")}</Badge>
+                    <Badge variant="secondary" className="capitalize text-xs">{p.role?.toLowerCase().replace(/_/g, " ")}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {editingId === p.user_id ? (
@@ -312,7 +312,7 @@ function QuestsTab() {
           <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            {Object.values(QuestStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}
+            {Object.values(QuestStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace(/_/g, " ")}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={monetizationFilter} onValueChange={setMonetizationFilter}>
@@ -357,7 +357,7 @@ function QuestsTab() {
                 <TableRow key={quest.id}>
                   <TableCell className="font-medium">{quest.title}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{guild?.name}</TableCell>
-                  <TableCell><Badge variant="outline" className="capitalize text-xs">{quest.status.toLowerCase().replace("_", " ")}</Badge></TableCell>
+                  <TableCell><Badge variant="outline" className="capitalize text-xs">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge></TableCell>
                   <TableCell><Badge variant="secondary" className="capitalize text-xs">{quest.monetizationType.toLowerCase()}</Badge></TableCell>
                   <TableCell className="text-right">{quest.rewardXp}</TableCell>
                   <TableCell><Switch checked={quest.isFeatured} onCheckedChange={() => toggleFeatured(quest.id)} /></TableCell>
@@ -878,7 +878,7 @@ function MarketplaceTab() {
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              {Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace("_", " ")}</SelectItem>)}
+              {Object.values(BookingStatus).map((s) => <SelectItem key={s} value={s}>{s.toLowerCase().replace(/_/g, " ")}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>

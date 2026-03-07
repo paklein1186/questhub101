@@ -131,7 +131,7 @@ export default function PodDetail() {
           {pod.type === "QUEST_POD"
             ? <Compass className="h-5 w-5 text-primary" />
             : <BookOpen className="h-5 w-5 text-primary" />}
-          <Badge variant="secondary" className="capitalize">{pod.type.replace("_", " ").toLowerCase()}</Badge>
+          <Badge variant="secondary" className="capitalize">{pod.type.replace(/_/g, " ").toLowerCase()}</Badge>
         </div>
         <h1 className="font-display text-3xl font-bold">{pod.name}</h1>
         {pod.description && (
