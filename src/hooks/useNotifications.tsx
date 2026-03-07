@@ -1052,6 +1052,21 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [userId, addNotification]);
 
+  // ── Trigger: Contribution logged for another user ──
+
+  const notifyContributionLogged = useCallback(async ({ contributorUserId, questTitle, amount, unit, entityName }: any) => {
+    if (contributorUserId === userId) return;
+    await addNotification({
+      userId: contributorUserId,
+      type: NotificationType.CONTRIBUTION_LOGGED,
+      title: "Contribution recorded",
+      body: `${amount} ${unit} logged for "${questTitle}" in ${entityName}`,
+      relatedEntityType: "GUILD",
+      relatedEntityId: entityName,
+      deepLinkUrl: "/me?tab=contributions",
+    });
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
