@@ -284,7 +284,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   // ── Velocity ──────────────────────────────────────────────
   const effectiveDays = periodDays > 0 ? periodDays : Math.max(1, contribs.length > 0
-    ? (now - new Date(contribs[contribs.length - 1].created_at).getTime()) / 86400000
+    ? (now - new Date((contribs as any[])[contribs.length - 1].created_at).getTime()) / 86400000
     : 1);
   const currentVelocity = effectiveDays > 0 ? totalWeightedUnits / (effectiveDays / 7) : 0;
   const prevWu = prevContribs.reduce((s: number, c: any) => s + (Number(c.weighted_units) || 0), 0);
