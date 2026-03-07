@@ -525,8 +525,30 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         const { data } = await supabase.from("quests").select("created_by_user_id").eq("id", targetId).maybeSingle();
         ownerUserId = data?.created_by_user_id ?? null;
       } else if (targetType === "GUILD") {
-        const { data } = await supabase.from("guild_members").select("user_id").eq("guild_id", targetId).eq("role", "ADMIN").limit(1);
-        ownerUserId = data?.[0]?.user_id ?? null;
+        // Notify ALL guild admins, not just one
+        const { data: admins } = await supabase.from("guild_members").select("user_id").eq("guild_id", targetId).eq("role", "ADMIN").limit(10);
+        const actorName = await resolveActorName(commentAuthorId);
+        const truncated = (commentSnippet || "").slice(0, 60);
+        for (const admin of admins ?? []) {
+          if (admin.user_id === commentAuthorId) continue;
+          await addNotification({
+            userId: admin.user_id,
+            type: NotificationType.COMMENT,
+            title: "New comment",
+            body: `${actorName} commented on your guild: "${truncated}"`,
+            relatedEntityType: targetType,
+            relatedEntityId: commentId,
+            deepLinkUrl: buildNotifDeepLink(targetType, targetId),
+            data: { targetType, targetId, commentId },
+          });
+        }
+        return; // handled, skip single-owner path
+      } else if (targetType === "POD") {
+        const { data: podAdmins } = await supabase.from("pod_members" as any).select("user_id").eq("pod_id", targetId).eq("role", "HOST").limit(5);
+        ownerUserId = (podAdmins as any)?.[0]?.user_id ?? null;
+      } else if (targetType === "GUILD_EVENT" || targetType === "EVENT") {
+        const { data: evData } = await supabase.from("guild_events" as any).select("created_by_user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = (evData as any)?.created_by_user_id ?? null;
       } else if (targetType === "SERVICE") {
         const { data } = await supabase.from("services").select("provider_user_id").eq("id", targetId).maybeSingle();
         ownerUserId = data?.provider_user_id ?? null;
