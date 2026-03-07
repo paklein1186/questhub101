@@ -209,38 +209,61 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
   );
 }
 
-/** Clustered subtabs: Chat & AI, Matchmaker, Facilitator, Memory, Agents */
-function AIGuidanceCluster({ guild, isAdmin, isMember }: {
+/** AI Studio — single panel with internal mode toggle instead of nested tabs */
+type AIMode = "chat" | "facilitate" | "memory" | "matchmaker" | "agents";
+
+function AIStudioPanel({ guild, isAdmin, isMember }: {
   guild: any; isAdmin: boolean; isMember: boolean;
 }) {
-  const [sub, setSub] = useState("ai-chat");
+  const [mode, setMode] = useState<AIMode>("chat");
+
+  const modes: { key: AIMode; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
+    { key: "chat", label: "Chat", icon: <Bot className="h-3.5 w-3.5" /> },
+    { key: "facilitate", label: "Facilitator", icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { key: "memory", label: "Memory", icon: <Brain className="h-3.5 w-3.5" /> },
+    { key: "matchmaker", label: "Matchmaker", icon: <Sparkles className="h-3.5 w-3.5" />, adminOnly: true },
+    { key: "agents", label: "Agents", icon: <Bot className="h-3.5 w-3.5" />, adminOnly: true },
+  ];
+
+  const visibleModes = modes.filter((m) => !m.adminOnly || isAdmin);
+
   return (
-    <Tabs value={sub} onValueChange={setSub}>
-      <TabsList>
-        <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" />Chat & AI</TabsTrigger>
-        {isAdmin && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" />Matchmaker</TabsTrigger>}
-        <TabsTrigger value="facilitator"><Sparkles className="h-3.5 w-3.5 mr-1" />Facilitator</TabsTrigger>
-        <TabsTrigger value="memory"><Brain className="h-3.5 w-3.5 mr-1" />Memory</TabsTrigger>
-        <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" />Agents</TabsTrigger>
-      </TabsList>
-      <TabsContent value="ai-chat" className="mt-4">
+    <div className="space-y-4">
+      {/* Mode toggle bar */}
+      <div className="inline-flex items-center gap-1 rounded-lg bg-muted p-1">
+        {visibleModes.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === m.key
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {m.icon}
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Active mode content */}
+      {mode === "chat" && (
         <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
-      </TabsContent>
-      {isAdmin && (
-        <TabsContent value="matchmaker" className="mt-4">
-          <MatchmakerPanel matchType="guild" guildId={guild.id} />
-        </TabsContent>
       )}
-      <TabsContent value="facilitator" className="mt-4">
+      {mode === "facilitate" && (
         <FacilitatorPanel entityType="GUILD" entityId={guild.id} entityName={guild.name} isAdmin={isAdmin} />
-      </TabsContent>
-      <TabsContent value="memory" className="mt-4">
+      )}
+      {mode === "memory" && (
         <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
-      </TabsContent>
-      <TabsContent value="agents" className="mt-4">
+      )}
+      {mode === "matchmaker" && isAdmin && (
+        <MatchmakerPanel matchType="guild" guildId={guild.id} />
+      )}
+      {mode === "agents" && isAdmin && (
         <UnitAgentsTab unitType="guild" unitId={guild.id} unitName={guild.name} isAdmin={isAdmin} />
-      </TabsContent>
-    </Tabs>
+      )}
+    </div>
   );
 }
 
@@ -277,7 +300,7 @@ export default function GuildDetail() {
   
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
-  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai-guidance", matchmaker: "ai-guidance", facilitator: "ai-guidance", memory: "ai-guidance", agents: "ai-guidance", board: "overview" };
+  const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", matchmaker: "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-revenue" };
   const rawTab = guildSp.get("tab") || "overview";
   const activeTab = legacyTabMap[rawTab] || rawTab;
   const setActiveTab = (v: string) => setGuildSp(prev => {
@@ -471,13 +494,13 @@ export default function GuildDetail() {
             { value: "human-interactions", label: <><MessageCircle className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Human Interactions</span></>, visible: isMember || ((fc as any).discussionTab && (fc as any).discussionAccess === "public") },
             { value: "services", label: <><Briefcase className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Services</span> ({services.length})</> },
             { value: "events", label: <><CalendarDays className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Events</span></>, visible: !!(fc as any).events },
-            { value: "ai-guidance", label: <><Sparkles className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI Guidance</span></>, visible: isMember },
+            { value: "ai", label: <><Bot className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">AI</span></>, visible: isMember },
             { value: "achievements", label: <><Star className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Achievements</span></>, visible: achievements.length > 0 },
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
             { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
             { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span></> },
-            { value: "monetization", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isAdmin },
+            { value: "agent-revenue", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agent Revenue</span></>, visible: isAdmin },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];
           const defaultOrder = allTabs.map((t) => t.value);
@@ -581,7 +604,7 @@ export default function GuildDetail() {
           <GuildOVNTab guildId={guild.id} guildName={guild.name} isMember={isMember} currentUserId={currentUser.id} />
         </TabsContent>
 
-        <TabsContent value="monetization" className="mt-6">
+        <TabsContent value="agent-revenue" className="mt-6">
           <GuildMonetizationTab guildId={guild.id} guildName={guild.name} isAdmin={isAdmin} />
         </TabsContent>
 
@@ -740,10 +763,10 @@ export default function GuildDetail() {
           </TabsContent>
         )}
 
-        {/* AI Guidance — clustered subtabs */}
+        {/* AI Studio — single panel with mode toggle */}
         {isMember && (
-          <TabsContent value="ai-guidance" className="mt-6">
-            <AIGuidanceCluster
+          <TabsContent value="ai" className="mt-6">
+            <AIStudioPanel
               guild={guild}
               isAdmin={isAdmin}
               isMember={isMember}
