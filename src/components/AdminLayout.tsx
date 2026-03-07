@@ -1,7 +1,7 @@
 import { Navigate, Outlet, useLocation, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag,
+  BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag, Sprout,
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
   Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot,
@@ -71,6 +71,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/economy/treasury", label: "Treasury & Revenue", icon: Zap },
       { to: "/admin/economy/milestones", label: "Milestones", icon: Trophy },
       { to: "/admin/economy/agent-billing", label: "Agent Billing", icon: Bot },
+      { to: "/admin/economy/ctg", label: "$CTG Token", icon: Sprout },
     ],
   },
   {
