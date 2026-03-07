@@ -340,18 +340,19 @@ Rules:
         }
 
         // Create in-app notification
-        const highlightsText = (digest.network_highlights ?? []).map((h: any) => `${h.icon} ${h.text}`).join(" • ");
+        const clusterSummary = (digest.clusters ?? [])
+          .map((c: any) => `${c.label}: ${c.items?.length || 0}`)
+          .join(" • ");
         await supabase.from("notifications").insert({
           user_id: userId,
           type: "AI_JOURNEY_DIGEST",
           title: digest.subject ?? "Your network digest",
-          body: highlightsText || "Here's what's happening in your network.",
-          deep_link_url: "/explore",
+          body: clusterSummary || "Here's what's happening in your network.",
+          deep_link_url: digest.cta_url || "/explore",
           is_read: false,
           metadata: {
-            network_highlights: digest.network_highlights,
-            featured_posts: digest.featured_posts,
-            upcoming: digest.upcoming,
+            clusters: digest.clusters,
+            preheader: digest.preheader,
           },
         });
 
