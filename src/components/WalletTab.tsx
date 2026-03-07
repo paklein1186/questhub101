@@ -544,7 +544,7 @@ function ValueTile({
   icon, label, emoji, value, subValue, tooltip, children,
 }: {
   icon: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   emoji: string;
   value?: string | number;
   subValue?: string;

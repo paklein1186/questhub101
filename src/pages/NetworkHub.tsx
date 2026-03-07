@@ -648,6 +648,7 @@ function FollowingFeedTab() {
   const [filter, setFilter] = useState("ALL");
   const [sortMode, setSortMode] = useState<FeedSortMode>("recent");
   const currentUser = useCurrentUser();
+  const { persona } = usePersona();
 
   // Per-user display mode persistence
   const storageKey = currentUser?.id ? `following_display_${currentUser.id}` : null;
