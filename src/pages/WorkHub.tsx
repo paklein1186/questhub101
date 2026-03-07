@@ -9,6 +9,7 @@ import { SortableTabsList, type TabDefinition } from "@/components/SortableTabsL
 import { PageShell } from "@/components/PageShell";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { usePersona } from "@/hooks/usePersona";
+import { SectionBanner, HintTooltip, EmptyHint, HINTS } from "@/components/onboarding/ContextualHint";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,7 @@ export default function WorkHub() {
   const [showMore, setShowMore] = useState(true);
   const tabsListRef = useRef<HTMLDivElement>(null);
   const currentUser = useCurrentUser();
-  const { label } = usePersona();
+  const { label, persona } = usePersona();
 
   const { data: myQuests } = useUserQuestParticipations(currentUser.id || undefined);
   const { data: myPods } = useUserPodMemberships(currentUser.id || undefined);
@@ -91,15 +92,16 @@ export default function WorkHub() {
         <p className="text-muted-foreground mt-1">{t("work.subtitle")}</p>
       </div>
 
+      <SectionBanner {...HINTS.banners.work} />
       <Tabs value={tab} onValueChange={setTab}>
         {(() => {
           const workTabs: TabDefinition[] = [
-            { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.tasks")}</span></> },
+            { value: "tasks", label: <><ListTodo className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">{t("tabs.tasks")}</span><HintTooltip {...HINTS.tooltips.workTasks} /></> },
             { value: "quests", label: <><span className="hidden sm:inline">{t("work.myQuests")}</span><span className="sm:hidden">{t("explore.quests")}</span> ({nonIdeaQuests.length})</> },
-            { value: "ideas", label: <><Lightbulb className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Ideas</span> ({ideasList.length})</> },
-            { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})</> },
+            { value: "ideas", label: <><Lightbulb className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Ideas</span> ({ideasList.length})<HintTooltip {...HINTS.tooltips.workIdeas} /></> },
+            { value: "teams", label: <><span className="hidden sm:inline">{t("tabs.myEntities")}</span><span className="sm:hidden">{t("tabs.teams")}</span> ({teamsList.length})<HintTooltip {...HINTS.tooltips.workTeams} /></> },
             { value: "services", label: <><span className="hidden sm:inline">{t("work.services")}</span><span className="sm:hidden">{t("tabs.services")}</span> ({servicesList.length})</> },
-            { value: "bookings", label: t("tabs.bookings") },
+            { value: "bookings", label: <>{t("tabs.bookings")}<HintTooltip {...HINTS.tooltips.workBookings} /></> },
             { value: "calendar", label: <><Calendar className="h-3.5 w-3.5 sm:mr-1" /> <span className="hidden sm:inline">Calendar</span></> },
             { value: "drafts", label: <>{t("tabs.drafts")} ({totalDrafts})</> },
           ];
@@ -114,11 +116,7 @@ export default function WorkHub() {
         {/* ── Quests ── */}
         <TabsContent value="quests">
           {nonIdeaQuests.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Compass className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground mb-4">No quests yet. Start your first quest!</p>
-              <Button asChild><Link to="/quests/new"><Plus className="h-4 w-4 mr-1" /> Create Quest</Link></Button>
-            </div>
+            <EmptyHint {...HINTS.empty.workQuests} persona={persona} />
           )}
           <div className="grid gap-3 md:grid-cols-2">
             {nonIdeaQuests.map((qp: any, i: number) => (
@@ -173,7 +171,9 @@ export default function WorkHub() {
 
         {/* ── Pods ── */}
         <TabsContent value="teams">
-          {teamsList.length === 0 && <p className="text-muted-foreground">No pods yet. Join a guild, organization, or pod to see them here.</p>}
+          {teamsList.length === 0 && (
+            <EmptyHint {...HINTS.empty.workTeams} persona={persona} />
+          )}
           <div className="grid gap-3 md:grid-cols-2">
             {teamsList.map((item: any, i: number) => {
               const isGuild = item._type === "guild";
@@ -211,11 +211,7 @@ export default function WorkHub() {
         {/* ── Services ── */}
         <TabsContent value="services">
           {servicesList.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CircleDot className="h-10 w-10 text-muted-foreground/40 mb-3" />
-              <p className="text-muted-foreground mb-4">No active services. Offer your first service!</p>
-              <Button asChild><Link to="/me"><Plus className="h-4 w-4 mr-1" /> Create Service</Link></Button>
-            </div>
+            <EmptyHint {...HINTS.empty.workServices} persona={persona} />
           )}
           <div className="grid gap-3 md:grid-cols-2">
             {servicesList.map((svc: any, i: number) => (
