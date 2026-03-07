@@ -69,13 +69,14 @@ export function ContributionLogPanel({
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [distributing, setDistributing] = useState(false);
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Form state
   const [formType, setFormType] = useState<ContributionType>("documentation");
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formHours, setFormHours] = useState("");
-  const [formTaskType, setFormTaskType] = useState<string>("research");
+  const [formTaskType, setFormTaskType] = useState<string>("general");
   const [formBaseUnits, setFormBaseUnits] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -85,16 +86,27 @@ export function ContributionLogPanel({
   const weightMap = useMemo(() => {
     const m = new Map<string, number>();
     guildWeights.forEach((w) => m.set(w.task_type, w.weight_factor));
-    // Fallback defaults
     DEFAULT_TASK_TYPES.forEach((t) => {
       if (!m.has(t)) m.set(t, 1.0);
     });
     return m;
   }, [guildWeights]);
 
-  const currentWeight = weightMap.get(formTaskType) ?? 1.0;
-  const baseUnitsNum = parseFloat(formBaseUnits) || 0;
-  const weightedUnits = Math.round(baseUnitsNum * currentWeight * 100) / 100;
+  // In simple mode, auto-sync base_units = hours, task_type = "general"
+  const effectiveTaskType = advancedMode ? formTaskType : "general";
+  const effectiveBaseUnits = advancedMode ? (parseFloat(formBaseUnits) || 0) : (parseFloat(formHours) || 0);
+  const currentWeight = weightMap.get(effectiveTaskType) ?? 1.0;
+  const weightedUnits = Math.round(effectiveBaseUnits * currentWeight * 100) / 100;
+
+  // Simple mode: estimated tokens
+  const simpleEstimatedTokens = useMemo(() => {
+    if (!questBudgetGamebTokens || questBudgetGamebTokens <= 0) return null;
+    const totalGuildWU = contributions.reduce((s, c) => s + (Number((c as any).weighted_units) || 0), 0) + weightedUnits;
+    if (totalGuildWU <= 0) return null;
+    const overheadPct = (guildPercent + territoryPercent + ctgPercent) / 100;
+    const pool = questBudgetGamebTokens * (1 - overheadPct);
+    return Math.round((weightedUnits / totalGuildWU) * pool * 100) / 100;
+  }, [questBudgetGamebTokens, contributions, weightedUnits, guildPercent, territoryPercent, ctgPercent]);
 
   const handleSubmit = async () => {
     if (!formTitle.trim()) return;
