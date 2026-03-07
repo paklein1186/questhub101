@@ -21,6 +21,8 @@ interface QuestSubtasksProps {
   questOwnerId: string;
   guildId?: string | null;
   canManage: boolean;
+  questBudgetGamebTokens?: number;
+  valuePieCalculated?: boolean;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -31,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questBudgetGamebTokens = 0, valuePieCalculated = false }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -127,7 +129,25 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage }: Que
     }
     // Invalidate contribution logs
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
-  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc]);
+
+    // Check if ALL subtasks are now DONE → notify quest owner for Value Pie
+    const allOtherDone = subtasks.every((s: any) => s.id === subtaskId || s.status === "DONE");
+    if (allOtherDone && subtasks.length > 0 && questBudgetGamebTokens > 0 && !valuePieCalculated) {
+      toast({ title: "Toutes les tâches complètes — le Value Pie est prêt!" });
+      // Notify quest owner
+      if (questOwnerId && questOwnerId !== currentUser.id) {
+        supabase.from("notifications" as any).insert({
+          user_id: questOwnerId,
+          type: "value_pie_ready",
+          title: "✅ Toutes les sous-tâches sont complètes",
+          body: "Le Value Pie peut être calculé et distribué.",
+          action_url: `/quests/${questId}?tab=contributions`,
+          entity_type: "quest",
+          entity_id: questId,
+        } as any).then(() => {});
+      }
+    }
+  }, [questId, subtasks, currentUser.id, grantXp, grantCredits, qc, questOwnerId, questBudgetGamebTokens, valuePieCalculated, toast]);
 
   const undoSubtaskDone = useCallback((subtaskId: string) => {
     const timer = pendingTimers.current.get(subtaskId);

@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen, Scale
+  CheckCircle2, Clock, FileText, Shield, Star, Plus, ChevronDown, ChevronUp, Zap, Award, BookOpen, Scale, Eye
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
