@@ -245,9 +245,9 @@ function CTGExchangeRatesTab() {
     setSubmitting(true);
     try {
       const { error } = await supabase.rpc("set_ctg_exchange_rate" as any, {
-        admin_id: user.id,
-        new_rate: rateNum,
-        reason: reason.trim(),
+        p_admin_id: user.id,
+        p_new_rate: rateNum,
+        p_reason: reason.trim(),
       });
       if (error) throw error;
       toast.success(`Nouveau taux appliqué : 1 $CTG = ${rateNum} credits`);
