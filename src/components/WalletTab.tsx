@@ -242,6 +242,15 @@ export function WalletTab() {
             <p className="text-[10px] text-muted-foreground mt-1">Feature fuel</p>
           </ValueTile>
 
+          {/* Coins (🟩) */}
+          <ValueTile icon={<Banknote className="h-5 w-5" />} label="Coins" emoji="🟩"
+            value={coinsBal}
+            tooltip="Fiat-backed mission value earned from funded quests. Withdrawable via Stripe.">
+            <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("coins")}>
+              View Wallet
+            </Button>
+          </ValueTile>
+
           {/* $CTG */}
           <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG Token" emoji="🌱"
             value={ctgBal}
