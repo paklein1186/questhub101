@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { usePersona } from "@/hooks/usePersona";
+import { clearAllHints } from "@/components/onboarding/ContextualHint";
+import { useEconomyModal } from "@/components/onboarding/EconomyOnboarding";
 import type { PersonaType } from "@/lib/personaLabels";
 import { LEXICON_MODES, type LexiconMode } from "@/lib/personaLabels";
 import { Link, useSearchParams } from "react-router-dom";
@@ -699,6 +701,11 @@ export default function SettingsPage() {
                     <Button variant="outline" asChild>
                       <Link to="/onboarding"><Sparkles className="h-4 w-4 mr-1" /> Open wizard</Link>
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => setEconomyOpen(true)}>
+                      Re-watch economy tour
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { clearAllHints(); window.location.reload(); }}>
+                      Reset all page hints
                   </Section>
                 </div>
               )}
