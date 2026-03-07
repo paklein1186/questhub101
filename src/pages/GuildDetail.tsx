@@ -209,8 +209,8 @@ function HumanInteractionsCluster({ guild, fc, isAdmin, isMember, currentUser, c
   );
 }
 
-/** AI Studio — single panel with internal mode toggle instead of nested tabs */
-type AIMode = "chat" | "facilitate" | "memory" | "matchmaker" | "agents";
+/** AI Studio — single panel with internal mode toggle: Chat · Tools · Memory · Agents */
+type AIMode = "chat" | "tools" | "memory" | "agents";
 
 function AIStudioPanel({ guild, isAdmin, isMember }: {
   guild: any; isAdmin: boolean; isMember: boolean;
@@ -219,9 +219,8 @@ function AIStudioPanel({ guild, isAdmin, isMember }: {
 
   const modes: { key: AIMode; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
     { key: "chat", label: "Chat", icon: <Bot className="h-3.5 w-3.5" /> },
-    { key: "facilitate", label: "Facilitator", icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { key: "tools", label: "Tools", icon: <Sparkles className="h-3.5 w-3.5" /> },
     { key: "memory", label: "Memory", icon: <Brain className="h-3.5 w-3.5" /> },
-    { key: "matchmaker", label: "Matchmaker", icon: <Sparkles className="h-3.5 w-3.5" />, adminOnly: true },
     { key: "agents", label: "Agents", icon: <Bot className="h-3.5 w-3.5" />, adminOnly: true },
   ];
 
@@ -251,14 +250,11 @@ function AIStudioPanel({ guild, isAdmin, isMember }: {
       {mode === "chat" && (
         <UnitChat entityType="GUILD" entityId={guild.id} entityName={guild.name} />
       )}
-      {mode === "facilitate" && (
+      {mode === "tools" && (
         <FacilitatorPanel entityType="GUILD" entityId={guild.id} entityName={guild.name} isAdmin={isAdmin} />
       )}
       {mode === "memory" && (
         <MemoryEnginePanel entityType="GUILD" entityId={guild.id} entityName={guild.name} />
-      )}
-      {mode === "matchmaker" && isAdmin && (
-        <MatchmakerPanel matchType="guild" guildId={guild.id} />
       )}
       {mode === "agents" && isAdmin && (
         <UnitAgentsTab unitType="guild" unitId={guild.id} unitName={guild.name} isAdmin={isAdmin} />
