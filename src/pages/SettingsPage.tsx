@@ -1150,7 +1150,7 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
               <p className="text-xs text-muted-foreground">Get immediate email when a booking is confirmed, updated, or cancelled</p>
             </div>
             <Switch
-              checked={!!(prefs as any).instant_email_for_bookings ?? true}
+              checked={(prefs as any).instant_email_for_bookings !== false}
               onCheckedChange={(v) => updatePrefs({ instant_email_for_bookings: v } as any)}
             />
           </div>
@@ -1160,7 +1160,7 @@ function NotificationsSettingsTab({ toast }: { toast: (opts: any) => void }) {
               <p className="text-xs text-muted-foreground">Get immediate email when you're invited to a guild, quest, or pod</p>
             </div>
             <Switch
-              checked={!!(prefs as any).instant_email_for_invites ?? true}
+              checked={(prefs as any).instant_email_for_invites !== false}
               onCheckedChange={(v) => updatePrefs({ instant_email_for_invites: v } as any)}
             />
           </div>
