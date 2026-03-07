@@ -582,28 +582,76 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
       {/* ── Barème de valeur ─────────────────────────────────── */}
       {(() => {
-        const weightMap = new Map<string, number>();
-        guildWeights.forEach((w) => weightMap.set(w.task_type, w.weight_factor));
         const hasCustomWeights = guildWeights.length > 0;
         const allTypes = DEFAULT_TASK_TYPES.map((t) => ({
           task_type: t,
           emoji: TASK_TYPE_EMOJI[t] || "📦",
           weight: weightMap.get(t) ?? 1.0,
-          example: TASK_TYPE_EXAMPLES[t] || "",
         }));
 
         const lastUpdated = guildWeights.length > 0
           ? guildWeights.reduce((latest, w) => {
               const wDate = (w as any).updated_at;
               return wDate && new Date(wDate) > new Date(latest) ? wDate : latest;
-            }, guildWeights[0]?.id ? (guildWeights[0] as any).updated_at || "" : "")
+            }, (guildWeights[0] as any).updated_at || "")
           : null;
 
-        const currentWeightForProposal = proposalTaskType
-          ? (weightMap.get(proposalTaskType) ?? 1.0)
-          : 1.0;
+        return (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                ⚖️ Barème de valeur de la guilde
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!hasCustomWeights && (
+                <p className="text-xs text-muted-foreground mb-3 italic">
+                  Barème par défaut — toutes les tâches valent 1.0
+                </p>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground">
+                      <th className="text-left py-1.5 font-medium">Type de tâche</th>
+                      <th className="text-center py-1.5 font-medium w-10">Icône</th>
+                      <th className="text-right py-1.5 font-medium">Multiplicateur</th>
+                      <th className="text-right py-1.5 font-medium">Exemple</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allTypes.map((t) => (
+                      <tr key={t.task_type} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                        <td className="py-1.5 capitalize">{t.task_type}</td>
+                        <td className="py-1.5 text-center">{t.emoji}</td>
+                        <td className="py-1.5 text-right font-bold text-primary">{t.weight.toFixed(1)}</td>
+                        <td className="py-1.5 text-right text-muted-foreground">1h = {t.weight.toFixed(1)} wu</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-        const handleSubmitProposal = async () => {
+              {isMember && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-xs mt-2 p-0 h-auto"
+                  onClick={() => setShowProposalDialog(true)}
+                >
+                  Proposer un changement
+                </Button>
+              )}
+
+              {lastUpdated && lastUpdated !== "" && (
+                <p className="text-[10px] text-muted-foreground mt-2">
+                  Dernière modification : {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true, locale: fr })}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
           if (!currentUserId || !proposalTaskType || proposalJustification.length < 20) return;
           setSubmitting(true);
           try {
