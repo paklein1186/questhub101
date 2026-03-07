@@ -252,6 +252,7 @@ interface NotificationStore {
   notifyDecisionCreated: (params: { entityType: string; entityId: string; entityName: string; question: string; creatorUserId: string }) => void;
   notifyRitualCreated: (params: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => void;
   notifyBulkMention: (params: { mentionType: "members" | "followers"; entityType: string; entityId: string; authorUserId: string; authorName: string; snippet: string; targetType: string; targetId: string }) => void;
+  notifyFollowedEntityNewPost: (params: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => void;
 }
 
 const NotificationContext = createContext<NotificationStore>(null!);
@@ -970,6 +971,39 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, [userId, addNotification]);
 
+  // ── Trigger: New post in followed entity — notify members + followers ──
+
+  const notifyFollowedEntityNewPost = useCallback(async ({ entityType, entityId, entityName, postId, authorUserId }: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => {
+    try {
+      const notifiedSet = new Set<string>();
+
+      // 1. Notify entity members
+      const tableCfg: Record<string, { table: string; col: string }> = {
+        GUILD: { table: "guild_members", col: "guild_id" },
+        COMPANY: { table: "company_members", col: "company_id" },
+      };
+      const cfg = tableCfg[entityType];
+      if (cfg) {
+        const { data: members } = await supabase.from(cfg.table as any).select("user_id").eq(cfg.col, entityId).limit(200);
+        for (const m of members ?? []) {
+          if (m.user_id === authorUserId) continue;
+          notifiedSet.add(m.user_id);
+          await addNotification({ userId: m.user_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: `Someone posted in ${entityName}`, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: `/` });
+        }
+      }
+
+      // 2. Notify followers of the entity
+      const { data: followers } = await supabase.from("follows").select("follower_id").eq("target_type", entityType).eq("target_id", entityId).limit(500);
+      for (const f of followers ?? []) {
+        if (f.follower_id === authorUserId || notifiedSet.has(f.follower_id)) continue;
+        notifiedSet.add(f.follower_id);
+        await addNotification({ userId: f.follower_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: `New activity in a community you follow`, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: `/` });
+      }
+    } catch (err) {
+      console.error("[Notifications] notifyFollowedEntityNewPost:", err);
+    }
+  }, [userId, addNotification]);
+
   return (
     <NotificationContext.Provider value={{
       notifications: dbNotifications, unreadCount, markAsRead, markAllAsRead,
@@ -981,6 +1015,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       notifyXpGained, notifyAchievement,
       notifyPostUpvote, notifyJoinRequest, notifyApplicationDecision,
       notifyDecisionCreated, notifyRitualCreated, notifyBulkMention,
+      notifyFollowedEntityNewPost,
     }}>
       {children}
     </NotificationContext.Provider>
