@@ -88,6 +88,40 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   const { data: guildWeights = [] } = useGuildWeights(guildId);
 
+  // ── Barème helpers ──────────────────────────────────────────
+  const weightMap = useMemo(() => {
+    const m = new Map<string, number>();
+    guildWeights.forEach((w) => m.set(w.task_type, w.weight_factor));
+    return m;
+  }, [guildWeights]);
+
+  const currentWeightForProposal = proposalTaskType ? (weightMap.get(proposalTaskType) ?? 1.0) : 1.0;
+
+  const handleSubmitProposal = async () => {
+    if (!currentUserId || !proposalTaskType || proposalJustification.length < 20) return;
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("guild_decisions" as any).insert({
+        guild_id: guildId,
+        proposed_by: currentUserId,
+        type: "weight_change",
+        title: `Modifier le poids de ${proposalTaskType} de ${currentWeightForProposal} à ${proposalWeight}`,
+        description: proposalJustification,
+        status: "open",
+      });
+      if (error) throw error;
+      toast({ title: "Proposition soumise aux membres de la guilde" });
+      setShowProposalDialog(false);
+      setProposalTaskType("");
+      setProposalWeight("1.0");
+      setProposalJustification("");
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de soumettre la proposition", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // 1. Fetch all quest IDs affiliated with this guild
   const { data: questIds = [] } = useQuery({
     queryKey: ["guild-ovn-quests", guildId, includeExternal],
