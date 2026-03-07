@@ -634,6 +634,46 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       setSessionDone((prev) => new Set(prev).add(key));
       const entityType = task.source === "personal" ? "personal_task" : task.source === "quest" ? "quest" : "quest_subtask";
       await upsertWorkState(entityType, task.id, "DONE");
+
+      // Auto-log contribution for subtask completion
+      if (task.source === "subtask" && userId) {
+        try {
+          const { data: subtask } = await supabase
+            .from("quest_subtasks" as any)
+            .select("id, title, quest_id, credit_reward")
+            .eq("id", task.id)
+            .single();
+
+          if (subtask) {
+            const { data: quest } = await supabase
+              .from("quests" as any)
+              .select("guild_id")
+              .eq("id", (subtask as any).quest_id)
+              .single();
+
+            const creditReward = Number((subtask as any).credit_reward) || 0;
+            const baseUnits = creditReward > 0 ? creditReward : 1;
+
+            await supabase.from("contribution_logs" as any).insert({
+              user_id: userId,
+              quest_id: (subtask as any).quest_id,
+              guild_id: (quest as any)?.guild_id || null,
+              contribution_type: "subtask_completed",
+              title: "Sous-tâche complétée : " + (subtask as any).title,
+              task_type: "general",
+              base_units: baseUnits,
+              weight_factor: 1.0,
+              weighted_units: baseUnits,
+              ip_licence: "CC-BY-SA",
+            } as any);
+
+            qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+          }
+        } catch (e) {
+          console.error("Auto contribution log failed:", e);
+        }
+      }
+
       // Invalidate Work hub queries so status is reflected there too
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
       qc.invalidateQueries({ queryKey: ["my-subtasks", userId] });
@@ -656,7 +696,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       const key = `${task.source}-${task.id}`;
       toast({
         title: "Task completed ✓",
-        description: task.title,
+        description: task.source === "subtask"
+          ? ((task as any).guildName ? "Contribution loggée dans " + (task as any).guildName : "Contribution loggée")
+          : task.title,
         action: (
           <ToastAction
             altText="Undo"
