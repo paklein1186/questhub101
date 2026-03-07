@@ -324,13 +324,13 @@ export function WalletTab() {
         {/* ═══ COINS WALLET ═══ */}
         {activeWallet === "coins" && (
           <>
-            <Section title="🟩 Coins — Mission Value" icon={<Banknote className="h-5 w-5" />}>
+            <Section title="💶 Fiat-Backed Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-xs text-muted-foreground">Your Coins Balance</p>
-                      <p className="text-2xl font-bold">{coinsBal} 🟩</p>
+                      <p className="text-xs text-muted-foreground">Coins Balance</p>
+                      <p className="text-2xl font-bold">{coinsBal} 💶</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
@@ -338,7 +338,8 @@ export function WalletTab() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Coins are earned from funded quests (Missions). They are fiat-backed and withdrawable via Stripe Connect.
+                    Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
+                    This is separate from $CTG tokens which are cooperative contribution units.
                   </p>
                 </div>
 
