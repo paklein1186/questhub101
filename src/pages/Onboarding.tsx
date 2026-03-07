@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { notifyPlatformAdmins } from "@/lib/notifyAdmins";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -387,6 +388,15 @@ export default function Onboarding() {
         linkedin_url: affLinks.linkedin.trim() || null,
         instagram_url: affLinks.other.trim() || null, // stores any social/portfolio link, not just Instagram
       } as any).eq("user_id", authUser.id);
+
+      // Notify platform admins about new user signup
+      notifyPlatformAdmins({
+        type: "SYSTEM_NEW_USER",
+        title: "New user joined",
+        body: `${name.trim() || "Someone"} just signed up`,
+        deepLinkUrl: "/admin/community/users",
+        relatedEntityId: authUser.id,
+      });
 
       await supabase.from("user_topics").delete().eq("user_id", authUser.id);
       // Merge selected topics + accepted AI house suggestions
