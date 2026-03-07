@@ -158,7 +158,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     // Check if ALL subtasks are now DONE → notify quest owner for Value Pie
     const allOtherDone = subtasks.every((s: any) => s.id === subtaskId || s.status === "DONE");
     if (allOtherDone && subtasks.length > 0 && questBudgetGamebTokens > 0 && !valuePieCalculated) {
-      toast({ title: "Toutes les tâches complètes — le Value Pie est prêt!" });
+      toast({ title: "All tasks complete — the Value Pie is ready!" });
       // Notify quest owner
       if (questOwnerId && questOwnerId !== currentUser.id) {
         supabase.from("notifications" as any).insert({
@@ -360,7 +360,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
-            {/* GameB weight input */}
+            {/* $CTG weight input */}
             {canManage && (
               <div className="flex items-center gap-0.5">
                 <Scale className="h-3 w-3 text-violet-500" />

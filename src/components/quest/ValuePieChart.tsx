@@ -40,7 +40,7 @@ export function ValuePieChart({ questId }: Props) {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <PieIcon className="h-4 w-4 text-emerald-500" />
-          🟩 Value Pie — GameB Token Distribution
+          🟩 Value Pie — $CTG Distribution
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -65,7 +65,7 @@ export function ValuePieChart({ questId }: Props) {
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${value} tokens`, "GameB Tokens"]}
+                  formatter={(value: number) => [`${value} tokens`, "$CTG"]}
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                 />
               </PieChart>

@@ -1526,7 +1526,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               </h3>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Budget GameB Tokens 🟩</Label>
+                <Label className="text-xs">Budget $CTG 🟩</Label>
                 <Input
                   type="number"
                   min={0}
