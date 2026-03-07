@@ -235,7 +235,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   });
 
   if (isLoading || !rawData) {
-    return <p className="text-sm text-muted-foreground p-4">Loading OVN data…</p>;
+    return <p className="text-sm text-muted-foreground p-4">Loading contribution ledger…</p>;
   }
 
   const { contribs, pieLogs, quests, profileMap, territoryMap, prevContribs } = rawData;
@@ -359,7 +359,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       <div className="text-center py-12">
         <Scale className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
         <p className="text-muted-foreground">No quests linked to this guild yet.</p>
-        <p className="text-xs text-muted-foreground mt-1">When quests are hosted by or affiliated with this guild, their OVN metrics will appear here.</p>
+        <p className="text-xs text-muted-foreground mt-1">When quests are hosted by or affiliated with this guild, their contribution metrics will appear here.</p>
       </div>
     );
   }

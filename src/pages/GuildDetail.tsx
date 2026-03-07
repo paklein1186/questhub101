@@ -476,7 +476,7 @@ export default function GuildDetail() {
             { value: "partnerships", label: <><Handshake className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Partnerships</span></> },
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span></> },
             { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span></> },
-            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">OVN</span></> },
+            { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span></> },
             { value: "monetization", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agents</span></>, visible: isAdmin },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span></> },
           ];

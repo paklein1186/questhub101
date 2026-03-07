@@ -119,7 +119,7 @@ export function MonOVNPanel({ userId }: Props) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast({ title: "Link copied!", description: "Share your OVN passport." });
+      toast({ title: "Link copied!", description: "Share your contribution passport." });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast({ title: "Error", variant: "destructive" });
@@ -127,7 +127,7 @@ export function MonOVNPanel({ userId }: Props) {
   };
 
   if (isLoading || !data) {
-    return <p className="text-sm text-muted-foreground p-4">Loading your OVN identity…</p>;
+    return <p className="text-sm text-muted-foreground p-4">Loading your contributions…</p>;
   }
 
   return (
@@ -135,7 +135,7 @@ export function MonOVNPanel({ userId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Scale className="h-5 w-5 text-primary" /> My OVN
+          <Scale className="h-5 w-5 text-primary" /> My Contributions
         </h3>
         <Button size="sm" variant="outline" onClick={handleCopyPassport}>
           {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
@@ -168,7 +168,7 @@ export function MonOVNPanel({ userId }: Props) {
             <CardContent className="p-4 text-center">
               <Coins className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
               <p className="text-2xl font-bold text-emerald-600">{data.totalTokens.toFixed(0)}</p>
-              <p className="text-[10px] text-muted-foreground">🟩 Tokens received</p>
+              <p className="text-[10px] text-muted-foreground">🟩 Coins received</p>
             </CardContent>
           </Card>
           <Card>
