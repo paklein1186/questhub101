@@ -215,20 +215,34 @@ export function WalletTab() {
     <TooltipProvider>
       <div className="space-y-6">
         {/* ═══ HEADER ═══ */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h2 className="font-display text-xl font-bold flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" /> Your Value Dashboard
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Two separate value systems: Platform Credits for features, $CTG for missions.
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Three distinct value layers power the platform:
           </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
+              <span className="text-base leading-none mt-0.5">🔷</span>
+              <div><strong className="text-foreground">Platform Credits</strong> — Utility fuel for features, boosts &amp; quotas. Non-monetary, subject to monthly fade.</div>
+            </div>
+            <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
+              <span className="text-base leading-none mt-0.5">🟡</span>
+              <div><strong className="text-foreground">$CTG Token</strong> — Cooperative contribution units earned through verified work. The mission currency.</div>
+            </div>
+            <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
+              <span className="text-base leading-none mt-0.5">⭐</span>
+              <div><strong className="text-foreground">XP</strong> — Non-transferable reputation score reflecting your mastery &amp; commitment.</div>
+            </div>
+          </div>
         </div>
 
-        {/* ═══ 5 VALUE TILES ═══ */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {/* ═══ VALUE TILES ═══ */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {/* Fiat */}
           <ValueTile icon={<Banknote className="h-5 w-5" />} label="Fiat Balance" emoji="💶"
-            tooltip="Your earnings from paid missions and services. Paid via Stripe.">
+            tooltip="Your fiat earnings from paid services and bookings. Managed via Stripe.">
             <Button variant="outline" size="sm" className="w-full mt-2 text-xs" onClick={handleManageSubscription} disabled={portalLoading}>
               {portalLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <ExternalLink className="h-3 w-3 mr-1" />}
               Stripe Portal
@@ -238,23 +252,14 @@ export function WalletTab() {
           {/* Platform Credits (🔷) */}
           <ValueTile icon={<Coins className="h-5 w-5" />} label="Platform Credits" emoji="🔷"
             value={limits.userCredits}
-            tooltip="Non-monetary credits for platform features, gamification, and quotas. Cannot be withdrawn.">
-            <p className="text-[10px] text-muted-foreground mt-1">Feature fuel</p>
+            tooltip="Non-monetary utility credits for platform features and quotas. Subject to 1%/month fade to encourage circulation.">
+            <p className="text-[10px] text-muted-foreground mt-1">Utility fuel</p>
           </ValueTile>
 
-          {/* Coins (🟩) */}
-          <ValueTile icon={<Banknote className="h-5 w-5" />} label="Coins" emoji="🟩"
-            value={coinsBal}
-            tooltip="Fiat-backed mission value earned from funded quests. Withdrawable via Stripe.">
-            <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("coins")}>
-              View Wallet
-            </Button>
-          </ValueTile>
-
-          {/* $CTG */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG Token" emoji="🌱"
+          {/* $CTG Token (🟡) */}
+          <ValueTile icon={<Leaf className="h-5 w-5" />} label="$CTG Token" emoji="🟡"
             value={ctgBal}
-            tooltip="Cooperative currency earned through contributions. Exchangeable for credits.">
+            tooltip="Cooperative contribution token earned through verified work on quests. Distributed via the Value Pie.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
               View Wallet
             </Button>
@@ -296,20 +301,20 @@ export function WalletTab() {
             🔷 Platform Credits
           </Button>
           <Button
-            variant={activeWallet === "coins" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveWallet("coins")}
-            className="gap-1.5"
-          >
-            🟩 Coins
-          </Button>
-          <Button
             variant={activeWallet === "ctg" ? "default" : "outline"}
             size="sm"
             onClick={() => setActiveWallet("ctg")}
             className="gap-1.5"
           >
-            🌱 $CTG Token
+            🟡 $CTG Token
+          </Button>
+          <Button
+            variant={activeWallet === "coins" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setActiveWallet("coins")}
+            className="gap-1.5"
+          >
+            💶 Fiat / Coins
           </Button>
         </div>
 
