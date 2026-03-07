@@ -169,7 +169,20 @@ function PodSettingsInner({ podId, pod }: { podId: string; pod: any }) {
       return;
     }
     const newRole = pm.role === "HOST" ? "MEMBER" : "HOST";
-    await supabase.from("pod_members").update({ role: newRole as any }).eq("id", memberId);
+    const { error } = await supabase.from("pod_members").update({ role: newRole as any }).eq("id", memberId);
+    if (!error) {
+      await supabase.from("notifications").insert({
+        user_id: pm.user_id,
+        type: "UNIT_CO_HOST_CHANGED",
+        title: newRole === "HOST" ? "You are now a pod host" : "Pod host role updated",
+        body: newRole === "HOST"
+          ? `You've been made a host of "${pod.name}"`
+          : `Your host role in "${pod.name}" was changed`,
+        related_entity_type: "POD",
+        related_entity_id: podId,
+        deep_link_url: `/pods/${podId}`,
+      });
+    }
     refetchMembers();
     toast({ title: `Role changed to ${newRole.toLowerCase()}` });
   };
