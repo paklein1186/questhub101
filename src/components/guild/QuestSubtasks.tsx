@@ -191,6 +191,11 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
+  const updateSubtaskWeight = async (subtaskId: string, weight: number) => {
+    await supabase.from("quest_subtasks" as any).update({ gameb_weight: weight } as any).eq("id", subtaskId);
+    qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
+  };
+
   const deleteSubtask = async (subtaskId: string) => {
     await supabase.from("quest_subtasks" as any).delete().eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
