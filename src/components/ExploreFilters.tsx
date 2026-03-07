@@ -189,7 +189,8 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
     (filters.price !== "all" ? 1 : 0) +
     (filters.role !== "all" ? 1 : 0) +
     (filters.questType !== "all" ? 1 : 0) +
-    (filters.missionOnly ? 1 : 0);
+    (filters.missionOnly ? 1 : 0) +
+    (filters.hasBudget ? 1 : 0);
 
   const clearAll = () => onChange({ ...defaultFilters });
 
