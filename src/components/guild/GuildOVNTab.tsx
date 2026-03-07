@@ -366,12 +366,27 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
   return (
     <div className="space-y-6">
-      {/* Toggle */}
-      <div className="flex items-center gap-2">
-        <Switch id="external-toggle" checked={includeExternal} onCheckedChange={setIncludeExternal} />
-        <Label htmlFor="external-toggle" className="text-xs text-muted-foreground cursor-pointer">
-          Include external quests with contributors from this guild
-        </Label>
+      {/* Toggle + Period selector */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Switch id="external-toggle" checked={includeExternal} onCheckedChange={setIncludeExternal} />
+          <Label htmlFor="external-toggle" className="text-xs text-muted-foreground cursor-pointer">
+            Include external quests with contributors from this guild
+          </Label>
+        </div>
+        <div className="flex items-center gap-1">
+          {(["7d", "30d", "90d", "all"] as const).map((p) => (
+            <Button
+              key={p}
+              variant={period === p ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2.5"
+              onClick={() => setPeriod(p)}
+            >
+              {p === "7d" ? "7j" : p === "30d" ? "30j" : p === "90d" ? "90j" : "Tout"}
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Headline Metrics */}
