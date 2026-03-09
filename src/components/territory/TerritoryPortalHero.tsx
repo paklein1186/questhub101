@@ -214,7 +214,7 @@ export function TerritoryPortalHero({
                 onClick={() => setImgIdx(i)}
                 className={cn(
                   "h-1.5 rounded-full transition-all",
-                  i === imgIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                  i === activeIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"
                 )}
               />
             ))}
