@@ -12,7 +12,7 @@ export function MyQuestsTab({ userId }: { userId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("quests")
-        .select("id, title, status, reward_xp, created_at, is_draft")
+        .select("id, title, status, reward_xp, created_at, is_draft, coin_budget, credit_budget")
         .eq("created_by_user_id", userId)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
