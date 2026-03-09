@@ -35,6 +35,8 @@ interface TerritoryGuestPortalProps {
     level: string;
     summary?: string | null;
     stats?: Record<string, any> | null;
+    latitude?: number | null;
+    longitude?: number | null;
   };
   memberCount: number;
   questCount: number;
