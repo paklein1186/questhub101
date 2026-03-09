@@ -302,10 +302,29 @@ export function CTGWalletSection() {
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Info className="h-4 w-4 text-muted-foreground" /> How to earn $CTG
+          <Tooltip><TooltipTrigger asChild>
+            <Badge variant="outline" className="text-[10px] cursor-help">≠ XP</Badge>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[220px] text-xs">
+            XP (⭐) is permanent reputation. $CTG (🌱) is contribution to the commons — it circulates.
+          </TooltipContent></Tooltip>
         </h3>
-        <p className="text-xs text-muted-foreground">
-          $CTG tokens are emitted automatically when you make verified contributions. They cannot be purchased.
-        </p>
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            🌱 <strong className="text-foreground">$CTG is earned by producing verified value for the commons.</strong>{" "}
+            Unlike XP (which is permanent), $CTG circulates — it fades gently at 1%/month
+            (demurrage), encouraging continuous contribution rather than hoarding.
+            It cannot be purchased.
+          </p>
+          <div className="flex gap-4 text-xs">
+            <span className="text-violet-600 dark:text-violet-400">
+              ⭐ XP = who you <em>are</em> (permanent)
+            </span>
+            <span className="text-emerald-600 dark:text-emerald-400">
+              🌱 $CTG = what you <em>produce</em> (circulatory)
+            </span>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
