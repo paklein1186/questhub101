@@ -57,7 +57,7 @@ function Tip({ children }: { children: React.ReactNode }) {
 }
 
 const STEPS = [
-  { id: 0, label: "Budget", icon: Banknote, short: "Mission budget in euros" },
+  { id: 0, label: "Budget", icon: Banknote, short: "Coins budget · $CTG pool · fiat compensation" },
   { id: 1, label: "Rewards", icon: Zap, short: "XP & monetization" },
   { id: 2, label: "Funding", icon: Handshake, short: "Proposals & fundraising" },
 ];
