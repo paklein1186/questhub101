@@ -535,9 +535,17 @@ function TerritorySection({
               <span className={`w-6 text-center font-bold text-sm shrink-0 ${rankColor(i)}`}>
                 {i + 1}
               </span>
-              <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
-                <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
-              </div>
+              {t.logo_url ? (
+                <img
+                  src={t.logo_url}
+                  alt={t.name}
+                  className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg object-cover shrink-0`}
+                />
+              ) : (
+                <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
+                  <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{t.name}</p>
                 {t.secondary && (
