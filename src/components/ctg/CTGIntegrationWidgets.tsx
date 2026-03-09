@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sprout } from "lucide-react";
 import { HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
+import { getStewardTier } from "@/lib/xpCreditsConfig";
 
 /**
  * CTGEstimateBlock — shown in quest detail reward grid.
