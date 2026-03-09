@@ -13,6 +13,9 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
 export function TreasuryDashboard() {
+  const { session } = useAuth();
+  const qc = useQueryClient();
+  const [pulsing, setPulsing] = useState(false);
   const { data: settings = {}, isLoading: loadingSettings } = useQuery({
     queryKey: ["cooperative-settings-admin"],
     queryFn: async () => {
