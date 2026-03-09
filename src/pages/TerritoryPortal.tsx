@@ -1,0 +1,323 @@
+/**
+ * TerritoryPortal.tsx — Replaces TerritoryDetail.tsx
+ * Route: /territories/:id
+ */
+
+import { useState } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Loader2, Globe, Leaf, Compass, Shield, BookOpen, Settings } from "lucide-react";
+
+// ── Portal components
+import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
+import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
+import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
+import { TerritoryUnlockModal } from "@/components/territory/TerritoryUnlockModal";
+import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel";
+
+// ── Existing tabs (unchanged)
+import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
+import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
+import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
+
+import { GraphView } from "@/components/graph/GraphView";
+import { PiContextSetter } from "@/components/assistant/PiContextSetter";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
+
+/* ── Types ── */
+interface TerritoryAncestor {
+  id: string;
+  name: string;
+  level: string | null;
+  slug: string | null;
+}
+
+/* ── Hooks ── */
+
+function useTerritoryAncestors(territory: any) {
+  return useQuery({
+    queryKey: ["territory-ancestors", territory?.id],
+    enabled: !!territory?.id,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const ancestors: TerritoryAncestor[] = [];
+      let current = territory;
+
+      for (let i = 0; i < 6 && current?.parent_id; i++) {
+        const { data } = await supabase
+          .from("territories")
+          .select("id, name, level, slug, parent_id")
+          .eq("id", current.parent_id)
+          .single();
+        if (!data) break;
+        ancestors.unshift({ id: data.id, name: data.name, level: data.level, slug: data.slug });
+        current = data;
+      }
+      return ancestors;
+    },
+  });
+}
+
+function useTerritoryMemberCount(territoryId: string | undefined) {
+  return useQuery({
+    queryKey: ["territory-member-count", territoryId],
+    enabled: !!territoryId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("territory_id" as any, territoryId!);
+      return count ?? 0;
+    },
+  });
+}
+
+function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
+  return useQuery({
+    queryKey: ["territory-ns-count", territoryId],
+    enabled: !!territoryId,
+    staleTime: 120_000,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("natural_system_territories" as any)
+        .select("natural_system_id", { count: "exact", head: true })
+        .eq("territory_id", territoryId!);
+      return count ?? 0;
+    },
+  });
+}
+
+function useTerritoryPortalStewards(territoryId: string | undefined) {
+  return useQuery({
+    queryKey: ["territory-portal-stewards", territoryId],
+    enabled: !!territoryId,
+    staleTime: 300_000,
+    queryFn: async () => {
+      // Find stewardship trust edges pointing to this territory
+      const { data: edges } = await supabase
+        .from("trust_edges")
+        .select("from_id")
+        .eq("to_id", territoryId!)
+        .eq("edge_type", "steward_of")
+        .eq("status", "active")
+        .limit(6);
+
+      const stewardIds = (edges ?? []).map((e: any) => e.from_id);
+      if (stewardIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", stewardIds);
+
+      return (profiles ?? []) as Array<{ user_id: string; name: string; avatar_url: string | null }>;
+    },
+  });
+}
+
+function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ["territory-is-admin", territoryId, userId],
+    enabled: !!territoryId && !!userId,
+    staleTime: 120_000,
+    queryFn: async () => {
+      const [stewardRes, profileRes] = await Promise.all([
+        supabase
+          .from("trust_edges")
+          .select("id")
+          .eq("from_id", userId!)
+          .eq("to_id", territoryId!)
+          .eq("edge_type", "steward_of")
+          .eq("status", "active")
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("user_id", userId!)
+          .single(),
+      ]);
+
+      const isSteward = !!stewardRes.data;
+      const isSuperAdmin = (profileRes.data as any)?.role === "admin";
+      return { isSteward, isSuperAdmin };
+    },
+  });
+}
+
+/* ── Main page ── */
+export default function TerritoryPortal() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "portal";
+
+  const [unlockOpen, setUnlockOpen] = useState(false);
+
+  const { data: territory, isLoading } = useTerritoryDetail(id);
+  const resolvedId = territory?.id;
+
+  const { data: ancestors = [] } = useTerritoryAncestors(territory);
+  const { data: stats } = useTerritoryStats(resolvedId);
+  const { data: memberCount = 0 } = useTerritoryMemberCount(resolvedId);
+  const { data: naturalSystemCount = 0 } = useTerritoryNaturalSystemCount(resolvedId);
+  const { data: stewards = [] } = useTerritoryPortalStewards(resolvedId);
+
+  const currentUser = useCurrentUser();
+  const { data: adminStatus } = useIsTerritoryAdmin(resolvedId, currentUser.id);
+
+  const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
+  const isAuthenticated = !!currentUser.id;
+  const isAlreadyMember = (currentUser as any)?.territory_id === resolvedId;
+
+  const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
+  const canCreateQuest = isAuthenticated && canAdmin;
+
+  const setTab = (t: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (t === "portal") next.delete("tab");
+      else next.set("tab", t);
+      return next;
+    }, { replace: true });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!territory) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center">
+        <Globe className="h-10 w-10 text-muted-foreground/40" />
+        <p className="text-muted-foreground font-medium">Territory not found</p>
+        <button onClick={() => navigate("/explore")} className="text-sm text-primary hover:underline">
+          ← Back to Explore
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {resolvedId && (
+          <PiContextSetter context={{ type: "territory", id: resolvedId, name: territory.name }} />
+        )}
+
+        {/* ── Hero ── */}
+        <TerritoryPortalHero
+          territory={territory}
+          ancestors={ancestors}
+          memberCount={memberCount}
+          questCount={stats?.quests ?? 0}
+          guildCount={stats?.guilds ?? 0}
+          naturalSystemCount={naturalSystemCount}
+          stewards={stewards}
+          isPioneerTerritory={isPioneerTerritory}
+          onUnlock={() => setUnlockOpen(true)}
+          onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
+        />
+
+        {/* ── Quest Grid (shown on content tabs, not portal/admin) ── */}
+        {tab !== "portal" && tab !== "admin" && (
+          <TerritoryQuestGrid
+            territoryId={resolvedId!}
+            territoryName={territory.name}
+            canCreateQuest={canCreateQuest}
+          />
+        )}
+
+        {/* ── Tabs ── */}
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className={cn("w-full justify-start overflow-x-auto", "scrollbar-none")}>
+            <TabsTrigger value="portal" className="gap-1.5">
+              <Globe className="h-3.5 w-3.5" /> Portal
+            </TabsTrigger>
+            <TabsTrigger value="ecosystem" className="gap-1.5">
+              <Compass className="h-3.5 w-3.5" /> Ecosystem
+            </TabsTrigger>
+            <TabsTrigger value="living" className="gap-1.5">
+              <Leaf className="h-3.5 w-3.5" /> Living
+            </TabsTrigger>
+            <TabsTrigger value="library" className="gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" /> Library
+            </TabsTrigger>
+            <TabsTrigger value="graph" className="gap-1.5">
+              <Shield className="h-3.5 w-3.5" /> Graph
+            </TabsTrigger>
+            {canAdmin && (
+              <TabsTrigger value="admin" className="gap-1.5 ml-auto">
+                <Settings className="h-3.5 w-3.5" /> Admin
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="portal" className="mt-6">
+            <TerritoryGuestPortal
+              territory={territory}
+              memberCount={memberCount}
+              questCount={stats?.quests ?? 0}
+              guildCount={stats?.guilds ?? 0}
+              naturalSystemCount={naturalSystemCount}
+              isAuthenticated={isAuthenticated}
+              isAlreadyMember={isAlreadyMember}
+            />
+          </TabsContent>
+
+          <TabsContent value="ecosystem" className="mt-6">
+            <TerritoryEcosystemTab territoryId={resolvedId!} />
+          </TabsContent>
+
+          <TabsContent value="living" className="mt-6">
+            <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
+          </TabsContent>
+
+          <TabsContent value="library" className="mt-6">
+            <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+          </TabsContent>
+
+          <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
+            <GraphView centerType="territory" centerId={resolvedId!} height={700} />
+          </TabsContent>
+
+          {canAdmin && (
+            <TabsContent value="admin" className="mt-6">
+              <TerritoryAdminPanel
+                territoryId={resolvedId!}
+                territoryName={territory.name}
+                currentUserXpLevel={1}
+                currentUserCtgBalance={0}
+                isSuperAdmin={adminStatus?.isSuperAdmin}
+              />
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
+
+      {/* ── Unlock Modal ── */}
+      {isAuthenticated && (
+        <TerritoryUnlockModal
+          open={unlockOpen}
+          onClose={() => setUnlockOpen(false)}
+          territory={{
+            id: resolvedId!,
+            name: territory.name,
+            level: territory.level,
+            slug: territory.slug,
+          }}
+          currentUserXpLevel={1}
+          currentUserId={currentUser.id}
+        />
+      )}
+    </div>
+  );
+}
