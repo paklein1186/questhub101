@@ -198,11 +198,11 @@ export function WalletTab() {
       const { error } = await supabase.from("coin_withdrawal_requests" as any).insert({
         user_id: userId,
         amount_tokens: balance,
-        amount_fiat: balance * 0.04,
+        amount_fiat: balance * COIN_EUR_RATE,
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * COIN_EUR_RATE).toFixed(2)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
