@@ -4028,6 +4028,36 @@ export type Database = {
         }
         Relationships: []
       }
+      harvest_windows: {
+        Row: {
+          created_at: string | null
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          label: string
+          multiplier: number
+          starts_at: string
+        }
+        Insert: {
+          created_at?: string | null
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          label: string
+          multiplier?: number
+          starts_at: string
+        }
+        Update: {
+          created_at?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          label?: string
+          multiplier?: number
+          starts_at?: string
+        }
+        Relationships: []
+      }
       highlighted_quests: {
         Row: {
           created_at: string
