@@ -216,7 +216,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                      <Label htmlFor="bw-creditReward" className="text-xs flex items-center gap-1">
-                       🟩 $CTG reward <Tip>$CTG distributed to each participant on completion. Backed by fiat.</Tip>
+                       🌱 $CTG reward <Tip>$CTG emitted to each participant on verified completion. Contribution-only, not purchasable.</Tip>
                     </Label>
                     <Input
                       id="bw-creditReward"
