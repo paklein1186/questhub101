@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
         user_id: edge.created_by,
         type: "TRUST_RENEWAL_DUE",
         title: "Trust renewal due",
-        body: `Do you still vouch for ${targetName}? Renew your trust attestation to keep it active and earn 2 credits.`,
+        body: `Do you still vouch for ${targetName}? Renew your trust attestation to keep it active and earn $CTG.`,
         deep_link_url: "/network?tab=dashboard",
         data: { edge_id: edge.id, target_name: targetName },
       });
