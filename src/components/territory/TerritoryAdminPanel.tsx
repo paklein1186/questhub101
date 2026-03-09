@@ -314,12 +314,24 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
   const { data: stewards } = useQuery({
     queryKey: ["territory-stewards-admin", territoryId],
     queryFn: async () => {
-      const { data } = await supabase.rpc("get_territory_stewards" as any, {
+      const { data: edges } = await supabase.rpc("get_territory_stewards" as any, {
         p_territory_id: territoryId,
         p_limit: 10,
       });
-      return data ?? [];
+      const stewardIds = ((edges ?? []) as any[]).map((e: any) => e.from_id).filter(Boolean);
+      if (stewardIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", stewardIds);
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
+      return ((edges ?? []) as any[]).map((e: any) => ({
+        ...e,
+        name: profileMap.get(e.from_id)?.name ?? "Unknown",
+        avatar_url: profileMap.get(e.from_id)?.avatar_url ?? null,
+      }));
     },
+    enabled: !!territoryId,
   });
 
   const handleDelegate = async () => {
