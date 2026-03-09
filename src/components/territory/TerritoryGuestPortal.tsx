@@ -15,6 +15,7 @@
  */
 
 import { Link, useNavigate } from "react-router-dom";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
