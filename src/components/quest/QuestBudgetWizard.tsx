@@ -281,7 +281,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CREDITS">🌱 $CTG</SelectItem>
+                        <SelectItem value="CREDITS">🌱 $CTG (contribution token)</SelectItem>
                         <SelectItem value="FIAT">Fiat (€)</SelectItem>
                       </SelectContent>
                     </Select>
