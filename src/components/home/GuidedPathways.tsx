@@ -405,7 +405,17 @@ export function GuidedPathways({ persona, userName, userId, isOrgRep, onActionSe
                           <span className="text-xs text-muted-foreground font-mono w-6 shrink-0">
                             {pathIdx + 1}.{idx + 1}
                           </span>
-                          <span className="text-sm font-medium text-foreground flex-1">{action.label}</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium text-foreground">{action.label}</span>
+                          {(() => {
+                            const hint = getRewardHint(action.label);
+                            return hint ? (
+                              <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/50 rounded-full px-2 py-0.5">
+                                {hint}
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
                           {action.type === "prompt" && (
                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">Pi</span>
                           )}
