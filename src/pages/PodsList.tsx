@@ -22,6 +22,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
