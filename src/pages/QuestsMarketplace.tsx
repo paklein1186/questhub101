@@ -13,6 +13,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuests, useMyGuildMemberships, useMyCompanies } from "@/hooks/useSupabaseData";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from "@/components/ExploreFilters";
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
