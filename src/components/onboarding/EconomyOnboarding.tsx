@@ -541,7 +541,7 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
 
       {/* See all link */}
       <div className="text-center">
-        <Link to="/onboarding/checklist" className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
+        <Link to="/me/onboarding" className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1">
           See all steps <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
