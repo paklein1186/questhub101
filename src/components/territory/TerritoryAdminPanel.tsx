@@ -314,12 +314,24 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
   const { data: stewards } = useQuery({
     queryKey: ["territory-stewards-admin", territoryId],
     queryFn: async () => {
-      const { data } = await supabase.rpc("get_territory_stewards" as any, {
+      const { data: edges } = await supabase.rpc("get_territory_stewards" as any, {
         p_territory_id: territoryId,
         p_limit: 10,
       });
-      return data ?? [];
+      const stewardIds = ((edges ?? []) as any[]).map((e: any) => e.from_id).filter(Boolean);
+      if (stewardIds.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url")
+        .in("user_id", stewardIds);
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
+      return ((edges ?? []) as any[]).map((e: any) => ({
+        ...e,
+        name: profileMap.get(e.from_id)?.name ?? "Unknown",
+        avatar_url: profileMap.get(e.from_id)?.avatar_url ?? null,
+      }));
     },
+    enabled: !!territoryId,
   });
 
   const handleDelegate = async () => {
@@ -348,8 +360,11 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
           )}
           {(stewards ?? []).map((s: any) => (
             <div key={s.from_id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 text-xs">
-              <Shield className="h-3.5 w-3.5 text-primary" />
-              <span className="text-foreground">{s.from_id}</span>
+              <Avatar className="h-6 w-6 shrink-0">
+                <AvatarImage src={s.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[9px]">{s.name?.charAt(0) ?? "?"}</AvatarFallback>
+              </Avatar>
+              <span className="text-foreground">{s.name}</span>
               {s.tags?.includes("pioneer") && (
                 <Badge className="text-[9px] h-4 bg-amber-500/15 text-amber-600 border-amber-500/30 ml-auto">Pioneer</Badge>
               )}
