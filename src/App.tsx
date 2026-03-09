@@ -168,6 +168,7 @@ function ScrollToTop() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="system" storageKey="ctg-theme" enableSystem>
     <TooltipProvider>
       <AuthProvider>
         <CurrentUserProvider>
