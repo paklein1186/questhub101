@@ -92,7 +92,38 @@ function useIsAlreadyMember(territoryId: string | undefined, userId: string | un
   });
 }
 
-function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
+function useCurrentUserXpLevel(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-xp-level", userId],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("xp_level")
+        .eq("user_id", userId!)
+        .single();
+      return (data as any)?.xp_level ?? 1;
+    },
+  });
+}
+
+function useUserCtgBalance(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-ctg-balance", userId],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("ctg_balance")
+        .eq("user_id", userId!)
+        .single();
+      return (data as any)?.ctg_balance ?? 0;
+    },
+  });
+}
+
   return useQuery({
     queryKey: ["territory-ns-count", territoryId],
     enabled: !!territoryId,
