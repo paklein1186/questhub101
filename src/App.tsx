@@ -249,6 +249,7 @@ const App = () => (
                 <Route path="/explore/companies-info" element={<CompaniesInfoPage />} />
                 <Route path="/explore/people-info" element={<PeopleInfoPage />} />
                 <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
+                <Route path="/territories" element={<PageShell><TerritoriesHome /></PageShell>} />
                 <Route path="/territories/:id" element={<TerritoryDetail />} />
                 <Route path="/create/bioregion" element={<CreateBioregion />} />
                 <Route path="/natural-systems/:id" element={<NaturalSystemPage />} />
