@@ -6381,6 +6381,7 @@ export type Database = {
       quest_territories: {
         Row: {
           id: string
+          is_hidden: boolean
           is_primary: boolean
           quest_id: string
           relation_type: string
@@ -6388,6 +6389,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          is_hidden?: boolean
           is_primary?: boolean
           quest_id: string
           relation_type?: string
@@ -6395,6 +6397,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          is_hidden?: boolean
           is_primary?: boolean
           quest_id?: string
           relation_type?: string
