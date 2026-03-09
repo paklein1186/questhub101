@@ -235,7 +235,7 @@ export function TerritoryQuestGrid({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Compass className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Active Quests</h2>
+            <h2 className="text-sm font-semibold text-foreground">Quests</h2>
             <Badge variant="secondary" className="text-[10px]">
               {filteredQuests.length}
             </Badge>
