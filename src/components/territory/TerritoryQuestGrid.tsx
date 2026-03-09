@@ -55,37 +55,48 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
   return useQuery({
     queryKey: ["territory-portal-grid", territoryId],
     queryFn: async () => {
-      const [questsRes, guildsRes, podsRes, companiesRes, nsRes] = await Promise.all([
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = await getAllTerritoryIds(territoryId);
+
+      const [questsRes, guildsRes, podsRes, companiesRes, nsRes, nsLinksRes] = await Promise.all([
         (supabase
           .from("quest_territories" as any)
           .select("quest_id, is_hidden, quests(id, title, description, status, quest_nature, reward_xp)") as any)
-          .eq("territory_id", territoryId)
+          .in("territory_id", ids)
           .eq("is_hidden", false)
-          .limit(30),
+          .limit(50),
 
         supabase
           .from("guild_territories")
           .select("guild_id, guilds(id, name, description, avatar_url)")
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         (supabase
           .from("pod_territories" as any)
           .select("pod_id, pods(id, name, description)") as any)
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         supabase
           .from("company_territories")
           .select("company_id, companies(id, name, description, logo_url)")
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         (supabase
           .from("natural_system_territories" as any)
           .select("natural_system_id, natural_systems(id, name, system_type, kingdom)") as any)
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
+
+        // Also check natural_system_links (used by bioregion creation)
+        (supabase
+          .from("natural_system_links" as any)
+          .select("natural_system_id, natural_systems(id, name, system_type, kingdom)") as any)
+          .in("linked_id", ids)
+          .eq("linked_type", "territory")
+          .limit(20),
       ]);
 
       const quests: QuestItem[] = (questsRes.data ?? [])
