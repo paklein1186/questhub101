@@ -30,6 +30,11 @@ const CONTRIBUTION_LABELS: Record<string, string> = {
   mentorship: "Mentorat",
   governance_vote: "Vote de gouvernance",
   ecological_annotation: "Annotation écologique",
+  service_delivered: "Service delivered",
+  moderation_resolved: "Moderation resolved",
+  pod_hosted: "Pod hosted",
+  stewardship_territory: "Territory stewardship (monthly)",
+  stewardship_house: "House stewardship (monthly)",
 };
 
 /* ─── Default values (from prompt #1) ─── */
