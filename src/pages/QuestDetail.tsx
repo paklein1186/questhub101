@@ -35,7 +35,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { FeedSection } from "@/components/feed/FeedSection";
 import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
-import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { computeLevelFromXp, XP_EVENT_TYPES, XP_REWARDS, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
