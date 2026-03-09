@@ -6,8 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const IMAGE_COUNT = 5;
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,7 +33,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Check if territory already has 5 covers (unless force=true)
+    // Check if territory already has a cover (unless force=true)
     const { data: existing } = await supabase
       .from("territories")
       .select("stats")
@@ -43,11 +41,11 @@ Deno.serve(async (req) => {
       .single();
 
     const stats = (existing?.stats as Record<string, unknown>) ?? {};
-    const existingCovers = (stats.cover_urls as string[]) ?? [];
+    const existingCover = stats.cover_url as string | undefined;
 
-    if (!force && existingCovers.length >= IMAGE_COUNT) {
+    if (!force && existingCover) {
       return new Response(
-        JSON.stringify({ cover_urls: existingCovers, cached: true }),
+        JSON.stringify({ cover_url: existingCover, cached: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -61,7 +59,7 @@ Deno.serve(async (req) => {
       console.error("Bucket creation error:", bucketError);
     }
 
-    // Build prompts with variety
+    // Build prompt with territory name embedded in the image
     const levelHint = {
       GLOBAL: "a breathtaking panoramic view of Earth's diverse ecosystems, oceans and mountains",
       CONTINENT: `a sweeping aerial landscape of ${territory_name}, showing diverse terrain and lush nature`,
@@ -74,106 +72,97 @@ Deno.serve(async (req) => {
     }[territory_level?.toUpperCase?.()] ??
       `a beautiful natural landscape near ${territory_name} with lush greenery, trees and gentle light`;
 
-    const variations = [
-      "dawn lighting, misty atmosphere, soft pastels",
-      "golden hour, warm tones, dramatic clouds",
-      "midday sun, vibrant saturated colors, clear sky",
-      "overcast, moody green tones, intimate forest detail",
-      "sunset glow, long shadows, amber and purple sky",
-    ];
+    const prompt = `Create a wide cinematic cover image: ${levelHint}. Golden hour lighting, dramatic clouds, photorealistic landscape photography, wide angle, ultra high quality. The text "${territory_name}" must be elegantly overlaid in large white semi-transparent letters centered in the image, using a clean modern sans-serif font with a subtle drop shadow for readability. No people, no buildings in focus.`;
 
-    const coverUrls: string[] = [];
+    console.log(`Generating cover for ${territory_name}`);
 
-    for (let i = 0; i < IMAGE_COUNT; i++) {
-      const prompt = `${levelHint}. ${variations[i]}. Photorealistic landscape photography, wide angle, no text, no people, no buildings in focus. Ultra high quality nature photograph.`;
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3.1-flash-image-preview",
+        messages: [{ role: "user", content: prompt }],
+        modalities: ["image", "text"],
+      }),
+    });
 
-      console.log(`Generating cover ${i + 1}/${IMAGE_COUNT} for ${territory_name}`);
-
-      try {
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3.1-flash-image-preview",
-            messages: [{ role: "user", content: prompt }],
-            modalities: ["image", "text"],
-          }),
-        });
-
-        if (!aiResponse.ok) {
-          const errText = await aiResponse.text();
-          console.error(`AI error for image ${i}:`, aiResponse.status, errText);
-          if (aiResponse.status === 429 || aiResponse.status === 402) {
-            // Stop generating more if rate limited or out of credits
-            console.warn("Rate limited or out of credits, stopping generation");
-            break;
-          }
-          continue;
-        }
-
-        const aiData = await aiResponse.json();
-        const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-        if (!imageUrl || !imageUrl.startsWith("data:image")) {
-          console.error(`No image in AI response for ${i}`);
-          continue;
-        }
-
-        // Decode base64 and upload
-        const base64Data = imageUrl.split(",")[1];
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let j = 0; j < binaryString.length; j++) {
-          bytes[j] = binaryString.charCodeAt(j);
-        }
-
-        const filePath = `territory-covers/${territory_id}_${i}.png`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("territory-covers")
-          .upload(filePath, bytes.buffer, {
-            contentType: "image/png",
-            upsert: true,
-          });
-
-        if (uploadError) {
-          console.error(`Upload error for image ${i}:`, uploadError);
-          continue;
-        }
-
-        const { data: urlData } = supabase.storage
-          .from("territory-covers")
-          .getPublicUrl(filePath);
-
-        coverUrls.push(urlData.publicUrl);
-        console.log(`Cover ${i + 1} uploaded:`, urlData.publicUrl);
-      } catch (err) {
-        console.error(`Error generating image ${i}:`, err);
-        continue;
+    if (!aiResponse.ok) {
+      const errText = await aiResponse.text();
+      console.error(`AI error:`, aiResponse.status, errText);
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
-    }
-
-    if (coverUrls.length === 0) {
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Payment required, please add funds." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
-        JSON.stringify({ error: "Failed to generate any images" }),
+        JSON.stringify({ error: "AI generation failed" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Save URLs in territory stats (replace old cover_url with cover_urls array)
-    const updatedStats = { ...stats, cover_urls: coverUrls, cover_url: coverUrls[0] };
+    const aiData = await aiResponse.json();
+    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    if (!imageUrl || !imageUrl.startsWith("data:image")) {
+      return new Response(
+        JSON.stringify({ error: "No image in AI response" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Decode base64 and upload
+    const base64Data = imageUrl.split(",")[1];
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let j = 0; j < binaryString.length; j++) {
+      bytes[j] = binaryString.charCodeAt(j);
+    }
+
+    const filePath = `territory-covers/${territory_id}.png`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("territory-covers")
+      .upload(filePath, bytes.buffer, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error(`Upload error:`, uploadError);
+      return new Response(
+        JSON.stringify({ error: "Failed to upload image" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("territory-covers")
+      .getPublicUrl(filePath);
+
+    const coverUrl = urlData.publicUrl;
+
+    // Save URL in territory stats
+    const updatedStats = { ...stats, cover_url: coverUrl };
+    delete (updatedStats as any).cover_urls; // Remove old multi-cover field
     await supabase
       .from("territories")
       .update({ stats: updatedStats })
       .eq("id", territory_id);
 
-    console.log(`Generated ${coverUrls.length} covers for ${territory_name}`);
+    console.log(`Generated cover for ${territory_name}: ${coverUrl}`);
 
     return new Response(
-      JSON.stringify({ cover_urls: coverUrls, cached: false }),
+      JSON.stringify({ cover_url: coverUrl, cached: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

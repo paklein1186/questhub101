@@ -16,6 +16,7 @@ import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
 import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
 import { TerritoryUnlockModal } from "@/components/territory/TerritoryUnlockModal";
 import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel";
+import { TerritoryStewardsSidebar } from "@/components/territory/TerritoryStewardsSidebar";
 
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
@@ -190,13 +191,13 @@ function useTerritoryPortalStewards(territoryId: string | undefined) {
     queryFn: async () => {
       const { data: edges } = await (supabase
         .from("trust_edges")
-        .select("from_id") as any)
-        .eq("to_id", territoryId!)
+        .select("from_node_id") as any)
+        .eq("to_node_id", territoryId!)
         .eq("edge_type", "stewardship")
         .eq("status", "active")
-        .limit(6);
+        .limit(10);
 
-      const stewardIds = (edges ?? []).map((e: any) => e.from_id);
+      const stewardIds = (edges ?? []).map((e: any) => e.from_node_id);
       if (stewardIds.length === 0) return [];
 
       const { data: profiles } = await supabase
@@ -219,8 +220,8 @@ function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | u
         (supabase
           .from("trust_edges")
           .select("id") as any)
-          .eq("from_id", userId!)
-          .eq("to_id", territoryId!)
+          .eq("from_node_id", userId!)
+          .eq("to_node_id", territoryId!)
           .eq("edge_type", "stewardship")
           .eq("status", "active")
           .maybeSingle(),
@@ -261,7 +262,7 @@ export default function TerritoryPortal() {
   const { data: xpLevel = 1 } = useCurrentUserXpLevel(currentUser.id || undefined);
   const { data: ctgBalance = 0 } = useUserCtgBalance(currentUser.id || undefined);
 
-  const isPioneerTerritory = !memberCountLoading && !stewardsLoading && memberCount === 0 && stewards.length === 0;
+  const isPioneerTerritory = !stewardsLoading && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
   const { data: isAlreadyMember = false } = useIsAlreadyMember(resolvedId, currentUser.id);
 
@@ -326,7 +327,10 @@ export default function TerritoryPortal() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex gap-6">
+          {/* Main content */}
+          <div className="flex-1 min-w-0 space-y-6">
         {resolvedId && (
           <PiContextSetter contextType="territory" contextId={resolvedId} />
         )}
@@ -445,6 +449,19 @@ export default function TerritoryPortal() {
             </TabsContent>
           )}
         </Tabs>
+          </div>
+
+          {/* Stewards sidebar */}
+          <div className="hidden lg:block w-64 shrink-0 space-y-4 pt-[calc(14rem+1.5rem)]">
+            <TerritoryStewardsSidebar
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              stewards={stewards}
+              isPioneerTerritory={isPioneerTerritory}
+              userXpLevel={xpLevel}
+            />
+          </div>
+        </div>
       </div>
 
       {isAuthenticated && (

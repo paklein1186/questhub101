@@ -57,8 +57,13 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
         to={`/territories/${item.id}`}
         className="group relative block rounded-2xl border border-border bg-card overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300"
       >
-        <div className={`h-20 bg-gradient-to-br ${gradient} relative`}>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+        <div className={`h-20 bg-gradient-to-br ${gradient} relative overflow-hidden`}>
+          {item.cover_url ? (
+            <img src={item.cover_url} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
           <div className="absolute top-3 left-3">
             <div className="flex items-center gap-1.5">
               <div className={`h-2 w-2 rounded-full ${activity.color}`} />
