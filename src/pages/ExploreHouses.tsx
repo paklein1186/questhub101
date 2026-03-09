@@ -720,7 +720,8 @@ function EntityGrid({ items, loading, empty, renderItem }: {
   empty: string;
   renderItem: (item: any) => React.ReactNode;
 }) {
-  if (loading) return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
+  const { gridClassName } = useExploreGridDensity();
+  if (loading) return <div className={gridClassName}>{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
   if (!items || items.length === 0) return <div className="text-center py-16 text-muted-foreground"><p>{empty}</p></div>;
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{items.map(renderItem)}</div>;
+  return <div className={gridClassName}>{items.map(renderItem)}</div>;
 }
