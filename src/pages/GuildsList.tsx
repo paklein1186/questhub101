@@ -157,7 +157,7 @@ export default function GuildsList({ bare, hideFilters, externalFilters, externa
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClassName}>
         {filtered.map((guild, i) => {
           const gTopics = guild.guild_topics?.map((gt: any) => gt.topics).filter(Boolean) ?? [];
           const gTerrs = guild.guild_territories?.map((gt: any) => gt.territories).filter(Boolean) ?? [];

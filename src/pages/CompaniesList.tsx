@@ -74,7 +74,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClassName}>
         {filtered.map((company: any, i: number) => {
           const cTerrs = (company.company_territories ?? []).map((ct: any) => ct.territories).filter(Boolean);
           const memberCount = company.company_members?.length ?? 0;

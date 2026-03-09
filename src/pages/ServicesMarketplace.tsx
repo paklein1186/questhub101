@@ -112,7 +112,7 @@ export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
       )}
 
       {isLoggedIn && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className={gridClassName}>
           {filtered.map((svc, i) => {
             const ownerType = (svc as any).owner_type || "USER";
             const provider = (svc as any).provider_profile;

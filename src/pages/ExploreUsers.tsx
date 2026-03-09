@@ -423,9 +423,10 @@ function UserCardGrid({ users, isLoggedIn }: { users: ExploreUser[]; isLoggedIn:
   const userIds = useMemo(() => users.map(u => u.user_id), [users]);
   const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
   const { data: trustMap } = useTrustSummaryBatch("profile", userIds);
+  const { gridClassName } = useExploreGridDensity();
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={gridClassName}>
       {users.map((u) => (
         <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} isFollowed={followedIds.has(u.user_id)} trustSummary={trustMap?.[u.user_id]} />
       ))}

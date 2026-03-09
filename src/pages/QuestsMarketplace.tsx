@@ -182,7 +182,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
 
       {/* Logged-in mode: full quest cards */}
       {isLoggedIn && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className={gridClassName}>
           {filtered.map((quest, i) => (
             <motion.div key={quest.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link to={`/quests/${quest.id}`} className="block rounded-xl border border-border bg-card overflow-hidden hover:shadow-md hover:border-primary/30 transition-all">

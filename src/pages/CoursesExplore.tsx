@@ -71,7 +71,7 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
 
       {!isLoading && filtered.length === 0 && <p className="text-muted-foreground">No courses match your filters.</p>}
 
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClassName}>
         {filtered.map((course, i) => {
           const cTopics = ((course as any).course_topics ?? []).map((ct: any) => ct.topics).filter(Boolean);
           const enrollCount = (course as any).course_enrollments?.length ?? 0;
