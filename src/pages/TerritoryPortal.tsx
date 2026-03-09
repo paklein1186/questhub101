@@ -262,7 +262,7 @@ export default function TerritoryPortal() {
   const { data: xpLevel = 1 } = useCurrentUserXpLevel(currentUser.id || undefined);
   const { data: ctgBalance = 0 } = useUserCtgBalance(currentUser.id || undefined);
 
-  const isPioneerTerritory = !memberCountLoading && !stewardsLoading && memberCount === 0 && stewards.length === 0;
+  const isPioneerTerritory = !stewardsLoading && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
   const { data: isAlreadyMember = false } = useIsAlreadyMember(resolvedId, currentUser.id);
 
