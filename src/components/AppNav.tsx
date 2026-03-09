@@ -182,7 +182,8 @@ export function AppNav() {
                     );
                   })}
 
-
+                  {/* Theme toggle */}
+                  <ThemeToggleButton />
 
 
                   {/* Unified profile menu */}
