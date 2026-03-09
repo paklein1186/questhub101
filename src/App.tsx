@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CurrentUserProvider } from "@/hooks/useCurrentUser";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { PersonaThemeProvider } from "@/components/PersonaThemeProvider";
+import { ThemeProvider } from "next-themes";
 import { ChatBubbleProvider } from "@/components/chat/ChatBubbleContext";
 import { ChatBubbleOverlay } from "@/components/chat/ChatBubbleOverlay";
 import { PiPanelProvider } from "@/components/pi/PiPanelProvider";
