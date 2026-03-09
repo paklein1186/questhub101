@@ -12,6 +12,7 @@ export interface TerritoryLeaderboardItem {
   topTopics: string[];
   synthesis: string;
   cover_url: string | null;
+  logo_url: string | null;
 }
 
 export interface TopicLeaderboardItem {
