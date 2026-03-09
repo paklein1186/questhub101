@@ -373,16 +373,13 @@ export default function TerritoryPortal() {
             <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
-          <TabsContent value="library" className="mt-6">
-            <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
-          </TabsContent>
-
           <TabsContent value="intelligence" className="mt-6">
-            <TerritoryMemoryTab territoryId={resolvedId!} territoryName={territory.name} isMember={isAlreadyMember} />
-          </TabsContent>
-
-          <TabsContent value="contribute" className="mt-6">
-            <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+            <IntelligenceSubtabs
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              userId={currentUser.id}
+              isMember={isAlreadyMember}
+            />
           </TabsContent>
 
           <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
