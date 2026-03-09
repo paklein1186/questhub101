@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Star, Shield, Compass, Trophy, Rocket, ArrowRight } from "lucide-react";
+import { Zap, Sprout, Shield, Compass, Trophy, Rocket, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +8,14 @@ import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 interface Props {
   xp: number;
-  contributionIndex: number;
+  ctgBalance: number;
   guildCount: number;
   questCount: number;
   achievements: { id: string; title: string }[];
   userId: string;
 }
 
-export function HomeStats({ xp, contributionIndex, guildCount, questCount, achievements, userId }: Props) {
+export function HomeStats({ xp, ctgBalance, guildCount, questCount, achievements, userId }: Props) {
   const { percentage, isComplete, completedCount, totalSteps } = useOnboardingProgress();
 
   return (
