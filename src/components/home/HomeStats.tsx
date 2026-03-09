@@ -65,11 +65,18 @@ export function HomeStats({ xp, ctgBalance, guildCount, questCount, achievements
   );
 }
 
-function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent?: boolean }) {
+function StatCard({ icon: Icon, label, value, accent, color }: { icon: any; label: string; value: number; accent?: boolean; color?: "emerald" }) {
+  const iconColor = color === "emerald"
+    ? "text-emerald-600 dark:text-emerald-400"
+    : accent ? "text-primary" : "text-muted-foreground";
+  const bgColor = color === "emerald"
+    ? "bg-emerald-100/60 dark:bg-emerald-950/40"
+    : accent ? "bg-primary/10" : "bg-muted";
+
   return (
     <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
-      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${accent ? "bg-primary/10" : "bg-muted"}`}>
-        <Icon className={`h-4.5 w-4.5 ${accent ? "text-primary" : "text-muted-foreground"}`} />
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${bgColor}`}>
+        <Icon className={`h-4.5 w-4.5 ${iconColor}`} />
       </div>
       <div>
         <p className="text-lg font-bold leading-tight">{value}</p>
