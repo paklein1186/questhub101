@@ -239,7 +239,6 @@ export function CTGWalletSection() {
             </Button>
           </div>
         )}
-        </div>
 
         <p className="text-xs text-muted-foreground">
           <Link to="/me?tab=wallet" className="text-primary hover:underline">← View Platform Credits</Link>
