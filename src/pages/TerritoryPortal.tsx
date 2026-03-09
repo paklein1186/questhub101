@@ -328,7 +328,10 @@ export default function TerritoryPortal() {
             )}
           </TabsList>
 
-          <TabsContent value="portal" className="mt-6">
+          <TabsContent value="portal" className="mt-6 space-y-8">
+            {territory.level === "BIOREGION" && (
+              <BioregionMembersSection bioregionId={resolvedId!} />
+            )}
             <TerritoryGuestPortal
               territory={heroTerritory}
               memberCount={memberCount}
