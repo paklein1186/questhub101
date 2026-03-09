@@ -89,6 +89,13 @@ export function useCreateGuild() {
       if (memErr) throw memErr;
       // Auto-follow the created guild
       await autoFollowEntity(user.id, "GUILD", guild.id);
+      // Emit $CTG for guild creation
+      supabase.rpc('emit_ctg_for_contribution', {
+        p_user_id: user.id,
+        p_contribution_type: 'guild_created',
+        p_related_entity_id: guild.id,
+        p_related_entity_type: 'guild',
+      } as any).then(() => {});
       return guild;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["guilds"] }),

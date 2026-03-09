@@ -232,6 +232,15 @@ export function CreateTrustEdgeDialog({
     }
 
     toast({ title: "Trust attestation created ✨", description: `You attested ${EDGE_TYPE_LABELS[edgeType]?.label} for ${targetName ?? "this entity"}.` });
+
+    // Emit $CTG for trust given
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: user.id,
+      p_contribution_type: 'trust_given',
+      p_related_entity_id: targetNodeId,
+      p_related_entity_type: 'trust_edge',
+    } as any).then(() => {});
+
     onOpenChange(false);
     onCreated?.();
   };

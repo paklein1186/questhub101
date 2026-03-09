@@ -211,6 +211,14 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
 
       if (error) { toast({ title: "Failed to post comment", variant: "destructive" }); return; }
 
+      // Emit $CTG for comment
+      supabase.rpc('emit_ctg_for_contribution', {
+        p_user_id: currentUser.id,
+        p_contribution_type: 'comment_given',
+        p_related_entity_id: targetId,
+        p_related_entity_type: targetType,
+      } as any).then(() => {});
+
       // Process @mentions (users + entities)
       const mentionIds = extractMentionIds(content);
       const allEntityMentions = extractAllMentions(content);

@@ -420,6 +420,15 @@ export function WorkTasksTab() {
   const updateQuestStatus = async (questId: string, uiStatus: string) => {
     const questStatus = uiStatus === "DONE" ? "COMPLETED" : uiStatus === "IN_PROGRESS" ? "ACTIVE" : "OPEN_FOR_PROPOSALS";
     await supabase.from("quests").update({ status: questStatus }).eq("id", questId);
+    // Emit $CTG when quest is completed
+    if (questStatus === "COMPLETED") {
+      supabase.rpc('emit_ctg_for_contribution', {
+        p_user_id: userId,
+        p_contribution_type: 'quest_completed',
+        p_related_entity_id: questId,
+        p_related_entity_type: 'quest',
+      } as any).then(() => {});
+    }
     qc.invalidateQueries({ queryKey: ["my-active-quests", userId] });
     qc.invalidateQueries({ queryKey: ["my-participant-quests", userId] });
   };
