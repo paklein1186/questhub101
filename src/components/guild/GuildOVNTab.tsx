@@ -418,7 +418,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-5 w-5 text-primary mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{avgSharePerContributor.toFixed(1)}</p>
-            <p className="text-[10px] text-muted-foreground">Avg 🟡 $CTG / Contributor</p>
+            <p className="text-[10px] text-muted-foreground">Avg 🌱 $CTG / Contributor</p>
           </CardContent>
         </Card>
         <Card className="border-violet-500/20">
