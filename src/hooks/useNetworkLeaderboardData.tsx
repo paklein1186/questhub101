@@ -61,7 +61,7 @@ export function useTerritoryLeaderboard() {
       // Fetch all territories
       const { data: territories, error } = await supabase
         .from("territories")
-        .select("id, name, level, parent_id");
+        .select("id, name, level, parent_id, stats");
       if (error) throw error;
       if (!territories || territories.length === 0) return [];
 
