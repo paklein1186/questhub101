@@ -176,6 +176,15 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             });
           }
         }
+
+          // Emit $CTG for subtask completion
+          supabase.rpc('emit_ctg_for_contribution', {
+            p_user_id: assigneeId,
+            p_contribution_type: 'subtask_completed',
+            p_related_entity_id: subtaskId,
+            p_related_entity_type: 'quest_subtask',
+            p_note: subtask?.title ?? null,
+          } as any).then(() => {});
       } catch (e) {
         console.error("Failed to log contribution from subtask", e);
       }

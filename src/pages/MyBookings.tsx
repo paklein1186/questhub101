@@ -44,6 +44,13 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
         if (status === "COMPLETED" && booking) {
           setGiveBackBooking(booking);
           setGiveBackOpen(true);
+          // Emit $CTG for service delivery
+          supabase.rpc('emit_ctg_for_contribution', {
+            p_user_id: currentUser.id,
+            p_contribution_type: 'service_delivered',
+            p_related_entity_id: bookingId,
+            p_related_entity_type: 'booking',
+          } as any).then(() => {});
         }
         if (booking) {
           const svc = booking.services as any;

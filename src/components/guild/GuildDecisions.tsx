@@ -517,6 +517,15 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
         } as any).then(undefined, () => {});
       }
     }
+
+    // Emit $CTG for governance vote
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: currentUserId,
+      p_contribution_type: 'governance_vote',
+      p_related_entity_id: decision.id,
+      p_related_entity_type: 'decision',
+    } as any).then(() => {});
+
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
     onRefresh();
     toast({ title: "Vote recorded" });
