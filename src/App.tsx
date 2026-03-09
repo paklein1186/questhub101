@@ -185,6 +185,7 @@ const App = () => (
             <PiDesktopPanel />
             <PiFloatingButton />
             <BugReportBubble />
+            <HarvestWindowBanner />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
