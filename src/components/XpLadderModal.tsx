@@ -234,16 +234,57 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
             <ScrollArea className="h-[50vh] pr-2">
               <div className="space-y-5">
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">How XP is earned</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
-                    <li>Completing quests</li>
-                    <li>Co-creating projects</li>
-                    <li>Cross-territory collaboration</li>
-                    <li>Publishing valuable knowledge</li>
-                    <li>Hosting events</li>
-                    <li>Mentoring members</li>
-                    <li>Receiving upvotes on meaningful contributions</li>
-                  </ul>
+                  <h4 className="text-sm font-semibold mb-2">🎯 Participation (⭐ XP only)</h4>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {[
+                      ["Comment upvoted", "+1 XP"], ["Event registered", "+1 XP"], ["Post created", "+2 XP"],
+                      ["Joined a guild/pod/company", "+2 XP"], ["Course enrolled", "+2 XP"], ["Booking attended", "+2 XP"],
+                      ["Endorsement received", "+3 XP"], ["Proposal submitted", "+3 XP"],
+                      ["Quest created/published", "+5 XP"], ["Event created", "+5 XP"],
+                      ["Pod participated", "+10 XP"], ["Course completed", "+10 XP"],
+                      ["Booking completed", "+10–15 XP"], ["Achievement received", "+20 XP"], ["Referral reward", "+50 XP"],
+                    ].map(([action, reward]) => (
+                      <div key={action} className="flex justify-between px-2 py-1 rounded hover:bg-muted/50">
+                        <span>{action}</span><span className="font-medium text-foreground">{reward}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">🛡 Stewardship (⭐ XP + small 🌱 $CTG)</h4>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {[
+                      ["Governance vote cast", "+3 XP", "+5 $CTG"], ["Moderation resolved", "+10 XP", "+5 $CTG"],
+                      ["Pod hosted", "+20 XP", "+8 $CTG"], ["Stewardship territory", "+15 XP", "+5 $CTG"],
+                      ["Stewardship house", "+25 XP", "+8 $CTG"],
+                    ].map(([action, xp, ctg]) => (
+                      <div key={action} className="flex justify-between px-2 py-1 rounded hover:bg-muted/50">
+                        <span>{action}</span>
+                        <span className="flex gap-2"><span className="font-medium text-foreground">{xp}</span><span className="text-emerald-600">{ctg}</span></span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">🌱 Contribution (⭐ XP + 🌱 $CTG, both)</h4>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {[
+                      ["Subtask completed", "+5 XP", "+5 $CTG"], ["Documentation", "+5 XP", "+10 $CTG"],
+                      ["Review given", "+3 XP", "+10 $CTG"], ["Ecological annotation", "+3 XP", "+15 $CTG"],
+                      ["Ritual attended", "+5 XP", "+15 $CTG"], ["Ritual facilitated", "+15 XP", "+15 $CTG"],
+                      ["Service delivered", "+15 XP", "+20 $CTG"], ["Proposal accepted", "+20 XP", "+20 $CTG"],
+                      ["Mentorship", "+25 XP", "+25 $CTG"],
+                      ["Quest completed — participant", "+30 XP", "+50 $CTG"],
+                      ["Quest completed — creator", "+40 XP", "+50 $CTG"],
+                    ].map(([action, xp, ctg]) => (
+                      <div key={action} className="flex justify-between px-2 py-1 rounded hover:bg-muted/50">
+                        <span>{action}</span>
+                        <span className="flex gap-2"><span className="font-medium text-foreground">{xp}</span><span className="text-emerald-600">{ctg}</span></span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -253,6 +294,8 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
                     <li>Donations</li>
                     <li>Shareholding</li>
                     <li>Buying credits</li>
+                    <li>Purchasing anything — neither XP nor $CTG can ever be bought</li>
+                    <li>$CTG fading (demurrage) does NOT reduce your XP — XP is independent and permanent</li>
                   </ul>
                 </div>
 
