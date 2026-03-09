@@ -16,10 +16,10 @@ export function TerritoryQuestGrid({ territoryId, territoryName, canCreateQuest 
     queryKey: ["territory-portal-quests", territoryId],
     staleTime: 60_000,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase
         .from("quests")
-        .select("id, title, status, reward_xp, guild_id, guilds(name)")
-        .eq("territory_id" as any, territoryId)
+        .select("id, title, status, reward_xp, guild_id") as any)
+        .eq("territory_id", territoryId)
         .in("status", ["ACTIVE", "OPEN_FOR_PROPOSALS"])
         .order("created_at", { ascending: false })
         .limit(6);
