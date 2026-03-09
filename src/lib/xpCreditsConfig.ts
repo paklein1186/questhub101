@@ -114,6 +114,11 @@ export const XP_REWARDS: Record<string, number> = {
   // Subtask / contribution
   [XP_EVENT_TYPES.SUBTASK_COMPLETED]: 5,
   [XP_EVENT_TYPES.CONTRIBUTION_LOGGED]: 2,
+  // Governance & review
+  [XP_EVENT_TYPES.GOVERNANCE_VOTE_CAST]: 3,
+  [XP_EVENT_TYPES.REVIEW_GIVEN]: 3,
+  [XP_EVENT_TYPES.DOCUMENTATION_WRITTEN]: 5,
+  [XP_EVENT_TYPES.ECOLOGICAL_ANNOTATION]: 3,
 };
 
 /** Daily cap for COMMENT_UPVOTED XP (max XP from this type per user per day) */
