@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/lib/admin";
 import { CREDIT_COSTS, GRACE_PERIOD_DAYS } from "@/lib/xpCreditsConfig";
 
 // Credit costs for exceeding plan limits
@@ -67,6 +68,32 @@ const DEFAULT_PLAN: PlanLimits = {
   broadcastEnabled: false,
 };
 
+const SUPERADMIN_PLAN: PlanLimits = {
+  freeQuestsPerWeek: Infinity,
+  maxGuildMemberships: null,
+  maxPods: null,
+  maxServicesActive: null,
+  maxCourses: null,
+  xpMultiplier: 2.0,
+  planName: "Superadmin",
+  planCode: "SUPERADMIN",
+  monthlyIncludedCredits: Infinity,
+  visibilityRanking: "top",
+  aiMuseMode: "pro",
+  canCreateCompany: true,
+  customGuildTools: true,
+  commissionDiscountPercent: 100,
+  maxTerritories: null,
+  canCreateTerritory: true,
+  maxAttachmentSizeMb: 500,
+  partnershipProposalsEnabled: true,
+  fundraisingToolsEnabled: true,
+  aiAgentsEnabled: true,
+  territoryIntelligenceEnabled: true,
+  memoryEngineEnabled: true,
+  broadcastEnabled: true,
+};
+
 function getMonday(date: Date): string {
   const d = new Date(date);
   const day = d.getDay();
@@ -78,6 +105,7 @@ function getMonday(date: Date): string {
 export function usePlanLimits() {
   const { session } = useAuth();
   const userId = session?.user?.id;
+  const { isSuperAdmin } = useUserRoles(userId);
 
   const [plan, setPlan] = useState<PlanLimits>(DEFAULT_PLAN);
   const [weeklyQuestsUsed, setWeeklyQuestsUsed] = useState(0);
@@ -179,17 +207,20 @@ export function usePlanLimits() {
     fetchData();
   }, [fetchData]);
 
+  // Superadmin override: use unlimited plan, bypass all limits
+  const effectivePlan = isSuperAdmin ? SUPERADMIN_PLAN : plan;
+  const bypassLimits = isSuperAdmin || inGracePeriod;
+
   // Derived state
-  const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
-  // During grace period, limits are not enforced (no credit cost)
-  const questLimitReached = inGracePeriod ? false : freeQuestsRemaining === 0;
-  const canAffordExtraQuest = inGracePeriod || userCredits >= EXTRA_QUEST_CREDIT_COST;
+  const freeQuestsRemaining = bypassLimits ? Infinity : Math.max(0, effectivePlan.freeQuestsPerWeek - weeklyQuestsUsed);
+  const questLimitReached = bypassLimits ? false : freeQuestsRemaining === 0;
+  const canAffordExtraQuest = bypassLimits || userCredits >= EXTRA_QUEST_CREDIT_COST;
 
-  const guildLimitReached = inGracePeriod ? false : (plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships);
-  const canAffordExtraGuild = inGracePeriod || userCredits >= EXTRA_GUILD_CREDIT_COST;
+  const guildLimitReached = bypassLimits ? false : (effectivePlan.maxGuildMemberships !== null && guildCount >= effectivePlan.maxGuildMemberships);
+  const canAffordExtraGuild = bypassLimits || userCredits >= EXTRA_GUILD_CREDIT_COST;
 
-  const podLimitReached = inGracePeriod ? false : (plan.maxPods !== null && podCount >= plan.maxPods);
-  const canAffordExtraPod = inGracePeriod || userCredits >= EXTRA_POD_CREDIT_COST;
+  const podLimitReached = bypassLimits ? false : (effectivePlan.maxPods !== null && podCount >= effectivePlan.maxPods);
+  const canAffordExtraPod = bypassLimits || userCredits >= EXTRA_POD_CREDIT_COST;
 
   // Increment weekly usage after quest creation
   const recordQuestCreation = useCallback(async () => {
@@ -219,8 +250,8 @@ export function usePlanLimits() {
   const spendCredits = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
     if (!userId) return false;
 
-    // Grace period: no credits consumed
-    if (inGracePeriod) return true;
+    // Superadmin or grace period: no credits consumed
+    if (isSuperAdmin || inGracePeriod) return true;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -247,13 +278,13 @@ export function usePlanLimits() {
 
     setUserCredits(balance - amount);
     return true;
-  }, [userId, inGracePeriod]);
+  }, [userId, isSuperAdmin, inGracePeriod]);
 
   // Legacy alias
   const spendXp = spendCredits;
 
   return {
-    plan,
+    plan: effectivePlan,
     loading,
     userXp,
     userCredits,
