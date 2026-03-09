@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Coins, AlertTriangle, ArrowRight } from "lucide-react";
+import { Coins, AlertTriangle, ArrowRight, Leaf, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +17,12 @@ interface XpSpendDialogProps {
   actionLabel: string;
   limitLabel: string;
   onConfirm: () => void | Promise<void>;
+  /** User's $CTG balance (optional — enables exchange path) */
+  ctgBalance?: number;
 }
 
 export function XpSpendDialog({
-  open, onOpenChange, canAfford, xpCost, userXp, actionLabel, limitLabel, onConfirm,
+  open, onOpenChange, canAfford, xpCost, userXp, actionLabel, limitLabel, onConfirm, ctgBalance,
 }: XpSpendDialogProps) {
   const [confirming, setConfirming] = useState(false);
 
@@ -70,9 +72,33 @@ export function XpSpendDialog({
             <p className="text-sm text-muted-foreground">
               You need <span className="font-semibold text-primary">{xpCost} Credits</span> to {actionLabel}, but you only have <span className="font-semibold">{userXp} Credits</span>.
             </p>
-            <p className="text-sm text-muted-foreground">
-              Buy Credit bundles or upgrade your plan to unlock more actions.
-            </p>
+
+            {/* CTG exchange path */}
+            {ctgBalance && ctgBalance > 0 ? (
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Leaf className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <p className="text-sm font-medium">
+                    You have {ctgBalance.toLocaleString()} $CTG
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Exchange your contribution earnings for Credits — no payment needed.
+                </p>
+                <Button variant="outline" size="sm" asChild className="gap-1.5">
+                  <Link to="/me/credits">
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Exchange $CTG for Credits
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
+                💡 Tip: Complete quests and subtasks to earn 🌱 $CTG,
+                which you can exchange for Credits without paying €.
+              </p>
+            )}
+
             <DialogFooter className="flex-col sm:flex-row gap-2">
               <Button variant="outline" asChild>
                 <Link to="/plans">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
