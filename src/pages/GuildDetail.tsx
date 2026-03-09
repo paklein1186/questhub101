@@ -584,8 +584,8 @@ export default function GuildDetail() {
               <p className="text-sm text-muted-foreground">Guild Wallet</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center">
-              <p className="text-2xl font-bold text-muted-foreground flex items-center justify-center gap-1"><Coins className="h-5 w-5" />{membersCreditSum}</p>
-              <p className="text-sm text-muted-foreground">Members' Credits</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">🟡 {Math.round(membersCTGSum)}</p>
+              <p className="text-sm text-muted-foreground">Members' $CTG</p>
             </div>
             <GuildCTGStat guildId={guild.id} />
           </div>
