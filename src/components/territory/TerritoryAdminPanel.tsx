@@ -213,13 +213,12 @@ function MemberManagementSection({ territoryId }: SectionProps) {
   const { data: members, isLoading } = useQuery({
     queryKey: ["territory-admin-members", territoryId],
     queryFn: async () => {
-      const res: any = await supabase
+      const { data } = await (supabase as any)
         .from("profiles")
         .select("user_id, name, avatar_url, headline, persona_type, xp_total")
         .eq("territory_id", territoryId)
-        .order("xp_total" as any, { ascending: false })
+        .order("xp_total", { ascending: false })
         .limit(20);
-      const { data } = res;
       return data ?? [];
     },
     enabled: !!territoryId,
