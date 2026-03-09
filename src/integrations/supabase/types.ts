@@ -2204,6 +2204,86 @@ export type Database = {
         }
         Relationships: []
       }
+      ctg_bounties: {
+        Row: {
+          action_type: string
+          claimed_slots: number
+          created_at: string | null
+          ctg_reward: number
+          description: string | null
+          ends_at: string
+          id: string
+          is_active: boolean | null
+          required_count: number
+          starts_at: string
+          title: string
+          total_slots: number
+        }
+        Insert: {
+          action_type: string
+          claimed_slots?: number
+          created_at?: string | null
+          ctg_reward: number
+          description?: string | null
+          ends_at: string
+          id?: string
+          is_active?: boolean | null
+          required_count?: number
+          starts_at: string
+          title: string
+          total_slots?: number
+        }
+        Update: {
+          action_type?: string
+          claimed_slots?: number
+          created_at?: string | null
+          ctg_reward?: number
+          description?: string | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean | null
+          required_count?: number
+          starts_at?: string
+          title?: string
+          total_slots?: number
+        }
+        Relationships: []
+      }
+      ctg_bounty_claims: {
+        Row: {
+          bounty_id: string | null
+          claimed_at: string | null
+          id: string
+          user_id: string
+          verified: boolean | null
+          verified_at: string | null
+        }
+        Insert: {
+          bounty_id?: string | null
+          claimed_at?: string | null
+          id?: string
+          user_id: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Update: {
+          bounty_id?: string | null
+          claimed_at?: string | null
+          id?: string
+          user_id?: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ctg_bounty_claims_bounty_id_fkey"
+            columns: ["bounty_id"]
+            isOneToOne: false
+            referencedRelation: "ctg_bounties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ctg_commons_wallet: {
         Row: {
           balance: number
