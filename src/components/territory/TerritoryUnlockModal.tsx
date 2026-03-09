@@ -88,6 +88,15 @@ function useUnlockTerritory() {
       imageUrls: string[];
       tags: string[];
     }) => {
+      // Pre-flight: check if stewardship edge already exists
+      const { data: existing } = await (supabase.from("trust_edges") as any)
+        .select("id")
+        .eq("from_node_id", userId)
+        .eq("to_node_id", territoryId)
+        .eq("edge_type", "stewardship")
+        .maybeSingle();
+      if (existing) throw new Error("You are already a steward of this territory.");
+
       // 1. Update territory with summary and meta
       const { error: terrErr } = await supabase
         .from("territories")
@@ -99,8 +108,8 @@ function useUnlockTerritory() {
         .eq("id", territoryId);
       if (terrErr) throw terrErr;
 
-      // 2. Insert pioneer steward edge via trust_edges (stewardship type)
-      await (supabase.from("trust_edges") as any).insert({
+      // 2. Upsert pioneer steward edge (safe against race conditions)
+      await (supabase.from("trust_edges") as any).upsert({
         from_node_id: userId,
         from_node_type: "user",
         to_node_id: territoryId,
@@ -110,7 +119,7 @@ function useUnlockTerritory() {
         tags: ["pioneer"],
         status: "active",
         created_by: userId,
-      } as any).select();
+      } as any, { onConflict: "from_node_id,to_node_id,edge_type", ignoreDuplicates: true });
 
       // 3. Set territory as user's primary territory
       await supabase
