@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Banknote, Zap, Coins, ChevronRight, ChevronLeft, Check, HelpCircle,
+  Banknote, Zap, Coins, ChevronRight, ChevronLeft, Check, HelpCircle, Leaf,
   CreditCard, Handshake, Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
