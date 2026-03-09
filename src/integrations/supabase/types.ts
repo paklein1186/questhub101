@@ -5636,6 +5636,7 @@ export type Database = {
           default_give_back_guild_id: string | null
           default_give_back_target_type: string
           demurrage_exempt: boolean
+          dismissed_hints: string[]
           email: string
           featured_order: number | null
           feedpoint_default_guilds: boolean
@@ -5708,6 +5709,7 @@ export type Database = {
           default_give_back_guild_id?: string | null
           default_give_back_target_type?: string
           demurrage_exempt?: boolean
+          dismissed_hints?: string[]
           email?: string
           featured_order?: number | null
           feedpoint_default_guilds?: boolean
@@ -5780,6 +5782,7 @@ export type Database = {
           default_give_back_guild_id?: string | null
           default_give_back_target_type?: string
           demurrage_exempt?: boolean
+          dismissed_hints?: string[]
           email?: string
           featured_order?: number | null
           feedpoint_default_guilds?: boolean
