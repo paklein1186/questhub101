@@ -378,6 +378,130 @@ function UserSection({
   );
 }
 
+interface RankedEntity {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  type: "GUILD" | "COMPANY";
+  value: number;
+  secondary?: string;
+}
+
+function usePartnershipLeaders(period: TimePeriod, limit = 10) {
+  const dateFrom = getDateFrom(period);
+  return useQuery<RankedEntity[]>({
+    queryKey: ["leaderboard-partnerships", period, limit],
+    staleTime: 120_000,
+    queryFn: async () => {
+      let query = supabase
+        .from("partnerships")
+        .select("from_entity_type, from_entity_id, to_entity_type, to_entity_id, created_at")
+        .eq("status", "ACCEPTED");
+
+      if (dateFrom) {
+        query = query.gte("created_at", dateFrom);
+      }
+
+      const { data: rows } = await query;
+      if (!rows?.length) return [];
+
+      // Count partnerships per entity
+      const counts: Record<string, { type: "GUILD" | "COMPANY"; count: number }> = {};
+      for (const r of rows) {
+        const fromKey = `${r.from_entity_type}:${r.from_entity_id}`;
+        const toKey = `${r.to_entity_type}:${r.to_entity_id}`;
+        if (!counts[fromKey]) counts[fromKey] = { type: r.from_entity_type as "GUILD" | "COMPANY", count: 0 };
+        if (!counts[toKey]) counts[toKey] = { type: r.to_entity_type as "GUILD" | "COMPANY", count: 0 };
+        counts[fromKey].count++;
+        counts[toKey].count++;
+      }
+
+      const sorted = Object.entries(counts)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, limit);
+
+      // Fetch entity names
+      const guildIds = sorted.filter(([k]) => k.startsWith("GUILD:")).map(([k]) => k.split(":")[1]);
+      const companyIds = sorted.filter(([k]) => k.startsWith("COMPANY:")).map(([k]) => k.split(":")[1]);
+
+      const nameMap: Record<string, { name: string; logo_url: string | null }> = {};
+
+      const [guilds, companies] = await Promise.all([
+        guildIds.length ? supabase.from("guilds").select("id, name, logo_url").in("id", guildIds) : { data: [] },
+        companyIds.length ? supabase.from("companies").select("id, name, logo_url").in("id", companyIds) : { data: [] },
+      ]);
+
+      (guilds.data ?? []).forEach((g) => { nameMap[`GUILD:${g.id}`] = { name: g.name, logo_url: g.logo_url }; });
+      (companies.data ?? []).forEach((c) => { nameMap[`COMPANY:${c.id}`] = { name: c.name, logo_url: c.logo_url }; });
+
+      return sorted.map(([key, { type, count }]) => ({
+        id: key.split(":")[1],
+        name: nameMap[key]?.name ?? "Unknown",
+        logo_url: nameMap[key]?.logo_url ?? null,
+        type,
+        value: count,
+        secondary: type === "GUILD" ? "Guild" : "Company",
+      }));
+    },
+  });
+}
+
+function EntitySection({
+  title, subtitle, icon, accentClass, isLoading,
+  entries, unitLabel,
+}: SectionProps & { entries: RankedEntity[]; unitLabel: string }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className={`p-4 border-b border-border ${accentClass}`}>
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <div>
+            <h3 className="font-display font-semibold text-sm">{title}</h3>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No partnerships yet.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {entries.map((entry, i) => (
+            <Link
+              key={entry.id}
+              to={entry.type === "GUILD" ? `/guilds/${entry.id}` : `/companies/${entry.id}`}
+              className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
+            >
+              <span className={`w-6 text-center font-bold text-sm shrink-0 ${rankColor(i)}`}>
+                {i + 1}
+              </span>
+              <Avatar className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} ${entry.type === "GUILD" ? "rounded-lg" : "rounded-full"}`}>
+                <AvatarImage src={entry.logo_url ?? undefined} />
+                <AvatarFallback className={entry.type === "GUILD" ? "rounded-lg" : ""}>
+                  {entry.name?.[0] ?? "?"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{entry.name}</p>
+                {entry.secondary && (
+                  <p className="text-[11px] text-muted-foreground truncate">{entry.secondary}</p>
+                )}
+              </div>
+              <Badge variant="secondary" className="text-[10px]">
+                {entry.value} {unitLabel}
+              </Badge>
+            </Link>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 function TerritorySection({
   title, subtitle, icon, accentClass, isLoading,
   entries,
@@ -445,6 +569,7 @@ export default function LeaderboardTab() {
   const { data: xpLeaders = [], isLoading: xpLoading } = useXpLeaders(period);
   const { data: trustLeaders = [], isLoading: trustLoading } = useTrustLeaders(period);
   const { data: territories = [], isLoading: terrLoading } = useActiveTerritories(period);
+  const { data: partnershipLeaders = [], isLoading: partLoading } = usePartnershipLeaders(period);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -540,6 +665,16 @@ export default function LeaderboardTab() {
           isLoading={trustLoading}
           entries={trustLeaders}
           unitLabel="trust"
+        />
+
+        <EntitySection
+          title="🏛️ Partnership Champions"
+          subtitle={period === "all" ? "Entities with the most accepted partnerships." : `Partnerships formed${subtitleSuffix}.`}
+          icon={<Shield className="h-5 w-5 text-violet-500" />}
+          accentClass="bg-violet-500/5"
+          isLoading={partLoading}
+          entries={partnershipLeaders}
+          unitLabel="alliances"
         />
       </div>
     </div>
