@@ -705,7 +705,7 @@ export default function SettingsPage() {
                     <Button variant="outline" size="sm" onClick={() => setEconomyOpen(true)}>
                       Re-watch economy tour
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => { clearAllHints(); window.location.reload(); }}>
+                    <Button variant="ghost" size="sm" onClick={async () => { await clearAllHints(currentUser.id); window.location.reload(); }}>
                       Reset all page hints
                     </Button>
                   </Section>
