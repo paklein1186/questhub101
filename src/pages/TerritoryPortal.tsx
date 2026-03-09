@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords, Brain, MessageSquarePlus } from "lucide-react";
+import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords, Brain, MessageSquarePlus, Sparkles } from "lucide-react";
 
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
@@ -29,6 +29,42 @@ import { BioregionMembersSection } from "@/components/territory/BioregionMembers
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
+
+/* ── Intelligence Subtabs ── */
+function IntelligenceSubtabs({ territoryId, territoryName, userId, isMember }: {
+  territoryId: string;
+  territoryName: string;
+  userId?: string;
+  isMember: boolean;
+}) {
+  const [sub, setSub] = useState("synthesis");
+  return (
+    <div className="space-y-4">
+      <Tabs value={sub} onValueChange={setSub}>
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="synthesis" className="gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" /> Synthesis
+          </TabsTrigger>
+          <TabsTrigger value="library" className="gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" /> Library
+          </TabsTrigger>
+          <TabsTrigger value="learn" className="gap-1.5">
+            <MessageSquarePlus className="h-3.5 w-3.5" /> Learn &amp; Teach
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="synthesis" className="mt-4">
+          <TerritoryMemoryTab territoryId={territoryId} territoryName={territoryName} isMember={isMember} />
+        </TabsContent>
+        <TabsContent value="library" className="mt-4">
+          <TerritoryLibraryTab territoryId={territoryId} territoryName={territoryName} userId={userId} />
+        </TabsContent>
+        <TabsContent value="learn" className="mt-4">
+          <TerritoryChatTab territoryId={territoryId} territoryName={territoryName} userId={userId} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
 
 /* ── Types ── */
 interface TerritoryAncestor {
@@ -226,6 +262,8 @@ export default function TerritoryPortal() {
   const LEGACY_TABS: Record<string, string> = {
     overview: "portal",
     posts: "portal",
+    library: "intelligence",
+    contribute: "intelligence",
   };
   useEffect(() => {
     if (LEGACY_TABS[tab]) {
@@ -323,14 +361,8 @@ export default function TerritoryPortal() {
             <TabsTrigger value="living" className="gap-1.5">
               <Leaf className="h-3.5 w-3.5" /> Living
             </TabsTrigger>
-            <TabsTrigger value="library" className="gap-1.5">
-              <BookOpen className="h-3.5 w-3.5" /> Library
-            </TabsTrigger>
             <TabsTrigger value="intelligence" className="gap-1.5">
               <Brain className="h-3.5 w-3.5" /> Intelligence
-            </TabsTrigger>
-            <TabsTrigger value="contribute" className="gap-1.5">
-              <MessageSquarePlus className="h-3.5 w-3.5" /> Contribute
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
               <Network className="h-3.5 w-3.5" /> Graph
@@ -379,16 +411,13 @@ export default function TerritoryPortal() {
             <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
 
-          <TabsContent value="library" className="mt-6">
-            <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
-          </TabsContent>
-
           <TabsContent value="intelligence" className="mt-6">
-            <TerritoryMemoryTab territoryId={resolvedId!} territoryName={territory.name} isMember={isAlreadyMember} />
-          </TabsContent>
-
-          <TabsContent value="contribute" className="mt-6">
-            <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+            <IntelligenceSubtabs
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              userId={currentUser.id}
+              isMember={isAlreadyMember}
+            />
           </TabsContent>
 
           <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
