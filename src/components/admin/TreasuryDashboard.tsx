@@ -185,6 +185,10 @@ export function TreasuryDashboard() {
       )}
 
       {/* Platform Give-back */}
+      {/* Commons Wallet & Pulse */}
+      <CommonsWalletAdmin userId={session?.user?.id} pulsing={pulsing} setPulsing={setPulsing} qc={qc} />
+
+      {/* Platform Give-back */}
       <PlatformGiveBackAdmin />
     </div>
   );
