@@ -272,15 +272,15 @@ export default function GuildDetail() {
   const { data: guild, isLoading } = useGuildById(id);
   const { data: membersData } = useGuildMembersWithProfiles(id);
   const memberUserIds = useMemo(() => (membersData || []).map((m: any) => m.user_id), [membersData]);
-  const { data: membersCreditSum = 0 } = useQuery({
-    queryKey: ["guild-members-credits", id, memberUserIds],
+  const { data: membersCTGSum = 0 } = useQuery({
+    queryKey: ["guild-members-ctg", id, memberUserIds],
     enabled: memberUserIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance")
+        .select("ctg_balance")
         .in("user_id", memberUserIds);
-      return (data || []).reduce((sum: number, p: any) => sum + (p.credits_balance ?? 0), 0);
+      return (data || []).reduce((sum: number, p: any) => sum + (p.ctg_balance ?? 0), 0);
     },
   });
   const _fc = typeof guild?.features_config === "object" && guild?.features_config ? guild.features_config : {};
@@ -584,8 +584,8 @@ export default function GuildDetail() {
               <p className="text-sm text-muted-foreground">Guild Wallet</p>
             </div>
             <div className="rounded-lg border border-border bg-card p-4 text-center">
-              <p className="text-2xl font-bold text-muted-foreground flex items-center justify-center gap-1"><Coins className="h-5 w-5" />{membersCreditSum}</p>
-              <p className="text-sm text-muted-foreground">Members' Credits</p>
+              <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">🟡 {Math.round(membersCTGSum)}</p>
+              <p className="text-sm text-muted-foreground">Members' $CTG</p>
             </div>
             <GuildCTGStat guildId={guild.id} />
           </div>
