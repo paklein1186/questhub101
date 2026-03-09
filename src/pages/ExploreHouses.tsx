@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase, ExternalLink, Sparkles, MapPin } from "lucide-react";
