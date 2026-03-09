@@ -296,7 +296,13 @@ export default function TerritoryPortal() {
           naturalSystemCount={naturalSystemCount}
           stewards={stewards}
           isPioneerTerritory={isPioneerTerritory}
-          onUnlock={() => setUnlockOpen(true)}
+          onUnlock={() => {
+            if (!isAuthenticated) {
+              navigate("/signup?reason=pioneer&territory=" + (territory.slug ?? territory.id));
+              return;
+            }
+            setUnlockOpen(true);
+          }}
           onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
         />
 
