@@ -71,6 +71,7 @@ export function WalletTab() {
   const [activeWallet, setActiveWallet] = useState<"platform" | "coins" | "ctg">("platform");
   const { persona } = usePersona();
   const { open: economyOpen, close: closeEconomy, mode: economyMode, openIfNeeded } = useEconomyModal();
+  const { rate: COIN_EUR_RATE, toEur } = useCoinsRate();
 
   useEffect(() => {
     openIfNeeded();
