@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Globe, Loader2, X } from "lucide-react";
+import { Heart, Users, Globe, Loader2, X, Percent, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -14,10 +15,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+interface DistributionRow {
+  target_type: "GUILD" | "PLATFORM";
+  guild_id: string | null;
+  percentage: number;
+}
+
 interface GiveBackModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Amount earned in this transaction (credits or equivalent) */
   earnedAmount?: number;
   serviceName?: string;
   bookingId?: string;
@@ -29,13 +35,26 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
   const { toast } = useToast();
   const qc = useQueryClient();
 
-  const [targetType, setTargetType] = useState<"GUILD" | "PLATFORM">("PLATFORM");
-  const [guildId, setGuildId] = useState<string>("");
-  const [customAmount, setCustomAmount] = useState("");
+  const [rows, setRows] = useState<DistributionRow[]>([]);
+  const [totalAmount, setTotalAmount] = useState("");
   const [showCustom, setShowCustom] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Load user defaults
+  // Load distribution rules (multi-guild)
+  const { data: distRules } = useQuery({
+    queryKey: ["giveback-distribution", userId],
+    enabled: !!userId && open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("giveback_distribution_rules")
+        .select("target_type, guild_id, percentage")
+        .eq("user_id", userId!)
+        .order("created_at");
+      return data as DistributionRow[] | null;
+    },
+  });
+
+  // Fallback to legacy profile settings
   const { data: defaults } = useQuery({
     queryKey: ["giveback-settings", userId],
     enabled: !!userId && open,
@@ -62,46 +81,72 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
     },
   });
 
-  // Resolve guild name
-  const selectedGuildName = myGuilds.find((g: any) => g.id === guildId)?.name;
-
-  // Apply defaults when opening
+  // Apply distribution rules when opening
   useEffect(() => {
-    if (!open || !defaults) return;
-    const d = defaults as any;
-    if (d.default_give_back_target_type === "GUILD" && d.default_give_back_guild_id) {
-      setTargetType("GUILD");
-      setGuildId(d.default_give_back_guild_id);
-    } else if (d.default_give_back_target_type === "PLATFORM") {
-      setTargetType("PLATFORM");
-      setGuildId("");
+    if (!open) return;
+    if (distRules && distRules.length > 0) {
+      setRows(distRules.map(r => ({ ...r })));
+    } else if (defaults) {
+      const d = defaults as any;
+      if (d.default_give_back_target_type === "GUILD" && d.default_give_back_guild_id) {
+        setRows([{ target_type: "GUILD", guild_id: d.default_give_back_guild_id, percentage: 100 }]);
+      } else if (d.default_give_back_target_type === "PLATFORM") {
+        setRows([{ target_type: "PLATFORM", guild_id: null, percentage: 100 }]);
+      } else {
+        setRows([{ target_type: "PLATFORM", guild_id: null, percentage: 100 }]);
+      }
     } else {
-      setTargetType("PLATFORM");
-      setGuildId("");
+      setRows([{ target_type: "PLATFORM", guild_id: null, percentage: 100 }]);
     }
     setShowCustom(false);
-    setCustomAmount("");
-  }, [open, defaults]);
+    setTotalAmount("");
+  }, [open, distRules, defaults]);
+
+  const totalPercent = rows.reduce((s, r) => s + r.percentage, 0);
+  const guildName = (id: string | null) => myGuilds.find((g: any) => g.id === id)?.name || "Guild";
+
+  const updateRow = (idx: number, patch: Partial<DistributionRow>) => {
+    setRows(rows.map((r, i) => i === idx ? { ...r, ...patch } : r));
+  };
+  const removeRow = (idx: number) => setRows(rows.filter((_, i) => i !== idx));
+  const addRow = () => {
+    setRows([...rows, { target_type: "PLATFORM", guild_id: null, percentage: Math.max(0, 100 - totalPercent) }]);
+  };
 
   const processGiveBack = async (amount: number) => {
     if (!userId || amount < 1) return;
+    if (totalPercent !== 100) {
+      toast({ title: `Percentages must total 100% (currently ${totalPercent}%)`, variant: "destructive" });
+      return;
+    }
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc("process_give_back", {
-        _to_target_type: targetType,
-        _to_guild_id: targetType === "GUILD" ? guildId : null,
-        _amount_credits: amount,
-        _booking_id: bookingId || null,
-        _metadata: {
-          reason: "GIVE_BACK_FROM_SERVICE_TRANSACTION",
-          service_name: serviceName || null,
-          auto_or_manual: "manual",
-        },
-      });
-      if (error) throw error;
+      // Process each row's share
+      for (const row of rows) {
+        const share = Math.round(amount * row.percentage / 100);
+        if (share < 1) continue;
+        const { error } = await supabase.rpc("process_give_back", {
+          _to_target_type: row.target_type,
+          _to_guild_id: row.target_type === "GUILD" ? row.guild_id : null,
+          _amount_credits: share,
+          _booking_id: bookingId || null,
+          _metadata: {
+            reason: "GIVE_BACK_FROM_SERVICE_TRANSACTION",
+            service_name: serviceName || null,
+            auto_or_manual: "manual",
+            distribution_share_percent: row.percentage,
+          },
+        });
+        if (error) throw error;
+      }
+
+      const recipientSummary = rows
+        .map(r => `${r.percentage}% → ${r.target_type === "GUILD" ? guildName(r.guild_id) : "Platform"}`)
+        .join(", ");
+
       toast({
         title: "Thank you for giving back! 💚",
-        description: `${amount} credits sent to ${targetType === "GUILD" ? selectedGuildName || "guild" : "the platform"}.`,
+        description: `${amount} credits distributed: ${recipientSummary}`,
       });
       qc.invalidateQueries({ queryKey: ["credit-transactions"] });
       qc.invalidateQueries({ queryKey: ["plan-limits"] });
@@ -131,49 +176,59 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
           </DialogDescription>
         </DialogHeader>
 
-        {/* Recipient display & change */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Recipient:</span>
-              <Badge variant="secondary" className="gap-1">
-                {targetType === "GUILD" ? (
-                  <><Users className="h-3 w-3" /> {selectedGuildName || "Guild"}</>
-                ) : (
-                  <><Globe className="h-3 w-3" /> Platform</>
+          {/* Distribution overview - editable per transaction */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wide">Distribution</Label>
+            {rows.map((row, idx) => (
+              <div key={idx} className="flex items-center gap-2 rounded-lg border border-border p-2 bg-muted/30">
+                <Select
+                  value={row.target_type === "GUILD" && row.guild_id ? `guild:${row.guild_id}` : row.target_type === "PLATFORM" ? "platform" : ""}
+                  onValueChange={(v) => {
+                    if (v === "platform") updateRow(idx, { target_type: "PLATFORM", guild_id: null });
+                    else if (v.startsWith("guild:")) updateRow(idx, { target_type: "GUILD", guild_id: v.replace("guild:", "") });
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <SelectValue placeholder="Choose…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="platform">
+                      <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> Platform</span>
+                    </SelectItem>
+                    {myGuilds.map((g: any) => (
+                      <SelectItem key={g.id} value={`guild:${g.id}`}>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {g.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={row.percentage}
+                    onChange={(e) => updateRow(idx, { percentage: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) })}
+                    className="h-8 w-14 text-center text-xs"
+                  />
+                  <Percent className="h-3 w-3 text-muted-foreground" />
+                </div>
+                {rows.length > 1 && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeRow(idx)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 )}
-              </Badge>
+              </div>
+            ))}
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 px-2" onClick={addRow}>
+                <Plus className="h-3 w-3" /> Add
+              </Button>
+              <span className={`text-xs font-medium ${totalPercent === 100 ? "text-primary" : "text-destructive"}`}>
+                {totalPercent}%
+              </span>
             </div>
-          </div>
-
-          {/* Change recipient */}
-          <div className="flex items-center gap-2">
-            <Select
-              value={targetType === "GUILD" ? `guild:${guildId}` : "platform"}
-              onValueChange={(v) => {
-                if (v === "platform") {
-                  setTargetType("PLATFORM");
-                  setGuildId("");
-                } else if (v.startsWith("guild:")) {
-                  setTargetType("GUILD");
-                  setGuildId(v.replace("guild:", ""));
-                }
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="Change recipient…" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="platform">
-                  <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> Platform</span>
-                </SelectItem>
-                {myGuilds.map((g: any) => (
-                  <SelectItem key={g.id} value={`guild:${g.id}`}>
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {g.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Preset amounts */}
@@ -183,7 +238,7 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
                 key={amt}
                 variant="outline"
                 size="sm"
-                disabled={loading}
+                disabled={loading || totalPercent !== 100}
                 onClick={() => processGiveBack(amt)}
                 className="flex-1 min-w-[80px]"
               >
@@ -200,14 +255,14 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
                 type="number"
                 min={1}
                 placeholder="Amount…"
-                value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
+                value={totalAmount}
+                onChange={(e) => setTotalAmount(e.target.value)}
                 className="h-8 w-28"
               />
               <Button
                 size="sm"
-                disabled={loading || !customAmount || parseInt(customAmount) < 1}
-                onClick={() => processGiveBack(parseInt(customAmount))}
+                disabled={loading || !totalAmount || parseInt(totalAmount) < 1 || totalPercent !== 100}
+                onClick={() => processGiveBack(parseInt(totalAmount))}
               >
                 {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Give"}
               </Button>
@@ -221,7 +276,6 @@ export function GiveBackModal({ open, onOpenChange, earnedAmount, serviceName, b
             </Button>
           )}
 
-          {/* Skip */}
           <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={() => onOpenChange(false)}>
             Skip this time
           </Button>

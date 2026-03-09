@@ -3372,6 +3372,44 @@ export type Database = {
         }
         Relationships: []
       }
+      giveback_distribution_rules: {
+        Row: {
+          created_at: string
+          guild_id: string | null
+          id: string
+          percentage: number
+          target_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guild_id?: string | null
+          id?: string
+          percentage?: number
+          target_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guild_id?: string | null
+          id?: string
+          percentage?: number
+          target_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "giveback_distribution_rules_guild_id_fkey"
+            columns: ["guild_id"]
+            isOneToOne: false
+            referencedRelation: "guilds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gratitude_donations: {
         Row: {
           amount_credits: number
