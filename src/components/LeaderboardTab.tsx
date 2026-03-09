@@ -46,6 +46,7 @@ interface RankedTerritory {
   id: string;
   name: string;
   level: string | null;
+  logo_url: string | null;
   value: number;
   secondary?: string;
 }
