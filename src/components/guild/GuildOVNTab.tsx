@@ -548,7 +548,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                   <Tooltip
                     contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                   />
-                  <Bar dataKey="tokens" name="🟡 $CTG Budget" fill="hsl(45, 80%, 50%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="tokens" name="🌱 $CTG Budget" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
