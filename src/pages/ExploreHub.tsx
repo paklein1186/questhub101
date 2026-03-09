@@ -223,6 +223,7 @@ export default function ExploreHub() {
 }
 
 function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId, label, children }: any) {
+  const { density, setDensity } = useExploreGridDensity();
   const { t } = useTranslation();
   const exploreTabs: TabDefinition[] = useMemo(() => [
     { value: "entities", label: <><Compass className="h-3.5 w-3.5 mr-1" /> {t("tabs.entities")} <HintTooltip {...HINTS.tooltips.exploreEntities} /></> },
