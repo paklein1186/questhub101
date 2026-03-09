@@ -10,8 +10,10 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 export default function CoursesExplore({ bare }: { bare?: boolean }) {
+  const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { data: coursesData, isLoading } = useCourses();

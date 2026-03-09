@@ -79,6 +79,7 @@ function CreateQuestButton() {
 }
 
 export default function QuestsMarketplace({ bare, statusFilter: externalStatusFilter, natureFilter }: { bare?: boolean; statusFilter?: string; natureFilter?: string }) {
+  const { gridClassName } = useExploreGridDensity();
   const { t } = useTranslation();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hideCompleted, setHideCompleted] = useState(true);

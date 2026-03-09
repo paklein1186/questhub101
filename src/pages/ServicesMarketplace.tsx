@@ -15,6 +15,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -22,6 +23,7 @@ const fadeUp = {
 };
 
 export default function ServicesMarketplace({ bare }: { bare?: boolean }) {
+  const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const [hostFilter, setHostFilter] = useState<string>("all"); // "all" | "user" | "unit"
 
