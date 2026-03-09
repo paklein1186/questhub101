@@ -90,6 +90,35 @@ function CooperativeSettings() {
         </Card>
       </div>
 
+      {/* Coins ← → € Rate */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">🟩 Coins ← → € Conversion Rate</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Current: 1 Coin = €{coinsRate} · {Math.round(1 / parseFloat(coinsRate || "0.04"))} Coins per €1
+          </p>
+          <div className="flex items-center gap-3">
+            <Input
+              type="number"
+              step="0.001"
+              min="0.001"
+              value={editRate}
+              onChange={(e) => setEditRate(e.target.value)}
+              className="w-32"
+            />
+            <span className="text-xs text-muted-foreground">
+              € per Coin (= {Math.round(1 / parseFloat(editRate || "0.04"))} Coins/€)
+            </span>
+            <Button size="sm" onClick={handleSaveRate}>Save</Button>
+          </div>
+          <p className="text-[11px] text-destructive/80">
+            ⚠️ Changing this rate affects all pending withdrawal calculations. Only change at quarter boundaries.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Voting Weight Formulas</CardTitle>
