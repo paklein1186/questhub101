@@ -16,6 +16,7 @@ import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
 import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
 import { TerritoryUnlockModal } from "@/components/territory/TerritoryUnlockModal";
 import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel";
+import { TerritoryStewardsSidebar } from "@/components/territory/TerritoryStewardsSidebar";
 
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
