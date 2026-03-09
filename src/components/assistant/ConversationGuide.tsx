@@ -165,6 +165,7 @@ function ChatBody({
   navigate,
   onClose,
   userEntities,
+  onHiddenContext,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -179,6 +180,7 @@ function ChatBody({
   navigate: (to: string) => void;
   onClose?: () => void;
   userEntities?: any;
+  onHiddenContext?: (ctx: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pathsExpanded, setPathsExpanded] = useState(true);
