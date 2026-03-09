@@ -35,7 +35,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 import { XpLevelBadge } from "@/components/XpLevelBadge";
 import { FeedSection } from "@/components/feed/FeedSection";
 import { GuildDiscussionTab } from "@/components/guild/GuildDiscussionTab";
-import { computeLevelFromXp, XP_EVENT_TYPES, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
+import { computeLevelFromXp, XP_EVENT_TYPES, XP_REWARDS, CREDIT_TX_TYPES } from "@/lib/xpCreditsConfig";
 import { useXpCredits } from "@/hooks/useXpCredits";
 import { QuestSubtasks } from "@/components/guild/QuestSubtasks";
 import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
@@ -694,7 +694,7 @@ export default function QuestDetail() {
               <p className="text-xs text-muted-foreground font-medium">🏆 XP Reward</p>
               <p className="text-lg font-bold text-primary">+{quest.reward_xp} XP</p>
               <p className="text-[10px] text-muted-foreground">
-                Creator: +{40} XP • Participant: +{30} XP
+                Creator: +{XP_REWARDS[XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR]} XP • Participant: +{XP_REWARDS[XP_EVENT_TYPES.QUEST_COMPLETED_USER]} XP
               </p>
             </div>
             {quest.credit_reward > 0 && (
