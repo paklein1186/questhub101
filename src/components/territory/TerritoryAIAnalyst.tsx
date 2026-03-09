@@ -95,7 +95,7 @@ export function TerritoryAIAnalyst({ territoryId, territoryName }: Props) {
 
         {!loading && response && (
           <motion.div key="response" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <ScrollArea className="max-h-[400px]">
+            <ScrollArea className="max-h-[60vh]">
               <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
                 <ReactMarkdown>{response}</ReactMarkdown>
               </div>
