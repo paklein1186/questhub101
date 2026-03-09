@@ -231,5 +231,6 @@ export default function TerritoriesHome() {
       {/* ── Territory grid/map ── */}
       <TerritoryBrowseSection />
     </div>
+    </PageShell>
   );
 }
