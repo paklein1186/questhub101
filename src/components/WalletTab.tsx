@@ -491,6 +491,38 @@ export function WalletTab() {
               </div>
 
               <h4 className="text-sm font-medium mb-3">Top Up Platform Credits</h4>
+
+              {/* CTG → Credits exchange nudge */}
+              {ctgBal > 0 ? (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 mb-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        Exchange $CTG → Credits
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        You have {ctgBal.toLocaleString()} $CTG · No payment needed
+                      </p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setActiveWallet("ctg")} className="gap-1.5 shrink-0">
+                    <Recycle className="h-3.5 w-3.5" /> Exchange
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-border bg-muted/30 p-3 mb-4 flex items-start gap-2.5 text-xs text-muted-foreground">
+                  <Leaf className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    Earn $CTG by completing quests and contributions — then exchange for Credits
+                    without paying €.{" "}
+                    <Link to="/explore" className="text-primary hover:underline">
+                      Find quests →
+                    </Link>
+                  </span>
+                </div>
+              )}
+
               <div className="grid gap-3 md:grid-cols-3">
                 {CREDIT_BUNDLES.map((b) => (
                   <div key={b.code} className="rounded-lg border border-border bg-card p-4 text-center">

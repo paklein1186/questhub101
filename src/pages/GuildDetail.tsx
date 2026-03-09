@@ -430,7 +430,7 @@ export default function GuildDetail() {
       
       <GuestOnboardingAssistant open={authPromptOpen} onOpenChange={setAuthPromptOpen} actionLabel={authPromptAction} />
 
-      <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_CREDIT_COST} userXp={limits.userCredits} actionLabel="join one more guild" limitLabel="guild memberships for your plan" onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_GUILD_CREDIT_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
+      <XpSpendDialog open={showGuildXpDialog} onOpenChange={setShowGuildXpDialog} canAfford={limits.canAffordExtraGuild} xpCost={EXTRA_GUILD_CREDIT_COST} userXp={limits.userCredits} actionLabel="join one more guild" limitLabel="guild memberships for your plan" ctgBalance={limits.userCtgBalance} onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_GUILD_CREDIT_COST, `Extra guild membership: ${guild.name}`, "GUILD", guild.id); if (ok) doJoinGuild(); }} />
 
       <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-1" /> Back

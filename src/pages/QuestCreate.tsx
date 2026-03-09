@@ -505,6 +505,7 @@ export default function QuestCreate() {
         userXp={limits.userCredits}
         actionLabel="create an extra quest"
         limitLabel="free quests for this week"
+        ctgBalance={limits.userCtgBalance}
         onConfirm={async () => {
           const ok = await limits.spendCredits(EXTRA_QUEST_CREDIT_COST, "Extra quest creation", "QUEST");
           if (ok) doCreate();
