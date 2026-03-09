@@ -395,6 +395,9 @@ import { useTheme } from "next-themes";
                             <div className="h-px bg-border" />
                           </div>
                           <LanguageSwitcher variant="full" />
+                          <div className="px-3 py-2">
+                            <ThemeToggleButton />
+                          </div>
 
                           {showAdmin && (
                             <>
