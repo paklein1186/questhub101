@@ -354,7 +354,7 @@ export const HINTS = {
       variant: "economy" as const,
       title: "The platform has 5 value layers",
       body: "Fiat €, 🟩 Coins (fiat-backed), 🔷 Credits (platform utility, fades 1%/month), 🌱 $CTG (earned by contribution, transferable), and ⭐ XP (reputation, permanent). Each works differently.",
-      cta: { label: "See how value flows", to: "/ecosystem/ovn" },
+      cta: { label: "See how value flows", to: "/ecosystem?tab=ovn" },
     },
 
     ovnFirst: {
