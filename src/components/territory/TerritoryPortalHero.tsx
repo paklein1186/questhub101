@@ -12,11 +12,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin, Heart, ChevronRight, Users, Compass, Shield,
   Leaf, Sprout, Star, ArrowLeft, Globe, Mountain, TreePine, Building2,
+  Loader2,
 } from "lucide-react";
 import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 /* ── Types ── */
 interface TerritoryAncestor {
@@ -94,6 +97,23 @@ function getFallbacks(level: string): string[] {
   return LEVEL_FALLBACKS[level?.toUpperCase()] ?? LEVEL_FALLBACKS["REGION"];
 }
 
+/* ── AI Cover generation hook ── */
+function useAiCover(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
+  return useQuery({
+    queryKey: ["territory-ai-cover", territoryId],
+    enabled: !hasImages,
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("generate-territory-cover", {
+        body: { territory_id: territoryId, territory_name: territoryName, territory_level: level },
+      });
+      if (error) throw error;
+      return (data as any)?.cover_url as string | null;
+    },
+  });
+}
+
 /* ── Stat pill ── */
 function StatPill({
   icon: Icon, value, label, color = "text-muted-foreground",
@@ -124,9 +144,21 @@ export function TerritoryPortalHero({
   const { isFollowing, toggle: toggleFollow, isLoading: followLoading } =
     useFollow(FollowTargetType.TERRITORY, territory.id);
 
-  // Image carousel
+  // Image carousel — prefer stats.cover_url or AI-generated, fallback to Unsplash
   const rawImages: string[] = territory.stats?.images ?? [];
-  const images = rawImages.length > 0 ? rawImages : getFallbacks(territory.level);
+  const statsCoverUrl = (territory.stats as any)?.cover_url;
+  const hasCustomImages = rawImages.length > 0 || !!statsCoverUrl;
+
+  const { data: aiCoverUrl, isLoading: aiCoverLoading } = useAiCover(
+    territory.id, territory.name, territory.level, hasCustomImages
+  );
+
+  const resolvedCover = statsCoverUrl || aiCoverUrl;
+  const images = rawImages.length > 0
+    ? rawImages
+    : resolvedCover
+      ? [resolvedCover]
+      : getFallbacks(territory.level);
   const [imgIdx, setImgIdx] = useState(0);
 
   useEffect(() => {
@@ -152,6 +184,14 @@ export function TerritoryPortalHero({
           />
         ))}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {aiCoverLoading && !hasCustomImages && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/60">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Generating landscape…
+            </div>
+          </div>
+        )}
         {images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {images.map((_, i) => (
