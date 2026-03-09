@@ -331,14 +331,16 @@ function StewardDelegationSection({ territoryId }: SectionProps) {
 
       if (!profile) throw new Error("User not found with that email");
 
-      await supabase.from("trust_graph" as any).insert({
-        from_id: profile.user_id,
-        from_type: "user",
-        to_id: territoryId,
-        to_type: "territory",
+      await (supabase.from("trust_edges") as any).insert({
+        from_node_id: profile.user_id,
+        from_node_type: "user",
+        to_node_id: territoryId,
+        to_node_type: "territory",
         edge_type: "stewardship",
-        weight: 1,
+        score: 1,
         tags: ["co-steward"],
+        status: "active",
+        created_by: profile.user_id,
       } as any);
 
       setEmail("");

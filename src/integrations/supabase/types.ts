@@ -9573,12 +9573,12 @@ export type Database = {
       get_territory_stewards: {
         Args: { p_limit?: number; p_territory_id: string }
         Returns: {
+          created_at: string
           edge_type: string
           from_id: string
           from_type: string
+          status: string
           tags: string[]
-          to_id: string
-          to_type: string
           weight: number
         }[]
       }
