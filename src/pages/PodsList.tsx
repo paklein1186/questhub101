@@ -209,7 +209,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className={gridClassName}>
         {filtered.map((pod, i) => {
           const quest = (pod as any).quests;
           const topic = (pod as any).topics;
