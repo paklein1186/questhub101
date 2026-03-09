@@ -190,11 +190,11 @@ function useTerritoryPortalStewards(territoryId: string | undefined) {
     queryFn: async () => {
       const { data: edges } = await (supabase
         .from("trust_edges")
-        .select("from_id") as any)
-        .eq("to_id", territoryId!)
+        .select("from_node_id") as any)
+        .eq("to_node_id", territoryId!)
         .eq("edge_type", "stewardship")
         .eq("status", "active")
-        .limit(6);
+        .limit(10);
 
       const stewardIds = (edges ?? []).map((e: any) => e.from_id);
       if (stewardIds.length === 0) return [];
