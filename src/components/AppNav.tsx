@@ -184,6 +184,7 @@ export function AppNav() {
 
                   {/* Theme toggle */}
                   <ThemeToggleButton />
+import { useTheme } from "next-themes";
 
 
                   {/* Unified profile menu */}
