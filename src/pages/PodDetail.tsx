@@ -88,6 +88,23 @@ export default function PodDetail() {
     toast({ title: "Left pod" });
   };
 
+  const markPodComplete = async () => {
+    const { error } = await supabase.from("pods").update({ status: "COMPLETED" } as any).eq("id", pod.id);
+    if (error) { toast({ title: "Failed to complete pod", variant: "destructive" }); return; }
+    qc.invalidateQueries({ queryKey: ["pod", id] });
+    toast({ title: "Pod marked as complete!" });
+    // Emit $CTG + XP for pod host
+    try {
+      await supabase.rpc("emit_ctg_for_contribution", {
+        p_user_id: pod.creator_id,
+        p_contribution_type: "pod_hosted",
+        p_related_entity_id: pod.id,
+        p_related_entity_type: "pod",
+        p_note: `Pod hosted: ${pod.name}`,
+      });
+    } catch {}
+  };
+
   const promoteToHost = async (userId: string) => {
     // RLS doesn't allow update on pod_members, so we'd need a function. For now skip.
     toast({ title: "Promoted to Host" });
@@ -217,6 +234,11 @@ export default function PodDetail() {
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
           {isHost && <InviteLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />}
+          {isHost && (pod as any).status !== "COMPLETED" && (
+            <Button variant="outline" size="sm" onClick={markPodComplete}>
+              <ShieldCheck className="h-4 w-4 mr-1" /> Mark Complete
+            </Button>
+          )}
           {isHost && (
             <Button variant="outline" size="sm" asChild>
               <Link to={`/pods/${pod.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link>

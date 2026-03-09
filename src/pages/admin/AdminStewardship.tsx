@@ -24,7 +24,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
-import { Search, Trees, UserPlus, Trash2, MapPin, User, ChevronsUpDown, Check } from "lucide-react";
+import { Search, Trees, UserPlus, Trash2, MapPin, User, ChevronsUpDown, Check, Gift } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +118,7 @@ export default function AdminStewardship() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [showAssign, setShowAssign] = useState(false);
+  const [grantingRewards, setGrantingRewards] = useState(false);
 
   // Assign form state
   const [assignUserId, setAssignUserId] = useState("");
@@ -268,6 +269,39 @@ export default function AdminStewardship() {
     }
   };
 
+  const handleGrantMonthlyRewards = async () => {
+    setGrantingRewards(true);
+    try {
+      const { data: activeEdges } = await supabase
+        .from("trust_edges")
+        .select("from_node_id, to_node_id, to_node_type")
+        .eq("edge_type", "stewardship" as any)
+        .eq("status", "active" as any);
+
+      let count = 0;
+      for (const edge of activeEdges ?? []) {
+        const nodeType = (edge as any).to_node_type || "territory";
+        const contribType = nodeType === "house"
+          ? "stewardship_house"
+          : "stewardship_territory";
+
+        await supabase.rpc("emit_ctg_for_contribution", {
+          p_user_id: (edge as any).from_node_id,
+          p_contribution_type: contribType,
+          p_related_entity_id: (edge as any).to_node_id,
+          p_related_entity_type: nodeType,
+          p_note: `Monthly stewardship reward — ${new Date().toISOString().slice(0, 7)}`,
+        });
+        count++;
+      }
+      toast({ title: "Monthly rewards granted", description: `${count} stewards rewarded with $CTG.` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setGrantingRewards(false);
+    }
+  };
+
   const activeCount = resolvedEdges.filter((e) => e.status === "active").length;
   const revokedCount = resolvedEdges.filter((e) => e.status === "revoked").length;
 
@@ -282,9 +316,17 @@ export default function AdminStewardship() {
             View, assign, and revoke territory stewardship edges.
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowAssign(true)}>
-          <UserPlus className="h-4 w-4 mr-1" /> Assign Steward
-        </Button>
+        <div className="flex gap-2 items-center">
+          <div className="text-right">
+            <Button size="sm" variant="outline" onClick={handleGrantMonthlyRewards} disabled={grantingRewards}>
+              <Gift className="h-4 w-4 mr-1" /> {grantingRewards ? "Granting…" : "Grant monthly rewards"}
+            </Button>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Run once/month — $CTG to all active stewards</p>
+          </div>
+          <Button size="sm" onClick={() => setShowAssign(true)}>
+            <UserPlus className="h-4 w-4 mr-1" /> Assign Steward
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
