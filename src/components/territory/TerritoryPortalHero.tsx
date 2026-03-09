@@ -154,22 +154,25 @@ export function TerritoryPortalHero({
   const { isFollowing, toggle: toggleFollow, isLoading: followLoading } =
     useFollow(FollowTargetType.TERRITORY, territory.id);
 
-  // Image carousel — prefer stats.cover_url or AI-generated, fallback to Unsplash
+  // Image carousel — prefer stats.cover_urls or AI-generated, fallback to Unsplash
   const rawImages: string[] = territory.stats?.images ?? [];
+  const statsCoverUrls = (territory.stats as any)?.cover_urls as string[] | undefined;
   const statsCoverUrl = (territory.stats as any)?.cover_url;
-  const hasCustomImages = rawImages.length > 0 || !!statsCoverUrl;
+  const hasCustomImages = rawImages.length > 0 || (statsCoverUrls && statsCoverUrls.length > 0) || !!statsCoverUrl;
 
-  const { data: aiCoverUrl, isLoading: aiCoverLoading } = useAiCover(
+  const { data: aiCoverUrls, isLoading: aiCoverLoading } = useAiCovers(
     territory.id, territory.name, territory.level, hasCustomImages
   );
 
-  const resolvedCover = statsCoverUrl || aiCoverUrl;
+  const resolvedCovers = statsCoverUrls ?? (statsCoverUrl ? [statsCoverUrl] : null) ?? aiCoverUrls;
   const images = rawImages.length > 0
     ? rawImages
-    : resolvedCover
-      ? [resolvedCover]
+    : resolvedCovers && resolvedCovers.length > 0
+      ? resolvedCovers
       : getFallbacks(territory.level);
-  const [imgIdx, setImgIdx] = useState(0);
+
+  // Random start index so each visit shows a different cover first
+  const [imgIdx, setImgIdx] = useState(() => Math.floor(Math.random() * 100));
 
   useEffect(() => {
     if (images.length < 2) return;
