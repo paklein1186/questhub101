@@ -531,7 +531,7 @@ export default function HomeFeed() {
                 <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
                   {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
                 </h1>
-                <div className="mb-4 sm:mb-6" />
+                <div className="mb-2 sm:mb-3" />
 
                 {/* Talk to Pi button */}
                 <motion.button
