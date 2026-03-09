@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { getStewardTier } from "@/lib/xpCreditsConfig";
 
 interface CTGBalanceBadgeProps {
   balance: number;
+  lifetimeEarned?: number;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
   onClick?: () => void;
@@ -20,9 +22,10 @@ const sizeClasses = {
 
 const iconSize = { sm: "text-xs", md: "text-sm", lg: "text-base" } as const;
 
-export function CTGBalanceBadge({ balance, size = "md", showLabel = true, onClick }: CTGBalanceBadgeProps) {
+export function CTGBalanceBadge({ balance, lifetimeEarned = 0, size = "md", showLabel = true, onClick }: CTGBalanceBadgeProps) {
   const [glowing, setGlowing] = useState(false);
   const prevBalance = useRef(balance);
+  const tier = getStewardTier(lifetimeEarned);
 
   useEffect(() => {
     if (balance > prevBalance.current) {
@@ -50,7 +53,7 @@ export function CTGBalanceBadge({ balance, size = "md", showLabel = true, onClic
         !onClick && "cursor-default",
       )}
     >
-      <span className={iconSize[size]}>🌱</span>
+      <span className={iconSize[size]}>{tier.icon}</span>
       {isEmpty ? (
         <span className="whitespace-nowrap">
           {size === "sm" ? "0" : "Gagnez vos premiers $CTG"}
@@ -59,6 +62,9 @@ export function CTGBalanceBadge({ balance, size = "md", showLabel = true, onClic
         <span className="whitespace-nowrap font-semibold">
           {formatBalance(balance)}
           {showLabel && size !== "sm" && <span className="ml-1 font-normal opacity-75">$CTG</span>}
+          {size === "lg" && lifetimeEarned > 0 && (
+            <span className="ml-1.5 font-normal opacity-70">{tier.label} {tier.icon}</span>
+          )}
         </span>
       )}
     </button>

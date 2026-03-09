@@ -290,6 +290,26 @@ export const GOVERNANCE_XP_TIERS = [
 /** Number of days new users can play without spending Platform Credits */
 export const GRACE_PERIOD_DAYS = 30;
 
+// ─── Steward Tiers ($CTG) ───────────────────────────────────
+export const STEWARD_TIERS = [
+  { key: "seedling",   label: "Seedling",   minLifetime: 0,    icon: "🌱", color: "#16A34A" },
+  { key: "cultivator", label: "Cultivator", minLifetime: 100,  icon: "🌿", color: "#15803D" },
+  { key: "steward",    label: "Steward",    minLifetime: 500,  icon: "🌳", color: "#166534" },
+  { key: "guardian",   label: "Guardian",   minLifetime: 2000, icon: "🏔", color: "#14532D" },
+] as const;
+
+export type StewardTierKey = (typeof STEWARD_TIERS)[number]["key"];
+
+export function getStewardTier(lifetimeEarned: number) {
+  return [...STEWARD_TIERS].reverse().find(t => lifetimeEarned >= t.minLifetime) ?? STEWARD_TIERS[0];
+}
+
+export function getNextStewardTier(lifetimeEarned: number) {
+  const current = getStewardTier(lifetimeEarned);
+  const idx = STEWARD_TIERS.findIndex(t => t.key === current.key);
+  return idx < STEWARD_TIERS.length - 1 ? STEWARD_TIERS[idx + 1] : null;
+}
+
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
   moneyDisclaimer: "Mission budgets are funded in fiat (€) and converted to Coins. Platform Credits are never used for compensation.",
