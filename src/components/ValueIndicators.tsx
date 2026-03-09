@@ -36,9 +36,10 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
         </Link>
       )}
 
-      {/* $CTG → Contribution Badge */}
+      {/* 🌱 $CTG — contribution token (hover for details) */}
       <Link
         to="/me?tab=wallet"
+        title="🌱 $CTG — earned by contributing to the commons. Fades 1%/month."
         onClick={onNavigate}
         className={`inline-flex items-center gap-1 rounded-full border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 ${px} ${text} hover:opacity-80 transition-opacity`}
       >
@@ -63,9 +64,10 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
         />
       </Link>
 
-      {/* XP → Reputation Bar */}
+      {/* ⭐ XP — permanent reputation (hover for details) */}
       <Link
         to="/me"
+        title="⭐ XP — your permanent reputation score. Never decays."
         onClick={onNavigate}
         className={`inline-flex items-center gap-1 rounded-md bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 ${px} ${text} hover:opacity-80 transition-opacity relative overflow-hidden`}
       >

@@ -241,7 +241,7 @@ export function WalletTab() {
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
               <span className="text-base leading-none mt-0.5">🟡</span>
-              <div><strong className="text-foreground">$CTG Token</strong> — Cooperative contribution units earned through verified work. The mission currency.</div>
+              <div><strong className="text-foreground">🌱 $CTG</strong> — contribution token earned by producing verified work for the commons. Circulatory: fades 1%/month. Not fiat-backed. Distinct from ⭐ XP which is your permanent reputation.</div>
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
               <span className="text-base leading-none mt-0.5">⭐</span>
@@ -271,7 +271,7 @@ export function WalletTab() {
           {/* $CTG Token (🟡) */}
           <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🟡"
             value={ctgBal}
-            tooltip="Cooperative contribution token earned through verified work on quests. Distributed via the Value Pie.">
+            tooltip="🌱 $CTG = what you produce for the commons. Earned through contributions (quests, rituals, governance, documentation). Fades 1%/month. Cannot be purchased. Transfer to collaborators or exchange for Credits.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
               View Wallet
             </Button>
@@ -358,7 +358,7 @@ export function WalletTab() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
-                    This is separate from $CTG tokens which are cooperative contribution units.
+                    This is separate from $CTG tokens which are cooperative contribution units, and separate from ⭐ XP which is your permanent reputation.
                   </p>
                 </div>
 
