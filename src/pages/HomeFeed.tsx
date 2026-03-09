@@ -498,7 +498,7 @@ export default function HomeFeed() {
 
       {/* When Pi is open, show tasks at the top with no hero spacing */}
       {isPiOpen ? (
-        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-12 space-y-8 sm:space-y-10">
+        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-5 sm:space-y-6">
           <PathwayCards persona={persona} progress={progress} steps={steps} />
           {currentUser.id && (
             <motion.div
