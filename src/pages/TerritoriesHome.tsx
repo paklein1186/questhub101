@@ -100,6 +100,7 @@ export default function TerritoriesHome() {
   }, [navigate]);
 
   return (
+    <PageShell>
     <div className="space-y-8">
       {/* ── Hero header ── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-border p-6 sm:p-10">
