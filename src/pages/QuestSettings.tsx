@@ -261,7 +261,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                         <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "$CTG" : "€"}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label>
+                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "🟡 $CTG Budget" : "Fiat Budget (€)"}</label>
                         <Input type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} />
                       </div>
                       <div>
