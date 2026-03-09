@@ -499,7 +499,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
               <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 text-[10px] text-muted-foreground font-medium border-b border-border pb-1 sticky top-0 bg-card">
                 <span>Contributor</span>
                 <span className="text-right">Wu</span>
-                <span className="text-right">🟡 $CTG</span>
+                <span className="text-right">🌱 $CTG</span>
                 <span className="text-right">XP</span>
               </div>
               {contributors.map((c, i) => (
