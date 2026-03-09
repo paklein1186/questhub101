@@ -331,22 +331,18 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
                 {/* Ecosystem separation */}
                 <div className="rounded-xl border border-border bg-card p-4">
                   <h4 className="text-sm font-semibold mb-2">Understanding the ecosystem</h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                  <div className="grid grid-cols-3 gap-3 text-xs text-muted-foreground">
                     <div className="space-y-0.5">
-                      <p className="font-medium text-foreground">XP</p>
-                      <p>Non-monetary reputation</p>
+                      <p className="font-medium text-foreground">⭐ XP</p>
+                      <p>Non-monetary reputation · permanent · unlocks governance</p>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="font-medium text-foreground">Credits</p>
-                      <p>Platform utility tokens</p>
+                      <p className="font-medium text-foreground">🌱 $CTG</p>
+                      <p>Contribution token · fades 1%/month · transferable · exchangeable to Credits</p>
                     </div>
                     <div className="space-y-0.5">
-                      <p className="font-medium text-foreground">Shares</p>
-                      <p>Coop-like ownership</p>
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="font-medium text-foreground">Money (€)</p>
-                      <p>Mission budgets & payments</p>
+                      <p className="font-medium text-foreground">🔷 Credits</p>
+                      <p>Platform utility fuel · fades 1%/month · for quotas and features</p>
                     </div>
                   </div>
                 </div>
