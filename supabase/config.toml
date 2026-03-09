@@ -119,3 +119,6 @@ verify_jwt = false
 
 [functions.generate-territory-logos]
 verify_jwt = false
+
+[functions.retroactive-ctg]
+verify_jwt = false
