@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Wallet, Coins, Zap, CreditCard, Package, Crown, Compass,
@@ -72,10 +72,26 @@ export function WalletTab() {
   const { persona } = usePersona();
   const { open: economyOpen, close: closeEconomy, mode: economyMode, openIfNeeded } = useEconomyModal();
   const { rate: COIN_EUR_RATE, toEur } = useCoinsRate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [topupLoading, setTopupLoading] = useState<number | null>(null);
 
   useEffect(() => {
     openIfNeeded();
   }, [openIfNeeded]);
+
+  // Handle coins top-up success redirect
+  useEffect(() => {
+    if (searchParams.get("coins_success") === "true") {
+      const amount = searchParams.get("coins_amount") || "0";
+      toast({ title: "✅ Coins added!", description: `${amount} Coins have been added to your wallet.` });
+      setActiveWallet("coins");
+      // Clean URL params
+      searchParams.delete("coins_success");
+      searchParams.delete("coins_amount");
+      searchParams.delete("session_id");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
@@ -362,6 +378,50 @@ export function WalletTab() {
                     Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
                     This is separate from $CTG tokens which are cooperative contribution units, and separate from ⭐ XP which is your permanent reputation.
                     Current rate: {COIN_EUR_RATE} EUR per Coin — set by the cooperative and displayed here for transparency.
+                  </p>
+                </div>
+
+                {/* ── Add Coins ── */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-medium text-muted-foreground">Add Coins to wallet</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { coins: 250, label: "Small" },
+                      { coins: 1000, label: "Standard" },
+                      { coins: 2500, label: "Builder" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.coins}
+                        onClick={async () => {
+                          setTopupLoading(opt.coins);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("create-checkout", {
+                              body: { mode: "coins_topup", coinsAmount: opt.coins },
+                            });
+                            if (error) throw error;
+                            if (data?.url) window.open(data.url, "_blank");
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err.message, variant: "destructive" });
+                          } finally {
+                            setTopupLoading(null);
+                          }
+                        }}
+                        disabled={!!topupLoading}
+                        className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 p-3 text-center hover:bg-teal-100 dark:hover:bg-teal-950/50 transition-colors disabled:opacity-50"
+                      >
+                        <p className="text-sm font-bold text-teal-700 dark:text-teal-300">
+                          🟩 {opt.coins.toLocaleString()}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          ≈ €{(opt.coins * COIN_EUR_RATE).toFixed(0)}
+                        </p>
+                        <p className="text-[10px] font-medium text-teal-600 dark:text-teal-400">{opt.label}</p>
+                        {topupLoading === opt.coins && <Loader2 className="h-3 w-3 animate-spin mx-auto mt-1" />}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Coins are fiat-backed. Used for quest pots and service payments. Withdrawable via Stripe Connect.
                   </p>
                 </div>
 

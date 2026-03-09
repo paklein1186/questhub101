@@ -32,14 +32,15 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
 
     const body = await req.json();
-    const allowedModes = new Set(["credit_bundle", "xp_bundle", "subscription", "shares"]);
+    const allowedModes = new Set(["credit_bundle", "xp_bundle", "subscription", "shares", "coins_topup"]);
     const mode = typeof body.mode === "string" ? body.mode : "";
     if (!allowedModes.has(mode)) {
-      return new Response(JSON.stringify({ error: "Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', or 'shares'." }), {
+      return new Response(JSON.stringify({ error: "Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', 'shares', or 'coins_topup'." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const bundleCode = typeof body.bundleCode === "string" ? body.bundleCode : "";
+    const coinsAmount = typeof body.coinsAmount === "number" ? body.coinsAmount : (Number(body.coinsAmount) || 0);
     const planStripePriceId = typeof body.planStripePriceId === "string" ? body.planStripePriceId : "";
     const shareClass = typeof body.shareClass === "string" ? body.shareClass : "";
     const quantity = typeof body.quantity === "number" ? body.quantity : (Number(body.quantity) || 0);
@@ -165,8 +166,49 @@ serve(async (req) => {
       return new Response(JSON.stringify({ url: session.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    } else if (mode === "coins_topup") {
+      if (!coinsAmount || coinsAmount < 100) {
+        throw new Error("Minimum top-up is 100 Coins");
+      }
+
+      // Fetch rate from cooperative_settings
+      const { data: rateSetting } = await supabaseClient
+        .from("cooperative_settings")
+        .select("value")
+        .eq("key", "coins_eur_rate")
+        .single();
+      const rate = parseFloat((rateSetting as any)?.value ?? "0.04");
+      const eurAmountCents = Math.ceil(coinsAmount * rate * 100); // in cents
+
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: `🟩 ${coinsAmount.toLocaleString()} Coins`,
+              description: `Adds ${coinsAmount} Coins to your wallet. 1 Coin ≈ €${rate}`,
+            },
+            unit_amount: eurAmountCents,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        success_url: `${origin}/me?tab=wallet&coins_success=true&coins_amount=${coinsAmount}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/me?tab=wallet`,
+        metadata: {
+          type: "coins_topup",
+          user_id: user.id,
+          coins_amount: String(coinsAmount),
+        },
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     } else {
-      throw new Error("Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', or 'shares'.");
+      throw new Error("Invalid mode.");
     }
   } catch (error) {
     console.error("Error in create-checkout:", error);
