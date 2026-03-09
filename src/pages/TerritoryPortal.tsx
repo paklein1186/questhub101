@@ -92,6 +92,38 @@ function useIsAlreadyMember(territoryId: string | undefined, userId: string | un
   });
 }
 
+function useCurrentUserXpLevel(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-xp-level", userId],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("xp_level")
+        .eq("user_id", userId!)
+        .single();
+      return (data as any)?.xp_level ?? 1;
+    },
+  });
+}
+
+function useUserCtgBalance(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-ctg-balance", userId],
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("ctg_balance")
+        .eq("user_id", userId!)
+        .single();
+      return (data as any)?.ctg_balance ?? 0;
+    },
+  });
+}
+
 function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
   return useQuery({
     queryKey: ["territory-ns-count", territoryId],
@@ -183,6 +215,8 @@ export default function TerritoryPortal() {
 
   const currentUser = useCurrentUser();
   const { data: adminStatus } = useIsTerritoryAdmin(resolvedId, currentUser.id);
+  const { data: xpLevel = 1 } = useCurrentUserXpLevel(currentUser.id || undefined);
+  const { data: ctgBalance = 0 } = useUserCtgBalance(currentUser.id || undefined);
 
   const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
@@ -316,8 +350,8 @@ export default function TerritoryPortal() {
               <TerritoryAdminPanel
                 territoryId={resolvedId!}
                 territoryName={territory.name}
-                currentUserXpLevel={1}
-                currentUserCtgBalance={0}
+                currentUserXpLevel={xpLevel}
+                currentUserCtgBalance={ctgBalance}
                 isSuperAdmin={adminStatus?.isSuperAdmin}
               />
             </TabsContent>
@@ -335,7 +369,7 @@ export default function TerritoryPortal() {
             level: territory.level,
             slug: territory.slug,
           }}
-          currentUserXpLevel={1}
+          currentUserXpLevel={xpLevel}
           currentUserId={currentUser.id}
         />
       )}
