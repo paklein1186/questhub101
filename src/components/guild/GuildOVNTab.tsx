@@ -425,7 +425,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <CardContent className="p-4 text-center">
             <span className="text-lg mx-auto mb-1 block">🏛️</span>
             <p className="text-2xl font-bold text-violet-600">{totalGuildShare.toFixed(0)}</p>
-            <p className="text-[10px] text-muted-foreground">🟡 $CTG (guild share)</p>
+            <p className="text-[10px] text-muted-foreground">🌱 $CTG (guild share)</p>
           </CardContent>
         </Card>
       </div>
