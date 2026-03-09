@@ -38,6 +38,14 @@ const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "t
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
+// Context to share grid density across explore subtabs
+export const GridDensityContext = createContext<{ density: GridDensity; setDensity: (d: GridDensity) => void; gridClassName: string }>({
+  density: "3",
+  setDensity: () => {},
+  gridClassName: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+});
+export const useExploreGridDensity = () => useContext(GridDensityContext);
+
 export default function ExploreHub() {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
