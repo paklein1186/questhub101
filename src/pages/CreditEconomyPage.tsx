@@ -48,7 +48,7 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
         <SectionHeader title={t("creditEconomyPage.fourLayers")} icon={Scale} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {ECONOMY_LAYERS.map((layer) => {
-            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass };
+            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass, Sprout };
             const Icon = IconMap[layer.icon] || Coins;
             return (
               <Card key={layer.key} className="border-border/50 bg-muted/30">
