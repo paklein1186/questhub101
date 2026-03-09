@@ -38,6 +38,7 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
         memoryContributions: 0,
         topTopics: [],
         synthesis: "",
+        cover_url: null,
       });
     }
     return [...seen.values()];
