@@ -526,6 +526,13 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
       p_related_entity_type: 'decision',
     } as any).then(() => {});
 
+    // Grant XP for governance vote
+    grantXp(currentUserId, {
+      type: XP_EVENT_TYPES.GOVERNANCE_VOTE_CAST,
+      relatedEntityType: "decision",
+      relatedEntityId: decision.id,
+    });
+
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
     onRefresh();
     toast({ title: "Vote recorded" });
