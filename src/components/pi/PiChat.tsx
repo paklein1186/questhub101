@@ -199,6 +199,7 @@ export function PiChat({ className }: PiChatProps) {
   const processActions = (actions: any[]) => {
     for (const action of actions) {
       if (action.action === "navigate" && action.screen) {
+        closePiPanel();
         navigate(action.screen);
       }
       if (action.action === "notification") {
