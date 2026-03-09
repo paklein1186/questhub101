@@ -219,8 +219,8 @@ function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | u
         (supabase
           .from("trust_edges")
           .select("id") as any)
-          .eq("from_id", userId!)
-          .eq("to_id", territoryId!)
+          .eq("from_node_id", userId!)
+          .eq("to_node_id", territoryId!)
           .eq("edge_type", "stewardship")
           .eq("status", "active")
           .maybeSingle(),
