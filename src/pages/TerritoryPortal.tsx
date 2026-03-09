@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Globe, Leaf, Compass, Shield, BookOpen, Settings, Network } from "lucide-react";
+import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords } from "lucide-react";
 
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
@@ -300,14 +300,6 @@ export default function TerritoryPortal() {
           onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
         />
 
-        {tab !== "portal" && tab !== "admin" && (
-          <TerritoryQuestGrid
-            territoryId={resolvedId!}
-            territoryName={territory.name}
-            canCreateQuest={canCreateQuest}
-          />
-        )}
-
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className={cn("w-full justify-start overflow-x-auto", "scrollbar-none")}>
             <TabsTrigger value="portal" className="gap-1.5">
@@ -315,6 +307,9 @@ export default function TerritoryPortal() {
             </TabsTrigger>
             <TabsTrigger value="ecosystem" className="gap-1.5">
               <Compass className="h-3.5 w-3.5" /> Ecosystem
+            </TabsTrigger>
+            <TabsTrigger value="quests" className="gap-1.5">
+              <Swords className="h-3.5 w-3.5" /> Quests
             </TabsTrigger>
             <TabsTrigger value="living" className="gap-1.5">
               <Leaf className="h-3.5 w-3.5" /> Living
@@ -346,6 +341,14 @@ export default function TerritoryPortal() {
 
           <TabsContent value="ecosystem" className="mt-6">
             <TerritoryEcosystemTab territoryId={resolvedId!} />
+          </TabsContent>
+
+          <TabsContent value="quests" className="mt-6">
+            <TerritoryQuestGrid
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              canCreateQuest={canCreateQuest}
+            />
           </TabsContent>
 
           <TabsContent value="living" className="mt-6">
