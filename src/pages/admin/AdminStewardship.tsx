@@ -274,21 +274,22 @@ export default function AdminStewardship() {
     try {
       const { data: activeEdges } = await supabase
         .from("trust_edges")
-        .select("to_node_id, from_node_type, to_node_type")
+        .select("from_node_id, to_node_id, to_node_type")
         .eq("edge_type", "stewardship" as any)
         .eq("status", "active" as any);
 
       let count = 0;
       for (const edge of activeEdges ?? []) {
-        const contribType = (edge as any).to_node_type === "house"
+        const nodeType = (edge as any).to_node_type || "territory";
+        const contribType = nodeType === "house"
           ? "stewardship_house"
           : "stewardship_territory";
 
         await supabase.rpc("emit_ctg_for_contribution", {
-          p_user_id: (edge as any).to_node_id,
+          p_user_id: (edge as any).from_node_id,
           p_contribution_type: contribType,
           p_related_entity_id: (edge as any).to_node_id,
-          p_related_entity_type: (edge as any).to_node_type,
+          p_related_entity_type: nodeType,
           p_note: `Monthly stewardship reward — ${new Date().toISOString().slice(0, 7)}`,
         });
         count++;
