@@ -191,7 +191,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
 
             <div>
               <Label htmlFor="bw-rewardXp" className="text-xs flex items-center gap-1">
-                XP Reward <Tip>Experience points granted to each participant upon quest completion. XP is non-transferable reputation.</Tip>
+                XP Reward <Tip>⭐ XP granted on completion. Permanent reputation — never decays, never purchased. Reflects who you are becoming.</Tip>
               </Label>
               <Input
                 id="bw-rewardXp"
