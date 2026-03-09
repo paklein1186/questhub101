@@ -450,6 +450,7 @@ function CTGExchangeRatesTab() {
 }
 import { CTGUserWalletsTab } from "@/components/admin/CTGUserWalletsTab";
 import { CTGEmissionRulesTab } from "@/components/admin/CTGEmissionRulesTab";
+import { AdminBountiesTab } from "@/components/admin/AdminBountiesTab";
 
 /* ─── Main Page ─── */
 export default function AdminEconomyCTG() {
@@ -460,7 +461,7 @@ export default function AdminEconomyCTG() {
         <h2 className="font-display text-2xl font-bold">$CTG Token</h2>
       </div>
       <p className="text-sm text-muted-foreground max-w-xl">
-        $CTG token administration: global metrics, exchange rates, user wallets and emission rules.
+        $CTG token administration: global metrics, exchange rates, user wallets, emission rules, and bounties.
       </p>
 
       <Tabs defaultValue="overview">
@@ -469,11 +470,13 @@ export default function AdminEconomyCTG() {
           <TabsTrigger value="rates">Exchange Rates</TabsTrigger>
           <TabsTrigger value="wallets">User Wallets</TabsTrigger>
           <TabsTrigger value="rules">Emission Rules</TabsTrigger>
+          <TabsTrigger value="bounties">Bounties</TabsTrigger>
         </TabsList>
         <TabsContent value="overview"><CTGOverviewTab /></TabsContent>
         <TabsContent value="rates"><CTGExchangeRatesTab /></TabsContent>
         <TabsContent value="wallets"><CTGUserWalletsTab /></TabsContent>
         <TabsContent value="rules"><CTGEmissionRulesTab /></TabsContent>
+        <TabsContent value="bounties"><AdminBountiesTab /></TabsContent>
       </Tabs>
     </div>
   );
