@@ -26,6 +26,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useIsDismissed } from "@/components/onboarding/ContextualHint";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -453,7 +454,7 @@ const STEP_ICONS: Record<string, React.ReactNode> = {
 };
 
 export function PathwayCards({ persona, progress, steps, className }: PathwayCardsProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const { dismissed, dismiss } = useIsDismissed("pathway_cards");
   const order = PERSONA_STEP_ORDER[persona] ?? PERSONA_STEP_ORDER.UNSET;
   const personaLabels = PERSONA_CARD_LABELS[persona] ?? {};
 
@@ -487,7 +488,7 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
         <div className="flex items-center gap-2">
           <Progress value={(completedCount / steps.length) * 100} className="w-20 h-1.5" />
           <button
-            onClick={() => setDismissed(true)}
+            onClick={dismiss}
             className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Hide pathway"
           >
