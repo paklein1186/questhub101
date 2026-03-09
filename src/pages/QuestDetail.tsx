@@ -711,8 +711,8 @@ export default function QuestDetail() {
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {(quest as any).credit_budget > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">🏦 Credit Budget</p>
-                <p className="text-lg font-bold">{(quest as any).credit_budget} Credits</p>
+                <p className="text-xs text-muted-foreground font-medium">🏦 $CTG Budget</p>
+                <p className="text-lg font-bold">{(quest as any).credit_budget} $CTG</p>
                 <p className="text-[10px] text-muted-foreground">Funded by quest creator</p>
               </div>
             )}
