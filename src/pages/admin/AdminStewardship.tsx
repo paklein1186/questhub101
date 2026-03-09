@@ -146,12 +146,14 @@ export default function AdminStewardship() {
     queryFn: async () => {
       const { data } = await supabase
         .from("territories")
-        .select("id, name, tier")
-        .order("name");
+        .select("id, name, level")
+        .eq("is_deleted", false)
+        .order("name")
+        .limit(2000);
       return (data || []).map((t: any) => ({
         id: t.id,
         label: t.name || "Unnamed",
-        sub: t.tier,
+        sub: t.level,
       }));
     },
   });
