@@ -44,6 +44,7 @@ interface TerritoryGuestPortalProps {
   questCount: number;
   guildCount: number;
   naturalSystemCount: number;
+  stewardCount?: number;
   isAuthenticated: boolean;
   isAlreadyMember: boolean;
 }
@@ -155,13 +156,14 @@ export function TerritoryGuestPortal({
   questCount,
   guildCount,
   naturalSystemCount,
+  stewardCount = 0,
   isAuthenticated,
   isAlreadyMember,
 }: TerritoryGuestPortalProps) {
   const navigate = useNavigate();
   const { data } = useGuestPortalData(territory.id);
 
-  const isPristine = memberCount === 0 && questCount === 0;
+  const isPristine = memberCount === 0 && questCount === 0 && stewardCount === 0;
 
   return (
     <div className="space-y-10">
