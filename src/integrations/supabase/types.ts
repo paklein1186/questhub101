@@ -1388,6 +1388,30 @@ export type Database = {
         }
         Relationships: []
       }
+      commons_pulse_history: {
+        Row: {
+          distributed_at: string | null
+          id: string
+          recipients_count: number
+          total_distributed: number
+          triggered_by_user_id: string | null
+        }
+        Insert: {
+          distributed_at?: string | null
+          id?: string
+          recipients_count?: number
+          total_distributed?: number
+          triggered_by_user_id?: string | null
+        }
+        Update: {
+          distributed_at?: string | null
+          id?: string
+          recipients_count?: number
+          total_distributed?: number
+          triggered_by_user_id?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           allow_agent_crawling: boolean
@@ -9302,6 +9326,10 @@ export type Database = {
       create_eco_quest_otg_edges: {
         Args: { _quest_id: string }
         Returns: undefined
+      }
+      distribute_commons_pulse: {
+        Args: { p_triggered_by?: string }
+        Returns: Json
       }
       distribute_eco_quest_rewards: {
         Args: { _quest_id: string }
