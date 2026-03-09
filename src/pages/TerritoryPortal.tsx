@@ -350,8 +350,8 @@ export default function TerritoryPortal() {
               <TerritoryAdminPanel
                 territoryId={resolvedId!}
                 territoryName={territory.name}
-                currentUserXpLevel={1}
-                currentUserCtgBalance={0}
+                currentUserXpLevel={xpLevel}
+                currentUserCtgBalance={ctgBalance}
                 isSuperAdmin={adminStatus?.isSuperAdmin}
               />
             </TabsContent>
