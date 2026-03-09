@@ -666,6 +666,16 @@ export default function LeaderboardTab() {
           entries={trustLeaders}
           unitLabel="trust"
         />
+
+        <EntitySection
+          title="🏛️ Partnership Champions"
+          subtitle={period === "all" ? "Entities with the most accepted partnerships." : `Partnerships formed${subtitleSuffix}.`}
+          icon={<Shield className="h-5 w-5 text-violet-500" />}
+          accentClass="bg-violet-500/5"
+          isLoading={partLoading}
+          entries={partnershipLeaders}
+          unitLabel="alliances"
+        />
       </div>
     </div>
   );
