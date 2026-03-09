@@ -84,6 +84,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/system/feature-toggles", label: "Feature Toggles", icon: ToggleLeft },
       { to: "/admin/system/roles", label: "Users & Roles", icon: UsersIcon },
       { to: "/admin/system/houses", label: "Topics & Territories", icon: Hash },
+      { to: "/admin/system/stewardship", label: "Stewardship", icon: Shield },
       { to: "/admin/system/governance", label: "Governance", icon: Star },
       { to: "/admin/system/audit", label: "Audit Logs", icon: ScrollText },
       { to: "/admin/system/integrations", label: "Integrations", icon: Settings },

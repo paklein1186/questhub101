@@ -335,6 +335,7 @@ const App = () => (
                   <Route path="economy/ctg" element={<Suspense fallback={null}><AdminEconomyCTG /></Suspense>} />
                   <Route path="system/roles" element={<Suspense fallback={null}><AdminSystemRoles /></Suspense>} />
                   <Route path="system/houses" element={<Suspense fallback={null}><AdminSystemHouses /></Suspense>} />
+                  <Route path="system/stewardship" element={<Suspense fallback={null}><AdminStewardship /></Suspense>} />
                   <Route path="system/governance" element={<Suspense fallback={null}><AdminSystemGovernance /></Suspense>} />
                   <Route path="system/audit" element={<Suspense fallback={null}><AdminSystemAudit /></Suspense>} />
                   <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
