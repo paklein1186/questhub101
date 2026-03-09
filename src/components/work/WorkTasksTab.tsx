@@ -587,6 +587,13 @@ export function WorkTasksTab() {
     if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); setConverting(false); return; }
     const questId = (data as any).id;
     await supabase.from("quest_participants").insert({ quest_id: questId, user_id: userId, role: "OWNER", status: "ACCEPTED" });
+    // Emit $CTG for quest creation
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: userId,
+      p_contribution_type: 'quest_created',
+      p_related_entity_id: questId,
+      p_related_entity_type: 'quest',
+    } as any).then(() => {});
 
     if (convertTopics.length > 0) {
       await supabase.from("quest_topics").insert(convertTopics.map((topic_id) => ({ quest_id: questId, topic_id })));
