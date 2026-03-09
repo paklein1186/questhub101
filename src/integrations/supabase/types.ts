@@ -7416,6 +7416,50 @@ export type Database = {
           },
         ]
       }
+      stewardship_requests: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          requester_user_id: string
+          reviewed_at: string | null
+          reviewed_by_user_id: string | null
+          status: string
+          territory_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          requester_user_id: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          territory_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          requester_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by_user_id?: string | null
+          status?: string
+          territory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stewardship_requests_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           ai_agents_enabled: boolean | null
