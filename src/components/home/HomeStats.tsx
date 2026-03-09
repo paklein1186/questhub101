@@ -42,8 +42,8 @@ export function HomeStats({ xp, ctgBalance, guildCount, questCount, achievements
 
       {/* Stat cards + achievements */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={Zap} label="XP" value={xp} accent />
-        <StatCard icon={Star} label="Contribution" value={contributionIndex} />
+        <StatCard icon={Zap} label="⭐ XP" value={xp} accent />
+        <StatCard icon={Sprout} label="🌱 $CTG" value={ctgBalance} color="emerald" />
         <StatCard icon={Shield} label="Guilds" value={guildCount} />
         <StatCard icon={Compass} label="Quests" value={questCount} />
       </div>
