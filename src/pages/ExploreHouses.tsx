@@ -692,7 +692,7 @@ function SectionPreview({ title, icon: Icon, items, loading, tab, setTab, render
   setTab: (t: string) => void;
   renderItem: (item: any) => React.ReactNode;
 }) {
-  if (loading) return <div className="space-y-2"><Skeleton className="h-6 w-32" /><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div></div>;
+  if (loading) return <div className="space-y-2"><Skeleton className="h-6 w-32" /><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div></div>;
   if (!items || items.length === 0) return null;
 
   return (
