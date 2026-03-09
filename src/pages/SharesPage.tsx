@@ -261,7 +261,7 @@ export default function SharesPage() {
 
               <Button className="w-full" variant="outline" asChild>
                 <a href={CLASS_A_MAILTO}>
-                  <Mail className="h-4 w-4 mr-2" /> Apply to Become a Class A Member
+                  <Mail className="h-4 w-4 mr-2" /> Apply
                 </a>
               </Button>
               <p className="text-xs text-muted-foreground text-center italic">
