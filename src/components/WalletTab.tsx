@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
-import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { CREDIT_BUNDLES, ECONOMY_LABELS, COIN_EUR_RATE } from "@/lib/xpCreditsConfig";
 import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";

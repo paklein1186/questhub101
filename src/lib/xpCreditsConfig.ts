@@ -240,6 +240,10 @@ export const CREDIT_BUNDLES = [
 
 export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
 
+/** Conversion rate: 1 Coin = COIN_EUR_RATE euros on withdrawal.
+ *  Set by the cooperative. Update here when rate changes. */
+export const COIN_EUR_RATE = 0.04;
+
 // ─── Plan Codes ─────────────────────────────────────────────
 export const PLAN_CODES = {
   FREE: "FREE",

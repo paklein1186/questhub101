@@ -57,10 +57,14 @@ const COMPARISON_OPTIONS = [
 ];
 
 const REWARD_OPTIONS = [
-  { value: "XP", label: "XP", icon: Zap },
-  { value: "CREDITS", label: "🟩 $CTG", icon: Coins },
-  { value: "BADGE", label: "Badge", icon: Trophy },
+  { value: "XP", label: "⭐ XP (reputation)", icon: TrendingUp },
+  { value: "CTG", label: "🌱 $CTG (contribution token)", icon: Leaf },
+  { value: "BADGE", label: "🏅 Badge (milestone)", icon: Trophy },
 ];
+
+const REWARD_LABELS: Record<string, string> = {
+  XP: "⭐ XP", CTG: "🌱 $CTG", BADGE: "🏅 Badge",
+};
 
 const PERIOD_OPTIONS = [
   { value: "ON_COMPLETE", label: "On quest complete" },
