@@ -2,11 +2,38 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Globe, List, Map as MapIcon, History, Loader2 } from "lucide-react";
+import { MapPin, Globe, List, Map as MapIcon, History, Loader2, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TerritoryMapView } from "@/components/network/TerritoryMapView";
 import type { TerritoryLeaderboardItem } from "@/hooks/useNetworkLeaderboardData";
+
+function useStewardedTerritories(userId: string) {
+  return useQuery({
+    queryKey: ["stewarded-territories", userId],
+    queryFn: async () => {
+      const { data: edges } = await supabase
+        .from("trust_edges")
+        .select("to_node_id")
+        .eq("from_node_id", userId)
+        .eq("edge_type", "stewardship" as any)
+        .eq("status", "active" as any);
+
+      if (!edges?.length) return [];
+
+      const ids = edges.map((e: any) => e.to_node_id);
+      const { data: territories } = await supabase
+        .from("territories")
+        .select("id, name, level, slug")
+        .in("id", ids)
+        .eq("is_deleted", false)
+        .order("name");
+
+      return territories ?? [];
+    },
+    enabled: !!userId,
+  });
+}
 
 const ATTACHMENT_LABELS: Record<string, { label: string; emoji: string }> = {
   LIVE_IN: { label: "Lives in", emoji: "🏠" },
@@ -44,6 +71,8 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     }
     return [...seen.values()];
   }, [territories]);
+
+  const { data: stewarded = [] } = useStewardedTerritories(userId);
 
   // Group territories by attachment type
   const grouped = useMemo(() => {
@@ -116,7 +145,7 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     return map;
   }, [territories]);
 
-  if (territories.length === 0) {
+  if (territories.length === 0 && stewarded.length === 0) {
     return (
       <div className="text-center py-12">
         <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
@@ -127,6 +156,39 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Stewarded territories */}
+      {stewarded.length > 0 && (
+        <section>
+          <h4 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+            <Crown className="h-4 w-4 text-amber-500" /> Stewarded Territories
+          </h4>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {stewarded.map((t: any) => (
+              <Link
+                key={t.id}
+                to={`/territories/${t.id}`}
+                className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 hover:border-amber-500/50 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                    <Crown className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="font-display font-semibold text-sm truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                      {t.name}
+                    </h5>
+                    {t.level && (
+                      <Badge variant="outline" className="text-[10px] capitalize mt-0.5">
+                        {t.level.toLowerCase()}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       {/* View toggle */}
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold text-lg flex items-center gap-2">
