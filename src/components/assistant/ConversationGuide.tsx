@@ -505,7 +505,7 @@ export default function ConversationGuide({
     try {
       const { data, error } = await supabase.functions.invoke("ctg-guide", {
         body: {
-          message: text,
+          message: messageForAI,
           contextType,
           contextId: contextId ?? null,
           sessionId: effectiveSessionId,
