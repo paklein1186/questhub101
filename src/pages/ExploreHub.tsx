@@ -218,6 +218,7 @@ export default function ExploreHub() {
         )}
       </ExploreTabsInner>
     </PageShell>
+    </GridDensityContext.Provider>
   );
 }
 
