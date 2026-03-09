@@ -30,6 +30,42 @@ import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
 
+/* ── Intelligence Subtabs ── */
+function IntelligenceSubtabs({ territoryId, territoryName, userId, isMember }: {
+  territoryId: string;
+  territoryName: string;
+  userId?: string;
+  isMember: boolean;
+}) {
+  const [sub, setSub] = useState("synthesis");
+  return (
+    <div className="space-y-4">
+      <Tabs value={sub} onValueChange={setSub}>
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="synthesis" className="gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" /> Synthesis
+          </TabsTrigger>
+          <TabsTrigger value="library" className="gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" /> Library
+          </TabsTrigger>
+          <TabsTrigger value="learn" className="gap-1.5">
+            <MessageSquarePlus className="h-3.5 w-3.5" /> Learn &amp; Teach
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="synthesis" className="mt-4">
+          <TerritoryMemoryTab territoryId={territoryId} territoryName={territoryName} isMember={isMember} />
+        </TabsContent>
+        <TabsContent value="library" className="mt-4">
+          <TerritoryLibraryTab territoryId={territoryId} territoryName={territoryName} userId={userId} />
+        </TabsContent>
+        <TabsContent value="learn" className="mt-4">
+          <TerritoryChatTab territoryId={territoryId} territoryName={territoryName} userId={userId} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
 /* ── Types ── */
 interface TerritoryAncestor {
   id: string;
