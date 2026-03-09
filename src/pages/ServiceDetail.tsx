@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowLeft, Clock, Euro, MapPin, Hash, CalendarClock, Send, Video, ChevronLeft, ChevronRight, Shield, Pencil, Trash2, Briefcase, Users } from "lucide-react";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ export default function ServiceDetail() {
   const [bookNotes, setBookNotes] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
+  const { toCoins } = useCoinsRate();
 
   const { data: provider } = usePublicProfile(svc?.provider_user_id ?? undefined);
   const { data: providerTrust } = useTrustSummary("profile", svc?.provider_user_id ?? undefined);
@@ -385,7 +387,14 @@ export default function ServiceDetail() {
             </Link>
           ) : null}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
-          {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
+          {svc.price_amount != null && (
+            <>
+              <Badge className="bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                {svc.price_amount === 0 ? "Free" : `🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins`}
+              </Badge>
+              {svc.price_amount > 0 && <span className="text-[11px] text-muted-foreground">≈ €{svc.price_amount}</span>}
+            </>
+          )}
           {(svc as any).service_type === "service_mission" && <Badge variant="outline" className="text-xs"><Briefcase className="h-3 w-3 mr-1" />Mission</Badge>}
           {(svc as any).service_type === "event_attendance" && <Badge variant="outline" className="text-xs"><Users className="h-3 w-3 mr-1" />Event</Badge>}
           {(svc as any).service_type === "online_call" && svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
@@ -443,7 +452,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (€${svc.price_amount})`) : isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`) : isFree ? "Confirm (Free)" : `Book & Pay (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`}</Button>
               </div>
             </DialogContent>
           </Dialog>

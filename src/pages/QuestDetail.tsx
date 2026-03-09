@@ -6,6 +6,7 @@ import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb, Shield } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -207,6 +208,7 @@ export default function QuestDetail() {
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const { notifyQuestUpdate, notifyFollowersQuestCreated } = useNotifications();
+  const { toCoins } = useCoinsRate();
   const navigate = useNavigate();
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
@@ -686,9 +688,9 @@ export default function QuestDetail() {
               <div>
                 <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
                 <p className="text-lg font-bold">
-                  €{(quest as any).mission_budget_min ?? "—"} – €{(quest as any).mission_budget_max ?? "—"}
+                  🟩 {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
                 </p>
-                <p className="text-[10px] text-muted-foreground">Payment in euros • {(quest as any).payment_type || "INVOICE"}</p>
+                <p className="text-[10px] text-muted-foreground">≈ €{(quest as any).mission_budget_min ?? 0} – €{(quest as any).mission_budget_max ?? 0} • {(quest as any).payment_type || "INVOICE"}</p>
               </div>
             )}
             <div>
@@ -703,7 +705,7 @@ export default function QuestDetail() {
             </div>
             {quest.credit_reward > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">🟡 $CTG Reward</p>
+                <p className="text-xs text-muted-foreground font-medium">🌱 $CTG Reward</p>
                 <p className="text-lg font-bold text-primary">{quest.credit_reward} $CTG</p>
                 <p className="text-[10px] text-muted-foreground">Per participant on completion</p>
               </div>
@@ -747,7 +749,7 @@ export default function QuestDetail() {
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge>
           {quest.price_fiat > 0 && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — €{(quest.price_fiat / 100).toFixed(2)}</Badge>
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins (≈ €{(quest.price_fiat / 100).toFixed(2)})</Badge>
           )}
           {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
             <Badge variant="secondary" className="capitalize">Free</Badge>
@@ -792,7 +794,7 @@ export default function QuestDetail() {
                 if (!isLoggedIn) { setAuthPromptAction("join this quest"); setAuthPromptOpen(true); return; }
                 joinQuest();
               }}>
-                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — €{(quest.price_fiat / 100).toFixed(2)}</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
+                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />

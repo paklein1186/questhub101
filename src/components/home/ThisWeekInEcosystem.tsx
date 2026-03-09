@@ -19,7 +19,7 @@ export function ThisWeekInEcosystem() {
 
       const [featuredQuests, highlightedGuilds, topics, territories] = await Promise.all([
         // Featured / recent quests
-        supabase.from("quests").select("id, title, reward_xp, status, is_featured, guilds(name)")
+        supabase.from("quests").select("id, title, reward_xp, status, is_featured, coin_budget, credit_budget, guilds(name)")
           .eq("is_deleted", false).eq("is_draft", false)
           .gte("created_at", weekAgo)
           .order("is_featured", { ascending: false })
@@ -75,8 +75,10 @@ export function ThisWeekInEcosystem() {
               <motion.div key={q.id} custom={i} variants={fadeUp} initial="hidden" animate="show">
                 <Link to={`/quests/${q.id}`}
                   className="block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/30 transition-all h-full">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.reward_xp} XP</Badge>
+                    {q.coin_budget > 0 && <Badge variant="outline" className="text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800 text-[10px]">🟩 {q.coin_budget.toLocaleString()} Coins</Badge>}
+                    {q.credit_budget > 0 && <Badge variant="outline" className="text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-[10px]">🌱 {q.credit_budget} $CTG</Badge>}
                     {q.is_featured && <Star className="h-3.5 w-3.5 text-warning" />}
                   </div>
                   <h4 className="font-display font-semibold text-sm line-clamp-2 mb-1">{q.title}</h4>
