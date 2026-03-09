@@ -263,12 +263,30 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
   const { data: quests } = useQuery({
     queryKey: ["territory-admin-quests", territoryId],
     queryFn: async () => {
+      // Get all descendant territory IDs (including self) via closure table
+      const { data: closureData } = await supabase
+        .from("territory_closure" as any)
+        .select("descendant_id")
+        .eq("ancestor_id", territoryId);
+      const territoryIds = closureData?.length
+        ? (closureData as any[]).map((c) => c.descendant_id as string)
+        : [territoryId];
+
       const { data } = await supabase
         .from("quest_territories" as any)
-        .select("quest_id, is_hidden, quests(id, title, status, quest_nature)")
-        .eq("territory_id", territoryId)
-        .limit(20);
-      return (data ?? []).map((r: any) => ({ ...r.quests, is_hidden: r.is_hidden ?? false })).filter(Boolean);
+        .select("quest_id, is_hidden, territory_id, quests(id, title, status, quest_nature)")
+        .in("territory_id", territoryIds)
+        .limit(50);
+
+      // Deduplicate by quest_id (same quest may appear in multiple sub-territories)
+      const seen = new Set<string>();
+      return (data ?? [])
+        .map((r: any) => ({ ...r.quests, is_hidden: r.is_hidden ?? false }))
+        .filter((q: any) => {
+          if (!q || !q.id || seen.has(q.id)) return false;
+          seen.add(q.id);
+          return true;
+        });
     },
   });
 
