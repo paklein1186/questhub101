@@ -87,6 +87,7 @@ export default function ServiceDetail() {
   const [bookNotes, setBookNotes] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [weekOffset, setWeekOffset] = useState(0);
+  const { toCoins } = useCoinsRate();
 
   const { data: provider } = usePublicProfile(svc?.provider_user_id ?? undefined);
   const { data: providerTrust } = useTrustSummary("profile", svc?.provider_user_id ?? undefined);
