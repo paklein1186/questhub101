@@ -543,7 +543,6 @@ export default function UserProfile() {
           <div className="space-y-2 pl-0 sm:pl-24">
             <div className="flex items-center gap-3 flex-wrap">
               <XpWidget xp={profile.xp} xpRecent12m={profile.xpRecent12m} level={profile.xpLevel} userId={profile.userId} />
-              <CTGBalanceBadge balance={profile.ctgBalance} size="sm" />
               <ProfileCTGStats userId={profile.userId} isOwnProfile={isOwnProfile} />
             </div>
 
