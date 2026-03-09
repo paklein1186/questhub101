@@ -284,7 +284,7 @@ export function usePlanLimits() {
   const spendXp = spendCredits;
 
   return {
-    plan,
+    plan: effectivePlan,
     loading,
     userXp,
     userCredits,
