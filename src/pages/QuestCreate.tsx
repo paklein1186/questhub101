@@ -308,7 +308,7 @@ export default function QuestCreate() {
       if (budget > balance) {
         toast({
           title: "Insufficient Credits",
-          description: `You cannot allocate ${budget} Credits — you only have ${balance}. Top up your wallet or reduce the budget.`,
+          description: `You cannot fund a $CTG pool of ${budget} — your Credits balance is ${balance}. Top up your Credits wallet.`,
           variant: "destructive",
         });
         return;
