@@ -38,7 +38,7 @@ interface QuestItem {
   description?: string | null;
   status: string;
   quest_nature?: string | null;
-  xp_reward?: number | null;
+  reward_xp?: number | null;
   participant_count?: number;
 }
 
@@ -58,7 +58,7 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
       const [questsRes, guildsRes, podsRes, companiesRes, nsRes] = await Promise.all([
         (supabase
           .from("quest_territories" as any)
-          .select("quest_id, quests(id, title, description, status, quest_nature, xp_reward)") as any)
+          .select("quest_id, quests(id, title, description, status, quest_nature, reward_xp)") as any)
           .eq("territory_id", territoryId)
           .limit(30),
 
@@ -166,9 +166,9 @@ function QuestCard({ quest }: { quest: QuestItem }) {
                 {cfg.label}
               </Badge>
             )}
-            {quest.xp_reward && quest.xp_reward > 0 && (
+            {quest.reward_xp && quest.reward_xp > 0 && (
               <span className="ml-auto flex items-center gap-0.5 text-[10px] text-amber-500 font-medium">
-                <Zap className="h-3 w-3" /> {quest.xp_reward} XP
+                <Zap className="h-3 w-3" /> {quest.reward_xp} XP
               </span>
             )}
           </div>
