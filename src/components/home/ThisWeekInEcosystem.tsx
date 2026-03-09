@@ -19,7 +19,7 @@ export function ThisWeekInEcosystem() {
 
       const [featuredQuests, highlightedGuilds, topics, territories] = await Promise.all([
         // Featured / recent quests
-        supabase.from("quests").select("id, title, reward_xp, status, is_featured, guilds(name)")
+        supabase.from("quests").select("id, title, reward_xp, status, is_featured, coin_budget, credit_budget, guilds(name)")
           .eq("is_deleted", false).eq("is_draft", false)
           .gte("created_at", weekAgo)
           .order("is_featured", { ascending: false })
