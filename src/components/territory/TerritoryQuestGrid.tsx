@@ -55,46 +55,74 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
   return useQuery({
     queryKey: ["territory-portal-grid", territoryId],
     queryFn: async () => {
-      const [questsRes, guildsRes, podsRes, companiesRes, nsRes] = await Promise.all([
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = await getAllTerritoryIds(territoryId);
+
+      const [questsRes, guildsRes, podsRes, companiesRes, nsRes, nsLinksRes] = await Promise.all([
         (supabase
           .from("quest_territories" as any)
           .select("quest_id, is_hidden, quests(id, title, description, status, quest_nature, reward_xp)") as any)
-          .eq("territory_id", territoryId)
+          .in("territory_id", ids)
           .eq("is_hidden", false)
-          .limit(30),
+          .limit(50),
 
         supabase
           .from("guild_territories")
           .select("guild_id, guilds(id, name, description, avatar_url)")
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         (supabase
           .from("pod_territories" as any)
           .select("pod_id, pods(id, name, description)") as any)
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         supabase
           .from("company_territories")
           .select("company_id, companies(id, name, description, logo_url)")
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
 
         (supabase
           .from("natural_system_territories" as any)
           .select("natural_system_id, natural_systems(id, name, system_type, kingdom)") as any)
-          .eq("territory_id", territoryId)
-          .limit(12),
+          .in("territory_id", ids)
+          .limit(20),
+
+        // Also check natural_system_links (used by bioregion creation)
+        (supabase
+          .from("natural_system_links" as any)
+          .select("natural_system_id, natural_systems(id, name, system_type, kingdom)") as any)
+          .in("linked_id", ids)
+          .eq("linked_type", "territory")
+          .limit(20),
       ]);
 
+      // Deduplicate quests by id
+      const questSeen = new Set<string>();
       const quests: QuestItem[] = (questsRes.data ?? [])
         .map((r: any) => r.quests)
         .filter(Boolean)
-        .filter((q: any) =>
-          ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status)
-        );
+        .filter((q: any) => {
+          if (questSeen.has(q.id)) return false;
+          questSeen.add(q.id);
+          return ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status);
+        });
 
+      // Combine natural systems from both tables, dedup
+      const nsSeen = new Set<string>();
+      const allNs = [
+        ...(nsRes.data ?? []).map((r: any) => r.natural_systems).filter(Boolean),
+        ...(nsLinksRes.data ?? []).map((r: any) => r.natural_systems).filter(Boolean),
+      ].filter((ns: any) => {
+        if (nsSeen.has(ns.id)) return false;
+        nsSeen.add(ns.id);
+        return true;
+      });
+
+      // Deduplicate entities by id
+      const entitySeen = new Set<string>();
       const entities: EntityItem[] = [
         ...(guildsRes.data ?? []).map((r: any) => ({
           ...r.guilds,
@@ -110,11 +138,15 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
           type: "company" as const,
           avatar_url: r.companies?.logo_url,
         })).filter(Boolean),
-        ...(nsRes.data ?? []).map((r: any) => ({
-          ...r.natural_systems,
+        ...allNs.map((ns: any) => ({
+          ...ns,
           type: "natural_system" as const,
-        })).filter(Boolean),
-      ];
+        })),
+      ].filter((e: any) => {
+        if (!e || !e.id || entitySeen.has(e.id)) return false;
+        entitySeen.add(e.id);
+        return true;
+      });
 
       return { quests, entities };
     },

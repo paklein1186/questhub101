@@ -308,11 +308,14 @@ export function useTerritoryStats(territoryId: string | undefined) {
   return useQuery({
     queryKey: ["territory-stats", territoryId],
     queryFn: async () => {
-      // Count quests linked to this territory
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = await getAllTerritoryIds(territoryId!);
+
+      // Count quests linked to this territory + descendants + bioregion members
       const [questsRes, guildsRes, podsRes, memoryRes] = await Promise.all([
-        supabase.from("quest_territories" as any).select("id", { count: "exact", head: true }).eq("territory_id", territoryId!),
-        supabase.from("guild_territories").select("id", { count: "exact", head: true }).eq("territory_id", territoryId!),
-        supabase.from("pod_territories").select("id", { count: "exact", head: true }).eq("territory_id", territoryId!),
+        supabase.from("quest_territories" as any).select("id", { count: "exact", head: true }).in("territory_id", ids),
+        supabase.from("guild_territories").select("id", { count: "exact", head: true }).in("territory_id", ids),
+        supabase.from("pod_territories").select("id", { count: "exact", head: true }).in("territory_id", ids),
         supabase.from("territory_memory" as any).select("id", { count: "exact", head: true }).eq("territory_id", territoryId!),
       ]);
       return {

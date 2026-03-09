@@ -112,14 +112,10 @@ function useTerritoryMemberCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 60_000,
     queryFn: async () => {
-      // Get all descendant territory IDs (including self) via closure table
-      const { data: closureData } = await supabase
-        .from("territory_closure")
-        .select("descendant_id")
-        .eq("ancestor_id", territoryId!);
-      const ids = closureData?.map((r: any) => r.descendant_id) ?? [territoryId!];
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = await getAllTerritoryIds(territoryId!);
 
-      // Count distinct users across all descendant territories
+      // Count distinct users across all related territories
       const { data } = await supabase
         .from("user_territories")
         .select("user_id")
@@ -185,11 +181,27 @@ function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 120_000,
     queryFn: async () => {
-      const { count } = await (supabase
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const ids = await getAllTerritoryIds(territoryId!);
+
+      // Count from natural_system_territories
+      const { data: nstData } = await (supabase
         .from("natural_system_territories" as any)
-        .select("natural_system_id", { count: "exact", head: true }) as any)
-        .eq("territory_id", territoryId!);
-      return count ?? 0;
+        .select("natural_system_id") as any)
+        .in("territory_id", ids);
+
+      // Count from natural_system_links
+      const { data: nslData } = await (supabase
+        .from("natural_system_links" as any)
+        .select("natural_system_id") as any)
+        .in("linked_id", ids)
+        .eq("linked_type", "territory");
+
+      const uniqueIds = new Set<string>([
+        ...((nstData ?? []) as any[]).map((r: any) => r.natural_system_id),
+        ...((nslData ?? []) as any[]).map((r: any) => r.natural_system_id),
+      ]);
+      return uniqueIds.size;
     },
   });
 }
