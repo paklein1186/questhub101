@@ -661,6 +661,7 @@ export default function ConversationGuide({
     navigate,
     onClose,
     userEntities,
+    onHiddenContext: setHiddenContext,
   };
 
   // ─── Inline mode ───
