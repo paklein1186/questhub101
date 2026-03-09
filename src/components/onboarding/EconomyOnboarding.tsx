@@ -488,7 +488,7 @@ export function PathwayCards({ persona, progress, steps, className }: PathwayCar
         <div className="flex items-center gap-2">
           <Progress value={(completedCount / steps.length) * 100} className="w-20 h-1.5" />
           <button
-            onClick={() => setDismissed(true)}
+            onClick={dismiss}
             className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Hide pathway"
           >
