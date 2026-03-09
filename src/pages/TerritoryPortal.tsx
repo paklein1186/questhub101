@@ -378,6 +378,14 @@ export default function TerritoryPortal() {
             <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
 
+          <TabsContent value="intelligence" className="mt-6">
+            <TerritoryMemoryTab territoryId={resolvedId!} territoryName={territory.name} isMember={isAlreadyMember} />
+          </TabsContent>
+
+          <TabsContent value="contribute" className="mt-6">
+            <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+          </TabsContent>
+
           <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
             <GraphView centerType="territory" centerId={resolvedId!} height={700} />
           </TabsContent>
