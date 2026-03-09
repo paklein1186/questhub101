@@ -189,9 +189,8 @@ function useTrustLeaders(period: TimePeriod, limit = 10) {
       let query = supabase
         .from("trust_edges")
         .select("to_node_id, score, created_at")
-        .eq("to_node_type", "user" as any)
-        .eq("status", "active" as any)
-        .eq("edge_type", "trust" as any);
+        .in("to_node_type", ["user", "profile"] as any)
+        .eq("status", "active" as any);
 
       if (dateFrom) {
         query = query.gte("created_at", dateFrom);
