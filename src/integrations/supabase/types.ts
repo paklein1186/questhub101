@@ -9206,6 +9206,16 @@ export type Database = {
           total_distributed: number
         }[]
       }
+      emit_ctg_for_contribution: {
+        Args: {
+          p_contribution_type: string
+          p_note?: string
+          p_related_entity_id?: string
+          p_related_entity_type?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       exchange_ctg_to_credits: {
         Args: { p_ctg_amount: number; p_user_id: string }
         Returns: Json
