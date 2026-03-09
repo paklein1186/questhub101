@@ -165,6 +165,7 @@ function ChatBody({
   navigate,
   onClose,
   userEntities,
+  onHiddenContext,
 }: {
   messages: ChatMessage[];
   input: string;
@@ -179,6 +180,7 @@ function ChatBody({
   navigate: (to: string) => void;
   onClose?: () => void;
   userEntities?: any;
+  onHiddenContext?: (ctx: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pathsExpanded, setPathsExpanded] = useState(true);
@@ -218,8 +220,13 @@ function ChatBody({
               className="overflow-hidden"
             >
               <PiActionPaths
-                onPromptSelect={(prompt) => {
-                  setInput(prompt);
+                onPromptSelect={(enrichedPrompt, displayPrompt) => {
+                  setInput(displayPrompt || enrichedPrompt);
+                  // Store entity context separately so it's sent to AI but not shown
+                  if (displayPrompt && enrichedPrompt !== displayPrompt) {
+                    const contextPart = enrichedPrompt.replace(displayPrompt, "").trim();
+                    if (contextPart) onHiddenContext?.(contextPart);
+                  }
                   setPathsExpanded(false);
                 }}
                 onClose={onClose}
@@ -440,6 +447,7 @@ export default function ConversationGuide({
     loadStoredMessages(contextType, contextId)
   );
   const [input, setInput] = useState("");
+  const [hiddenContext, setHiddenContext] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [internalSessionId, setInternalSessionId] = useState<string | null>(null);
 
@@ -488,19 +496,23 @@ export default function ConversationGuide({
     clearUndoFlags();
     clearPendingConfirmations();
 
+    // Build the message sent to AI: display text + hidden entity context
+    const messageForAI = hiddenContext ? `${text}\n\n${hiddenContext}` : text;
+
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      text,
+      text, // Only show clean text to user
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setHiddenContext(null);
     setIsLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("ctg-guide", {
         body: {
-          message: text,
+          message: messageForAI,
           contextType,
           contextId: contextId ?? null,
           sessionId: effectiveSessionId,
@@ -649,6 +661,7 @@ export default function ConversationGuide({
     navigate,
     onClose,
     userEntities,
+    onHiddenContext: setHiddenContext,
   };
 
   // ─── Inline mode ───
