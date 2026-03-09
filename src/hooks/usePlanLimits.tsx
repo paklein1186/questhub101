@@ -207,17 +207,20 @@ export function usePlanLimits() {
     fetchData();
   }, [fetchData]);
 
+  // Superadmin override: use unlimited plan, bypass all limits
+  const effectivePlan = isSuperAdmin ? SUPERADMIN_PLAN : plan;
+  const bypassLimits = isSuperAdmin || inGracePeriod;
+
   // Derived state
-  const freeQuestsRemaining = Math.max(0, plan.freeQuestsPerWeek - weeklyQuestsUsed);
-  // During grace period, limits are not enforced (no credit cost)
-  const questLimitReached = inGracePeriod ? false : freeQuestsRemaining === 0;
-  const canAffordExtraQuest = inGracePeriod || userCredits >= EXTRA_QUEST_CREDIT_COST;
+  const freeQuestsRemaining = bypassLimits ? Infinity : Math.max(0, effectivePlan.freeQuestsPerWeek - weeklyQuestsUsed);
+  const questLimitReached = bypassLimits ? false : freeQuestsRemaining === 0;
+  const canAffordExtraQuest = bypassLimits || userCredits >= EXTRA_QUEST_CREDIT_COST;
 
-  const guildLimitReached = inGracePeriod ? false : (plan.maxGuildMemberships !== null && guildCount >= plan.maxGuildMemberships);
-  const canAffordExtraGuild = inGracePeriod || userCredits >= EXTRA_GUILD_CREDIT_COST;
+  const guildLimitReached = bypassLimits ? false : (effectivePlan.maxGuildMemberships !== null && guildCount >= effectivePlan.maxGuildMemberships);
+  const canAffordExtraGuild = bypassLimits || userCredits >= EXTRA_GUILD_CREDIT_COST;
 
-  const podLimitReached = inGracePeriod ? false : (plan.maxPods !== null && podCount >= plan.maxPods);
-  const canAffordExtraPod = inGracePeriod || userCredits >= EXTRA_POD_CREDIT_COST;
+  const podLimitReached = bypassLimits ? false : (effectivePlan.maxPods !== null && podCount >= effectivePlan.maxPods);
+  const canAffordExtraPod = bypassLimits || userCredits >= EXTRA_POD_CREDIT_COST;
 
   // Increment weekly usage after quest creation
   const recordQuestCreation = useCallback(async () => {
