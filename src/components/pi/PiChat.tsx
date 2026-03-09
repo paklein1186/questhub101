@@ -264,7 +264,10 @@ export function PiChat({ className }: PiChatProps) {
 
       // Handle scene navigation
       if (data.scene?.navigate) {
-        setTimeout(() => navigate(data.scene.navigate), 500);
+        setTimeout(() => {
+          closePiPanel();
+          navigate(data.scene.navigate);
+        }, 500);
       }
     } catch (e: any) {
       console.error("Pi error:", e);
