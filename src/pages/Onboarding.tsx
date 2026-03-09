@@ -538,6 +538,13 @@ export default function Onboarding() {
         }).select("id").single();
 
         if (quest?.id) {
+          // Emit $CTG for quest creation
+          supabase.rpc('emit_ctg_for_contribution', {
+            p_user_id: authUser.id,
+            p_contribution_type: 'quest_created',
+            p_related_entity_id: quest.id,
+            p_related_entity_type: 'quest',
+          } as any).then(() => {});
           if (projectTopics.length) {
             await supabase.from("quest_topics").insert(
               projectTopics.map((topicId) => ({ quest_id: quest.id, topic_id: topicId }))

@@ -135,6 +135,13 @@ export default function CompanyDetail() {
       owner_type: "COMPANY", owner_id: company.id,
     } as any);
     if (error) { toast({ title: "Failed to create quest", variant: "destructive" }); return; }
+    // Emit $CTG for quest creation
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: currentUser.id,
+      p_contribution_type: 'quest_created',
+      p_related_entity_id: company.id,
+      p_related_entity_type: 'company',
+    } as any).then(() => {});
     qc.invalidateQueries({ queryKey: ["quests-for-company", id] });
     setQuestOpen(false); setQTitle(""); setQDesc(""); setQGuildId(""); setQRewardXp("100");
     toast({ title: "Quest created!" });
