@@ -107,6 +107,7 @@ export function usePlanLimits() {
       if (profile) {
         setUserXp(profile.xp ?? 0);
         setUserCredits((profile as any).credits_balance ?? 0);
+        setUserCtgBalance(Number((profile as any).ctg_balance ?? 0));
         setUserLevel((profile as any).xp_level ?? 1);
 
         // Grace period: check if account is < GRACE_PERIOD_DAYS old
