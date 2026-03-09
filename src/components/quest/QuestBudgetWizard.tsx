@@ -57,7 +57,7 @@ function Tip({ children }: { children: React.ReactNode }) {
 }
 
 const STEPS = [
-  { id: 0, label: "Budget", icon: Banknote, short: "Mission budget in euros" },
+  { id: 0, label: "Budget", icon: Banknote, short: "Coins budget · $CTG pool · fiat compensation" },
   { id: 1, label: "Rewards", icon: Zap, short: "XP & monetization" },
   { id: 2, label: "Funding", icon: Handshake, short: "Proposals & fundraising" },
 ];
@@ -120,7 +120,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Tip>The fiat compensation range for this quest in euros. This is separate from Platform Credits.</Tip>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                How much is this quest worth in euros?
+                Set fiat compensation (paid in 🟩 Coins), and a 🌱 $CTG pool (funded from your 🔷 Credits).
               </p>
             </div>
 
@@ -290,7 +290,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="bw-creditBudget" className="text-xs flex items-center gap-1">
-                        Budget (pot) <Tip>The amount you commit upfront to fund proposals. Deducted from your wallet.</Tip>
+                        🌱 $CTG Pool <Tip>You spend 🔷 Credits now. Contributors earn 🌱 $CTG from this pool when they complete work. Credits and $CTG are different layers — this is how contribution value gets created.</Tip>
                       </Label>
                       <Input
                         id="bw-creditBudget"

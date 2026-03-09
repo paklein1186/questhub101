@@ -266,26 +266,30 @@ export default function PlansPage() {
         )}
 
         {/* Economy info */}
-        <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center max-w-2xl mx-auto">
+        <div className="mt-10 rounded-xl border border-border bg-muted/30 p-6 text-center max-w-3xl mx-auto">
           <h3 className="font-display text-lg font-bold mb-3 flex items-center justify-center gap-2">
-            <Coins className="h-5 w-5 text-primary" /> Understanding the Hybrid Economy
+            <Zap className="h-5 w-5 text-primary" /> Understanding the Hybrid Economy
           </h3>
-          <div className="grid md:grid-cols-4 gap-3 text-sm">
+          <div className="grid md:grid-cols-5 gap-3 text-sm">
             <div className="p-3 rounded-lg bg-card border border-border">
               <p className="font-semibold text-primary mb-1">💶 Fiat (€)</p>
-              <p className="text-muted-foreground text-xs">Mission payments & services. Real-world income via Stripe.</p>
+              <p className="text-muted-foreground text-xs">Mission payments &amp; services. Real-world income via Stripe.</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border border-teal-200 dark:border-teal-800">
+              <p className="font-semibold text-teal-700 dark:text-teal-300 mb-1">🟩 Coins</p>
+              <p className="text-muted-foreground text-xs">Fiat-backed internal units for quest pots and payouts. Withdrawable.</p>
+            </div>
+            <div className="p-3 rounded-lg bg-card border border-emerald-200 dark:border-emerald-800">
+              <p className="font-semibold text-emerald-700 dark:text-emerald-300 mb-1">🌱 $CTG Token</p>
+              <p className="text-muted-foreground text-xs">Contribution token. Earned by doing verified work. Not purchasable. Fades 1%/month.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="font-semibold text-primary mb-1">🪙 Credits</p>
-              <p className="text-muted-foreground text-xs">Collaboration fuel. Boosts, tools, proposals. Not exchangeable.</p>
+              <p className="font-semibold text-primary mb-1">🔷 Credits</p>
+              <p className="text-muted-foreground text-xs">Platform fuel for boosts, extra capacity, and AI features. Not monetary.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-border">
               <p className="font-semibold text-primary mb-1">⭐ XP</p>
-              <p className="text-muted-foreground text-xs">Reputation. Earned through activity, never purchased.</p>
-            </div>
-            <div className="p-3 rounded-lg bg-card border border-border">
-              <p className="font-semibold text-primary mb-1">🧭 Shares</p>
-              <p className="text-muted-foreground text-xs">Stewardship participation. Governance & dividends.</p>
+              <p className="text-muted-foreground text-xs">Reputation. Permanent, never purchased, never decays.</p>
             </div>
           </div>
         </div>
