@@ -72,10 +72,26 @@ export function WalletTab() {
   const { persona } = usePersona();
   const { open: economyOpen, close: closeEconomy, mode: economyMode, openIfNeeded } = useEconomyModal();
   const { rate: COIN_EUR_RATE, toEur } = useCoinsRate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [topupLoading, setTopupLoading] = useState<number | null>(null);
 
   useEffect(() => {
     openIfNeeded();
   }, [openIfNeeded]);
+
+  // Handle coins top-up success redirect
+  useEffect(() => {
+    if (searchParams.get("coins_success") === "true") {
+      const amount = searchParams.get("coins_amount") || "0";
+      toast({ title: "✅ Coins added!", description: `${amount} Coins have been added to your wallet.` });
+      setActiveWallet("coins");
+      // Clean URL params
+      searchParams.delete("coins_success");
+      searchParams.delete("coins_amount");
+      searchParams.delete("session_id");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   // Platform Credit transactions
   const { data: transactions = [], isLoading: txLoading } = useQuery({
