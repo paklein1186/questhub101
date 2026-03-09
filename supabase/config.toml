@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.generate-territory-cover]
 verify_jwt = false
+
+[functions.generate-territory-logos]
+verify_jwt = false

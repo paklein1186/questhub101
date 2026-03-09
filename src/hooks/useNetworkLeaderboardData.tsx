@@ -12,6 +12,7 @@ export interface TerritoryLeaderboardItem {
   topTopics: string[];
   synthesis: string;
   cover_url: string | null;
+  logo_url: string | null;
 }
 
 export interface TopicLeaderboardItem {
@@ -61,7 +62,7 @@ export function useTerritoryLeaderboard() {
       // Fetch all territories
       const { data: territories, error } = await supabase
         .from("territories")
-        .select("id, name, level, parent_id, stats");
+        .select("id, name, level, parent_id, stats, logo_url");
       if (error) throw error;
       if (!territories || territories.length === 0) return [];
 
@@ -144,6 +145,7 @@ export function useTerritoryLeaderboard() {
           memoryContributions: memoryCount[t.id] ?? 0,
           topTopics,
           cover_url: ((t as any).stats as any)?.cover_url ?? null,
+          logo_url: (t as any).logo_url ?? null,
         };
 
         return { ...base, synthesis: generateTerritorySynthesis(base) };

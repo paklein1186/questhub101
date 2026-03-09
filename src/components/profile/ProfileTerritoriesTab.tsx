@@ -39,6 +39,7 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
         topTopics: [],
         synthesis: "",
         cover_url: null,
+        logo_url: null,
       });
     }
     return [...seen.values()];

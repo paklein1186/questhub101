@@ -71,8 +71,12 @@ function TerritoryTile({ item, index }: { item: TerritoryLeaderboardItem; index:
             </div>
           </div>
           <div className="absolute -bottom-5 left-4">
-            <div className={`h-10 w-10 rounded-xl bg-card border-2 border-background shadow-md flex items-center justify-center font-bold text-sm ${accent}`}>
-              {getInitials(item.name)}
+            <div className={`h-10 w-10 rounded-xl bg-card border-2 border-background shadow-md flex items-center justify-center font-bold text-sm overflow-hidden ${accent}`}>
+              {item.logo_url ? (
+                <img src={item.logo_url} alt={item.name} className="w-full h-full object-cover" />
+              ) : (
+                getInitials(item.name)
+              )}
             </div>
           </div>
           {totalScore > 0 && (
