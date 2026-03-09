@@ -637,7 +637,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
                     <div key={ta.territory_name} className="space-y-0.5">
                       <div className="flex justify-between text-xs">
                         <span>{ta.territory_name}</span>
-                        <span className="text-amber-600">{ta.total_tokens.toFixed(0)} 🟡 $CTG ({pct.toFixed(0)}%)</span>
+                        <span className="text-emerald-600">{ta.total_tokens.toFixed(0)} 🌱 $CTG ({pct.toFixed(0)}%)</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                         <div

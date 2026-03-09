@@ -318,7 +318,7 @@ export function WalletTab() {
             onClick={() => setActiveWallet("ctg")}
             className="gap-1.5"
           >
-            🟡 $CTG Token
+            🌱 $CTG Token
           </Button>
           <Button
             variant={activeWallet === "coins" ? "default" : "outline"}
