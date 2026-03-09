@@ -398,7 +398,7 @@ export function TerritoryChatTab({ territoryId, territoryName, userId }: Props) 
                 className="scale-75"
               />
               <Label htmlFor="knowledge-mode" className="text-xs text-muted-foreground cursor-pointer">
-                {isKnowledge ? "Adding knowledge (+10 XP)" : "Asking a question"}
+                {isKnowledge ? "Adding knowledge (+10 $CTG)" : "Asking a question"}
               </Label>
             </div>
           </div>
