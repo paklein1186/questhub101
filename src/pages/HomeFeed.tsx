@@ -539,7 +539,7 @@ export default function HomeFeed() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                   onClick={() => openPiPanel()}
-                  className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 mb-4 sm:mb-5 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
                   <Sparkles className="h-4 w-4" />
                   Talk to Pi
