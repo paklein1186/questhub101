@@ -209,16 +209,16 @@ export default function TerritoryPortal() {
 
   const { data: ancestors = [] } = useTerritoryAncestors(territory);
   const { data: stats } = useTerritoryStats(resolvedId);
-  const { data: memberCount = 0 } = useTerritoryMemberCount(resolvedId);
+  const { data: memberCount = 0, isLoading: memberCountLoading } = useTerritoryMemberCount(resolvedId);
   const { data: naturalSystemCount = 0 } = useTerritoryNaturalSystemCount(resolvedId);
-  const { data: stewards = [] } = useTerritoryPortalStewards(resolvedId);
+  const { data: stewards = [], isLoading: stewardsLoading } = useTerritoryPortalStewards(resolvedId);
 
   const currentUser = useCurrentUser();
   const { data: adminStatus } = useIsTerritoryAdmin(resolvedId, currentUser.id);
   const { data: xpLevel = 1 } = useCurrentUserXpLevel(currentUser.id || undefined);
   const { data: ctgBalance = 0 } = useUserCtgBalance(currentUser.id || undefined);
 
-  const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
+  const isPioneerTerritory = !memberCountLoading && !stewardsLoading && memberCount === 0 && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
   const { data: isAlreadyMember = false } = useIsAlreadyMember(resolvedId, currentUser.id);
 
