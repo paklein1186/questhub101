@@ -60,6 +60,7 @@ const LEVEL_ICON: Record<string, React.ElementType> = {
   PROVINCE: MapPin,
   TOWN: MapPin,
   LOCALITY: MapPin,
+  BIOREGION: Leaf,
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -70,6 +71,7 @@ const LEVEL_LABEL: Record<string, string> = {
   PROVINCE: "Province",
   TOWN: "Town",
   LOCALITY: "Locality",
+  BIOREGION: "Bioregion",
 };
 
 const LEVEL_FALLBACKS: Record<string, string[]> = {
@@ -90,6 +92,10 @@ const LEVEL_FALLBACKS: Record<string, string[]> = {
   TOWN: [
     "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1400&q=80",
     "https://images.unsplash.com/photo-1514565131-fce0801e6785?w=1400&q=80",
+  ],
+  BIOREGION: [
+    "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1400&q=80",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1400&q=80",
   ],
 };
 

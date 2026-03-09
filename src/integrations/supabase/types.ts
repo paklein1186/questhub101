@@ -808,6 +808,42 @@ export type Database = {
           },
         ]
       }
+      bioregion_members: {
+        Row: {
+          added_at: string
+          bioregion_id: string
+          id: string
+          territory_id: string
+        }
+        Insert: {
+          added_at?: string
+          bioregion_id: string
+          id?: string
+          territory_id: string
+        }
+        Update: {
+          added_at?: string
+          bioregion_id?: string
+          id?: string
+          territory_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bioregion_members_bioregion_id_fkey"
+            columns: ["bioregion_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bioregion_members_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           amount: number | null
@@ -7521,6 +7557,7 @@ export type Database = {
           auto_expand_perimeter: boolean
           coins_balance: number
           created_at: string
+          created_by_user_id: string | null
           custom_perimeter_name: string | null
           deleted_at: string | null
           featured_order: number | null
@@ -7557,6 +7594,7 @@ export type Database = {
           auto_expand_perimeter?: boolean
           coins_balance?: number
           created_at?: string
+          created_by_user_id?: string | null
           custom_perimeter_name?: string | null
           deleted_at?: string | null
           featured_order?: number | null
@@ -7593,6 +7631,7 @@ export type Database = {
           auto_expand_perimeter?: boolean
           coins_balance?: number
           created_at?: string
+          created_by_user_id?: string | null
           custom_perimeter_name?: string | null
           deleted_at?: string | null
           featured_order?: number | null
@@ -9887,6 +9926,7 @@ export type Database = {
         | "PROVINCE"
         | "CONTINENT"
         | "GLOBAL"
+        | "BIOREGION"
       trust_edge_type:
         | "skill_trust"
         | "reliability"
@@ -10164,6 +10204,7 @@ export const Constants = {
         "PROVINCE",
         "CONTINENT",
         "GLOBAL",
+        "BIOREGION",
       ],
       trust_edge_type: [
         "skill_trust",

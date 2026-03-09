@@ -144,6 +144,7 @@ import ProfileEnrichment from "./pages/ProfileEnrichment";
 import SharesPage from "./pages/SharesPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryPortal";
+import CreateBioregion from "./pages/CreateBioregion";
 import InboxPage from "./pages/InboxPage";
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
@@ -248,6 +249,7 @@ const App = () => (
                 <Route path="/explore/people-info" element={<PeopleInfoPage />} />
                 <Route path="/territories-houses" element={<TerritoriesHousesPage />} />
                 <Route path="/territories/:id" element={<TerritoryDetail />} />
+                <Route path="/create/bioregion" element={<CreateBioregion />} />
                 <Route path="/natural-systems/:id" element={<NaturalSystemPage />} />
                 <Route path="/create/quest-info" element={<CreateQuestInfoPage />} />
                 <Route path="/create/service-info" element={<ServiceInfoPage />} />

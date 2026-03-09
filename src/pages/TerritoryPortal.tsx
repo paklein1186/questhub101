@@ -22,6 +22,7 @@ import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab"
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
 
 import { GraphView } from "@/components/graph/GraphView";
+import { BioregionMembersSection } from "@/components/territory/BioregionMembersSection";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
@@ -327,7 +328,10 @@ export default function TerritoryPortal() {
             )}
           </TabsList>
 
-          <TabsContent value="portal" className="mt-6">
+          <TabsContent value="portal" className="mt-6 space-y-8">
+            {territory.level === "BIOREGION" && (
+              <BioregionMembersSection bioregionId={resolvedId!} />
+            )}
             <TerritoryGuestPortal
               territory={heroTerritory}
               memberCount={memberCount}
