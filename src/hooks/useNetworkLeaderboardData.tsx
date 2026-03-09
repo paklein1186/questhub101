@@ -143,6 +143,7 @@ export function useTerritoryLeaderboard() {
           entities: entityCount[t.id] ?? 0,
           memoryContributions: memoryCount[t.id] ?? 0,
           topTopics,
+          cover_url: ((t as any).stats as any)?.cover_url ?? null,
         };
 
         return { ...base, synthesis: generateTerritorySynthesis(base) };
