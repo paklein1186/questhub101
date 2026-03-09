@@ -12,11 +12,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin, Heart, ChevronRight, Users, Compass, Shield,
   Leaf, Sprout, Star, ArrowLeft, Globe, Mountain, TreePine, Building2,
+  Loader2,
 } from "lucide-react";
 import { useFollow } from "@/hooks/useFollow";
 import { FollowTargetType } from "@/types/enums";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 /* ── Types ── */
 interface TerritoryAncestor {
