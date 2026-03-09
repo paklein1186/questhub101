@@ -90,7 +90,9 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
       const quests: QuestItem[] = (questsRes.data ?? [])
         .map((r: any) => r.quests)
         .filter(Boolean)
-        .filter((q: any) => q.status === "ACTIVE" || q.status === "PUBLISHED" || q.status === "OPEN");
+        .filter((q: any) =>
+          ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status)
+        );
 
       const entities: EntityItem[] = [
         ...(guildsRes.data ?? []).map((r: any) => ({
