@@ -363,7 +363,7 @@ export function QuestLivingTab({ linkedType, linkedId, defaultTerritoryId, isOwn
                           )}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          → {rule.reward_amount} {rule.reward_type} · {rule.evaluation_period.replace(/_/g, " ").toLowerCase()}
+                          → {rule.reward_amount} {REWARD_LABELS[rule.reward_type] ?? rule.reward_type} · {rule.evaluation_period.replace(/_/g, " ").toLowerCase()}
                         </p>
                       </div>
                       {rule.is_fulfilled ? (

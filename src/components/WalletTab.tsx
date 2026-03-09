@@ -353,12 +353,13 @@ export function WalletTab() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
-                      <p className="text-lg font-semibold">€{(coinsBal * 0.04).toFixed(2)}</p>
+                      <p className="text-lg font-semibold">€{(coinsBal * COIN_EUR_RATE).toFixed(2)}</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
                     This is separate from $CTG tokens which are cooperative contribution units, and separate from ⭐ XP which is your permanent reputation.
+                    Current rate: {COIN_EUR_RATE} EUR per Coin — set by the cooperative and displayed here for transparency.
                   </p>
                 </div>
 
