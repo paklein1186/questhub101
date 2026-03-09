@@ -938,7 +938,7 @@ export default function QuestDetail() {
                   <Select value={editFundingType} onValueChange={(v) => setEditFundingType(v as "CREDITS" | "FIAT")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
+                      <SelectItem value="CREDITS">🟡 $CTG (contribution token)</SelectItem>
                       <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
                     </SelectContent>
                   </Select>

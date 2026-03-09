@@ -250,7 +250,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                         <Select value={fundingType} onValueChange={(v) => setFundingType(v as "CREDITS" | "FIAT")}>
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="CREDITS">Credits (internal currency)</SelectItem>
+                            <SelectItem value="CREDITS">🟡 $CTG (contribution token)</SelectItem>
                             <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
                           </SelectContent>
                         </Select>
