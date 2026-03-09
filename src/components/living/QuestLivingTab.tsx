@@ -347,7 +347,7 @@ export function QuestLivingTab({ linkedType, linkedId, defaultTerritoryId, isOwn
           {showRules && rules && rules.length > 0 && (
             <div className="space-y-2">
               {rules.map((rule) => {
-                const RewardIcon = REWARD_OPTIONS.find((r) => r.value === rule.reward_type)?.icon || Zap;
+                const RewardIcon = REWARD_OPTIONS.find((r) => r.value === rule.reward_type)?.icon || TrendingUp;
                 return (
                   <Card key={rule.id} className={cn("overflow-hidden", rule.is_fulfilled && "opacity-60")}>
                     <CardContent className="p-3 flex items-center gap-3">
