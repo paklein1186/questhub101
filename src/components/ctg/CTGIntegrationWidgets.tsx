@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Sprout } from "lucide-react";
 import { HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
+import { getStewardTier } from "@/lib/xpCreditsConfig";
 
 /**
  * CTGEstimateBlock — shown in quest detail reward grid.
@@ -113,6 +114,7 @@ export function ProfileCTGStats({
         </div>
       )}
       <div className="flex items-center gap-1 text-sm">
+        <span>{getStewardTier(data.lifetime_earned).icon}</span>
         <span className="text-muted-foreground text-xs">Lifetime:</span>
         <span className="font-semibold tabular-nums">{data.lifetime_earned.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</span>
         <span className="text-muted-foreground text-xs">$CTG earned</span>
