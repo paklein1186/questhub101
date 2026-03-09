@@ -82,7 +82,15 @@ export function BountyBoard() {
           .update({ claimed_slots: bounty.claimed_slots + 1 } as any)
           .eq("id", bounty.id);
 
-        toast({ title: `Bounty claimed! 🌱 Pending verification for ${bounty.ctg_reward} $CTG` });
+        // Emit $CTG for bounty claimed
+        supabase.rpc('emit_ctg_for_contribution', {
+          p_user_id: userId,
+          p_contribution_type: 'bounty_claimed',
+          p_related_entity_id: bounty.id,
+          p_related_entity_type: 'bounty',
+        } as any).then(() => {});
+
+        toast({ title: `Bounty claimed! 🌱 +${bounty.ctg_reward} $CTG` });
       }
       qc.invalidateQueries({ queryKey: ["ctg-bounties"] });
       qc.invalidateQueries({ queryKey: ["ctg-bounty-claims"] });

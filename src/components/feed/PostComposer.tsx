@@ -230,6 +230,14 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         roomId,
       });
 
+      // Emit $CTG for post published
+      supabase.rpc('emit_ctg_for_contribution', {
+        p_user_id: currentUser.id,
+        p_contribution_type: 'post_published',
+        p_related_entity_id: contextId || currentUser.id,
+        p_related_entity_type: contextType || 'user',
+      } as any).then(() => {});
+
       // Notify entity members + followers for guild/company posts
       if ((contextType === "GUILD" || contextType === "COMPANY") && contextId) {
         try {

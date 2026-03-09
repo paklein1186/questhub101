@@ -225,6 +225,14 @@ export function QuestProposals({
       relatedEntityId: questId,
     }, true);
 
+    // Emit $CTG for proposal accepted
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: proposal.proposer_id,
+      p_contribution_type: 'proposal_accepted',
+      p_related_entity_id: questId,
+      p_related_entity_type: 'quest',
+    } as any).then(() => {});
+
     // Notify proposer
     await supabase.from("notifications").insert({
       user_id: proposal.proposer_id,
