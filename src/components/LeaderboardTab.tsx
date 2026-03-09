@@ -288,6 +288,7 @@ function useActiveTerritories(period: TimePeriod, limit = 10) {
             id: t.id,
             name: t.name,
             level: t.level,
+            logo_url: (t as any).logo_url ?? null,
             value: score,
             secondary: `${humans} humans · ${quests} quests · ${stew} steward${stew !== 1 ? "s" : ""}`,
           };
