@@ -125,7 +125,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p className="mt-4">Each node carries:</p>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
             {[
-              { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
+              { icon: <Zap className="h-4 w-4 text-primary" />, label: "⭐ XP", desc: "Reputation & trust level" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
               { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
               { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🌱 $CTG", desc: "Contribution to commons" },
@@ -179,36 +179,36 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p>CTG captures value along a triple axis:</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <ValueCard
-              title="A. Reputation (XP)"
+              title="A. Reputation (⭐ XP)"
               color="text-primary"
-              desc="Participation and contribution build your trust level and governance rights."
+              desc="Participation builds your trust and governance weight. Permanent, cumulative, individual."
               icon={<Zap className="h-5 w-5" />}
             />
             <ValueCard
-              title="B. Trust"
+              title="B. Trust Index"
               color="text-primary"
               desc="Interactions strengthen (or weaken) relational bonds between actors."
               icon={<Shield className="h-5 w-5" />}
             />
             <ValueCard
-              title="C. Impact"
+              title="C. Commons Impact (🌱 $CTG)"
               color="text-primary"
-              desc="Outcomes evaluated through ecological indicators, social contribution, community regeneration, and knowledge creation."
+              desc="Verified contributions emit tokens that circulate in the ecosystem. Not fiat-backed."
               icon={<Leaf className="h-5 w-5" />}
             />
           </div>
           <p className="mt-3 text-muted-foreground">
-            Together, <strong className="text-foreground">XP + Trust + Impact</strong> form a <strong className="text-foreground">Value Score</strong>, used across the system.
+            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
           </p>
         </Section>
 
-        {/* 4. Dual Currency */}
+        {/* 4. Value Layers */}
         <Section
           number="4"
-          title="Dual Currency: Platform Credits & $CTG"
+          title="Value Layers: Credits, $CTG & Coins"
           icon={<Coins className="h-5 w-5" />}
         >
-          <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
               <p className="font-medium text-foreground mb-2">🔷 Platform Credits (non-monetary)</p>
               <p className="text-xs text-muted-foreground mb-2">Feature fuel for gamification, quotas, boosts. Cannot be withdrawn.</p>
@@ -227,8 +227,17 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                 ))}
               </ul>
             </div>
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Units</p>
+              <p className="text-xs text-muted-foreground mb-2">Backed by real fiat. Earned from funded quests. Withdrawable via Stripe Connect.</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                {["Funded quest payouts", "Contributor compensation", "Guild/Territory redistribution", "Fiat withdrawal via Stripe Connect"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-amber-500 shrink-0" />{s}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with $CTG.</p>
+          <p className="mt-3 font-medium text-foreground">Three systems, fully separated. Credits ≠ $CTG ≠ Coins.</p>
         </Section>
 
         {/* ── PART B: Animated Token Flow Diagram ── */}

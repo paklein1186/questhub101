@@ -3,7 +3,7 @@ import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Banknote, Coins, Star, ShieldCheck, Recycle, Building2, Info, Scale, Compass } from "lucide-react";
+import { Banknote, Coins, Star, ShieldCheck, Recycle, Building2, Info, Scale, Compass, Sprout } from "lucide-react";
 import { DEMURRAGE_RATE_PERCENT, ECONOMY_LAYERS, simulateDecay } from "@/lib/demurrageConfig";
 import { EconomyDashboard } from "@/components/EconomyDashboard";
 
@@ -48,7 +48,7 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
         <SectionHeader title={t("creditEconomyPage.fourLayers")} icon={Scale} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {ECONOMY_LAYERS.map((layer) => {
-            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass };
+            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass, Sprout };
             const Icon = IconMap[layer.icon] || Coins;
             return (
               <Card key={layer.key} className="border-border/50 bg-muted/30">
@@ -66,6 +66,12 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
             );
           })}
         </div>
+
+        <CalloutBox>
+          ⭐ XP tracks <strong>who you are</strong> — permanent, individual, non-transferable.{" "}
+          🌱 $CTG tracks <strong>what you produce for the commons</strong> — circulatory, collective, fades 1%/month.{" "}
+          These two systems are complementary, not competing.
+        </CalloutBox>
 
         <CalloutBox>
           {t("creditEconomyPage.calloutLayers")}
