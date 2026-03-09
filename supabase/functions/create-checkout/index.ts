@@ -32,14 +32,15 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
 
     const body = await req.json();
-    const allowedModes = new Set(["credit_bundle", "xp_bundle", "subscription", "shares"]);
+    const allowedModes = new Set(["credit_bundle", "xp_bundle", "subscription", "shares", "coins_topup"]);
     const mode = typeof body.mode === "string" ? body.mode : "";
     if (!allowedModes.has(mode)) {
-      return new Response(JSON.stringify({ error: "Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', or 'shares'." }), {
+      return new Response(JSON.stringify({ error: "Invalid mode. Use 'credit_bundle', 'xp_bundle', 'subscription', 'shares', or 'coins_topup'." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const bundleCode = typeof body.bundleCode === "string" ? body.bundleCode : "";
+    const coinsAmount = typeof body.coinsAmount === "number" ? body.coinsAmount : (Number(body.coinsAmount) || 0);
     const planStripePriceId = typeof body.planStripePriceId === "string" ? body.planStripePriceId : "";
     const shareClass = typeof body.shareClass === "string" ? body.shareClass : "";
     const quantity = typeof body.quantity === "number" ? body.quantity : (Number(body.quantity) || 0);
