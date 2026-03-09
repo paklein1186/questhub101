@@ -28,41 +28,94 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import type { PersonaType } from "@/lib/personaLabels";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-// ─── Storage helpers ─────────────────────────────────────────────────────────
+// ── Storage helpers (Supabase-backed) ──────────────────────────
 
-const STORAGE_KEY = "ctg-dismissed-hints";
+const LS_KEY = "ctg-dismissed-hints";
 
-function getDismissed(): Set<string> {
+function getLSSet(): Set<string> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(LS_KEY);
     return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
+  } catch { return new Set(); }
+}
+
+function addToLS(id: string) {
+  const s = getLSSet(); s.add(id);
+  localStorage.setItem(LS_KEY, JSON.stringify([...s]));
+}
+
+/** Reset both localStorage and Supabase dismissed_hints for the current user */
+export async function clearAllHints(userId?: string) {
+  localStorage.removeItem(LS_KEY);
+  if (userId) {
+    await supabase
+      .from("profiles")
+      .update({ dismissed_hints: [] } as any)
+      .eq("user_id", userId);
   }
 }
 
-function dismissHint(id: string) {
-  const set = getDismissed();
-  set.add(id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
-}
+function useDismissedHints() {
+  const { session } = useAuth();
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
 
-/** Call from Settings to reset all hints */
-export function clearAllHints() {
-  localStorage.removeItem(STORAGE_KEY);
+  const { data: remoteHints } = useQuery({
+    queryKey: ["dismissed-hints", userId],
+    enabled: !!userId,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("dismissed_hints")
+        .eq("user_id", userId!)
+        .maybeSingle();
+      const remote = (data?.dismissed_hints as string[]) ?? [];
+      const merged = new Set([...getLSSet(), ...remote]);
+      localStorage.setItem(LS_KEY, JSON.stringify([...merged]));
+      return remote;
+    },
+  });
+
+  const { mutate: persistRemote } = useMutation({
+    mutationFn: async (id: string) => {
+      if (!userId) return;
+      const current = (remoteHints ?? []) as string[];
+      if (current.includes(id)) return;
+      await supabase
+        .from("profiles")
+        .update({ dismissed_hints: [...current, id] } as any)
+        .eq("user_id", userId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dismissed-hints", userId] });
+    },
+  });
+
+  return { remoteHints, persistRemote };
 }
 
 function useIsDismissed(id: string) {
-  const [dismissed, setDismissed] = useState(() => getDismissed().has(id));
+  const [lsDismissed, setLsDismissed] = useState(() => getLSSet().has(id));
+  const { remoteHints, persistRemote } = useDismissedHints();
+
+  const remoteDismissed = (remoteHints ?? []).includes(id);
+  const dismissed = lsDismissed || remoteDismissed;
 
   const dismiss = useCallback(() => {
-    dismissHint(id);
-    setDismissed(true);
-  }, [id]);
+    addToLS(id);
+    setLsDismissed(true);
+    persistRemote(id);
+  }, [id, persistRemote]);
 
   return { dismissed, dismiss };
 }
+
+// ── End of storage helpers ──────────────────────────────────────
 
 // ─── SectionBanner ───────────────────────────────────────────────────────────
 
