@@ -449,6 +449,19 @@ export default function TerritoryPortal() {
             </TabsContent>
           )}
         </Tabs>
+          </div>
+
+          {/* Stewards sidebar */}
+          <div className="hidden lg:block w-64 shrink-0 space-y-4 pt-[calc(14rem+1.5rem)]">
+            <TerritoryStewardsSidebar
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              stewards={stewards}
+              isPioneerTerritory={isPioneerTerritory}
+              userXpLevel={xpLevel}
+            />
+          </div>
+        </div>
       </div>
 
       {isAuthenticated && (
