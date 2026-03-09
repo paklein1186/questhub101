@@ -332,7 +332,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     )}
 
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {fundingType === "FIAT" ? "€" : "Credits"}</p>
+                      <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {fundingType === "FIAT" ? "€" : "$CTG"}</p>
                       {(quest as any).funding_goal_credits && (
                         <p><strong>Goal:</strong> {(quest as any).funding_goal_credits} — {Math.min(100, Math.round(((quest as any).escrow_credits / (quest as any).funding_goal_credits) * 100))}% funded</p>
                       )}
