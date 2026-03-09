@@ -796,7 +796,7 @@ export default function QuestDetail() {
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
-            {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.QUEST} targetNodeId={quest.id} targetName={quest.title} contextQuestId={quest.id} />}
+            {isLoggedIn && quest.status === "COMPLETED" && <GiveTrustButton targetNodeType={TrustNodeType.QUEST} targetNodeId={quest.id} targetName={quest.title} contextQuestId={quest.id} />}
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && !isCancelled && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
