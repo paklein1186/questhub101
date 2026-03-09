@@ -131,7 +131,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
                 </p>
               )}
               {b.amount != null && b.amount > 0 && (
-                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status || "N/A"}</p>
+                <p className="text-xs text-muted-foreground mb-1">🟩 {Math.round(b.amount / 0.04).toLocaleString()} Coins (≈ €{b.amount}) — {b.payment_status || "N/A"}</p>
               )}
               {(b.status === "CONFIRMED" || b.status === "ACCEPTED") && (
                 <Link to={`/call/${b.id}`} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mb-2">

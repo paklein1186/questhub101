@@ -99,7 +99,7 @@ export default function MyRequests({ bare }: { bare?: boolean }) {
               )}
 
               {b.amount != null && b.amount > 0 && (
-                <p className="text-xs text-muted-foreground mb-1">💰 €{b.amount} {b.currency} — {b.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</p>
+                <p className="text-xs text-muted-foreground mb-1">🟩 {Math.round(b.amount / 0.04).toLocaleString()} Coins (≈ €{b.amount}) — {b.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</p>
               )}
 
               {(b.status === "CONFIRMED" || b.status === "ACCEPTED") && (

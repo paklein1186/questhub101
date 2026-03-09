@@ -42,7 +42,7 @@ async function insertBookingNotification(params: {
   const timeSummary = params.startDateTime
     ? `\n📅 ${new Date(params.startDateTime).toLocaleString()}${params.endDateTime ? ` – ${new Date(params.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}`
     : "";
-  const priceSummary = params.amount && params.amount > 0 ? `\n💰 €${params.amount} ${params.currency || "EUR"}` : "";
+  const priceSummary = params.amount && params.amount > 0 ? `\n🟩 ${Math.round(params.amount / 0.04).toLocaleString()} Coins (≈ €${params.amount})` : "";
   const bodyMap: Record<string, string> = {
     requested: `${params.requesterName} requested "${params.serviceTitle}"${timeSummary}${priceSummary}`,
     confirmed: `Your session for "${params.serviceTitle}" is confirmed${timeSummary}`,
