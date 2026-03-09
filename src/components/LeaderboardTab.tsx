@@ -15,6 +15,24 @@ import { toast } from "sonner";
 
 /* ── Types ── */
 
+type TimePeriod = "7d" | "quarter" | "year" | "all";
+
+const TIME_PERIODS: { key: TimePeriod; label: string; icon: React.ReactNode }[] = [
+  { key: "7d", label: "7 days", icon: <Clock className="h-3.5 w-3.5" /> },
+  { key: "quarter", label: "Quarter", icon: <CalendarDays className="h-3.5 w-3.5" /> },
+  { key: "year", label: "Year", icon: <Calendar className="h-3.5 w-3.5" /> },
+  { key: "all", label: "All time", icon: <Trophy className="h-3.5 w-3.5" /> },
+];
+
+function getDateFrom(period: TimePeriod): string | null {
+  if (period === "all") return null;
+  const now = new Date();
+  if (period === "7d") now.setDate(now.getDate() - 7);
+  else if (period === "quarter") now.setMonth(now.getMonth() - 3);
+  else if (period === "year") now.setFullYear(now.getFullYear() - 1);
+  return now.toISOString();
+}
+
 interface RankedUser {
   user_id: string;
   name: string;
@@ -34,64 +52,152 @@ interface RankedTerritory {
 
 /* ── Hooks ── */
 
-function useCtgLeaders(limit = 10) {
+function useCtgLeaders(period: TimePeriod, limit = 10) {
+  const dateFrom = getDateFrom(period);
   return useQuery<RankedUser[]>({
-    queryKey: ["leaderboard-ctg", limit],
+    queryKey: ["leaderboard-ctg", period, limit],
     staleTime: 120_000,
     queryFn: async () => {
-      const { data } = await supabase
+      if (!dateFrom) {
+        // All time: use balance
+        const { data } = await supabase
+          .from("profiles")
+          .select("user_id, name, avatar_url, headline, ctg_balance")
+          .gt("ctg_balance", 0)
+          .order("ctg_balance", { ascending: false })
+          .limit(limit);
+        return (data ?? []).map((p) => ({
+          user_id: p.user_id,
+          name: p.name,
+          avatar_url: p.avatar_url,
+          headline: p.headline,
+          value: p.ctg_balance,
+        }));
+      }
+
+      // Time-scoped: sum positive ctg_transactions
+      const { data: txns } = await supabase
+        .from("ctg_transactions")
+        .select("user_id, amount")
+        .gt("amount", 0)
+        .gte("created_at", dateFrom);
+
+      if (!txns?.length) return [];
+
+      const sums = new Map<string, number>();
+      for (const tx of txns) {
+        sums.set(tx.user_id, (sums.get(tx.user_id) ?? 0) + tx.amount);
+      }
+
+      const sorted = [...sums.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+
+      const userIds = sorted.map(([id]) => id);
+      const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, name, avatar_url, headline, ctg_balance")
-        .gt("ctg_balance", 0)
-        .order("ctg_balance", { ascending: false })
-        .limit(limit);
-      return (data ?? []).map((p) => ({
-        user_id: p.user_id,
-        name: p.name,
-        avatar_url: p.avatar_url,
-        headline: p.headline,
-        value: p.ctg_balance,
-      }));
+        .select("user_id, name, avatar_url, headline")
+        .in("user_id", userIds);
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+      return sorted.map(([userId, total]) => {
+        const p = profileMap.get(userId);
+        return {
+          user_id: userId,
+          name: p?.name ?? "Unknown",
+          avatar_url: p?.avatar_url ?? null,
+          headline: p?.headline ?? null,
+          value: Math.round(total),
+        };
+      });
     },
   });
 }
 
-function useXpLeaders(limit = 10) {
+function useXpLeaders(period: TimePeriod, limit = 10) {
+  const dateFrom = getDateFrom(period);
   return useQuery<RankedUser[]>({
-    queryKey: ["leaderboard-xp", limit],
+    queryKey: ["leaderboard-xp", period, limit],
     staleTime: 120_000,
     queryFn: async () => {
-      const { data } = await supabase
+      if (!dateFrom) {
+        // All time: use cumulative xp
+        const { data } = await supabase
+          .from("profiles")
+          .select("user_id, name, avatar_url, headline, xp, xp_level")
+          .gt("xp", 0)
+          .order("xp", { ascending: false })
+          .limit(limit);
+        return (data ?? []).map((p) => ({
+          user_id: p.user_id,
+          name: p.name,
+          avatar_url: p.avatar_url,
+          headline: p.headline,
+          value: p.xp,
+          secondary: `Level ${p.xp_level}`,
+        }));
+      }
+
+      // Time-scoped: sum xp_events
+      const { data: events } = await supabase
+        .from("xp_events")
+        .select("user_id, amount")
+        .gt("amount", 0)
+        .gte("created_at", dateFrom);
+
+      if (!events?.length) return [];
+
+      const sums = new Map<string, number>();
+      for (const e of events as any[]) {
+        sums.set(e.user_id, (sums.get(e.user_id) ?? 0) + e.amount);
+      }
+
+      const sorted = [...sums.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+
+      const userIds = sorted.map(([id]) => id);
+      const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, name, avatar_url, headline, xp, xp_level")
-        .gt("xp", 0)
-        .order("xp", { ascending: false })
-        .limit(limit);
-      return (data ?? []).map((p) => ({
-        user_id: p.user_id,
-        name: p.name,
-        avatar_url: p.avatar_url,
-        headline: p.headline,
-        value: p.xp,
-        secondary: `Level ${p.xp_level}`,
-      }));
+        .select("user_id, name, avatar_url, headline, xp_level")
+        .in("user_id", userIds);
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+      return sorted.map(([userId, total]) => {
+        const p = profileMap.get(userId);
+        return {
+          user_id: userId,
+          name: p?.name ?? "Unknown",
+          avatar_url: p?.avatar_url ?? null,
+          headline: p?.headline ?? null,
+          value: Math.round(total),
+          secondary: `Level ${(p as any)?.xp_level ?? 1}`,
+        };
+      });
     },
   });
 }
 
-function useTrustLeaders(limit = 10) {
+function useTrustLeaders(period: TimePeriod, limit = 10) {
+  const dateFrom = getDateFrom(period);
   return useQuery<RankedUser[]>({
-    queryKey: ["leaderboard-trust", limit],
+    queryKey: ["leaderboard-trust", period, limit],
     staleTime: 120_000,
     queryFn: async () => {
-      // Count active trust edges received per user
-      const { data: edges } = await supabase
+      let query = supabase
         .from("trust_edges")
-        .select("to_node_id, score")
+        .select("to_node_id, score, created_at")
         .eq("to_node_type", "user" as any)
         .eq("status", "active" as any)
         .eq("edge_type", "trust" as any);
 
+      if (dateFrom) {
+        query = query.gte("created_at", dateFrom);
+      }
+
+      const { data: edges } = await query;
       if (!edges?.length) return [];
 
       const scores = new Map<string, { total: number; count: number }>();
@@ -129,9 +235,10 @@ function useTrustLeaders(limit = 10) {
   });
 }
 
-function useActiveTerritories(limit = 10) {
+function useActiveTerritories(period: TimePeriod, limit = 10) {
+  const dateFrom = getDateFrom(period);
   return useQuery<RankedTerritory[]>({
-    queryKey: ["leaderboard-active-territories", limit],
+    queryKey: ["leaderboard-active-territories", period, limit],
     staleTime: 120_000,
     queryFn: async () => {
       const { data: territories } = await supabase
@@ -143,15 +250,30 @@ function useActiveTerritories(limit = 10) {
 
       const tIds = territories.map((t) => t.id);
 
-      const [userTerr, questTerr, stewards] = await Promise.all([
-        supabase.from("user_territories" as any).select("territory_id").in("territory_id", tIds),
-        supabase.from("quest_territories").select("territory_id").in("territory_id", tIds),
-        supabase.from("trust_edges")
-          .select("to_node_id")
-          .eq("edge_type", "stewardship" as any)
-          .eq("status", "active" as any)
-          .in("to_node_id", tIds),
-      ]);
+      // Build queries — optionally filter by created_at
+      let userTerrQ = supabase.from("user_territories" as any).select("territory_id, created_at").in("territory_id", tIds);
+      let questTerrQ = supabase.from("quest_territories").select("territory_id, quests!inner(created_at)").in("territory_id", tIds);
+      let stewardQ = supabase.from("trust_edges")
+        .select("to_node_id, created_at")
+        .eq("edge_type", "stewardship" as any)
+        .eq("status", "active" as any)
+        .in("to_node_id", tIds);
+
+      if (dateFrom) {
+        userTerrQ = userTerrQ.gte("created_at", dateFrom);
+        stewardQ = stewardQ.gte("created_at", dateFrom);
+      }
+
+      const [userTerr, questTerr, stewards] = await Promise.all([userTerrQ, questTerrQ, stewardQ]);
+
+      // For quests, filter by quest created_at if time-scoped
+      let questData = questTerr.data ?? [];
+      if (dateFrom) {
+        questData = questData.filter((r: any) => {
+          const questDate = r.quests?.created_at;
+          return questDate && questDate >= dateFrom;
+        });
+      }
 
       const count = (rows: any[] | null, field: string, id: string) =>
         (rows ?? []).filter((r: any) => r[field] === id).length;
@@ -159,7 +281,7 @@ function useActiveTerritories(limit = 10) {
       return territories
         .map((t) => {
           const humans = count(userTerr.data, "territory_id", t.id);
-          const quests = count(questTerr.data, "territory_id", t.id);
+          const quests = count(questData, "territory_id", t.id);
           const stew = count(stewards.data, "to_node_id", t.id);
           const score = humans * 2 + quests * 5 + stew * 8;
           return {
@@ -317,11 +439,12 @@ function TerritorySection({
 export default function LeaderboardTab() {
   const refreshLeaderboard = useRefreshLeaderboard();
   const [refreshing, setRefreshing] = useState(false);
+  const [period, setPeriod] = useState<TimePeriod>("all");
 
-  const { data: ctgLeaders = [], isLoading: ctgLoading } = useCtgLeaders();
-  const { data: xpLeaders = [], isLoading: xpLoading } = useXpLeaders();
-  const { data: trustLeaders = [], isLoading: trustLoading } = useTrustLeaders();
-  const { data: territories = [], isLoading: terrLoading } = useActiveTerritories();
+  const { data: ctgLeaders = [], isLoading: ctgLoading } = useCtgLeaders(period);
+  const { data: xpLeaders = [], isLoading: xpLoading } = useXpLeaders(period);
+  const { data: trustLeaders = [], isLoading: trustLoading } = useTrustLeaders(period);
+  const { data: territories = [], isLoading: terrLoading } = useActiveTerritories(period);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -335,6 +458,9 @@ export default function LeaderboardTab() {
     }
   };
 
+  const periodLabel = TIME_PERIODS.find((t) => t.key === period)?.label ?? "All time";
+  const subtitleSuffix = period === "all" ? "" : ` (${periodLabel.toLowerCase()})`;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -347,22 +473,39 @@ export default function LeaderboardTab() {
             Recognizing value across the ecosystem.
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Time period selector */}
+          <div className="inline-flex items-center rounded-lg border border-border bg-muted/30 p-0.5">
+            {TIME_PERIODS.map((tp) => (
+              <Button
+                key={tp.key}
+                variant={period === tp.key ? "default" : "ghost"}
+                size="sm"
+                className={`h-7 px-2.5 text-xs gap-1 ${period === tp.key ? "" : "text-muted-foreground"}`}
+                onClick={() => setPeriod(tp.key)}
+              >
+                {tp.icon}
+                <span className="hidden sm:inline">{tp.label}</span>
+              </Button>
+            ))}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
       {/* 4-section grid */}
       <div className="grid gap-5 lg:grid-cols-2">
         <UserSection
           title="🟡 $CTG Champions"
-          subtitle="Top contributors by $CTG token balance."
+          subtitle={period === "all" ? "Top contributors by $CTG token balance." : `Top $CTG earned${subtitleSuffix}.`}
           icon={<Coins className="h-5 w-5 text-amber-500" />}
           accentClass="bg-amber-500/5"
           isLoading={ctgLoading}
@@ -372,7 +515,7 @@ export default function LeaderboardTab() {
 
         <TerritorySection
           title="🌍 Territory Pulse"
-          subtitle="Most active territories by humans, quests & stewards."
+          subtitle={period === "all" ? "Most active territories by humans, quests & stewards." : `Territory activity${subtitleSuffix}.`}
           icon={<MapPin className="h-5 w-5 text-emerald-500" />}
           accentClass="bg-emerald-500/5"
           isLoading={terrLoading}
@@ -381,7 +524,7 @@ export default function LeaderboardTab() {
 
         <UserSection
           title="⭐ XP Leaders"
-          subtitle="Highest reputation by experience points."
+          subtitle={period === "all" ? "Highest reputation by experience points." : `Most XP earned${subtitleSuffix}.`}
           icon={<Star className="h-5 w-5 text-primary" />}
           accentClass="bg-primary/5"
           isLoading={xpLoading}
@@ -391,7 +534,7 @@ export default function LeaderboardTab() {
 
         <UserSection
           title="🤝 Trust Network"
-          subtitle="Most trusted humans by peer attestations."
+          subtitle={period === "all" ? "Most trusted humans by peer attestations." : `New attestations${subtitleSuffix}.`}
           icon={<Handshake className="h-5 w-5 text-blue-500" />}
           accentClass="bg-blue-500/5"
           isLoading={trustLoading}
