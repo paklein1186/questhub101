@@ -228,7 +228,7 @@ export function TerritoryBrowseSection() {
       ) : (
         <AnimatePresence mode="wait">
           {viewMode === "grid" ? (
-            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={gridClassName}>
               {filtered.map((t, i) => (
                 <TerritoryTile key={t.id} item={t} index={i} />
               ))}
