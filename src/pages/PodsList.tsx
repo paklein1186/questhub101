@@ -30,6 +30,7 @@ const fadeUp = {
 };
 
 export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
+  const { gridClassName } = useExploreGridDensity();
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;
