@@ -247,7 +247,7 @@ function ExploreTabsInner({ tab, onTabChange, isGuest, isCreative, currentUserId
         <SortableTabsList tabs={exploreTabs} orderedKeys={orderedTabs} onReorder={saveOrder} onReset={resetOrder} isCustomized={isCustomized} />
       </div>
       <div className="flex justify-end mb-3">
-        <GridDensityToggle density={gd.density} setDensity={gd.setDensity} />
+        <GridDensityToggle density={density} setDensity={setDensity} />
       </div>
       {children}
     </Tabs>
