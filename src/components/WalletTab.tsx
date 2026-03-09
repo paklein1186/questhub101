@@ -240,7 +240,7 @@ export function WalletTab() {
               <div><strong className="text-foreground">Platform Credits</strong> — Utility fuel for features, boosts &amp; quotas. Non-monetary, subject to monthly fade.</div>
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
-              <span className="text-base leading-none mt-0.5">🟡</span>
+              <span className="text-base leading-none mt-0.5">🌱</span>
               <div><strong className="text-foreground">🌱 $CTG</strong> — contribution token earned by producing verified work for the commons. Circulatory: fades 1%/month. Not fiat-backed. Distinct from ⭐ XP which is your permanent reputation.</div>
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
