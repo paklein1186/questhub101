@@ -186,7 +186,7 @@ export default function TerritoryPortal() {
 
   const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
-  const isAlreadyMember = (currentUser as any)?.territory_id === resolvedId;
+  const { data: isAlreadyMember = false } = useIsAlreadyMember(resolvedId, currentUser.id);
 
   const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
   const canCreateQuest = isAuthenticated && !!canAdmin;
