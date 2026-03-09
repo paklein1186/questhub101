@@ -397,6 +397,7 @@ export default function TerritoryPortal() {
               questCount={stats?.quests ?? 0}
               guildCount={stats?.guilds ?? 0}
               naturalSystemCount={naturalSystemCount}
+              stewardCount={stewards.length}
               isAuthenticated={isAuthenticated}
               isAlreadyMember={isAlreadyMember}
             />
