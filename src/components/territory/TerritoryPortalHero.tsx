@@ -172,11 +172,12 @@ export function TerritoryPortalHero({
       : getFallbacks(territory.level);
 
   // Random start index so each visit shows a different cover first
-  const [imgIdx, setImgIdx] = useState(() => Math.floor(Math.random() * 100));
+  const [imgIdx, setImgIdx] = useState(() => Math.floor(Math.random() * 1000));
+  const activeIdx = images.length > 0 ? imgIdx % images.length : 0;
 
   useEffect(() => {
     if (images.length < 2) return;
-    const t = setInterval(() => setImgIdx(i => (i + 1) % images.length), 5000);
+    const t = setInterval(() => setImgIdx(i => i + 1), 5000);
     return () => clearInterval(t);
   }, [images.length]);
 
