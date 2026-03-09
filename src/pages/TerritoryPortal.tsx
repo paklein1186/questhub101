@@ -309,7 +309,7 @@ export default function TerritoryPortal() {
               <Compass className="h-3.5 w-3.5" /> Ecosystem
             </TabsTrigger>
             <TabsTrigger value="quests" className="gap-1.5">
-              <Compass className="h-3.5 w-3.5" /> Quests
+              <Swords className="h-3.5 w-3.5" /> Quests
             </TabsTrigger>
             <TabsTrigger value="living" className="gap-1.5">
               <Leaf className="h-3.5 w-3.5" /> Living
