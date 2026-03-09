@@ -66,11 +66,28 @@ function useTerritoryMemberCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 60_000,
     queryFn: async () => {
-      const { count } = await (supabase
-        .from("profiles")
-        .select("user_id", { count: "exact", head: true }) as any)
+      const { count } = await supabase
+        .from("user_territories")
+        .select("user_id", { count: "exact", head: true })
         .eq("territory_id", territoryId!);
       return count ?? 0;
+    },
+  });
+}
+
+function useIsAlreadyMember(territoryId: string | undefined, userId: string | undefined) {
+  return useQuery({
+    queryKey: ["territory-is-member", territoryId, userId],
+    enabled: !!territoryId && !!userId,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_territories")
+        .select("id")
+        .eq("territory_id", territoryId!)
+        .eq("user_id", userId!)
+        .maybeSingle();
+      return !!data;
     },
   });
 }
@@ -169,7 +186,7 @@ export default function TerritoryPortal() {
 
   const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
-  const isAlreadyMember = (currentUser as any)?.territory_id === resolvedId;
+  const { data: isAlreadyMember = false } = useIsAlreadyMember(resolvedId, currentUser.id);
 
   const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
   const canCreateQuest = isAuthenticated && !!canAdmin;
