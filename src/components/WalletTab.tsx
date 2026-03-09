@@ -26,6 +26,7 @@ import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
 import { CTGWalletSection } from "@/components/CTGWalletSection";
+import { BountyBoard } from "@/components/ctg/BountyBoard";
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { EconomyModal, useEconomyModal } from "@/components/onboarding/EconomyOnboarding";
 import { usePersona } from "@/hooks/usePersona";

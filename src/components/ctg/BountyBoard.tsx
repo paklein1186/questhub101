@@ -53,7 +53,7 @@ export function BountyBoard() {
         .from("ctg_bounty_claims" as any)
         .select("bounty_id, verified")
         .eq("user_id", userId!);
-      return (data ?? []) as { bounty_id: string; verified: boolean }[];
+      return (data ?? []) as unknown as { bounty_id: string; verified: boolean }[];
     },
   });
 
