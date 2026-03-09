@@ -142,6 +142,10 @@ export function CTGWalletSection() {
   }
 
   const balance = summary?.ctg_balance ?? 0;
+  const lifetimeEarned = summary?.lifetime_earned ?? 0;
+  const tier = getStewardTier(lifetimeEarned);
+  const nextTier = getNextStewardTier(lifetimeEarned);
+  const tierProgress = nextTier ? ((lifetimeEarned - tier.minLifetime) / (nextTier.minLifetime - tier.minLifetime)) * 100 : 100;
 
   return (
     <div className="space-y-6">
@@ -150,7 +154,7 @@ export function CTGWalletSection() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground font-medium">Your $CTG Balance</p>
-            <CTGBalanceBadge balance={balance} size="lg" />
+            <CTGBalanceBadge balance={balance} lifetimeEarned={lifetimeEarned} size="lg" />
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setTransferOpen(true)} className="gap-1.5">
@@ -160,6 +164,54 @@ export function CTGWalletSection() {
               <RefreshCw className="h-3.5 w-3.5" /> Exchange to Credits
             </Button>
           </div>
+        </div>
+
+        {/* ── Steward Tier Card ── */}
+        <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sprout className="h-4 w-4" style={{ color: tier.color }} />
+              <span className="text-sm font-semibold" style={{ color: tier.color }}>
+                {tier.icon} {tier.label}
+              </span>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Leaf className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[260px] space-y-1.5 p-3">
+                  <p className="font-semibold text-xs">Steward Tiers</p>
+                  {STEWARD_TIERS.map((t) => (
+                    <div key={t.key} className="flex items-center gap-2 text-xs">
+                      <span>{t.icon}</span>
+                      <span className="font-medium" style={{ color: t.color }}>{t.label}</span>
+                      <span className="text-muted-foreground ml-auto">{t.minLifetime}+ $CTG</span>
+                    </div>
+                  ))}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          {nextTier ? (
+            <>
+              <div className="h-2 rounded-full bg-emerald-100 dark:bg-emerald-900/40 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(tierProgress, 100)}%`, backgroundColor: tier.color }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {Math.round(lifetimeEarned)}/{nextTier.minLifetime} $CTG to reach <span className="font-medium">{nextTier.icon} {nextTier.label}</span>
+              </p>
+            </>
+          ) : (
+            <p className="text-xs font-medium" style={{ color: tier.color }}>
+              Maximum tier reached — thank you for your stewardship!
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
