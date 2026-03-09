@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
 
     // Call the RPC
     const { data, error } = await supabase.rpc("apply_monthly_demurrage", {
-      _fade_rate: 0.015,
+      _fade_rate: 0.01,
     });
 
     if (error) {
