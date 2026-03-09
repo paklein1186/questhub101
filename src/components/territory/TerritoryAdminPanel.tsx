@@ -391,16 +391,11 @@ function EconomyToolsSection({ territoryId, territoryName, currentUserXpLevel }:
     if (!userId || !xpAmount) return;
     setGranting(true);
     try {
-      const { error } = await supabase.from("xp_events" as any).insert({
-        user_id: userId,
-        event_type: "STEWARDSHIP_DUTY",
-        xp_amount: parseInt(xpAmount, 10),
-        related_entity_id: territoryId,
-        related_entity_type: "territory",
-        description: `Steward XP grant from ${territoryName} admin`,
-      } as any);
+      const { data, error } = await supabase.functions.invoke("grant-territory-xp", {
+        body: { recipient_user_id: userId, xp_amount: parseInt(xpAmount, 10), territory_id: territoryId },
+      });
       if (error) throw error;
-      toast({ title: `+${xpAmount} XP granted` });
+      toast({ title: `+${(data as any).granted} XP granted (server-verified)` });
       setUserId("");
     } catch (e: any) {
       toast({ title: "Grant failed", description: e.message, variant: "destructive" });
