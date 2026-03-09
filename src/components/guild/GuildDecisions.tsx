@@ -493,6 +493,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { grantXp } = useXpCredits();
   const [objReason, setObjReason] = useState("");
 
   const castVote = async (optionIndex: number, value?: string, objectionReason?: string) => {
