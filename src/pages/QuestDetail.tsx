@@ -928,7 +928,7 @@ export default function QuestDetail() {
                 <p className="text-xs text-muted-foreground">Manage affiliations in the <strong>Settings → Affiliations</strong> tab for multi-entity support.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
+                <div><label className="text-sm font-medium mb-1 block">🟡 $CTG Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
               </div>
               <div className="rounded-lg border border-border p-3 space-y-3">
