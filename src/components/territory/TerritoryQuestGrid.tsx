@@ -166,9 +166,9 @@ function QuestCard({ quest }: { quest: QuestItem }) {
                 {cfg.label}
               </Badge>
             )}
-            {quest.xp_reward && quest.xp_reward > 0 && (
+            {quest.reward_xp && quest.reward_xp > 0 && (
               <span className="ml-auto flex items-center gap-0.5 text-[10px] text-amber-500 font-medium">
-                <Zap className="h-3 w-3" /> {quest.xp_reward} XP
+                <Zap className="h-3 w-3" /> {quest.reward_xp} XP
               </span>
             )}
           </div>
