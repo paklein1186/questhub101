@@ -124,6 +124,7 @@ function useUserCtgBalance(userId: string | undefined) {
   });
 }
 
+function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
   return useQuery({
     queryKey: ["territory-ns-count", territoryId],
     enabled: !!territoryId,
