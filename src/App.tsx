@@ -145,6 +145,7 @@ import SharesPage from "./pages/SharesPage";
 import GuidesPage from "./pages/GuidesPage";
 import TerritoryDetail from "./pages/TerritoryPortal";
 import CreateBioregion from "./pages/CreateBioregion";
+import TerritoriesHome from "./pages/TerritoriesHome";
 import InboxPage from "./pages/InboxPage";
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
