@@ -72,12 +72,10 @@ export default function ExploreHub() {
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const entityHf = useHouseFilter();
-
-  const handleTabChange = (value: string) => {
-    setSearchParams({ tab: value });
-  };
+  const gridDensity = useGridDensity();
 
   return (
+    <GridDensityContext.Provider value={gridDensity}>
     <PageShell>
       <div className="mb-6">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2">
