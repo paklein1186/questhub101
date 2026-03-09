@@ -944,8 +944,8 @@ export default function QuestDetail() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">{editFundingType === "CREDITS" ? "Credits committed to pot" : "Euros committed to pot"}</p></div>
-                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "Credits" : "€"} amount</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "🟡 $CTG Budget" : "Fiat Budget (€)"}</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">{editFundingType === "CREDITS" ? "$CTG committed to pot" : "Euros committed to pot"}</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "$CTG" : "€"} amount</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
