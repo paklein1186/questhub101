@@ -57,15 +57,16 @@ export function XpLadderModal({ open, onOpenChange, currentLevel, currentXp }: X
           {/* ─── Overview ─── */}
           <TabsContent value="overview" className="mt-4 space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              This platform recognizes contribution and collaboration through a regenerative progression model.
+              ⭐ XP is your <strong className="text-foreground">reputation on the platform</strong> — a
+              permanent, cumulative record of your participation. It reflects who you are becoming:
+              your depth of engagement, breadth of collaboration, and degree of trust you've built.
+              XP never decays, can never be purchased, and cannot be transferred.
             </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              XP reflects <strong className="text-foreground">trust, participation, and ecosystem impact</strong>.
-              It is not financial capital and cannot be bought.
-            </p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Higher levels reflect deeper collaboration, cross-territory contribution, and commons stewardship.
-            </p>
+            <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-3 text-xs text-muted-foreground space-y-1">
+              <p><strong className="text-foreground">⭐ XP</strong> — permanent · individual · non-transferable · unlocks governance</p>
+              <p><strong className="text-foreground">🌱 $CTG</strong> — circulatory · collective · transferable · fades 1%/month</p>
+              <p className="text-[10px] pt-1 border-t border-border">XP tracks <em>who you are</em>. $CTG tracks <em>what you produce for the commons</em>.</p>
+            </div>
 
             {currentLevel != null && currentXp != null && (
               <div className="rounded-xl border border-border bg-card p-4 space-y-3">
