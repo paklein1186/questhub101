@@ -263,14 +263,8 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
   const { data: quests } = useQuery({
     queryKey: ["territory-admin-quests", territoryId],
     queryFn: async () => {
-      // Get all descendant territory IDs (including self) via closure table
-      const { data: closureData } = await supabase
-        .from("territory_closure" as any)
-        .select("descendant_id")
-        .eq("ancestor_id", territoryId);
-      const territoryIds = closureData?.length
-        ? (closureData as any[]).map((c) => c.descendant_id as string)
-        : [territoryId];
+      const { getAllTerritoryIds } = await import("@/lib/territoryIds");
+      const territoryIds = await getAllTerritoryIds(territoryId);
 
       const { data } = await supabase
         .from("quest_territories" as any)
