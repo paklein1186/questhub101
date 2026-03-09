@@ -50,7 +50,13 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
             p_contribution_type: 'service_delivered',
             p_related_entity_id: bookingId,
             p_related_entity_type: 'booking',
-          } as any).then(() => {});
+          } as any).then((res) => {
+            const earned = (res.data as any)?.amount ?? 20;
+            toast({
+              title: "🌱 $CTG earned!",
+              description: `You earned ${earned} 🌱 $CTG for delivering this session. This reflects your contribution to the commons.`,
+            });
+          });
         }
         if (booking) {
           const svc = booking.services as any;
