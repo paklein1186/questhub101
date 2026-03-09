@@ -517,7 +517,7 @@ export default function HomeFeed() {
         </div>
       ) : (
         <>
-          <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
+          <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[35vh] sm:min-h-[40vh] justify-center px-3 sm:px-4 py-4 sm:py-10">
             <AnimatePresence>
               <motion.div
                 key="home-hero"
