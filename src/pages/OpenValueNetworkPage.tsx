@@ -179,9 +179,9 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p>CTG captures value along a triple axis:</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <ValueCard
-              title="A. Skills (XP)"
+              title="A. Reputation (XP)"
               color="text-primary"
-              desc="Every task increases expertise through guild-aligned XP."
+              desc="Participation and contribution build your trust level and governance rights."
               icon={<Zap className="h-5 w-5" />}
             />
             <ValueCard
