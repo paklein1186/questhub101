@@ -9532,6 +9532,16 @@ export type Database = {
           value: number
         }[]
       }
+      get_territory_ancestors: {
+        Args: { p_id: string }
+        Returns: {
+          depth: number
+          id: string
+          level: string
+          name: string
+          slug: string
+        }[]
+      }
       get_territory_living_dashboard: {
         Args: { p_territory_id: string }
         Returns: Json

@@ -36,26 +36,20 @@ interface TerritoryAncestor {
 
 /* ── Hooks ── */
 
-function useTerritoryAncestors(territory: any) {
+function useTerritoryAncestors(territoryId: string | undefined) {
   return useQuery({
-    queryKey: ["territory-ancestors", territory?.id],
-    enabled: !!territory?.id,
+    queryKey: ["territory-ancestors", territoryId],
+    enabled: !!territoryId,
     staleTime: 300_000,
     queryFn: async () => {
-      const ancestors: TerritoryAncestor[] = [];
-      let current = territory;
-
-      for (let i = 0; i < 6 && current?.parent_id; i++) {
-        const { data } = await supabase
-          .from("territories")
-          .select("id, name, level, slug, parent_id")
-          .eq("id", current.parent_id)
-          .single();
-        if (!data) break;
-        ancestors.unshift({ id: data.id, name: data.name, level: data.level, slug: data.slug });
-        current = data;
-      }
-      return ancestors;
+      const { data, error } = await supabase.rpc("get_territory_ancestors" as any, { p_id: territoryId });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        level: r.level,
+        slug: r.slug,
+      }));
     },
   });
 }
@@ -207,7 +201,7 @@ export default function TerritoryPortal() {
   const { data: territory, isLoading } = useTerritoryDetail(id);
   const resolvedId = territory?.id;
 
-  const { data: ancestors = [] } = useTerritoryAncestors(territory);
+  const { data: ancestors = [] } = useTerritoryAncestors(resolvedId);
   const { data: stats } = useTerritoryStats(resolvedId);
   const { data: memberCount = 0, isLoading: memberCountLoading } = useTerritoryMemberCount(resolvedId);
   const { data: naturalSystemCount = 0 } = useTerritoryNaturalSystemCount(resolvedId);
