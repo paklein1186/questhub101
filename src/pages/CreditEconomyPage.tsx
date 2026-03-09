@@ -3,7 +3,7 @@ import { PageShell } from "@/components/PageShell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Banknote, Coins, Star, ShieldCheck, Recycle, Building2, Info, Scale, Compass } from "lucide-react";
+import { Banknote, Coins, Star, ShieldCheck, Recycle, Building2, Info, Scale, Compass, Sprout } from "lucide-react";
 import { DEMURRAGE_RATE_PERCENT, ECONOMY_LAYERS, simulateDecay } from "@/lib/demurrageConfig";
 import { EconomyDashboard } from "@/components/EconomyDashboard";
 
