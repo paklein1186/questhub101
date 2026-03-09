@@ -703,8 +703,8 @@ export default function QuestDetail() {
             </div>
             {quest.credit_reward > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">⚡ Credit Reward</p>
-                <p className="text-lg font-bold text-primary">{quest.credit_reward} Credits</p>
+                <p className="text-xs text-muted-foreground font-medium">🟡 $CTG Reward</p>
+                <p className="text-lg font-bold text-primary">{quest.credit_reward} $CTG</p>
                 <p className="text-[10px] text-muted-foreground">Per participant on completion</p>
               </div>
             )}
