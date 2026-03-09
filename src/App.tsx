@@ -63,6 +63,7 @@ const AdminEconomyCTG = lazy(() => import("./pages/admin/AdminEconomyCTG"));
 const AdminSystemRoles = lazy(() => import("./pages/admin/AdminSystemRoles"));
 const AdminSystemHouses = lazy(() => import("./pages/admin/AdminSystemHouses"));
 const AdminSystemGovernance = lazy(() => import("./pages/admin/AdminSystemGovernance"));
+const AdminStewardship = lazy(() => import("./pages/admin/AdminStewardship"));
 const AdminSystemAudit = lazy(() => import("./pages/admin/AdminSystemAudit"));
 const AdminSystemIntegrations = lazy(() => import("./pages/admin/AdminSystemIntegrations"));
 const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles"));
