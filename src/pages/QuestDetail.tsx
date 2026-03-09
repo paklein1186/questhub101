@@ -363,6 +363,21 @@ export default function QuestDetail() {
     ? { ...questDefaultFeatures, ...(quest as any).features_config }
     : questDefaultFeatures;
 
+  // Check if user is admin of the guild (must be before early returns)
+  const { data: guildMembership } = useQuery({
+    queryKey: ["guild-membership-check", quest?.guild_id, currentUser.id],
+    enabled: !!quest?.guild_id && !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("guild_members")
+        .select("role")
+        .eq("guild_id", quest!.guild_id!)
+        .eq("user_id", currentUser.id!)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   if (isLoading) return <PageShell><p>Loading…</p></PageShell>;
   if (!quest) return <PageShell><p>Quest not found.</p></PageShell>;
   if (quest.is_deleted && !checkIsGlobalAdmin(currentUser.email)) return <PageShell><p>This quest has been removed.</p></PageShell>;
@@ -378,20 +393,6 @@ export default function QuestDetail() {
   const isParticipant = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id);
   const isCollaborator = isLoggedIn && (participants || []).some((qp: any) => qp.user_id === currentUser.id && (qp.role === "OWNER" || qp.role === "COLLABORATOR"));
 
-  // Check if user is admin of the guild
-  const { data: guildMembership } = useQuery({
-    queryKey: ["guild-membership-check", quest.guild_id, currentUser.id],
-    enabled: !!quest.guild_id && !!currentUser.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("guild_members")
-        .select("role")
-        .eq("guild_id", quest.guild_id!)
-        .eq("user_id", currentUser.id!)
-        .maybeSingle();
-      return data;
-    },
-  });
   const isGuildAdmin = !!guildMembership && ["admin", "moderator", "owner"].includes(guildMembership.role);
 
   // Check if user is admin of a host or co-host entity
