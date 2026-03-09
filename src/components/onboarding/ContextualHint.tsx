@@ -99,7 +99,7 @@ function useDismissedHints() {
   return { remoteHints, persistRemote };
 }
 
-function useIsDismissed(id: string) {
+export function useIsDismissed(id: string) {
   const [lsDismissed, setLsDismissed] = useState(() => getLSSet().has(id));
   const { remoteHints, persistRemote } = useDismissedHints();
 
