@@ -358,7 +358,7 @@ export function WalletTab() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
-                    This is separate from $CTG tokens which are cooperative contribution units.
+                    This is separate from $CTG tokens which are cooperative contribution units, and separate from ⭐ XP which is your permanent reputation.
                   </p>
                 </div>
 
