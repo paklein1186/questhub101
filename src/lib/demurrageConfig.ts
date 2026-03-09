@@ -1,7 +1,7 @@
 // ─── Demurrage (Credit Fade) Configuration ──────────────────
 // Monthly demurrage rate applied to wallet balances
 
-/** Monthly fade rate as a decimal (1% = 0.01) */
+/** Monthly fade rate for BOTH Platform Credits and $CTG tokens (1% = 0.01) */
 export const DEMURRAGE_RATE = 0.01;
 
 /** Monthly fade rate as a percentage string */

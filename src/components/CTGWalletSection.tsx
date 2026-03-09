@@ -22,6 +22,7 @@ import {
   ArrowUpRight, ArrowDownRight, Filter, Send, RefreshCw, Loader2, Info, AlertTriangle, Check, ArrowLeft, Sprout, Leaf,
 } from "lucide-react";
 import { getStewardTier, getNextStewardTier, STEWARD_TIERS } from "@/lib/xpCreditsConfig";
+import { estimateFade, DEMURRAGE_RATE_PERCENT } from "@/lib/demurrageConfig";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";

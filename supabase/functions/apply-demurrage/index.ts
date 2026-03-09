@@ -42,7 +42,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = data?.[0] ?? { users_faded: 0, total_faded: 0, treasury_credited: 0 };
+    const result = data?.[0] ?? {
+      credits_users_faded: 0, credits_total_faded: 0,
+      ctg_users_faded: 0, ctg_total_faded: 0,
+      treasury_credited: 0,
+    };
     console.log("Demurrage applied:", result);
 
     return new Response(JSON.stringify({ ok: true, ...result }), {
