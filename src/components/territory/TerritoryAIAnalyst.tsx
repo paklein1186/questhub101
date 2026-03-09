@@ -59,7 +59,7 @@ export function TerritoryAIAnalyst({ territoryId, territoryName }: Props) {
   };
 
   return (
-    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4 h-fit lg:sticky lg:top-4">
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-4 h-fit lg:sticky lg:top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
       <div className="flex items-center gap-2">
         <Brain className="h-5 w-5 text-primary" />
         <h3 className="font-display font-semibold text-sm">AI Territory Analyst</h3>
@@ -95,7 +95,7 @@ export function TerritoryAIAnalyst({ territoryId, territoryName }: Props) {
 
         {!loading && response && (
           <motion.div key="response" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <ScrollArea className="max-h-[400px]">
+            <ScrollArea className="max-h-[60vh]">
               <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
                 <ReactMarkdown>{response}</ReactMarkdown>
               </div>
