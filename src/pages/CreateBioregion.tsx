@@ -491,10 +491,10 @@ export default function CreateBioregion() {
 
       // 4. Add creator as steward via trust edge
       await (supabase.from("trust_edges") as any).insert({
-        from_id: currentUser.id,
-        from_type: "user",
-        to_id: bioregionId,
-        to_type: "territory",
+        from_node_id: currentUser.id,
+        from_node_type: "user",
+        to_node_id: bioregionId,
+        to_node_type: "territory",
         edge_type: "stewardship",
         weight: 1.0,
         status: "active",
