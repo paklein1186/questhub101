@@ -111,6 +111,7 @@ export default function PodDetail() {
         userXp={limits.userCredits}
         actionLabel="join one more pod"
         limitLabel="pod memberships for your plan"
+        ctgBalance={limits.userCtgBalance}
         onConfirm={async () => { const ok = await limits.spendCredits(EXTRA_POD_CREDIT_COST, `Extra pod membership: ${pod.name}`, "POD", pod.id); if (ok) doJoinPod(); else toast({ title: "Not enough Credits", variant: "destructive" }); }}
       />
 

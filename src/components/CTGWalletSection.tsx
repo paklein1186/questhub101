@@ -228,6 +228,18 @@ export function CTGWalletSection() {
           )}
         </div>
 
+        {/* Convert surplus nudge */}
+        {balance > 50 && exchangeRate && (
+          <div className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
+            <span className="text-xs text-muted-foreground">
+              ⏳ Your $CTG fades 1%/month. Exchange surplus to Credits now.
+            </span>
+            <Button variant="ghost" size="sm" className="text-xs shrink-0" onClick={() => setExchangeOpen(true)}>
+              Exchange →
+            </Button>
+          </div>
+        )}
+
         <p className="text-xs text-muted-foreground">
           <Link to="/me?tab=wallet" className="text-primary hover:underline">← View Platform Credits</Link>
         </p>

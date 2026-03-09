@@ -83,6 +83,7 @@ export function usePlanLimits() {
   const [weeklyQuestsUsed, setWeeklyQuestsUsed] = useState(0);
   const [userXp, setUserXp] = useState(0);
   const [userCredits, setUserCredits] = useState(0);
+  const [userCtgBalance, setUserCtgBalance] = useState(0);
   const [userLevel, setUserLevel] = useState(1);
   const [guildCount, setGuildCount] = useState(0);
   const [podCount, setPodCount] = useState(0);
@@ -99,13 +100,14 @@ export function usePlanLimits() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("xp, current_plan_code, xp_level, credits_balance, created_at")
+        .select("xp, current_plan_code, xp_level, credits_balance, ctg_balance, created_at")
         .eq("user_id", userId)
         .maybeSingle();
 
       if (profile) {
         setUserXp(profile.xp ?? 0);
         setUserCredits((profile as any).credits_balance ?? 0);
+        setUserCtgBalance(Number((profile as any).ctg_balance ?? 0));
         setUserLevel((profile as any).xp_level ?? 1);
 
         // Grace period: check if account is < GRACE_PERIOD_DAYS old
@@ -255,6 +257,7 @@ export function usePlanLimits() {
     loading,
     userXp,
     userCredits,
+    userCtgBalance,
     userLevel,
     // Grace period
     inGracePeriod,

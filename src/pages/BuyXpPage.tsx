@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Coins, Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info } from "lucide-react";
+import { Coins, Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info, Leaf, RefreshCw, Zap } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/PageShell";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
@@ -23,6 +25,58 @@ export default function BuyXpPage() {
   const successSessionId = searchParams.get("session_id");
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
+
+  // CTG balance & exchange rate
+  const { data: ctgData } = useQuery({
+    queryKey: ["buy-page-ctg"],
+    queryFn: async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("ctg_balance")
+        .eq("user_id", session?.user?.id ?? "")
+        .maybeSingle();
+      const { data: rate } = await supabase
+        .from("ctg_exchange_rates")
+        .select("rate_ctg_to_credits")
+        .eq("active", true)
+        .maybeSingle();
+      return {
+        ctgBalance: Number((profile as any)?.ctg_balance ?? 0),
+        rate: Number((rate as any)?.rate_ctg_to_credits ?? 5),
+      };
+    },
+    enabled: !!session?.user?.id,
+  });
+
+  const [exchangeAmount, setExchangeAmount] = useState("");
+  const [exchangeLoading, setExchangeLoading] = useState(false);
+
+  const handleCtgExchange = async () => {
+    const amt = parseFloat(exchangeAmount);
+    if (!amt || amt <= 0) return;
+    setExchangeLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ctg-exchange", {
+        body: { ctg_amount: amt },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Exchange successful!",
+        description: `${data.ctg_spent} $CTG → ${data.credits_received} Credits`,
+      });
+      setExchangeAmount("");
+      refresh();
+    } catch (err: any) {
+      toast({ title: "Exchange failed", description: err.message, variant: "destructive" });
+    } finally {
+      setExchangeLoading(false);
+    }
+  };
+
+  const previewCredits = ctgData?.rate
+    ? Math.floor((parseFloat(exchangeAmount) || 0) * ctgData.rate)
+    : 0;
 
   useEffect(() => {
     if (success && (successBundle || successSessionId) && !verified && !verifying) {
@@ -95,6 +149,70 @@ export default function BuyXpPage() {
           </p>
         </div>
 
+        {/* ── $CTG → Credits exchange ── */}
+        {ctgData && ctgData.ctgBalance > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 mb-6"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Leaf className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <div>
+                <h3 className="font-display text-lg font-bold flex items-center gap-2">
+                  Exchange your $CTG for Credits
+                </h3>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                  No payment needed
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              You have{" "}
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                {ctgData.ctgBalance.toLocaleString()} $CTG
+              </span>{" "}
+              available. Convert contribution earnings into platform Credits.
+              Rate: 1 $CTG = {ctgData.rate} Credits.
+              <span className="text-xs ml-1">
+                ($CTG fades 1%/month — exchanging surplus is always rational)
+              </span>
+            </p>
+
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Leaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <Input
+                  type="number"
+                  placeholder="Amount to exchange"
+                  value={exchangeAmount}
+                  onChange={(e) => setExchangeAmount(e.target.value)}
+                  min={1}
+                  max={ctgData.ctgBalance * 0.5}
+                  className="pl-8 text-sm"
+                />
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="text-center min-w-[80px]">
+                <p className="text-xl font-bold text-primary">
+                  {previewCredits > 0 ? previewCredits.toLocaleString() : "—"}
+                </p>
+                <p className="text-xs text-muted-foreground">Credits</p>
+              </div>
+              <Button onClick={handleCtgExchange} disabled={exchangeLoading || !parseFloat(exchangeAmount)}>
+                {exchangeLoading
+                  ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Exchanging…</>
+                  : <><RefreshCw className="h-4 w-4 mr-1" /> Exchange</>}
+              </Button>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground mt-3">
+              Max 50% of balance per transaction · Up to 3 exchanges/hour
+            </p>
+          </motion.div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-3">
           {CREDIT_BUNDLES.map((bundle, i) => (
             <motion.div
@@ -162,11 +280,23 @@ export default function BuyXpPage() {
               <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.ENABLE_AI_PRO_SESSION}</Badge>
               <span className="text-muted-foreground">AI Pro session</span>
             </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_GUILD_EXPLORE}</Badge>
+              <span className="text-muted-foreground">Boost guild in Explore</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_COURSE}</Badge>
+              <span className="text-muted-foreground">Boost course visibility</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.REDUCE_COMMISSION_BY_1_PERCENT}</Badge>
+              <span className="text-muted-foreground">Reduce commission by 1%</span>
+            </div>
           </div>
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground space-y-1">
-          <p>Credits are non-refundable. Payments are processed securely via Stripe.</p>
+          <p>Credits are non-refundable. Stripe payments and $CTG exchanges are final.</p>
           <p className="text-xs">{ECONOMY_LABELS.creditsDisclaimer}</p>
           <p className="mt-2">
             Want more features? <Link to="/plans" className="text-primary hover:underline">See subscription plans →</Link>
