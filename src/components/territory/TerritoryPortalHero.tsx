@@ -192,7 +192,7 @@ export function TerritoryPortalHero({
             key={src}
             className={cn(
               "absolute inset-0 bg-cover bg-center transition-opacity duration-1000",
-              i === imgIdx ? "opacity-100" : "opacity-0"
+              i === activeIdx ? "opacity-100" : "opacity-0"
             )}
             style={{ backgroundImage: `url(${src})` }}
           />
