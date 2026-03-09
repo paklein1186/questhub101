@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { formatDistanceToNow, isPast, isFuture, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {

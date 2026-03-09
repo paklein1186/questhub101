@@ -55,6 +55,11 @@ const CONTRIBUTION_TYPE_LABELS: Record<string, string> = {
   mentorship: "Mentorship",
   governance_vote: "Governance vote",
   ecological_annotation: "Ecological annotation",
+  service_delivered: "Service delivered",
+  moderation_resolved: "Moderation resolved",
+  pod_hosted: "Pod hosted",
+  stewardship_territory: "Territory stewardship (monthly)",
+  stewardship_house: "House stewardship (monthly)",
 };
 
 const PAGE_SIZE = 20;

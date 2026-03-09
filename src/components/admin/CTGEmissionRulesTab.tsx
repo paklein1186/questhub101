@@ -48,6 +48,11 @@ const DEFAULTS: Record<string, { ctg_amount: number; commons_share_percent: numb
   mentorship: { ctg_amount: 25, commons_share_percent: 15 },
   governance_vote: { ctg_amount: 5, commons_share_percent: 10 },
   ecological_annotation: { ctg_amount: 15, commons_share_percent: 25 },
+  service_delivered: { ctg_amount: 20, commons_share_percent: 10 },
+  moderation_resolved: { ctg_amount: 5, commons_share_percent: 10 },
+  pod_hosted: { ctg_amount: 8, commons_share_percent: 15 },
+  stewardship_territory: { ctg_amount: 5, commons_share_percent: 15 },
+  stewardship_house: { ctg_amount: 8, commons_share_percent: 15 },
 };
 
 interface RuleRow {
