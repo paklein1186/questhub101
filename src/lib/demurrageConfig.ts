@@ -46,6 +46,24 @@ export const ECONOMY_LAYERS = [
       "Your earnings from paid missions and services. Processed via Stripe. Real-world income.",
   },
   {
+    key: "xp",
+    label: "⭐ XP (Reputation)",
+    purpose: "Permanent contribution level",
+    icon: "Star",
+    convertible: false,
+    description:
+      "Reflects your impact and participation. Never decays, cannot be purchased. Unlocks governance rights and stewardship eligibility.",
+  },
+  {
+    key: "ctg",
+    label: "🌱 $CTG — Contribution Token",
+    purpose: "Commons value production",
+    icon: "Sprout",
+    convertible: false,
+    description:
+      "Emitted on verified contribution. Not fiat-backed. Fades at 1%/month — same rate as Platform Credits. Transferable P2P. Exchangeable for Credits. Cannot be purchased.",
+  },
+  {
     key: "credits",
     label: "🔷 Platform Credits",
     purpose: "Feature fuel & gamification",
@@ -62,15 +80,6 @@ export const ECONOMY_LAYERS = [
     convertible: true,
     description:
       "Internal accounting units backed by real fiat. Earned from funded quests, used for redistribution and contributor payouts. Withdrawable to fiat via Stripe Connect.",
-  },
-  {
-    key: "xp",
-    label: "XP (Reputation)",
-    purpose: "Contribution level",
-    icon: "Star",
-    convertible: false,
-    description:
-      "Reflects your impact and participation. Never decays, cannot be purchased. Unlocks governance rights and stewardship eligibility.",
   },
   {
     key: "shares",

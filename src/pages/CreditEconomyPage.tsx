@@ -68,6 +68,12 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
         </div>
 
         <CalloutBox>
+          ⭐ XP tracks <strong>who you are</strong> — permanent, individual, non-transferable.{" "}
+          🌱 $CTG tracks <strong>what you produce for the commons</strong> — circulatory, collective, fades 1%/month.{" "}
+          These two systems are complementary, not competing.
+        </CalloutBox>
+
+        <CalloutBox>
           {t("creditEconomyPage.calloutLayers")}
           <br />
           <span className="text-muted-foreground font-normal text-xs">{t("creditEconomyPage.calloutLayersSub")}</span>

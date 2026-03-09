@@ -198,7 +198,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             />
           </div>
           <p className="mt-3 text-muted-foreground">
-            Together, <strong className="text-foreground">XP + Trust + Impact</strong> form a <strong className="text-foreground">Value Score</strong>, used across the system.
+            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
           </p>
         </Section>
 
