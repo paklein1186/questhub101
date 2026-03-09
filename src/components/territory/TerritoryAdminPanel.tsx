@@ -360,8 +360,11 @@ function StewardDelegationSection({ territoryId, territoryName }: SectionProps) 
           )}
           {(stewards ?? []).map((s: any) => (
             <div key={s.from_id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 text-xs">
-              <Shield className="h-3.5 w-3.5 text-primary" />
-              <span className="text-foreground">{s.from_id}</span>
+              <Avatar className="h-6 w-6 shrink-0">
+                <AvatarImage src={s.avatar_url ?? undefined} />
+                <AvatarFallback className="text-[9px]">{s.name?.charAt(0) ?? "?"}</AvatarFallback>
+              </Avatar>
+              <span className="text-foreground">{s.name}</span>
               {s.tags?.includes("pioneer") && (
                 <Badge className="text-[9px] h-4 bg-amber-500/15 text-amber-600 border-amber-500/30 ml-auto">Pioneer</Badge>
               )}
