@@ -99,7 +99,7 @@ export function usePlanLimits() {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("xp, current_plan_code, xp_level, credits_balance, created_at")
+        .select("xp, current_plan_code, xp_level, credits_balance, ctg_balance, created_at")
         .eq("user_id", userId)
         .maybeSingle();
 
