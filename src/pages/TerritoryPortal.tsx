@@ -329,7 +329,7 @@ export default function TerritoryPortal() {
               <BookOpen className="h-3.5 w-3.5" /> Library
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
-              <Shield className="h-3.5 w-3.5" /> Graph
+              <Network className="h-3.5 w-3.5" /> Graph
             </TabsTrigger>
             {canAdmin && (
               <TabsTrigger value="admin" className="gap-1.5 ml-auto">
