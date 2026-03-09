@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Star, Shield, Compass, Trophy, Rocket, ArrowRight } from "lucide-react";
+import { Zap, Sprout, Shield, Compass, Trophy, Rocket, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -8,14 +8,14 @@ import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 interface Props {
   xp: number;
-  contributionIndex: number;
+  ctgBalance: number;
   guildCount: number;
   questCount: number;
   achievements: { id: string; title: string }[];
   userId: string;
 }
 
-export function HomeStats({ xp, contributionIndex, guildCount, questCount, achievements, userId }: Props) {
+export function HomeStats({ xp, ctgBalance, guildCount, questCount, achievements, userId }: Props) {
   const { percentage, isComplete, completedCount, totalSteps } = useOnboardingProgress();
 
   return (
@@ -42,8 +42,8 @@ export function HomeStats({ xp, contributionIndex, guildCount, questCount, achie
 
       {/* Stat cards + achievements */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={Zap} label="XP" value={xp} accent />
-        <StatCard icon={Star} label="Contribution" value={contributionIndex} />
+        <StatCard icon={Zap} label="⭐ XP" value={xp} accent />
+        <StatCard icon={Sprout} label="🌱 $CTG" value={ctgBalance} color="emerald" />
         <StatCard icon={Shield} label="Guilds" value={guildCount} />
         <StatCard icon={Compass} label="Quests" value={questCount} />
       </div>
@@ -65,11 +65,18 @@ export function HomeStats({ xp, contributionIndex, guildCount, questCount, achie
   );
 }
 
-function StatCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent?: boolean }) {
+function StatCard({ icon: Icon, label, value, accent, color }: { icon: any; label: string; value: number; accent?: boolean; color?: "emerald" }) {
+  const iconColor = color === "emerald"
+    ? "text-emerald-600 dark:text-emerald-400"
+    : accent ? "text-primary" : "text-muted-foreground";
+  const bgColor = color === "emerald"
+    ? "bg-emerald-100/60 dark:bg-emerald-950/40"
+    : accent ? "bg-primary/10" : "bg-muted";
+
   return (
     <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
-      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${accent ? "bg-primary/10" : "bg-muted"}`}>
-        <Icon className={`h-4.5 w-4.5 ${accent ? "text-primary" : "text-muted-foreground"}`} />
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${bgColor}`}>
+        <Icon className={`h-4.5 w-4.5 ${iconColor}`} />
       </div>
       <div>
         <p className="text-lg font-bold leading-tight">{value}</p>
