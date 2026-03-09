@@ -2,11 +2,38 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Globe, List, Map as MapIcon, History, Loader2 } from "lucide-react";
+import { MapPin, Globe, List, Map as MapIcon, History, Loader2, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TerritoryMapView } from "@/components/network/TerritoryMapView";
 import type { TerritoryLeaderboardItem } from "@/hooks/useNetworkLeaderboardData";
+
+function useStewardedTerritories(userId: string) {
+  return useQuery({
+    queryKey: ["stewarded-territories", userId],
+    queryFn: async () => {
+      const { data: edges } = await supabase
+        .from("trust_edges")
+        .select("to_node_id")
+        .eq("from_node_id", userId)
+        .eq("edge_type", "stewardship" as any)
+        .eq("status", "active" as any);
+
+      if (!edges?.length) return [];
+
+      const ids = edges.map((e: any) => e.to_node_id);
+      const { data: territories } = await supabase
+        .from("territories")
+        .select("id, name, level, slug")
+        .in("id", ids)
+        .eq("is_deleted", false)
+        .order("name");
+
+      return territories ?? [];
+    },
+    enabled: !!userId,
+  });
+}
 
 const ATTACHMENT_LABELS: Record<string, { label: string; emoji: string }> = {
   LIVE_IN: { label: "Lives in", emoji: "🏠" },
