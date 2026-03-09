@@ -199,6 +199,7 @@ export function PiChat({ className }: PiChatProps) {
   const processActions = (actions: any[]) => {
     for (const action of actions) {
       if (action.action === "navigate" && action.screen) {
+        closePiPanel();
         navigate(action.screen);
       }
       if (action.action === "notification") {
@@ -263,7 +264,10 @@ export function PiChat({ className }: PiChatProps) {
 
       // Handle scene navigation
       if (data.scene?.navigate) {
-        setTimeout(() => navigate(data.scene.navigate), 500);
+        setTimeout(() => {
+          closePiPanel();
+          navigate(data.scene.navigate);
+        }, 500);
       }
     } catch (e: any) {
       console.error("Pi error:", e);
@@ -489,7 +493,7 @@ export function PiChat({ className }: PiChatProps) {
                   <div className="flex flex-wrap gap-1 mt-2">
                     {msg.meta.createdEntities.map((e) => (
                       <Badge key={e.id} variant="outline" className="text-[10px] cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate(entityRoute(e.type, e.id))}>
+                        onClick={() => { closePiPanel(); navigate(entityRoute(e.type, e.id)); }}>
                         ✨ {entityLabel(e.type)}
                       </Badge>
                     ))}
