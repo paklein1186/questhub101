@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/lib/admin";
 import { CREDIT_COSTS, GRACE_PERIOD_DAYS } from "@/lib/xpCreditsConfig";
 
 // Credit costs for exceeding plan limits
