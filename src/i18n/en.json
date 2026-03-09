@@ -1354,7 +1354,7 @@
     "ambitionP2": "It is not a social network. It is not a marketplace. It is not a project management tool.",
     "ambitionP3": "changethegame is an <1>action infrastructure</1> — where skills, missions, communities, territories, resources and collective intelligence turn into real-world impact.",
     "visionTitle": "Our Vision",
-    "visionItems": ["Individuals showcase talents, stories and contributions", "Collectives organize, fund and grow", "Organizations find the right people and launch missions", "Territories become readable, understandable and actionable", "Value circulates through multiple systems (fiat, credits, XP, shares)", "Everyone contributes to a shared digital commons", "AI acts as a co-pilot for transformation"],
+    "visionItems": ["Individuals showcase talents, stories and contributions", "Collectives organize, fund and grow", "Organizations find the right people and launch missions", "Territories become readable, understandable and actionable", "Value circulates through multiple layers (fiat, Coins, $CTG contribution tokens, credits, XP)", "Everyone contributes to a shared digital commons", "AI acts as a co-pilot for transformation"],
     "pillarsTitle": "The Six Product Pillars",
     "pillars": [
       { "title": "Living Profiles — Amplified by AI", "description": "Each user owns a living profile: skills, territories, causes, services, quests completed, XP level and community involvement.", "aiFeatures": ["Generate profile from CV / LinkedIn / text", "Identify ideal quests, roles or guilds", "Rewrite bios, pitches and project descriptions", "Suggest meaningful human connections", "Package services and expertise"], "goal": "Reduce friction, increase visibility, enhance impact." },

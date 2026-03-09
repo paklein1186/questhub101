@@ -117,7 +117,7 @@ export default function BookingDetail() {
           <section className="rounded-xl border border-border bg-card p-5 mb-4">
             <h2 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Payment</h2>
             <p className="text-sm">
-              💰 €{booking.amount} {booking.currency} — <span className="capitalize">{booking.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</span>
+              🟩 {Math.round(booking.amount / 0.04).toLocaleString()} Coins (≈ €{booking.amount}) — <span className="capitalize">{booking.payment_status?.toLowerCase().replace(/_/g, " ") || "N/A"}</span>
             </p>
           </section>
         )}
