@@ -265,7 +265,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                         <Input type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Credit Reward</label>
+                        <label className="text-sm font-medium mb-1 block">🟡 $CTG Reward</label>
                         <Input type="number" value={creditReward} onChange={e => setCreditReward(e.target.value)} min={0} />
                         <p className="text-xs text-muted-foreground mt-1">Per participant on completion</p>
                       </div>
