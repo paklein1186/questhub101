@@ -143,7 +143,7 @@ import OrganizationNextSteps from "./pages/OrganizationNextSteps";
 import ProfileEnrichment from "./pages/ProfileEnrichment";
 import SharesPage from "./pages/SharesPage";
 import GuidesPage from "./pages/GuidesPage";
-import TerritoryDetail from "./pages/TerritoryDetail";
+import TerritoryDetail from "./pages/TerritoryPortal";
 import InboxPage from "./pages/InboxPage";
 import EventDetail from "./pages/EventDetail";
 import EventEdit from "./pages/EventEdit";
