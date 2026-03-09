@@ -21,6 +21,7 @@ export default function ManifestoPage({ embedded }: { embedded?: boolean }) {
           <p>{t("manifestoPage.believe6")}</p>
           <p>{t("manifestoPage.believe7")}</p>
           <p>{t("manifestoPage.believe8")}</p>
+          <p>{t("manifestoPage.believe9")}</p>
 
           <div className="pt-6">
             <p>{t("manifestoPage.existsSo")}</p>
