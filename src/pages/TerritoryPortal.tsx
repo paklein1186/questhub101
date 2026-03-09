@@ -327,7 +327,10 @@ export default function TerritoryPortal() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex gap-6">
+          {/* Main content */}
+          <div className="flex-1 min-w-0 space-y-6">
         {resolvedId && (
           <PiContextSetter contextType="territory" contextId={resolvedId} />
         )}
