@@ -258,14 +258,14 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       <div>
                         <label className="text-sm font-medium mb-1 block">Funding Goal</label>
                         <Input type="number" value={fundingGoal} onChange={e => setFundingGoal(e.target.value)} min={0} placeholder="Optional" />
-                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "Credits" : "€"}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "$CTG" : "€"}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label>
+                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "🟡 $CTG Budget" : "Fiat Budget (€)"}</label>
                         <Input type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} />
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-1 block">Credit Reward</label>
+                        <label className="text-sm font-medium mb-1 block">🟡 $CTG Reward</label>
                         <Input type="number" value={creditReward} onChange={e => setCreditReward(e.target.value)} min={0} />
                         <p className="text-xs text-muted-foreground mt-1">Per participant on completion</p>
                       </div>
@@ -307,7 +307,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                                     <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-0.5">
-                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "Credits"} · Raised: {c.raised_amount}
+                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "$CTG"} · Raised: {c.raised_amount}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
@@ -332,7 +332,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     )}
 
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {fundingType === "FIAT" ? "€" : "Credits"}</p>
+                      <p><strong>Current pot:</strong> {(quest as any).escrow_credits ?? 0} {fundingType === "FIAT" ? "€" : "$CTG"}</p>
                       {(quest as any).funding_goal_credits && (
                         <p><strong>Goal:</strong> {(quest as any).funding_goal_credits} — {Math.min(100, Math.round(((quest as any).escrow_credits / (quest as any).funding_goal_credits) * 100))}% funded</p>
                       )}

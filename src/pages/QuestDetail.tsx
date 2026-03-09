@@ -703,16 +703,16 @@ export default function QuestDetail() {
             </div>
             {quest.credit_reward > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">⚡ Credit Reward</p>
-                <p className="text-lg font-bold text-primary">{quest.credit_reward} Credits</p>
+                <p className="text-xs text-muted-foreground font-medium">🟡 $CTG Reward</p>
+                <p className="text-lg font-bold text-primary">{quest.credit_reward} $CTG</p>
                 <p className="text-[10px] text-muted-foreground">Per participant on completion</p>
               </div>
             )}
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {(quest as any).credit_budget > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">🏦 Credit Budget</p>
-                <p className="text-lg font-bold">{(quest as any).credit_budget} Credits</p>
+                <p className="text-xs text-muted-foreground font-medium">🏦 $CTG Budget</p>
+                <p className="text-lg font-bold">{(quest as any).credit_budget} $CTG</p>
                 <p className="text-[10px] text-muted-foreground">Funded by quest creator</p>
               </div>
             )}
@@ -928,7 +928,7 @@ export default function QuestDetail() {
                 <p className="text-xs text-muted-foreground">Manage affiliations in the <strong>Settings → Affiliations</strong> tab for multi-entity support.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-sm font-medium mb-1 block">Credit Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
+                <div><label className="text-sm font-medium mb-1 block">🟡 $CTG Reward</label><Input type="number" value={editCreditReward} onChange={e => setEditCreditReward(e.target.value)} min={0} /></div>
                 <div><label className="text-sm font-medium mb-1 block">Fiat Price (€ cents)</label><Input type="number" value={editPriceFiat} onChange={e => setEditPriceFiat(e.target.value)} min={0} /></div>
               </div>
               <div className="rounded-lg border border-border p-3 space-y-3">
@@ -944,8 +944,8 @@ export default function QuestDetail() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">{editFundingType === "CREDITS" ? "Credits committed to pot" : "Euros committed to pot"}</p></div>
-                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "Credits" : "€"} amount</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">{editFundingType === "CREDITS" ? "🟡 $CTG Budget" : "Fiat Budget (€)"}</label><Input type="number" value={editCreditBudget} onChange={e => setEditCreditBudget(e.target.value)} min={0} /><p className="text-xs text-muted-foreground mt-1">{editFundingType === "CREDITS" ? "$CTG committed to pot" : "Euros committed to pot"}</p></div>
+                  <div><label className="text-sm font-medium mb-1 block">Funding Goal</label><Input type="number" value={editFundingGoal} onChange={e => setEditFundingGoal(e.target.value)} min={0} placeholder="Optional" /><p className="text-xs text-muted-foreground mt-1">Target {editFundingType === "CREDITS" ? "$CTG" : "€"} amount</p></div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch id="editFundraising" checked={editAllowFundraising} onCheckedChange={setEditAllowFundraising} />
