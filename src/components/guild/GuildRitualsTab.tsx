@@ -254,6 +254,19 @@ export function GuildRitualsTab({ guildId, questId, isAdmin, isMember }: Props) 
     await supabase.from("ritual_occurrences")
       .update({ status: "completed", ended_at: new Date().toISOString() })
       .eq("id", occurrenceId);
+
+    // Emit $CTG for all attending participants
+    const occ = occurrences.find((o: any) => o.id === occurrenceId);
+    const attendees = (occ?.ritual_attendees || []).filter((a: any) => a.status === "attending");
+    for (const a of attendees) {
+      supabase.rpc('emit_ctg_for_contribution', {
+        p_user_id: a.user_id,
+        p_contribution_type: 'ritual_participation',
+        p_related_entity_id: occurrenceId,
+        p_related_entity_type: 'ritual',
+      } as any).then(() => {});
+    }
+
     qc.invalidateQueries({ queryKey: ["ritual-occurrences", entityId] });
     toast({ title: "Ritual marked as completed" });
   };
