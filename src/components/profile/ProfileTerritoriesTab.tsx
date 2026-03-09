@@ -145,7 +145,7 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     return map;
   }, [territories]);
 
-  if (territories.length === 0) {
+  if (territories.length === 0 && stewarded.length === 0) {
     return (
       <div className="text-center py-12">
         <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
@@ -154,8 +154,7 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     );
   }
 
-
-  if (territories.length === 0 && stewarded.length === 0) {
+  return (
     <div className="space-y-6">
       {/* Stewarded territories */}
       {stewarded.length > 0 && (
