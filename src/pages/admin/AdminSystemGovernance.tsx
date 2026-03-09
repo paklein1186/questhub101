@@ -40,6 +40,18 @@ function CooperativeSettings() {
   const classAEnabled = getSetting("class_a_enabled")?.enabled !== false;
   const classBEnabled = getSetting("class_b_enabled")?.enabled !== false;
 
+  const rawRate = getSetting("coins_eur_rate");
+  const coinsRate = typeof rawRate === "string" ? rawRate : typeof rawRate === "number" ? String(rawRate) : "0.04";
+  const [editRate, setEditRate] = useState(coinsRate);
+  useEffect(() => { setEditRate(coinsRate); }, [coinsRate]);
+
+  const handleSaveRate = async () => {
+    await supabase.from("cooperative_settings").update({ value: editRate, updated_at: new Date().toISOString() }).eq("key", "coins_eur_rate");
+    qc.invalidateQueries({ queryKey: ["admin-coop-settings"] });
+    qc.invalidateQueries({ queryKey: ["coins-eur-rate"] });
+    toast({ title: "Coins rate updated" });
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
