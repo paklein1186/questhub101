@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Crown, Users, Download, Settings } from "lucide-react";
 import { GovernanceTab } from "./tabs/ContentTabs";
 import { Button } from "@/components/ui/button";
