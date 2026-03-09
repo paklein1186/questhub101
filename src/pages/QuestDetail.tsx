@@ -796,7 +796,7 @@ export default function QuestDetail() {
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />
-            {isLoggedIn && <GiveTrustButton targetNodeType={TrustNodeType.QUEST} targetNodeId={quest.id} targetName={quest.title} contextQuestId={quest.id} />}
+            {isLoggedIn && quest.status === "COMPLETED" && <GiveTrustButton targetNodeType={TrustNodeType.QUEST} targetNodeId={quest.id} targetName={quest.title} contextQuestId={quest.id} />}
             {isLoggedIn && <ReportButton targetType={ReportTargetType.QUEST} targetId={quest.id} />}
             {canPostUpdate && <InviteLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />}
             {isOwner && !isCancelled && <Button size="sm" variant="outline" onClick={openEditQuest}><Pencil className="h-4 w-4 mr-1" /> Edit Quest</Button>}
@@ -1034,7 +1034,7 @@ export default function QuestDetail() {
             {isLoggedIn && <TabsTrigger value="ai-chat"><Bot className="h-3.5 w-3.5 mr-1" /> Chat & AI</TabsTrigger>}
             {isLoggedIn && isParticipant && <TabsTrigger value="agents"><Bot className="h-3.5 w-3.5 mr-1" /> Agents</TabsTrigger>}
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
-            <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
+            {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
             <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           </TabsList>
           <DropdownMenu>
@@ -1416,9 +1416,11 @@ export default function QuestDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="trust" className="mt-6">
-          <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
-        </TabsContent>
+        {quest.status === "COMPLETED" && (
+          <TabsContent value="trust" className="mt-6">
+            <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
+          </TabsContent>
+        )}
 
         <TabsContent value="living" className="mt-6">
           <QuestLivingTab
