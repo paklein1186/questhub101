@@ -48,7 +48,11 @@ export function MyQuestsTab({ userId }: { userId: string }) {
           <Link key={q.id} to={`/quests/${q.id}`} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 hover:bg-muted/50 transition-colors">
             <div>
               <p className="text-sm font-medium">{q.title}</p>
-              <p className="text-xs text-muted-foreground">{q.reward_xp} XP reward</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">{q.reward_xp} XP reward</p>
+                {q.coin_budget > 0 && <Badge variant="outline" className="text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800 text-[10px]">🟩 {q.coin_budget.toLocaleString()} Coins</Badge>}
+                {q.credit_budget > 0 && <Badge variant="outline" className="text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-[10px]">🌱 {q.credit_budget} $CTG</Badge>}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {q.is_draft && <Badge variant="secondary" className="text-[10px]">Draft</Badge>}
