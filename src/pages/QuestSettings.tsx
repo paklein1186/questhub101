@@ -258,7 +258,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       <div>
                         <label className="text-sm font-medium mb-1 block">Funding Goal</label>
                         <Input type="number" value={fundingGoal} onChange={e => setFundingGoal(e.target.value)} min={0} placeholder="Optional" />
-                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "Credits" : "€"}</p>
+                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "$CTG" : "€"}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "Credit Budget" : "Fiat Budget (€)"}</label>
