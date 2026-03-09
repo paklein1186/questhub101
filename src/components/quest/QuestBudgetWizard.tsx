@@ -120,6 +120,10 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <Tip>The fiat compensation range for this quest in euros. This is separate from Platform Credits.</Tip>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
+                Set fiat compensation (paid in 🟩 Coins), and a 🌱 $CTG pool (funded from your 🔷 Credits).
+              </p>
+              </h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 How much is this quest worth in euros?
               </p>
             </div>
