@@ -288,7 +288,7 @@ export function TerritoryQuestGrid({
         ) : filteredQuests.length === 0 ? (
           <div className="text-center py-10 rounded-xl border border-dashed border-border">
             <Compass className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No active quests in {territoryName} yet.</p>
+            <p className="text-sm text-muted-foreground">No quests in {territoryName} yet.</p>
             {canCreateQuest && (
               <Link to={`/quests/create?territory=${territoryId}`}>
                 <Button size="sm" variant="outline" className="mt-3 gap-1.5">
