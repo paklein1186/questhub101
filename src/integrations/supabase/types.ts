@@ -9437,9 +9437,11 @@ export type Database = {
       apply_monthly_demurrage: {
         Args: { _fade_rate?: number }
         Returns: {
-          total_faded: number
+          credits_total_faded: number
+          credits_users_faded: number
+          ctg_total_faded: number
+          ctg_users_faded: number
           treasury_credited: number
-          users_faded: number
         }[]
       }
       approve_quest_affiliation: {

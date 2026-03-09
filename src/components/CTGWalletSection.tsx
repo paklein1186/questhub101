@@ -22,6 +22,7 @@ import {
   ArrowUpRight, ArrowDownRight, Filter, Send, RefreshCw, Loader2, Info, AlertTriangle, Check, ArrowLeft, Sprout, Leaf,
 } from "lucide-react";
 import { getStewardTier, getNextStewardTier, STEWARD_TIERS } from "@/lib/xpCreditsConfig";
+import { estimateFade, DEMURRAGE_RATE_PERCENT } from "@/lib/demurrageConfig";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -227,6 +228,28 @@ export function CTGWalletSection() {
             <StatCard label="Exchange Rate" value={`1 $CTG = ${exchangeRate} credits`} />
           )}
         </div>
+
+        {/* ── Demurrage preview ── */}
+        {balance > 0 && (
+          <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Monthly fade ({DEMURRAGE_RATE_PERCENT})
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Returns to commons pool
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-destructive">
+                −{estimateFade(balance)} $CTG
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                next cycle
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Convert surplus nudge */}
         {balance > 50 && exchangeRate && (
