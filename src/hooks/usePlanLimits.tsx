@@ -83,6 +83,7 @@ export function usePlanLimits() {
   const [weeklyQuestsUsed, setWeeklyQuestsUsed] = useState(0);
   const [userXp, setUserXp] = useState(0);
   const [userCredits, setUserCredits] = useState(0);
+  const [userCtgBalance, setUserCtgBalance] = useState(0);
   const [userLevel, setUserLevel] = useState(1);
   const [guildCount, setGuildCount] = useState(0);
   const [podCount, setPodCount] = useState(0);
