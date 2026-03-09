@@ -1,11 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap } from "lucide-react";
+import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap, Globe, Loader2 } from "lucide-react";
 import { TREASURY_ALLOCATION } from "@/lib/xpCreditsConfig";
 import { PlatformGiveBackAdmin } from "@/components/giveback/GiveBackHistory";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 export function TreasuryDashboard() {
   const { data: settings = {}, isLoading: loadingSettings } = useQuery({

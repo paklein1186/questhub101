@@ -685,3 +685,73 @@ function ExchangeModal({
     </Dialog>
   );
 }
+
+// ── Commons Pool Card ──
+function CommonsPoolCard({ userId }: { userId?: string }) {
+  const { data: commons } = useQuery({
+    queryKey: ["ctg-commons-wallet"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ctg_commons_wallet").select("balance, lifetime_received").limit(1).single();
+      return data as any;
+    },
+    refetchInterval: 30_000,
+  });
+
+  const { data: lastPulse } = useQuery({
+    queryKey: ["commons-pulse-last", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      // Get latest pulse
+      const { data: pulse } = await supabase
+        .from("commons_pulse_history" as any)
+        .select("distributed_at, total_distributed")
+        .order("distributed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!pulse) return null;
+      // Get user's share from that pulse
+      const { data: tx } = await supabase
+        .from("ctg_transactions")
+        .select("amount, created_at")
+        .eq("user_id", userId!)
+        .eq("type", "COMMONS_EMISSION")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return { pulseDate: (pulse as any).distributed_at, userAmount: (tx as any)?.amount ?? 0 };
+    },
+  });
+
+  const threshold = 1000;
+  const balance = commons?.balance ?? 0;
+  const percent = Math.min((balance / threshold) * 100, 100);
+  const isReady = balance >= threshold;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-sm flex items-center gap-2">
+          🌍 Commons Pool
+        </h3>
+        {isReady && (
+          <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 animate-pulse">
+            Pulse ready — distribution upcoming
+          </span>
+        )}
+      </div>
+      <Progress
+        value={percent}
+        className={`h-2.5 ${isReady ? "[&>div]:bg-emerald-500" : ""}`}
+      />
+      <p className="text-xs text-muted-foreground">
+        <span className="font-semibold">{Math.round(balance)}</span> / {threshold} $CTG
+        {" — "}Fills as contributors share with the commons. Redistributed to active contributors when full.
+      </p>
+      {lastPulse && lastPulse.userAmount > 0 && (
+        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+          Last Pulse: {formatDistanceToNow(new Date(lastPulse.pulseDate), { addSuffix: true })} — you received <strong>{lastPulse.userAmount} $CTG</strong>
+        </p>
+      )}
+    </div>
+  );
+}
