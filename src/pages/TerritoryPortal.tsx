@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords } from "lucide-react";
+import { Loader2, Globe, Leaf, Compass, BookOpen, Settings, Network, Swords, Brain, MessageSquarePlus } from "lucide-react";
 
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
@@ -20,6 +20,9 @@ import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel"
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
+import { TerritoryMemoryTab } from "@/components/territory/TerritoryMemoryTab";
+import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
+import { TerritorySynthesis } from "@/components/territory/TerritorySynthesis";
 
 import { GraphView } from "@/components/graph/GraphView";
 import { BioregionMembersSection } from "@/components/territory/BioregionMembersSection";
@@ -318,6 +321,12 @@ export default function TerritoryPortal() {
             <TabsTrigger value="library" className="gap-1.5">
               <BookOpen className="h-3.5 w-3.5" /> Library
             </TabsTrigger>
+            <TabsTrigger value="intelligence" className="gap-1.5">
+              <Brain className="h-3.5 w-3.5" /> Intelligence
+            </TabsTrigger>
+            <TabsTrigger value="contribute" className="gap-1.5">
+              <MessageSquarePlus className="h-3.5 w-3.5" /> Contribute
+            </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
               <Network className="h-3.5 w-3.5" /> Graph
             </TabsTrigger>
@@ -341,6 +350,12 @@ export default function TerritoryPortal() {
               isAuthenticated={isAuthenticated}
               isAlreadyMember={isAlreadyMember}
             />
+            {/* AI Synthesis on Portal tab */}
+            <TerritorySynthesis
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              isMember={isAlreadyMember}
+            />
           </TabsContent>
 
           <TabsContent value="ecosystem" className="mt-6">
@@ -361,6 +376,14 @@ export default function TerritoryPortal() {
 
           <TabsContent value="library" className="mt-6">
             <TerritoryLibraryTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
+          </TabsContent>
+
+          <TabsContent value="intelligence" className="mt-6">
+            <TerritoryMemoryTab territoryId={resolvedId!} territoryName={territory.name} isMember={isAlreadyMember} />
+          </TabsContent>
+
+          <TabsContent value="contribute" className="mt-6">
+            <TerritoryChatTab territoryId={resolvedId!} territoryName={territory.name} userId={currentUser.id} />
           </TabsContent>
 
           <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
