@@ -248,24 +248,26 @@ export function TerritoryGuestPortal({
         </section>
       )}
 
-      {/* ── Section 3: Featured Quests ── */}
+      {/* ── Section 3: Featured Quests (auth-gated) ── */}
       {(data?.quests ?? []).length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Open Quests
-            </h3>
-            <Link
-              to={`/territories/${territory.id}?tab=ecosystem`}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-            >
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {data!.quests.map((q: any) => <GuestQuestCard key={q.id} quest={q} />)}
-          </div>
-        </section>
+        <GuestContentGate blur>
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Open Quests
+              </h3>
+              <Link
+                to={`/territories/${territory.id}?tab=ecosystem`}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                View all <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {data!.quests.map((q: any) => <GuestQuestCard key={q.id} quest={q} />)}
+            </div>
+          </section>
+        </GuestContentGate>
       )}
 
       {/* ── Section 4: People here ── */}
