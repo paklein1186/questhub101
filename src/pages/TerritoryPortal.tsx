@@ -38,7 +38,18 @@ function IntelligenceSubtabs({ territoryId, territoryName, userId, isMember }: {
   userId?: string;
   isMember: boolean;
 }) {
+  const isGuest = !userId;
   const [sub, setSub] = useState("synthesis");
+
+  // Guests only see synthesis
+  if (isGuest) {
+    return (
+      <div className="space-y-4">
+        <TerritoryMemoryTab territoryId={territoryId} territoryName={territoryName} isMember={false} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <Tabs value={sub} onValueChange={setSub}>
