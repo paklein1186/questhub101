@@ -369,7 +369,7 @@ export default function TerritoryPortal() {
             level: territory.level,
             slug: territory.slug,
           }}
-          currentUserXpLevel={1}
+          currentUserXpLevel={xpLevel}
           currentUserId={currentUser.id}
         />
       )}
