@@ -330,7 +330,14 @@ export function WalletTab() {
         </div>
 
         {/* ═══ $CTG WALLET ═══ */}
-        {activeWallet === "ctg" && <CTGWalletSection />}
+        {activeWallet === "ctg" && (
+          <>
+            <CTGWalletSection />
+            <div className="mt-6">
+              <BountyBoard />
+            </div>
+          </>
+        )}
 
         {/* ═══ COINS WALLET ═══ */}
         {activeWallet === "coins" && (
