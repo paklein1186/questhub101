@@ -72,6 +72,8 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     return [...seen.values()];
   }, [territories]);
 
+  const { data: stewarded = [] } = useStewardedTerritories(userId);
+
   // Group territories by attachment type
   const grouped = useMemo(() => {
     const groups: Record<string, any[]> = {};
