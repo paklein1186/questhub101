@@ -132,6 +132,17 @@ export function GuildDocsSpace({ guildId, isMember, isAdmin }: GuildDocsSpacePro
     qc.invalidateQueries({ queryKey: ["guild-docs", guildId] });
     setDocTitle(""); setDocContent(""); setCreateOpen(false);
     toast({ title: "Page created" });
+
+    // Emit $CTG for documentation contribution
+    try {
+      await supabase.rpc("emit_ctg_for_contribution", {
+        p_user_id: currentUser.id,
+        p_contribution_type: "documentation",
+        p_related_entity_id: guildId,
+        p_related_entity_type: "guild_doc",
+        p_note: `Doc created: ${docTitle.trim()}`,
+      });
+    } catch {}
   };
 
   const togglePin = async (doc: any) => {

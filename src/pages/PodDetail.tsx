@@ -234,6 +234,11 @@ export default function PodDetail() {
             <Button variant="outline" onClick={leavePod}><UserMinus className="h-4 w-4 mr-1" /> Leave pod</Button>
           ) : null}
           {isHost && <InviteLinkButton entityType="pod" entityId={pod.id} entityName={pod.name} />}
+          {isHost && (pod as any).status !== "COMPLETED" && (
+            <Button variant="outline" size="sm" onClick={markPodComplete}>
+              <ShieldCheck className="h-4 w-4 mr-1" /> Mark Complete
+            </Button>
+          )}
           {isHost && (
             <Button variant="outline" size="sm" asChild>
               <Link to={`/pods/${pod.id}/settings`}><Settings className="h-4 w-4 mr-1" /> Settings</Link>

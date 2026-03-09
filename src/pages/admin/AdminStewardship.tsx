@@ -24,7 +24,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
-import { Search, Trees, UserPlus, Trash2, MapPin, User, ChevronsUpDown, Check } from "lucide-react";
+import { Search, Trees, UserPlus, Trash2, MapPin, User, ChevronsUpDown, Check, Gift } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
