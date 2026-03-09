@@ -3,7 +3,7 @@
  * Route: /territories/:id
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -224,6 +224,21 @@ export default function TerritoryPortal() {
 
   const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
   const canCreateQuest = isAuthenticated && !!canAdmin;
+
+  const LEGACY_TABS: Record<string, string> = {
+    overview: "portal",
+    posts: "portal",
+    contribute: "library",
+  };
+  useEffect(() => {
+    if (LEGACY_TABS[tab]) {
+      setTab(LEGACY_TABS[tab]);
+      return;
+    }
+    if (tab === "admin" && adminStatus !== undefined && !canAdmin) {
+      setTab("portal");
+    }
+  }, [tab, canAdmin, adminStatus]);
 
   const setTab = (t: string) => {
     setSearchParams(prev => {
