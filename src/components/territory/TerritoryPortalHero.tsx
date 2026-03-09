@@ -103,10 +103,10 @@ function getFallbacks(level: string): string[] {
   return LEVEL_FALLBACKS[level?.toUpperCase()] ?? LEVEL_FALLBACKS["REGION"];
 }
 
-/* ── AI Cover generation hook ── */
-function useAiCover(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
+/* ── AI Cover generation hook (generates 5 covers) ── */
+function useAiCovers(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
   return useQuery({
-    queryKey: ["territory-ai-cover", territoryId],
+    queryKey: ["territory-ai-covers", territoryId],
     enabled: !hasImages,
     staleTime: Infinity,
     retry: false,
@@ -115,7 +115,11 @@ function useAiCover(territoryId: string, territoryName: string, level: string, h
         body: { territory_id: territoryId, territory_name: territoryName, territory_level: level },
       });
       if (error) throw error;
-      return (data as any)?.cover_url as string | null;
+      const urls = (data as any)?.cover_urls as string[] | undefined;
+      if (urls && urls.length > 0) return urls;
+      // Fallback to single cover_url
+      const single = (data as any)?.cover_url as string | null;
+      return single ? [single] : null;
     },
   });
 }
