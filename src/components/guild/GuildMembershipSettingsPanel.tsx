@@ -234,7 +234,7 @@ export function GuildMembershipSettingsPanel({ guild, guildId }: Props) {
             <div className="space-y-4 pl-2 border-l-2 border-primary/20">
               <div>
                 <Label className="text-sm font-medium mb-1 block">
-                  🟩 $CTG Redistribution ({redistributionPercent}%)
+                  🌱 $CTG Redistribution ({redistributionPercent}%)
                 </Label>
                 <p className="text-xs text-muted-foreground mb-2">
                   Percent of quest-earned $CTG redistributed to the guild pool

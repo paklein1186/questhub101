@@ -638,7 +638,7 @@ export default function LeaderboardTab() {
       {/* 4-section grid */}
       <div className="grid gap-5 lg:grid-cols-2">
         <UserSection
-          title="🟡 $CTG Champions"
+          title="🌱 $CTG Champions"
           subtitle={period === "all" ? "Top contributors by $CTG token balance." : `Top $CTG earned${subtitleSuffix}.`}
           icon={<Coins className="h-5 w-5 text-amber-500" />}
           accentClass="bg-amber-500/5"

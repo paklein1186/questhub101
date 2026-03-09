@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Banknote, Zap, Coins, ChevronRight, ChevronLeft, Check, HelpCircle,
+  Banknote, Zap, Coins, ChevronRight, ChevronLeft, Check, HelpCircle, Leaf,
   CreditCard, Handshake, Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -361,7 +361,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
             )}
             {props.isMonetized && Number(props.creditReward) > 0 && (
               <Badge variant="outline" className="text-[10px] py-0 gap-1">
-                <Coins className="h-2.5 w-2.5" /> {props.creditReward} 🟩 Tokens
+                <Leaf className="h-2.5 w-2.5 text-emerald-600" /> {props.creditReward} 🌱 $CTG
               </Badge>
             )}
             {props.openForProposals && (

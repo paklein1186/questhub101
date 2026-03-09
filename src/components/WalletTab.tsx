@@ -240,7 +240,7 @@ export function WalletTab() {
               <div><strong className="text-foreground">Platform Credits</strong> — Utility fuel for features, boosts &amp; quotas. Non-monetary, subject to monthly fade.</div>
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
-              <span className="text-base leading-none mt-0.5">🟡</span>
+              <span className="text-base leading-none mt-0.5">🌱</span>
               <div><strong className="text-foreground">🌱 $CTG</strong> — contribution token earned by producing verified work for the commons. Circulatory: fades 1%/month. Not fiat-backed. Distinct from ⭐ XP which is your permanent reputation.</div>
             </div>
             <div className="flex items-start gap-2 rounded-lg bg-muted/30 p-2.5">
@@ -269,7 +269,7 @@ export function WalletTab() {
           </ValueTile>
 
           {/* $CTG Token (🟡) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🟡"
+          <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🌱"
             value={ctgBal}
             tooltip="🌱 $CTG = what you produce for the commons. Earned through contributions (quests, rituals, governance, documentation). Fades 1%/month. Cannot be purchased. Transfer to collaborators or exchange for Credits.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
@@ -318,7 +318,7 @@ export function WalletTab() {
             onClick={() => setActiveWallet("ctg")}
             className="gap-1.5"
           >
-            🟡 $CTG Token
+            🌱 $CTG Token
           </Button>
           <Button
             variant={activeWallet === "coins" ? "default" : "outline"}
