@@ -306,7 +306,7 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
 }
 
 /* ── Section: Steward Delegation ── */
-function StewardDelegationSection({ territoryId }: SectionProps) {
+function StewardDelegationSection({ territoryId, territoryName }: SectionProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [delegating, setDelegating] = useState(false);
