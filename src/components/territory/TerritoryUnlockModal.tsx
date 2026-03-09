@@ -109,17 +109,17 @@ function useUnlockTerritory() {
       if (terrErr) throw terrErr;
 
       // 2. Upsert pioneer steward edge (safe against race conditions)
-      await (supabase.from("trust_edges") as any).upsert({
+      await (supabase.from("trust_edges") as any).insert({
         from_node_id: userId,
-        from_node_type: "user",
+        from_node_type: "profile",
         to_node_id: territoryId,
         to_node_type: "territory",
         edge_type: "stewardship",
-        score: 1,
+        score: 5,
         tags: ["pioneer"],
         status: "active",
         created_by: userId,
-      } as any, { onConflict: "from_node_id,to_node_id,edge_type", ignoreDuplicates: true });
+      } as any);
 
       // 3. Set territory as user's primary territory
       await supabase
