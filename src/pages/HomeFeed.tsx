@@ -618,7 +618,7 @@ export default function HomeFeed() {
 
           {/* Task Board — below the AI section */}
           {currentUser.id &&
-          <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
+          <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-8 space-y-5 sm:space-y-6">
               <PathwayCards persona={persona} progress={progress} steps={steps} />
               <div>
                 <div className="flex items-center gap-2 mb-3">
