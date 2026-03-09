@@ -118,6 +118,7 @@ export default function AdminStewardship() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [showAssign, setShowAssign] = useState(false);
+  const [grantingRewards, setGrantingRewards] = useState(false);
 
   // Assign form state
   const [assignUserId, setAssignUserId] = useState("");
