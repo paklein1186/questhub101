@@ -243,7 +243,7 @@ function useActiveTerritories(period: TimePeriod, limit = 10) {
     queryFn: async () => {
       const { data: territories } = await supabase
         .from("territories")
-        .select("id, name, level")
+        .select("id, name, level, logo_url")
         .eq("is_deleted", false);
 
       if (!territories?.length) return [];
