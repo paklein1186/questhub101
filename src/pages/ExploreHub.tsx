@@ -88,7 +88,7 @@ export default function ExploreHub() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
         </div>
-        <GridDensityToggle density={gridDensity.density} setDensity={gridDensity.setDensity} />
+        
       </div>
 
       <SectionBanner {...HINTS.banners.explore} />
