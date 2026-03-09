@@ -226,6 +226,8 @@ export default function TerritoryPortal() {
   const LEGACY_TABS: Record<string, string> = {
     overview: "portal",
     posts: "portal",
+    library: "intelligence",
+    contribute: "intelligence",
   };
   useEffect(() => {
     if (LEGACY_TABS[tab]) {
