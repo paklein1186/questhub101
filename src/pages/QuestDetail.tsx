@@ -687,9 +687,9 @@ export default function QuestDetail() {
               <div>
                 <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
                 <p className="text-lg font-bold">
-                  €{(quest as any).mission_budget_min ?? "—"} – €{(quest as any).mission_budget_max ?? "—"}
+                  🟩 {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
                 </p>
-                <p className="text-[10px] text-muted-foreground">Payment in euros • {(quest as any).payment_type || "INVOICE"}</p>
+                <p className="text-[10px] text-muted-foreground">≈ €{(quest as any).mission_budget_min ?? 0} – €{(quest as any).mission_budget_max ?? 0} • {(quest as any).payment_type || "INVOICE"}</p>
               </div>
             )}
             <div>
