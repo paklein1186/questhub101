@@ -240,9 +240,18 @@ export const CREDIT_BUNDLES = [
 
 export type CreditBundleCode = (typeof CREDIT_BUNDLES)[number]["code"];
 
-/** Conversion rate: 1 Coin = COIN_EUR_RATE euros on withdrawal.
- *  Set by the cooperative. Update here when rate changes. */
+/** @deprecated Use useCoinsRate() hook instead — reads from cooperative_settings */
 export const COIN_EUR_RATE = 0.04;
+
+/** Fallback rate used when cooperative_settings cannot be fetched */
+export const COINS_EUR_RATE_FALLBACK = 0.04;
+
+/** Coins per € (inverse of rate) */
+export const coinsPerEur = (rate: number) => Math.round(1 / rate);
+
+/** Format Coins with € equivalent */
+export const formatCoins = (coins: number, rate: number = COINS_EUR_RATE_FALLBACK) =>
+  `🟩 ${coins.toLocaleString()} Coins (≈ €${(coins * rate).toFixed(2)})`;
 
 // ─── Plan Codes ─────────────────────────────────────────────
 export const PLAN_CODES = {
