@@ -99,13 +99,30 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
           .limit(20),
       ]);
 
+      // Deduplicate quests by id
+      const questSeen = new Set<string>();
       const quests: QuestItem[] = (questsRes.data ?? [])
         .map((r: any) => r.quests)
         .filter(Boolean)
-        .filter((q: any) =>
-          ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status)
-        );
+        .filter((q: any) => {
+          if (questSeen.has(q.id)) return false;
+          questSeen.add(q.id);
+          return ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status);
+        });
 
+      // Combine natural systems from both tables, dedup
+      const nsSeen = new Set<string>();
+      const allNs = [
+        ...(nsRes.data ?? []).map((r: any) => r.natural_systems).filter(Boolean),
+        ...(nsLinksRes.data ?? []).map((r: any) => r.natural_systems).filter(Boolean),
+      ].filter((ns: any) => {
+        if (nsSeen.has(ns.id)) return false;
+        nsSeen.add(ns.id);
+        return true;
+      });
+
+      // Deduplicate entities by id
+      const entitySeen = new Set<string>();
       const entities: EntityItem[] = [
         ...(guildsRes.data ?? []).map((r: any) => ({
           ...r.guilds,
@@ -121,11 +138,15 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
           type: "company" as const,
           avatar_url: r.companies?.logo_url,
         })).filter(Boolean),
-        ...(nsRes.data ?? []).map((r: any) => ({
-          ...r.natural_systems,
+        ...allNs.map((ns: any) => ({
+          ...ns,
           type: "natural_system" as const,
-        })).filter(Boolean),
-      ];
+        })),
+      ].filter((e: any) => {
+        if (!e || !e.id || entitySeen.has(e.id)) return false;
+        entitySeen.add(e.id);
+        return true;
+      });
 
       return { quests, entities };
     },
