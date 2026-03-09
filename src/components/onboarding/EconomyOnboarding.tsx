@@ -26,6 +26,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useIsDismissed } from "@/components/onboarding/ContextualHint";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
