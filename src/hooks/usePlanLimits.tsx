@@ -250,8 +250,8 @@ export function usePlanLimits() {
   const spendCredits = useCallback(async (amount: number, description: string, entityType?: string, entityId?: string) => {
     if (!userId) return false;
 
-    // Grace period: no credits consumed
-    if (inGracePeriod) return true;
+    // Superadmin or grace period: no credits consumed
+    if (isSuperAdmin || inGracePeriod) return true;
 
     const { data: profile } = await supabase
       .from("profiles")
