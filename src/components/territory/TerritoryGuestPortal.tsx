@@ -212,6 +212,39 @@ export function TerritoryGuestPortal({
         )}
       </section>
 
+      {/* ── Location Map ── */}
+      {territory.latitude && territory.longitude && (
+        <section>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            Location
+          </h3>
+          <div className="rounded-2xl border border-border/60 overflow-hidden" style={{ height: 260 }}>
+            <MapContainer
+              center={[territory.latitude, territory.longitude]}
+              zoom={territory.level === "TOWN" || territory.level === "LOCALITY" ? 12 : territory.level === "PROVINCE" || territory.level === "REGION" ? 8 : 5}
+              scrollWheelZoom={false}
+              style={{ height: "100%", width: "100%" }}
+              attributionControl={false}
+            >
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+              <Marker
+                position={[territory.latitude, territory.longitude]}
+                icon={L.divIcon({
+                  className: "",
+                  html: `<div style="background: hsl(var(--primary)); width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(0,0,0,0.4);"></div>`,
+                  iconSize: [14, 14],
+                  iconAnchor: [7, 7],
+                })}
+              >
+                <Popup>
+                  <span className="text-xs font-medium">{territory.name}</span>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        </section>
+      )}
+
       {/* ── Section 3: Featured Quests ── */}
       {(data?.quests ?? []).length > 0 && (
         <section>
