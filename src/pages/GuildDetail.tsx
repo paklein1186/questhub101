@@ -272,15 +272,15 @@ export default function GuildDetail() {
   const { data: guild, isLoading } = useGuildById(id);
   const { data: membersData } = useGuildMembersWithProfiles(id);
   const memberUserIds = useMemo(() => (membersData || []).map((m: any) => m.user_id), [membersData]);
-  const { data: membersCreditSum = 0 } = useQuery({
-    queryKey: ["guild-members-credits", id, memberUserIds],
+  const { data: membersCTGSum = 0 } = useQuery({
+    queryKey: ["guild-members-ctg", id, memberUserIds],
     enabled: memberUserIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("credits_balance")
+        .select("ctg_balance")
         .in("user_id", memberUserIds);
-      return (data || []).reduce((sum: number, p: any) => sum + (p.credits_balance ?? 0), 0);
+      return (data || []).reduce((sum: number, p: any) => sum + (p.ctg_balance ?? 0), 0);
     },
   });
   const _fc = typeof guild?.features_config === "object" && guild?.features_config ? guild.features_config : {};
