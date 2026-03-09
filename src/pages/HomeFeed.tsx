@@ -498,7 +498,7 @@ export default function HomeFeed() {
 
       {/* When Pi is open, show tasks at the top with no hero spacing */}
       {isPiOpen ? (
-        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-12 space-y-8 sm:space-y-10">
+        <div className="max-w-[960px] mx-auto px-3 sm:px-4 pt-4 pb-8 space-y-5 sm:space-y-6">
           <PathwayCards persona={persona} progress={progress} steps={steps} />
           {currentUser.id && (
             <motion.div
@@ -517,7 +517,7 @@ export default function HomeFeed() {
         </div>
       ) : (
         <>
-          <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[50vh] sm:min-h-[60vh] justify-center px-3 sm:px-4 py-8 sm:py-20">
+          <div className="relative max-w-[960px] mx-auto flex flex-col items-center min-h-[35vh] sm:min-h-[40vh] justify-center px-3 sm:px-4 py-4 sm:py-10">
             <AnimatePresence>
               <motion.div
                 key="home-hero"
@@ -531,7 +531,7 @@ export default function HomeFeed() {
                 <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground text-center mb-1">
                   {t(PERSONA_GREETING_KEYS[effectivePersona] || PERSONA_GREETING_KEYS.UNSET)}
                 </h1>
-                <div className="mb-4 sm:mb-6" />
+                <div className="mb-2 sm:mb-3" />
 
                 {/* Talk to Pi button */}
                 <motion.button
@@ -539,7 +539,7 @@ export default function HomeFeed() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                   onClick={() => openPiPanel()}
-                  className="flex items-center gap-2 px-5 py-2.5 mb-6 sm:mb-8 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 mb-4 sm:mb-5 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
                   <Sparkles className="h-4 w-4" />
                   Talk to Pi
@@ -618,7 +618,7 @@ export default function HomeFeed() {
 
           {/* Task Board — below the AI section */}
           {currentUser.id &&
-          <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-12 space-y-8 sm:space-y-10">
+          <div className="max-w-[960px] mx-auto px-3 sm:px-4 pb-8 space-y-5 sm:space-y-6">
               <PathwayCards persona={persona} progress={progress} steps={steps} />
               <div>
                 <div className="flex items-center gap-2 mb-3">

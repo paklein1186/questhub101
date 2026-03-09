@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CTGBalanceBadge } from "@/components/CTGBalanceBadge";
 import { ValueIndicators } from "@/components/ValueIndicators";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles, Star } from "lucide-react";
+import { Home, Search, Briefcase, Users, Bell, LayoutDashboard, LogIn, LogOut, User, Menu, X, Rss, Mail, Globe, Coins, Sparkles, Star, Moon, Sun } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import logoImg from "@/assets/logo.png";
@@ -27,6 +27,7 @@ import {
 import {
   Sheet, SheetContent, SheetTrigger, SheetClose,
 } from "@/components/ui/sheet";
+import { useTheme } from "next-themes";
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -66,6 +67,20 @@ function LanguageSwitcherInline() {
         ))}
       </div>
     </div>
+  );
+}
+
+function ThemeToggleButton() {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="flex items-center justify-center h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
   );
 }
 
@@ -182,7 +197,8 @@ export function AppNav() {
                     );
                   })}
 
-
+                  {/* Theme toggle */}
+                  <ThemeToggleButton />
 
 
                   {/* Unified profile menu */}
@@ -378,6 +394,9 @@ export function AppNav() {
                             <div className="h-px bg-border" />
                           </div>
                           <LanguageSwitcher variant="full" />
+                          <div className="px-3 py-2">
+                            <ThemeToggleButton />
+                          </div>
 
                           {showAdmin && (
                             <>
