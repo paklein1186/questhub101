@@ -278,7 +278,7 @@ export function usePlanLimits() {
 
     setUserCredits(balance - amount);
     return true;
-  }, [userId, inGracePeriod]);
+  }, [userId, isSuperAdmin, inGracePeriod]);
 
   // Legacy alias
   const spendXp = spendCredits;
