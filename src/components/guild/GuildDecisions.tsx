@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useXpCredits } from "@/hooks/useXpCredits";
+import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { formatDistanceToNow, isPast, isFuture, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -491,6 +493,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { grantXp } = useXpCredits();
   const [objReason, setObjReason] = useState("");
 
   const castVote = async (optionIndex: number, value?: string, objectionReason?: string) => {
@@ -525,6 +528,13 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
       p_related_entity_id: decision.id,
       p_related_entity_type: 'decision',
     } as any).then(() => {});
+
+    // Grant XP for governance vote
+    grantXp(currentUserId, {
+      type: XP_EVENT_TYPES.GOVERNANCE_VOTE_CAST,
+      relatedEntityType: "decision",
+      relatedEntityId: decision.id,
+    });
 
     qc.invalidateQueries({ queryKey: ["decision-votes", decision.id] });
     onRefresh();

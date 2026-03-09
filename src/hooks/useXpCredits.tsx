@@ -172,6 +172,10 @@ function formatXpType(type: string): string {
     POD_JOINED: "Pod joined",
     EVENT_REGISTERED: "Event registration",
     COURSE_ENROLLED: "Course enrollment",
+    GOVERNANCE_VOTE_CAST: "Governance vote cast",
+    REVIEW_GIVEN: "Review given",
+    DOCUMENTATION_WRITTEN: "Documentation contributed",
+    ECOLOGICAL_ANNOTATION: "Ecological annotation",
   };
   return map[type] ?? type.replace(/_/g, " ").toLowerCase();
 }
