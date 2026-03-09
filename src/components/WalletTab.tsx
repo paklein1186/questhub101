@@ -271,7 +271,7 @@ export function WalletTab() {
           {/* $CTG Token (🟡) */}
           <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🟡"
             value={ctgBal}
-            tooltip="Cooperative contribution token earned through verified work on quests. Distributed via the Value Pie.">
+            tooltip="🌱 $CTG = what you produce for the commons. Earned through contributions (quests, rituals, governance, documentation). Fades 1%/month. Cannot be purchased. Transfer to collaborators or exchange for Credits.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
               View Wallet
             </Button>
