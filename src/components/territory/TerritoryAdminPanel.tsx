@@ -265,22 +265,12 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("quest_territories" as any)
-        .select("quest_id, is_featured, is_hidden, quests(id, title, status, quest_nature)")
+        .select("quest_id, is_hidden, quests(id, title, status, quest_nature)")
         .eq("territory_id", territoryId)
         .limit(20);
-      return (data ?? []).map((r: any) => ({ ...r.quests, is_featured: r.is_featured, is_hidden: r.is_hidden ?? false })).filter(Boolean);
+      return (data ?? []).map((r: any) => ({ ...r.quests, is_hidden: r.is_hidden ?? false })).filter(Boolean);
     },
   });
-
-  const toggleFeatured = async (questId: string, current: boolean) => {
-    await supabase
-      .from("quest_territories" as any)
-      .update({ is_featured: !current } as any)
-      .eq("territory_id", territoryId)
-      .eq("quest_id", questId);
-    queryClient.invalidateQueries({ queryKey: ["territory-admin-quests", territoryId] });
-    toast({ title: !current ? "Quest featured" : "Quest unfeatured" });
-  };
 
   const toggleHidden = async (questId: string, currentlyHidden: boolean) => {
     await supabase
@@ -310,15 +300,6 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
             className="text-[10px] h-6 px-2"
           >
             {q.is_hidden ? "Hidden" : "Visible"}
-          </Button>
-          <Button
-            size="sm"
-            variant={q.is_featured ? "secondary" : "outline"}
-            onClick={() => toggleFeatured(q.id, q.is_featured)}
-            className="text-[10px] h-6 px-2"
-          >
-            <Star className={cn("h-3 w-3 mr-1", q.is_featured && "fill-amber-500 text-amber-500")} />
-            {q.is_featured ? "Featured" : "Feature"}
           </Button>
         </div>
       ))}
