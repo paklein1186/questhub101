@@ -196,7 +196,7 @@ function useTerritoryPortalStewards(territoryId: string | undefined) {
         .eq("status", "active")
         .limit(10);
 
-      const stewardIds = (edges ?? []).map((e: any) => e.from_id);
+      const stewardIds = (edges ?? []).map((e: any) => e.from_node_id);
       if (stewardIds.length === 0) return [];
 
       const { data: profiles } = await supabase
