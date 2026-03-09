@@ -191,7 +191,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
 
             <div>
               <Label htmlFor="bw-rewardXp" className="text-xs flex items-center gap-1">
-                XP Reward <Tip>Experience points granted to each participant upon quest completion. XP is non-transferable reputation.</Tip>
+                XP Reward <Tip>⭐ XP granted on completion. Permanent reputation — never decays, never purchased. Reflects who you are becoming.</Tip>
               </Label>
               <Input
                 id="bw-rewardXp"
@@ -216,7 +216,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div>
                      <Label htmlFor="bw-creditReward" className="text-xs flex items-center gap-1">
-                       🌱 $CTG reward <Tip>$CTG emitted to each participant on verified completion. Contribution-only, not purchasable.</Tip>
+                       🌱 $CTG reward <Tip>🌱 $CTG emitted on verified completion. Contribution to the commons — not fiat-backed, not purchasable. Fades 1%/month.</Tip>
                     </Label>
                     <Input
                       id="bw-creditReward"
@@ -281,7 +281,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="CREDITS">🌱 $CTG</SelectItem>
+                        <SelectItem value="CREDITS">🌱 $CTG (contribution token)</SelectItem>
                         <SelectItem value="FIAT">Fiat (€)</SelectItem>
                       </SelectContent>
                     </Select>

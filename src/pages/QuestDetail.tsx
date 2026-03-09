@@ -696,6 +696,9 @@ export default function QuestDetail() {
               <p className="text-[10px] text-muted-foreground">
                 Creator: +{XP_REWARDS[XP_EVENT_TYPES.QUEST_COMPLETED_CREATOR]} XP • Participant: +{XP_REWARDS[XP_EVENT_TYPES.QUEST_COMPLETED_USER]} XP
               </p>
+              <p className="text-[10px] text-muted-foreground mt-2">
+                ⭐ XP is permanent reputation. 🌱 $CTG is contribution to the commons (fades 1%/month).
+              </p>
             </div>
             {quest.credit_reward > 0 && (
               <div>
