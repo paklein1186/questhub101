@@ -560,7 +560,7 @@ export default function UserProfile() {
                     <div className="flex flex-wrap gap-1">
                       {creativeHouses.slice(0, housesLimit).map((t: any) => (
                         <Link key={t.id} to={`/explore?tab=houses&topics=${t.id}`}>
-                          <Badge variant="secondary" className="text-[10px] cursor-pointer hover:bg-secondary/80 bg-accent/10 text-accent-foreground border-accent/20">
+                          <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-primary/10 border-primary/30 text-primary">
                             <Sparkles className="h-2.5 w-2.5 mr-0.5" />{t.name}
                           </Badge>
                         </Link>
