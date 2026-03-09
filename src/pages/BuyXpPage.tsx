@@ -250,49 +250,21 @@ export default function BuyXpPage() {
           ))}
         </div>
 
-        {/* What can you do with credits */}
-        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-5">
-          <h3 className="font-semibold text-sm flex items-center gap-2 mb-3">
-            <Info className="h-4 w-4 text-primary" /> What can you do with credits?
-          </h3>
-          <div className="grid md:grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.EXTRA_QUEST_CREATION}</Badge>
-              <span className="text-muted-foreground">Create an extra quest</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.EXTRA_POD_CREATION}</Badge>
-              <span className="text-muted-foreground">Open an extra pod</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_QUEST_VISIBILITY}</Badge>
-              <span className="text-muted-foreground">Boost quest visibility</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_SERVICE_VISIBILITY}</Badge>
-              <span className="text-muted-foreground">Boost service visibility</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.FEATURE_QUEST_7D}</Badge>
-              <span className="text-muted-foreground">Feature quest for 7 days</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.ENABLE_AI_PRO_SESSION}</Badge>
-              <span className="text-muted-foreground">AI Pro session</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_GUILD_EXPLORE}</Badge>
-              <span className="text-muted-foreground">Boost guild in Explore</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.BOOST_COURSE}</Badge>
-              <span className="text-muted-foreground">Boost course visibility</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs font-mono">{CREDIT_COSTS.REDUCE_COMMISSION_BY_1_PERCENT}</Badge>
-              <span className="text-muted-foreground">Reduce commission by 1%</span>
-            </div>
+        {/* Credit Shop link */}
+        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-5 flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Info className="h-4 w-4 text-primary" /> What can you do with credits?
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Boosts, extra capacity, AI sessions, commission reductions & more.
+            </p>
           </div>
+          <Link to="/me/credit-shop">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              Browse Credit Shop <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
         </div>
 
         <div className="mt-6 text-center text-sm text-muted-foreground space-y-1">

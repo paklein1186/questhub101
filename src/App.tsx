@@ -83,6 +83,7 @@ import CompanyDetail from "./pages/CompanyDetail";
 import CompanySettings from "./pages/CompanySettings";
 import TopicHouse from "./pages/TopicHouse";
 import BuyXpPage from "./pages/BuyXpPage";
+import CreditShopPage from "./pages/CreditShopPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import MyBookings from "./pages/MyBookings";
@@ -308,6 +309,7 @@ const App = () => (
                 <Route path="/me/services" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/credits" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
+                <Route path="/me/credit-shop" element={<RequireAuth><CreditShopPage /></RequireAuth>} />
                 <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/shares" element={<RequireAuth><SharesPage /></RequireAuth>} />
