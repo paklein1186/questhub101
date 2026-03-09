@@ -60,6 +60,7 @@ const LEVEL_ICON: Record<string, React.ElementType> = {
   PROVINCE: MapPin,
   TOWN: MapPin,
   LOCALITY: MapPin,
+  BIOREGION: Leaf,
 };
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -70,6 +71,7 @@ const LEVEL_LABEL: Record<string, string> = {
   PROVINCE: "Province",
   TOWN: "Town",
   LOCALITY: "Locality",
+  BIOREGION: "Bioregion",
 };
 
 const LEVEL_FALLBACKS: Record<string, string[]> = {
