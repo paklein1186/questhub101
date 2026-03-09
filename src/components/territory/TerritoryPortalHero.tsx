@@ -97,6 +97,23 @@ function getFallbacks(level: string): string[] {
   return LEVEL_FALLBACKS[level?.toUpperCase()] ?? LEVEL_FALLBACKS["REGION"];
 }
 
+/* ── AI Cover generation hook ── */
+function useAiCover(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
+  return useQuery({
+    queryKey: ["territory-ai-cover", territoryId],
+    enabled: !hasImages,
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke("generate-territory-cover", {
+        body: { territory_id: territoryId, territory_name: territoryName, territory_level: level },
+      });
+      if (error) throw error;
+      return (data as any)?.cover_url as string | null;
+    },
+  });
+}
+
 /* ── Stat pill ── */
 function StatPill({
   icon: Icon, value, label, color = "text-muted-foreground",
