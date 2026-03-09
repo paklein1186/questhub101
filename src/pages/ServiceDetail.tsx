@@ -386,7 +386,14 @@ export default function ServiceDetail() {
             </Link>
           ) : null}
           {svc.duration_minutes && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {svc.duration_minutes} min</span>}
-          {svc.price_amount != null && <Badge className="bg-primary/10 text-primary border-0"><Euro className="h-3 w-3 mr-0.5" />{svc.price_amount === 0 ? "Free" : `${svc.price_amount} ${svc.price_currency}`}</Badge>}
+          {svc.price_amount != null && (
+            <>
+              <Badge className="bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
+                {svc.price_amount === 0 ? "Free" : `🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins`}
+              </Badge>
+              {svc.price_amount > 0 && <span className="text-[11px] text-muted-foreground">≈ €{svc.price_amount}</span>}
+            </>
+          )}
           {(svc as any).service_type === "service_mission" && <Badge variant="outline" className="text-xs"><Briefcase className="h-3 w-3 mr-1" />Mission</Badge>}
           {(svc as any).service_type === "event_attendance" && <Badge variant="outline" className="text-xs"><Users className="h-3 w-3 mr-1" />Event</Badge>}
           {(svc as any).service_type === "online_call" && svc.online_location_type && <Badge variant="outline" className="text-xs"><Video className="h-3 w-3 mr-1" />{svc.online_location_type}</Badge>}
