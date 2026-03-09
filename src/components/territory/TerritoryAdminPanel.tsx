@@ -306,7 +306,7 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
 }
 
 /* ── Section: Steward Delegation ── */
-function StewardDelegationSection({ territoryId }: SectionProps) {
+function StewardDelegationSection({ territoryId, territoryName }: SectionProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [delegating, setDelegating] = useState(false);
@@ -325,31 +325,14 @@ function StewardDelegationSection({ territoryId }: SectionProps) {
   const handleDelegate = async () => {
     setDelegating(true);
     try {
-      // Look up user by email
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_id, name")
-        .eq("email", email.toLowerCase())
-        .maybeSingle();
-
-      if (!profile) throw new Error("User not found with that email");
-
-      await (supabase.from("trust_edges") as any).insert({
-        from_node_id: profile.user_id,
-        from_node_type: "user",
-        to_node_id: territoryId,
-        to_node_type: "territory",
-        edge_type: "stewardship",
-        score: 1,
-        tags: ["co-steward"],
-        status: "active",
-        created_by: profile.user_id,
-      } as any);
-
+      const { error } = await supabase.functions.invoke("invite-territory-steward", {
+        body: { email: email.toLowerCase(), territory_id: territoryId, territory_name: territoryName },
+      });
+      if (error) throw error;
       setEmail("");
-      toast({ title: `${profile.name} added as co-steward` });
+      toast({ title: "Invitation sent", description: "If an account with that email exists, they have been added as co-steward." });
     } catch (e: any) {
-      toast({ title: "Delegation failed", description: e.message, variant: "destructive" });
+      toast({ title: "Failed", description: e.message, variant: "destructive" });
     } finally {
       setDelegating(false);
     }
