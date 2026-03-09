@@ -100,11 +100,20 @@ function useTerritoryMemberCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 60_000,
     queryFn: async () => {
-      const { count } = await supabase
+      // Get all descendant territory IDs (including self) via closure table
+      const { data: closureData } = await supabase
+        .from("territory_closure")
+        .select("descendant_id")
+        .eq("ancestor_id", territoryId!);
+      const ids = closureData?.map((r: any) => r.descendant_id) ?? [territoryId!];
+
+      // Count distinct users across all descendant territories
+      const { data } = await supabase
         .from("user_territories")
-        .select("user_id", { count: "exact", head: true })
-        .eq("territory_id", territoryId!);
-      return count ?? 0;
+        .select("user_id")
+        .in("territory_id", ids);
+      const uniqueUsers = new Set((data ?? []).map((r: any) => r.user_id));
+      return uniqueUsers.size;
     },
   });
 }
