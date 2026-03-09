@@ -323,14 +323,8 @@ export default function TerritoryPortal() {
             <TabsTrigger value="living" className="gap-1.5">
               <Leaf className="h-3.5 w-3.5" /> Living
             </TabsTrigger>
-            <TabsTrigger value="library" className="gap-1.5">
-              <BookOpen className="h-3.5 w-3.5" /> Library
-            </TabsTrigger>
             <TabsTrigger value="intelligence" className="gap-1.5">
               <Brain className="h-3.5 w-3.5" /> Intelligence
-            </TabsTrigger>
-            <TabsTrigger value="contribute" className="gap-1.5">
-              <MessageSquarePlus className="h-3.5 w-3.5" /> Contribute
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
               <Network className="h-3.5 w-3.5" /> Graph
