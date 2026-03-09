@@ -381,6 +381,50 @@ export function WalletTab() {
                   </p>
                 </div>
 
+                {/* ── Add Coins ── */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-medium text-muted-foreground">Add Coins to wallet</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { coins: 250, label: "Small" },
+                      { coins: 1000, label: "Standard" },
+                      { coins: 2500, label: "Builder" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.coins}
+                        onClick={async () => {
+                          setTopupLoading(opt.coins);
+                          try {
+                            const { data, error } = await supabase.functions.invoke("create-checkout", {
+                              body: { mode: "coins_topup", coinsAmount: opt.coins },
+                            });
+                            if (error) throw error;
+                            if (data?.url) window.open(data.url, "_blank");
+                          } catch (err: any) {
+                            toast({ title: "Error", description: err.message, variant: "destructive" });
+                          } finally {
+                            setTopupLoading(null);
+                          }
+                        }}
+                        disabled={!!topupLoading}
+                        className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 p-3 text-center hover:bg-teal-100 dark:hover:bg-teal-950/50 transition-colors disabled:opacity-50"
+                      >
+                        <p className="text-sm font-bold text-teal-700 dark:text-teal-300">
+                          🟩 {opt.coins.toLocaleString()}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          ≈ €{(opt.coins * COIN_EUR_RATE).toFixed(0)}
+                        </p>
+                        <p className="text-[10px] font-medium text-teal-600 dark:text-teal-400">{opt.label}</p>
+                        {topupLoading === opt.coins && <Loader2 className="h-3 w-3 animate-spin mx-auto mt-1" />}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Coins are fiat-backed. Used for quest pots and service payments. Withdrawable via Stripe Connect.
+                  </p>
+                </div>
+
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleRequestWithdrawal} disabled={coinsBal <= 0}>
                     <Download className="h-4 w-4 mr-1" /> Withdraw to bank

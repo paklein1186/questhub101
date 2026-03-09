@@ -238,6 +238,42 @@ serve(async (req) => {
         }
 
         console.log(`[WEBHOOK] Course ${courseId} purchased and enrolled for user ${userId}`);
+      } else if (metadata.type === "coins_topup") {
+        // Coins top-up via Stripe Checkout
+        const userId = metadata.user_id;
+        const coinsAmount = parseInt(metadata.coins_amount || "0", 10);
+        const eurAmount = (session.amount_total ?? 0) / 100;
+
+        console.log(`[WEBHOOK] Coins top-up: user=${userId}, coins=${coinsAmount}, eur=${eurAmount}`);
+
+        if (userId && coinsAmount > 0) {
+          // Get current balance
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("coins_balance")
+            .eq("user_id", userId)
+            .single();
+
+          if (profile) {
+            const currentBalance = (profile as any).coins_balance ?? 0;
+            await supabase
+              .from("profiles")
+              .update({ coins_balance: currentBalance + coinsAmount })
+              .eq("user_id", userId);
+          }
+
+          // Record transaction
+          await supabase.from("coin_transactions").insert({
+            user_id: userId,
+            amount: coinsAmount,
+            type: "fiat_deposit",
+            source: `Coins purchased: ${coinsAmount} Coins for €${eurAmount.toFixed(2)}`,
+            fiat_backing_amount: eurAmount,
+            fiat_currency: "EUR",
+          });
+
+          console.log(`[WEBHOOK] Coins minted: ${coinsAmount} for user ${userId}`);
+        }
       } else if (metadata.type === "share_purchase") {
         // Share purchase — record shareholding after payment
         const userId = metadata.user_id;
