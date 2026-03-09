@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Leaf, Plus, TreePine, Droplets, Mountain, Sprout, Bug, Microscope, Link2,
-  Database, RefreshCw, Zap, Trophy, Coins, AlertCircle, ChevronDown, ChevronUp,
+  Database, RefreshCw, Trophy, AlertCircle, ChevronDown, ChevronUp,
   Shield, Target, TrendingUp, TrendingDown, Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
