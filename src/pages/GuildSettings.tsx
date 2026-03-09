@@ -772,7 +772,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                           <ImageUpload label="Image (optional)" currentImageUrl={svcImageUrl} onChange={setSvcImageUrl} aspectRatio="16/9" description="Service cover image" />
                           <div className="grid grid-cols-2 gap-3">
                             <div><label className="text-sm font-medium mb-1 block">Duration (min)</label><Input type="number" value={svcDuration} onChange={(e) => setSvcDuration(e.target.value)} min={15} /></div>
-                            <div><label className="text-sm font-medium mb-1 block">Price (€)</label><Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} min={0} /></div>
+                            <div><label className="text-sm font-medium mb-1 block">Price (€) — shown as 🟩 Coins to clients</label><Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} min={0} /></div>
                           </div>
                           <div><label className="text-sm font-medium mb-1 block">Online location</label>
                             <Select value={svcLocationType} onValueChange={(v) => setSvcLocationType(v as OnlineLocationType)}>

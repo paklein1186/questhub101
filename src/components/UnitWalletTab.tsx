@@ -182,7 +182,7 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
 
       <div className="rounded-lg border border-border bg-muted/30 p-4">
         <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Info className="h-3 w-3" /> Unit credits can fund quests created by this unit. When a quest is completed, earned credits go to participants' personal wallets.
+          <Info className="h-3 w-3" /> Unit credits can fund quests created by this unit. When a quest is completed, earned 🌱 $CTG tokens go to participants' wallets.
         </p>
       </div>
     </div>

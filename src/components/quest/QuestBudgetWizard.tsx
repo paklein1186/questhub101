@@ -294,7 +294,7 @@ export function QuestBudgetWizard(props: QuestBudgetWizardProps) {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="bw-creditBudget" className="text-xs flex items-center gap-1">
-                        Budget (pot) <Tip>The amount you commit upfront to fund proposals. Deducted from your wallet.</Tip>
+                        🌱 $CTG Pool <Tip>You spend 🔷 Credits now. Contributors earn 🌱 $CTG from this pool when they complete work. Credits and $CTG are different layers — this is how contribution value gets created.</Tip>
                       </Label>
                       <Input
                         id="bw-creditBudget"

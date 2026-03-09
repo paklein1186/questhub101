@@ -297,8 +297,21 @@ export default function ServiceCreate() {
             <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} min={15} max={480} />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Price (€)</label>
+            <label className="text-sm font-medium mb-1 block">Price (€) — shown as 🟩 Coins to clients</label>
             <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} min={0} step={5} />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              A price of €{price || 45} displays as 🟩 {Math.round(Number(price || 45) / 0.04).toLocaleString()} Coins to clients.
+            </p>
+            <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20 p-3 mt-2">
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400 mb-1">
+                🌱 You also earn $CTG on delivery
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Each time you deliver a confirmed session, you automatically earn{" "}
+                <strong>20 🌱 $CTG</strong> — your contribution to the commons.
+                This is separate from your fiat/Coins payment.
+              </p>
+            </div>
           </div>
         </div>
 

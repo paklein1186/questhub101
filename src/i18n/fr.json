@@ -1402,7 +1402,7 @@
     "monetaryNote": "Les transactions monétaires sont des flux de devises externes et sont indépendantes de l'XP ou des Crédits.",
     "creditsP": "Les crédits sont des unités de coordination internes, non convertibles, qui circulent au sein de l'écosystème.",
     "creditsCoreProps": "Propriétés essentielles :",
-    "creditsCoreItems": ["Non convertibles en monnaie fiat", "Circulent de pair à pair au sein de la plateforme", "Soumis à une décroissance mensuelle de 1,5 % (redistribution)", "Ne peuvent pas être retirés, échangés ou convertis à l'extérieur", "Ne représentent pas de propriété ou de rendement financier"],
+    "creditsCoreItems": ["Non convertibles en monnaie fiat", "Circulent de pair à pair au sein de la plateforme", "Soumis à une décroissance mensuelle de 1 % (même taux que les tokens $CTG)", "Ne peuvent pas être retirés, échangés ou convertis à l'extérieur", "Ne représentent pas de propriété ou de rendement financier"],
     "creditsObtained": "Les crédits peuvent être obtenus via :",
     "creditsObtainedItems": ["Plans d'abonnement", "Achats de recharge optionnels", "Allocations de quêtes par les fournisseurs", "Incitations à la contribution et récompenses de bénévolat"],
     "creditsUsedFor": "Les crédits peuvent être utilisés pour :",
