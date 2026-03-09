@@ -1,0 +1,1 @@
+ALTER TABLE public.quest_territories ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT false;
