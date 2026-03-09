@@ -202,13 +202,13 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           </p>
         </Section>
 
-        {/* 4. Dual Currency */}
+        {/* 4. Value Layers */}
         <Section
           number="4"
-          title="Dual Currency: Platform Credits & $CTG"
+          title="Value Layers: Credits, $CTG & Coins"
           icon={<Coins className="h-5 w-5" />}
         >
-          <div className="grid sm:grid-cols-2 gap-4 mt-2">
+          <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
               <p className="font-medium text-foreground mb-2">🔷 Platform Credits (non-monetary)</p>
               <p className="text-xs text-muted-foreground mb-2">Feature fuel for gamification, quotas, boosts. Cannot be withdrawn.</p>
@@ -227,8 +227,17 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                 ))}
               </ul>
             </div>
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Units</p>
+              <p className="text-xs text-muted-foreground mb-2">Backed by real fiat. Earned from funded quests. Withdrawable via Stripe Connect.</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                {["Funded quest payouts", "Contributor compensation", "Guild/Territory redistribution", "Fiat withdrawal via Stripe Connect"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-amber-500 shrink-0" />{s}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <p className="mt-3 font-medium text-foreground">Two systems, fully separated. Platform Credits never mix with $CTG.</p>
+          <p className="mt-3 font-medium text-foreground">Three systems, fully separated. Credits ≠ $CTG ≠ Coins.</p>
         </Section>
 
         {/* ── PART B: Animated Token Flow Diagram ── */}
