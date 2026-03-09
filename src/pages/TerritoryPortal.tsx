@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Globe, Leaf, Compass, Shield, BookOpen, Settings } from "lucide-react";
+import { Loader2, Globe, Leaf, Compass, Shield, BookOpen, Settings, Network } from "lucide-react";
 
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
@@ -329,7 +329,7 @@ export default function TerritoryPortal() {
               <BookOpen className="h-3.5 w-3.5" /> Library
             </TabsTrigger>
             <TabsTrigger value="graph" className="gap-1.5">
-              <Shield className="h-3.5 w-3.5" /> Graph
+              <Network className="h-3.5 w-3.5" /> Graph
             </TabsTrigger>
             {canAdmin && (
               <TabsTrigger value="admin" className="gap-1.5 ml-auto">
