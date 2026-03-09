@@ -21,7 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
-import { CREDIT_BUNDLES, ECONOMY_LABELS, COIN_EUR_RATE } from "@/lib/xpCreditsConfig";
+import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
@@ -70,6 +71,7 @@ export function WalletTab() {
   const [activeWallet, setActiveWallet] = useState<"platform" | "coins" | "ctg">("platform");
   const { persona } = usePersona();
   const { open: economyOpen, close: closeEconomy, mode: economyMode, openIfNeeded } = useEconomyModal();
+  const { rate: COIN_EUR_RATE, toEur } = useCoinsRate();
 
   useEffect(() => {
     openIfNeeded();
@@ -202,7 +204,7 @@ export function WalletTab() {
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * COIN_EUR_RATE).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${toEur(balance)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -343,17 +345,17 @@ export function WalletTab() {
         {/* ═══ COINS WALLET ═══ */}
         {activeWallet === "coins" && (
           <>
-            <Section title="💶 Fiat-Backed Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
+            <Section title="🟩 Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Coins Balance</p>
-                      <p className="text-2xl font-bold">{coinsBal} 💶</p>
+                      <p className="text-2xl font-bold">{coinsBal} 🟩</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
-                      <p className="text-lg font-semibold">€{(coinsBal * COIN_EUR_RATE).toFixed(2)}</p>
+                      <p className="text-lg font-semibold">€{toEur(coinsBal)}</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
