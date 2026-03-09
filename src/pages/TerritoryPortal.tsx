@@ -201,7 +201,7 @@ export default function TerritoryPortal() {
   const { data: territory, isLoading } = useTerritoryDetail(id);
   const resolvedId = territory?.id;
 
-  const { data: ancestors = [] } = useTerritoryAncestors(territory);
+  const { data: ancestors = [] } = useTerritoryAncestors(resolvedId);
   const { data: stats } = useTerritoryStats(resolvedId);
   const { data: memberCount = 0, isLoading: memberCountLoading } = useTerritoryMemberCount(resolvedId);
   const { data: naturalSystemCount = 0 } = useTerritoryNaturalSystemCount(resolvedId);
