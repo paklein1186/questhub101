@@ -56,12 +56,11 @@ export function CTGBalanceBadge({ balance, lifetimeEarned = 0, size = "md", show
       <span className={iconSize[size]}>{tier.icon}</span>
       {isEmpty ? (
         <span className="whitespace-nowrap">
-          {size === "sm" ? "0" : "Gagnez vos premiers $CTG"}
+          0 <span className="font-normal opacity-75">$CTG</span>
         </span>
       ) : (
         <span className="whitespace-nowrap font-semibold">
-          {formatBalance(balance)}
-          {showLabel && size !== "sm" && <span className="ml-1 font-normal opacity-75">$CTG</span>}
+          {formatBalance(balance)} <span className="font-normal opacity-75">$CTG</span>
           {size === "lg" && lifetimeEarned > 0 && (
             <span className="ml-1.5 font-normal opacity-70">{tier.label} {tier.icon}</span>
           )}
