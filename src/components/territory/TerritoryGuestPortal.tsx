@@ -305,40 +305,42 @@ export function TerritoryGuestPortal({
         </GuestContentGate>
       )}
 
-      {/* ── Section 5: Guilds ── */}
+      {/* ── Section 5: Guilds (auth-gated) ── */}
       {(data?.guilds ?? []).length > 0 && (
-        <section>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Active Guilds
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {data!.guilds.map((g: any) => (
-              <Link key={g.id} to={`/guilds/${g.id}`}>
-                <Card className="group hover:border-primary/40 transition-all cursor-pointer">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <Avatar className="h-9 w-9 rounded-lg">
-                      <AvatarImage src={g.avatar_url ?? undefined} />
-                      <AvatarFallback className="rounded-lg text-xs bg-amber-500/10 text-amber-600">
-                        {g.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                        {g.name}
-                      </p>
-                      {g.member_count && (
-                        <p className="text-[10px] text-muted-foreground">
-                          {g.member_count} members
+        <GuestContentGate blur>
+          <section>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Active Guilds
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {data!.guilds.map((g: any) => (
+                <Link key={g.id} to={`/guilds/${g.id}`}>
+                  <Card className="group hover:border-primary/40 transition-all cursor-pointer">
+                    <CardContent className="p-3 flex items-center gap-3">
+                      <Avatar className="h-9 w-9 rounded-lg">
+                        <AvatarImage src={g.avatar_url ?? undefined} />
+                        <AvatarFallback className="rounded-lg text-xs bg-amber-500/10 text-amber-600">
+                          {g.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                          {g.name}
                         </p>
-                      )}
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 ml-auto shrink-0" />
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                        {g.member_count && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {g.member_count} members
+                          </p>
+                        )}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 ml-auto shrink-0" />
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </GuestContentGate>
       )}
 
       {/* ── Section 6: Sub-territories ── */}
