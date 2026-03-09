@@ -307,7 +307,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                                     <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-0.5">
-                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "Credits"} · Raised: {c.raised_amount}
+                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "$CTG"} · Raised: {c.raised_amount}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
