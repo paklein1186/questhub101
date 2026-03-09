@@ -298,7 +298,7 @@ export default function TerritoryPortal() {
             }
             setUnlockOpen(true);
           }}
-          onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
+          onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/territories")}
         />
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
