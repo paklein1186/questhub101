@@ -228,6 +228,9 @@ export function CTGWalletSection() {
         </p>
       </div>
 
+      {/* ═══ Commons Pool Card ═══ */}
+      <CommonsPoolCard userId={userId} />
+
       {/* ═══ SECTION 2: Transaction history ═══ */}
       <div className="rounded-xl border border-border bg-card p-6 space-y-3">
         <h3 className="font-semibold text-sm">Transaction History</h3>
