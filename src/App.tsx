@@ -83,6 +83,7 @@ import CompanyDetail from "./pages/CompanyDetail";
 import CompanySettings from "./pages/CompanySettings";
 import TopicHouse from "./pages/TopicHouse";
 import BuyXpPage from "./pages/BuyXpPage";
+import CreditShopPage from "./pages/CreditShopPage";
 import PlansPage from "./pages/PlansPage";
 import SettingsPage from "./pages/SettingsPage";
 import MyBookings from "./pages/MyBookings";
