@@ -225,7 +225,7 @@ function ChatBody({
                   // Store entity context separately so it's sent to AI but not shown
                   if (displayPrompt && enrichedPrompt !== displayPrompt) {
                     const contextPart = enrichedPrompt.replace(displayPrompt, "").trim();
-                    if (contextPart) setHiddenContext(contextPart);
+                    if (contextPart) onHiddenContext?.(contextPart);
                   }
                   setPathsExpanded(false);
                 }}
