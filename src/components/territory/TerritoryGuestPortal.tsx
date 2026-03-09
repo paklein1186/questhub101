@@ -270,37 +270,39 @@ export function TerritoryGuestPortal({
         </GuestContentGate>
       )}
 
-      {/* ── Section 4: People here ── */}
+      {/* ── Section 4: People here (auth-gated) ── */}
       {(data?.people ?? []).length > 0 && (
-        <section>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            People in {territory.name}
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {data!.people.map((p: any) => (
-              <Link
-                key={p.user_id}
-                to={`/users/${p.user_id}`}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/40 transition-all group"
-              >
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={p.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-[10px]">{p.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
-                    {p.name}
-                  </p>
-                  {p.headline && (
-                    <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                      {p.headline}
+        <GuestContentGate blur>
+          <section>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              People in {territory.name}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {data!.people.map((p: any) => (
+                <Link
+                  key={p.user_id}
+                  to={`/users/${p.user_id}`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/40 transition-all group"
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={p.avatar_url ?? undefined} />
+                    <AvatarFallback className="text-[10px]">{p.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      {p.name}
                     </p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+                    {p.headline && (
+                      <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                        {p.headline}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </GuestContentGate>
       )}
 
       {/* ── Section 5: Guilds ── */}
