@@ -44,6 +44,7 @@ interface TerritoryGuestPortalProps {
   questCount: number;
   guildCount: number;
   naturalSystemCount: number;
+  stewardCount?: number;
   isAuthenticated: boolean;
   isAlreadyMember: boolean;
 }
