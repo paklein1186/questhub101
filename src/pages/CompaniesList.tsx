@@ -11,6 +11,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 function useCompaniesExplore() {
   return useQuery({

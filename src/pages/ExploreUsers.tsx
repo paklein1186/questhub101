@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map, Shield } from "lucide-react";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
