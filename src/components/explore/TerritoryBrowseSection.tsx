@@ -143,6 +143,7 @@ export function TerritoryBrowseSection() {
   const [sort, setSort] = useState<SortMode>("activity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
+  const { gridClassName } = useContext(GridDensityContext);
   const { data: territories = [], isLoading } = useTerritoryLeaderboard();
 
   const filtered = useMemo(() => {
