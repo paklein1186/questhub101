@@ -1,13 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap } from "lucide-react";
+import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap, Globe, Loader2 } from "lucide-react";
 import { TREASURY_ALLOCATION } from "@/lib/xpCreditsConfig";
 import { PlatformGiveBackAdmin } from "@/components/giveback/GiveBackHistory";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 export function TreasuryDashboard() {
+  const { session } = useAuth();
+  const qc = useQueryClient();
+  const [pulsing, setPulsing] = useState(false);
   const { data: settings = {}, isLoading: loadingSettings } = useQuery({
     queryKey: ["cooperative-settings-admin"],
     queryFn: async () => {
@@ -177,6 +185,10 @@ export function TreasuryDashboard() {
       )}
 
       {/* Platform Give-back */}
+      {/* Commons Wallet & Pulse */}
+      <CommonsWalletAdmin userId={session?.user?.id} pulsing={pulsing} setPulsing={setPulsing} qc={qc} />
+
+      {/* Platform Give-back */}
       <PlatformGiveBackAdmin />
     </div>
   );
@@ -191,5 +203,99 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function CommonsWalletAdmin({ userId, pulsing, setPulsing, qc }: { userId?: string; pulsing: boolean; setPulsing: (v: boolean) => void; qc: any }) {
+  const { data: commons } = useQuery({
+    queryKey: ["ctg-commons-wallet-admin"],
+    queryFn: async () => {
+      const { data } = await supabase.from("ctg_commons_wallet").select("balance, lifetime_received").limit(1).single();
+      return data as any;
+    },
+  });
+
+  const { data: pulseHistory = [] } = useQuery({
+    queryKey: ["commons-pulse-history-admin"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commons_pulse_history" as any)
+        .select("*")
+        .order("distributed_at", { ascending: false })
+        .limit(10);
+      return (data ?? []) as any[];
+    },
+  });
+
+  const handlePulse = async () => {
+    setPulsing(true);
+    try {
+      const { data, error } = await supabase.rpc("distribute_commons_pulse", {
+        p_triggered_by: userId,
+      } as any);
+      if (error) throw error;
+      const result = data as any;
+      if (result?.ok) {
+        toast.success(`Commons Pulse distributed: ${result.distributed} $CTG to ${result.recipients} contributors`);
+      } else {
+        toast.error(`Pulse failed: ${result?.reason || "unknown"}`);
+      }
+      qc.invalidateQueries({ queryKey: ["ctg-commons-wallet-admin"] });
+      qc.invalidateQueries({ queryKey: ["commons-pulse-history-admin"] });
+      qc.invalidateQueries({ queryKey: ["ctg-commons-wallet"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setPulsing(false);
+    }
+  };
+
+  return (
+    <div>
+      <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-3">
+        <Globe className="h-5 w-5 text-emerald-500" /> 🌍 Commons Wallet & Pulse
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <StatCard icon={Globe} label="Commons Balance" value={`${Math.round(commons?.balance ?? 0)} $CTG`} color="text-emerald-500" />
+        <StatCard icon={Coins} label="Lifetime Received" value={`${Math.round(commons?.lifetime_received ?? 0)} $CTG`} color="text-emerald-600" />
+        <Card className="border-border/50 bg-muted/30">
+          <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+            <Button
+              onClick={handlePulse}
+              disabled={pulsing || (commons?.balance ?? 0) < 1}
+              className="gap-1.5"
+              variant="default"
+            >
+              {pulsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+              Trigger Commons Pulse
+            </Button>
+            <p className="text-[10px] text-muted-foreground">Distribute pool to recent contributors</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {pulseHistory.length > 0 && (
+        <div className="rounded-xl border border-border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left p-3 font-medium">Date</th>
+                <th className="text-right p-3 font-medium">Distributed</th>
+                <th className="text-right p-3 font-medium">Recipients</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pulseHistory.map((p: any) => (
+                <tr key={p.id} className="border-b last:border-0">
+                  <td className="p-3 text-xs">{formatDistanceToNow(new Date(p.distributed_at), { addSuffix: true })}</td>
+                  <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">{Number(p.total_distributed).toLocaleString()} $CTG</td>
+                  <td className="p-3 text-right">{p.recipients_count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
