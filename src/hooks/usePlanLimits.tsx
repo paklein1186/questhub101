@@ -68,6 +68,32 @@ const DEFAULT_PLAN: PlanLimits = {
   broadcastEnabled: false,
 };
 
+const SUPERADMIN_PLAN: PlanLimits = {
+  freeQuestsPerWeek: Infinity,
+  maxGuildMemberships: null,
+  maxPods: null,
+  maxServicesActive: null,
+  maxCourses: null,
+  xpMultiplier: 2.0,
+  planName: "Superadmin",
+  planCode: "SUPERADMIN",
+  monthlyIncludedCredits: Infinity,
+  visibilityRanking: "top",
+  aiMuseMode: "pro",
+  canCreateCompany: true,
+  customGuildTools: true,
+  commissionDiscountPercent: 100,
+  maxTerritories: null,
+  canCreateTerritory: true,
+  maxAttachmentSizeMb: 500,
+  partnershipProposalsEnabled: true,
+  fundraisingToolsEnabled: true,
+  aiAgentsEnabled: true,
+  territoryIntelligenceEnabled: true,
+  memoryEngineEnabled: true,
+  broadcastEnabled: true,
+};
+
 function getMonday(date: Date): string {
   const d = new Date(date);
   const day = d.getDay();
