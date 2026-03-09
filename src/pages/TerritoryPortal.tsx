@@ -215,6 +215,8 @@ export default function TerritoryPortal() {
 
   const currentUser = useCurrentUser();
   const { data: adminStatus } = useIsTerritoryAdmin(resolvedId, currentUser.id);
+  const { data: xpLevel = 1 } = useCurrentUserXpLevel(currentUser.id || undefined);
+  const { data: ctgBalance = 0 } = useUserCtgBalance(currentUser.id || undefined);
 
   const isPioneerTerritory = memberCount === 0 && stewards.length === 0;
   const isAuthenticated = !!currentUser.id;
