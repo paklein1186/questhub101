@@ -46,6 +46,7 @@ interface RankedTerritory {
   id: string;
   name: string;
   level: string | null;
+  logo_url: string | null;
   value: number;
   secondary?: string;
 }
@@ -242,7 +243,7 @@ function useActiveTerritories(period: TimePeriod, limit = 10) {
     queryFn: async () => {
       const { data: territories } = await supabase
         .from("territories")
-        .select("id, name, level")
+        .select("id, name, level, logo_url")
         .eq("is_deleted", false);
 
       if (!territories?.length) return [];
@@ -287,6 +288,7 @@ function useActiveTerritories(period: TimePeriod, limit = 10) {
             id: t.id,
             name: t.name,
             level: t.level,
+            logo_url: (t as any).logo_url ?? null,
             value: score,
             secondary: `${humans} humans · ${quests} quests · ${stew} steward${stew !== 1 ? "s" : ""}`,
           };
@@ -534,9 +536,17 @@ function TerritorySection({
               <span className={`w-6 text-center font-bold text-sm shrink-0 ${rankColor(i)}`}>
                 {i + 1}
               </span>
-              <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
-                <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
-              </div>
+              {t.logo_url ? (
+                <img
+                  src={t.logo_url}
+                  alt={t.name}
+                  className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg object-cover shrink-0`}
+                />
+              ) : (
+                <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
+                  <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{t.name}</p>
                 {t.secondary && (
