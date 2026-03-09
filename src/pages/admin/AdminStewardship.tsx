@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -17,9 +17,16 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
-import { Search, Trees, UserPlus, Trash2, MapPin, User } from "lucide-react";
+import { Search, Trees, UserPlus, Trash2, MapPin, User, ChevronsUpDown, Check } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 /* ─── Types ─── */
 interface StewardEdge {
@@ -34,6 +41,77 @@ interface StewardEdge {
   to_territory?: { name: string; tier: string | null } | null;
 }
 
+/* ─── Searchable Combobox ─── */
+function SearchCombobox({
+  label,
+  placeholder,
+  items,
+  value,
+  onChange,
+  renderItem,
+}: {
+  label: string;
+  placeholder: string;
+  items: { id: string; label: string; sub?: string }[];
+  value: string;
+  onChange: (id: string) => void;
+  renderItem?: (item: { id: string; label: string; sub?: string }) => React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = items.find((i) => i.id === value);
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">{label}</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between font-normal"
+          >
+            {selected ? (
+              <span className="truncate">{selected.label}{selected.sub ? ` — ${selected.sub}` : ""}</span>
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[360px] p-0" align="start">
+          <Command>
+            <CommandInput placeholder={`Search ${label.toLowerCase()}…`} />
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup className="max-h-[240px] overflow-auto">
+                {items.map((item) => (
+                  <CommandItem
+                    key={item.id}
+                    value={`${item.label} ${item.sub || ""}`}
+                    onSelect={() => {
+                      onChange(item.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check className={cn("mr-2 h-4 w-4", value === item.id ? "opacity-100" : "opacity-0")} />
+                    {renderItem ? renderItem(item) : (
+                      <div>
+                        <p className="text-sm">{item.label}</p>
+                        {item.sub && <p className="text-xs text-muted-foreground">{item.sub}</p>}
+                      </div>
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 /* ─── Main Component ─── */
 export default function AdminStewardship() {
   const { toast } = useToast();
@@ -46,6 +124,38 @@ export default function AdminStewardship() {
   const [assignTerritoryId, setAssignTerritoryId] = useState("");
   const [assigning, setAssigning] = useState(false);
 
+  // Fetch all profiles for combobox
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ["admin-all-profiles-short"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, email")
+        .order("name");
+      return (data || []).map((p: any) => ({
+        id: p.user_id,
+        label: p.name || "Unnamed",
+        sub: p.email,
+      }));
+    },
+  });
+
+  // Fetch all territories for combobox
+  const { data: allTerritories = [] } = useQuery({
+    queryKey: ["admin-all-territories-short"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("territories")
+        .select("id, name, tier")
+        .order("name");
+      return (data || []).map((t: any) => ({
+        id: t.id,
+        label: t.name || "Unnamed",
+        sub: t.tier,
+      }));
+    },
+  });
+
   // Fetch all stewardship edges
   const { data: edges = [], isLoading } = useQuery({
     queryKey: ["admin-stewardship-edges"],
@@ -57,33 +167,36 @@ export default function AdminStewardship() {
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
-
-      // Resolve profiles and territories
-      const userIds = [...new Set((data || []).map((e: any) => e.from_node_id))];
-      const territoryIds = [...new Set((data || []).map((e: any) => e.to_node_id))];
-
-      const [profilesRes, territoriesRes] = await Promise.all([
-        userIds.length > 0
-          ? supabase.from("profiles").select("user_id, name, avatar_url").in("user_id", userIds)
-          : { data: [] },
-        territoryIds.length > 0
-          ? supabase.from("territories").select("id, name, tier").in("id", territoryIds)
-          : { data: [] },
-      ]);
-
-      const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.user_id, p]));
-      const territoryMap = new Map((territoriesRes.data || []).map((t: any) => [t.id, t]));
-
-      return (data || []).map((e: any) => ({
-        ...e,
-        from_profile: profileMap.get(e.from_node_id) || null,
-        to_territory: territoryMap.get(e.to_node_id) || null,
-      })) as StewardEdge[];
+      return data || [];
     },
   });
 
+  // Build lookup maps from already-fetched lists
+  const profileMap = useMemo(
+    () => new Map(allProfiles.map((p) => [p.id, p])),
+    [allProfiles]
+  );
+  const territoryMap = useMemo(
+    () => new Map(allTerritories.map((t) => [t.id, t])),
+    [allTerritories]
+  );
+
+  const resolvedEdges: StewardEdge[] = useMemo(
+    () =>
+      edges.map((e: any) => ({
+        ...e,
+        from_profile: profileMap.has(e.from_node_id)
+          ? { name: profileMap.get(e.from_node_id)!.label, avatar_url: null }
+          : null,
+        to_territory: territoryMap.has(e.to_node_id)
+          ? { name: territoryMap.get(e.to_node_id)!.label, tier: territoryMap.get(e.to_node_id)!.sub || null }
+          : null,
+      })),
+    [edges, profileMap, territoryMap]
+  );
+
   // Filter
-  const filtered = edges.filter((e) => {
+  const filtered = resolvedEdges.filter((e) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -110,15 +223,14 @@ export default function AdminStewardship() {
 
   // Assign stewardship
   const handleAssign = async () => {
-    if (!assignUserId.trim() || !assignTerritoryId.trim()) return;
+    if (!assignUserId || !assignTerritoryId) return;
     setAssigning(true);
     try {
-      // Check if already exists
       const { data: existing } = await supabase
         .from("trust_edges")
         .select("id")
-        .eq("from_node_id", assignUserId.trim())
-        .eq("to_node_id", assignTerritoryId.trim())
+        .eq("from_node_id", assignUserId)
+        .eq("to_node_id", assignTerritoryId)
         .eq("edge_type", "stewardship" as any)
         .eq("status", "active" as any)
         .maybeSingle();
@@ -129,14 +241,14 @@ export default function AdminStewardship() {
       }
 
       const { error } = await supabase.from("trust_edges").insert({
-        from_node_id: assignUserId.trim(),
+        from_node_id: assignUserId,
         from_node_type: "user" as any,
-        to_node_id: assignTerritoryId.trim(),
+        to_node_id: assignTerritoryId,
         to_node_type: "territory" as any,
         edge_type: "stewardship" as any,
         score: 1,
         tags: ["admin-assigned"],
-        created_by: assignUserId.trim(),
+        created_by: assignUserId,
         status: "active" as any,
         visibility: "public" as any,
       });
@@ -154,8 +266,8 @@ export default function AdminStewardship() {
     }
   };
 
-  const activeCount = edges.filter((e) => e.status === "active").length;
-  const revokedCount = edges.filter((e) => e.status === "revoked").length;
+  const activeCount = resolvedEdges.filter((e) => e.status === "active").length;
+  const revokedCount = resolvedEdges.filter((e) => e.status === "revoked").length;
 
   return (
     <div className="space-y-6">
@@ -177,13 +289,13 @@ export default function AdminStewardship() {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-foreground">{edges.length}</p>
+            <p className="text-2xl font-bold text-foreground">{resolvedEdges.length}</p>
             <p className="text-xs text-muted-foreground">Total Edges</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-emerald-600">{activeCount}</p>
+            <p className="text-2xl font-bold text-primary">{activeCount}</p>
             <p className="text-xs text-muted-foreground">Active</p>
           </CardContent>
         </Card>
@@ -223,15 +335,11 @@ export default function AdminStewardship() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    Loading…
-                  </TableCell>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">Loading…</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No stewardship edges found.
-                  </TableCell>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No stewardship edges found.</TableCell>
                 </TableRow>
               ) : (
                 filtered.map((edge) => (
@@ -241,7 +349,7 @@ export default function AdminStewardship() {
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-foreground">
-                            {edge.from_profile?.name || "Unknown"}
+                            {edge.from_profile?.name || "Unknown user"}
                           </p>
                           <p className="text-xs text-muted-foreground font-mono truncate max-w-[140px]">
                             {edge.from_node_id.slice(0, 8)}…
@@ -254,7 +362,11 @@ export default function AdminStewardship() {
                         <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                         <div>
                           <p className="text-sm font-medium text-foreground">
-                            {edge.to_territory?.name || "Unknown"}
+                            {edge.to_territory?.name || (
+                              <span className="text-muted-foreground italic">
+                                ID: {edge.to_node_id.slice(0, 8)}… (not in territories table)
+                              </span>
+                            )}
                           </p>
                           {edge.to_territory?.tier && (
                             <p className="text-xs text-muted-foreground capitalize">{edge.to_territory.tier}</p>
@@ -315,26 +427,24 @@ export default function AdminStewardship() {
             <DialogTitle>Assign Stewardship</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label className="text-xs">User ID</Label>
-              <Input
-                placeholder="Paste user UUID"
-                value={assignUserId}
-                onChange={(e) => setAssignUserId(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Territory ID</Label>
-              <Input
-                placeholder="Paste territory UUID"
-                value={assignTerritoryId}
-                onChange={(e) => setAssignTerritoryId(e.target.value)}
-              />
-            </div>
+            <SearchCombobox
+              label="User"
+              placeholder="Search by name or email…"
+              items={allProfiles}
+              value={assignUserId}
+              onChange={setAssignUserId}
+            />
+            <SearchCombobox
+              label="Territory"
+              placeholder="Search by territory name…"
+              items={allTerritories}
+              value={assignTerritoryId}
+              onChange={setAssignTerritoryId}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAssign(false)}>Cancel</Button>
-            <Button onClick={handleAssign} disabled={assigning || !assignUserId.trim() || !assignTerritoryId.trim()}>
+            <Button onClick={handleAssign} disabled={assigning || !assignUserId || !assignTerritoryId}>
               {assigning ? "Assigning…" : "Assign"}
             </Button>
           </DialogFooter>
