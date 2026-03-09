@@ -124,9 +124,9 @@ function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | u
     staleTime: 120_000,
     queryFn: async () => {
       const [stewardRes, profileRes] = await Promise.all([
-        supabase
+        (supabase
           .from("trust_edges")
-          .select("id")
+          .select("id") as any)
           .eq("from_id", userId!)
           .eq("to_id", territoryId!)
           .eq("edge_type", "stewardship")
