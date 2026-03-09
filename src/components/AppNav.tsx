@@ -27,6 +27,7 @@ import {
 import {
   Sheet, SheetContent, SheetTrigger, SheetClose,
 } from "@/components/ui/sheet";
+import { useTheme } from "next-themes";
 
 const LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
