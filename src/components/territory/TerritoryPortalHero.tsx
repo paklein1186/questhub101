@@ -103,10 +103,10 @@ function getFallbacks(level: string): string[] {
   return LEVEL_FALLBACKS[level?.toUpperCase()] ?? LEVEL_FALLBACKS["REGION"];
 }
 
-/* ── AI Cover generation hook ── */
-function useAiCover(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
+/* ── AI Cover generation hook (generates 5 covers) ── */
+function useAiCovers(territoryId: string, territoryName: string, level: string, hasImages: boolean) {
   return useQuery({
-    queryKey: ["territory-ai-cover", territoryId],
+    queryKey: ["territory-ai-covers", territoryId],
     enabled: !hasImages,
     staleTime: Infinity,
     retry: false,
@@ -115,7 +115,11 @@ function useAiCover(territoryId: string, territoryName: string, level: string, h
         body: { territory_id: territoryId, territory_name: territoryName, territory_level: level },
       });
       if (error) throw error;
-      return (data as any)?.cover_url as string | null;
+      const urls = (data as any)?.cover_urls as string[] | undefined;
+      if (urls && urls.length > 0) return urls;
+      // Fallback to single cover_url
+      const single = (data as any)?.cover_url as string | null;
+      return single ? [single] : null;
     },
   });
 }
@@ -150,26 +154,30 @@ export function TerritoryPortalHero({
   const { isFollowing, toggle: toggleFollow, isLoading: followLoading } =
     useFollow(FollowTargetType.TERRITORY, territory.id);
 
-  // Image carousel — prefer stats.cover_url or AI-generated, fallback to Unsplash
+  // Image carousel — prefer stats.cover_urls or AI-generated, fallback to Unsplash
   const rawImages: string[] = territory.stats?.images ?? [];
+  const statsCoverUrls = (territory.stats as any)?.cover_urls as string[] | undefined;
   const statsCoverUrl = (territory.stats as any)?.cover_url;
-  const hasCustomImages = rawImages.length > 0 || !!statsCoverUrl;
+  const hasCustomImages = rawImages.length > 0 || (statsCoverUrls && statsCoverUrls.length > 0) || !!statsCoverUrl;
 
-  const { data: aiCoverUrl, isLoading: aiCoverLoading } = useAiCover(
+  const { data: aiCoverUrls, isLoading: aiCoverLoading } = useAiCovers(
     territory.id, territory.name, territory.level, hasCustomImages
   );
 
-  const resolvedCover = statsCoverUrl || aiCoverUrl;
+  const resolvedCovers = statsCoverUrls ?? (statsCoverUrl ? [statsCoverUrl] : null) ?? aiCoverUrls;
   const images = rawImages.length > 0
     ? rawImages
-    : resolvedCover
-      ? [resolvedCover]
+    : resolvedCovers && resolvedCovers.length > 0
+      ? resolvedCovers
       : getFallbacks(territory.level);
-  const [imgIdx, setImgIdx] = useState(0);
+
+  // Random start index so each visit shows a different cover first
+  const [imgIdx, setImgIdx] = useState(() => Math.floor(Math.random() * 1000));
+  const activeIdx = images.length > 0 ? imgIdx % images.length : 0;
 
   useEffect(() => {
     if (images.length < 2) return;
-    const t = setInterval(() => setImgIdx(i => (i + 1) % images.length), 5000);
+    const t = setInterval(() => setImgIdx(i => i + 1), 5000);
     return () => clearInterval(t);
   }, [images.length]);
 
@@ -184,7 +192,7 @@ export function TerritoryPortalHero({
             key={src}
             className={cn(
               "absolute inset-0 bg-cover bg-center transition-opacity duration-1000",
-              i === imgIdx ? "opacity-100" : "opacity-0"
+              i === activeIdx ? "opacity-100" : "opacity-0"
             )}
             style={{ backgroundImage: `url(${src})` }}
           />
@@ -206,7 +214,7 @@ export function TerritoryPortalHero({
                 onClick={() => setImgIdx(i)}
                 className={cn(
                   "h-1.5 rounded-full transition-all",
-                  i === imgIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                  i === activeIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"
                 )}
               />
             ))}
