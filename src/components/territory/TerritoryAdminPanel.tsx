@@ -259,15 +259,16 @@ function MemberManagementSection({ territoryId }: SectionProps) {
 /* ── Section: Quest Curation ── */
 function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: quests } = useQuery({
     queryKey: ["territory-admin-quests", territoryId],
     queryFn: async () => {
       const { data } = await supabase
         .from("quest_territories" as any)
-        .select("quest_id, is_featured, quests(id, title, status, quest_nature)")
+        .select("quest_id, is_featured, is_hidden, quests(id, title, status, quest_nature)")
         .eq("territory_id", territoryId)
         .limit(20);
-      return (data ?? []).map((r: any) => ({ ...r.quests, is_featured: r.is_featured })).filter(Boolean);
+      return (data ?? []).map((r: any) => ({ ...r.quests, is_featured: r.is_featured, is_hidden: r.is_hidden ?? false })).filter(Boolean);
     },
   });
 
@@ -277,7 +278,19 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
       .update({ is_featured: !current } as any)
       .eq("territory_id", territoryId)
       .eq("quest_id", questId);
+    queryClient.invalidateQueries({ queryKey: ["territory-admin-quests", territoryId] });
     toast({ title: !current ? "Quest featured" : "Quest unfeatured" });
+  };
+
+  const toggleHidden = async (questId: string, currentlyHidden: boolean) => {
+    await supabase
+      .from("quest_territories" as any)
+      .update({ is_hidden: !currentlyHidden } as any)
+      .eq("territory_id", territoryId)
+      .eq("quest_id", questId);
+    queryClient.invalidateQueries({ queryKey: ["territory-admin-quests", territoryId] });
+    queryClient.invalidateQueries({ queryKey: ["territory-portal-grid", territoryId] });
+    toast({ title: !currentlyHidden ? "Quest hidden from portal" : "Quest visible again" });
   };
 
   return (
@@ -286,10 +299,18 @@ function QuestCurationSection({ territoryId, territoryName }: SectionProps) {
         <p className="text-sm text-muted-foreground text-center py-4">No quests linked to {territoryName}.</p>
       )}
       {(quests ?? []).map((q: any) => (
-        <div key={q.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/60">
+        <div key={q.id} className={cn("flex items-center gap-3 p-2.5 rounded-lg border border-border/60", q.is_hidden && "opacity-50")}>
           <Compass className="h-4 w-4 text-primary shrink-0" />
           <span className="text-sm flex-1 truncate">{q.title}</span>
           <Badge variant="outline" className="text-[10px] mr-2">{q.status}</Badge>
+          <Button
+            size="sm"
+            variant={q.is_hidden ? "destructive" : "outline"}
+            onClick={() => toggleHidden(q.id, q.is_hidden)}
+            className="text-[10px] h-6 px-2"
+          >
+            {q.is_hidden ? "Hidden" : "Visible"}
+          </Button>
           <Button
             size="sm"
             variant={q.is_featured ? "secondary" : "outline"}
