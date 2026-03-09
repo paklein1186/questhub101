@@ -154,9 +154,8 @@ export function ProfileTerritoriesTab({ userId, territories }: Props) {
     );
   }
 
-  const { data: stewarded = [] } = useStewardedTerritories(userId);
 
-  return (
+  if (territories.length === 0 && stewarded.length === 0) {
     <div className="space-y-6">
       {/* Stewarded territories */}
       {stewarded.length > 0 && (
