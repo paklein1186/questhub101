@@ -218,8 +218,13 @@ function ChatBody({
               className="overflow-hidden"
             >
               <PiActionPaths
-                onPromptSelect={(prompt) => {
-                  setInput(prompt);
+                onPromptSelect={(enrichedPrompt, displayPrompt) => {
+                  setInput(displayPrompt || enrichedPrompt);
+                  // Store entity context separately so it's sent to AI but not shown
+                  if (displayPrompt && enrichedPrompt !== displayPrompt) {
+                    const contextPart = enrichedPrompt.replace(displayPrompt, "").trim();
+                    if (contextPart) setHiddenContext(contextPart);
+                  }
                   setPathsExpanded(false);
                 }}
                 onClose={onClose}
