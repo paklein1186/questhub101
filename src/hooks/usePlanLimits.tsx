@@ -257,6 +257,7 @@ export function usePlanLimits() {
     loading,
     userXp,
     userCredits,
+    userCtgBalance,
     userLevel,
     // Grace period
     inGracePeriod,
