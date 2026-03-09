@@ -16,6 +16,7 @@ import { PiDesktopPanel } from "@/components/pi/PiDesktopPanel";
 import { PiFloatingButton } from "@/components/pi/PiFloatingButton";
 import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
+import { HarvestWindowBanner } from "@/components/ctg/HarvestWindowBanner";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -184,6 +185,7 @@ const App = () => (
             <PiDesktopPanel />
             <PiFloatingButton />
             <BugReportBubble />
+            <HarvestWindowBanner />
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
