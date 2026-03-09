@@ -128,7 +128,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
               { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🟩 $CTG", desc: "Mission value" },
+              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🌱 $CTG", desc: "Contribution to commons" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
@@ -179,9 +179,9 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p>CTG captures value along a triple axis:</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <ValueCard
-              title="A. Skills (XP)"
+              title="A. Reputation (XP)"
               color="text-primary"
-              desc="Every task increases expertise through guild-aligned XP."
+              desc="Participation and contribution build your trust level and governance rights."
               icon={<Zap className="h-5 w-5" />}
             />
             <ValueCard
@@ -219,10 +219,10 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               </ul>
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 $CTG (fiat-backed)</p>
-              <p className="text-xs text-muted-foreground mb-2">Mission value. Backed by real fiat. Withdrawable by contributors.</p>
+              <p className="font-medium text-foreground mb-2">🌱 $CTG — Contribution Token</p>
+              <p className="text-xs text-muted-foreground mb-2">Emitted when you contribute verified work to the commons. Not fiat-backed, not purchasable. Circulates with 1%/month demurrage.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Pre-funded quest budgets", "Contributor payouts", "Guild/Territory redistribution", "Ecological impact flows", "Fiat withdrawal via Stripe Connect"].map((s) => (
+                {["Quest and subtask completion", "Governance votes and rituals", "Mentorship and documentation", "Ecological annotations", "P2P transfer to collaborators", "Exchange for platform credits"].map((s) => (
                   <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
                 ))}
               </ul>

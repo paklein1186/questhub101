@@ -353,7 +353,7 @@ export const HINTS = {
       id: "wallet-first-visit",
       variant: "economy" as const,
       title: "The platform has 5 value layers",
-      body: "Fiat €, 🟩 Coins (fiat-backed), 🔷 Credits (platform utility, fades 1%/month), 🌱 $CTG (earned by contribution, transferable), and ⭐ XP (reputation, permanent). Each works differently.",
+      body: "Fiat €, 🟩 Coins (fiat-backed), 🔷 Credits (platform utility, fades 1%/month), 🌱 $CTG (earned by contribution, has 1%/month demurrage), and ⭐ XP (reputation, permanent). Each works differently.",
       cta: { label: "See how value flows", to: "/ecosystem?tab=ovn" },
     },
 
@@ -441,7 +441,7 @@ export const HINTS = {
       content: "XP is earned by completing quests and recognised by peers. It accumulates into a level reflecting your contribution history. Never decays, never purchased.",
     },
     questCTG: {
-      content: "$CTG tokens are earned on verified completion. They're tracked in your personal OVN and transferable to other contributors.",
+      content: "$CTG tokens are earned on verified completion. They're tracked in your OVN, transferable to collaborators, and fade gently at 1%/month — encouraging continuous contribution over hoarding.",
     },
     questType: {
       content: "OPEN: anyone joins. CLOSED: apply, host approves. IDEA: in design, not yet active. PROJECT: multi-milestone campaign.",
@@ -451,7 +451,7 @@ export const HINTS = {
       content: "Credits fade by 1% per month — this is demurrage, a design to encourage circulation rather than hoarding.",
     },
     ctgToken: {
-      content: "$CTG tokens are earned through contributions (quests, subtasks, governance). They can be transferred to others or exchanged for Credits. Not purchasable.",
+      content: "🌱 $CTG is earned when you create verified value for the commons (quests, subtasks, rituals, governance). Unlike XP which is permanent, $CTG has 1%/month demurrage — this encourages circulation rather than hoarding. Transferable. Not purchasable.",
       learnMore: "/ecosystem/ovn",
     },
     coins: {

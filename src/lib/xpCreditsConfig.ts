@@ -329,6 +329,7 @@ export const ECONOMY_LABELS = {
   demurrageNotice: "Inactive Platform Credits are gradually redistributed to the ecosystem treasury (1%/month).",
   creditsNature: "🔷 Platform Credits — Feature fuel for quotas, boosts, and gamification. Non-monetary.",
   coinsNature: "🟩 Coins — Fiat-backed mission value. Earned from quests, withdrawable to fiat.",
-  xpNature: "Reputation & contribution level — earned through participation, never purchased.",
+  xpNature: "⭐ XP — your reputation level. Cumulative & permanent. Reflects who you are becoming. Never decays, never purchased.",
+  ctgNature: "🌱 $CTG — your contribution to the commons. Earned by producing verifiable work. Circulates with 1%/month demurrage. Not fiat-backed.",
   sharesNature: "Stewardship participation — long-term commitment to the platform's mission.",
 } as const;
