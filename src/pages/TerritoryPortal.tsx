@@ -11,14 +11,12 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Globe, Leaf, Compass, Shield, BookOpen, Settings } from "lucide-react";
 
-// ── Portal components
 import { TerritoryPortalHero } from "@/components/territory/TerritoryPortalHero";
 import { TerritoryQuestGrid } from "@/components/territory/TerritoryQuestGrid";
 import { TerritoryGuestPortal } from "@/components/territory/TerritoryGuestPortal";
 import { TerritoryUnlockModal } from "@/components/territory/TerritoryUnlockModal";
 import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel";
 
-// ── Existing tabs (unchanged)
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
@@ -68,10 +66,10 @@ function useTerritoryMemberCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 60_000,
     queryFn: async () => {
-      const { count } = await supabase
+      const { count } = await (supabase
         .from("profiles")
-        .select("user_id", { count: "exact", head: true })
-        .eq("territory_id" as any, territoryId!);
+        .select("user_id", { count: "exact", head: true }) as any)
+        .eq("territory_id", territoryId!);
       return count ?? 0;
     },
   });
@@ -83,9 +81,9 @@ function useTerritoryNaturalSystemCount(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 120_000,
     queryFn: async () => {
-      const { count } = await supabase
+      const { count } = await (supabase
         .from("natural_system_territories" as any)
-        .select("natural_system_id", { count: "exact", head: true })
+        .select("natural_system_id", { count: "exact", head: true }) as any)
         .eq("territory_id", territoryId!);
       return count ?? 0;
     },
@@ -98,12 +96,11 @@ function useTerritoryPortalStewards(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 300_000,
     queryFn: async () => {
-      // Find stewardship trust edges pointing to this territory
       const { data: edges } = await supabase
         .from("trust_edges")
         .select("from_id")
         .eq("to_id", territoryId!)
-        .eq("edge_type", "steward_of")
+        .eq("edge_type", "stewardship")
         .eq("status", "active")
         .limit(6);
 
@@ -132,7 +129,7 @@ function useIsTerritoryAdmin(territoryId: string | undefined, userId: string | u
           .select("id")
           .eq("from_id", userId!)
           .eq("to_id", territoryId!)
-          .eq("edge_type", "steward_of")
+          .eq("edge_type", "stewardship")
           .eq("status", "active")
           .maybeSingle(),
         supabase
@@ -175,7 +172,7 @@ export default function TerritoryPortal() {
   const isAlreadyMember = (currentUser as any)?.territory_id === resolvedId;
 
   const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
-  const canCreateQuest = isAuthenticated && canAdmin;
+  const canCreateQuest = isAuthenticated && !!canAdmin;
 
   const setTab = (t: string) => {
     setSearchParams(prev => {
@@ -206,16 +203,26 @@ export default function TerritoryPortal() {
     );
   }
 
+  const heroTerritory = {
+    id: territory.id,
+    name: territory.name,
+    level: territory.level,
+    summary: territory.summary ?? null,
+    stats: typeof territory.stats === "object" && territory.stats !== null ? territory.stats as Record<string, any> : null,
+    latitude: territory.latitude ?? null,
+    longitude: territory.longitude ?? null,
+    parent_id: territory.parent_id ?? null,
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {resolvedId && (
-          <PiContextSetter context={{ type: "territory", id: resolvedId, name: territory.name }} />
+          <PiContextSetter contextType="territory" contextId={resolvedId} />
         )}
 
-        {/* ── Hero ── */}
         <TerritoryPortalHero
-          territory={territory}
+          territory={heroTerritory}
           ancestors={ancestors}
           memberCount={memberCount}
           questCount={stats?.quests ?? 0}
@@ -227,7 +234,6 @@ export default function TerritoryPortal() {
           onBack={() => window.history.length > 1 ? navigate(-1) : navigate("/explore")}
         />
 
-        {/* ── Quest Grid (shown on content tabs, not portal/admin) ── */}
         {tab !== "portal" && tab !== "admin" && (
           <TerritoryQuestGrid
             territoryId={resolvedId!}
@@ -236,7 +242,6 @@ export default function TerritoryPortal() {
           />
         )}
 
-        {/* ── Tabs ── */}
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className={cn("w-full justify-start overflow-x-auto", "scrollbar-none")}>
             <TabsTrigger value="portal" className="gap-1.5">
@@ -263,7 +268,7 @@ export default function TerritoryPortal() {
 
           <TabsContent value="portal" className="mt-6">
             <TerritoryGuestPortal
-              territory={territory}
+              territory={heroTerritory}
               memberCount={memberCount}
               questCount={stats?.quests ?? 0}
               guildCount={stats?.guilds ?? 0}
@@ -303,7 +308,6 @@ export default function TerritoryPortal() {
         </Tabs>
       </div>
 
-      {/* ── Unlock Modal ── */}
       {isAuthenticated && (
         <TerritoryUnlockModal
           open={unlockOpen}
