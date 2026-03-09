@@ -11,6 +11,7 @@ export interface TerritoryLeaderboardItem {
   memoryContributions: number;
   topTopics: string[];
   synthesis: string;
+  cover_url: string | null;
 }
 
 export interface TopicLeaderboardItem {
