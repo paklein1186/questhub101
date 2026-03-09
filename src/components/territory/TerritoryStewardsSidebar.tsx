@@ -172,7 +172,7 @@ export function TerritoryStewardsSidebar({
           {stewards.map(s => (
             <Link
               key={s.user_id}
-              to={`/profile/${s.user_id}`}
+              to={`/users/${s.user_id}`}
               className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-muted/50 transition-colors"
             >
               <Avatar className="h-7 w-7">
