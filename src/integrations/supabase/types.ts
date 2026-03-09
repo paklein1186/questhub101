@@ -7622,6 +7622,7 @@ export type Database = {
           is_deleted: boolean
           latitude: number | null
           level: Database["public"]["Enums"]["territory_level"]
+          logo_url: string | null
           longitude: number | null
           name: string
           parent_id: string | null
@@ -7659,6 +7660,7 @@ export type Database = {
           is_deleted?: boolean
           latitude?: number | null
           level?: Database["public"]["Enums"]["territory_level"]
+          logo_url?: string | null
           longitude?: number | null
           name: string
           parent_id?: string | null
@@ -7696,6 +7698,7 @@ export type Database = {
           is_deleted?: boolean
           latitude?: number | null
           level?: Database["public"]["Enums"]["territory_level"]
+          logo_url?: string | null
           longitude?: number | null
           name?: string
           parent_id?: string | null
