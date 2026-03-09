@@ -10,8 +10,10 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 export default function CoursesExplore({ bare }: { bare?: boolean }) {
+  const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
 
   const { data: coursesData, isLoading } = useCourses();
@@ -71,7 +73,7 @@ export default function CoursesExplore({ bare }: { bare?: boolean }) {
 
       {!isLoading && filtered.length === 0 && <p className="text-muted-foreground">No courses match your filters.</p>}
 
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClassName}>
         {filtered.map((course, i) => {
           const cTopics = ((course as any).course_topics ?? []).map((ct: any) => ct.topics).filter(Boolean);
           const enrollCount = (course as any).course_enrollments?.length ?? 0;

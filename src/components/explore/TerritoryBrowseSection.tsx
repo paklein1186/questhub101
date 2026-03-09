@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
+import { GridDensityContext } from "@/pages/ExploreHub";
 import { Link } from "react-router-dom";
 import { MapPin, Loader2, ArrowUpDown, Sparkles, Compass, Map, LayoutGrid, Globe, Users, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,7 @@ export function TerritoryBrowseSection() {
   const [sort, setSort] = useState<SortMode>("activity");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [search, setSearch] = useState("");
+  const { gridClassName } = useContext(GridDensityContext);
   const { data: territories = [], isLoading } = useTerritoryLeaderboard();
 
   const filtered = useMemo(() => {
@@ -226,7 +228,7 @@ export function TerritoryBrowseSection() {
       ) : (
         <AnimatePresence mode="wait">
           {viewMode === "grid" ? (
-            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={gridClassName}>
               {filtered.map((t, i) => (
                 <TerritoryTile key={t.id} item={t} index={i} />
               ))}

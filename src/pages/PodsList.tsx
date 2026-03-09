@@ -22,6 +22,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -29,6 +30,7 @@ const fadeUp = {
 };
 
 export default function PodsList({ bare, hideFilters, externalFilters, externalHouseFilter, externalCreateOpen, onExternalCreateOpenChange }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues; externalHouseFilter?: ReturnType<typeof useHouseFilter>; externalCreateOpen?: boolean; onExternalCreateOpenChange?: (open: boolean) => void }) {
+  const { gridClassName } = useExploreGridDensity();
   const currentUser = useCurrentUser();
   const { session } = useAuth();
   const isLoggedIn = !!session;
@@ -207,7 +209,7 @@ export default function PodsList({ bare, hideFilters, externalFilters, externalH
 
       {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className={gridClassName}>
         {filtered.map((pod, i) => {
           const quest = (pod as any).quests;
           const topic = (pod as any).topics;

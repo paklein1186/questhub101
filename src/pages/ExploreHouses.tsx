@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Hash, X, Users, Compass, Shield, Building2, ShoppingBag, ScrollText, Boxes, ToggleLeft, ToggleRight, Briefcase, ExternalLink, Sparkles, MapPin } from "lucide-react";
@@ -691,7 +692,7 @@ function SectionPreview({ title, icon: Icon, items, loading, tab, setTab, render
   setTab: (t: string) => void;
   renderItem: (item: any) => React.ReactNode;
 }) {
-  if (loading) return <div className="space-y-2"><Skeleton className="h-6 w-32" /><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div></div>;
+  if (loading) return <div className="space-y-2"><Skeleton className="h-6 w-32" /><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div></div>;
   if (!items || items.length === 0) return null;
 
   return (
@@ -706,7 +707,7 @@ function SectionPreview({ title, icon: Icon, items, loading, tab, setTab, render
           </Button>
         )}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {items.slice(0, 6).map(renderItem)}
       </div>
     </div>
@@ -719,7 +720,8 @@ function EntityGrid({ items, loading, empty, renderItem }: {
   empty: string;
   renderItem: (item: any) => React.ReactNode;
 }) {
-  if (loading) return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
+  const { gridClassName } = useExploreGridDensity();
+  if (loading) return <div className={gridClassName}>{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>;
   if (!items || items.length === 0) return <div className="text-center py-16 text-muted-foreground"><p>{empty}</p></div>;
-  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{items.map(renderItem)}</div>;
+  return <div className={gridClassName}>{items.map(renderItem)}</div>;
 }

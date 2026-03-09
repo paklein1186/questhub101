@@ -1,7 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, createContext, useContext } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Search, Sparkles, Brain, Plus, Briefcase, Users, BookOpen, Compass, Swords, Wrench, Tag, Map, Bot, Lightbulb, Target } from "lucide-react";
+import { useGridDensity, type GridDensity } from "@/hooks/useGridDensity";
+import { GridDensityToggle } from "@/components/explore/GridDensityToggle";
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +38,14 @@ const VALID_TABS_GUEST_CREATIVE = ["entities", "houses", "courses", "agents", "t
 const ENTITY_SUB = ["all", "guilds", "pods", "companies"] as const;
 type EntitySub = typeof ENTITY_SUB[number];
 
+// Context to share grid density across explore subtabs
+export const GridDensityContext = createContext<{ density: GridDensity; setDensity: (d: GridDensity) => void; gridClassName: string }>({
+  density: "3",
+  setDensity: () => {},
+  gridClassName: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+});
+export const useExploreGridDensity = () => useContext(GridDensityContext);
+
 export default function ExploreHub() {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
@@ -62,18 +72,23 @@ export default function ExploreHub() {
   const [wizardKind] = useState<"guild" | "pod" | "company" | undefined>(createParam || undefined);
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const entityHf = useHouseFilter();
+  const gridDensity = useGridDensity();
 
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
   };
 
   return (
+    <GridDensityContext.Provider value={gridDensity}>
     <PageShell>
-      <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
-        </h1>
-        <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+            <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
+        </div>
+        <GridDensityToggle density={gridDensity.density} setDensity={gridDensity.setDensity} />
       </div>
 
       <SectionBanner {...HINTS.banners.explore} />
@@ -203,6 +218,7 @@ export default function ExploreHub() {
         )}
       </ExploreTabsInner>
     </PageShell>
+    </GridDensityContext.Provider>
   );
 }
 

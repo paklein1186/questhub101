@@ -11,6 +11,7 @@ import { ExploreFilters, ExploreFilterValues, defaultFilters, applySortBy } from
 import { useAuth } from "@/hooks/useAuth";
 import { PublicExploreCTA } from "@/components/PublicExploreCTA";
 import { approxCount } from "@/lib/publicMode";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 
 function useCompaniesExplore() {
   return useQuery({
@@ -28,6 +29,7 @@ function useCompaniesExplore() {
 }
 
 export default function CompaniesList({ bare, hideFilters, externalFilters }: { bare?: boolean; hideFilters?: boolean; externalFilters?: ExploreFilterValues }) {
+  const { gridClassName } = useExploreGridDensity();
   const [filters, setFilters] = useState<ExploreFilterValues>(defaultFilters);
   const activeFilters = externalFilters ?? filters;
   const { data: companiesData, isLoading } = useCompaniesExplore();
@@ -74,7 +76,7 @@ export default function CompaniesList({ bare, hideFilters, externalFilters }: { 
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className={gridClassName}>
         {filtered.map((company: any, i: number) => {
           const cTerrs = (company.company_territories ?? []).map((ct: any) => ct.territories).filter(Boolean);
           const memberCount = company.company_members?.length ?? 0;

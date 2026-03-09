@@ -2,6 +2,7 @@ import { useState, useMemo, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Users, Search, ArrowUpDown, Sparkles, LayoutGrid, Map, Shield } from "lucide-react";
+import { useExploreGridDensity } from "@/pages/ExploreHub";
 import { supabase } from "@/integrations/supabase/client";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -423,9 +424,10 @@ function UserCardGrid({ users, isLoggedIn }: { users: ExploreUser[]; isLoggedIn:
   const userIds = useMemo(() => users.map(u => u.user_id), [users]);
   const { data: followedIds = new Set<string>() } = useFollowedUserIds(userIds);
   const { data: trustMap } = useTrustSummaryBatch("profile", userIds);
+  const { gridClassName } = useExploreGridDensity();
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={gridClassName}>
       {users.map((u) => (
         <UserCard key={u.id} user={u} isLoggedIn={isLoggedIn} isFollowed={followedIds.has(u.user_id)} trustSummary={trustMap?.[u.user_id]} />
       ))}
