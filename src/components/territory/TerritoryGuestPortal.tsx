@@ -15,6 +15,7 @@
  */
 
 import { Link, useNavigate } from "react-router-dom";
+import { GuestContentGate } from "@/components/GuestContentGate";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -247,93 +248,99 @@ export function TerritoryGuestPortal({
         </section>
       )}
 
-      {/* ── Section 3: Featured Quests ── */}
+      {/* ── Section 3: Featured Quests (auth-gated) ── */}
       {(data?.quests ?? []).length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Open Quests
-            </h3>
-            <Link
-              to={`/territories/${territory.id}?tab=ecosystem`}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
-            >
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {data!.quests.map((q: any) => <GuestQuestCard key={q.id} quest={q} />)}
-          </div>
-        </section>
-      )}
-
-      {/* ── Section 4: People here ── */}
-      {(data?.people ?? []).length > 0 && (
-        <section>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            People in {territory.name}
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {data!.people.map((p: any) => (
+        <GuestContentGate blur>
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Open Quests
+              </h3>
               <Link
-                key={p.user_id}
-                to={`/users/${p.user_id}`}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/40 transition-all group"
+                to={`/territories/${territory.id}?tab=ecosystem`}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
               >
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={p.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-[10px]">{p.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
-                    {p.name}
-                  </p>
-                  {p.headline && (
-                    <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                      {p.headline}
-                    </p>
-                  )}
-                </div>
+                View all <ArrowRight className="h-3 w-3" />
               </Link>
-            ))}
-          </div>
-        </section>
+            </div>
+            <div className="space-y-2">
+              {data!.quests.map((q: any) => <GuestQuestCard key={q.id} quest={q} />)}
+            </div>
+          </section>
+        </GuestContentGate>
       )}
 
-      {/* ── Section 5: Guilds ── */}
-      {(data?.guilds ?? []).length > 0 && (
-        <section>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Active Guilds
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {data!.guilds.map((g: any) => (
-              <Link key={g.id} to={`/guilds/${g.id}`}>
-                <Card className="group hover:border-primary/40 transition-all cursor-pointer">
-                  <CardContent className="p-3 flex items-center gap-3">
-                    <Avatar className="h-9 w-9 rounded-lg">
-                      <AvatarImage src={g.avatar_url ?? undefined} />
-                      <AvatarFallback className="rounded-lg text-xs bg-amber-500/10 text-amber-600">
-                        {g.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                        {g.name}
+      {/* ── Section 4: People here (auth-gated) ── */}
+      {(data?.people ?? []).length > 0 && (
+        <GuestContentGate blur>
+          <section>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              People in {territory.name}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {data!.people.map((p: any) => (
+                <Link
+                  key={p.user_id}
+                  to={`/users/${p.user_id}`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-muted/40 transition-all group"
+                >
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={p.avatar_url ?? undefined} />
+                    <AvatarFallback className="text-[10px]">{p.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors">
+                      {p.name}
+                    </p>
+                    {p.headline && (
+                      <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                        {p.headline}
                       </p>
-                      {g.member_count && (
-                        <p className="text-[10px] text-muted-foreground">
-                          {g.member_count} members
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </GuestContentGate>
+      )}
+
+      {/* ── Section 5: Guilds (auth-gated) ── */}
+      {(data?.guilds ?? []).length > 0 && (
+        <GuestContentGate blur>
+          <section>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Active Guilds
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {data!.guilds.map((g: any) => (
+                <Link key={g.id} to={`/guilds/${g.id}`}>
+                  <Card className="group hover:border-primary/40 transition-all cursor-pointer">
+                    <CardContent className="p-3 flex items-center gap-3">
+                      <Avatar className="h-9 w-9 rounded-lg">
+                        <AvatarImage src={g.avatar_url ?? undefined} />
+                        <AvatarFallback className="rounded-lg text-xs bg-amber-500/10 text-amber-600">
+                          {g.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                          {g.name}
                         </p>
-                      )}
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/40 ml-auto shrink-0" />
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                        {g.member_count && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {g.member_count} members
+                          </p>
+                        )}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/40 ml-auto shrink-0" />
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </GuestContentGate>
       )}
 
       {/* ── Section 6: Sub-territories ── */}
