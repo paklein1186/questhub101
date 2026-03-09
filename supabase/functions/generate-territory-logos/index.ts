@@ -25,7 +25,7 @@ serve(async (req) => {
       .select("id, name, level")
       .is("logo_url", null)
       .eq("is_deleted", false)
-      .limit(5); // Process in batches of 5
+      .limit(2); // Process in small batches
 
     if (error) throw error;
     if (!territories || territories.length === 0) {
