@@ -225,6 +225,21 @@ export default function TerritoryPortal() {
   const canAdmin = adminStatus?.isSteward || adminStatus?.isSuperAdmin;
   const canCreateQuest = isAuthenticated && !!canAdmin;
 
+  const LEGACY_TABS: Record<string, string> = {
+    overview: "portal",
+    posts: "portal",
+    contribute: "library",
+  };
+  useEffect(() => {
+    if (LEGACY_TABS[tab]) {
+      setTab(LEGACY_TABS[tab]);
+      return;
+    }
+    if (tab === "admin" && adminStatus !== undefined && !canAdmin) {
+      setTab("portal");
+    }
+  }, [tab, canAdmin, adminStatus]);
+
   const setTab = (t: string) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
