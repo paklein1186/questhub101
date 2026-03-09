@@ -184,6 +184,14 @@ export function TerritoryPortalHero({
           />
         ))}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        {aiCoverLoading && !hasCustomImages && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/60">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Generating landscape…
+            </div>
+          </div>
+        )}
         {images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {images.map((_, i) => (
