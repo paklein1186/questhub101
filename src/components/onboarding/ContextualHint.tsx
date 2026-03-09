@@ -451,7 +451,7 @@ export const HINTS = {
       content: "Credits fade by 1% per month — this is demurrage, a design to encourage circulation rather than hoarding.",
     },
     ctgToken: {
-      content: "$CTG tokens are earned through contributions (quests, subtasks, governance). They can be transferred to others or exchanged for Credits. Not purchasable.",
+      content: "🌱 $CTG is earned when you create verified value for the commons (quests, subtasks, rituals, governance). Unlike XP which is permanent, $CTG has 1%/month demurrage — this encourages circulation rather than hoarding. Transferable. Not purchasable.",
       learnMore: "/ecosystem/ovn",
     },
     coins: {
