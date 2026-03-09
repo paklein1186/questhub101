@@ -144,9 +144,21 @@ export function TerritoryPortalHero({
   const { isFollowing, toggle: toggleFollow, isLoading: followLoading } =
     useFollow(FollowTargetType.TERRITORY, territory.id);
 
-  // Image carousel
+  // Image carousel — prefer stats.cover_url or AI-generated, fallback to Unsplash
   const rawImages: string[] = territory.stats?.images ?? [];
-  const images = rawImages.length > 0 ? rawImages : getFallbacks(territory.level);
+  const statsCoverUrl = (territory.stats as any)?.cover_url;
+  const hasCustomImages = rawImages.length > 0 || !!statsCoverUrl;
+
+  const { data: aiCoverUrl, isLoading: aiCoverLoading } = useAiCover(
+    territory.id, territory.name, territory.level, hasCustomImages
+  );
+
+  const resolvedCover = statsCoverUrl || aiCoverUrl;
+  const images = rawImages.length > 0
+    ? rawImages
+    : resolvedCover
+      ? [resolvedCover]
+      : getFallbacks(territory.level);
   const [imgIdx, setImgIdx] = useState(0);
 
   useEffect(() => {
