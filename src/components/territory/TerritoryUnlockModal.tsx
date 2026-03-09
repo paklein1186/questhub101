@@ -142,6 +142,8 @@ function useUnlockTerritory() {
       qc.invalidateQueries({ queryKey: ["territory-member-count"] });
       qc.invalidateQueries({ queryKey: ["territory-portal-stewards"] });
       qc.invalidateQueries({ queryKey: ["territory-portal-grid"] });
+      qc.invalidateQueries({ queryKey: ["territory-is-admin"] });
+      qc.invalidateQueries({ queryKey: ["territory-stewards"] });
       toast({ title: "Territory unlocked! 🌱", description: "You are now the founding steward." });
     },
     onError: (e: any) => {
