@@ -20,6 +20,31 @@ import { buildRoute } from "@/lib/routeHelpers";
 import type { PersonaType } from "@/lib/personaLabels";
 import { ACTION_PATHS } from "@/components/assistant/PiActionPaths";
 
+/* ────────── Reward hint labels per action label keyword ────────── */
+
+const REWARD_HINTS: Record<string, string> = {
+  "quest": "+5 ⭐ XP",
+  "mission": "+30 ⭐ XP  +50 🌱 $CTG",
+  "service": "+15 ⭐ XP  +20 🌱 $CTG",
+  "event": "+5 ⭐ XP",
+  "guild": "+5 ⭐ XP",
+  "pod": "+5 ⭐ XP",
+  "course": "+5 ⭐ XP",
+  "proposal": "+3 ⭐ XP",
+  "review": "+3 ⭐ XP  +10 🌱 $CTG",
+  "task": "+5 ⭐ XP  +5 🌱 $CTG",
+  "knowledge": "+3 ⭐ XP",
+  "post": "+2 ⭐ XP",
+};
+
+function getRewardHint(label: string): string | null {
+  const lower = label.toLowerCase();
+  for (const [keyword, hint] of Object.entries(REWARD_HINTS)) {
+    if (lower.includes(keyword)) return hint;
+  }
+  return null;
+}
+
 /* ────────── Types ────────── */
 
 interface SubAction {
