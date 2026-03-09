@@ -62,7 +62,7 @@ export function useTerritoryLeaderboard() {
       // Fetch all territories
       const { data: territories, error } = await supabase
         .from("territories")
-        .select("id, name, level, parent_id, stats");
+        .select("id, name, level, parent_id, stats, logo_url");
       if (error) throw error;
       if (!territories || territories.length === 0) return [];
 
