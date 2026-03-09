@@ -440,6 +440,7 @@ export default function ConversationGuide({
     loadStoredMessages(contextType, contextId)
   );
   const [input, setInput] = useState("");
+  const [hiddenContext, setHiddenContext] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [internalSessionId, setInternalSessionId] = useState<string | null>(null);
 
