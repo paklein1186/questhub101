@@ -454,7 +454,7 @@ const STEP_ICONS: Record<string, React.ReactNode> = {
 };
 
 export function PathwayCards({ persona, progress, steps, className }: PathwayCardsProps) {
-  const [dismissed, setDismissed] = useState(false);
+  const { dismissed, dismiss } = useIsDismissed("pathway_cards");
   const order = PERSONA_STEP_ORDER[persona] ?? PERSONA_STEP_ORDER.UNSET;
   const personaLabels = PERSONA_CARD_LABELS[persona] ?? {};
 
