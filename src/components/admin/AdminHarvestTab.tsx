@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Sprout, Plus, Loader2 } from "lucide-react";
+import { Sprout, Plus, Loader2, Trash2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -35,6 +34,16 @@ export function AdminHarvestTab() {
     },
   });
 
+  const now = new Date();
+  const activeWindow = windows.find(
+    (w: any) => w.is_active && new Date(w.starts_at) <= now && new Date(w.ends_at) >= now
+  );
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["admin-harvest-windows"] });
+    qc.invalidateQueries({ queryKey: ["harvest-window-active"] });
+  };
+
   const handleCreate = async () => {
     if (!form.label || !form.ends_at) {
       toast.error("Label and end date are required");
@@ -51,8 +60,7 @@ export function AdminHarvestTab() {
       if (error) throw error;
       toast.success("Harvest Window created!");
       setForm({ label: "", multiplier: 1.5, starts_at: new Date().toISOString().slice(0, 16), ends_at: "" });
-      qc.invalidateQueries({ queryKey: ["admin-harvest-windows"] });
-      qc.invalidateQueries({ queryKey: ["harvest-window-active"] });
+      invalidateAll();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -60,17 +68,54 @@ export function AdminHarvestTab() {
     }
   };
 
-  const toggleActive = async (id: string, current: boolean) => {
-    await supabase.from("harvest_windows" as any).update({ is_active: !current } as any).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["admin-harvest-windows"] });
-    qc.invalidateQueries({ queryKey: ["harvest-window-active"] });
-    toast.success(`Window ${!current ? "activated" : "deactivated"}`);
+  const activateExclusive = async (id: string) => {
+    // Deactivate all, then activate selected
+    await supabase.from("harvest_windows" as any).update({ is_active: false } as any).neq("id", id);
+    await supabase.from("harvest_windows" as any).update({ is_active: true } as any).eq("id", id);
+    invalidateAll();
+    toast.success("Window activated (others deactivated)");
   };
 
-  const now = new Date();
+  const deactivate = async (id: string) => {
+    await supabase.from("harvest_windows" as any).update({ is_active: false } as any).eq("id", id);
+    invalidateAll();
+    toast.success("Window deactivated");
+  };
+
+  const deleteWindow = async (id: string) => {
+    await supabase.from("harvest_windows" as any).delete().eq("id", id);
+    invalidateAll();
+    toast.success("Window deleted");
+  };
 
   return (
     <div className="space-y-6">
+      {/* Live status banner */}
+      {activeWindow ? (
+        <div className="rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🌾</span>
+            <div>
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                Harvest in progress · {activeWindow.multiplier}× boost
+              </p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                {activeWindow.label} — ends {format(new Date(activeWindow.ends_at), "PPP p")}
+              </p>
+            </div>
+          </div>
+          <Badge className="bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200 text-xs">
+            All $CTG emissions ×{activeWindow.multiplier}
+          </Badge>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border bg-muted/50 p-4 flex items-center gap-3">
+          <span className="text-2xl opacity-40">🌾</span>
+          <p className="text-sm text-muted-foreground">No active harvest window — $CTG emissions at standard rate</p>
+        </div>
+      )}
+
+      {/* Create form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -81,18 +126,21 @@ export function AdminHarvestTab() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs">Label *</Label>
-              <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder='e.g. "Spring Harvest 🌾"' />
+              <Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder='e.g. "Spring Sprint 2026"' />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Multiplier: {form.multiplier}×</Label>
               <Slider
                 value={[form.multiplier]}
                 onValueChange={([v]) => setForm({ ...form, multiplier: Math.round(v * 10) / 10 })}
-                min={1.2}
-                max={2}
+                min={1}
+                max={3}
                 step={0.1}
                 className="mt-2"
               />
+              <p className="text-[11px] text-muted-foreground">
+                {form.multiplier}× means contributors earn {Math.round((form.multiplier - 1) * 100)}% more 🌱 $CTG during this window
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -112,6 +160,7 @@ export function AdminHarvestTab() {
         </CardContent>
       </Card>
 
+      {/* Windows table */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">All Harvest Windows ({windows.length})</CardTitle>
@@ -126,34 +175,55 @@ export function AdminHarvestTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Label</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead className="text-right">Multiplier</TableHead>
-                    <TableHead>Period</TableHead>
+                    <TableHead>Start</TableHead>
+                    <TableHead>End</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Active</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {windows.map((w: any) => {
                     const isLive = w.is_active && new Date(w.starts_at) <= now && new Date(w.ends_at) >= now;
+                    const ended = new Date(w.ends_at) < now;
                     return (
                       <TableRow key={w.id}>
                         <TableCell className="font-medium text-sm">{w.label}</TableCell>
                         <TableCell className="text-right font-semibold text-emerald-600 dark:text-emerald-400">{w.multiplier}×</TableCell>
                         <TableCell className="text-xs text-muted-foreground">
-                          {format(new Date(w.starts_at), "dd/MM/yy HH:mm")} → {format(new Date(w.ends_at), "dd/MM/yy HH:mm")}
+                          {format(new Date(w.starts_at), "dd/MM/yy HH:mm")}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {format(new Date(w.ends_at), "dd/MM/yy HH:mm")}
                         </TableCell>
                         <TableCell>
                           {isLive ? (
                             <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 text-[10px]">🌾 LIVE</Badge>
-                          ) : new Date(w.ends_at) < now ? (
+                          ) : ended ? (
                             <Badge variant="secondary" className="text-[10px]">Ended</Badge>
+                          ) : w.is_active ? (
+                            <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-600">Scheduled</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-[10px]">Scheduled</Badge>
+                            <Badge variant="outline" className="text-[10px]">Inactive</Badge>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <Switch checked={w.is_active} onCheckedChange={() => toggleActive(w.id, w.is_active)} />
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {!ended && !w.is_active && (
+                              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => activateExclusive(w.id)}>
+                                <Zap className="h-3 w-3" /> Activate
+                              </Button>
+                            )}
+                            {w.is_active && (
+                              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => deactivate(w.id)}>
+                                Deactivate
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => deleteWindow(w.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
