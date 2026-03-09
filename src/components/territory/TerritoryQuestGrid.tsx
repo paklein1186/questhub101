@@ -58,7 +58,7 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
       const [questsRes, guildsRes, podsRes, companiesRes, nsRes] = await Promise.all([
         (supabase
           .from("quest_territories" as any)
-          .select("quest_id, quests(id, title, description, status, quest_nature, xp_reward)") as any)
+          .select("quest_id, quests(id, title, description, status, quest_nature, reward_xp)") as any)
           .eq("territory_id", territoryId)
           .limit(30),
 
