@@ -101,14 +101,15 @@ function useUnlockTerritory() {
 
       // 2. Insert pioneer steward edge via trust_edges (stewardship type)
       await (supabase.from("trust_edges") as any).insert({
-        from_id: userId,
-        from_type: "user",
-        to_id: territoryId,
-        to_type: "territory",
+        from_node_id: userId,
+        from_node_type: "user",
+        to_node_id: territoryId,
+        to_node_type: "territory",
         edge_type: "stewardship",
-        weight: 1,
+        score: 1,
         tags: ["pioneer"],
         status: "active",
+        created_by: userId,
       } as any).select();
 
       // 3. Set territory as user's primary territory
