@@ -244,7 +244,7 @@ export default function AdminStewardship() {
 
       const { error } = await supabase.from("trust_edges").insert({
         from_node_id: assignUserId,
-        from_node_type: "user" as any,
+        from_node_type: "profile" as any,
         to_node_id: assignTerritoryId,
         to_node_type: "territory" as any,
         edge_type: "stewardship" as any,
