@@ -125,7 +125,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p className="mt-4">Each node carries:</p>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
             {[
-              { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
+              { icon: <Zap className="h-4 w-4 text-primary" />, label: "⭐ XP", desc: "Reputation & trust level" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
               { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
               { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🌱 $CTG", desc: "Contribution to commons" },
