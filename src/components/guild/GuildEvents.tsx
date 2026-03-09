@@ -231,6 +231,13 @@ export function GuildEvents({ guildId, guildName, isMember, isAdmin }: GuildEven
       status: "PUBLISHED",
     } as any);
     if (error) { toast({ title: "Failed to create event", variant: "destructive" }); return; }
+    // Emit $CTG for event hosted
+    supabase.rpc('emit_ctg_for_contribution', {
+      p_user_id: currentUser.id,
+      p_contribution_type: 'event_hosted',
+      p_related_entity_id: guildId,
+      p_related_entity_type: 'guild',
+    } as any).then(() => {});
     qc.invalidateQueries({ queryKey: ["guild-events", guildId] });
     const eName = guildName || "your guild";
     notifyEntityFollowersAndMembers({
