@@ -96,9 +96,9 @@ function useTerritoryPortalStewards(territoryId: string | undefined) {
     enabled: !!territoryId,
     staleTime: 300_000,
     queryFn: async () => {
-      const { data: edges } = await supabase
+      const { data: edges } = await (supabase
         .from("trust_edges")
-        .select("from_id")
+        .select("from_id") as any)
         .eq("to_id", territoryId!)
         .eq("edge_type", "stewardship")
         .eq("status", "active")
