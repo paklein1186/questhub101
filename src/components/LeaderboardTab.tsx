@@ -569,6 +569,7 @@ export default function LeaderboardTab() {
   const { data: xpLeaders = [], isLoading: xpLoading } = useXpLeaders(period);
   const { data: trustLeaders = [], isLoading: trustLoading } = useTrustLeaders(period);
   const { data: territories = [], isLoading: terrLoading } = useActiveTerritories(period);
+  const { data: partnershipLeaders = [], isLoading: partLoading } = usePartnershipLeaders(period);
 
   const handleRefresh = async () => {
     setRefreshing(true);
