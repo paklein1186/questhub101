@@ -74,14 +74,21 @@ export default function ExploreHub() {
   const entityHf = useHouseFilter();
   const gridDensity = useGridDensity();
 
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
   return (
     <GridDensityContext.Provider value={gridDensity}>
     <PageShell>
-      <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-          <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
-        </h1>
-        <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+            <Search className="h-7 w-7 text-primary" /> {t("explore.title")}
+          </h1>
+          <p className="text-muted-foreground mt-1">{t("explore.discover", { items: `${t("explore.quests").toLowerCase()}, ${t("explore.services").toLowerCase()}` })}</p>
+        </div>
+        <GridDensityToggle density={gridDensity.density} setDensity={gridDensity.setDensity} />
       </div>
 
       <SectionBanner {...HINTS.banners.explore} />
