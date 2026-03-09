@@ -17,6 +17,7 @@ import {
   Mountain, ArrowUpDown, Sparkles, Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageShell } from "@/components/PageShell";
 import { TerritoryBrowseSection } from "@/components/explore/TerritoryBrowseSection";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
