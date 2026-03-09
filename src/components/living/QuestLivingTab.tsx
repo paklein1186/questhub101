@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Leaf, Plus, TreePine, Droplets, Mountain, Sprout, Bug, Microscope, Link2,
-  Database, RefreshCw, Zap, Trophy, Coins, AlertCircle, ChevronDown, ChevronUp,
+  Database, RefreshCw, Trophy, AlertCircle, ChevronDown, ChevronUp,
   Shield, Target, TrendingUp, TrendingDown, Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -57,10 +57,14 @@ const COMPARISON_OPTIONS = [
 ];
 
 const REWARD_OPTIONS = [
-  { value: "XP", label: "XP", icon: Zap },
-  { value: "CREDITS", label: "🟩 $CTG", icon: Coins },
-  { value: "BADGE", label: "Badge", icon: Trophy },
+  { value: "XP", label: "⭐ XP (reputation)", icon: TrendingUp },
+  { value: "CTG", label: "🌱 $CTG (contribution token)", icon: Leaf },
+  { value: "BADGE", label: "🏅 Badge (milestone)", icon: Trophy },
 ];
+
+const REWARD_LABELS: Record<string, string> = {
+  XP: "⭐ XP", CTG: "🌱 $CTG", BADGE: "🏅 Badge",
+};
 
 const PERIOD_OPTIONS = [
   { value: "ON_COMPLETE", label: "On quest complete" },
@@ -343,7 +347,7 @@ export function QuestLivingTab({ linkedType, linkedId, defaultTerritoryId, isOwn
           {showRules && rules && rules.length > 0 && (
             <div className="space-y-2">
               {rules.map((rule) => {
-                const RewardIcon = REWARD_OPTIONS.find((r) => r.value === rule.reward_type)?.icon || Zap;
+                const RewardIcon = REWARD_OPTIONS.find((r) => r.value === rule.reward_type)?.icon || TrendingUp;
                 return (
                   <Card key={rule.id} className={cn("overflow-hidden", rule.is_fulfilled && "opacity-60")}>
                     <CardContent className="p-3 flex items-center gap-3">
@@ -359,7 +363,7 @@ export function QuestLivingTab({ linkedType, linkedId, defaultTerritoryId, isOwn
                           )}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
-                          → {rule.reward_amount} {rule.reward_type} · {rule.evaluation_period.replace(/_/g, " ").toLowerCase()}
+                          → {rule.reward_amount} {REWARD_LABELS[rule.reward_type] ?? rule.reward_type} · {rule.evaluation_period.replace(/_/g, " ").toLowerCase()}
                         </p>
                       </div>
                       {rule.is_fulfilled ? (

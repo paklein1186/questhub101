@@ -5725,6 +5725,7 @@ export type Database = {
           id: string
           instagram_url: string | null
           is_cooperative_member: boolean
+          last_ctg_demurrage_at: string | null
           last_demurrage_at: string | null
           last_milestone_popup_at: string | null
           last_xp_recalculated_at: string | null
@@ -5798,6 +5799,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_ctg_demurrage_at?: string | null
           last_demurrage_at?: string | null
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
@@ -5871,6 +5873,7 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           is_cooperative_member?: boolean
+          last_ctg_demurrage_at?: string | null
           last_demurrage_at?: string | null
           last_milestone_popup_at?: string | null
           last_xp_recalculated_at?: string | null
@@ -9423,6 +9426,13 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      apply_ctg_demurrage: {
+        Args: { _fade_rate?: number }
+        Returns: {
+          total_faded: number
+          users_faded: number
+        }[]
       }
       apply_monthly_demurrage: {
         Args: { _fade_rate?: number }

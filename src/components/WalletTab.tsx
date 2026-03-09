@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { useToast } from "@/hooks/use-toast";
-import { CREDIT_BUNDLES, ECONOMY_LABELS } from "@/lib/xpCreditsConfig";
+import { CREDIT_BUNDLES, ECONOMY_LABELS, COIN_EUR_RATE } from "@/lib/xpCreditsConfig";
 import { DEMURRAGE_RATE_PERCENT, estimateFade } from "@/lib/demurrageConfig";
 import { TransferCreditsDialog } from "@/components/TransferCreditsDialog";
 import { GiveBackHistory } from "@/components/giveback/GiveBackHistory";
@@ -198,11 +198,11 @@ export function WalletTab() {
       const { error } = await supabase.from("coin_withdrawal_requests" as any).insert({
         user_id: userId,
         amount_tokens: balance,
-        amount_fiat: balance * 0.04,
+        amount_fiat: balance * COIN_EUR_RATE,
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * 0.04).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * COIN_EUR_RATE).toFixed(2)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
@@ -353,12 +353,13 @@ export function WalletTab() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
-                      <p className="text-lg font-semibold">€{(coinsBal * 0.04).toFixed(2)}</p>
+                      <p className="text-lg font-semibold">€{(coinsBal * COIN_EUR_RATE).toFixed(2)}</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Coins represent fiat-backed value earned from funded quests. Withdrawable to your bank via Stripe Connect.
                     This is separate from $CTG tokens which are cooperative contribution units, and separate from ⭐ XP which is your permanent reputation.
+                    Current rate: {COIN_EUR_RATE} EUR per Coin — set by the cooperative and displayed here for transparency.
                   </p>
                 </div>
 
