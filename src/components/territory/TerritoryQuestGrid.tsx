@@ -90,7 +90,9 @@ function useTerritoryQuestsAndEntities(territoryId: string) {
       const quests: QuestItem[] = (questsRes.data ?? [])
         .map((r: any) => r.quests)
         .filter(Boolean)
-        .filter((q: any) => q.status === "ACTIVE" || q.status === "PUBLISHED" || q.status === "OPEN");
+        .filter((q: any) =>
+          ["ACTIVE", "PUBLISHED", "OPEN", "OPEN_FOR_PROPOSALS", "DRAFT", "IDEA", "COMPLETED"].includes(q.status)
+        );
 
       const entities: EntityItem[] = [
         ...(guildsRes.data ?? []).map((r: any) => ({
@@ -233,7 +235,7 @@ export function TerritoryQuestGrid({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Compass className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Active Quests</h2>
+            <h2 className="text-sm font-semibold text-foreground">Quests</h2>
             <Badge variant="secondary" className="text-[10px]">
               {filteredQuests.length}
             </Badge>
@@ -286,7 +288,7 @@ export function TerritoryQuestGrid({
         ) : filteredQuests.length === 0 ? (
           <div className="text-center py-10 rounded-xl border border-dashed border-border">
             <Compass className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No active quests in {territoryName} yet.</p>
+            <p className="text-sm text-muted-foreground">No quests in {territoryName} yet.</p>
             {canCreateQuest && (
               <Link to={`/quests/create?territory=${territoryId}`}>
                 <Button size="sm" variant="outline" className="mt-3 gap-1.5">
