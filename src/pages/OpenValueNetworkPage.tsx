@@ -128,7 +128,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               { icon: <Zap className="h-4 w-4 text-primary" />, label: "XP", desc: "Skills & progression" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
               { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🟩 $CTG", desc: "Mission value" },
+              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🌱 $CTG", desc: "Contribution to commons" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
