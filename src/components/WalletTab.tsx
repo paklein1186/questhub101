@@ -204,7 +204,7 @@ export function WalletTab() {
         currency: "EUR",
       });
       if (error) throw error;
-      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${(balance * COIN_EUR_RATE).toFixed(2)} submitted for processing.` });
+      toast({ title: "Withdrawal requested", description: `${balance} Coins → €${toEur(balance)} submitted for processing.` });
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
     }
