@@ -20,6 +20,9 @@ import { TerritoryAdminPanel } from "@/components/territory/TerritoryAdminPanel"
 import { TerritoryEcosystemTab } from "@/components/territory/TerritoryEcosystemTab";
 import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab";
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
+import { TerritoryMemoryTab } from "@/components/territory/TerritoryMemoryTab";
+import { TerritoryChatTab } from "@/components/territory/TerritoryChatTab";
+import { TerritorySynthesis } from "@/components/territory/TerritorySynthesis";
 
 import { GraphView } from "@/components/graph/GraphView";
 import { BioregionMembersSection } from "@/components/territory/BioregionMembersSection";
