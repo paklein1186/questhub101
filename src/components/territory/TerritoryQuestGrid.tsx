@@ -38,7 +38,7 @@ interface QuestItem {
   description?: string | null;
   status: string;
   quest_nature?: string | null;
-  xp_reward?: number | null;
+  reward_xp?: number | null;
   participant_count?: number;
 }
 
