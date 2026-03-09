@@ -105,6 +105,7 @@ function getMonday(date: Date): string {
 export function usePlanLimits() {
   const { session } = useAuth();
   const userId = session?.user?.id;
+  const { isSuperAdmin } = useUserRoles(userId);
 
   const [plan, setPlan] = useState<PlanLimits>(DEFAULT_PLAN);
   const [weeklyQuestsUsed, setWeeklyQuestsUsed] = useState(0);
