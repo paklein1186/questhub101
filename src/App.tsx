@@ -309,6 +309,7 @@ const App = () => (
                 <Route path="/me/services" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="/me/xp" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
                 <Route path="/me/credits" element={<RequireAuth><BuyXpPage /></RequireAuth>} />
+                <Route path="/me/credit-shop" element={<RequireAuth><CreditShopPage /></RequireAuth>} />
                 <Route path="/me/companies" element={<RequireAuth><MyCompanies /></RequireAuth>} />
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/shares" element={<RequireAuth><SharesPage /></RequireAuth>} />
