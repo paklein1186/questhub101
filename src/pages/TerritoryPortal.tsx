@@ -343,6 +343,14 @@ export default function TerritoryPortal() {
             <TerritoryEcosystemTab territoryId={resolvedId!} />
           </TabsContent>
 
+          <TabsContent value="quests" className="mt-6">
+            <TerritoryQuestGrid
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              canCreateQuest={canCreateQuest}
+            />
+          </TabsContent>
+
           <TabsContent value="living" className="mt-6">
             <TerritoryLivingDashboard territoryId={resolvedId!} territoryName={territory.name} />
           </TabsContent>
