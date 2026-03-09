@@ -199,9 +199,17 @@ export function TerritoryPortalHero({
         )}
 
         <div className="flex items-start gap-3">
-          <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-            <LevelIcon className="h-6 w-6 text-primary" />
-          </div>
+          {territory.logo_url ? (
+            <img
+              src={territory.logo_url}
+              alt={`${territory.name} logo`}
+              className="h-14 w-14 rounded-xl border border-primary/20 object-cover shrink-0 mt-0.5"
+            />
+          ) : (
+            <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+              <LevelIcon className="h-7 w-7 text-primary" />
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
