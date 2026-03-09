@@ -225,6 +225,14 @@ Deno.serve(async (req) => {
               source_id: rule.quest_id,
               description: `Eco-impact reward: ${rule.target_indicator} ${rule.comparison_type}`,
             });
+          } else if (rule.reward_type === "CTG") {
+            await supabase.rpc("emit_ctg_for_contribution", {
+              p_user_id: userId,
+              p_contribution_type: "ecological_annotation",
+              p_reference_id: rule.id,
+              p_reference_type: "living_system_rule",
+              p_amount_override: rule.reward_amount,
+            });
           } else if (rule.reward_type === "CREDITS") {
             await supabase.from("credit_transactions").insert({
               user_id: userId,
