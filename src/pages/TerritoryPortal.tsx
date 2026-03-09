@@ -22,6 +22,7 @@ import { TerritoryLibraryTab } from "@/components/territory/TerritoryLibraryTab"
 import { TerritoryLivingDashboard } from "@/components/territory/TerritoryLivingDashboard";
 
 import { GraphView } from "@/components/graph/GraphView";
+import { BioregionMembersSection } from "@/components/territory/BioregionMembersSection";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTerritoryDetail, useTerritoryStats } from "@/hooks/useTerritoryDetail";
