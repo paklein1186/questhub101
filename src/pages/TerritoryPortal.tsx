@@ -350,6 +350,12 @@ export default function TerritoryPortal() {
               isAuthenticated={isAuthenticated}
               isAlreadyMember={isAlreadyMember}
             />
+            {/* AI Synthesis on Portal tab */}
+            <TerritorySynthesis
+              territoryId={resolvedId!}
+              territoryName={territory.name}
+              isMember={isAlreadyMember}
+            />
           </TabsContent>
 
           <TabsContent value="ecosystem" className="mt-6">
