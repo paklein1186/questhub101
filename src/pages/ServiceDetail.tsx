@@ -451,7 +451,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (€${svc.price_amount})`) : isFree ? "Confirm (Free)" : `Book & Pay (€${svc.price_amount})`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`) : isFree ? "Confirm (Free)" : `Book & Pay (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`}</Button>
               </div>
             </DialogContent>
           </Dialog>
