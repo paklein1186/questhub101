@@ -179,21 +179,21 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p>CTG captures value along a triple axis:</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-3">
             <ValueCard
-              title="A. Reputation (XP)"
+              title="A. Reputation (⭐ XP)"
               color="text-primary"
-              desc="Participation and contribution build your trust level and governance rights."
+              desc="Participation builds your trust and governance weight. Permanent, cumulative, individual."
               icon={<Zap className="h-5 w-5" />}
             />
             <ValueCard
-              title="B. Trust"
+              title="B. Trust Index"
               color="text-primary"
               desc="Interactions strengthen (or weaken) relational bonds between actors."
               icon={<Shield className="h-5 w-5" />}
             />
             <ValueCard
-              title="C. Impact"
+              title="C. Commons Impact (🌱 $CTG)"
               color="text-primary"
-              desc="Outcomes evaluated through ecological indicators, social contribution, community regeneration, and knowledge creation."
+              desc="Verified contributions emit tokens that circulate in the ecosystem. Not fiat-backed."
               icon={<Leaf className="h-5 w-5" />}
             />
           </div>
