@@ -489,13 +489,17 @@ export default function ConversationGuide({
     clearUndoFlags();
     clearPendingConfirmations();
 
+    // Build the message sent to AI: display text + hidden entity context
+    const messageForAI = hiddenContext ? `${text}\n\n${hiddenContext}` : text;
+
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      text,
+      text, // Only show clean text to user
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setHiddenContext(null);
     setIsLoading(true);
 
     try {
