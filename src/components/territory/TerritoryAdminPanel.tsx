@@ -118,12 +118,15 @@ function PortalCustomizationSection({ territoryId, territoryName }: SectionProps
         .single();
       return data;
     },
-    onSuccess: (data: any) => {
-      setSummary(data?.summary ?? "");
-      setImageUrls(data?.stats?.images ?? []);
-      setTags((data?.stats?.tags ?? []).join(", "));
-    },
-  } as any);
+  });
+
+  useEffect(() => {
+    if (territory) {
+      setSummary((territory as any).summary ?? "");
+      setImageUrls((territory as any).stats?.images ?? []);
+      setTags(((territory as any).stats?.tags ?? []).join(", "));
+    }
+  }, [territory]);
 
   const handleSave = async () => {
     setSaving(true);
