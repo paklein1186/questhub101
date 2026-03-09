@@ -346,6 +346,15 @@ export function CTGWalletSection() {
                   <td className="py-2 text-right text-muted-foreground">{rule.commons_share_percent}%</td>
                 </tr>
               ))}
+              <tr className="border-t-2 border-border">
+                <td className="py-2 pr-4 font-medium text-muted-foreground text-xs italic">
+                  ⏳ Monthly demurrage
+                </td>
+                <td className="py-2 pr-4 text-right">
+                  <Badge variant="outline" className="text-xs text-orange-600">−1%/month</Badge>
+                </td>
+                <td className="py-2 text-right text-muted-foreground text-xs">Encourages flow</td>
+              </tr>
             </tbody>
           </table>
         </div>
