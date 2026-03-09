@@ -113,6 +113,7 @@ export function ProfileCTGStats({
         </div>
       )}
       <div className="flex items-center gap-1 text-sm">
+        <span>{getStewardTier(data.lifetime_earned).icon}</span>
         <span className="text-muted-foreground text-xs">Lifetime:</span>
         <span className="font-semibold tabular-nums">{data.lifetime_earned.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</span>
         <span className="text-muted-foreground text-xs">$CTG earned</span>
