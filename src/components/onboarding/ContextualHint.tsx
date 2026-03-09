@@ -441,7 +441,7 @@ export const HINTS = {
       content: "XP is earned by completing quests and recognised by peers. It accumulates into a level reflecting your contribution history. Never decays, never purchased.",
     },
     questCTG: {
-      content: "$CTG tokens are earned on verified completion. They're tracked in your personal OVN and transferable to other contributors.",
+      content: "$CTG tokens are earned on verified completion. They're tracked in your OVN, transferable to collaborators, and fade gently at 1%/month — encouraging continuous contribution over hoarding.",
     },
     questType: {
       content: "OPEN: anyone joins. CLOSED: apply, host approves. IDEA: in design, not yet active. PROJECT: multi-milestone campaign.",

@@ -81,8 +81,8 @@ const ECONOMY_LAYERS: EconomyLayer[] = [
     badge: "New in v2",
     tagline: "Earned by doing, not by buying.",
     howEarned: "Completing quests, subtasks, governance votes, rituals, mentorship",
-    howSpent: "Transfer to collaborators, exchange for Credits, tracked in your OVN",
-    decays: false,
+    howSpent: "Transfer to collaborators · exchange for Credits · fades 1%/month (demurrage encourages circulation)",
+    decays: true,
     withdrawable: false,
   },
   {

@@ -219,10 +219,10 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
               </ul>
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 $CTG (fiat-backed)</p>
-              <p className="text-xs text-muted-foreground mb-2">Mission value. Backed by real fiat. Withdrawable by contributors.</p>
+              <p className="font-medium text-foreground mb-2">🌱 $CTG — Contribution Token</p>
+              <p className="text-xs text-muted-foreground mb-2">Emitted when you contribute verified work to the commons. Not fiat-backed, not purchasable. Circulates with 1%/month demurrage.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Pre-funded quest budgets", "Contributor payouts", "Guild/Territory redistribution", "Ecological impact flows", "Fiat withdrawal via Stripe Connect"].map((s) => (
+                {["Quest and subtask completion", "Governance votes and rituals", "Mentorship and documentation", "Ecological annotations", "P2P transfer to collaborators", "Exchange for platform credits"].map((s) => (
                   <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
                 ))}
               </ul>
