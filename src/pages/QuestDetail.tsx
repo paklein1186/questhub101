@@ -1416,9 +1416,11 @@ export default function QuestDetail() {
           </TabsContent>
         )}
 
-        <TabsContent value="trust" className="mt-6">
-          <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
-        </TabsContent>
+        {quest.status === "COMPLETED" && (
+          <TabsContent value="trust" className="mt-6">
+            <TrustTab nodeType={TrustNodeType.QUEST} nodeId={quest.id} />
+          </TabsContent>
+        )}
 
         <TabsContent value="living" className="mt-6">
           <QuestLivingTab
