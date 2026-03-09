@@ -63,6 +63,7 @@ const AdminEconomyCTG = lazy(() => import("./pages/admin/AdminEconomyCTG"));
 const AdminSystemRoles = lazy(() => import("./pages/admin/AdminSystemRoles"));
 const AdminSystemHouses = lazy(() => import("./pages/admin/AdminSystemHouses"));
 const AdminSystemGovernance = lazy(() => import("./pages/admin/AdminSystemGovernance"));
+const AdminStewardship = lazy(() => import("./pages/admin/AdminStewardship"));
 const AdminSystemAudit = lazy(() => import("./pages/admin/AdminSystemAudit"));
 const AdminSystemIntegrations = lazy(() => import("./pages/admin/AdminSystemIntegrations"));
 const AdminFeatureToggles = lazy(() => import("./pages/admin/AdminFeatureToggles"));
@@ -334,6 +335,7 @@ const App = () => (
                   <Route path="economy/ctg" element={<Suspense fallback={null}><AdminEconomyCTG /></Suspense>} />
                   <Route path="system/roles" element={<Suspense fallback={null}><AdminSystemRoles /></Suspense>} />
                   <Route path="system/houses" element={<Suspense fallback={null}><AdminSystemHouses /></Suspense>} />
+                  <Route path="system/stewardship" element={<Suspense fallback={null}><AdminStewardship /></Suspense>} />
                   <Route path="system/governance" element={<Suspense fallback={null}><AdminSystemGovernance /></Suspense>} />
                   <Route path="system/audit" element={<Suspense fallback={null}><AdminSystemAudit /></Suspense>} />
                   <Route path="system/integrations" element={<Suspense fallback={null}><AdminSystemIntegrations /></Suspense>} />
