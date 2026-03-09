@@ -38,6 +38,7 @@ interface TerritoryPortalHeroProps {
     latitude?: number | null;
     longitude?: number | null;
     parent_id?: string | null;
+    logo_url?: string | null;
   };
   ancestors: TerritoryAncestor[];
   memberCount: number;
