@@ -1,189 +1,332 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Trophy, Heart, Paintbrush, Users, MapPin, GraduationCap,
-  Shield, TrendingUp, Sparkles, Loader2, RefreshCw, Clock,
-  Calendar, CalendarDays, Building2, Compass,
+  Trophy, MapPin, Star, Handshake, Loader2, RefreshCw, Clock,
+  Calendar, CalendarDays, Shield, Coins, TrendingUp, Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import {
-  useLeaderboard,
-  useRefreshLeaderboard,
-  getTopForDimension,
-  type TimeScope,
-  type DimensionKey,
-  type LeaderboardEntry,
-} from "@/hooks/useLeaderboard";
-import { usePersona } from "@/hooks/usePersona";
-import { useGuildLeaderboard, useTerritoryLeaderboard } from "@/hooks/useEntityLeaderboards";
+import { supabase } from "@/integrations/supabase/client";
+import { useRefreshLeaderboard } from "@/hooks/useLeaderboard";
 import { toast } from "sonner";
 
-const TIME_SCOPES: { key: TimeScope; label: string; icon: React.ReactNode }[] = [
-  { key: "WEEKLY", label: "Weekly", icon: <Clock className="h-3.5 w-3.5" /> },
-  { key: "MONTHLY", label: "Monthly", icon: <Calendar className="h-3.5 w-3.5" /> },
-  { key: "ALL_TIME", label: "All time", icon: <CalendarDays className="h-3.5 w-3.5" /> },
-];
+/* ── Types ── */
 
-interface DimensionConfig {
-  key: DimensionKey;
-  icon: React.ReactNode;
-  title: (isCreative: boolean) => string;
-  description: (isCreative: boolean) => string;
-  unit: string;
+interface RankedUser {
+  user_id: string;
+  name: string;
+  avatar_url: string | null;
+  headline: string | null;
+  value: number;
+  secondary?: string;
 }
 
-const DIMENSIONS: DimensionConfig[] = [
-  {
-    key: "helpful",
-    icon: <Heart className="h-5 w-5" />,
-    title: () => "Most Helpful Humans",
-    description: () => "Recognizing those whose contributions support everyone else.",
-    unit: "helpful pts",
-  },
-  {
-    key: "creator",
-    icon: <Paintbrush className="h-5 w-5" />,
-    title: (c) => c ? "Most Active Creators" : "Most Active Creators",
-    description: (c) => c ? "Artists & makers who keep creating and sharing." : "People who keep making, sharing and launching.",
-    unit: "creator pts",
-  },
-  {
-    key: "collaborator",
-    icon: <Users className="h-5 w-5" />,
-    title: () => "Top Collaborators",
-    description: () => "The connectors who join, contribute and co-create.",
-    unit: "collab pts",
-  },
-  {
-    key: "territory",
-    icon: <MapPin className="h-5 w-5" />,
-    title: (c) => c ? "Place-Based Creators" : "Territory Builders",
-    description: (c) => c ? "Creators rooted in their territories." : "Building impact in their territories.",
-    unit: "territory pts",
-  },
-  {
-    key: "mentor",
-    icon: <GraduationCap className="h-5 w-5" />,
-    title: (c) => c ? "Creative Mentors & Teachers" : "Skill Mentors",
-    description: () => "Those who teach, guide and empower others.",
-    unit: "mentor pts",
-  },
-  {
-    key: "guild",
-    icon: <Shield className="h-5 w-5" />,
-    title: () => "Guild Champions",
-    description: () => "Leaders who grow thriving communities.",
-    unit: "guild pts",
-  },
-  {
-    key: "rising",
-    icon: <TrendingUp className="h-5 w-5" />,
-    title: () => "Rising Stars",
-    description: () => "Fastest-growing contributors this period.",
-    unit: "rising pts",
-  },
-  {
-    key: "ai",
-    icon: <Sparkles className="h-5 w-5" />,
-    title: () => "AI-Augmented Humans",
-    description: () => "Leveraging AI to amplify their impact.",
-    unit: "AI pts",
-  },
-];
+interface RankedTerritory {
+  id: string;
+  name: string;
+  level: string | null;
+  value: number;
+  secondary?: string;
+}
 
-function DimensionCard({
-  config,
-  entries,
-  isCreative,
-  timeScopeLabel,
-}: {
-  config: DimensionConfig;
-  entries: (LeaderboardEntry & { score: number })[];
-  isCreative: boolean;
-  timeScopeLabel: string;
-}) {
-  if (entries.length === 0) return null;
+/* ── Hooks ── */
 
+function useCtgLeaders(limit = 10) {
+  return useQuery<RankedUser[]>({
+    queryKey: ["leaderboard-ctg", limit],
+    staleTime: 120_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, headline, ctg_balance")
+        .gt("ctg_balance", 0)
+        .order("ctg_balance", { ascending: false })
+        .limit(limit);
+      return (data ?? []).map((p) => ({
+        user_id: p.user_id,
+        name: p.name,
+        avatar_url: p.avatar_url,
+        headline: p.headline,
+        value: p.ctg_balance,
+      }));
+    },
+  });
+}
+
+function useXpLeaders(limit = 10) {
+  return useQuery<RankedUser[]>({
+    queryKey: ["leaderboard-xp", limit],
+    staleTime: 120_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, headline, xp, xp_level")
+        .gt("xp", 0)
+        .order("xp", { ascending: false })
+        .limit(limit);
+      return (data ?? []).map((p) => ({
+        user_id: p.user_id,
+        name: p.name,
+        avatar_url: p.avatar_url,
+        headline: p.headline,
+        value: p.xp,
+        secondary: `Level ${p.xp_level}`,
+      }));
+    },
+  });
+}
+
+function useTrustLeaders(limit = 10) {
+  return useQuery<RankedUser[]>({
+    queryKey: ["leaderboard-trust", limit],
+    staleTime: 120_000,
+    queryFn: async () => {
+      // Count active trust edges received per user
+      const { data: edges } = await supabase
+        .from("trust_edges")
+        .select("to_node_id, score")
+        .eq("to_node_type", "user" as any)
+        .eq("status", "active" as any)
+        .eq("edge_type", "trust" as any);
+
+      if (!edges?.length) return [];
+
+      const scores = new Map<string, { total: number; count: number }>();
+      for (const e of edges as any[]) {
+        const cur = scores.get(e.to_node_id) ?? { total: 0, count: 0 };
+        cur.total += (e.score ?? 1);
+        cur.count += 1;
+        scores.set(e.to_node_id, cur);
+      }
+
+      const sorted = [...scores.entries()]
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, limit);
+
+      const userIds = sorted.map(([id]) => id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, avatar_url, headline")
+        .in("user_id", userIds);
+
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+      return sorted.map(([userId, s]) => {
+        const p = profileMap.get(userId);
+        return {
+          user_id: userId,
+          name: p?.name ?? "Unknown",
+          avatar_url: p?.avatar_url ?? null,
+          headline: p?.headline ?? null,
+          value: s.total,
+          secondary: `${s.count} attestation${s.count > 1 ? "s" : ""}`,
+        };
+      });
+    },
+  });
+}
+
+function useActiveTerritories(limit = 10) {
+  return useQuery<RankedTerritory[]>({
+    queryKey: ["leaderboard-active-territories", limit],
+    staleTime: 120_000,
+    queryFn: async () => {
+      const { data: territories } = await supabase
+        .from("territories")
+        .select("id, name, level")
+        .eq("is_deleted", false);
+
+      if (!territories?.length) return [];
+
+      const tIds = territories.map((t) => t.id);
+
+      const [userTerr, questTerr, stewards] = await Promise.all([
+        supabase.from("user_territories" as any).select("territory_id").in("territory_id", tIds),
+        supabase.from("quest_territories").select("territory_id").in("territory_id", tIds),
+        supabase.from("trust_edges")
+          .select("to_node_id")
+          .eq("edge_type", "stewardship" as any)
+          .eq("status", "active" as any)
+          .in("to_node_id", tIds),
+      ]);
+
+      const count = (rows: any[] | null, field: string, id: string) =>
+        (rows ?? []).filter((r: any) => r[field] === id).length;
+
+      return territories
+        .map((t) => {
+          const humans = count(userTerr.data, "territory_id", t.id);
+          const quests = count(questTerr.data, "territory_id", t.id);
+          const stew = count(stewards.data, "to_node_id", t.id);
+          const score = humans * 2 + quests * 5 + stew * 8;
+          return {
+            id: t.id,
+            name: t.name,
+            level: t.level,
+            value: score,
+            secondary: `${humans} humans · ${quests} quests · ${stew} steward${stew !== 1 ? "s" : ""}`,
+          };
+        })
+        .filter((t) => t.value > 0)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, limit);
+    },
+  });
+}
+
+/* ── Rank medal color ── */
+function rankColor(i: number) {
+  if (i === 0) return "text-yellow-500";
+  if (i === 1) return "text-slate-400";
+  if (i === 2) return "text-amber-600";
+  return "text-muted-foreground";
+}
+
+/* ── Section Components ── */
+
+interface SectionProps {
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  accentClass: string;
+  isLoading: boolean;
+}
+
+function UserSection({
+  title, subtitle, icon, accentClass, isLoading,
+  entries, unitLabel, linkPrefix = "/users/",
+}: SectionProps & { entries: RankedUser[]; unitLabel: string; linkPrefix?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-border bg-card overflow-hidden"
-    >
-      <div className="p-4 border-b border-border bg-muted/30">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className={`p-4 border-b border-border ${accentClass}`}>
         <div className="flex items-center gap-2.5">
-          <div className="text-primary">{config.icon}</div>
+          {icon}
           <div>
-            <h3 className="font-display font-semibold text-sm">{config.title(isCreative)}</h3>
-            <p className="text-xs text-muted-foreground">{config.description(isCreative)}</p>
+            <h3 className="font-display font-semibold text-sm">{title}</h3>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
           </div>
         </div>
       </div>
 
-      <div className="divide-y divide-border">
-        {entries.map((entry, i) => {
-          const rank = i + 1;
-          const isTop3 = rank <= 3;
-          return (
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No data yet.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {entries.map((entry, i) => (
             <Link
               key={entry.user_id}
-              to={`/users/${entry.user_id}`}
-              className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${isTop3 ? "bg-primary/[0.03]" : ""}`}
+              to={`${linkPrefix}${entry.user_id}`}
+              className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
             >
-              <span
-                className={`w-6 text-center font-bold text-sm shrink-0 ${
-                  rank === 1
-                    ? "text-yellow-500"
-                    : rank === 2
-                      ? "text-slate-400"
-                      : rank === 3
-                        ? "text-amber-600"
-                        : "text-muted-foreground"
-                }`}
-              >
-                {rank}
+              <span className={`w-6 text-center font-bold text-sm shrink-0 ${rankColor(i)}`}>
+                {i + 1}
               </span>
-              <Avatar className={isTop3 ? "h-9 w-9" : "h-7 w-7"}>
-                <AvatarImage src={entry.profile?.avatar_url ?? undefined} />
-                <AvatarFallback>{entry.profile?.name?.[0] ?? "?"}</AvatarFallback>
+              <Avatar className={i < 3 ? "h-9 w-9" : "h-7 w-7"}>
+                <AvatarImage src={entry.avatar_url ?? undefined} />
+                <AvatarFallback>{entry.name?.[0] ?? "?"}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className={`font-medium truncate ${isTop3 ? "text-sm" : "text-xs"}`}>
-                  {entry.profile?.name ?? "Unknown"}
+                <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>
+                  {entry.name}
                 </p>
-                {isTop3 && entry.profile?.headline && (
-                  <p className="text-[11px] text-muted-foreground truncate">{entry.profile.headline}</p>
+                {i < 3 && entry.headline && (
+                  <p className="text-[11px] text-muted-foreground truncate">{entry.headline}</p>
                 )}
               </div>
-              <Badge variant="secondary" className="text-[10px] shrink-0">
-                {entry.score} {config.unit}
-              </Badge>
+              <div className="text-right shrink-0">
+                <Badge variant="secondary" className="text-[10px]">
+                  {entry.value.toLocaleString()} {unitLabel}
+                </Badge>
+                {entry.secondary && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{entry.secondary}</p>
+                )}
+              </div>
             </Link>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
 
+function TerritorySection({
+  title, subtitle, icon, accentClass, isLoading,
+  entries,
+}: SectionProps & { entries: RankedTerritory[] }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className={`p-4 border-b border-border ${accentClass}`}>
+        <div className="flex items-center gap-2.5">
+          {icon}
+          <div>
+            <h3 className="font-display font-semibold text-sm">{title}</h3>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          </div>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No territory data yet.</p>
+      ) : (
+        <div className="divide-y divide-border">
+          {entries.map((t, i) => (
+            <Link
+              key={t.id}
+              to={`/territories/${t.id}`}
+              className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
+            >
+              <span className={`w-6 text-center font-bold text-sm shrink-0 ${rankColor(i)}`}>
+                {i + 1}
+              </span>
+              <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
+                <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{t.name}</p>
+                {t.secondary && (
+                  <p className="text-[11px] text-muted-foreground truncate">{t.secondary}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {t.level && (
+                  <Badge variant="outline" className="text-[9px] capitalize">{t.level.toLowerCase()}</Badge>
+                )}
+                <Badge variant="secondary" className="text-[10px]">{t.value} pts</Badge>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ── Main Component ── */
+
 export default function LeaderboardTab() {
-  const [timeScope, setTimeScope] = useState<TimeScope>("WEEKLY");
-  const { data: entries = [], isLoading, refetch } = useLeaderboard(timeScope);
   const refreshLeaderboard = useRefreshLeaderboard();
-  const { persona } = usePersona();
-  const isCreative = persona === "CREATIVE";
   const [refreshing, setRefreshing] = useState(false);
 
-  const timeScopeLabel = TIME_SCOPES.find((t) => t.key === timeScope)?.label ?? "";
+  const { data: ctgLeaders = [], isLoading: ctgLoading } = useCtgLeaders();
+  const { data: xpLeaders = [], isLoading: xpLoading } = useXpLeaders();
+  const { data: trustLeaders = [], isLoading: trustLoading } = useTrustLeaders();
+  const { data: territories = [], isLoading: terrLoading } = useActiveTerritories();
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
       await refreshLeaderboard();
-      await refetch();
       toast.success("Leaderboard refreshed");
     } catch {
       toast.error("Failed to refresh leaderboard");
@@ -201,168 +344,61 @@ export default function LeaderboardTab() {
             <Trophy className="h-5 w-5 text-primary" /> Leaderboard
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Different ways people change the game.
+            Recognizing value across the ecosystem.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-1">
-            {TIME_SCOPES.map((t) => (
-              <Button
-                key={t.key}
-                variant={timeScope === t.key ? "secondary" : "ghost"}
-                size="sm"
-                className="h-7 px-2.5 text-xs gap-1.5"
-                onClick={() => setTimeScope(t.key)}
-              >
-                {t.icon}
-                {t.label}
-              </Button>
-            ))}
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+        </Button>
       </div>
 
-      {/* Content */}
-      {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : entries.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border border-dashed border-border space-y-3">
-          <Trophy className="h-10 w-10 text-muted-foreground/40 mx-auto" />
-          <p className="text-muted-foreground font-medium">No leaderboard data yet.</p>
-          <p className="text-sm text-muted-foreground">
-            Click refresh to compute the leaderboard from platform activity.
-          </p>
-          <Button size="sm" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? "animate-spin" : ""}`} />
-            Compute now
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
-          {DIMENSIONS.map((dim) => {
-            const top = getTopForDimension(entries, dim.key, 10);
-            return (
-              <DimensionCard
-                key={dim.key}
-                config={dim}
-                entries={top}
-                isCreative={isCreative}
-                timeScopeLabel={timeScopeLabel}
-              />
-            );
-          })}
-        </div>
-      )}
+      {/* 4-section grid */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <UserSection
+          title="🟡 $CTG Champions"
+          subtitle="Top contributors by $CTG token balance."
+          icon={<Coins className="h-5 w-5 text-amber-500" />}
+          accentClass="bg-amber-500/5"
+          isLoading={ctgLoading}
+          entries={ctgLeaders}
+          unitLabel="$CTG"
+        />
 
-      {/* Entity Leaderboards */}
-      <EntityLeaderboards />
-    </div>
-  );
-}
+        <TerritorySection
+          title="🌍 Territory Pulse"
+          subtitle="Most active territories by humans, quests & stewards."
+          icon={<MapPin className="h-5 w-5 text-emerald-500" />}
+          accentClass="bg-emerald-500/5"
+          isLoading={terrLoading}
+          entries={territories}
+        />
 
-/* ── Guild & Territory Leaderboards ── */
+        <UserSection
+          title="⭐ XP Leaders"
+          subtitle="Highest reputation by experience points."
+          icon={<Star className="h-5 w-5 text-primary" />}
+          accentClass="bg-primary/5"
+          isLoading={xpLoading}
+          entries={xpLeaders}
+          unitLabel="XP"
+        />
 
-function EntityLeaderboards() {
-  const { data: guilds = [], isLoading: gLoading } = useGuildLeaderboard();
-  const { data: territories = [], isLoading: tLoading } = useTerritoryLeaderboard();
-
-  if (gLoading || tLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <UserSection
+          title="🤝 Trust Network"
+          subtitle="Most trusted humans by peer attestations."
+          icon={<Handshake className="h-5 w-5 text-blue-500" />}
+          accentClass="bg-blue-500/5"
+          isLoading={trustLoading}
+          entries={trustLeaders}
+          unitLabel="trust"
+        />
       </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-5 lg:grid-cols-2">
-      {/* Guild Leaderboard */}
-      {guilds.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="p-4 border-b border-border bg-muted/30">
-            <div className="flex items-center gap-2.5">
-              <Shield className="h-5 w-5 text-primary" />
-              <div>
-                <h3 className="font-display font-semibold text-sm">Top Guilds</h3>
-                <p className="text-xs text-muted-foreground">Most active communities by members, quests & events.</p>
-              </div>
-            </div>
-          </div>
-          <div className="divide-y divide-border">
-            {guilds.map((g, i) => (
-              <Link
-                key={g.id}
-                to={`/guilds/${g.id}`}
-                className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
-              >
-                <span className={`w-6 text-center font-bold text-sm shrink-0 ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-muted-foreground"}`}>
-                  {i + 1}
-                </span>
-                <Avatar className={i < 3 ? "h-9 w-9" : "h-7 w-7"}>
-                  <AvatarImage src={g.logo_url ?? undefined} />
-                  <AvatarFallback>{g.name[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{g.name}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {g.member_count} members · {g.quest_count} quests · {g.event_count} events
-                  </p>
-                </div>
-                <Badge variant="secondary" className="text-[10px] shrink-0">{g.total_score} pts</Badge>
-              </Link>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Territory Leaderboard */}
-      {territories.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="p-4 border-b border-border bg-muted/30">
-            <div className="flex items-center gap-2.5">
-              <MapPin className="h-5 w-5 text-primary" />
-              <div>
-                <h3 className="font-display font-semibold text-sm">Top Territories</h3>
-                <p className="text-xs text-muted-foreground">Most connected territories by quests, guilds & entities.</p>
-              </div>
-            </div>
-          </div>
-          <div className="divide-y divide-border">
-            {territories.map((t, i) => (
-              <Link
-                key={t.id}
-                to={`/territories/${t.id}`}
-                className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${i < 3 ? "bg-primary/[0.03]" : ""}`}
-              >
-                <span className={`w-6 text-center font-bold text-sm shrink-0 ${i === 0 ? "text-yellow-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-muted-foreground"}`}>
-                  {i + 1}
-                </span>
-                <div className={`${i < 3 ? "h-9 w-9" : "h-7 w-7"} rounded-lg bg-primary/10 flex items-center justify-center shrink-0`}>
-                  <MapPin className={`${i < 3 ? "h-4 w-4" : "h-3.5 w-3.5"} text-primary`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-medium truncate ${i < 3 ? "text-sm" : "text-xs"}`}>{t.name}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t.quest_count} quests · {t.guild_count} guilds · {t.pod_count} pods · {t.company_count} companies
-                  </p>
-                </div>
-                <Badge variant="secondary" className="text-[10px] shrink-0">{t.total_score} pts</Badge>
-              </Link>
-            ))}
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
