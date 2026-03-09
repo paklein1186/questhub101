@@ -183,6 +183,11 @@ export default function ExploreHub() {
         <TabsContent value="users"><ExploreUsers bare /></TabsContent>
         <TabsContent value="houses"><ExploreHouses bare /></TabsContent>
         <TabsContent value="territories" className="space-y-8">
+          <div className="flex justify-end mb-4">
+            <Button size="sm" asChild>
+              <Link to="/create/bioregion"><Plus className="h-4 w-4 mr-1" /> Create Bioregion</Link>
+            </Button>
+          </div>
           <TerritoryBrowseSection />
           <div className="border-t border-border pt-8">
             <TerritoryExplorer />
