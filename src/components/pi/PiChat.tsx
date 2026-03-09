@@ -493,7 +493,7 @@ export function PiChat({ className }: PiChatProps) {
                   <div className="flex flex-wrap gap-1 mt-2">
                     {msg.meta.createdEntities.map((e) => (
                       <Badge key={e.id} variant="outline" className="text-[10px] cursor-pointer hover:bg-primary/10"
-                        onClick={() => navigate(entityRoute(e.type, e.id))}>
+                        onClick={() => { closePiPanel(); navigate(entityRoute(e.type, e.id)); }}>
                         ✨ {entityLabel(e.type)}
                       </Badge>
                     ))}
