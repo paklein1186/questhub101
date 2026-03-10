@@ -118,12 +118,7 @@ export default function QuestCreate() {
     },
   });
 
-  // Auto-enable OCU if the guild has ocu_default_enabled
-  const [ocuAutoApplied, setOcuAutoApplied] = useState(false);
-  if (guild && (guild as any).ocu_default_enabled && !ocuEnabled && !ocuAutoApplied) {
-    setOcuEnabled(true);
-    setOcuAutoApplied(true);
-  }
+  // Auto-enable OCU moved below state declarations (useEffect)
 
   const { data: company } = useQuery({
     queryKey: ["company-for-quest", effectiveCompanyId],
