@@ -1648,7 +1648,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   disabled={converting}
                   className="text-xs text-muted-foreground"
                 >
-                  Passer
+                  Skip
                 </Button>
                 <Button size="sm" onClick={finalizeConvertToQuest} disabled={converting} className="flex-1">
                   {converting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Rocket className="h-3.5 w-3.5 mr-1" />}
