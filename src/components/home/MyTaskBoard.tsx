@@ -288,53 +288,17 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const { data: mySubtasks = [], isLoading: loadingSubtasks } = useQuery({
     queryKey: ["my-subtasks-home", userId],
     queryFn: async () => {
-      // 1. Subtasks explicitly assigned to user
+      // 1. Subtasks explicitly assigned to user (via array column)
       const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id, assignee_user_id, priority")
-        .eq("assignee_user_id", userId)
+        .select("id, title, status, quest_id, assignee_user_id, assignee_user_ids, priority")
+        .contains("assignee_user_ids", [userId])
         .order("created_at", { ascending: false })
         .limit(100);
       if (e1) throw e1;
 
-      // 2. Get quest IDs user owns
-      const { data: ownedQuests } = await supabase
-        .from("quests")
-        .select("id")
-        .eq("created_by_user_id", userId)
-        .eq("is_deleted", false);
-      const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
-
-      // 3. Get quest IDs user participates in
-      const { data: parts } = await supabase
-        .from("quest_participants")
-        .select("quest_id")
-        .eq("user_id", userId)
-        .eq("status", "APPROVED");
-      const partQuestIds = (parts || []).map((p: any) => p.quest_id);
-
-      // 4. Combine and fetch subtasks from those quests
-      const allQuestIds = [...new Set([...ownedQuestIds, ...partQuestIds])];
-      let fromQuests: any[] = [];
-      if (allQuestIds.length > 0) {
-        const { data: qSubtasks } = await supabase
-          .from("quest_subtasks" as any)
-          .select("id, title, status, quest_id, assignee_user_id, priority")
-          .in("quest_id", allQuestIds)
-          .order("created_at", { ascending: false })
-          .limit(100);
-        fromQuests = qSubtasks || [];
-      }
-
-      // 5. Merge & deduplicate
-      const seen = new Set<string>();
-      const merged: any[] = [];
-      for (const s of [...(assigned || []), ...fromQuests]) {
-        if (!seen.has(s.id)) {
-          seen.add(s.id);
-          merged.push(s);
-        }
-      }
+      // Only show subtasks explicitly assigned to the current user
+      const merged = assigned || [];
 
       // 6. Resolve quest titles
       const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
@@ -1023,6 +987,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       quest_id: questId,
       title: task.title,
       assignee_user_id: userId,
+      assignee_user_ids: [userId],
       status: "BACKLOG",
       order_index: 0,
     } as any).select("id").single();
