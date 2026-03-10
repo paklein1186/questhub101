@@ -1220,7 +1220,15 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((task) => {
+              {(() => {
+                let lastGroup = "";
+                const STATUS_GROUP_LABELS: Record<string, { icon: string; label: string }> = {
+                  IN_PROGRESS: { icon: "●", label: "In Progress" },
+                  TODO: { icon: "○", label: "To Do" },
+                  BACKLOG: { icon: "·", label: "Backlog" },
+                  DONE: { icon: "✓", label: "Done" },
+                };
+                return paginated.flatMap((task) => {
                 const key = `${task.source}-${task.id}`;
                 const isDoneThisSession = sessionDone.has(key);
 
