@@ -4,7 +4,7 @@ import {
   BarChart3, Users as UsersIcon, Shield, Compass, ShoppingBag, Sprout,
   Hash, CreditCard, MessageSquare, Star, ScrollText, Bell, Mail,
   Settings, Zap, Flag, Building2, LayoutDashboard, ChevronRight,
-  Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot,
+  Menu, X, ShieldAlert, ToggleLeft, Trophy, Bot, Flag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
