@@ -200,7 +200,7 @@ export default function ServiceCreate() {
               .map(f => ({
                 user_id: f.follower_id,
                 type: "FOLLOWED_USER_NEW_SERVICE",
-                title: `New service from ${user.user_metadata?.name || "someone you follow"}`,
+                title: `New service from ${(user as any).user_metadata?.name || "someone you follow"}`,
                 body: `"${title.trim()}" — book a session`,
                 related_entity_type: "SERVICE",
                 related_entity_id: serviceId,
