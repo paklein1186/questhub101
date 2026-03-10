@@ -59,14 +59,18 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
         .eq("quest_id", questId)
         .order("order_index");
       if (error) throw error;
-      // Fetch assignee profiles
-      const userIds = (data || []).map((s: any) => s.assignee_user_id).filter(Boolean);
+      // Fetch assignee profiles from assignee_user_ids array
+      const allUserIds = (data || []).flatMap((s: any) => s.assignee_user_ids || (s.assignee_user_id ? [s.assignee_user_id] : []));
+      const uniqueUserIds = [...new Set(allUserIds)].filter(Boolean);
       let profileMap = new Map();
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", userIds);
+      if (uniqueUserIds.length > 0) {
+        const { data: profiles } = await supabase.from("profiles_public").select("user_id, name, avatar_url").in("user_id", uniqueUserIds);
         profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
       }
-      return (data || []).map((s: any) => ({ ...s, assignee: profileMap.get(s.assignee_user_id) }));
+      return (data || []).map((s: any) => {
+        const ids: string[] = s.assignee_user_ids?.length > 0 ? s.assignee_user_ids : (s.assignee_user_id ? [s.assignee_user_id] : []);
+        return { ...s, assignee_user_ids: ids, assignees: ids.map((id: string) => profileMap.get(id)).filter(Boolean) };
+      });
     },
   });
 
