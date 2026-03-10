@@ -1,0 +1,2 @@
+ALTER TABLE public.quest_subtasks
+  ADD COLUMN IF NOT EXISTS ctg_reward NUMERIC(8,2) NOT NULL DEFAULT 1.0;
