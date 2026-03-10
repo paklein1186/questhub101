@@ -265,6 +265,22 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
         });
       }
 
+      // Notify parent comment author on reply
+      if (parentId && inserted) {
+        const parentComment = comments.find(c => c.id === parentId);
+        if (parentComment && parentComment.author_id !== currentUser.id) {
+          await supabase.from("notifications").insert({
+            user_id: parentComment.author_id,
+            type: "COMMENT_REPLY",
+            title: "Someone replied to your comment",
+            body: `${currentUser.name || "Someone"} replied: "${cleanSnippet.slice(0, 60)}"`,
+            related_entity_type: targetType,
+            related_entity_id: inserted.id,
+            deep_link_url: `/${targetType === "FEED_POST" ? "feed" : targetType.toLowerCase() + "s"}/${targetId}`,
+          });
+        }
+      }
+
       if (parentId) { setReplyText(""); setReplyingTo(null); setReplyMentions([]); clearImage(true); } else { setNewComment(""); setPendingMentions([]); clearImage(false); }
       toast({ title: "Comment added" });
       qc.invalidateQueries({ queryKey });

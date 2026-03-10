@@ -41,6 +41,7 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
       return "notifyOnQuestUpdates";
     case NotificationType.COMMENT:
     case NotificationType.QUEST_COMMENT:
+    case NotificationType.COMMENT_REPLY:
     case NotificationType.UPVOTE:
     case NotificationType.QUEST_UPVOTE:
     case NotificationType.POST_UPVOTED:
