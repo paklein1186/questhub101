@@ -6627,6 +6627,7 @@ export type Database = {
           contribution_weight: number
           created_at: string
           credit_reward: number | null
+          ctg_reward: number
           description: string | null
           due_date: string | null
           estimated_minutes: number | null
@@ -6647,6 +6648,7 @@ export type Database = {
           contribution_weight?: number
           created_at?: string
           credit_reward?: number | null
+          ctg_reward?: number
           description?: string | null
           due_date?: string | null
           estimated_minutes?: number | null
@@ -6667,6 +6669,7 @@ export type Database = {
           contribution_weight?: number
           created_at?: string
           credit_reward?: number | null
+          ctg_reward?: number
           description?: string | null
           due_date?: string | null
           estimated_minutes?: number | null
