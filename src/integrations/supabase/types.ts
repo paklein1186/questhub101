@@ -1978,6 +1978,7 @@ export type Database = {
           deliverable_url: string | null
           description: string | null
           difficulty: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required: boolean | null
           evidence_url: string | null
           fmv_input: Json | null
           fmv_value: number | null
@@ -2017,6 +2018,7 @@ export type Database = {
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required?: boolean | null
           evidence_url?: string | null
           fmv_input?: Json | null
           fmv_value?: number | null
@@ -2056,6 +2058,7 @@ export type Database = {
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required?: boolean | null
           evidence_url?: string | null
           fmv_input?: Json | null
           fmv_value?: number | null
