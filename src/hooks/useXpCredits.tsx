@@ -58,9 +58,8 @@ export function useXpCredits() {
         return;
       }
 
-      notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
-
       if (!silent) {
+        notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
         toast({ title: `+${amount} XP`, description: formatXpType(params.type) });
       }
     },
