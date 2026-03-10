@@ -3997,6 +3997,8 @@ export type Database = {
           feedpoint_default_posts: boolean
           feedpoint_default_quests: boolean
           feedpoint_default_services: boolean
+          fmv_rate_per_half_day: number
+          governance_model: string
           id: string
           instagram_url: string | null
           is_approved: boolean
@@ -4046,6 +4048,8 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
+          fmv_rate_per_half_day?: number
+          governance_model?: string
           id?: string
           instagram_url?: string | null
           is_approved?: boolean
@@ -4095,6 +4099,8 @@ export type Database = {
           feedpoint_default_posts?: boolean
           feedpoint_default_quests?: boolean
           feedpoint_default_services?: boolean
+          fmv_rate_per_half_day?: number
+          governance_model?: string
           id?: string
           instagram_url?: string | null
           is_approved?: boolean

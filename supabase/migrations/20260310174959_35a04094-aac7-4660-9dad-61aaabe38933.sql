@@ -1,0 +1,3 @@
+ALTER TABLE public.guilds
+  ADD COLUMN IF NOT EXISTS fmv_rate_per_half_day INTEGER NOT NULL DEFAULT 200,
+  ADD COLUMN IF NOT EXISTS governance_model TEXT NOT NULL DEFAULT '1h1v';
