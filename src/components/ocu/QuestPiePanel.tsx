@@ -13,9 +13,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, differenceInDays } from "date-fns";
 import { OCUFeatureGate } from "./OCUFeatureGate";
-
+import { InitiateExitDialog } from "./InitiateExitDialog";
 const COLORS = [
   "hsl(var(--primary))",
   "hsl(142, 71%, 45%)",
