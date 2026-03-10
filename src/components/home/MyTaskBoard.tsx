@@ -1579,7 +1579,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
                 </Button>
                 <Button size="sm" onClick={() => setConvertStep("budget")} className="flex-1">
-                  Suivant →
+                  Next →
                 </Button>
               </div>
             </div>
