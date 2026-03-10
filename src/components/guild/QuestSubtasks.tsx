@@ -97,6 +97,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       description: newDescription.trim() || null,
       order_index: subtasks.length,
       assignee_user_id: currentUser.id || null,
+      assignee_user_ids: currentUser.id ? [currentUser.id] : [],
     } as any);
     if (error) { toast({ title: "Failed to add subtask", variant: "destructive" }); }
     else { setNewTitle(""); setNewDescription(""); setShowDescField(false); qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }); }
