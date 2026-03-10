@@ -160,6 +160,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
   const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
+  const [hideBacklog, setHideBacklog] = useState(true);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -542,6 +543,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
+  // Hide backlog tasks by default
+  if (hideBacklog) {
+    filtered = filtered.filter((t) => t.workState !== "BACKLOG");
+  }
   // Apply entity filter (multi-select, empty = show all)
   if (entityFilter.size > 0) {
     filtered = filtered.filter((t) => {
@@ -1098,15 +1103,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               <SelectItem value="subtask">Subtasks</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
-          >
-            <ArrowDownUp className="h-3.5 w-3.5" />
-            <span className="hidden xs:inline">{sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
+              >
+                <ArrowDownUp className="h-3.5 w-3.5" />
+                <span>{sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sort tasks by status, priority, or date</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -1128,6 +1138,18 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           )}
         </div>
       )}
+
+      {/* Backlog toggle */}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-backlog"
+          checked={!hideBacklog}
+          onCheckedChange={(checked) => setHideBacklog(!checked)}
+        />
+        <label htmlFor="show-backlog" className="text-xs text-muted-foreground cursor-pointer select-none">
+          Show backlog tasks
+        </label>
+      </div>
 
       {/* Entity filter chips */}
       {entityOptions.length > 1 && (
