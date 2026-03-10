@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal, X, Hash, MapPin, CheckSquare, Square, Navigation, Home, Sparkles, ArrowUpDown, Target } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -62,6 +63,10 @@ export interface ExploreFilterValues {
   questType: string;
   missionOnly: boolean;
   hasBudget: boolean;
+  hasCoins: boolean;
+  hasCtg: boolean;
+  isFundraising: boolean;
+  hasOcu: boolean;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -78,22 +83,28 @@ export const defaultFilters: ExploreFilterValues = {
   questType: "all",
   missionOnly: false,
   hasBudget: false,
+  hasCoins: false,
+  hasCtg: false,
+  isFundraising: false,
+  hasOcu: false,
 };
 
 // Which filter sections to show per page
 export interface ExploreFilterConfig {
   showTopics?: boolean;
   showTerritories?: boolean;
-  showStatus?: boolean;         // quest status
-  showMonetization?: boolean;   // quest monetization
-  showLevel?: boolean;          // course level
+  showStatus?: boolean;
+  showMonetization?: boolean;
+  showLevel?: boolean;
   showPodType?: boolean;
   showGuildType?: boolean;
-  showPrice?: boolean;          // free/paid for services & courses
-  showRole?: boolean;           // user role
-  showQuestType?: boolean;      // quest nature (Level 1)
-  showMission?: boolean;        // mission-only toggle
-  showHasBudget?: boolean;      // has budget/reward toggle
+  showPrice?: boolean;
+  showRole?: boolean;
+  showQuestType?: boolean;
+  showMission?: boolean;
+  showHasBudget?: boolean;
+  showContributionOpportunity?: boolean;
+  showOcu?: boolean;
 }
 
 interface Props {
@@ -190,7 +201,11 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
     (filters.role !== "all" ? 1 : 0) +
     (filters.questType !== "all" ? 1 : 0) +
     (filters.missionOnly ? 1 : 0) +
-    (filters.hasBudget ? 1 : 0);
+    (filters.hasBudget ? 1 : 0) +
+    (filters.hasCoins ? 1 : 0) +
+    (filters.hasCtg ? 1 : 0) +
+    (filters.isFundraising ? 1 : 0) +
+    (filters.hasOcu ? 1 : 0);
 
   const clearAll = () => onChange({ ...defaultFilters });
 
@@ -423,6 +438,67 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             )}
           </div>
 
+          {/* Contribution opportunity section */}
+          {config.showContributionOpportunity && (
+            <div className="space-y-2 pt-2 border-t border-border/40">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Target className="h-3 w-3" />
+                Looking to contribute?
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => set({ hasCoins: !filters.hasCoins })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasCoins
+                      ? 'bg-teal-500/10 border-teal-500/40 text-teal-700 dark:text-teal-300'
+                      : 'border-border text-muted-foreground hover:border-teal-400/40 hover:text-foreground'
+                  )}
+                >
+                  🟩 Paid in Coins
+                </button>
+                <button
+                  onClick={() => set({ hasCtg: !filters.hasCtg })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasCtg
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+                      : 'border-border text-muted-foreground hover:border-emerald-400/40 hover:text-foreground'
+                  )}
+                >
+                  🌱 $CTG incentive
+                </button>
+                <button
+                  onClick={() => set({ isFundraising: !filters.isFundraising })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.isFundraising
+                      ? 'bg-violet-500/10 border-violet-500/40 text-violet-700 dark:text-violet-300'
+                      : 'border-border text-muted-foreground hover:border-violet-400/40 hover:text-foreground'
+                  )}
+                >
+                  🎯 Fundraising active
+                </button>
+                <button
+                  onClick={() => set({ hasOcu: !filters.hasOcu })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasOcu
+                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300'
+                      : 'border-border text-muted-foreground hover:border-amber-400/40 hover:text-foreground'
+                  )}
+                >
+                  🧮 OCU active
+                </button>
+              </div>
+              {(filters.hasCoins || filters.hasCtg || filters.isFundraising || filters.hasOcu) && (
+                <p className="text-[10px] text-muted-foreground italic">
+                  Active filters stack — a quest must match all selected criteria.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Topics multi-select — universe-aware */}
           {config.showTopics && (() => {
             const allTopicsList = topics ?? [];
@@ -603,6 +679,30 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             <Badge variant="secondary" className="text-[10px]">
               {t(ROLE_LABEL_KEYS[filters.role] ?? filters.role)}
               <button onClick={() => set({ role: "all" })} className="ml-1"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.hasCoins && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🟩 Paid in Coins
+              <button onClick={() => set({ hasCoins: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.hasCtg && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🌱 $CTG incentive
+              <button onClick={() => set({ hasCtg: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.isFundraising && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🎯 Fundraising
+              <button onClick={() => set({ isFundraising: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.hasOcu && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🧮 OCU active
+              <button onClick={() => set({ hasOcu: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}
         </div>

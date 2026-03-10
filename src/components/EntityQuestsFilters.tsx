@@ -37,6 +37,7 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
   const [searchOpen, setSearchOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortMode>("status");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [ocuFilter, setOcuFilter] = useState(false);
 
   const availableStatuses = useMemo(() => {
     const s = new Set<string>();
@@ -66,16 +67,25 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
           q.description?.toLowerCase().includes(s)
       );
     }
+    if (ocuFilter) {
+      result = result.filter((q) => !!(q as any).ocu_enabled);
+    }
     if (sortBy === "status") {
       const ORDER: Record<string, number> = { ACTIVE: 0, OPEN_FOR_PROPOSALS: 1, OPEN: 2, DRAFT: 3, COMPLETED: 4, CANCELLED: 5 };
       result.sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9));
     } else if (sortBy === "recent") {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     } else if (sortBy === "budget") {
-      result.sort((a, b) => (b.mission_budget_max ?? b.price_fiat ?? b.reward_xp ?? 0) - (a.mission_budget_max ?? a.price_fiat ?? a.reward_xp ?? 0));
+      result.sort((a, b) => {
+        const aVal = (a as any).coins_budget ?? (a as any).coin_budget
+          ?? a.mission_budget_max ?? a.price_fiat ?? a.reward_xp ?? 0;
+        const bVal = (b as any).coins_budget ?? (b as any).coin_budget
+          ?? b.mission_budget_max ?? b.price_fiat ?? b.reward_xp ?? 0;
+        return Number(bVal) - Number(aVal);
+      });
     }
     return result;
-  }, [quests, statusFilter, search, sortBy]);
+  }, [quests, statusFilter, search, sortBy, ocuFilter]);
 
   if (quests.length === 0) return <>{children(quests, viewMode)}</>;
 
@@ -111,6 +121,19 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
             <X className="h-3 w-3" /> Clear
           </button>
         )}
+
+        {/* OCU toggle chip */}
+        <button
+          onClick={() => setOcuFilter(!ocuFilter)}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border transition-all',
+            ocuFilter
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300'
+              : 'border-border text-muted-foreground hover:border-amber-400/40 hover:text-foreground'
+          )}
+        >
+          🧮 OCU
+        </button>
 
         <div className="ml-auto flex items-center gap-1.5">
           {/* Sort toggle */}
@@ -240,6 +263,21 @@ function KanbanView({ quests }: { quests: any[] }) {
                     )}
                     {q.monetization_type && (
                       <Badge variant="secondary" className="text-[10px] capitalize">{q.monetization_type.toLowerCase()}</Badge>
+                    )}
+                    {(q as any).ocu_enabled && (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 border text-[10px]">
+                        🧮 OCU
+                      </Badge>
+                    )}
+                    {Number((q as any).coins_budget ?? (q as any).coin_budget) > 0 && (
+                      <Badge className="bg-teal-500/10 text-teal-700 border-teal-500/20 border text-[10px]">
+                        🟩
+                      </Badge>
+                    )}
+                    {Number((q as any).ctg_budget) > 0 && (
+                      <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 border text-[10px]">
+                        🌱
+                      </Badge>
                     )}
                   </div>
                 </Link>
