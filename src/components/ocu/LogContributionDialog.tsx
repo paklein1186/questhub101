@@ -217,7 +217,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
                   <SelectValue placeholder="Select a subtask…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {subtasks.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>
                   ))}
