@@ -194,6 +194,33 @@ export default function QuestCreate() {
   const [questNature, setQuestNature] = useState(QuestNature.PROJECT);
   const [websiteUrl, setWebsiteUrl] = useState("");
 
+  // Dual funding pools
+  const [coinsBudget, setCoinsBudget] = useState("0");
+  const [ctgBudgetVal, setCtgBudgetVal] = useState("0");
+  const [coinsEnabled, setCoinsEnabled] = useState(false);
+  const [ctgEnabled, setCtgEnabled] = useState(false);
+  const [ocuEnabled, setOcuEnabled] = useState(false);
+  const { rate: coinEurRate, toEur } = useCoinsRate();
+
+  // Fetch user wallet balances
+  const { data: walletData } = useQuery({
+    queryKey: ["user-wallet-for-quest", currentUser.id],
+    enabled: !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("coins_balance, ctg_balance")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      return {
+        coinsBalance: Number((data as any)?.coins_balance ?? 0),
+        ctgBalance: Number((data as any)?.ctg_balance ?? 0),
+      };
+    },
+  });
+  const coinsBalance = walletData?.coinsBalance ?? 0;
+  const ctgBalance = walletData?.ctgBalance ?? 0;
+
   // Co-hosts state
   const primaryEntityType = effectiveGuildId ? "GUILD" as const : effectiveCompanyId ? "COMPANY" as const : undefined;
   const primaryEntityId = effectiveGuildId || effectiveCompanyId || undefined;
@@ -204,7 +231,7 @@ export default function QuestCreate() {
   const [aiKeywords, setAiKeywords] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
-  const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean }[]>([]);
+  const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean; ctg_reward: number }[]>([]);
 
   // Pre-populate topics & territories from the parent unit
   useEffect(() => {
