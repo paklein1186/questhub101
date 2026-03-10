@@ -160,6 +160,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const [recentlyAddedIds, setRecentlyAddedIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<"all" | "personal" | "quest" | "subtask">("all");
   const [sortBy, setSortBy] = useState<"status" | "priority" | "recent">("status");
+  const [hideBacklog, setHideBacklog] = useState(true);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [editingId, setEditingId] = useState<string | null>(null);
