@@ -1194,7 +1194,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           No active tasks. Add one above or create a quest!
         </p>
       ) : (
-        <div className="rounded-xl border border-border overflow-x-auto">
+        <>
+        {/* Desktop table */}
+        <div className="hidden sm:block rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-xs sm:text-sm min-w-0">
             <thead className="bg-muted/50">
               <tr>
