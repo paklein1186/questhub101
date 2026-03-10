@@ -788,60 +788,14 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
       </div>
 
       {/* ── Campaign Create/Edit Dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Campaign" : "New Funding Campaign"}</DialogTitle>
-            <DialogDescription>
-              {editingId ? "Update the campaign details." : "Create a new funding campaign with a goal to reach."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Campaign Title</label>
-              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Seed round, Community fund…" />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Goal Amount</label>
-              <Input type="number" min={0} value={form.goal_amount} onChange={e => setForm(f => ({ ...f, goal_amount: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Type</label>
-                <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CREDITS">$CTG</SelectItem>
-                    <SelectItem value="FIAT">Fiat</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Currency</label>
-                <Input value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} placeholder="EUR" />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Status</label>
-              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveCampaign} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              {editingId ? "Update" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateCampaignDialog
+        open={campaignDialogOpen}
+        onOpenChange={setCampaignDialogOpen}
+        currency={campaignDialogCurrency}
+        questId={questId}
+        ocuEnabled={ocuEnabled}
+        editingCampaign={editingCampaign}
+      />
 
       {/* ── Add Coins Dialog ── */}
       <Dialog open={addCoinsOpen} onOpenChange={setAddCoinsOpen}>
