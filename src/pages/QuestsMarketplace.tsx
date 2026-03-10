@@ -163,7 +163,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
         <ExploreFilters
           filters={filters}
           onChange={setFilters}
-          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true, showMission: true, showHasBudget: true }}
+          config={{ showTopics: true, showTerritories: true, showStatus: true, showMonetization: true, showQuestType: true, showMission: true, showHasBudget: false, showContributionOpportunity: true }}
           houseFilter={{
             active: hf.houseFilterActive,
             onToggle: hf.setHouseFilterActive,

@@ -264,6 +264,21 @@ function KanbanView({ quests }: { quests: any[] }) {
                     {q.monetization_type && (
                       <Badge variant="secondary" className="text-[10px] capitalize">{q.monetization_type.toLowerCase()}</Badge>
                     )}
+                    {(q as any).ocu_enabled && (
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 border text-[10px]">
+                        🧮 OCU
+                      </Badge>
+                    )}
+                    {Number((q as any).coins_budget ?? (q as any).coin_budget) > 0 && (
+                      <Badge className="bg-teal-500/10 text-teal-700 border-teal-500/20 border text-[10px]">
+                        🟩
+                      </Badge>
+                    )}
+                    {Number((q as any).ctg_budget) > 0 && (
+                      <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20 border text-[10px]">
+                        🌱
+                      </Badge>
+                    )}
                   </div>
                 </Link>
               ))}

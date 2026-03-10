@@ -681,6 +681,30 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
               <button onClick={() => set({ role: "all" })} className="ml-1"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}
+          {filters.hasCoins && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🟩 Paid in Coins
+              <button onClick={() => set({ hasCoins: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.hasCtg && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🌱 $CTG incentive
+              <button onClick={() => set({ hasCtg: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.isFundraising && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🎯 Fundraising
+              <button onClick={() => set({ isFundraising: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
+          {filters.hasOcu && (
+            <Badge variant="secondary" className="text-[10px] gap-1">
+              🧮 OCU active
+              <button onClick={() => set({ hasOcu: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
+            </Badge>
+          )}
         </div>
       )}
     </div>

@@ -109,7 +109,7 @@ export function useQuests() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quests")
-        .select("*, quest_topics(topic_id), quest_territories(territory_id, territories(id, name)), guilds(id, name)")
+        .select("*, quest_topics(topic_id), quest_territories(territory_id, territories(id, name)), guilds(id, name), quest_campaigns(id, status, campaign_currency)")
         .eq("is_deleted", false)
         .order("updated_at", { ascending: false });
       if (error) throw error;
