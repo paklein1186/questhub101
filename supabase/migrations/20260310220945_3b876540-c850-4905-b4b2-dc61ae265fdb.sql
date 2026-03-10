@@ -1,0 +1,1 @@
+ALTER TABLE public.guilds ADD COLUMN IF NOT EXISTS ocu_default_enabled boolean NOT NULL DEFAULT false;

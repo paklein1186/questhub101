@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, X, Loader2, UserPlus, MessageSquareWarning, Vote,
-  Shield, Building2, Users, Eye, ExternalLink, Handshake, RefreshCw,
+  Shield, Building2, Users, Eye, ExternalLink, Handshake, RefreshCw, Settings,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -252,6 +252,52 @@ function EntityChip({ entityType, entityId, entityName, logoUrl }: { entityType:
   );
 }
 
+// ─── Hook: OCU inconsistency alerts ────────────────────────
+interface OcuAlert {
+  guildId: string;
+  guildName: string;
+  logoUrl?: string | null;
+  totalQuests: number;
+  ocuQuests: number;
+  nonOcuQuests: number;
+}
+
+function useOcuInconsistencyAlerts(entities: AdminEntity[]) {
+  const guildEntities = entities.filter(e => e.entityType === "guild");
+  return useQuery({
+    queryKey: ["ocu-inconsistency", guildEntities.map(e => e.entityId).join(",")],
+    enabled: guildEntities.length > 0,
+    queryFn: async () => {
+      const alerts: OcuAlert[] = [];
+      for (const g of guildEntities) {
+        // Check if guild already has ocu_default_enabled
+        const { data: guildRow } = await supabase.from("guilds").select("ocu_default_enabled").eq("id", g.entityId).maybeSingle();
+        if ((guildRow as any)?.ocu_default_enabled) continue; // already homogenized
+
+        const { data: quests } = await supabase
+          .from("quests")
+          .select("id, ocu_enabled")
+          .eq("guild_id", g.entityId)
+          .eq("is_deleted", false as any);
+        if (!quests || quests.length < 2) continue;
+        const ocuCount = quests.filter((q: any) => q.ocu_enabled).length;
+        const nonOcuCount = quests.length - ocuCount;
+        if (ocuCount > 0 && nonOcuCount > 0) {
+          alerts.push({
+            guildId: g.entityId,
+            guildName: g.entityName,
+            logoUrl: g.logoUrl,
+            totalQuests: quests.length,
+            ocuQuests: ocuCount,
+            nonOcuQuests: nonOcuCount,
+          });
+        }
+      }
+      return alerts;
+    },
+  });
+}
+
 // ─── Main Component ─────────────────────────────────────────
 export default function NetworkDashboardTab() {
   const currentUser = useCurrentUser();
@@ -260,8 +306,10 @@ export default function NetworkDashboardTab() {
   const { data: reportData, isLoading: loadingReports } = useAdminReports(adminEntities);
   const { data: decisions = [], isLoading: loadingDecisions } = useActiveDecisions(adminEntities);
   const { data: pendingPartnerships = [], isLoading: loadingPartnerships } = usePendingPartnerships(adminEntities);
+  const { data: ocuAlerts = [], isLoading: loadingOcu } = useOcuInconsistencyAlerts(adminEntities);
+  const [dismissedOcuAlerts, setDismissedOcuAlerts] = useState<Set<string>>(new Set());
 
-  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships;
+  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships || loadingOcu;
 
   if (isLoading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -310,6 +358,36 @@ export default function NetworkDashboardTab() {
           <p className="text-xs text-muted-foreground">Active Decisions</p>
         </CardContent></Card>
       </div>
+
+      {/* OCU Inconsistency Alerts */}
+      {ocuAlerts.filter(a => !dismissedOcuAlerts.has(a.guildId)).map(alert => (
+        <Card key={alert.guildId} className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="py-4 flex items-start gap-3">
+            <div className="text-2xl">🧮</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Mixed OCU mode in {alert.guildName}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {alert.ocuQuests} of {alert.totalQuests} quests use OCU. Enable it as default to homogenize contribution tracking.
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" className="h-7 text-xs" asChild>
+                  <Link to={`/guilds/${alert.guildId}/settings?tab=defaults`}>
+                    <Settings className="h-3 w-3 mr-1" /> Configure in Settings
+                  </Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={() => setDismissedOcuAlerts(prev => new Set(prev).add(alert.guildId))}
+                >
+                  <X className="h-3 w-3 mr-1" /> Dismiss
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Pending Applications */}
       <PendingApplicationsSection apps={pendingApps} currentUserId={currentUser.id} />

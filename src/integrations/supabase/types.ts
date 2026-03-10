@@ -4441,6 +4441,7 @@ export type Database = {
           membership_duration_months: number | null
           membership_style: string
           name: string
+          ocu_default_enabled: boolean
           public_visibility: string
           redistribution_percent: number
           sales_commission_default_pct: number
@@ -4500,6 +4501,7 @@ export type Database = {
           membership_duration_months?: number | null
           membership_style?: string
           name: string
+          ocu_default_enabled?: boolean
           public_visibility?: string
           redistribution_percent?: number
           sales_commission_default_pct?: number
@@ -4559,6 +4561,7 @@ export type Database = {
           membership_duration_months?: number | null
           membership_style?: string
           name?: string
+          ocu_default_enabled?: boolean
           public_visibility?: string
           redistribution_percent?: number
           sales_commission_default_pct?: number
