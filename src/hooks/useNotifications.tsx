@@ -283,7 +283,7 @@ function buildNotifDeepLink(targetType: string, targetId: string): string {
     case "ACHIEVEMENT": return `/me/milestones`;
     case "milestone": return `/me/milestones`;
     case "TERRITORY": return `/territories/${targetId}`;
-    case "FEED_POST": return `/`; // feed posts don't have individual pages
+    case "FEED_POST": return `/feed?post=${targetId}`;
     case "COMMENT": return `/notifications`; // comments don't have standalone pages
     default: return `/notifications`;
   }
