@@ -239,22 +239,82 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
       } as any).then(() => {});
 
       // Notify entity members + followers for guild/company/discussion posts
-      const baseType = contextType.replace("_DISCUSSION", "");
-      if ((baseType === "GUILD" || baseType === "COMPANY" || contextType === "QUEST_DISCUSSION") && contextId) {
+      const effectiveEntityType = contextType.replace("_DISCUSSION", "");
+      if ((effectiveEntityType === "GUILD" || effectiveEntityType === "COMPANY") && contextId) {
         try {
-          const tbl = baseType === "GUILD" ? "guilds" : baseType === "COMPANY" ? "companies" : null;
-          const entity = tbl
-            ? (await supabase.from(tbl).select("name").eq("id", contextId).maybeSingle()).data
-            : null;
-          // Get the created post ID
-          const { data: latestPost } = await supabase.from("feed_posts").select("id").eq("author_user_id", currentUser.id).order("created_at", { ascending: false }).limit(1).single();
-          if (latestPost?.id) {
-            notifyFollowedEntityNewPost({ entityType: baseType, entityId: contextId, entityName: (entity as any)?.name || "your community", postId: latestPost.id, authorUserId: currentUser.id });
+          // Fetch room audience_type if posting to a discussion room
+          let roomAudience: string | null = null;
+          let roomName: string | null = null;
+          if (roomId) {
+            const { data: roomData } = await supabase
+              .from("discussion_rooms" as any)
+              .select("name, audience_type")
+              .eq("id", roomId)
+              .maybeSingle();
+            roomAudience = (roomData as any)?.audience_type ?? null;
+            roomName = (roomData as any)?.name ?? null;
           }
-          // Notify author's own followers
-          const { data: myFollowers } = await supabase.from("follows").select("follower_id").eq("target_type", "USER").eq("target_id", currentUser.id).limit(200);
-          for (const f of myFollowers ?? []) {
-            await supabase.from("notifications").insert({ user_id: f.follower_id, type: "FOLLOWED_USER_NEW_POST", title: "New post from someone you follow", body: `${currentUser.name || "Someone"} published a new post`, deep_link_url: "/" });
+
+          // Only notify for rooms that are broadly accessible
+          // Skip restricted rooms (ADMIN, SELECTED_ROLES, OPERATIONS, ACTIVE_ROLES)
+          const safeAudiences = ["PUBLIC", "FOLLOWERS", "MEMBERS", null]; // null = no room (feed post)
+          if (!safeAudiences.includes(roomAudience)) {
+            // Restricted room — skip mass notification
+          } else {
+            const tbl = effectiveEntityType === "GUILD" ? "guilds" : "companies";
+            const { data: entity } = await supabase.from(tbl).select("name").eq("id", contextId).maybeSingle();
+            const entityName = (entity as any)?.name || "your community";
+            const authorName = currentUser.name || "Someone";
+
+            // Get the created post ID
+            const { data: latestPost } = await supabase
+              .from("feed_posts")
+              .select("id")
+              .eq("author_user_id", currentUser.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single();
+
+            if (latestPost?.id) {
+              const deepLinkUrl = roomId
+                ? `/${effectiveEntityType === "GUILD" ? "guilds" : "companies"}/${contextId}?tab=discussion&room=${roomId}`
+                : `/${effectiveEntityType === "GUILD" ? "guilds" : "companies"}/${contextId}`;
+              const body = roomId
+                ? `${authorName} posted in #${roomName || "General"} — ${entityName}`
+                : `${authorName} posted in ${entityName}`;
+
+              notifyFollowedEntityNewPost({
+                entityType: effectiveEntityType,
+                entityId: contextId,
+                entityName,
+                postId: latestPost.id,
+                authorUserId: currentUser.id,
+                authorName,
+                roomId: roomId || undefined,
+                roomName: roomName || undefined,
+                deepLinkUrl,
+                body,
+              });
+            }
+
+            // Notify author's own followers
+            const { data: myFollowers } = await supabase
+              .from("follows")
+              .select("follower_id")
+              .eq("target_type", "USER")
+              .eq("target_id", currentUser.id)
+              .limit(200);
+            for (const f of myFollowers ?? []) {
+              await supabase.from("notifications").insert({
+                user_id: f.follower_id,
+                type: "FOLLOWED_USER_NEW_POST",
+                title: "New post from someone you follow",
+                body: `${authorName} published a new post`,
+                deep_link_url: roomId
+                  ? `/${effectiveEntityType === "GUILD" ? "guilds" : "companies"}/${contextId}?tab=discussion&room=${roomId}`
+                  : "/",
+              });
+            }
           }
         } catch (e) {
           console.warn("[post-notif] Failed to notify", e);
