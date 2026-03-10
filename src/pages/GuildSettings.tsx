@@ -56,6 +56,7 @@ import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { GuildMembershipSettingsPanel } from "@/components/guild/GuildMembershipSettingsPanel";
+import { ExitProtocolSettings } from "@/components/ocu/ExitProtocolSettings";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
@@ -711,6 +712,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                       )}
                     </div>
                   </Section>
+
+                  <Separator />
+
+                  {/* ── Exit Protocol ── */}
+                  <ExitProtocolSettings guild={guild} guildId={guildId} />
 
                   <SourceRoleTransfer
                     entityType="guild"
