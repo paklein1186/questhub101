@@ -120,9 +120,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     // Persist to DB
     await updateStatus(subtaskId, "DONE");
 
-    // Grant XP and credits to the assignee
+    // Grant XP and credits to all assignees
     const subtask = subtasks.find((s: any) => s.id === subtaskId);
-    const assigneeId = subtask?.assignee_user_id || currentUser.id;
+    const assigneeIds: string[] = subtask?.assignee_user_ids?.length > 0 ? subtask.assignee_user_ids : (subtask?.assignee_user_id ? [subtask.assignee_user_id] : [currentUser.id].filter(Boolean));
+    for (const assigneeId of assigneeIds) {
     if (assigneeId) {
       grantXp(assigneeId, {
         type: XP_EVENT_TYPES.SUBTASK_COMPLETED,
