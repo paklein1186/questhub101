@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
+import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
