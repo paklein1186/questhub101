@@ -151,43 +151,13 @@ export function WorkTasksTab() {
     queryFn: async () => {
       const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
-        .eq("assignee_user_id", userId)
+        .select("id, title, status, quest_id, assignee_user_id, assignee_user_ids, created_at, priority")
+        .contains("assignee_user_ids", [userId])
         .order("created_at", { ascending: false })
         .limit(100);
       if (e1) throw e1;
 
-      const { data: ownedQuests } = await supabase
-        .from("quests")
-        .select("id")
-        .eq("created_by_user_id", userId)
-        .eq("is_deleted", false);
-      const ownedQuestIds = (ownedQuests || []).map((q: any) => q.id);
-
-      const { data: parts } = await supabase
-        .from("quest_participants")
-        .select("quest_id")
-        .eq("user_id", userId)
-        .eq("status", "APPROVED");
-      const partQuestIds = (parts || []).map((p: any) => p.quest_id);
-
-      const allQuestIds = [...new Set([...ownedQuestIds, ...partQuestIds])];
-      let fromQuests: any[] = [];
-      if (allQuestIds.length > 0) {
-        const { data: qSubtasks } = await supabase
-          .from("quest_subtasks" as any)
-          .select("id, title, status, quest_id, assignee_user_id, created_at, priority")
-          .in("quest_id", allQuestIds)
-          .order("created_at", { ascending: false })
-          .limit(100);
-        fromQuests = qSubtasks || [];
-      }
-
-      const seen = new Set<string>();
-      const merged: any[] = [];
-      for (const s of [...(assigned || []), ...fromQuests]) {
-        if (!seen.has(s.id)) { seen.add(s.id); merged.push(s); }
-      }
+      const merged = assigned || [];
 
       const questIds = [...new Set(merged.map((s: any) => s.quest_id))];
       let questMap = new Map<string, { title: string; guildId: string | null; guildName: string | null; guildLogo: string | null }>();
