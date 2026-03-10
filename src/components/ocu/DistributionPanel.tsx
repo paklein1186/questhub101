@@ -176,7 +176,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
       };
 
       // 1. Insert quest_distributions
-      const { data: distRecord } = await supabase.from("quest_distributions" as any).insert({
+      const distInsertResult = await supabase.from("quest_distributions" as any).insert({
         quest_id: quest.id,
         distribution_mode: distMode,
         currency: currencyMode,
@@ -184,6 +184,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         distributed_by: currentUser.id,
         recipient_snapshot: recipientSnapshot,
       }).select("id").single();
+      const distId = (distInsertResult.data as any)?.id;
 
       // 2. For each recipient, credit wallets
       for (const r of recipientSnapshot.recipients) {
