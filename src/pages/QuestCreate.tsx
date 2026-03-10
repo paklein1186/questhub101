@@ -204,6 +204,13 @@ export default function QuestCreate() {
   const [ocuEnabled, setOcuEnabled] = useState(false);
   const { rate: coinEurRate, toEur } = useCoinsRate();
 
+  // Auto-enable OCU if the guild has ocu_default_enabled
+  useEffect(() => {
+    if (guild && (guild as any).ocu_default_enabled && !ocuEnabled) {
+      setOcuEnabled(true);
+    }
+  }, [guild]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch user wallet balances
   const { data: walletData } = useQuery({
     queryKey: ["user-wallet-for-quest", currentUser.id],
