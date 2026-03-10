@@ -115,11 +115,27 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     if (filters.questType !== "all" && (q as any).quest_nature !== filters.questType) return false;
     if (filters.missionOnly && !isMission(q as any)) return false;
-    if (filters.hasBudget) {
-      const hasCoins = Number((q as any).coin_budget) > 0;
-      const hasFiat = Number((q as any).budget_min) > 0 || Number((q as any).price_fiat) > 0;
-      const hasCredits = Number((q as any).credit_reward) > 0 || Number((q as any).credit_budget) > 0;
-      if (!hasCoins && !hasFiat && !hasCredits) return false;
+    // 🟩 Has Coins pool
+    if (filters.hasCoins) {
+      const pool = Number((q as any).coins_budget ?? (q as any).coin_budget ?? 0);
+      const escrow = Number((q as any).coins_escrow ?? 0);
+      if (pool <= 0 && escrow <= 0) return false;
+    }
+    // 🌱 Has $CTG pool
+    if (filters.hasCtg) {
+      const pool = Number((q as any).ctg_budget ?? 0);
+      const escrow = Number((q as any).ctg_escrow ?? 0);
+      if (pool <= 0 && escrow <= 0) return false;
+    }
+    // 🎯 Has active fundraising campaign
+    if (filters.isFundraising) {
+      const campaigns: any[] = (q as any).quest_campaigns ?? [];
+      const hasActive = campaigns.some((c: any) => c.status === 'ACTIVE');
+      if (!hasActive) return false;
+    }
+    // 🧮 OCU active
+    if (filters.hasOcu) {
+      if (!(q as any).ocu_enabled) return false;
     }
     return true;
   }), filters.sortBy);
