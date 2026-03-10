@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect, ty
 import type { Notification } from "@/types";
 import { NotificationType, NotificationEntityType, CommentTargetType } from "@/types/enums";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 
