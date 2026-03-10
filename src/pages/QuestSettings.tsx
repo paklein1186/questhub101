@@ -600,104 +600,70 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
 
               {/* ── Fundraising ── */}
               {activeTab === "fundraising" && (
-                <div className="space-y-5 max-w-lg">
-                  {/* Global settings card */}
-                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <div className="space-y-5 max-w-2xl">
+                  {/* Quick top-up */}
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-3">
                     <h3 className="font-display font-semibold flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-primary" /> Fundraising Settings
+                      <Coins className="h-4 w-4 text-primary" /> Direct Top-Up
                     </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Funding Type</label>
-                        <Select value={fundingType} onValueChange={(v) => setFundingType(v as "CREDITS" | "FIAT")}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="CREDITS">🌱 $CTG (contribution token)</SelectItem>
-                            <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Funding Goal</label>
-                        <Input type="number" value={fundingGoal} onChange={e => setFundingGoal(e.target.value)} min={0} placeholder="Optional" />
-                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "$CTG" : "€"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "🌱 $CTG Budget" : "Fiat Budget (€)"}</label>
-                        <Input type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">🌱 $CTG Reward</label>
-                        <Input type="number" value={creditReward} onChange={e => setCreditReward(e.target.value)} min={0} />
-                        <p className="text-xs text-muted-foreground mt-1">Per participant on completion</p>
-                      </div>
+                    <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setAddCoinsOpen(true)}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🟩 Coins
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setAddCtgOpen(true)}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🌱 $CTG
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
+                      <p><strong>🟩 Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
+                      <p><strong>🌱 $CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Dual-currency campaigns */}
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {/* Coins Campaigns */}
+                    <CampaignSection
+                      emoji="🟩"
+                      label="Coins"
+                      campaigns={campaigns.filter((c: any) => (c.campaign_currency || "coins") === "coins" || (c.type === "FIAT" && !c.campaign_currency))}
+                      isLoading={campaignsLoading}
+                      coinsRate={coinsRate}
+                      onNew={() => openNewCampaign("coins")}
+                      onEdit={openEditCampaign}
+                      onDelete={deleteCampaign}
+                      onCancel={cancelCampaign}
+                      onDispatch={dispatchCampaign}
+                    />
+
+                    {/* $CTG Campaigns */}
+                    <CampaignSection
+                      emoji="🌱"
+                      label="$CTG"
+                      campaigns={campaigns.filter((c: any) => c.campaign_currency === "ctg" || (c.type === "CREDITS" && !c.campaign_currency))}
+                      isLoading={campaignsLoading}
+                      coinsRate={coinsRate}
+                      onNew={() => openNewCampaign("ctg")}
+                      onEdit={openEditCampaign}
+                      onDelete={deleteCampaign}
+                      onCancel={cancelCampaign}
+                      onDispatch={dispatchCampaign}
+                    />
+                  </div>
+
+                  {/* Fundraising toggle */}
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                    <div className="flex items-center gap-3">
                       <Switch id="settingsFundraising" checked={allowFundraising} onCheckedChange={setAllowFundraising} />
                       <label htmlFor="settingsFundraising" className="text-sm font-medium">Allow community fundraising</label>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      When enabled, any logged-in user can contribute to active campaigns on this quest's detail page.
+                    </p>
                     <Button size="sm" onClick={saveFundraising}>
-                      <Save className="h-4 w-4 mr-1" /> Save Settings
+                      <Save className="h-4 w-4 mr-1" /> Save
                     </Button>
-                  </div>
-
-                  {/* Campaigns list */}
-                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-display font-semibold flex items-center gap-2">
-                        <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
-                      </h3>
-                      <Button size="sm" variant="outline" onClick={openCreate}>
-                        <Plus className="h-4 w-4 mr-1" /> New Campaign
-                      </Button>
-                    </div>
-
-                    {campaignsLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                    ) : campaigns.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">No funding campaigns yet.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {campaigns.map((c: any) => {
-                          const pct = c.goal_amount > 0 ? Math.min(100, Math.round((c.raised_amount / c.goal_amount) * 100)) : 0;
-                          return (
-                            <div key={c.id} className="rounded-lg border border-border bg-background p-3 space-y-2">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-medium text-sm">{c.title || "Untitled campaign"}</span>
-                                    <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "$CTG"} · Raised: {c.raised_amount}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(c)}>
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteCampaign(c.id)}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              {c.goal_amount > 0 && (
-                                <div className="w-full bg-muted rounded-full h-2">
-                                  <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
-                                </div>
-                              )}
-                              <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}{c.goal_amount > 0 ? ` · ${pct}% funded` : ""}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>Coins in escrow:</strong> {coinsEscrow.toLocaleString()}</p>
-                      <p><strong>$CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
-                      <p><strong>Fundraising:</strong> {(quest as any).allow_fundraising ? "Open" : "Closed"}{(quest as any).fundraising_cancelled ? " (Cancelled)" : ""}</p>
-                    </div>
                   </div>
                 </div>
               )}
