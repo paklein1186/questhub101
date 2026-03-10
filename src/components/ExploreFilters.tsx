@@ -438,6 +438,67 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
             )}
           </div>
 
+          {/* Contribution opportunity section */}
+          {config.showContributionOpportunity && (
+            <div className="space-y-2 pt-2 border-t border-border/40">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Target className="h-3 w-3" />
+                Looking to contribute?
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => set({ hasCoins: !filters.hasCoins })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasCoins
+                      ? 'bg-teal-500/10 border-teal-500/40 text-teal-700 dark:text-teal-300'
+                      : 'border-border text-muted-foreground hover:border-teal-400/40 hover:text-foreground'
+                  )}
+                >
+                  🟩 Paid in Coins
+                </button>
+                <button
+                  onClick={() => set({ hasCtg: !filters.hasCtg })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasCtg
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+                      : 'border-border text-muted-foreground hover:border-emerald-400/40 hover:text-foreground'
+                  )}
+                >
+                  🌱 $CTG incentive
+                </button>
+                <button
+                  onClick={() => set({ isFundraising: !filters.isFundraising })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.isFundraising
+                      ? 'bg-violet-500/10 border-violet-500/40 text-violet-700 dark:text-violet-300'
+                      : 'border-border text-muted-foreground hover:border-violet-400/40 hover:text-foreground'
+                  )}
+                >
+                  🎯 Fundraising active
+                </button>
+                <button
+                  onClick={() => set({ hasOcu: !filters.hasOcu })}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all',
+                    filters.hasOcu
+                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300'
+                      : 'border-border text-muted-foreground hover:border-amber-400/40 hover:text-foreground'
+                  )}
+                >
+                  🧮 OCU active
+                </button>
+              </div>
+              {(filters.hasCoins || filters.hasCtg || filters.isFundraising || filters.hasOcu) && (
+                <p className="text-[10px] text-muted-foreground italic">
+                  Active filters stack — a quest must match all selected criteria.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Topics multi-select — universe-aware */}
           {config.showTopics && (() => {
             const allTopicsList = topics ?? [];
