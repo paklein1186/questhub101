@@ -113,10 +113,17 @@ export default function QuestCreate() {
     queryKey: ["guild-for-quest", effectiveGuildId],
     enabled: !!effectiveGuildId,
     queryFn: async () => {
-      const { data } = await supabase.from("guilds").select("id, name, logo_url").eq("id", effectiveGuildId!).maybeSingle();
+      const { data } = await supabase.from("guilds").select("id, name, logo_url, ocu_default_enabled").eq("id", effectiveGuildId!).maybeSingle();
       return data;
     },
   });
+
+  // Auto-enable OCU if the guild has ocu_default_enabled
+  const [ocuAutoApplied, setOcuAutoApplied] = useState(false);
+  if (guild && (guild as any).ocu_default_enabled && !ocuEnabled && !ocuAutoApplied) {
+    setOcuEnabled(true);
+    setOcuAutoApplied(true);
+  }
 
   const { data: company } = useQuery({
     queryKey: ["company-for-quest", effectiveCompanyId],
