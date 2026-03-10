@@ -397,7 +397,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 </SelectContent>
               </Select>
             )}
-            {guildId && canManage && (
+            {canManage && guildMembers.length > 0 && (
               <div className="flex items-center gap-1">
                 {guildMembers.map((m: any) => {
                   const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
