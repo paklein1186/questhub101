@@ -1287,6 +1287,18 @@ export default function QuestDetail() {
           />
         </TabsContent>
 
+        {/* ── Contribution Pie ── */}
+        <TabsContent value="pie" className="mt-6">
+          <QuestPiePanel
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+        </TabsContent>
+
         <TabsContent value="updates" className="mt-6 space-y-4">
           {canPostUpdate && (
             <div className="flex items-center justify-between mb-2">
