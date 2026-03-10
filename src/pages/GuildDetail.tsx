@@ -81,6 +81,7 @@ import { SectionBanner, HintTooltip, EmptyHint, HINTS } from "@/components/onboa
 import { usePersona } from "@/hooks/usePersona";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
+import { GuildContributionMap } from "@/components/ocu/GuildContributionMap";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 import { GuildCTGStat } from "@/components/ctg/CTGIntegrationWidgets";
