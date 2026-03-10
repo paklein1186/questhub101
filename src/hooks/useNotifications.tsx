@@ -605,6 +605,15 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         ownerUserId = data?.author_user_id ?? null;
       } else if (targetType === "USER") {
         ownerUserId = targetId;
+      } else if (targetType === "QUEST_UPDATE") {
+        const { data } = await supabase.from("quest_updates").select("author_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.author_id ?? null;
+      } else if (targetType === "ACHIEVEMENT") {
+        const { data } = await supabase.from("achievements").select("user_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.user_id ?? null;
+      } else if (targetType === "QUEST_PROPOSAL") {
+        const { data } = await supabase.from("quest_proposals").select("proposer_id").eq("id", targetId).maybeSingle();
+        ownerUserId = data?.proposer_id ?? null;
       }
     } catch { /* silent */ }
 
