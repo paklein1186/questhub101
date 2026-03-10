@@ -562,9 +562,14 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
     toast({ title: "Vote recorded" });
   };
 
-  // Tally per option
+  // Tally per option (raw count and weighted)
   const tally = options.map((_: any, i: number) => votes.filter((v: any) => v.option_index === i).length);
+  const weightedTally = options.map((_: any, i: number) =>
+    votes.filter((v: any) => v.option_index === i).reduce((sum: number, v: any) => sum + (v.applied_weight ?? 1), 0)
+  );
+  const totalWeight = votes.reduce((sum: number, v: any) => sum + (v.applied_weight ?? 1), 0);
   const maxTally = Math.max(...tally, 1);
+  const isWeighted = govModel !== "1h1v";
 
   // For consent type
   const consentCount = votes.filter((v: any) => v.value === "CONSENT" || v.option_index === 0).length;
