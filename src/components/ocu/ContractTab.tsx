@@ -331,6 +331,9 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
 
   const handleAmendmentVote = async (amendmentId: string, vote: "accept" | "reject") => {
     try {
+      // Compute weights for this vote
+      const { raw_weight, applied_weight, model } = await computeVoteWeights(quest.guild_id, currentUser.id);
+
       await supabase.from("amendment_votes").insert({
         amendment_id: amendmentId,
         user_id: currentUser.id,
@@ -341,14 +344,41 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
       const amendment = amendments.find((a) => a.id === amendmentId);
       const { data: votes } = await supabase
         .from("amendment_votes")
-        .select("vote")
+        .select("vote, user_id")
         .eq("amendment_id", amendmentId);
 
       const totalSignatories = signatories.length;
       const accepts = (votes ?? []).filter((v) => v.vote === "accept").length;
       const rejects = (votes ?? []).filter((v) => v.vote === "reject").length;
 
-      if (rejects > 0) {
+      // For pure_pct model, check if guild has amendment_weighted_threshold enabled
+      const featuresConfig = typeof quest.features_config === "object" && quest.features_config
+        ? quest.features_config : {};
+      const ocuConfig = (featuresConfig as any)?.ocu ?? {};
+      const useWeightedThreshold = model === "pure_pct" && ocuConfig.amendment_weighted_threshold;
+
+      let isAccepted = false;
+      let isRejected = false;
+
+      if (useWeightedThreshold) {
+        // Weighted threshold: >50% of applied_weight
+        const acceptUserIds = (votes ?? []).filter((v) => v.vote === "accept").map((v) => v.user_id);
+        let totalW = 0;
+        let acceptW = 0;
+        for (const sig of signatories) {
+          const w = await computeVoteWeights(quest.guild_id, sig.user_id);
+          totalW += w.applied_weight;
+          if (acceptUserIds.includes(sig.user_id)) acceptW += w.applied_weight;
+        }
+        isAccepted = totalW > 0 && (acceptW / totalW) > 0.5;
+        isRejected = rejects > 0 && !isAccepted;
+      } else {
+        // Unanimous consensus
+        isRejected = rejects > 0;
+        isAccepted = !isRejected && accepts >= totalSignatories;
+      }
+
+      if (isRejected) {
         // Rejected
         await supabase
           .from("contract_amendments")
