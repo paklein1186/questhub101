@@ -25,24 +25,22 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {/* 🟩 Coins → fiat-backed mission currency */}
-      {coins > 0 && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              to="/me?tab=wallet"
-              onClick={onNavigate}
-              className={`inline-flex items-center gap-1 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 ${px} ${text} hover:opacity-80 transition-opacity`}
-            >
-              <Wallet className="h-3 w-3" />
-              <span className="font-semibold">{coins.toLocaleString()}</span>
-              {!compact && <span className="text-[10px] opacity-70">coins</span>}
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            🟩 Coins — fiat-backed mission currency (1 Coin ≈ €0.04)
-          </TooltipContent>
-        </Tooltip>
-      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            to="/me?tab=wallet"
+            onClick={onNavigate}
+            className={`inline-flex items-center gap-1 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 ${px} ${text} hover:opacity-80 transition-opacity`}
+          >
+            <Wallet className="h-3 w-3" />
+            <span className="font-semibold">{coins.toLocaleString()}</span>
+            {!compact && <span className="text-[10px] opacity-70">coins</span>}
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          🟩 Coins — fiat-backed mission currency (1 Coin ≈ €0.04)
+        </TooltipContent>
+      </Tooltip>
 
       {/* 🌱 $CTG — contribution token */}
       <Tooltip>
