@@ -1968,15 +1968,19 @@ export type Database = {
       contribution_logs: {
         Row: {
           base_units: number | null
+          cash_multiplier: number | null
           coins_compensated: number
           compensation_status: string
-          contribution_type: string
+          contribution_type: Database["public"]["Enums"]["contribution_type_enum"]
           created_at: string
           credits_earned: number
           ctg_emitted: number
           deliverable_url: string | null
           description: string | null
           difficulty: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required: boolean | null
+          evidence_url: string | null
+          fmv_input: Json | null
           fmv_value: number | null
           guild_id: string | null
           half_days: number | null
@@ -2004,15 +2008,19 @@ export type Database = {
         }
         Insert: {
           base_units?: number | null
+          cash_multiplier?: number | null
           coins_compensated?: number
           compensation_status?: string
-          contribution_type?: string
+          contribution_type?: Database["public"]["Enums"]["contribution_type_enum"]
           created_at?: string
           credits_earned?: number
           ctg_emitted?: number
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          fmv_input?: Json | null
           fmv_value?: number | null
           guild_id?: string | null
           half_days?: number | null
@@ -2040,15 +2048,19 @@ export type Database = {
         }
         Update: {
           base_units?: number | null
+          cash_multiplier?: number | null
           coins_compensated?: number
           compensation_status?: string
-          contribution_type?: string
+          contribution_type?: Database["public"]["Enums"]["contribution_type_enum"]
           created_at?: string
           credits_earned?: number
           ctg_emitted?: number
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          evidence_required?: boolean | null
+          evidence_url?: string | null
+          fmv_input?: Json | null
           fmv_value?: number | null
           guild_id?: string | null
           half_days?: number | null
@@ -4389,6 +4401,7 @@ export type Database = {
           allow_agent_subscription: boolean
           application_questions: Json | null
           banner_url: string | null
+          cash_multiplier: number
           coins_balance: number
           created_at: string
           created_by_user_id: string
@@ -4397,6 +4410,7 @@ export type Database = {
           description: string | null
           enable_membership: boolean
           entry_fee_credits: number | null
+          evidence_required_override: boolean | null
           exit_bad_leaver_decision: string
           exit_bad_leaver_fmv_pct: number
           exit_good_leaver_fmv_pct: number
@@ -4429,6 +4443,7 @@ export type Database = {
           name: string
           public_visibility: string
           redistribution_percent: number
+          sales_commission_default_pct: number
           twitter_url: string | null
           type: Database["public"]["Enums"]["guild_type"]
           universe_visibility: string
@@ -4445,6 +4460,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          cash_multiplier?: number
           coins_balance?: number
           created_at?: string
           created_by_user_id: string
@@ -4453,6 +4469,7 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          evidence_required_override?: boolean | null
           exit_bad_leaver_decision?: string
           exit_bad_leaver_fmv_pct?: number
           exit_good_leaver_fmv_pct?: number
@@ -4485,6 +4502,7 @@ export type Database = {
           name: string
           public_visibility?: string
           redistribution_percent?: number
+          sales_commission_default_pct?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
@@ -4501,6 +4519,7 @@ export type Database = {
           allow_agent_subscription?: boolean
           application_questions?: Json | null
           banner_url?: string | null
+          cash_multiplier?: number
           coins_balance?: number
           created_at?: string
           created_by_user_id?: string
@@ -4509,6 +4528,7 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          evidence_required_override?: boolean | null
           exit_bad_leaver_decision?: string
           exit_bad_leaver_fmv_pct?: number
           exit_good_leaver_fmv_pct?: number
@@ -4541,6 +4561,7 @@ export type Database = {
           name?: string
           public_visibility?: string
           redistribution_percent?: number
+          sales_commission_default_pct?: number
           twitter_url?: string | null
           type?: Database["public"]["Enums"]["guild_type"]
           universe_visibility?: string
@@ -10124,6 +10145,16 @@ export type Database = {
         Returns: undefined
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      compute_contribution_fmv: {
+        Args: {
+          p_cash_multiplier: number
+          p_difficulty?: string
+          p_fmv_input: Json
+          p_guild_fmv_rate: number
+          p_type: Database["public"]["Enums"]["contribution_type_enum"]
+        }
+        Returns: number
+      }
       create_and_link_natural_system: {
         Args: {
           p_description?: string
@@ -10554,6 +10585,16 @@ export type Database = {
         | "platform"
         | "commons"
       content_sensitivity: "public" | "restricted" | "private"
+      contribution_type_enum:
+        | "TIME"
+        | "EXPENSES"
+        | "SUPPLIES"
+        | "EQUIPMENT"
+        | "FACILITIES"
+        | "SALES"
+        | "ROYALTY"
+        | "FINDERS_FEE"
+        | "OTHER"
       dataset_fetch_method: "API" | "SCRAPER" | "STATIC_IMPORT"
       dataset_granularity:
         | "GLOBAL"
@@ -10828,6 +10869,17 @@ export const Constants = {
         "commons",
       ],
       content_sensitivity: ["public", "restricted", "private"],
+      contribution_type_enum: [
+        "TIME",
+        "EXPENSES",
+        "SUPPLIES",
+        "EQUIPMENT",
+        "FACILITIES",
+        "SALES",
+        "ROYALTY",
+        "FINDERS_FEE",
+        "OTHER",
+      ],
       dataset_fetch_method: ["API", "SCRAPER", "STATIC_IMPORT"],
       dataset_granularity: [
         "GLOBAL",
