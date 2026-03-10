@@ -1607,7 +1607,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part Guilde</Label>
+                    <Label className="text-xs">Guild share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertGuildPercent}%</span>
                   </div>
                   <Slider min={0} max={30} step={1} value={[convertGuildPercent]} onValueChange={([v]) => setConvertGuildPercent(v)} />
