@@ -1934,6 +1934,41 @@ export type Database = {
           },
         ]
       }
+      contribution_review_votes: {
+        Row: {
+          comment: string | null
+          contribution_id: string
+          created_at: string
+          id: string
+          reviewer_user_id: string
+          vote: string
+        }
+        Insert: {
+          comment?: string | null
+          contribution_id: string
+          created_at?: string
+          id?: string
+          reviewer_user_id: string
+          vote?: string
+        }
+        Update: {
+          comment?: string | null
+          contribution_id?: string
+          created_at?: string
+          id?: string
+          reviewer_user_id?: string
+          vote?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_review_votes_contribution_id_fkey"
+            columns: ["contribution_id"]
+            isOneToOne: false
+            referencedRelation: "contribution_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
