@@ -624,9 +624,12 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium truncate">{opt.label}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">{tally[i]} vote{tally[i] !== 1 ? "s" : ""}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                    {isWeighted && totalWeight > 0 && ` (${Math.round((weightedTally[i] / totalWeight) * 100)}%w)`}
+                  </span>
                 </div>
-                <Progress value={totalVotes > 0 ? (tally[i] / totalVotes) * 100 : 0} className="h-1.5 mt-1" />
+                <Progress value={isWeighted && totalWeight > 0 ? (weightedTally[i] / totalWeight) * 100 : totalVotes > 0 ? (tally[i] / totalVotes) * 100 : 0} className="h-1.5 mt-1" />
               </div>
             </div>
           ))}
