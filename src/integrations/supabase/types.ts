@@ -2714,29 +2714,35 @@ export type Database = {
       }
       decision_poll_votes: {
         Row: {
+          applied_weight: number
           created_at: string
           id: string
           objection_reason: string | null
           option_index: number
           poll_id: string
+          raw_weight: number
           user_id: string
           value: string | null
         }
         Insert: {
+          applied_weight?: number
           created_at?: string
           id?: string
           objection_reason?: string | null
           option_index: number
           poll_id: string
+          raw_weight?: number
           user_id: string
           value?: string | null
         }
         Update: {
+          applied_weight?: number
           created_at?: string
           id?: string
           objection_reason?: string | null
           option_index?: number
           poll_id?: string
+          raw_weight?: number
           user_id?: string
           value?: string | null
         }
