@@ -382,26 +382,34 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </Select>
             )}
             {guildId && canManage && (
-              <Select
-                value={subtask.assignee_user_id || "unassigned"}
-                onValueChange={(v) => assignUser(subtask.id, v === "unassigned" ? null : v)}
-              >
-                <SelectTrigger className="w-[120px] h-7 text-xs">
-                  <SelectValue placeholder="Assign" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned" className="text-xs">Unassigned</SelectItem>
-                  {guildMembers.map((m: any) => (
-                    <SelectItem key={m.user_id} value={m.user_id} className="text-xs">{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1">
+                {guildMembers.map((m: any) => {
+                  const isAssigned = (subtask.assignee_user_ids || []).includes(m.user_id);
+                  return (
+                    <button
+                      key={m.user_id}
+                      onClick={() => toggleAssignee(subtask.id, m.user_id)}
+                      className={`rounded-full ring-2 transition-all ${isAssigned ? "ring-primary" : "ring-transparent opacity-40 hover:opacity-70"}`}
+                      title={m.name}
+                    >
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={m.avatar_url} />
+                        <AvatarFallback className="text-[10px]">{m.name?.[0]}</AvatarFallback>
+                      </Avatar>
+                    </button>
+                  );
+                })}
+              </div>
             )}
-            {subtask.assignee && (
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={subtask.assignee.avatar_url} />
-                <AvatarFallback className="text-[10px]">{subtask.assignee.name?.[0]}</AvatarFallback>
-              </Avatar>
+            {!canManage && subtask.assignees?.length > 0 && (
+              <div className="flex -space-x-1">
+                {subtask.assignees.map((a: any) => (
+                  <Avatar key={a.user_id} className="h-6 w-6 border-2 border-background">
+                    <AvatarImage src={a.avatar_url} />
+                    <AvatarFallback className="text-[10px]">{a.name?.[0]}</AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
             )}
             {/* Credit reward indicator */}
             {canManage ? (
