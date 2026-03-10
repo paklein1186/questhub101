@@ -276,7 +276,7 @@ export default function QuestCreate() {
       }
 
       setAiSuggestion(data);
-      setAiSubtasks((data.subtasks || []).map((s: any) => ({ ...s, accepted: true })));
+      setAiSubtasks((data.subtasks || []).map((s: any) => ({ ...s, accepted: true, ctg_reward: 1 })));
       toast({ title: "AI suggestions ready!", description: data.microcopy || "Review and edit below." });
     } catch (e: any) {
       toast({ title: "AI generation failed", description: e.message || "Please try again.", variant: "destructive" });
