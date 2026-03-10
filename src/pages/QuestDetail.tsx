@@ -715,7 +715,21 @@ export default function QuestDetail() {
               </div>
             )}
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
-            {(quest as any).credit_budget > 0 && (
+            {Number((quest as any).coins_budget ?? 0) > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">🟩 Coins Pool</p>
+                <p className="text-lg font-bold">{Number((quest as any).coins_escrow ?? 0).toLocaleString()} Coins</p>
+                <p className="text-[10px] text-muted-foreground">≈ €{(Number((quest as any).coins_escrow ?? 0) * coinsRate).toFixed(2)} in escrow</p>
+              </div>
+            )}
+            {Number((quest as any).ctg_budget ?? 0) > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">🌱 $CTG Pool</p>
+                <p className="text-lg font-bold">{Number((quest as any).ctg_escrow ?? 0).toLocaleString()} $CTG</p>
+                <p className="text-[10px] text-muted-foreground">❄️ Frozen in escrow</p>
+              </div>
+            )}
+            {(quest as any).credit_budget > 0 && Number((quest as any).coins_budget ?? 0) === 0 && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">🏦 $CTG Budget</p>
                 <p className="text-lg font-bold">{(quest as any).credit_budget} $CTG</p>
