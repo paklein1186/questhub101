@@ -1800,6 +1800,63 @@ export type Database = {
         }
         Relationships: []
       }
+      contribution_compensations: {
+        Row: {
+          amount_coins: number
+          amount_fiat: number | null
+          compensated_at: string
+          compensated_by: string | null
+          compensation_mode: string
+          contribution_id: string
+          currency: string
+          id: string
+          note: string | null
+          quest_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_coins: number
+          amount_fiat?: number | null
+          compensated_at?: string
+          compensated_by?: string | null
+          compensation_mode?: string
+          contribution_id: string
+          currency?: string
+          id?: string
+          note?: string | null
+          quest_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_coins?: number
+          amount_fiat?: number | null
+          compensated_at?: string
+          compensated_by?: string | null
+          compensation_mode?: string
+          contribution_id?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          quest_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contribution_compensations_contribution_id_fkey"
+            columns: ["contribution_id"]
+            isOneToOne: false
+            referencedRelation: "contribution_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_compensations_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contribution_logs: {
         Row: {
           base_units: number | null
