@@ -413,7 +413,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             )}
             {/* Credit reward indicator */}
             {canManage ? (
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-0.5" title="🟩 Coins — fiat-backed reward for completing this subtask">
                 <Coins className="h-3 w-3 text-amber-500" />
                 <Input
                   type="number"
@@ -421,7 +421,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                   value={subtask.credit_reward ?? 0}
                   onChange={(e) => updateSubtaskCredits(subtask.id, parseInt(e.target.value) || 0)}
                   className="w-14 h-6 text-[10px] text-center p-0"
-                  title="Credit reward for completing this subtask"
+                  title="🟩 Coins — fiat-backed reward for completing this subtask"
                 />
               </div>
             ) : (subtask.credit_reward ?? 0) > 0 ? (
