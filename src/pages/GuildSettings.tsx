@@ -703,13 +703,108 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                             <Switch
                               defaultChecked={false}
                               onCheckedChange={async (checked) => {
-                                // This would need to be stored per-quest in features_config.ocu.amendment_weighted_threshold
                                 toast({ title: checked ? "Weighted threshold enabled" : "Unanimous consensus restored", description: "Apply this per-quest in Quest OCU settings." });
                               }}
                             />
                           </div>
                         </div>
                       )}
+
+                      {/* ── Contribution type settings ── */}
+                      <div className="space-y-4 border-t border-border/40 pt-4 mt-4">
+                        <p className="text-sm font-semibold">Contribution type settings</p>
+
+                        {/* Cash multiplier */}
+                        <div>
+                          <Label className="text-sm font-medium">
+                            Cash-equivalent multiplier
+                            <span className="text-xs text-muted-foreground font-normal ml-2">
+                              (applies to Expenses, Supplies, Equipment, Facilities)
+                            </span>
+                          </Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={5}
+                              step={0.25}
+                              defaultValue={(guild as any).cash_multiplier ?? 2}
+                              className="w-24"
+                              onChange={async (e) => {
+                                const val = Math.max(1, Math.min(5, Number(e.target.value) || 2));
+                                await supabase.from("guilds").update({ cash_multiplier: val } as any).eq("id", guildId);
+                                qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                              }}
+                            />
+                            <span className="text-sm text-muted-foreground">× FMV</span>
+                            {((guild as any).cash_multiplier ?? 2) !== 2 && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                Slicing Pie default is 2×
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Cash contributions carry higher risk than time — the multiplier compensates for this.
+                            2× is the Slicing Pie standard. Lower for risk-tolerant cooperatives.
+                          </p>
+                        </div>
+
+                        {/* Default commission % */}
+                        <div>
+                          <Label className="text-sm font-medium">
+                            Default commission % for Sales & Finder's Fee
+                          </Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={0.5}
+                              defaultValue={(guild as any).sales_commission_default_pct ?? 10}
+                              className="w-24"
+                              onChange={async (e) => {
+                                const val = Math.max(0, Math.min(100, Number(e.target.value) || 10));
+                                await supabase.from("guilds").update({ sales_commission_default_pct: val } as any).eq("id", guildId);
+                                qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                              }}
+                            />
+                            <span className="text-sm text-muted-foreground">%</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Contributors can override this per entry. This is just the pre-filled default.
+                          </p>
+                        </div>
+
+                        {/* Evidence requirement */}
+                        <div>
+                          <Label className="text-sm font-medium">Evidence requirement</Label>
+                          <Select
+                            defaultValue={
+                              (guild as any).evidence_required_override === true ? "all" :
+                              (guild as any).evidence_required_override === false ? "none" : "default"
+                            }
+                            onValueChange={async (v) => {
+                              const override = v === "all" ? true : v === "none" ? false : null;
+                              await supabase.from("guilds").update({ evidence_required_override: override } as any).eq("id", guildId);
+                              qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                              toast({ title: "Evidence policy updated" });
+                            }}
+                          >
+                            <SelectTrigger className="w-full mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="default">
+                                Default — required for Expenses, Supplies, Equipment
+                              </SelectItem>
+                              <SelectItem value="all">
+                                Strict — required for all contribution types
+                              </SelectItem>
+                              <SelectItem value="none">
+                                Relaxed — never required (trust-based cooperative)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </div>
                   </Section>
 
