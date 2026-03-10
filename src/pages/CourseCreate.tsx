@@ -80,7 +80,7 @@ export default function CourseCreate() {
   const toggleTopic = (id: string) => setSelectedTopics((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const toggleTerritory = (id: string) => setSelectedTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) return;
     const now = new Date().toISOString();
 
