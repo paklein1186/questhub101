@@ -857,7 +857,7 @@ export default function QuestCreate() {
                     <p className="font-bold text-primary">{aiSuggestion.rewardXp}</p>
                   </div>
                   <div className="text-center p-2 rounded-md bg-muted/50">
-                    <p className="text-xs text-muted-foreground">$CTG Pool (funded by Credits)</p>
+                    <p className="text-xs text-muted-foreground">Suggested Coins incentive</p>
                     <p className="font-bold text-primary">{aiSuggestion.creditBudget}</p>
                   </div>
                   <div className="text-center p-2 rounded-md bg-muted/50">
