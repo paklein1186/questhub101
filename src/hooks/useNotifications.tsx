@@ -1023,9 +1023,19 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
 
   // ── Trigger: New post in followed entity — notify members + followers ──
 
-  const notifyFollowedEntityNewPost = useCallback(async ({ entityType, entityId, entityName, postId, authorUserId }: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => {
+  const notifyFollowedEntityNewPost = useCallback(async ({
+    entityType, entityId, entityName, postId, authorUserId,
+    authorName, roomId, roomName, deepLinkUrl, body,
+  }: {
+    entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string;
+    authorName?: string; roomId?: string; roomName?: string; deepLinkUrl?: string; body?: string;
+  }) => {
     try {
       const notifiedSet = new Set<string>();
+      const resolvedBody = body || (roomId
+        ? `${authorName || "Someone"} posted in #${roomName || "General"} — ${entityName}`
+        : `${authorName || "Someone"} posted in ${entityName}`);
+      const resolvedLink = deepLinkUrl || `/`;
 
       // 1. Notify entity members
       const tableCfg: Record<string, { table: string; col: string }> = {
@@ -1038,7 +1048,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         for (const m of (members ?? []) as any[]) {
           if (m.user_id === authorUserId) continue;
           notifiedSet.add(m.user_id);
-          await addNotification({ userId: m.user_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: `Someone posted in ${entityName}`, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: `/` });
+          await addNotification({ userId: m.user_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: resolvedBody, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: resolvedLink });
         }
       }
 
@@ -1047,7 +1057,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       for (const f of followers ?? []) {
         if (f.follower_id === authorUserId || notifiedSet.has(f.follower_id)) continue;
         notifiedSet.add(f.follower_id);
-        await addNotification({ userId: f.follower_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: `New activity in a community you follow`, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: `/` });
+        await addNotification({ userId: f.follower_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: resolvedBody, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: resolvedLink });
       }
     } catch (err) {
       console.error("[Notifications] notifyFollowedEntityNewPost:", err);
