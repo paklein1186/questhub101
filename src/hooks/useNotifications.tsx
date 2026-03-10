@@ -885,38 +885,28 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     });
   }, [userId, addNotification]);
 
-  // ── Trigger: Decision created — notify entity members via addNotification ──
+  // ── Trigger: Decision created — notify entity members + followers via bulk insert ──
 
-  const notifyDecisionCreated = useCallback(async ({ entityType, entityId, entityName, question, creatorUserId, decisionId }: any) => {
+  const notifyDecisionCreated = useCallback(async ({ entityType, entityId, entityName, question, creatorUserId, decisionId }: { entityType: string; entityId: string; entityName: string; question: string; creatorUserId: string; decisionId?: string }) => {
     try {
-      const memberTable = entityType === "GUILD" ? "guild_members" : entityType === "COMPANY" ? "company_members" : null;
-      const idCol = entityType === "GUILD" ? "guild_id" : entityType === "COMPANY" ? "company_id" : null;
-      if (!memberTable || !idCol) return;
-
-      const { data: members } = await supabase.from(memberTable as any).select("user_id").eq(idCol, entityId).limit(200);
-      if (!members?.length) return;
-
       const dId = decisionId || entityId;
       const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=decisions&decision=${dId}`;
       const truncQ = question.length > 60 ? question.slice(0, 57) + "…" : question;
-      const targets = (members as any[]).filter((m: any) => m.user_id !== creatorUserId);
 
-      for (let i = 0; i < targets.length; i++) {
-        await addNotification({
-          userId: targets[i].user_id,
-          type: NotificationType.ENTITY_NEW_DECISION,
-          title: `New decision in ${entityName}`,
-          body: `"${truncQ}"`,
-          relatedEntityType: entityType,
-          relatedEntityId: entityId,
-          deepLinkUrl: deepLink,
-        });
-        if (targets.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
-      }
+      await notifyEntityFollowersAndMembers({
+        entityType,
+        entityId,
+        entityName,
+        actorUserId: creatorUserId,
+        notifType: "ENTITY_NEW_DECISION",
+        title: `New decision in ${entityName}`,
+        body: `"${truncQ}"`,
+        deepLinkUrl: deepLink,
+      });
     } catch (err) {
       console.error("[Notifications] notifyDecisionCreated error:", err);
     }
-  }, [addNotification]);
+  }, []);
 
   // ── Trigger: Ritual created — notify entity members via addNotification ──
 
