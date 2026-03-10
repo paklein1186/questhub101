@@ -1803,17 +1803,24 @@ export type Database = {
       contribution_logs: {
         Row: {
           base_units: number | null
+          coins_compensated: number
+          compensation_status: string
           contribution_type: string
           created_at: string
           credits_earned: number
           deliverable_url: string | null
           description: string | null
+          difficulty: Database["public"]["Enums"]["difficulty_level"]
+          fmv_value: number | null
           guild_id: string | null
+          half_days: number | null
           hours_logged: number | null
           id: string
           impact_signal: Json | null
           ip_licence: string
           quest_id: string | null
+          review_quorum: number
+          review_votes_count: number
           role: string | null
           status: string
           subtask_id: string | null
@@ -1830,17 +1837,24 @@ export type Database = {
         }
         Insert: {
           base_units?: number | null
+          coins_compensated?: number
+          compensation_status?: string
           contribution_type?: string
           created_at?: string
           credits_earned?: number
           deliverable_url?: string | null
           description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          fmv_value?: number | null
           guild_id?: string | null
+          half_days?: number | null
           hours_logged?: number | null
           id?: string
           impact_signal?: Json | null
           ip_licence?: string
           quest_id?: string | null
+          review_quorum?: number
+          review_votes_count?: number
           role?: string | null
           status?: string
           subtask_id?: string | null
@@ -1857,17 +1871,24 @@ export type Database = {
         }
         Update: {
           base_units?: number | null
+          coins_compensated?: number
+          compensation_status?: string
           contribution_type?: string
           created_at?: string
           credits_earned?: number
           deliverable_url?: string | null
           description?: string | null
+          difficulty?: Database["public"]["Enums"]["difficulty_level"]
+          fmv_value?: number | null
           guild_id?: string | null
+          half_days?: number | null
           hours_logged?: number | null
           id?: string
           impact_signal?: Json | null
           ip_licence?: string
           quest_id?: string | null
+          review_quorum?: number
+          review_votes_count?: number
           role?: string | null
           status?: string
           subtask_id?: string | null
@@ -9894,6 +9915,7 @@ export type Database = {
         | "BIOREGION"
         | "CUSTOM"
       dataset_type: "FOREST_NAVIGATOR" | "COPERNICUS" | "GBIF" | "CUSTOM"
+      difficulty_level: "standard" | "x1_5" | "x2" | "x3"
       eco_category:
         | "observation"
         | "restoration"
@@ -10161,6 +10183,7 @@ export const Constants = {
         "CUSTOM",
       ],
       dataset_type: ["FOREST_NAVIGATOR", "COPERNICUS", "GBIF", "CUSTOM"],
+      difficulty_level: ["standard", "x1_5", "x2", "x3"],
       eco_category: [
         "observation",
         "restoration",
