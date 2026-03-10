@@ -1075,6 +1075,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               {todoCount + inProgressCount} active
             </Badge>
           )}
+          {todayGoals.size > 0 && (
+            <Badge variant="outline" className="text-xs ml-1 border-amber-400/50 text-amber-600">
+              ☀ {todayGoals.size} today
+            </Badge>
+          )}
         </h2>
         <div className="flex items-center gap-1">
           <Button
