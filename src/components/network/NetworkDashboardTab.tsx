@@ -359,6 +359,36 @@ export default function NetworkDashboardTab() {
         </CardContent></Card>
       </div>
 
+      {/* OCU Inconsistency Alerts */}
+      {ocuAlerts.filter(a => !dismissedOcuAlerts.has(a.guildId)).map(alert => (
+        <Card key={alert.guildId} className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="py-4 flex items-start gap-3">
+            <div className="text-2xl">🧮</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">Mixed OCU mode in {alert.guildName}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {alert.ocuQuests} of {alert.totalQuests} quests use OCU. Enable it as default to homogenize contribution tracking.
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" className="h-7 text-xs" asChild>
+                  <Link to={`/guilds/${alert.guildId}/settings?tab=defaults`}>
+                    <Settings className="h-3 w-3 mr-1" /> Configure in Settings
+                  </Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={() => setDismissedOcuAlerts(prev => new Set(prev).add(alert.guildId))}
+                >
+                  <X className="h-3 w-3 mr-1" /> Dismiss
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+
       {/* Pending Applications */}
       <PendingApplicationsSection apps={pendingApps} currentUserId={currentUser.id} />
 
