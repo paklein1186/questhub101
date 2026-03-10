@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
-  Plus, Pencil, X, Lightbulb, Globe, Link2,
+  Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
@@ -29,6 +29,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const TABS = [
   { key: "affiliations", label: "Affiliations", icon: Link2 },
+  { key: "ocu", label: "OCU Mode", icon: Puzzle },
   { key: "fundraising", label: "Fundraising", icon: Coins },
   { key: "needs", label: "Needs", icon: Lightbulb },
   { key: "features", label: "Features", icon: Puzzle },
@@ -234,6 +235,44 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
               {/* ── Affiliations ── */}
               {activeTab === "affiliations" && (
                 <QuestAffiliationsTab questId={questId} quest={quest} />
+              )}
+
+              {/* ── OCU Mode ── */}
+              {activeTab === "ocu" && (
+                <div className="space-y-5 max-w-lg">
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                    <h3 className="font-display font-semibold flex items-center gap-2">
+                      <Puzzle className="h-4 w-4 text-primary" /> Advanced: Open Contributive Unit
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Enable the full contributive accounting subsystem for this quest.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        id="ocu-toggle"
+                        checked={(quest as any).ocu_enabled ?? false}
+                        onCheckedChange={async (checked) => {
+                          await supabase.from("quests").update({ ocu_enabled: checked } as any).eq("id", questId);
+                          qc.invalidateQueries({ queryKey: ["quest", questId] });
+                          qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
+                          toast({ title: checked ? "OCU mode enabled" : "OCU mode disabled" });
+                        }}
+                      />
+                      <label htmlFor="ocu-toggle" className="text-sm font-medium">
+                        Enable OCU Mode
+                      </label>
+                    </div>
+                    {(quest as any).ocu_enabled && (
+                      <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 flex gap-2">
+                        <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <p className="text-sm text-foreground">
+                          OCU mode activates contribution tracking, live pie, contracts, and envelope distribution.
+                          Contributions will be logged and validated by peers before earning value.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* ── Fundraising ── */}
