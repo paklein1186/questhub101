@@ -51,9 +51,49 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
   const [externalAmount, setExternalAmount] = useState("");
   const [externalNote, setExternalNote] = useState("");
 
+  const isFrozen = !!(quest as any).pie_frozen_at;
+  const pieSnapshot = (quest as any).pie_snapshot as any;
+
   const { data: contributors = [] } = useQuery<ContributorSummary[]>({
     queryKey: ["compensation-summary", quest.id],
     queryFn: async () => {
+      // If frozen, use snapshot contributors as the base
+      if (isFrozen && pieSnapshot?.contributors) {
+        const snapshotContribs = pieSnapshot.contributors as any[];
+        const userIds = snapshotContribs.map((c: any) => c.user_id);
+
+        // Still need current compensation status from contribution_logs
+        const { data: logs } = await supabase
+          .from("contribution_logs" as any)
+          .select("user_id, fmv_value, coins_compensated")
+          .eq("quest_id", quest.id)
+          .eq("status", "verified");
+
+        const compByUser = new Map<string, { total_compensated: number }>();
+        for (const l of (logs ?? []) as any[]) {
+          const prev = compByUser.get(l.user_id) ?? { total_compensated: 0 };
+          prev.total_compensated += l.coins_compensated ?? 0;
+          compByUser.set(l.user_id, prev);
+        }
+
+        return snapshotContribs.map((c: any) => {
+          const comp = compByUser.get(c.user_id);
+          const totalFmv = c.total_fmv || 0;
+          const totalCompensated = comp?.total_compensated ?? 0;
+          return {
+            user_id: c.user_id,
+            name: c.name ?? "Unknown",
+            avatar_url: c.avatar_url ?? null,
+            total_fmv: totalFmv,
+            total_compensated: totalCompensated,
+            remaining: Math.max(0, totalFmv - totalCompensated),
+            pct_compensated: totalFmv > 0 ? Math.round((totalCompensated / totalFmv) * 100) : 0,
+            pie_pct: c.pct_share ?? 0,
+          };
+        }).sort((a, b) => b.total_fmv - a.total_fmv);
+      }
+
+      // Live mode
       const { data: logs } = await supabase
         .from("contribution_logs" as any)
         .select("user_id, fmv_value, coins_compensated")
