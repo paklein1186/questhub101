@@ -908,36 +908,25 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
     }
   }, []);
 
-  // ── Trigger: Ritual created — notify entity members via addNotification ──
+  // ── Trigger: Ritual created — notify entity members + followers via bulk insert ──
 
-  const notifyRitualCreated = useCallback(async ({ entityType, entityId, entityName, ritualTitle, creatorUserId }: any) => {
+  const notifyRitualCreated = useCallback(async ({ entityType, entityId, entityName, ritualTitle, creatorUserId }: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => {
     try {
-      const memberTable = entityType === "GUILD" ? "guild_members" : null;
-      const idCol = entityType === "GUILD" ? "guild_id" : null;
-      if (!memberTable || !idCol) return;
-
-      const { data: members } = await supabase.from(memberTable as any).select("user_id").eq(idCol, entityId).limit(200);
-      if (!members?.length) return;
-
       const deepLink = `/${entityType === "COMPANY" ? "companies" : "guilds"}/${entityId}?tab=rituals`;
-      const targets = (members as any[]).filter((m: any) => m.user_id !== creatorUserId);
-
-      for (let i = 0; i < targets.length; i++) {
-        await addNotification({
-          userId: targets[i].user_id,
-          type: NotificationType.ENTITY_NEW_RITUAL,
-          title: `New ritual in ${entityName}`,
-          body: `"${ritualTitle}"`,
-          relatedEntityType: entityType,
-          relatedEntityId: entityId,
-          deepLinkUrl: deepLink,
-        });
-        if (targets.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
-      }
+      await notifyEntityFollowersAndMembers({
+        entityType,
+        entityId,
+        entityName,
+        actorUserId: creatorUserId,
+        notifType: "ENTITY_NEW_RITUAL",
+        title: `New ritual in ${entityName}`,
+        body: `"${ritualTitle}"`,
+        deepLinkUrl: deepLink,
+      });
     } catch (err) {
       console.error("[Notifications] notifyRitualCreated error:", err);
     }
-  }, [addNotification]);
+  }, []);
 
   // ── Trigger: Bulk @members / @followers mention via addNotification ──
 
