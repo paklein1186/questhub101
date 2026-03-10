@@ -323,24 +323,18 @@ export default function QuestCreate() {
   const doCreate = async () => {
     if (!title.trim()) return;
 
-    const budget = Number(creditBudget) || 0;
+    const finalCoinsBudget = coinsEnabled ? (Number(coinsBudget) || 0) : 0;
+    const finalCtgBudget = ctgEnabled ? (Number(ctgBudgetVal) || 0) : 0;
 
-    // Validate credit budget against user's balance
-    if (budget > 0) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits_balance")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-      const balance = (profile as any)?.credits_balance ?? 0;
-      if (budget > balance) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You cannot fund a $CTG pool of ${budget} — your Credits balance is ${balance}. Top up your Credits wallet.`,
-          variant: "destructive",
-        });
-        return;
-      }
+    // Validate Coins balance
+    if (finalCoinsBudget > 0 && finalCoinsBudget > coinsBalance) {
+      toast({ title: "Insufficient Coins", description: `Your Coins balance is ${coinsBalance.toFixed(0)}.`, variant: "destructive" });
+      return;
+    }
+    // Validate CTG balance
+    if (finalCtgBudget > 0 && finalCtgBudget > ctgBalance) {
+      toast({ title: "Insufficient $CTG", description: `Your $CTG balance is ${ctgBalance.toFixed(1)}.`, variant: "destructive" });
+      return;
     }
 
     setSubmitting(true);
@@ -351,7 +345,6 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
-      // IDEAs always save as DRAFT — they live in the Idea Pool, not the Marketplace
       const finalStatus = (isDraft || questNature === QuestNature.IDEA) ? "DRAFT" : questStatus;
 
       const { data: quest, error } = await supabase
@@ -373,8 +366,14 @@ export default function QuestCreate() {
           price_fiat: fiatCents,
           price_currency: "EUR",
           payout_user_id: currentUser.id,
-          credit_budget: budget,
-          escrow_credits: budget,
+          coins_budget: finalCoinsBudget,
+          coins_escrow: finalCoinsBudget,
+          coins_escrow_status: finalCoinsBudget > 0 ? "active" : "idle",
+          ctg_budget: finalCtgBudget,
+          ctg_escrow: finalCtgBudget,
+          ctg_escrow_status: finalCtgBudget > 0 ? "active" : "idle",
+          ctg_escrow_frozen_at: finalCtgBudget > 0 ? new Date().toISOString() : null,
+          ocu_enabled: ocuEnabled,
           allow_fundraising: allowFundraising,
           funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
           funding_type: fundingType,
@@ -403,7 +402,7 @@ export default function QuestCreate() {
         );
       }
 
-      // Insert accepted AI subtasks
+      // Insert accepted AI subtasks (with ctg_reward)
       const acceptedSubtasks = aiSubtasks.filter(s => s.accepted);
       if (acceptedSubtasks.length > 0) {
         await supabase.from("quest_subtasks").insert(
@@ -413,7 +412,8 @@ export default function QuestCreate() {
             description: s.description || null,
             order_index: i,
             status: "TODO",
-          }))
+            ctg_reward: s.ctg_reward ?? 1,
+          })) as any
         );
       }
 
@@ -427,7 +427,6 @@ export default function QuestCreate() {
           created_by_user_id: currentUser.id,
         } as any);
 
-        // Also insert into quest_affiliations for the primary entity
         await supabase.from("quest_affiliations" as any).insert({
           quest_id: quest.id,
           entity_type: primaryEntityType,
@@ -446,7 +445,6 @@ export default function QuestCreate() {
             })) as any
           );
 
-          // Also insert co-hosts into quest_affiliations
           await supabase.from("quest_affiliations" as any).insert(
             selectedCoHosts.map(ch => ({
               quest_id: quest.id,
@@ -467,20 +465,43 @@ export default function QuestCreate() {
 
       await limits.recordQuestCreation();
 
-      // Deduct credit budget from user's wallet
-      if (budget > 0) {
-        await (supabase.from("credit_transactions" as any) as any).insert({
+      // Deduct Coins from user wallet
+      if (finalCoinsBudget > 0) {
+        await supabase.from("coin_transactions").insert({
           user_id: currentUser.id,
-          type: "QUEST_BUDGET_SPENT",
-          amount: -budget,
+          type: "QUEST_BUDGET_ALLOCATED",
+          amount: -finalCoinsBudget,
+          quest_id: quest.id,
           source: `Quest budget: ${title.trim()}`,
-          related_entity_type: "QUEST",
-          related_entity_id: quest.id,
+        } as any);
+        const newCoins = coinsBalance - finalCoinsBudget;
+        await supabase.from("profiles").update({ coins_balance: newCoins } as any).eq("user_id", currentUser.id);
+        await supabase.from("quest_funding_contributions" as any).insert({
+          quest_id: quest.id,
+          funder_user_id: currentUser.id,
+          currency: "coins",
+          amount: finalCoinsBudget,
         });
-        await supabase
-          .from("profiles")
-          .update({ credits_balance: ((await supabase.from("profiles").select("credits_balance").eq("user_id", currentUser.id).maybeSingle()).data as any)?.credits_balance - budget } as any)
-          .eq("user_id", currentUser.id);
+      }
+
+      // Deduct $CTG from user wallet
+      if (finalCtgBudget > 0) {
+        await supabase.from("ctg_transactions" as any).insert({
+          user_id: currentUser.id,
+          type: "QUEST_BUDGET_ALLOCATED",
+          amount: -finalCtgBudget,
+          related_entity_id: quest.id,
+          related_entity_type: "quest",
+          source: `Quest budget: ${title.trim()}`,
+        });
+        const newCtg = ctgBalance - finalCtgBudget;
+        await supabase.from("profiles").update({ ctg_balance: newCtg } as any).eq("user_id", currentUser.id);
+        await supabase.from("quest_funding_contributions" as any).insert({
+          quest_id: quest.id,
+          funder_user_id: currentUser.id,
+          currency: "ctg",
+          amount: finalCtgBudget,
+        });
       }
 
       await grantXp(currentUser.id, {
