@@ -1621,7 +1621,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part $CTG</Label>
+                    <Label className="text-xs">Commons share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertCtgPercent}%</span>
                   </div>
                   <Slider min={0} max={15} step={1} value={[convertCtgPercent]} onValueChange={([v]) => setConvertCtgPercent(v)} />
