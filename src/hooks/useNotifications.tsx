@@ -76,7 +76,11 @@ function prefKeyForType(type: NotificationType): keyof NotificationPreferences |
       return "notifyOnXpAndAchievements";
     case NotificationType.FOLLOWED_USER_NEW_POST:
     case NotificationType.FOLLOWED_ENTITY_NEW_POST:
-      return "notifyOnFollowerActivity"; // mapped to follower activity for legacy compat
+    case NotificationType.FOLLOWED_USER_NEW_SERVICE:
+    case NotificationType.FOLLOWED_USER_NEW_COURSE:
+    case NotificationType.FOLLOWED_ENTITY_NEW_SERVICE:
+    case NotificationType.FOLLOWED_ENTITY_NEW_COURSE:
+      return "notifyOnFollowerActivity";
     case NotificationType.DIRECT_MESSAGE_RECEIVED:
     case NotificationType.MESSAGE_PRIVATE:
       return "notifyOnPodMessages";
