@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { OCUFeatureGate } from "./OCUFeatureGate";
-import { FileText, Check, X, Clock, ChevronDown, Plus, AlertTriangle, Pencil } from "lucide-react";
+import { FileText, Check, X, Clock, ChevronDown, Plus, AlertTriangle, Pencil, Info } from "lucide-react";
+import { computeVoteWeights, GOVERNANCE_MODELS, type GovernanceModel } from "@/lib/governanceWeights";
 import { formatDistanceToNow, format } from "date-fns";
 
 // ── Types ─────────────────────────────────────────────────────
