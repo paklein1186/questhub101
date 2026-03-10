@@ -129,6 +129,61 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
+  // Fetch guild exit settings
+  const { data: guildSettings } = useQuery({
+    queryKey: ["guild-exit-settings", quest.guild_id],
+    enabled: !!quest.guild_id,
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds")
+        .select("exit_good_leaver_fmv_pct, exit_graceful_fmv_pct, exit_bad_leaver_fmv_pct, exit_bad_leaver_decision, abandonment_threshold_days")
+        .eq("id", quest.guild_id)
+        .single();
+      return data as any;
+    },
+  });
+
+  // Fetch existing exits for this quest
+  const { data: existingExits = [] } = useQuery({
+    queryKey: ["contributor-exits", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("contributor_exits" as any)
+        .select("user_id").eq("quest_id", quest.id);
+      return (data ?? []) as any[];
+    },
+  });
+  const exitedUserIds = new Set(existingExits.map((e: any) => e.user_id));
+
+  // Fetch last contribution dates per user for abandonment detection
+  const { data: lastContribDates = new Map<string, Date>() } = useQuery({
+    queryKey: ["last-contrib-dates", quest.id],
+    enabled: isAdmin && !isFrozen,
+    queryFn: async () => {
+      const { data } = await supabase.from("contribution_logs" as any)
+        .select("user_id, created_at")
+        .eq("quest_id", quest.id)
+        .eq("status", "verified")
+        .order("created_at", { ascending: false });
+      const map = new Map<string, Date>();
+      for (const row of (data ?? []) as any[]) {
+        if (!map.has(row.user_id)) map.set(row.user_id, new Date(row.created_at));
+      }
+      return map;
+    },
+  });
+
+  // Fetch active contract
+  const { data: activeContract } = useQuery({
+    queryKey: ["quest-active-contract-pie", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("quest_contracts")
+        .select("id").eq("quest_id", quest.id)
+        .in("status", ["active", "amended"]).limit(1).maybeSingle();
+      return data;
+    },
+  });
+
+  const abandonmentThreshold = guildSettings?.abandonment_threshold_days ?? 60;
+
   // Build pie data: if frozen use snapshot, else use live
   const pieData: PieEntry[] = useMemo(() => {
     if (isFrozen && pieSnapshot?.contributors) {
@@ -153,6 +208,23 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     value: d.fmv,
     color: COLORS[i % COLORS.length],
   }));
+
+  // Abandonment detection
+  const abandonedUsers = useMemo(() => {
+    if (!isAdmin || isFrozen) return new Map<string, number>();
+    const result = new Map<string, number>();
+    for (const d of pieData) {
+      if (exitedUserIds.has(d.userId)) continue;
+      const lastDate = lastContribDates instanceof Map ? lastContribDates.get(d.userId) : undefined;
+      if (lastDate) {
+        const daysSince = differenceInDays(new Date(), lastDate);
+        if (daysSince >= abandonmentThreshold) {
+          result.set(d.userId, daysSince);
+        }
+      }
+    }
+    return result;
+  }, [pieData, lastContribDates, abandonmentThreshold, isAdmin, isFrozen, exitedUserIds]);
 
   const handleFreeze = async () => {
     setFreezing(true);
