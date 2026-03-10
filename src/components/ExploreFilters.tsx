@@ -93,16 +93,18 @@ export const defaultFilters: ExploreFilterValues = {
 export interface ExploreFilterConfig {
   showTopics?: boolean;
   showTerritories?: boolean;
-  showStatus?: boolean;         // quest status
-  showMonetization?: boolean;   // quest monetization
-  showLevel?: boolean;          // course level
+  showStatus?: boolean;
+  showMonetization?: boolean;
+  showLevel?: boolean;
   showPodType?: boolean;
   showGuildType?: boolean;
-  showPrice?: boolean;          // free/paid for services & courses
-  showRole?: boolean;           // user role
-  showQuestType?: boolean;      // quest nature (Level 1)
-  showMission?: boolean;        // mission-only toggle
-  showHasBudget?: boolean;      // has budget/reward toggle
+  showPrice?: boolean;
+  showRole?: boolean;
+  showQuestType?: boolean;
+  showMission?: boolean;
+  showHasBudget?: boolean;
+  showContributionOpportunity?: boolean;
+  showOcu?: boolean;
 }
 
 interface Props {
