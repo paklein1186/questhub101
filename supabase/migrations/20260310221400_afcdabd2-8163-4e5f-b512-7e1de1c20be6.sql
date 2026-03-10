@@ -1,0 +1,1 @@
+ALTER TABLE public.quest_subtasks ADD COLUMN IF NOT EXISTS assignee_user_ids text[] NOT NULL DEFAULT '{}';

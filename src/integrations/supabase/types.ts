@@ -6967,6 +6967,7 @@ export type Database = {
       quest_subtasks: {
         Row: {
           assignee_user_id: string | null
+          assignee_user_ids: string[]
           completed_at: string | null
           completed_by_user_id: string | null
           contribution_weight: number
@@ -6988,6 +6989,7 @@ export type Database = {
         }
         Insert: {
           assignee_user_id?: string | null
+          assignee_user_ids?: string[]
           completed_at?: string | null
           completed_by_user_id?: string | null
           contribution_weight?: number
@@ -7009,6 +7011,7 @@ export type Database = {
         }
         Update: {
           assignee_user_id?: string | null
+          assignee_user_ids?: string[]
           completed_at?: string | null
           completed_by_user_id?: string | null
           contribution_weight?: number
