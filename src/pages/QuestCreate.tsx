@@ -21,13 +21,14 @@ import { useXpCredits } from "@/hooks/useXpCredits";
 import { usePersona } from "@/hooks/usePersona";
 import { XP_EVENT_TYPES } from "@/lib/xpCreditsConfig";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
-import { QuestBudgetWizard } from "@/components/quest/QuestBudgetWizard";
+import { FundingPoolWizard } from "@/components/quest/FundingPoolWizard";
 import { PageShell } from "@/components/PageShell";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { useNotifications } from "@/hooks/useNotifications";
 import { ImageUpload } from "@/components/ImageUpload";
 import { XpSpendDialog } from "@/components/XpSpendDialog";
 import { useAcceptedPartners } from "@/hooks/useQuestHosts";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -193,6 +194,33 @@ export default function QuestCreate() {
   const [questNature, setQuestNature] = useState(QuestNature.PROJECT);
   const [websiteUrl, setWebsiteUrl] = useState("");
 
+  // Dual funding pools
+  const [coinsBudget, setCoinsBudget] = useState("0");
+  const [ctgBudgetVal, setCtgBudgetVal] = useState("0");
+  const [coinsEnabled, setCoinsEnabled] = useState(false);
+  const [ctgEnabled, setCtgEnabled] = useState(false);
+  const [ocuEnabled, setOcuEnabled] = useState(false);
+  const { rate: coinEurRate, toEur } = useCoinsRate();
+
+  // Fetch user wallet balances
+  const { data: walletData } = useQuery({
+    queryKey: ["user-wallet-for-quest", currentUser.id],
+    enabled: !!currentUser.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("coins_balance, ctg_balance")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      return {
+        coinsBalance: Number((data as any)?.coins_balance ?? 0),
+        ctgBalance: Number((data as any)?.ctg_balance ?? 0),
+      };
+    },
+  });
+  const coinsBalance = walletData?.coinsBalance ?? 0;
+  const ctgBalance = walletData?.ctgBalance ?? 0;
+
   // Co-hosts state
   const primaryEntityType = effectiveGuildId ? "GUILD" as const : effectiveCompanyId ? "COMPANY" as const : undefined;
   const primaryEntityId = effectiveGuildId || effectiveCompanyId || undefined;
@@ -203,7 +231,7 @@ export default function QuestCreate() {
   const [aiKeywords, setAiKeywords] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
-  const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean }[]>([]);
+  const [aiSubtasks, setAiSubtasks] = useState<{ title: string; description: string; accepted: boolean; ctg_reward: number }[]>([]);
 
   // Pre-populate topics & territories from the parent unit
   useEffect(() => {
@@ -248,7 +276,7 @@ export default function QuestCreate() {
       }
 
       setAiSuggestion(data);
-      setAiSubtasks((data.subtasks || []).map((s: any) => ({ ...s, accepted: true })));
+      setAiSubtasks((data.subtasks || []).map((s: any) => ({ ...s, accepted: true, ctg_reward: 1 })));
       toast({ title: "AI suggestions ready!", description: data.microcopy || "Review and edit below." });
     } catch (e: any) {
       toast({ title: "AI generation failed", description: e.message || "Please try again.", variant: "destructive" });
@@ -266,8 +294,8 @@ export default function QuestCreate() {
     if (!aiSuggestion) return;
     setRewardXp(String(aiSuggestion.rewardXp));
     if (aiSuggestion.creditBudget > 0) {
-      setCreditBudget(String(aiSuggestion.creditBudget));
-      setOpenForProposals(true);
+      setCoinsBudget(String(aiSuggestion.creditBudget));
+      setCoinsEnabled(true);
     }
     if (aiSuggestion.fundingGoal) {
       setFundingGoalCredits(String(aiSuggestion.fundingGoal));
@@ -295,24 +323,18 @@ export default function QuestCreate() {
   const doCreate = async () => {
     if (!title.trim()) return;
 
-    const budget = Number(creditBudget) || 0;
+    const finalCoinsBudget = coinsEnabled ? (Number(coinsBudget) || 0) : 0;
+    const finalCtgBudget = ctgEnabled ? (Number(ctgBudgetVal) || 0) : 0;
 
-    // Validate credit budget against user's balance
-    if (budget > 0) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("credits_balance")
-        .eq("user_id", currentUser.id)
-        .maybeSingle();
-      const balance = (profile as any)?.credits_balance ?? 0;
-      if (budget > balance) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You cannot fund a $CTG pool of ${budget} — your Credits balance is ${balance}. Top up your Credits wallet.`,
-          variant: "destructive",
-        });
-        return;
-      }
+    // Validate Coins balance
+    if (finalCoinsBudget > 0 && finalCoinsBudget > coinsBalance) {
+      toast({ title: "Insufficient Coins", description: `Your Coins balance is ${coinsBalance.toFixed(0)}.`, variant: "destructive" });
+      return;
+    }
+    // Validate CTG balance
+    if (finalCtgBudget > 0 && finalCtgBudget > ctgBalance) {
+      toast({ title: "Insufficient $CTG", description: `Your $CTG balance is ${ctgBalance.toFixed(1)}.`, variant: "destructive" });
+      return;
     }
 
     setSubmitting(true);
@@ -323,7 +345,6 @@ export default function QuestCreate() {
       const fiatCents = isMonetized ? (Number(priceFiat) || 0) : 0;
       const credits = isMonetized ? (Number(creditReward) || 0) : 0;
       const monType = isMonetized ? (fiatCents > 0 ? "PAID" : credits > 0 ? "MIXED" : "FREE") : "FREE";
-      // IDEAs always save as DRAFT — they live in the Idea Pool, not the Marketplace
       const finalStatus = (isDraft || questNature === QuestNature.IDEA) ? "DRAFT" : questStatus;
 
       const { data: quest, error } = await supabase
@@ -345,8 +366,14 @@ export default function QuestCreate() {
           price_fiat: fiatCents,
           price_currency: "EUR",
           payout_user_id: currentUser.id,
-          credit_budget: budget,
-          escrow_credits: budget,
+          coins_budget: finalCoinsBudget,
+          coins_escrow: finalCoinsBudget,
+          coins_escrow_status: finalCoinsBudget > 0 ? "active" : "idle",
+          ctg_budget: finalCtgBudget,
+          ctg_escrow: finalCtgBudget,
+          ctg_escrow_status: finalCtgBudget > 0 ? "active" : "idle",
+          ctg_escrow_frozen_at: finalCtgBudget > 0 ? new Date().toISOString() : null,
+          ocu_enabled: ocuEnabled,
           allow_fundraising: allowFundraising,
           funding_goal_credits: fundingGoalCredits ? Number(fundingGoalCredits) : null,
           funding_type: fundingType,
@@ -375,7 +402,7 @@ export default function QuestCreate() {
         );
       }
 
-      // Insert accepted AI subtasks
+      // Insert accepted AI subtasks (with ctg_reward)
       const acceptedSubtasks = aiSubtasks.filter(s => s.accepted);
       if (acceptedSubtasks.length > 0) {
         await supabase.from("quest_subtasks").insert(
@@ -385,7 +412,8 @@ export default function QuestCreate() {
             description: s.description || null,
             order_index: i,
             status: "TODO",
-          }))
+            ctg_reward: s.ctg_reward ?? 1,
+          })) as any
         );
       }
 
@@ -399,7 +427,6 @@ export default function QuestCreate() {
           created_by_user_id: currentUser.id,
         } as any);
 
-        // Also insert into quest_affiliations for the primary entity
         await supabase.from("quest_affiliations" as any).insert({
           quest_id: quest.id,
           entity_type: primaryEntityType,
@@ -418,7 +445,6 @@ export default function QuestCreate() {
             })) as any
           );
 
-          // Also insert co-hosts into quest_affiliations
           await supabase.from("quest_affiliations" as any).insert(
             selectedCoHosts.map(ch => ({
               quest_id: quest.id,
@@ -439,20 +465,43 @@ export default function QuestCreate() {
 
       await limits.recordQuestCreation();
 
-      // Deduct credit budget from user's wallet
-      if (budget > 0) {
-        await (supabase.from("credit_transactions" as any) as any).insert({
+      // Deduct Coins from user wallet
+      if (finalCoinsBudget > 0) {
+        await supabase.from("coin_transactions").insert({
           user_id: currentUser.id,
-          type: "QUEST_BUDGET_SPENT",
-          amount: -budget,
+          type: "QUEST_BUDGET_ALLOCATED",
+          amount: -finalCoinsBudget,
+          quest_id: quest.id,
           source: `Quest budget: ${title.trim()}`,
-          related_entity_type: "QUEST",
-          related_entity_id: quest.id,
+        } as any);
+        const newCoins = coinsBalance - finalCoinsBudget;
+        await supabase.from("profiles").update({ coins_balance: newCoins } as any).eq("user_id", currentUser.id);
+        await supabase.from("quest_funding_contributions" as any).insert({
+          quest_id: quest.id,
+          funder_user_id: currentUser.id,
+          currency: "coins",
+          amount: finalCoinsBudget,
         });
-        await supabase
-          .from("profiles")
-          .update({ credits_balance: ((await supabase.from("profiles").select("credits_balance").eq("user_id", currentUser.id).maybeSingle()).data as any)?.credits_balance - budget } as any)
-          .eq("user_id", currentUser.id);
+      }
+
+      // Deduct $CTG from user wallet
+      if (finalCtgBudget > 0) {
+        await supabase.from("ctg_transactions" as any).insert({
+          user_id: currentUser.id,
+          type: "QUEST_BUDGET_ALLOCATED",
+          amount: -finalCtgBudget,
+          related_entity_id: quest.id,
+          related_entity_type: "quest",
+          source: `Quest budget: ${title.trim()}`,
+        });
+        const newCtg = ctgBalance - finalCtgBudget;
+        await supabase.from("profiles").update({ ctg_balance: newCtg } as any).eq("user_id", currentUser.id);
+        await supabase.from("quest_funding_contributions" as any).insert({
+          quest_id: quest.id,
+          funder_user_id: currentUser.id,
+          currency: "ctg",
+          amount: finalCtgBudget,
+        });
       }
 
       await grantXp(currentUser.id, {
@@ -776,17 +825,30 @@ export default function QuestCreate() {
                     {aiSubtasks.map((s, i) => (
                       <div
                         key={i}
-                        className={`flex items-start gap-2 p-2 rounded-md text-sm cursor-pointer transition-colors ${
+                        className={`flex items-start gap-2 p-2 rounded-md text-sm transition-colors ${
                           s.accepted ? "bg-primary/10" : "bg-muted/50 opacity-60"
                         }`}
-                        onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}
                       >
-                        <div className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 ${s.accepted ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                        <div
+                          className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 cursor-pointer ${s.accepted ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}
+                          onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}
+                        >
                           {s.accepted && <Check className="h-3 w-3" />}
                         </div>
-                        <div>
+                        <div className="flex-1 cursor-pointer" onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}>
                           <span className="font-medium">{s.title}</span>
                           {s.description && <p className="text-xs text-muted-foreground">{s.description}</p>}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-[10px] text-muted-foreground">🌱</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={s.ctg_reward}
+                            onChange={(e) => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, ctg_reward: Number(e.target.value) || 0 } : st))}
+                            className="h-6 w-14 text-xs px-1 text-center"
+                          />
                         </div>
                       </div>
                     ))}
@@ -808,7 +870,7 @@ export default function QuestCreate() {
                     <p className="font-bold text-primary">{aiSuggestion.rewardXp}</p>
                   </div>
                   <div className="text-center p-2 rounded-md bg-muted/50">
-                    <p className="text-xs text-muted-foreground">$CTG Pool (funded by Credits)</p>
+                    <p className="text-xs text-muted-foreground">Suggested Coins incentive</p>
                     <p className="font-bold text-primary">{aiSuggestion.creditBudget}</p>
                   </div>
                   <div className="text-center p-2 rounded-md bg-muted/50">
@@ -908,33 +970,48 @@ export default function QuestCreate() {
             </div>
           </div>
 
-          {/* Budget, Rewards & Funding Wizard */}
-          <QuestBudgetWizard
-            missionBudgetMin={missionBudgetMin}
-            setMissionBudgetMin={setMissionBudgetMin}
-            missionBudgetMax={missionBudgetMax}
-            setMissionBudgetMax={setMissionBudgetMax}
-            paymentType={paymentType}
-            setPaymentType={setPaymentType}
-            rewardXp={rewardXp}
-            setRewardXp={setRewardXp}
-            isMonetized={isMonetized}
-            setIsMonetized={setIsMonetized}
-            creditReward={creditReward}
-            setCreditReward={setCreditReward}
-            priceFiat={priceFiat}
-            setPriceFiat={setPriceFiat}
-            openForProposals={openForProposals}
-            setOpenForProposals={setOpenForProposals}
-            fundingType={fundingType}
-            setFundingType={setFundingType}
-            creditBudget={creditBudget}
-            setCreditBudget={setCreditBudget}
-            fundingGoalCredits={fundingGoalCredits}
-            setFundingGoalCredits={setFundingGoalCredits}
-            allowFundraising={allowFundraising}
-            setAllowFundraising={setAllowFundraising}
-          />
+          {/* Funding Pools — only for PROJECT / ONGOING_MISSION */}
+          {(questNature === QuestNature.PROJECT || questNature === ("ONGOING_MISSION" as QuestNature)) && (
+            <FundingPoolWizard
+              coinsBudget={coinsBudget}
+              setCoinsBudget={setCoinsBudget}
+              ctgBudget={ctgBudgetVal}
+              setCtgBudget={setCtgBudgetVal}
+              coinsEnabled={coinsEnabled}
+              setCoinsEnabled={setCoinsEnabled}
+              ctgEnabled={ctgEnabled}
+              setCtgEnabled={setCtgEnabled}
+              coinsBalance={coinsBalance}
+              ctgBalance={ctgBalance}
+              coinEurRate={coinEurRate}
+              toEur={toEur}
+            />
+          )}
+
+          {/* OCU quick-enable toggle — only for PROJECT / ONGOING_MISSION */}
+          {(questNature === QuestNature.PROJECT || questNature === ("ONGOING_MISSION" as QuestNature)) && (
+            <Card className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">🧮 Track contributions & distribute value fairly?</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enable the Open Contributive Unit (OCU) module to log half-days,
+                    calculate each contributor's share, and govern distribution via a live pie.
+                  </p>
+                </div>
+                <Switch checked={ocuEnabled} onCheckedChange={setOcuEnabled} />
+              </div>
+              <Label className="text-xs text-muted-foreground">
+                Enable OCU (can also be activated later in Quest Settings)
+              </Label>
+              {ocuEnabled && (
+                <p className="text-xs text-primary rounded-md bg-primary/10 px-3 py-2">
+                  ✅ OCU active — contributors will log work, earn Coins from the pool,
+                  and see their % share live. A contract can be added after creation.
+                </p>
+              )}
+            </Card>
+          )}
 
           {(topics ?? []).length > 0 && (
             <SearchableTagPicker
