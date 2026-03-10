@@ -491,22 +491,40 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
 }
 
 /* ═══════════ Voting Section ═══════════ */
-function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen, totalVotes, memberCount, quorumReached, onRefresh, currentUserId }: {
-  decision: any; type: DecisionType; options: Option[]; votes: any[]; myVote: any; canVote: boolean; isOpen: boolean; totalVotes: number; memberCount: number; quorumReached: boolean; onRefresh: () => void; currentUserId: string;
+function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen, totalVotes, memberCount, quorumReached, onRefresh, currentUserId, guildId }: {
+  decision: any; type: DecisionType; options: Option[]; votes: any[]; myVote: any; canVote: boolean; isOpen: boolean; totalVotes: number; memberCount: number; quorumReached: boolean; onRefresh: () => void; currentUserId: string; guildId: string;
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { grantXp } = useXpCredits();
   const [objReason, setObjReason] = useState("");
 
+  // Fetch guild governance model for display
+  const { data: guildData } = useQuery({
+    queryKey: ["guild-governance", guildId],
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("governance_model").eq("id", guildId).single();
+      return data;
+    },
+  });
+  const govModel = ((guildData as any)?.governance_model ?? "1h1v") as GovernanceModel;
+  const govInfo = GOVERNANCE_MODELS[govModel] ?? GOVERNANCE_MODELS["1h1v"];
+
   const castVote = async (optionIndex: number, value?: string, objectionReason?: string) => {
+    // Compute weights
+    const { raw_weight, applied_weight } = await computeVoteWeights(guildId, currentUserId);
+
     if (myVote) {
       if (!decision.allow_vote_change) { toast({ title: "Vote change not allowed" }); return; }
-      // Update existing vote
-      await supabase.from("decision_poll_votes").update({ option_index: optionIndex, value: value || null, objection_reason: objectionReason || null } as any).eq("id", myVote.id);
+      await supabase.from("decision_poll_votes").update({
+        option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
+        raw_weight, applied_weight,
+      } as any).eq("id", myVote.id);
     } else {
       await supabase.from("decision_poll_votes").insert({
-        poll_id: decision.id, user_id: currentUserId, option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
+        poll_id: decision.id, user_id: currentUserId, option_index: optionIndex,
+        value: value || null, objection_reason: objectionReason || null,
+        raw_weight, applied_weight,
       } as any);
 
       // Notify decision creator about the new vote (fire-and-forget)
