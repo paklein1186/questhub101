@@ -1257,7 +1257,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   return rows;
                 }
 
-                return (
+                rows.push(
                 <tr key={key} className={cn("border-t border-border group hover:bg-accent/30 transition-colors", todayGoals.has(key) && "bg-amber-500/5")}>
                   <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                     <Checkbox
