@@ -15,7 +15,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
   ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X, Sun,
-  Circle, CircleDot, Timer, CheckCircle2, Scale,
+  Circle, CircleDot, Timer, CheckCircle2, Scale, Pencil,
 } from "lucide-react";
 import { ConfettiSpark } from "./ConfettiSpark";
 import {
