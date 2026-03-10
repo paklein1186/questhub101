@@ -869,3 +869,113 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     </PageShell>
   );
 }
+
+/* ─── Campaign Section (used in Fundraising tab) ─── */
+function CampaignSection({
+  emoji, label, campaigns, isLoading, coinsRate, onNew, onEdit, onDelete, onCancel, onDispatch,
+}: {
+  emoji: string; label: string; campaigns: any[]; isLoading: boolean; coinsRate: number;
+  onNew: () => void; onEdit: (c: any) => void; onDelete: (id: string) => void;
+  onCancel: (id: string) => void; onDispatch: (c: any) => void;
+}) {
+  const statusStyle = (s: string) => {
+    if (s === "ACTIVE") return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+    if (s === "COMPLETED") return "bg-primary/10 text-primary border-primary/30";
+    if (s === "CANCELLED") return "bg-muted text-muted-foreground border-border";
+    return "bg-muted text-muted-foreground";
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display font-semibold text-sm flex items-center gap-2">
+          <span className="text-lg">{emoji}</span> {label} Campaigns
+        </h3>
+        <Button size="sm" variant="outline" onClick={onNew}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> New
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+      ) : campaigns.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">No {label} campaigns yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {campaigns.map((c: any) => {
+            const threshold = Number(c.threshold_amount) || Number(c.goal_amount) || 0;
+            const raised = Number(c.raised_amount) || 0;
+            const pct = threshold > 0 ? Math.min(100, Math.round((raised / threshold) * 100)) : 0;
+            const isThresholdReached = !!c.threshold_reached_at;
+            const isDispatched = !!c.dispatched_at;
+            const isActive = c.status === "ACTIVE";
+
+            let statusLabel = c.status;
+            if (isDispatched) statusLabel = "DISPATCHED";
+            else if (isThresholdReached) statusLabel = "THRESHOLD REACHED";
+
+            return (
+              <div key={c.id} className="rounded-lg border border-border bg-background p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm">{c.title || `${label} campaign`}</span>
+                      <Badge variant="outline" className={`text-[10px] ${statusStyle(statusLabel)}`}>
+                        {statusLabel}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {raised.toLocaleString()} / {threshold.toLocaleString()} {label} — {pct}%
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isActive && (
+                      <>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(c)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onCancel(c.id)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    )}
+                    {!isActive && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDelete(c.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {threshold > 0 && (
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div className="bg-primary rounded-full h-1.5 transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                )}
+
+                {isThresholdReached && !isDispatched && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      ✅ Threshold reached {c.threshold_reached_at ? new Date(c.threshold_reached_at).toLocaleDateString() : ""}
+                    </span>
+                    {c.dispatch_mode === "manual" && (
+                      <Button size="sm" variant="default" className="h-6 text-xs" onClick={() => onDispatch(c)}>
+                        Dispatch
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {isDispatched && (
+                  <p className="text-xs text-muted-foreground">
+                    📦 Dispatched {c.dispatched_at ? new Date(c.dispatched_at).toLocaleDateString() : ""}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
