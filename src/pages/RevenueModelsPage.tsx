@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { PageShell } from "@/components/PageShell";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,16 +12,17 @@ import {
 } from "@/components/ui/select";
 import {
   Landmark,
-  Banknote,
   Coins,
   Star,
   TrendingUp,
   ShieldCheck,
   LayoutGrid,
+  Leaf,
+  Sprout,
 } from "lucide-react";
 
-const SECTION_ICONS = [LayoutGrid, Landmark, Banknote, Coins, Star, TrendingUp, ShieldCheck] as const;
-const SECTION_IDS = ["overview", "shareholding", "monetary", "credits", "xp", "sustainability", "governance"] as const;
+const SECTION_ICONS = [LayoutGrid, Landmark, Leaf, Coins, Star, TrendingUp, ShieldCheck] as const;
+const SECTION_IDS = ["overview", "shareholding", "coins-ctg", "credits", "xp", "sustainability", "governance"] as const;
 
 function CalloutBox({ children }: { children: React.ReactNode }) {
   return (
@@ -64,7 +65,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
   const sectionLabels = [
     t("revenuePage.overview"),
     t("revenuePage.shareholding"),
-    t("revenuePage.monetary"),
+    t("revenuePage.coinsCTG"),
     t("revenuePage.credits"),
     t("revenuePage.xpReputation"),
     t("revenuePage.sustainability"),
@@ -97,8 +98,6 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
   }, []);
 
   const shareholdingItems = t("revenuePage.shareholdingItems", { returnObjects: true }) as string[];
-  const monetaryItems = t("revenuePage.monetaryItems", { returnObjects: true }) as string[];
-  const monetaryPrincipleItems = t("revenuePage.monetaryPrincipleItems", { returnObjects: true }) as string[];
   const creditsCoreItems = t("revenuePage.creditsCoreItems", { returnObjects: true }) as string[];
   const creditsObtainedItems = t("revenuePage.creditsObtainedItems", { returnObjects: true }) as string[];
   const creditsUsedItems = t("revenuePage.creditsUsedItems", { returnObjects: true }) as string[];
@@ -112,15 +111,16 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
   const overviewBoxes = [
     { icon: Landmark, title: t("revenuePage.ownership"), desc: t("revenuePage.ownershipDesc") },
-    { icon: Banknote, title: t("revenuePage.money"), desc: t("revenuePage.moneyDesc") },
-    { icon: Coins, title: t("revenuePage.creditsLabel"), desc: t("revenuePage.creditsDesc") },
+    { icon: Leaf, title: "🟩 Coins", desc: "Fiat-backed. Fund quests, earn from contributions, withdraw to €." },
+    { icon: Sprout, title: "🌱 $CTG", desc: "Contribution token. Frozen in quest escrow, circulates with demurrage." },
+    { icon: Coins, title: "🔷 Platform Credits", desc: "Feature fuel only. Never used for quest compensation." },
     { icon: Star, title: t("revenuePage.xpLabel"), desc: t("revenuePage.xpDesc") },
   ];
 
   const content = (
     <>
       <title>Revenue Models &amp; Economic Framework — changethegame</title>
-      <meta name="description" content="Explanation of ownership, monetary flows, credits, and reputation systems within the platform." />
+      <meta name="description" content="Explanation of ownership, Coins, $CTG, credits, and reputation systems within the platform." />
 
       <div className="max-w-4xl mx-auto">
         <header className="mb-6">
@@ -165,7 +165,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
         <section>
           <SectionHeader id="overview" title={t("revenuePage.overview")} icon={LayoutGrid} />
           <Prose><p>{t("revenuePage.overviewP")}</p></Prose>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
             {overviewBoxes.map((box) => (
               <Card key={box.title} className="border-border/50 bg-muted/30">
                 <CardContent className="flex items-start gap-3 p-4">
@@ -198,16 +198,47 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
         <hr className="my-8 border-border/40" />
 
-        {/* MONETARY */}
+        {/* COINS & $CTG */}
         <section>
-          <SectionHeader id="monetary" title={t("revenuePage.monetary")} icon={Banknote} />
+          <SectionHeader id="coins-ctg" title="🟩 Coins & 🌱 $CTG — Quest Value Layer" icon={Leaf} />
           <Prose>
-            <p>{t("revenuePage.monetaryP")}</p>
-            <BulletList items={Array.isArray(monetaryItems) ? monetaryItems : []} />
-            <p className="font-semibold text-foreground pt-2">{t("revenuePage.monetaryPrinciples")}</p>
-            <BulletList items={Array.isArray(monetaryPrincipleItems) ? monetaryPrincipleItems : []} />
-            <p>{t("revenuePage.monetaryNote")}</p>
+            <p>
+              Two distinct currencies power quest value flows on changethegame.
+              They can coexist on the same quest as independent incentive pools.
+            </p>
           </Prose>
+
+          <div className="mt-4 space-y-3">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 text-sm leading-relaxed">
+              <p className="font-semibold text-foreground">🟩 Coins are fiat-backed mission units.</p>
+              <p className="text-muted-foreground mt-1">
+                Quest creators pre-fund a Coins pool at creation or top it up anytime.
+                Others can contribute via fundraising campaigns.
+                Coins in escrow are distributed to contributors via OCU pie %, equal split,
+                or manual dispatch. No demurrage — Coins hold their value.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 text-sm leading-relaxed">
+              <p className="font-semibold text-foreground">🌱 $CTG is the contribution commons token.</p>
+              <p className="text-muted-foreground mt-1">
+                It can also be pre-funded into a quest as an incentive.
+                $CTG held in quest escrow is frozen from demurrage.
+                Once distributed to contributor wallets, normal 1%/month demurrage resumes.
+                $CTG is not fiat-backed and cannot be withdrawn as fiat.
+              </p>
+            </div>
+          </div>
+
+          <Prose>
+            <p className="font-semibold text-foreground pt-4">Quest funding modes:</p>
+          </Prose>
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm sm:text-base mt-2">
+            <li>🅐 No pre-funding + fundraising campaign: threshold → auto or manual dispatch</li>
+            <li>🅑 Pre-funded by creator: Coins and/or $CTG allocated at creation</li>
+            <li>🅒 OCU module: contribution tracking governs pie-based distribution</li>
+            <li>All three modes are combinable on the same quest.</li>
+          </ul>
         </section>
 
         <hr className="my-8 border-border/40" />
@@ -215,6 +246,17 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
         {/* CREDITS */}
         <section>
           <SectionHeader id="credits" title={t("revenuePage.credits")} icon={Coins} />
+
+          {/* Credits disclaimer */}
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm leading-relaxed mb-4">
+            <p className="font-bold text-foreground">
+              ⛔ Platform Credits are never used for quest compensation or quest funding.
+            </p>
+            <p className="text-muted-foreground mt-1">
+              Quest pools use Coins and/or $CTG exclusively.
+            </p>
+          </div>
+
           <Prose>
             <p>{t("revenuePage.creditsP")}</p>
             <p className="font-semibold text-foreground">{t("revenuePage.creditsCoreProps")}</p>

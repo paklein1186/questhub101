@@ -36,7 +36,7 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
   const content = (
     <>
       <title>Hybrid Sovereign Economy — changethegame</title>
-      <meta name="description" content="How the four-layer value system works: Fiat, Credits, XP, and Shares. A hybrid regenerative coordination layer." />
+      <meta name="description" content="How the five-value system works on changethegame: Coins (fiat-backed), $CTG (contribution commons), XP (reputation), Platform Credits (feature fuel), and Shares (stewardship)." />
 
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
@@ -44,11 +44,11 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
           <p className="text-muted-foreground text-sm sm:text-base">{t("creditEconomyPage.subtitle")}</p>
         </header>
 
-        {/* Four Layers */}
+        {/* Five Layers */}
         <SectionHeader title={t("creditEconomyPage.fourLayers")} icon={Scale} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {ECONOMY_LAYERS.map((layer) => {
-            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass, Sprout };
+            const IconMap: Record<string, React.ElementType> = { Banknote, Coins, Star, Compass, Sprout, Leaf: Sprout };
             const Icon = IconMap[layer.icon] || Coins;
             return (
               <Card key={layer.key} className="border-border/50 bg-muted/30">
@@ -78,6 +78,15 @@ export default function CreditEconomyPage({ embedded }: { embedded?: boolean }) 
           <br />
           <span className="text-muted-foreground font-normal text-xs">{t("creditEconomyPage.calloutLayersSub")}</span>
         </CalloutBox>
+
+        {/* Credits disclaimer callout */}
+        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-4 text-sm leading-relaxed">
+          <p className="font-semibold text-foreground">ℹ️ Platform Credits are feature fuel — they never enter quest compensation.</p>
+          <p className="text-muted-foreground mt-1">
+            Quest pools are funded in 🟩 Coins (fiat-backed) and/or 🌱 $CTG.
+            Coins are withdrawable to real € via Stripe Connect.
+          </p>
+        </div>
 
         <Separator className="my-8" />
 
