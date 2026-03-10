@@ -97,6 +97,21 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
+  // Check for active contract
+  const { data: activeContract } = useQuery({
+    queryKey: ["quest-active-contract", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_contracts")
+        .select("id, status, title")
+        .eq("quest_id", quest.id)
+        .in("status", ["active", "amended"])
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const totalRemaining = contributors.reduce((s, c) => s + c.remaining, 0);
 
   const getDistributionPreview = () => {
