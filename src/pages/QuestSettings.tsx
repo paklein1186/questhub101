@@ -272,6 +272,82 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       </div>
                     )}
                   </div>
+
+                  {/* OCU Contribution Settings */}
+                  {(quest as any).ocu_enabled && (
+                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                      <h3 className="font-display font-semibold text-sm">Contribution Review Settings</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Review Quorum</label>
+                          <Select
+                            value={String(
+                              typeof (quest as any).features_config?.ocu?.review_quorum === "number"
+                                ? (quest as any).features_config.ocu.review_quorum
+                                : 1
+                            )}
+                            onValueChange={async (v) => {
+                              const currentConfig = typeof (quest as any).features_config === "object"
+                                ? (quest as any).features_config
+                                : {};
+                              const newConfig = {
+                                ...currentConfig,
+                                ocu: { ...(currentConfig.ocu ?? {}), review_quorum: Number(v) },
+                              };
+                              await supabase.from("quests").update({ features_config: newConfig } as any).eq("id", questId);
+                              qc.invalidateQueries({ queryKey: ["quest", questId] });
+                              qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
+                              toast({ title: "Review quorum updated" });
+                            }}
+                          >
+                            <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">Single approval</SelectItem>
+                              <SelectItem value="2">2 peers</SelectItem>
+                              <SelectItem value="3">3 peers</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            How many peer approvals are needed to auto-verify a contribution.
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Auto-approve after</label>
+                          <Select
+                            value={
+                              typeof (quest as any).features_config?.ocu?.auto_approve_hours === "number"
+                                ? String((quest as any).features_config.ocu.auto_approve_hours)
+                                : "0"
+                            }
+                            onValueChange={async (v) => {
+                              const currentConfig = typeof (quest as any).features_config === "object"
+                                ? (quest as any).features_config
+                                : {};
+                              const newConfig = {
+                                ...currentConfig,
+                                ocu: { ...(currentConfig.ocu ?? {}), auto_approve_hours: Number(v) },
+                              };
+                              await supabase.from("quests").update({ features_config: newConfig } as any).eq("id", questId);
+                              qc.invalidateQueries({ queryKey: ["quest", questId] });
+                              qc.invalidateQueries({ queryKey: ["quest-settings", questId] });
+                              toast({ title: "Auto-approve setting updated" });
+                            }}
+                          >
+                            <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">Never</SelectItem>
+                              <SelectItem value="48">48 hours</SelectItem>
+                              <SelectItem value="168">7 days</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Auto-approve contributions if no rejection is received within this period.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
