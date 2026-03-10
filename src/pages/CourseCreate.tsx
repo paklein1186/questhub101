@@ -141,7 +141,7 @@ export default function CourseCreate() {
           title: `New course: ${title.trim()}`, body: `A new course was added in ${c?.name || "your organization"}`,
           deepLinkUrl: `/courses/${newCourse.id}`,
         });
-      } else if (providerType === "individual") {
+      } else if (providerType === "self") {
         // Notify creator's personal followers
         const { data: myFollowers } = await supabase
           .from("follows")
