@@ -970,33 +970,48 @@ export default function QuestCreate() {
             </div>
           </div>
 
-          {/* Budget, Rewards & Funding Wizard */}
-          <QuestBudgetWizard
-            missionBudgetMin={missionBudgetMin}
-            setMissionBudgetMin={setMissionBudgetMin}
-            missionBudgetMax={missionBudgetMax}
-            setMissionBudgetMax={setMissionBudgetMax}
-            paymentType={paymentType}
-            setPaymentType={setPaymentType}
-            rewardXp={rewardXp}
-            setRewardXp={setRewardXp}
-            isMonetized={isMonetized}
-            setIsMonetized={setIsMonetized}
-            creditReward={creditReward}
-            setCreditReward={setCreditReward}
-            priceFiat={priceFiat}
-            setPriceFiat={setPriceFiat}
-            openForProposals={openForProposals}
-            setOpenForProposals={setOpenForProposals}
-            fundingType={fundingType}
-            setFundingType={setFundingType}
-            creditBudget={creditBudget}
-            setCreditBudget={setCreditBudget}
-            fundingGoalCredits={fundingGoalCredits}
-            setFundingGoalCredits={setFundingGoalCredits}
-            allowFundraising={allowFundraising}
-            setAllowFundraising={setAllowFundraising}
-          />
+          {/* Funding Pools — only for PROJECT / ONGOING_MISSION */}
+          {(questNature === QuestNature.PROJECT || questNature === ("ONGOING_MISSION" as QuestNature)) && (
+            <FundingPoolWizard
+              coinsBudget={coinsBudget}
+              setCoinsBudget={setCoinsBudget}
+              ctgBudget={ctgBudgetVal}
+              setCtgBudget={setCtgBudgetVal}
+              coinsEnabled={coinsEnabled}
+              setCoinsEnabled={setCoinsEnabled}
+              ctgEnabled={ctgEnabled}
+              setCtgEnabled={setCtgEnabled}
+              coinsBalance={coinsBalance}
+              ctgBalance={ctgBalance}
+              coinEurRate={coinEurRate}
+              toEur={toEur}
+            />
+          )}
+
+          {/* OCU quick-enable toggle — only for PROJECT / ONGOING_MISSION */}
+          {(questNature === QuestNature.PROJECT || questNature === ("ONGOING_MISSION" as QuestNature)) && (
+            <Card className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">🧮 Track contributions & distribute value fairly?</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Enable the Open Contributive Unit (OCU) module to log half-days,
+                    calculate each contributor's share, and govern distribution via a live pie.
+                  </p>
+                </div>
+                <Switch checked={ocuEnabled} onCheckedChange={setOcuEnabled} />
+              </div>
+              <Label className="text-xs text-muted-foreground">
+                Enable OCU (can also be activated later in Quest Settings)
+              </Label>
+              {ocuEnabled && (
+                <p className="text-xs text-primary rounded-md bg-primary/10 px-3 py-2">
+                  ✅ OCU active — contributors will log work, earn Coins from the pool,
+                  and see their % share live. A contract can be added after creation.
+                </p>
+              )}
+            </Card>
+          )}
 
           {(topics ?? []).length > 0 && (
             <SearchableTagPicker
