@@ -52,6 +52,7 @@ import { GraphView } from "@/components/graph/GraphView";
 import { ProfileCTGStats } from "@/components/ctg/CTGIntegrationWidgets";
 import { LivingTab } from "@/components/living/LivingTab";
 import { Leaf } from "lucide-react";
+import { MyContributionsSummary } from "@/components/ocu/MyContributionsSummary";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
