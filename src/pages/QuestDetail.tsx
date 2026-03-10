@@ -212,7 +212,7 @@ export default function QuestDetail() {
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const { notifyQuestUpdate, notifyFollowersQuestCreated } = useNotifications();
-  const { toCoins } = useCoinsRate();
+  const { toCoins, rate: coinsRate } = useCoinsRate();
   const navigate = useNavigate();
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
