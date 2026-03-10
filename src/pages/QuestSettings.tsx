@@ -29,6 +29,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 
 const TABS = [
   { key: "affiliations", label: "Affiliations", icon: Link2 },
+  { key: "ocu", label: "OCU Mode", icon: Puzzle },
   { key: "fundraising", label: "Fundraising", icon: Coins },
   { key: "needs", label: "Needs", icon: Lightbulb },
   { key: "features", label: "Features", icon: Puzzle },
