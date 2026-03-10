@@ -1627,7 +1627,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <Slider min={0} max={15} step={1} value={[convertCtgPercent]} onValueChange={([v]) => setConvertCtgPercent(v)} />
                 </div>
                 <p className="text-sm font-bold text-emerald-600">
-                  Part contributeurs : {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
+                  Contributor share: {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
                 </p>
               </div>
 
