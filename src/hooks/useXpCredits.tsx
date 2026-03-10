@@ -58,9 +58,8 @@ export function useXpCredits() {
         return;
       }
 
-      notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
-
       if (!silent) {
+        notifyXpGained({ userId, amount, reason: formatXpType(params.type) });
         toast({ title: `+${amount} XP`, description: formatXpType(params.type) });
       }
     },
@@ -86,15 +85,14 @@ export function useXpCredits() {
         return;
       }
 
-      await supabase.from("notifications").insert({
-        user_id: userId,
-        type: "CREDIT_RECEIVED",
-        title: `+${params.amount} credits received`,
-        body: `You received ${params.amount} platform credits`,
-        deep_link_url: "/me?tab=wallet",
-      });
-
       if (!silent) {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          type: "CREDIT_RECEIVED",
+          title: `+${params.amount} credits received`,
+          body: `You received ${params.amount} credits. ${params.source ?? ""}`.trim(),
+          deep_link_url: "/me?tab=wallet",
+        });
         toast({ title: `+${params.amount} Credits`, description: params.source ?? "Credits earned" });
       }
     },
