@@ -1199,8 +1199,18 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <thead className="bg-muted/50">
               <tr>
                 <th className="w-7 sm:w-8 px-1.5 sm:px-3 py-1.5 sm:py-2"></th>
-                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2" title="Today's goals — resets daily at 9am">
-                  <Sun className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-amber-500 mx-auto" />
+                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex flex-col items-center gap-0.5 cursor-help">
+                        <Sun className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-amber-500" />
+                        <span className="text-[9px] text-amber-500 font-medium leading-none">Today</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      Mark as today's focus — resets at 9am
+                    </TooltipContent>
+                  </Tooltip>
                 </th>
                 <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2"></th>
                 <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2 font-medium">Task</th>
