@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Lock, Plus, Info, Loader2 } from "lucide-react";
+import { Lock, Plus, Info, Loader2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,17 @@ interface Props {
   onEnableOCU?: () => void;
 }
 
+interface PieEntry {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  fmv: number;
+  halfDays: number;
+  pct: number;
+  compensated: number;
+  compensationStatus: string;
+}
+
 export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
@@ -47,13 +58,27 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
   const [addingSpend, setAddingSpend] = useState(false);
 
   const isFrozen = !!(quest as any).pie_frozen_at;
+  const pieSnapshot = (quest as any).pie_snapshot as any;
   const envelopeTotal = Number((quest as any).envelope_total) || 0;
   const externalSpending = Number((quest as any).external_spending) || 0;
   const distributable = Math.max(0, envelopeTotal - externalSpending);
 
-  // Query verified contributions aggregated by user
-  const { data: pieData = [], isLoading } = useQuery({
+  // Fetch frozen_by profile name
+  const frozenByUserId = (quest as any).pie_frozen_by;
+  const { data: frozenByProfile } = useQuery({
+    queryKey: ["profile-frozen-by", frozenByUserId],
+    queryFn: async () => {
+      if (!frozenByUserId) return null;
+      const { data } = await supabase.from("profiles_public").select("name").eq("user_id", frozenByUserId).single();
+      return data;
+    },
+    enabled: !!frozenByUserId,
+  });
+
+  // Query verified contributions aggregated by user (live — only used when not frozen)
+  const { data: livePieData = [], isLoading } = useQuery({
     queryKey: ["quest-pie", quest.id],
+    enabled: !isFrozen,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contribution_logs" as any)
@@ -62,7 +87,6 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
         .eq("status", "verified");
       if (error) throw error;
 
-      // Group by user
       const byUser = new Map<string, { fmv: number; halfDays: number; compensated: number; status: string }>();
       (data || []).forEach((row: any) => {
         const existing = byUser.get(row.user_id);
@@ -80,7 +104,6 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
         }
       });
 
-      // Fetch profiles
       const userIds = [...byUser.keys()];
       if (userIds.length === 0) return [];
       const { data: profiles } = await supabase
@@ -104,6 +127,23 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
+  // Build pie data: if frozen use snapshot, else use live
+  const pieData: PieEntry[] = useMemo(() => {
+    if (isFrozen && pieSnapshot?.contributors) {
+      return (pieSnapshot.contributors as any[]).map((c: any) => ({
+        userId: c.user_id,
+        name: c.name || "Unknown",
+        avatarUrl: c.avatar_url || null,
+        fmv: c.total_fmv || 0,
+        halfDays: 0,
+        pct: c.pct_share || 0,
+        compensated: 0,
+        compensationStatus: c.compensation_status || "pending",
+      }));
+    }
+    return livePieData;
+  }, [isFrozen, pieSnapshot, livePieData]);
+
   const totalFmv = pieData.reduce((s, d) => s + d.fmv, 0);
 
   const chartData = pieData.map((d, i) => ({
@@ -114,14 +154,31 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
 
   const handleFreeze = async () => {
     setFreezing(true);
+
+    // Fetch full profile info for snapshot
+    const userIds = livePieData.map(d => d.userId);
+    const { data: profiles } = await supabase
+      .from("profiles_public")
+      .select("user_id, name, avatar_url")
+      .in("user_id", userIds);
+    const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+
     const snapshot = {
       frozen_at: new Date().toISOString(),
-      contributors: pieData.map((d) => ({
+      frozen_by: { user_id: currentUser.id, name: currentUser.name || "Unknown" },
+      total_fmv: totalFmv,
+      external_spending: externalSpending,
+      distributable_fmv: distributable,
+      contributors: livePieData.map((d) => ({
         user_id: d.userId,
-        fmv: d.fmv,
-        pct: Math.round(d.pct * 100) / 100,
+        name: profileMap.get(d.userId)?.name || d.name,
+        avatar_url: profileMap.get(d.userId)?.avatar_url || null,
+        total_fmv: d.fmv,
+        pct_share: Math.round(d.pct * 100) / 100,
+        compensation_status: d.compensationStatus,
       })),
     };
+
     await supabase.from("quests").update({
       pie_frozen_at: new Date().toISOString(),
       pie_frozen_by: currentUser.id,
@@ -158,16 +215,62 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
     setSpendingOpen(false);
   };
 
+  const handleDownloadPdf = () => {
+    if (!pieSnapshot) return;
+    const snap = pieSnapshot;
+    const lines: string[] = [];
+    lines.push("═══════════════════════════════════════════════");
+    lines.push(`  PIE DISTRIBUTION REPORT`);
+    lines.push("═══════════════════════════════════════════════");
+    lines.push("");
+    lines.push(`Quest: ${quest.title}`);
+    if (quest.guild_name) lines.push(`Guild: ${quest.guild_name}`);
+    lines.push(`Frozen: ${new Date(snap.frozen_at).toLocaleDateString()} by ${snap.frozen_by?.name || "Admin"}`);
+    lines.push("");
+    lines.push(`Total FMV:           🟡 ${snap.total_fmv}`);
+    lines.push(`External Spending:   -${snap.external_spending}`);
+    lines.push(`Distributable:       🟡 ${snap.distributable_fmv}`);
+    lines.push("");
+    lines.push("───────────────────────────────────────────────");
+    lines.push("  Contributor             FMV     % Share  Status");
+    lines.push("───────────────────────────────────────────────");
+    for (const c of snap.contributors || []) {
+      const name = (c.name || "Unknown").padEnd(24);
+      const fmv = String(c.total_fmv || 0).padStart(6);
+      const pct = `${(c.pct_share || 0).toFixed(1)}%`.padStart(8);
+      const status = c.compensation_status || "pending";
+      lines.push(`  ${name} ${fmv} ${pct}  ${status}`);
+    }
+    lines.push("───────────────────────────────────────────────");
+    lines.push("");
+    lines.push(`Generated: ${new Date().toISOString()}`);
+
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pie-report-${quest.id.slice(0, 8)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <OCUFeatureGate quest={quest} isAdmin={isAdmin} onEnable={onEnableOCU}>
       <div className="space-y-4">
         {/* Header */}
         {isFrozen ? (
-          <div className="rounded-lg bg-muted border border-border p-3 flex items-center gap-2">
-            <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
-            <p className="text-sm">
-              Pie frozen on {new Date((quest as any).pie_frozen_at).toLocaleDateString()} — final split locked.
-            </p>
+          <div className="rounded-lg bg-muted border border-border p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
+              <p className="text-sm font-medium">
+                Frozen {new Date((quest as any).pie_frozen_at).toLocaleDateString()}
+                {frozenByProfile?.name && ` by ${frozenByProfile.name}`}.
+                This is the final distribution record.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleDownloadPdf}>
+              <Download className="h-3 w-3" /> Download PDF summary
+            </Button>
           </div>
         ) : (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center gap-2">
@@ -204,7 +307,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
           </div>
         )}
 
-        {isLoading ? (
+        {isLoading && !isFrozen ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
@@ -250,7 +353,6 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                   <tr>
                     <th className="text-left px-3 py-2 font-medium">#</th>
                     <th className="text-left px-3 py-2 font-medium">Contributor</th>
-                    <th className="text-right px-3 py-2 font-medium">Half-days</th>
                     <th className="text-right px-3 py-2 font-medium">FMV 🟡</th>
                     <th className="text-right px-3 py-2 font-medium">% Share</th>
                     <th className="text-right px-3 py-2 font-medium">Status</th>
@@ -269,13 +371,16 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                           <span className="font-medium truncate max-w-[120px]">{d.name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-right">{d.halfDays}</td>
                       <td className="px-3 py-2 text-right font-medium text-primary">{d.fmv}</td>
                       <td className="px-3 py-2 text-right font-bold">{d.pct.toFixed(1)}%</td>
                       <td className="px-3 py-2 text-right">
-                        {d.compensated > 0 ? (
+                        {d.compensationStatus === "compensated" ? (
                           <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-                            Paid {d.compensated}
+                            Compensated
+                          </Badge>
+                        ) : d.compensationStatus === "partial" ? (
+                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
+                            Partial
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-[10px]">Pending</Badge>
@@ -284,7 +389,7 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                     </tr>
                   ))}
                   <tr className="border-t border-border bg-muted/30 font-semibold">
-                    <td className="px-3 py-2" colSpan={3}>Total</td>
+                    <td className="px-3 py-2" colSpan={2}>Total</td>
                     <td className="px-3 py-2 text-right text-primary">{totalFmv}</td>
                     <td className="px-3 py-2 text-right">100%</td>
                     <td />

@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale, Sprout } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -177,14 +177,42 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           }
         }
 
-          // Emit $CTG for subtask completion
-          supabase.rpc('emit_ctg_for_contribution', {
-            p_user_id: assigneeId,
-            p_contribution_type: 'subtask_completed',
-            p_related_entity_id: subtaskId,
-            p_related_entity_type: 'quest_subtask',
-            p_note: subtask?.title ?? null,
-          } as any).then(() => {});
+        // Emit $CTG for subtask completion using ctg_reward field
+        const ctgAmount = subtask?.ctg_reward ?? 1.0;
+        await supabase.rpc('emit_ctg_for_contribution', {
+          p_user_id: assigneeId,
+          p_contribution_type: 'subtask_completed',
+          p_related_entity_id: subtaskId,
+          p_related_entity_type: 'quest_subtask',
+          p_note: subtask?.title ?? null,
+        } as any);
+
+        // Log CTG earned to activity_log
+        await supabase.from("activity_log").insert({
+          actor_user_id: assigneeId,
+          action_type: "ctg_earned_subtask",
+          target_type: "quest_subtask",
+          target_id: subtaskId,
+          target_name: subtask?.title || "Subtask",
+          metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
+        });
+
+        // Mark contribution_log ctg_emitted
+        if (!existing || existing.length === 0) {
+          // The log was just inserted above — find it
+          const { data: newLog } = await supabase
+            .from("contribution_logs" as any)
+            .select("id")
+            .eq("quest_id", questId)
+            .eq("user_id", assigneeId)
+            .eq("subtask_id", subtaskId)
+            .limit(1);
+          if (newLog && newLog.length > 0) {
+            await supabase.from("contribution_logs" as any)
+              .update({ ctg_emitted: ctgAmount } as any)
+              .eq("id", (newLog[0] as any).id);
+          }
+        }
       } catch (e) {
         console.error("Failed to log contribution from subtask", e);
       }
@@ -401,6 +429,29 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
+            {/* $CTG reward input */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5">
+                <Sprout className="h-3 w-3 text-emerald-600" />
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={subtask.ctg_reward ?? 1.0}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value) || 1.0;
+                    supabase.from("quest_subtasks" as any).update({ ctg_reward: v } as any).eq("id", subtask.id)
+                      .then(() => qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }));
+                  }}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="$CTG reward on completion"
+                />
+              </div>
+            ) : (
+              <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                🌱 {subtask.ctg_reward ?? 1.0} $CTG
+              </span>
+            )}
             {/* $CTG weight input */}
             {canManage && (
               <div className="flex items-center gap-0.5">

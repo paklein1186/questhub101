@@ -1973,6 +1973,7 @@ export type Database = {
           contribution_type: string
           created_at: string
           credits_earned: number
+          ctg_emitted: number
           deliverable_url: string | null
           description: string | null
           difficulty: Database["public"]["Enums"]["difficulty_level"]
@@ -2007,6 +2008,7 @@ export type Database = {
           contribution_type?: string
           created_at?: string
           credits_earned?: number
+          ctg_emitted?: number
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
@@ -2041,6 +2043,7 @@ export type Database = {
           contribution_type?: string
           created_at?: string
           credits_earned?: number
+          ctg_emitted?: number
           deliverable_url?: string | null
           description?: string | null
           difficulty?: Database["public"]["Enums"]["difficulty_level"]
