@@ -299,7 +299,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const totalCount = subtasks.length;
 
   const canEditSubtask = (subtask: any) =>
-    canManage || subtask.assignee_user_id === currentUser.id;
+    canManage || (subtask.assignee_user_ids || []).includes(currentUser.id);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading subtasks…</p>;
 
