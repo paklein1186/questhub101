@@ -992,6 +992,13 @@ export default function UserProfile() {
           <GraphView centerType="user" centerId={profile.userId} height={700} />
         </TabsContent>
 
+        {/* ─── My Contributions ─── */}
+        {isOwnProfile && (
+          <TabsContent value="contributions">
+            <MyContributionsSummary />
+          </TabsContent>
+        )}
+
         {/* ─── Matchmaker ─── */}
         {isOwnProfile && (
           <TabsContent value="matchmaker">
