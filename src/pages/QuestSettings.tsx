@@ -8,6 +8,7 @@ import {
   PieChart, FileText, LogOut, Snowflake,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
+import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
 import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { ContractTab } from "@/components/ocu/ContractTab";
