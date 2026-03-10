@@ -581,7 +581,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const { data, error } = await supabase.from("personal_tasks" as any).insert({
       user_id: userId,
       title: newTitle.trim(),
-      status: "BACKLOG",
+      status: "TODO",
     } as any).select("id").single();
     if (error) { toast({ title: "Failed to add task", variant: "destructive" }); }
     else {
@@ -596,7 +596,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           user_id: userId,
           entity_type: "personal_task",
           entity_id: newId,
-          work_state: "BACKLOG",
+          work_state: "TODO",
         } as any);
       }
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
