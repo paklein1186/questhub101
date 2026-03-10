@@ -1985,6 +1985,7 @@ export type Database = {
           impact_signal: Json | null
           ip_licence: string
           quest_id: string | null
+          re_entry_exit_id: string | null
           review_quorum: number
           review_votes_count: number
           role: string | null
@@ -2020,6 +2021,7 @@ export type Database = {
           impact_signal?: Json | null
           ip_licence?: string
           quest_id?: string | null
+          re_entry_exit_id?: string | null
           review_quorum?: number
           review_votes_count?: number
           role?: string | null
@@ -2055,6 +2057,7 @@ export type Database = {
           impact_signal?: Json | null
           ip_licence?: string
           quest_id?: string | null
+          re_entry_exit_id?: string | null
           review_quorum?: number
           review_votes_count?: number
           role?: string | null
@@ -2084,6 +2087,13 @@ export type Database = {
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contribution_logs_re_entry_exit_id_fkey"
+            columns: ["re_entry_exit_id"]
+            isOneToOne: false
+            referencedRelation: "contributor_exits"
             referencedColumns: ["id"]
           },
           {
@@ -2133,6 +2143,77 @@ export type Database = {
             columns: ["contribution_id"]
             isOneToOne: false
             referencedRelation: "contribution_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contributor_exits: {
+        Row: {
+          exit_initiated_by: string | null
+          exit_note: string | null
+          exit_type: Database["public"]["Enums"]["exit_type"]
+          exited_at: string
+          fmv_at_exit: number
+          handover_committed: boolean
+          handover_note: string | null
+          id: string
+          last_contribution_at: string | null
+          leaver_class: Database["public"]["Enums"]["leaver_class"]
+          pct_at_exit: number
+          quest_id: string
+          re_entry_allowed: boolean
+          redistribution_snapshot: Json | null
+          settlement_amount: number
+          settlement_pct: number
+          settlement_status: string
+          user_id: string
+        }
+        Insert: {
+          exit_initiated_by?: string | null
+          exit_note?: string | null
+          exit_type: Database["public"]["Enums"]["exit_type"]
+          exited_at?: string
+          fmv_at_exit?: number
+          handover_committed?: boolean
+          handover_note?: string | null
+          id?: string
+          last_contribution_at?: string | null
+          leaver_class: Database["public"]["Enums"]["leaver_class"]
+          pct_at_exit?: number
+          quest_id: string
+          re_entry_allowed?: boolean
+          redistribution_snapshot?: Json | null
+          settlement_amount?: number
+          settlement_pct?: number
+          settlement_status?: string
+          user_id: string
+        }
+        Update: {
+          exit_initiated_by?: string | null
+          exit_note?: string | null
+          exit_type?: Database["public"]["Enums"]["exit_type"]
+          exited_at?: string
+          fmv_at_exit?: number
+          handover_committed?: boolean
+          handover_note?: string | null
+          id?: string
+          last_contribution_at?: string | null
+          leaver_class?: Database["public"]["Enums"]["leaver_class"]
+          pct_at_exit?: number
+          quest_id?: string
+          re_entry_allowed?: boolean
+          redistribution_snapshot?: Json | null
+          settlement_amount?: number
+          settlement_pct?: number
+          settlement_status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributor_exits_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]
@@ -3467,6 +3548,41 @@ export type Database = {
         }
         Relationships: []
       }
+      exit_votes: {
+        Row: {
+          exit_id: string
+          id: string
+          note: string | null
+          vote: string
+          voted_at: string
+          voter_user_id: string
+        }
+        Insert: {
+          exit_id: string
+          id?: string
+          note?: string | null
+          vote: string
+          voted_at?: string
+          voter_user_id: string
+        }
+        Update: {
+          exit_id?: string
+          id?: string
+          note?: string | null
+          vote?: string
+          voted_at?: string
+          voter_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exit_votes_exit_id_fkey"
+            columns: ["exit_id"]
+            isOneToOne: false
+            referencedRelation: "contributor_exits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           category: string
@@ -4208,6 +4324,7 @@ export type Database = {
       }
       guilds: {
         Row: {
+          abandonment_threshold_days: number
           allow_agent_crawling: boolean
           allow_agent_subscription: boolean
           application_questions: Json | null
@@ -4220,6 +4337,10 @@ export type Database = {
           description: string | null
           enable_membership: boolean
           entry_fee_credits: number | null
+          exit_bad_leaver_decision: string
+          exit_bad_leaver_fmv_pct: number
+          exit_good_leaver_fmv_pct: number
+          exit_graceful_fmv_pct: number
           featured_order: number | null
           features_config: Json
           feedpoint_default_guilds: boolean
@@ -4259,6 +4380,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          abandonment_threshold_days?: number
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           application_questions?: Json | null
@@ -4271,6 +4393,10 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          exit_bad_leaver_decision?: string
+          exit_bad_leaver_fmv_pct?: number
+          exit_good_leaver_fmv_pct?: number
+          exit_graceful_fmv_pct?: number
           featured_order?: number | null
           features_config?: Json
           feedpoint_default_guilds?: boolean
@@ -4310,6 +4436,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          abandonment_threshold_days?: number
           allow_agent_crawling?: boolean
           allow_agent_subscription?: boolean
           application_questions?: Json | null
@@ -4322,6 +4449,10 @@ export type Database = {
           description?: string | null
           enable_membership?: boolean
           entry_fee_credits?: number | null
+          exit_bad_leaver_decision?: string
+          exit_bad_leaver_fmv_pct?: number
+          exit_good_leaver_fmv_pct?: number
+          exit_graceful_fmv_pct?: number
           featured_order?: number | null
           features_config?: Json
           feedpoint_default_guilds?: boolean
@@ -10228,6 +10359,12 @@ export type Database = {
         | "governance"
         | "knowledge"
         | "none"
+      exit_type:
+        | "voluntary"
+        | "graceful_withdrawal"
+        | "involuntary_cause"
+        | "involuntary_no_cause"
+        | "abandonment"
       guild_application_status: "PENDING" | "APPROVED" | "REJECTED"
       guild_join_policy: "OPEN" | "APPROVAL_REQUIRED" | "INVITE_ONLY"
       guild_member_role: "ADMIN" | "MEMBER"
@@ -10237,6 +10374,7 @@ export type Database = {
         | "PERSONAL_ONLY_BOOKINGS"
         | "PERSONAL_ONLY_RITUALS"
         | "CUSTOM"
+      leaver_class: "good" | "graceful" | "bad"
       monetization_type: "FREE" | "PAID" | "MIXED"
       natural_system_kingdom:
         | "plants"
@@ -10497,6 +10635,13 @@ export const Constants = {
         "knowledge",
         "none",
       ],
+      exit_type: [
+        "voluntary",
+        "graceful_withdrawal",
+        "involuntary_cause",
+        "involuntary_no_cause",
+        "abandonment",
+      ],
       guild_application_status: ["PENDING", "APPROVED", "REJECTED"],
       guild_join_policy: ["OPEN", "APPROVAL_REQUIRED", "INVITE_ONLY"],
       guild_member_role: ["ADMIN", "MEMBER"],
@@ -10507,6 +10652,7 @@ export const Constants = {
         "PERSONAL_ONLY_RITUALS",
         "CUSTOM",
       ],
+      leaver_class: ["good", "graceful", "bad"],
       monetization_type: ["FREE", "PAID", "MIXED"],
       natural_system_kingdom: [
         "plants",
