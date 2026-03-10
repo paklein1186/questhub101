@@ -6123,6 +6123,41 @@ export type Database = {
           },
         ]
       }
+      quest_external_spendings: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          quest_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          quest_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          quest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_external_spendings_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quest_funding: {
         Row: {
           amount: number
@@ -6627,7 +6662,9 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           eco_category: Database["public"]["Enums"]["eco_category"] | null
+          envelope_total: number | null
           escrow_credits: number
+          external_spending: number
           featured_order: number | null
           features_config: Json
           funding_goal_credits: number | null
@@ -6643,11 +6680,15 @@ export type Database = {
           mission_budget_min: number | null
           monetization_type: Database["public"]["Enums"]["monetization_type"]
           natural_system_id: string | null
+          ocu_enabled: boolean
           otg_edges_created: boolean
           owner_id: string | null
           owner_type: string
           payment_type: string
           payout_user_id: string | null
+          pie_frozen_at: string | null
+          pie_frozen_by: string | null
+          pie_snapshot: Json | null
           price_currency: string
           price_fiat: number
           priority: string
@@ -6681,7 +6722,9 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           eco_category?: Database["public"]["Enums"]["eco_category"] | null
+          envelope_total?: number | null
           escrow_credits?: number
+          external_spending?: number
           featured_order?: number | null
           features_config?: Json
           funding_goal_credits?: number | null
@@ -6697,11 +6740,15 @@ export type Database = {
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           natural_system_id?: string | null
+          ocu_enabled?: boolean
           otg_edges_created?: boolean
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
           payout_user_id?: string | null
+          pie_frozen_at?: string | null
+          pie_frozen_by?: string | null
+          pie_snapshot?: Json | null
           price_currency?: string
           price_fiat?: number
           priority?: string
@@ -6735,7 +6782,9 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           eco_category?: Database["public"]["Enums"]["eco_category"] | null
+          envelope_total?: number | null
           escrow_credits?: number
+          external_spending?: number
           featured_order?: number | null
           features_config?: Json
           funding_goal_credits?: number | null
@@ -6751,11 +6800,15 @@ export type Database = {
           mission_budget_min?: number | null
           monetization_type?: Database["public"]["Enums"]["monetization_type"]
           natural_system_id?: string | null
+          ocu_enabled?: boolean
           otg_edges_created?: boolean
           owner_id?: string | null
           owner_type?: string
           payment_type?: string
           payout_user_id?: string | null
+          pie_frozen_at?: string | null
+          pie_frozen_by?: string | null
+          pie_snapshot?: Json | null
           price_currency?: string
           price_fiat?: number
           priority?: string
