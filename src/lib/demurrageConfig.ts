@@ -43,43 +43,43 @@ export const ECONOMY_LAYERS = [
     icon: "Banknote",
     convertible: true,
     description:
-      "Your earnings from paid missions and services. Processed via Stripe. Real-world income.",
+      "Your real-world earnings from paid missions and services. Processed via Stripe Connect. Coins are withdrawable to fiat at the current platform rate.",
   },
   {
-    key: "xp",
-    label: "⭐ XP (Reputation)",
-    purpose: "Permanent contribution level",
-    icon: "Star",
-    convertible: false,
+    key: "coins",
+    label: "🟩 Coins — Fiat-Backed Mission Value",
+    purpose: "Quest funding, compensation, OCU distribution",
+    icon: "Leaf",
+    convertible: true,
     description:
-      "Reflects your impact and participation. Never decays, cannot be purchased. Unlocks governance rights and stewardship eligibility.",
+      "Internal units backed 1:1 by real fiat (€). Used to fund quests, pay contributors, and run OCU pie distributions. Pre-funded by quest creators or raised through campaigns. No demurrage — Coins hold their value. Withdrawable to fiat via Stripe Connect.",
   },
   {
     key: "ctg",
     label: "🌱 $CTG — Contribution Token",
-    purpose: "Commons value production",
+    purpose: "Commons value, quest incentive",
     icon: "Sprout",
     convertible: false,
     description:
-      "Emitted on verified contribution. Not fiat-backed. Fades at 1%/month — same rate as Platform Credits. Transferable P2P. Exchangeable for Credits. Cannot be purchased.",
+      "Emitted when you produce verified work for the commons. Not fiat-backed, not purchasable. Fades at 1%/month to encourage active circulation — except when held in quest escrow, where demurrage is frozen until distribution. Once distributed to your wallet, normal demurrage resumes. Transferable P2P. Can also be pre-funded into quests as an additional incentive layer alongside Coins.",
   },
   {
     key: "credits",
     label: "🔷 Platform Credits",
-    purpose: "Feature fuel & gamification",
+    purpose: "Feature fuel & gamification only",
     icon: "Coins",
     convertible: false,
     description:
-      "Non-monetary platform utility credits for quotas, boosts, and gamification. Cannot be exchanged, withdrawn, or used for quest payouts. Gently fade by 1% per month to encourage circulation.",
+      "Non-monetary platform utility. Powers quotas, boosts, and gamification actions. Cannot be withdrawn, exchanged for Coins, or used for quest compensation in any form. Gently fades at 1%/month to encourage use. Obtained via subscription plans, onboarding bonuses, or top-up purchases.",
   },
   {
-    key: "coins",
-    label: "🟩 Coins",
-    purpose: "Fiat-backed mission value",
-    icon: "Leaf",
-    convertible: true,
+    key: "xp",
+    label: "⭐ XP — Reputation",
+    purpose: "Permanent contribution level",
+    icon: "Star",
+    convertible: false,
     description:
-      "Internal accounting units backed by real fiat. Earned from funded quests, used for redistribution and contributor payouts. Withdrawable to fiat via Stripe Connect.",
+      "Reflects your cumulative impact and participation. Never decays, cannot be purchased or transferred. Unlocks governance rights and stewardship eligibility. XP is never clawed back — even on contributor exit.",
   },
   {
     key: "shares",
@@ -88,7 +88,7 @@ export const ECONOMY_LAYERS = [
     icon: "Compass",
     convertible: false,
     description:
-      "Long-term commitment to the platform's mission. Provide governance weight and dividend eligibility. Cannot be traded within the platform.",
+      "Long-term commitment to the platform mission. Provide governance weight and dividend eligibility. Not tradeable within the platform.",
   },
 ] as const;
 

@@ -335,14 +335,14 @@ export function getNextStewardTier(lifetimeEarned: number) {
 
 // ─── Dual Economy Constants ─────────────────────────────────
 export const ECONOMY_LABELS = {
-  moneyDisclaimer: "Mission budgets are funded in fiat (€) and converted to Coins. Platform Credits are never used for compensation.",
-  creditsDisclaimer: "Platform Credits are non-monetary feature-fuel. They power gamification, quotas, and platform actions. They cannot be exchanged for money or used for quest payouts.",
+  moneyDisclaimer: "Quest pools are funded in Coins (fiat-backed) and/or $CTG. Platform Credits are never used for quest compensation.",
+  creditsDisclaimer: "Platform Credits are non-monetary feature-fuel. They power gamification, quotas, and platform actions. They cannot be exchanged for Coins or used for quest payouts.",
   coinsDisclaimer: "Coins are fiat-backed mission units. Earned from funded quests and withdrawable to fiat via Stripe Connect.",
   upgradePrompt: "Unlock more space for your creative and impact work. Upgrade your plan or use Platform Credits.",
   demurrageNotice: "Inactive Platform Credits are gradually redistributed to the ecosystem treasury (1%/month).",
-  creditsNature: "🔷 Platform Credits — Feature fuel for quotas, boosts, and gamification. Non-monetary.",
-  coinsNature: "🟩 Coins — Fiat-backed mission value. Earned from quests, withdrawable to fiat.",
+  creditsNature: "🔷 Platform Credits — feature fuel for quotas, boosts, and gamification. Non-monetary. Never used for quest compensation.",
+  coinsNature: "🟩 Coins — fiat-backed mission value. Fund quests, earn from contributions, withdraw to fiat. No demurrage.",
   xpNature: "⭐ XP — your reputation level. Cumulative & permanent. Reflects who you are becoming. Never decays, never purchased.",
-  ctgNature: "🌱 $CTG — your contribution to the commons. Earned by producing verifiable work. Circulates with 1%/month demurrage. Not fiat-backed.",
+  ctgNature: "🌱 $CTG — earned by contributing. Circulates with 1%/month demurrage. Frozen from demurrage while in quest escrow. Not fiat-backed.",
   sharesNature: "Stewardship participation — long-term commitment to the platform's mission.",
 } as const;
