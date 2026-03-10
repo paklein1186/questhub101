@@ -578,6 +578,18 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 
   return (
     <div className="space-y-3">
+      {/* Governance model badge */}
+      {isWeighted && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="text-[10px] gap-1 cursor-help">
+              <Info className="h-2.5 w-2.5" /> Weighted by: {govInfo.label}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent className="text-xs max-w-xs">{govInfo.description}</TooltipContent>
+        </Tooltip>
+      )}
+
       {/* Vote buttons for VOTE_SIMPLE */}
       {type === "VOTE_SIMPLE" && (
         <div className="space-y-2">
