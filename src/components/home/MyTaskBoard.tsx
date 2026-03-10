@@ -1295,7 +1295,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         className="h-7 text-sm"
                       />
                     ) : (
-                      <>
+                      <div className="flex items-center gap-1">
                         <span
                           className={cn(
                             "text-xs sm:text-sm cursor-pointer line-clamp-2 break-words",
@@ -1305,13 +1305,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         >
                           {task.title}
                         </span>
+                        <button
+                          onClick={() => startEditing(task)}
+                          className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity shrink-0"
+                          title="Edit title"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
                         {task.convertedToQuestId && (
                           <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Quest</Badge>
                         )}
                         {task.convertedToSubtaskId && (
                           <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Subtask</Badge>
                         )}
-                      </>
+                      </div>
                     )}
                   </td>
                   <td className="px-3 py-2.5 hidden sm:table-cell max-w-[160px]">
