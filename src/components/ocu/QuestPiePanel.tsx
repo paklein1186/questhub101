@@ -56,6 +56,8 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
   const [spendDesc, setSpendDesc] = useState("");
   const [spendAmount, setSpendAmount] = useState("");
   const [addingSpend, setAddingSpend] = useState(false);
+  const [exitTarget, setExitTarget] = useState<any>(null);
+  const [exitIsAbandonment, setExitIsAbandonment] = useState(false);
 
   const isFrozen = !!(quest as any).pie_frozen_at;
   const pieSnapshot = (quest as any).pie_snapshot as any;
