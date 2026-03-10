@@ -462,6 +462,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
                 quorumReached={quorumReached}
                 onRefresh={onRefresh}
                 currentUserId={currentUserId}
+                guildId={guildId}
               />
 
               {/* Comments */}
