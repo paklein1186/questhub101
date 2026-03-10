@@ -252,6 +252,52 @@ function EntityChip({ entityType, entityId, entityName, logoUrl }: { entityType:
   );
 }
 
+// ─── Hook: OCU inconsistency alerts ────────────────────────
+interface OcuAlert {
+  guildId: string;
+  guildName: string;
+  logoUrl?: string | null;
+  totalQuests: number;
+  ocuQuests: number;
+  nonOcuQuests: number;
+}
+
+function useOcuInconsistencyAlerts(entities: AdminEntity[]) {
+  const guildEntities = entities.filter(e => e.entityType === "guild");
+  return useQuery({
+    queryKey: ["ocu-inconsistency", guildEntities.map(e => e.entityId).join(",")],
+    enabled: guildEntities.length > 0,
+    queryFn: async () => {
+      const alerts: OcuAlert[] = [];
+      for (const g of guildEntities) {
+        // Check if guild already has ocu_default_enabled
+        const { data: guildRow } = await supabase.from("guilds").select("ocu_default_enabled").eq("id", g.entityId).maybeSingle();
+        if ((guildRow as any)?.ocu_default_enabled) continue; // already homogenized
+
+        const { data: quests } = await supabase
+          .from("quests")
+          .select("id, ocu_enabled")
+          .eq("guild_id", g.entityId)
+          .eq("is_deleted", false as any);
+        if (!quests || quests.length < 2) continue;
+        const ocuCount = quests.filter((q: any) => q.ocu_enabled).length;
+        const nonOcuCount = quests.length - ocuCount;
+        if (ocuCount > 0 && nonOcuCount > 0) {
+          alerts.push({
+            guildId: g.entityId,
+            guildName: g.entityName,
+            logoUrl: g.logoUrl,
+            totalQuests: quests.length,
+            ocuQuests: ocuCount,
+            nonOcuQuests: nonOcuCount,
+          });
+        }
+      }
+      return alerts;
+    },
+  });
+}
+
 // ─── Main Component ─────────────────────────────────────────
 export default function NetworkDashboardTab() {
   const currentUser = useCurrentUser();
