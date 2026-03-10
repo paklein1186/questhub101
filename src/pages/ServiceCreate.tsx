@@ -185,6 +185,30 @@ export default function ServiceCreate() {
 
         // Auto-follow
         if (data) await autoFollowEntity(user.id, "SERVICE", serviceId);
+
+        // Notify creator's personal followers (new service only)
+        if (!isEditMode) {
+          const { data: myFollowers } = await supabase
+            .from("follows")
+            .select("follower_id")
+            .eq("target_type", "USER")
+            .eq("target_id", user.id)
+            .limit(200);
+          if (myFollowers?.length) {
+            const rows = myFollowers
+              .filter(f => f.follower_id !== user.id)
+              .map(f => ({
+                user_id: f.follower_id,
+                type: "FOLLOWED_USER_NEW_SERVICE",
+                title: `New service from ${(user as any).user_metadata?.name || "someone you follow"}`,
+                body: `"${title.trim()}" — book a session`,
+                related_entity_type: "SERVICE",
+                related_entity_id: serviceId,
+                deep_link_url: `/services/${serviceId}`,
+              }));
+            await supabase.from("notifications").insert(rows);
+          }
+        }
       }
     },
     onSuccess: () => {
