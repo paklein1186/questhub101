@@ -169,42 +169,20 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     enabled: activeTab === "exit" && ocuEnabled,
   });
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<CampaignForm>(emptyCampaign);
-  const [saving, setSaving] = useState(false);
+  // ── Campaign dialog state ──
+  const [campaignDialogOpen, setCampaignDialogOpen] = useState(false);
+  const [campaignDialogCurrency, setCampaignDialogCurrency] = useState<"coins" | "ctg">("coins");
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
 
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyCampaign);
-    setDialogOpen(true);
+  const openNewCampaign = (currency: "coins" | "ctg") => {
+    setCampaignDialogCurrency(currency);
+    setEditingCampaign(null);
+    setCampaignDialogOpen(true);
   };
-  const openEdit = (c: any) => {
-    setEditingId(c.id);
-    setForm({ title: c.title || "", goal_amount: String(c.goal_amount), type: c.type, currency: c.currency || "EUR", status: c.status });
-    setDialogOpen(true);
-  };
-  const saveCampaign = async () => {
-    setSaving(true);
-    const payload: any = {
-      title: form.title,
-      goal_amount: Number(form.goal_amount) || 0,
-      type: form.type,
-      currency: form.currency,
-      status: form.status,
-    };
-    if (editingId) {
-      await supabase.from("quest_campaigns" as any).update(payload).eq("id", editingId);
-      toast({ title: "Campaign updated" });
-    } else {
-      payload.quest_id = questId;
-      payload.created_by_user_id = currentUser.id;
-      await supabase.from("quest_campaigns" as any).insert(payload);
-      toast({ title: "Campaign created" });
-    }
-    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
-    setSaving(false);
-    setDialogOpen(false);
+  const openEditCampaign = (campaign: any) => {
+    setCampaignDialogCurrency(campaign.campaign_currency || "coins");
+    setEditingCampaign(campaign);
+    setCampaignDialogOpen(true);
   };
   const deleteCampaign = async (id: string) => {
     if (!confirm("Delete this campaign?")) return;
@@ -212,6 +190,24 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
     toast({ title: "Campaign deleted" });
   };
+  const cancelCampaign = async (id: string) => {
+    if (!confirm("Cancel this campaign?")) return;
+    await supabase.from("quest_campaigns" as any).update({ status: "CANCELLED" }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
+    toast({ title: "Campaign cancelled" });
+  };
+  const dispatchCampaign = async (campaign: any) => {
+    if (!confirm("Dispatch funds from this campaign?")) return;
+    await supabase.from("quest_campaigns" as any).update({
+      dispatched_at: new Date().toISOString(),
+      dispatched_by: currentUser.id,
+      status: "COMPLETED",
+    }).eq("id", campaign.id);
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
+    toast({ title: "Campaign dispatched" });
+  };
+
+  const [saving, setSaving] = useState(false);
 
   // ── Features config state ──
   const defaultFeatures = { rituals: true, subtasks: true, discussion: true };
