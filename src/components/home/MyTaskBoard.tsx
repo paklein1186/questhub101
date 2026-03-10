@@ -997,7 +997,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         user_id: userId,
         quest_id: questId,
         contribution_type: "other",
-        title: "Création de la quête depuis tâche personnelle",
+        title: "Quest created from personal task",
         task_type: "coordination",
         base_units: 1,
         weight_factor: 1.0,
