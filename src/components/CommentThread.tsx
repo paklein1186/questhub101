@@ -169,14 +169,25 @@ export function CommentThread({ targetType, targetId }: CommentThreadProps) {
     } else {
       await supabase.from("comment_upvotes").insert({ comment_id: commentId, user_id: currentUser.id });
       await supabase.from("comments").update({ upvote_count: (comment?.upvote_count ?? 0) + 1 }).eq("id", commentId);
-      // Notify the comment author about the upvote
+      // Notify the comment author about the upvote (with 24h dedup)
       if (comment && comment.author_id !== currentUser.id) {
-        notifyUpvote({
-          upvoterId: currentUser.id,
-          commentAuthorId: comment.author_id,
-          commentId,
-          commentSnippet: comment.content,
-        });
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: existing } = await supabase
+          .from("notifications")
+          .select("id")
+          .eq("user_id", comment.author_id)
+          .eq("type", "UPVOTE")
+          .eq("related_entity_id", commentId)
+          .gte("created_at", since)
+          .limit(1);
+        if (!existing?.length) {
+          notifyUpvote({
+            upvoterId: currentUser.id,
+            commentAuthorId: comment.author_id,
+            commentId,
+            commentSnippet: comment.content,
+          });
+        }
       }
     }
     qc.invalidateQueries({ queryKey });

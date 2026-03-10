@@ -47,14 +47,25 @@ export function useTogglePostUpvote() {
           .insert({ user_id: userId, post_id: postId } as any);
         if (error) throw error;
 
-        // Notify post author
+        // Notify post author (with 24h dedup)
         if (postAuthorId && postAuthorId !== userId) {
-          const { data: profile } = await supabase
-            .from("profiles_public")
-            .select("name")
-            .eq("user_id", userId)
-            .maybeSingle();
-          notifyPostUpvote({ postId, postAuthorId, upvoterName: profile?.name || "Someone" });
+          const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          const { data: existing } = await supabase
+            .from("notifications")
+            .select("id")
+            .eq("user_id", postAuthorId)
+            .eq("type", "POST_UPVOTED")
+            .eq("related_entity_id", postId)
+            .gte("created_at", since)
+            .limit(1);
+          if (!existing?.length) {
+            const { data: profile } = await supabase
+              .from("profiles_public")
+              .select("name")
+              .eq("user_id", userId)
+              .maybeSingle();
+            notifyPostUpvote({ postId, postAuthorId, upvoterName: profile?.name || "Someone" });
+          }
         }
       }
     },
