@@ -260,6 +260,8 @@ export default function NetworkDashboardTab() {
   const { data: reportData, isLoading: loadingReports } = useAdminReports(adminEntities);
   const { data: decisions = [], isLoading: loadingDecisions } = useActiveDecisions(adminEntities);
   const { data: pendingPartnerships = [], isLoading: loadingPartnerships } = usePendingPartnerships(adminEntities);
+  const { data: ocuAlerts = [], isLoading: loadingOcu } = useOcuInconsistencyAlerts(adminEntities);
+  const [dismissedOcuAlerts, setDismissedOcuAlerts] = useState<Set<string>>(new Set());
 
   const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships;
 
