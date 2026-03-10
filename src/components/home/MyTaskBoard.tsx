@@ -927,9 +927,6 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       is_draft: false,
       status: "OPEN_FOR_PROPOSALS",
       coin_budget: parseFloat(convertBudget) || 0,
-      guild_percent: convertGuildPercent,
-      territory_percent: convertTerritoryPercent,
-      ctg_percent: convertCtgPercent,
     };
 
     if (unit && unit.type === "GUILD") {
