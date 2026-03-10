@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
-import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb, Shield } from "lucide-react";
+import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb, Shield, PieChart } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
 import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -44,6 +44,7 @@ import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/Conte
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
+import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
@@ -1039,6 +1040,7 @@ export default function QuestDetail() {
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
             {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
             <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
+            {(quest as any).ocu_enabled && <TabsTrigger value="pie"><PieChart className="h-3.5 w-3.5 mr-1" /> Pie</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1276,6 +1278,18 @@ export default function QuestDetail() {
 
           {/* OCU Contributions (shown when OCU is enabled) */}
           <OCUContributionsList
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+        </TabsContent>
+
+        {/* ── Contribution Pie ── */}
+        <TabsContent value="pie" className="mt-6">
+          <QuestPiePanel
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
             onEnableOCU={async () => {

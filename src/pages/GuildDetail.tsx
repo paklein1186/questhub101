@@ -81,6 +81,7 @@ import { SectionBanner, HintTooltip, EmptyHint, HINTS } from "@/components/onboa
 import { usePersona } from "@/hooks/usePersona";
 import { GuildMembershipCard } from "@/components/guild/GuildMembershipCard";
 import { GuildOVNTab } from "@/components/guild/GuildOVNTab";
+import { GuildContributionMap } from "@/components/ocu/GuildContributionMap";
 import { GuildMonetizationTab } from "@/components/guild/GuildMonetizationTab";
 import { useGuildMembership, canAccessGuildVoting } from "@/hooks/useGuildMembership";
 import { GuildCTGStat } from "@/components/ctg/CTGIntegrationWidgets";
@@ -508,6 +509,7 @@ export default function GuildDetail() {
             { value: "trust", label: <><Shield className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Trust</span><HintTooltip {...HINTS.tooltips.guildTrust} /></> },
             { value: "living", label: <><Leaf className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Living</span><HintTooltip {...HINTS.tooltips.guildLiving} /></> },
             { value: "ovn", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Ledger</span><HintTooltip {...HINTS.tooltips.guildOVN} /></> },
+            { value: "contribution-map", label: <><Network className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Contribution Map</span></>, visible: isMember },
             { value: "agent-settings", label: <><BotIcon className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Agent Settings</span></>, visible: isAdmin },
             { value: "graph", label: <><Compass className="h-3.5 w-3.5 sm:mr-1" /><span className="hidden sm:inline">Graph</span><HintTooltip {...HINTS.tooltips.guildGraph} /></> },
           ];
@@ -620,6 +622,9 @@ export default function GuildDetail() {
           <GraphView centerType="guild" centerId={guild.id} height={700} />
         </TabsContent>
 
+        <TabsContent value="contribution-map" className="mt-6">
+          <GuildContributionMap guildId={guild.id} />
+        </TabsContent>
 
         <TabsContent value="members" className="mt-6 space-y-4">
           <TopTrustedMembers
