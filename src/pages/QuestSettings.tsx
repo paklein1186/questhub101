@@ -78,15 +78,8 @@ export default function QuestSettings() {
   return <QuestSettingsInner questId={quest.id} quest={quest} />;
 }
 
-/* ─── Campaign form state ─── */
-interface CampaignForm {
-  title: string;
-  goal_amount: string;
-  type: "CREDITS" | "FIAT";
-  currency: string;
-  status: string;
-}
-const emptyCampaign: CampaignForm = { title: "", goal_amount: "0", type: "CREDITS", currency: "EUR", status: "ACTIVE" };
+
+
 
 function QuestSettingsInner({ questId, quest }: { questId: string; quest: any }) {
   const currentUser = useCurrentUser();
