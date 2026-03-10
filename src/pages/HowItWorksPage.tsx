@@ -30,6 +30,10 @@ export default function HowItWorksPage() {
         <ContentList items={Array.isArray(step4Items) ? step4Items : []} />
       </ContentSection>
 
+      <ContentSection title={t("howItWorksPage.stepFundingTitle")}>
+        <p>{t("howItWorksPage.stepFundingText")}</p>
+      </ContentSection>
+
       <ContentSection title={t("howItWorksPage.step5Title")}>
         <p>{t("howItWorksPage.step5Text")}</p>
       </ContentSection>
