@@ -254,7 +254,7 @@ interface NotificationStore {
   notifyDecisionCreated: (params: { entityType: string; entityId: string; entityName: string; question: string; creatorUserId: string }) => void;
   notifyRitualCreated: (params: { entityType: string; entityId: string; entityName: string; ritualTitle: string; creatorUserId: string }) => void;
   notifyBulkMention: (params: { mentionType: "members" | "followers"; entityType: string; entityId: string; authorUserId: string; authorName: string; snippet: string; targetType: string; targetId: string }) => void;
-  notifyFollowedEntityNewPost: (params: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string }) => void;
+  notifyFollowedEntityNewPost: (params: { entityType: string; entityId: string; entityName: string; postId: string; authorUserId: string; authorName?: string; roomId?: string; roomName?: string; deepLinkUrl?: string; body?: string }) => void;
   notifyContributionLogged: (params: { contributorUserId: string; questTitle: string; amount: number; unit: string; entityName: string }) => void;
 }
 
