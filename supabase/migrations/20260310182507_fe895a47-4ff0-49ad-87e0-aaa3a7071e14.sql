@@ -1,0 +1,1 @@
+ALTER TABLE public.contribution_logs ADD COLUMN IF NOT EXISTS ctg_emitted NUMERIC(8,2) NOT NULL DEFAULT 0;
