@@ -469,7 +469,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </div>
             )}
             {/* Estimated WU badge for assignee */}
-            {coinBudget > 0 && subtask.assignee_user_id === currentUser.id && (() => {
+            {coinBudget > 0 && (subtask.assignee_user_ids || []).includes(currentUser.id) && (() => {
               const estWu = (subtask.credit_reward || 1) * (subtask.contribution_weight || 1.0);
               return (
                 <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
