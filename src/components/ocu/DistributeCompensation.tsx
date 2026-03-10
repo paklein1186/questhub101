@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, Send, DollarSign } from "lucide-react";
+import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
 import { OCUFeatureGate } from "./OCUFeatureGate";
 
 interface ContributorSummary {
