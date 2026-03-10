@@ -252,8 +252,14 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     updateStatus(subtaskId, newStatus);
   };
 
-  const assignUser = async (subtaskId: string, userId: string | null) => {
-    await supabase.from("quest_subtasks" as any).update({ assignee_user_id: userId } as any).eq("id", subtaskId);
+  const toggleAssignee = async (subtaskId: string, userId: string) => {
+    const subtask = subtasks.find((s: any) => s.id === subtaskId);
+    const current: string[] = subtask?.assignee_user_ids || [];
+    const updated = current.includes(userId) ? current.filter((id: string) => id !== userId) : [...current, userId];
+    await supabase.from("quest_subtasks" as any).update({
+      assignee_user_ids: updated,
+      assignee_user_id: updated[0] || null, // keep legacy column in sync
+    } as any).eq("id", subtaskId);
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
