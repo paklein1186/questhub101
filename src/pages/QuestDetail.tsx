@@ -1040,6 +1040,7 @@ export default function QuestDetail() {
             {isLoggedIn && qfc.rituals && <TabsTrigger value="rituals"><Calendar className="h-3.5 w-3.5 mr-1" /> Rituals</TabsTrigger>}
             {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
             <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
+            {(quest as any).ocu_enabled && <TabsTrigger value="pie"><PieChart className="h-3.5 w-3.5 mr-1" /> Pie</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
