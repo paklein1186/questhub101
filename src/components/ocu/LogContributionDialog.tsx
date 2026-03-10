@@ -99,7 +99,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
     }
 
     // If subtask linked, emit 1 $CTG
-    if (subtaskId) {
+    if (subtaskId && subtaskId !== "__none__") {
       await supabase.from("ctg_transactions" as any).insert({
         user_id: currentUser.id,
         amount: 1,
