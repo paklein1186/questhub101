@@ -420,6 +420,16 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
               </ResponsiveContainer>
             </div>
 
+            {/* Abandonment banner */}
+            {isAdmin && abandonedUsers.size > 0 && !isFrozen && (
+              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-2.5 text-xs">
+                <AlertTriangle className="h-3.5 w-3.5 text-destructive mt-0.5 shrink-0" />
+                <p className="text-foreground">
+                  <span className="font-medium">{abandonedUsers.size} contributor(s)</span> may have abandoned this quest (no activity in {abandonmentThreshold}+ days).
+                </p>
+              </div>
+            )}
+
             {/* Ranked table */}
             <div className="rounded-lg border border-border overflow-hidden">
               <table className="w-full text-sm">
@@ -430,43 +440,88 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
                     <th className="text-right px-3 py-2 font-medium">FMV 🟡</th>
                     <th className="text-right px-3 py-2 font-medium">% Share</th>
                     <th className="text-right px-3 py-2 font-medium">Status</th>
+                    {isAdmin && !isFrozen && <th className="w-8" />}
                   </tr>
                 </thead>
                 <tbody>
-                  {pieData.map((d, i) => (
-                    <tr key={d.userId} className="border-t border-border">
-                      <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={d.avatarUrl ?? undefined} />
-                            <AvatarFallback className="text-[10px]">{d.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium truncate max-w-[120px]">{d.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-right font-medium text-primary">{d.fmv}</td>
-                      <td className="px-3 py-2 text-right font-bold">{d.pct.toFixed(1)}%</td>
-                      <td className="px-3 py-2 text-right">
-                        {d.compensationStatus === "compensated" ? (
-                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
-                            Compensated
-                          </Badge>
-                        ) : d.compensationStatus === "partial" ? (
-                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
-                            Partial
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px]">Pending</Badge>
+                  {pieData.map((d, i) => {
+                    const isAbandoned = abandonedUsers.has(d.userId);
+                    const daysSinceActive = abandonedUsers.get(d.userId);
+                    const isExited = exitedUserIds.has(d.userId);
+
+                    return (
+                      <tr key={d.userId} className={`border-t border-border ${isExited ? "opacity-40" : ""}`}>
+                        <td className="px-3 py-2 text-muted-foreground">{i + 1}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={d.avatarUrl ?? undefined} />
+                              <AvatarFallback className="text-[10px]">{d.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium truncate max-w-[120px]">{d.name}</span>
+                            {isAbandoned && (
+                              <Badge variant="destructive" className="text-[9px] h-4">
+                                Inactive {daysSinceActive}d
+                              </Badge>
+                            )}
+                            {isExited && (
+                              <Badge variant="outline" className="text-[9px] h-4">Exited</Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right font-medium text-primary">{d.fmv}</td>
+                        <td className="px-3 py-2 text-right font-bold">{d.pct.toFixed(1)}%</td>
+                        <td className="px-3 py-2 text-right">
+                          {d.compensationStatus === "compensated" ? (
+                            <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
+                              Compensated
+                            </Badge>
+                          ) : d.compensationStatus === "partial" ? (
+                            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
+                              Partial
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Pending</Badge>
+                          )}
+                        </td>
+                        {isAdmin && !isFrozen && (
+                          <td className="px-1 py-2">
+                            {!isExited && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <MoreHorizontal className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => {
+                                    setExitTarget(d);
+                                    setExitIsAbandonment(false);
+                                  }}>
+                                    <DoorOpen className="h-3.5 w-3.5 mr-1.5" /> Initiate exit for {d.name}
+                                  </DropdownMenuItem>
+                                  {isAbandoned && (
+                                    <DropdownMenuItem onClick={() => {
+                                      setExitTarget(d);
+                                      setExitIsAbandonment(true);
+                                    }}>
+                                      <AlertTriangle className="h-3.5 w-3.5 mr-1.5" /> Flag as abandoned
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </td>
                         )}
-                      </td>
-                    </tr>
-                  ))}
+                      </tr>
+                    );
+                  })}
                   <tr className="border-t border-border bg-muted/30 font-semibold">
                     <td className="px-3 py-2" colSpan={2}>Total</td>
                     <td className="px-3 py-2 text-right text-primary">{totalFmv}</td>
                     <td className="px-3 py-2 text-right">100%</td>
                     <td />
+                    {isAdmin && !isFrozen && <td />}
                   </tr>
                 </tbody>
               </table>
