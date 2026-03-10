@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, X, Loader2, UserPlus, MessageSquareWarning, Vote,
-  Shield, Building2, Users, Eye, ExternalLink, Handshake, RefreshCw,
+  Shield, Building2, Users, Eye, ExternalLink, Handshake, RefreshCw, Settings,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
