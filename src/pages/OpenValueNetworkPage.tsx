@@ -23,7 +23,7 @@ function useOVNStats() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const [tokensRes, questsRes, contribRes, guildsRes] = await Promise.all([
-        supabase.from("coin_transactions" as any).select("amount").eq("type", "quest_payout"),
+        supabase.from("coin_transactions" as any).select("amount").in("type", ["quest_payout", "QUEST_DISTRIBUTION"]),
         supabase.from("quests").select("id", { count: "exact", head: true }).eq("value_pie_calculated", true as any),
         supabase.from("contribution_logs" as any).select("user_id").gte("created_at", thirtyDaysAgo.toISOString()),
         supabase.from("guilds").select("id", { count: "exact", head: true }).eq("is_deleted", false),
