@@ -43,6 +43,7 @@ import { CTGEstimateBlock } from "@/components/ctg/CTGIntegrationWidgets";
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
+import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
