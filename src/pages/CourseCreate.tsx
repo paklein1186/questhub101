@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
+import { supabase } from "@/integrations/supabase/client";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -79,7 +80,7 @@ export default function CourseCreate() {
   const toggleTopic = (id: string) => setSelectedTopics((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   const toggleTerritory = (id: string) => setSelectedTerritories((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) return;
     const now = new Date().toISOString();
 
@@ -140,6 +141,28 @@ export default function CourseCreate() {
           title: `New course: ${title.trim()}`, body: `A new course was added in ${c?.name || "your organization"}`,
           deepLinkUrl: `/courses/${newCourse.id}`,
         });
+      } else if (providerType === "self") {
+        // Notify creator's personal followers
+        const { data: myFollowers } = await supabase
+          .from("follows")
+          .select("follower_id")
+          .eq("target_type", "USER")
+          .eq("target_id", currentUser.id)
+          .limit(200);
+        if (myFollowers?.length) {
+          const rows = myFollowers
+            .filter(f => f.follower_id !== currentUser.id)
+            .map(f => ({
+              user_id: f.follower_id,
+              type: "FOLLOWED_USER_NEW_COURSE",
+              title: `New course from ${currentUser.name || "someone you follow"}`,
+              body: `"${title.trim()}" is now available`,
+              related_entity_type: "COURSE",
+              related_entity_id: newCourse.id,
+              deep_link_url: `/courses/${newCourse.id}`,
+            }));
+          await supabase.from("notifications").insert(rows);
+        }
       }
       toast({ title: "Course created!" });
       navigate(`/courses/${newCourse.id}/edit`);
