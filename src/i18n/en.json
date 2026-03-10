@@ -1443,7 +1443,7 @@
     "creditsDeepDive": "Credits: Collaboration Fuel",
     "creditsIntro": "Credits reward contribution beyond financial exchange. They are a <strong>non-convertible internal coordination unit</strong> designed to facilitate participation and collaborative activation.",
     "creditsEarnedBy": "Credits are earned by:",
-    "creditsEarnedItems": ["Completing volunteer missions", "Helping without fiat transaction", "Publishing high-value content (admin-weighted)", "Onboarding organizations", "Activating territories", "Small universal monthly mint (all active users)"],
+    "creditsEarnedItems": ["Subscription plans", "Onboarding bonuses", "Optional top-up purchases", "Small universal monthly mint (all active users)"],
     "creditsSpentOn": "Credits are spent on:",
     "creditsSpentItems": ["Boosting quest visibility", "Reduced commission token (single mission)", "Advanced AI territory insights", "Highlighting profile", "Submitting governance proposals", "Event discounts & territory premium tools"],
     "creditsMustFeel": "Credits must feel useful but not financial.",
