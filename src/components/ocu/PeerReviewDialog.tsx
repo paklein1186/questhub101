@@ -3,13 +3,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, XCircle, AlertTriangle, Loader2, Clock, ExternalLink } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, Clock, ExternalLink, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 const DIFFICULTY_LABELS: Record<string, string> = {
+  STANDARD: "Standard ×1",
+  COMPLEX: "Complex ×1.5",
+  EXPERT: "Expert ×2",
+  EXCEPTIONAL: "Exceptional ×3",
   standard: "Standard ×1",
   enhanced: "Enhanced ×1.5",
   complex: "Complex ×2",
@@ -36,10 +40,14 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
 
   const profile = c.profile || { name: "Unknown" };
 
+  // Step 6: Evidence guard
+  const evidenceRequired = c.evidence_required === true;
+  const hasEvidence = !!c.evidence_url;
+  const blockApproval = evidenceRequired && !hasEvidence;
+
   const submitVote = async (vote: "approve" | "reject" | "dispute") => {
     setSubmitting(true);
 
-    // Insert vote
     const { error: voteErr } = await supabase
       .from("contribution_review_votes" as any)
       .insert({
@@ -55,15 +63,12 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
       return;
     }
 
-    // Check auto-approval / dispute logic
     if (vote === "dispute") {
-      // Set status to disputed
       await supabase
         .from("contribution_logs" as any)
         .update({ status: "disputed" } as any)
         .eq("id", c.id);
 
-      // Create discussion thread for dispute
       await supabase.from("posts" as any).insert({
         title: `Contribution dispute: ${c.title}`,
         content: `A contribution by ${profile.name} has been disputed.\n\nReason: ${comment.trim() || "No reason provided."}\n\nPlease review and resolve.`,
@@ -75,14 +80,13 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
 
       toast({ title: "Contribution disputed — discussion thread created" });
     } else if (vote === "approve") {
-      // Count approvals
       const { count } = await supabase
         .from("contribution_review_votes" as any)
         .select("id", { count: "exact", head: true })
         .eq("contribution_id", c.id)
         .eq("vote", "approve");
 
-      const approveCount = (count ?? 0) + 0; // the insert above is already counted
+      const approveCount = (count ?? 0);
       if (approveCount >= reviewQuorum) {
         await supabase
           .from("contribution_logs" as any)
@@ -93,7 +97,6 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
           } as any)
           .eq("id", c.id);
 
-        // Update review votes count
         await supabase
           .from("contribution_logs" as any)
           .update({ review_votes_count: approveCount } as any)
@@ -104,7 +107,6 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
         toast({ title: `Vote recorded (${approveCount}/${reviewQuorum} needed)` });
       }
     } else {
-      // reject vote
       toast({ title: "Rejection recorded" });
     }
 
@@ -141,7 +143,7 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
                 </Badge>
               )}
               {c.fmv_value > 0 && (
-                <span className="font-medium text-primary">🟡 {c.fmv_value} Coins</span>
+                <span className="font-medium text-primary">FMV: €{c.fmv_value.toFixed(2)}</span>
               )}
               {c.deliverable_url && (
                 <a
@@ -155,6 +157,28 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
               )}
             </div>
           </div>
+
+          {/* Step 6: Evidence section */}
+          {hasEvidence && (
+            <a
+              href={c.evidence_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm text-primary hover:underline"
+            >
+              <Paperclip className="h-4 w-4" /> View evidence
+            </a>
+          )}
+
+          {blockApproval && (
+            <div className="rounded-lg border border-amber-400/50 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-sm text-amber-800 dark:text-amber-300 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>
+                This contribution requires a receipt or evidence file before it can be approved.
+                Ask the contributor to upload one.
+              </span>
+            </div>
+          )}
 
           {/* Comment */}
           <div>
@@ -178,7 +202,7 @@ export function PeerReviewDialog({ open, onOpenChange, contribution, questId, re
             size="sm"
             className="text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 flex-1"
             onClick={() => submitVote("approve")}
-            disabled={submitting}
+            disabled={submitting || blockApproval}
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
             Approve

@@ -75,21 +75,22 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
         quest_id: questId,
         guild_id: guildId ?? null,
         territory_id: territoryId ?? null,
-        contribution_type: "other",
+        contribution_type: "TIME",
+        fmv_input: { half_days: parsedHalfDays, difficulty: difficulty.toUpperCase() },
         title: title.trim(),
         description: description.trim() || null,
         deliverable_url: deliverableUrl.trim() || null,
         subtask_id: (subtaskId && subtaskId !== "__none__") ? subtaskId : null,
         half_days: parsedHalfDays,
         difficulty: difficulty,
-        fmv_value: fmvValue,
         weight_factor: multiplier,
-        hours_logged: parsedHalfDays * 4, // approx 4h per half-day
+        hours_logged: parsedHalfDays * 4,
         base_units: parsedHalfDays,
         weighted_units: parsedHalfDays * multiplier,
         ip_licence: "CC-BY-SA",
         status: "pending",
         review_quorum: 1,
+        // fmv_value is computed server-side by trigger
       } as any);
 
     if (error) {
