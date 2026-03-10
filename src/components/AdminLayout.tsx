@@ -72,6 +72,7 @@ const clusters: NavCluster[] = [
       { to: "/admin/economy/milestones", label: "Milestones", icon: Trophy },
       { to: "/admin/economy/agent-billing", label: "Agent Billing", icon: Bot },
       { to: "/admin/economy/ctg", label: "$CTG Token", icon: Sprout },
+      { to: "/admin/economy/distribution-concerns", label: "Distribution Concerns", icon: Flag },
     ],
   },
   {

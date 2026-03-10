@@ -347,6 +347,7 @@ const App = () => (
                   <Route path="economy/milestones" element={<Suspense fallback={null}><AdminMilestones /></Suspense>} />
                   <Route path="content/feature-suggestions" element={<Suspense fallback={null}><AdminFeatureSuggestions /></Suspense>} />
                   <Route path="system/email-templates" element={<Suspense fallback={null}><AdminEmailTemplates /></Suspense>} />
+                  <Route path="economy/distribution-concerns" element={<Suspense fallback={null}><AdminDistributionConcerns /></Suspense>} />
                 </Route>
                 <Route path="/search" element={<RequireAuth><SearchPage /></RequireAuth>} />
                 <Route path="/me/onboarding" element={<RequireAuth><OnboardingChecklist /></RequireAuth>} />
