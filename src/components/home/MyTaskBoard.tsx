@@ -543,6 +543,10 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   };
 
   let filtered = filter === "all" ? [...unified] : unified.filter((t) => t.source === filter);
+  // Hide backlog tasks by default
+  if (hideBacklog) {
+    filtered = filtered.filter((t) => t.workState !== "BACKLOG");
+  }
   // Apply entity filter (multi-select, empty = show all)
   if (entityFilter.size > 0) {
     filtered = filtered.filter((t) => {
