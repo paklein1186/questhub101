@@ -987,6 +987,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
       quest_id: questId,
       title: task.title,
       assignee_user_id: userId,
+      assignee_user_ids: [userId],
       status: "BACKLOG",
       order_index: 0,
     } as any).select("id").single();
