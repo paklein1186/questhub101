@@ -389,9 +389,9 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                     <span>{format(new Date(q.created_at), "dd MMM yyyy")}</span>
-                    {q.coin_budget > 0 && (
+                    {q.coins_budget > 0 && (
                       <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600">
-                        🟩 {q.coin_budget}
+                        🟩 {q.coins_budget}
                       </Badge>
                     )}
                   </div>
