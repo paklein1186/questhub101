@@ -596,7 +596,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           user_id: userId,
           entity_type: "personal_task",
           entity_id: newId,
-          work_state: "BACKLOG",
+          work_state: "TODO",
         } as any);
       }
       qc.invalidateQueries({ queryKey: ["personal-tasks", userId] });
