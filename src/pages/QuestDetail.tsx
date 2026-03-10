@@ -1272,6 +1272,16 @@ export default function QuestDetail() {
             isCoHost={isCollaborator}
             isGuildAdmin={isGuildAdmin}
           />
+
+          {/* OCU Contributions (shown when OCU is enabled) */}
+          <OCUContributionsList
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="updates" className="mt-6 space-y-4">
