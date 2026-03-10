@@ -178,6 +178,23 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
         }
       }
 
+      // Log to activity_log if contract is active
+      if (activeContract) {
+        await supabase.from("activity_log").insert({
+          actor_user_id: currentUser.id,
+          action_type: "ocu_distribution",
+          target_type: "quest",
+          target_id: quest.id,
+          target_name: quest.title,
+          metadata: {
+            contract_id: activeContract.id,
+            distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
+            mode: compensationMode,
+            note,
+          },
+        });
+      }
+
       toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
