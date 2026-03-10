@@ -506,6 +506,38 @@ export type Database = {
           },
         ]
       }
+      amendment_votes: {
+        Row: {
+          amendment_id: string
+          id: string
+          user_id: string
+          vote: string
+          voted_at: string
+        }
+        Insert: {
+          amendment_id: string
+          id?: string
+          user_id: string
+          vote?: string
+          voted_at?: string
+        }
+        Update: {
+          amendment_id?: string
+          id?: string
+          user_id?: string
+          vote?: string
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amendment_votes_amendment_id_fkey"
+            columns: ["amendment_id"]
+            isOneToOne: false
+            referencedRelation: "contract_amendments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assistant_messages: {
         Row: {
           content: Json
@@ -1799,6 +1831,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      contract_amendments: {
+        Row: {
+          amendment_number: number
+          content: Json
+          contract_id: string
+          id: string
+          proposed_at: string
+          proposed_by: string | null
+          resolved_at: string | null
+          status: string
+        }
+        Insert: {
+          amendment_number: number
+          content?: Json
+          contract_id: string
+          id?: string
+          proposed_at?: string
+          proposed_by?: string | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Update: {
+          amendment_number?: number
+          content?: Json
+          contract_id?: string
+          id?: string
+          proposed_at?: string
+          proposed_by?: string | null
+          resolved_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_amendments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "quest_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_signatories: {
+        Row: {
+          contract_id: string
+          id: string
+          rejected_at: string | null
+          rejection_note: string | null
+          signed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          contract_id: string
+          id?: string
+          rejected_at?: string | null
+          rejection_note?: string | null
+          signed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          contract_id?: string
+          id?: string
+          rejected_at?: string | null
+          rejection_note?: string | null
+          signed_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_signatories_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "quest_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contribution_compensations: {
         Row: {
@@ -6132,6 +6240,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "quest_campaigns_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_contracts: {
+        Row: {
+          content: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          quest_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          quest_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          quest_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_contracts_quest_id_fkey"
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
