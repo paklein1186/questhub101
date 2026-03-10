@@ -72,6 +72,7 @@ const AdminExcerptReports = lazy(() => import("./pages/admin/AdminExcerptReports
 const AdminMilestones = lazy(() => import("./pages/admin/AdminMilestones"));
 const AdminFeatureSuggestions = lazy(() => import("./pages/admin/AdminFeatureSuggestions"));
 const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
+const AdminDistributionConcerns = lazy(() => import("./pages/admin/AdminDistributionConcerns"));
 import AchievementDetail from "./pages/AchievementDetail";
 import PodDetail from "./pages/PodDetail";
 import PodSettings from "./pages/PodSettings";
