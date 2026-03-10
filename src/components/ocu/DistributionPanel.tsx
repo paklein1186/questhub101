@@ -275,7 +275,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         target_id: quest.id,
         target_name: quest.title,
         metadata: {
-          distribution_id: distRecord?.id,
+          distribution_id: distId,
           mode: distMode,
           total_coins: totalCoins,
           total_ctg: totalCtg,
