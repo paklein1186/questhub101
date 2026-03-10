@@ -15,10 +15,44 @@ export async function notifyEntityFollowersAndMembers({
   followersOnly?: boolean;
 }) {
   try {
+    const { data, error } = await supabase.functions.invoke("notify-fan-out", {
+      body: {
+        entityType,
+        entityId,
+        entityName,
+        actorUserId,
+        notifType,
+        title,
+        notifBody: body,
+        deepLinkUrl,
+        followersOnly,
+      },
+    });
+
+    if (error) {
+      console.error("[notifyEntityFollowersAndMembers] Edge function error, falling back to client-side:", error);
+      // Fallback to client-side dispatch if edge function fails
+      await clientSideFallback({ entityType, entityId, actorUserId, notifType, title, body, deepLinkUrl, followersOnly });
+    } else if (data?.skipped) {
+      console.info("[notifyEntityFollowersAndMembers] Skipped:", data.reason);
+    }
+  } catch (err) {
+    console.error("[notifyEntityFollowersAndMembers] Error, falling back:", err);
+    await clientSideFallback({ entityType, entityId, actorUserId, notifType, title, body, deepLinkUrl, followersOnly });
+  }
+}
+
+/** Client-side fallback if edge function is unavailable */
+async function clientSideFallback({
+  entityType, entityId, actorUserId, notifType, title, body, deepLinkUrl, followersOnly,
+}: {
+  entityType: string; entityId: string; actorUserId: string;
+  notifType: string; title: string; body: string; deepLinkUrl: string; followersOnly: boolean;
+}) {
+  try {
     const notifiedSet = new Set<string>();
     const rows: any[] = [];
 
-    // Members (skip if followersOnly)
     if (!followersOnly) {
       const tableCfg: Record<string, { table: string; col: string }> = {
         GUILD: { table: "guild_members", col: "guild_id" },
@@ -30,7 +64,7 @@ export async function notifyEntityFollowersAndMembers({
           .from(cfg.table as any)
           .select("user_id")
           .eq(cfg.col, entityId)
-          .limit(300);
+          .limit(500);
         for (const m of data ?? []) {
           if ((m as any).user_id === actorUserId) continue;
           notifiedSet.add((m as any).user_id);
@@ -47,7 +81,6 @@ export async function notifyEntityFollowersAndMembers({
       }
     }
 
-    // Followers
     const { data: followers } = await supabase
       .from("follows")
       .select("follower_id")
@@ -71,6 +104,6 @@ export async function notifyEntityFollowersAndMembers({
       await supabase.from("notifications").insert(rows);
     }
   } catch (err) {
-    console.error("[notifyEntityFollowersAndMembers]", err);
+    console.error("[notifyEntityFollowersAndMembers fallback]", err);
   }
 }
