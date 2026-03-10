@@ -201,6 +201,7 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
   const [podAccessPolicy, setPodAccessPolicy] = useState<"OPEN" | "GUILD_MEMBERS" | "INVITE_ONLY">("OPEN");
   const [defaultQuestTopics, setDefaultQuestTopics] = useState<string[]>([]);
   const [defaultQuestTerritories, setDefaultQuestTerritories] = useState<string[]>([]);
+  const [ocuDefaultEnabled, setOcuDefaultEnabled] = useState<boolean>((guild as any).ocu_default_enabled ?? false);
 
   // ── Features config state ──
   const defaultFeatures = { kanbanBoard: true, docsSpace: true, events: true, applicationProcess: true, subtasks: true, discussionTab: true, discussionAccess: "members", discussionPostPermission: "MEMBER", showMemberServices: true, rituals: true };
