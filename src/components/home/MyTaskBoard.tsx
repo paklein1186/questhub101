@@ -1247,13 +1247,14 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 }
 
                 if (isDoneThisSession) {
-                  return (
+                  rows.push(
                     <tr key={key} className="border-t border-border bg-muted/30">
                       <td colSpan={7} className="px-3 py-2.5">
                         <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                       </td>
                     </tr>
                   );
+                  return rows;
                 }
 
                 return (
