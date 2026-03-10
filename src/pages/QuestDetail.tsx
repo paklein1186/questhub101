@@ -1043,6 +1043,7 @@ export default function QuestDetail() {
             {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
             <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
             {(quest as any).ocu_enabled && <TabsTrigger value="pie"><PieChart className="h-3.5 w-3.5 mr-1" /> Pie</TabsTrigger>}
+            {(quest as any).ocu_enabled && <TabsTrigger value="contract"><FileText className="h-3.5 w-3.5 mr-1" /> Contract</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
