@@ -226,17 +226,7 @@ export function QuestProposals({
     }, true);
 
     // CTG emission is handled by the DB trigger on contribution_logs INSERT — no manual RPC needed.
-
-    // Single consolidated notification for proposal acceptance
-    await supabase.from("notifications").insert({
-      user_id: proposal.proposer_id,
-      type: "QUEST_PROPOSAL_ACCEPTED",
-      title: "Proposal accepted!",
-      body: `Your proposal "${proposal.title}" was accepted. +${proposal.requested_credits} Credits · +20 XP`,
-      related_entity_type: "QUEST",
-      related_entity_id: questId,
-      deep_link_url: `/quests/${questId}`,
-    });
+    // XP notification (from grantXp) already informs the user — no extra notification needed.
 
     qc.invalidateQueries({ queryKey: ["quest-proposals", questId] });
     qc.invalidateQueries({ queryKey: ["quest", questId] });
