@@ -56,6 +56,7 @@ import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { SiteCodeManager } from "@/components/website/SiteCodeManager";
 import { FeedpointVisibilitySettings } from "@/components/website/FeedpointVisibilitySettings";
 import { GuildMembershipSettingsPanel } from "@/components/guild/GuildMembershipSettingsPanel";
+import { ExitProtocolSettings } from "@/components/ocu/ExitProtocolSettings";
 
 const TABS = [
   { key: "identity", label: "Identity & Profile", icon: Shield },
