@@ -576,6 +576,29 @@ export default function GuildDetail() {
             </div>
           </div>
 
+          {/* Governance Model Card */}
+          {(() => {
+            const govModels: Record<string, { label: string; description: string }> = {
+              "1h1v": { label: "1 Human, 1 Vote", description: "Equal — every member has one vote regardless of contribution." },
+              soft_log: { label: "Soft Logarithmic", description: "Logarithmic (soft) — contributions influence votes but are compressed." },
+              strong_log: { label: "Logarithmic (strong)", description: "Logarithmic (strong) — contributions have more influence, still capped." },
+              pure_pct: { label: "Proportional", description: "Proportional — voting power directly mirrors contribution percentage." },
+            };
+            const model = (guild as any).governance_model ?? "1h1v";
+            const info = govModels[model] ?? govModels["1h1v"];
+            return (
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <h3 className="font-display font-semibold mb-2 text-sm flex items-center gap-1.5">
+                  <Vote className="h-4 w-4" /> Governance Model
+                </h3>
+                <div className="flex items-start gap-3">
+                  <Badge variant="outline" className="text-xs shrink-0">{info.label}</Badge>
+                  <p className="text-xs text-muted-foreground">{info.description}</p>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
             <EntityFollowersCount entityId={guild.id} entityType="GUILD" />
             <button onClick={() => setActiveTab("members")} className="rounded-lg border border-border bg-card p-4 text-center hover:border-primary/30 transition-all cursor-pointer"><p className="text-2xl font-bold text-primary">{members.length}</p><p className="text-sm text-muted-foreground">Members</p></button>
