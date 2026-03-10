@@ -454,7 +454,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             )}
             {/* $CTG weight input */}
             {canManage && (
-              <div className="flex items-center gap-0.5">
+              <div className="flex items-center gap-0.5" title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)">
                 <Scale className="h-3 w-3 text-violet-500" />
                 <Input
                   type="number"
@@ -464,7 +464,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                   value={subtask.contribution_weight ?? 1.0}
                   onChange={(e) => updateSubtaskWeight(subtask.id, parseFloat(e.target.value) || 1.0)}
                   className="w-14 h-6 text-[10px] text-center p-0"
-                  title="Poids dans le Value Pie"
+                  title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)"
                 />
               </div>
             )}
