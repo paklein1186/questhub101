@@ -580,8 +580,23 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         const { data } = await supabase.from("services").select("provider_user_id").eq("id", targetId).maybeSingle();
         ownerUserId = data?.provider_user_id ?? null;
       } else if (targetType === "COMPANY") {
-        const { data } = await supabase.from("company_members").select("user_id").eq("company_id", targetId).in("role", ["admin", "owner"]).limit(1);
-        ownerUserId = data?.[0]?.user_id ?? null;
+        // Notify ALL company admins
+        const { data: admins } = await supabase.from("company_members").select("user_id").eq("company_id", targetId).in("role", ["admin", "owner"]).limit(10);
+        const actorName = await resolveActorName(commentAuthorId);
+        const truncated = (commentSnippet || "").slice(0, 60);
+        const rows = (admins ?? [])
+          .filter(a => a.user_id !== commentAuthorId)
+          .map(a => ({
+            user_id: a.user_id,
+            type: "COMMENT",
+            title: "New comment",
+            body: `${actorName} commented: "${truncated}"`,
+            related_entity_type: "COMPANY",
+            related_entity_id: targetId,
+            deep_link_url: `/companies/${targetId}`,
+          }));
+        if (rows.length) await supabase.from("notifications").insert(rows);
+        return;
       } else if (targetType === "COURSE") {
         const { data } = await supabase.from("courses").select("owner_user_id").eq("id", targetId).maybeSingle();
         ownerUserId = data?.owner_user_id ?? null;
