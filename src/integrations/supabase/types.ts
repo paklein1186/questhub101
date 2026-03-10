@@ -3084,6 +3084,66 @@ export type Database = {
         }
         Relationships: []
       }
+      distribution_unfairness_reports: {
+        Row: {
+          created_at: string
+          currency: string
+          distribution_id: string | null
+          id: string
+          quest_id: string
+          reason: string
+          reporter_user_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          superadmin_note: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          distribution_id?: string | null
+          id?: string
+          quest_id: string
+          reason: string
+          reporter_user_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          superadmin_note?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          distribution_id?: string | null
+          id?: string
+          quest_id?: string
+          reason?: string
+          reporter_user_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          superadmin_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_unfairness_reports_distribution_id_fkey"
+            columns: ["distribution_id"]
+            isOneToOne: false
+            referencedRelation: "quest_distributions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distribution_unfairness_reports_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eco_impact_events: {
         Row: {
           beneficiary_user_ids: string[] | null
@@ -6339,45 +6399,77 @@ export type Database = {
       }
       quest_campaigns: {
         Row: {
+          campaign_currency: string
           created_at: string
           created_by_user_id: string
           currency: string
+          dispatch_mode: string
+          dispatched_at: string | null
+          dispatched_by: string | null
           goal_amount: number
           id: string
           quest_id: string
           raised_amount: number
           status: string
+          threshold_amount: number | null
+          threshold_reached_at: string | null
           title: string
           type: string
           updated_at: string
         }
         Insert: {
+          campaign_currency?: string
           created_at?: string
           created_by_user_id: string
           currency?: string
+          dispatch_mode?: string
+          dispatched_at?: string | null
+          dispatched_by?: string | null
           goal_amount?: number
           id?: string
           quest_id: string
           raised_amount?: number
           status?: string
+          threshold_amount?: number | null
+          threshold_reached_at?: string | null
           title?: string
           type?: string
           updated_at?: string
         }
         Update: {
+          campaign_currency?: string
           created_at?: string
           created_by_user_id?: string
           currency?: string
+          dispatch_mode?: string
+          dispatched_at?: string | null
+          dispatched_by?: string | null
           goal_amount?: number
           id?: string
           quest_id?: string
           raised_amount?: number
           status?: string
+          threshold_amount?: number | null
+          threshold_reached_at?: string | null
           title?: string
           type?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quest_campaigns_dispatched_by_fkey"
+            columns: ["dispatched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "quest_campaigns_dispatched_by_fkey"
+            columns: ["dispatched_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "quest_campaigns_quest_id_fkey"
             columns: ["quest_id"]
@@ -6421,6 +6513,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "quest_contracts_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_distributions: {
+        Row: {
+          currency: string
+          distributed_at: string
+          distributed_by: string | null
+          distribution_mode: string
+          flagged: boolean
+          id: string
+          quest_id: string
+          recipient_snapshot: Json
+          total_amount: number
+        }
+        Insert: {
+          currency: string
+          distributed_at?: string
+          distributed_by?: string | null
+          distribution_mode: string
+          flagged?: boolean
+          id?: string
+          quest_id: string
+          recipient_snapshot: Json
+          total_amount: number
+        }
+        Update: {
+          currency?: string
+          distributed_at?: string
+          distributed_by?: string | null
+          distribution_mode?: string
+          flagged?: boolean
+          id?: string
+          quest_id?: string
+          recipient_snapshot?: Json
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_distributions_quest_id_fkey"
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
@@ -6544,6 +6680,57 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "quest_funding_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_funding_contributions: {
+        Row: {
+          amount: number
+          campaign_id: string | null
+          created_at: string
+          currency: string
+          funder_user_id: string
+          id: string
+          note: string | null
+          quest_id: string
+          refunded_at: string | null
+        }
+        Insert: {
+          amount: number
+          campaign_id?: string | null
+          created_at?: string
+          currency: string
+          funder_user_id: string
+          id?: string
+          note?: string | null
+          quest_id: string
+          refunded_at?: string | null
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string | null
+          created_at?: string
+          currency?: string
+          funder_user_id?: string
+          id?: string
+          note?: string | null
+          quest_id?: string
+          refunded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_funding_contributions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "quest_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_funding_contributions_quest_id_fkey"
             columns: ["quest_id"]
             isOneToOne: false
             referencedRelation: "quests"
@@ -7001,6 +7188,9 @@ export type Database = {
           coin_budget: number
           coin_escrow: number
           coin_escrow_status: string
+          coins_budget: number
+          coins_escrow: number
+          coins_escrow_status: string
           company_id: string | null
           cover_focal_y: number
           cover_image_url: string | null
@@ -7008,9 +7198,14 @@ export type Database = {
           created_by_user_id: string
           credit_budget: number
           credit_reward: number
+          ctg_budget: number
+          ctg_escrow: number
+          ctg_escrow_frozen_at: string | null
+          ctg_escrow_status: string
           deleted_at: string | null
           description: string | null
           eco_category: Database["public"]["Enums"]["eco_category"] | null
+          envelope_currency: string
           envelope_total: number | null
           escrow_credits: number
           external_spending: number
@@ -7061,6 +7256,9 @@ export type Database = {
           coin_budget?: number
           coin_escrow?: number
           coin_escrow_status?: string
+          coins_budget?: number
+          coins_escrow?: number
+          coins_escrow_status?: string
           company_id?: string | null
           cover_focal_y?: number
           cover_image_url?: string | null
@@ -7068,9 +7266,14 @@ export type Database = {
           created_by_user_id: string
           credit_budget?: number
           credit_reward?: number
+          ctg_budget?: number
+          ctg_escrow?: number
+          ctg_escrow_frozen_at?: string | null
+          ctg_escrow_status?: string
           deleted_at?: string | null
           description?: string | null
           eco_category?: Database["public"]["Enums"]["eco_category"] | null
+          envelope_currency?: string
           envelope_total?: number | null
           escrow_credits?: number
           external_spending?: number
@@ -7121,6 +7324,9 @@ export type Database = {
           coin_budget?: number
           coin_escrow?: number
           coin_escrow_status?: string
+          coins_budget?: number
+          coins_escrow?: number
+          coins_escrow_status?: string
           company_id?: string | null
           cover_focal_y?: number
           cover_image_url?: string | null
@@ -7128,9 +7334,14 @@ export type Database = {
           created_by_user_id?: string
           credit_budget?: number
           credit_reward?: number
+          ctg_budget?: number
+          ctg_escrow?: number
+          ctg_escrow_frozen_at?: string | null
+          ctg_escrow_status?: string
           deleted_at?: string | null
           description?: string | null
           eco_category?: Database["public"]["Enums"]["eco_category"] | null
+          envelope_currency?: string
           envelope_total?: number | null
           escrow_credits?: number
           external_spending?: number
@@ -10157,6 +10368,7 @@ export type Database = {
           weight: number
         }[]
       }
+      get_user_ctg_in_escrow: { Args: { p_user_id: string }; Returns: number }
       get_user_ctg_summary: { Args: { p_user_id: string }; Returns: Json }
       get_user_id_by_email: {
         Args: { lookup_email: string }
