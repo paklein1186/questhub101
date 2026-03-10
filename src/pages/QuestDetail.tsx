@@ -45,6 +45,7 @@ import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/Conte
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
+import { OCUFeatureGate } from "@/components/ocu/OCUFeatureGate";
 import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
 import { DistributionPanel } from "@/components/ocu/DistributionPanel";
@@ -1302,36 +1303,32 @@ export default function QuestDetail() {
             isGuildAdmin={isGuildAdmin}
           />
 
-          {/* OCU Contributions (shown when OCU is enabled) */}
-          <OCUContributionsList
+          {/* OCU Section — single gate for all OCU components */}
+          <OCUFeatureGate
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
-            onEnableOCU={async () => {
+            onEnable={async () => {
               await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
               qc.invalidateQueries({ queryKey: ["quest", quest.id] });
             }}
-          />
-
-          {/* OCU Compensation Distribution (admin only) */}
-          <DistributeCompensation
-            quest={quest}
-            isAdmin={isOwner || isGuildAdmin}
-            onEnableOCU={async () => {
-              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
-              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
-            }}
-          />
-
-          {/* New dual-currency distribution panel */}
-          <DistributionPanel
-            quest={quest}
-            isAdmin={isOwner || isGuildAdmin}
-            isParticipant={isParticipant}
-            onEnableOCU={async () => {
-              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
-              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
-            }}
-          />
+          >
+            <OCUContributionsList
+              quest={quest}
+              isAdmin={isOwner || isGuildAdmin}
+              onEnableOCU={() => {}}
+            />
+            <DistributeCompensation
+              quest={quest}
+              isAdmin={isOwner || isGuildAdmin}
+              onEnableOCU={() => {}}
+            />
+            <DistributionPanel
+              quest={quest}
+              isAdmin={isOwner || isGuildAdmin}
+              isParticipant={isParticipant}
+              onEnableOCU={() => {}}
+            />
+          </OCUFeatureGate>
         </TabsContent>
 
         {/* ── Contribution Pie ── */}
