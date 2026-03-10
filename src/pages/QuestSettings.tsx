@@ -170,7 +170,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
         .eq("quest_id", questId)
         .limit(1)
         .maybeSingle();
-      return data;
+      return data as any;
     },
     enabled: activeTab === "exit" && ocuEnabled,
   });
