@@ -249,7 +249,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
           // Get the created post ID
           const { data: latestPost } = await supabase.from("feed_posts").select("id").eq("author_user_id", currentUser.id).order("created_at", { ascending: false }).limit(1).single();
           if (latestPost?.id) {
-            notifyFollowedEntityNewPost({ entityType: contextType, entityId: contextId, entityName: (entity as any)?.name || "your community", postId: latestPost.id, authorUserId: currentUser.id });
+            notifyFollowedEntityNewPost({ entityType: baseType, entityId: contextId, entityName: (entity as any)?.name || "your community", postId: latestPost.id, authorUserId: currentUser.id });
           }
           // Notify author's own followers
           const { data: myFollowers } = await supabase.from("follows").select("follower_id").eq("target_type", "USER").eq("target_id", currentUser.id).limit(200);
