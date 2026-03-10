@@ -123,6 +123,9 @@ export function MyContributionsSummary() {
           </tfoot>
         </table>
       </div>
+
+      {/* Exit records */}
+      <ContributorExitCards />
     </div>
   );
 }
