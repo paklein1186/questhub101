@@ -1463,6 +1463,71 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             </div>
           )}
         </div>
+
+        {/* Mobile card view */}
+        <div className="sm:hidden space-y-2">
+          {paginated.map((task) => {
+            const key = `${task.source}-${task.id}`;
+            const isDoneThisSession = sessionDone.has(key);
+            if (isDoneThisSession) {
+              return (
+                <div key={key} className="rounded-lg border border-border p-3 bg-muted/30">
+                  <span className="text-sm text-muted-foreground line-through">{task.title}</span>
+                </div>
+              );
+            }
+            return (
+              <div key={key} className={cn("rounded-lg border border-border p-3 flex items-start gap-2 group", todayGoals.has(key) && "bg-amber-500/5")}>
+                <Checkbox
+                  checked={task.workState === "DONE"}
+                  onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium line-clamp-2">{task.title}</span>
+                  {task.sourceLabel && <span className="text-[10px] text-muted-foreground block mt-0.5">{task.sourceLabel}</span>}
+                </div>
+                <Select value={task.workState} onValueChange={(v) => handleStatusChange(task, v)}>
+                  <SelectTrigger className={cn(
+                    "h-7 w-8 text-[10px] font-medium px-1.5 py-0 border-none shadow-none rounded-full [&>svg:last-child]:hidden",
+                    STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
+                  )}>
+                    <span className="flex items-center justify-center">
+                      {task.workState === "BACKLOG" && <Circle className="h-3.5 w-3.5" />}
+                      {task.workState === "TODO" && <CircleDot className="h-3.5 w-3.5" />}
+                      {task.workState === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
+                      {task.workState === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
+                    <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> To do next</span></SelectItem>
+                    <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> In progress</span></SelectItem>
+                    <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Done</span></SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })}
+          {/* Mobile pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-1 py-2">
+              <span className="text-xs text-muted-foreground">
+                {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        </>
       )}
 
       {/* Unit picker dialog */}
