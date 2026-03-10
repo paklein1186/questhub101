@@ -713,6 +713,11 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     </div>
                   </Section>
 
+                  <Separator />
+
+                  {/* ── Exit Protocol ── */}
+                  <ExitProtocolSettings guild={guild} guildId={guildId} />
+
                   <SourceRoleTransfer
                     entityType="guild"
                     entityId={guildId}
