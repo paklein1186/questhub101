@@ -23,7 +23,7 @@ function useOVNStats() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const [tokensRes, questsRes, contribRes, guildsRes] = await Promise.all([
-        supabase.from("coin_transactions" as any).select("amount").eq("type", "quest_payout"),
+        supabase.from("coin_transactions" as any).select("amount").in("type", ["quest_payout", "QUEST_DISTRIBUTION"]),
         supabase.from("quests").select("id", { count: "exact", head: true }).eq("value_pie_calculated", true as any),
         supabase.from("contribution_logs" as any).select("user_id").gte("created_at", thirtyDaysAgo.toISOString()),
         supabase.from("guilds").select("id", { count: "exact", head: true }).eq("is_deleted", false),
@@ -47,12 +47,12 @@ function useRecentValuePieQuests() {
     queryFn: async () => {
       const { data } = await supabase
         .from("quests")
-        .select("id, title, created_at, coin_budget")
+        .select("id, title, created_at, coins_budget")
         .eq("value_pie_calculated", true as any)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(3);
-      return (data || []) as { id: string; title: string; created_at: string; coin_budget: number }[];
+      return (data || []) as { id: string; title: string; created_at: string; coins_budget: number }[];
     },
   });
 }
@@ -198,46 +198,76 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             />
           </div>
           <p className="mt-3 text-muted-foreground">
-            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
+            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG) + 🟩 Mission Value (Coins)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
           </p>
         </Section>
 
         {/* 4. Value Layers */}
         <Section
           number="4"
-          title="Value Layers: Credits, $CTG & Coins"
+          title="Value Layers: Coins, $CTG & Credits"
           icon={<Coins className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-3 gap-4 mt-2">
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <p className="font-medium text-foreground mb-2">🔷 Platform Credits (non-monetary)</p>
-              <p className="text-xs text-muted-foreground mb-2">Feature fuel for gamification, quotas, boosts. Cannot be withdrawn.</p>
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Mission Value</p>
+              <p className="text-xs text-muted-foreground mb-2">Fund quests and pay contributors. Pre-funded by creator or raised via campaigns. Distributed via OCU pie, equal split, or manually. Withdrawable to €.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Monthly plan allocation", "Top-up purchases", "Creating quests beyond quota", "Boosting visibility", "Gamified actions & streaks"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
+                {["Quest creator pre-funds pool at creation", "Public fundraising campaigns (Coins or $CTG)", "OCU pie distribution — proportional to contribution", "Equal split or manual dispatch", "No demurrage — holds full value in escrow", "Withdrawable to real € via Stripe Connect"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
               <p className="font-medium text-foreground mb-2">🌱 $CTG — Contribution Token</p>
-              <p className="text-xs text-muted-foreground mb-2">Emitted when you contribute verified work to the commons. Not fiat-backed, not purchasable. Circulates with 1%/month demurrage.</p>
+              <p className="text-xs text-muted-foreground mb-2">Emitted when you contribute verified work. Also fundable into quest escrow as an additional incentive. Demurrage-frozen while in quest escrow.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Quest and subtask completion", "Governance votes and rituals", "Mentorship and documentation", "Ecological annotations", "P2P transfer to collaborators", "Exchange for platform credits"].map((s) => (
+                {["Quest and subtask completion", "Governance votes and rituals", "Mentorship and documentation", "P2P transfer to collaborators", "Demurrage frozen while in quest escrow ❄️", "Demurrage resumes (1%/month) on distribution"].map((s) => (
                   <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-emerald-500 shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Units</p>
-              <p className="text-xs text-muted-foreground mb-2">Backed by real fiat. Earned from funded quests. Withdrawable via Stripe Connect.</p>
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <p className="font-medium text-foreground mb-2">🔷 Platform Credits (feature fuel only)</p>
+              <p className="text-xs text-muted-foreground mb-2">Non-monetary. Powers quotas, boosts, and gamification. Never used for quest compensation or contributor payouts.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                {["Funded quest payouts", "Contributor compensation", "Guild/Territory redistribution", "Fiat withdrawal via Stripe Connect"].map((s) => (
-                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-amber-500 shrink-0" />{s}</li>
+                {["Monthly plan allocation", "Top-up purchases", "Creating quests beyond quota", "Boosting visibility", "⛔ Never used for quest payouts"].map((s) => (
+                  <li key={s} className="flex items-center gap-1.5"><ArrowRight className="h-3 w-3 text-primary shrink-0" />{s}</li>
                 ))}
               </ul>
             </div>
           </div>
-          <p className="mt-3 font-medium text-foreground">Three systems, fully separated. Credits ≠ $CTG ≠ Coins.</p>
+          <p className="mt-3 font-medium text-foreground">Three systems, fully separated. Coins ≠ $CTG ≠ Credits.</p>
+        </Section>
+
+        {/* OCU Section */}
+        <Section
+          number="4b"
+          title="Open Contributive Units (OCU) — Fair Value Distribution"
+          icon={<Scale className="h-5 w-5" />}
+        >
+          <p className="text-muted-foreground text-sm mb-3">
+            The OCU module is changethegame's implementation of a Slicing Pie-style
+            contribution ledger. It tracks every contributor's work in half-days,
+            normalised by a guild FMV rate and difficulty multiplier, and converts it
+            into a percentage share of the quest's distributable Coins pool.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3 mt-3">
+            {[
+              { label: "Contribution logging", desc: "Half-days × FMV rate × difficulty multiplier = weighted value" },
+              { label: "Live pie", desc: "Real-time % share as contributions are logged and peer-reviewed" },
+              { label: "Fair distribution", desc: "Pie governs Coins dispatch — proportional, transparent, auditable" },
+              { label: "Exit protocol", desc: "Good/graceful/bad leaver rules protect contributors and the quest" },
+            ].map(({ label, desc }) => (
+              <div key={label} className="rounded-md border border-border bg-card p-3">
+                <p className="font-medium text-sm text-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3 italic">
+            OCU is opt-in per quest and available on Project and Ongoing Mission quest types.
+          </p>
         </Section>
 
         {/* ── PART B: Animated Token Flow Diagram ── */}
@@ -359,9 +389,9 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                   </p>
                   <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                     <span>{format(new Date(q.created_at), "dd MMM yyyy")}</span>
-                    {q.coin_budget > 0 && (
+                    {q.coins_budget > 0 && (
                       <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600">
-                        🟩 {q.coin_budget}
+                        🟩 {q.coins_budget}
                       </Badge>
                     )}
                   </div>
