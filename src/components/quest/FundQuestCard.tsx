@@ -62,6 +62,116 @@ export function FundQuestCard({ questId, className }: Props) {
     setContributeOpen(true);
   };
 
+  // Auto-dispatch when campaign threshold reached
+  const handleAutoDispatch = async (campaign: any, cur: "coins" | "ctg", raisedAmount: number) => {
+    const mode = campaign.dispatch_mode; // "auto_pie" or "auto_equal"
+
+    // For auto_pie, check if pie is frozen
+    if (mode === "auto_pie") {
+      const { data: questCheck } = await supabase
+        .from("quests")
+        .select("pie_frozen_at, pie_snapshot")
+        .eq("id", questId)
+        .single();
+      if (!(questCheck as any)?.pie_frozen_at) {
+        // Fall back to manual, notify admin
+        await supabase.from("quest_campaigns" as any).update({ dispatch_mode: "manual" }).eq("id", campaign.id);
+        // Notify quest creator
+        const { data: quest } = await supabase.from("quests").select("created_by_user_id, title").eq("id", questId).single();
+        if (quest) {
+          await supabase.from("notifications" as any).insert({
+            user_id: quest.created_by_user_id,
+            type: "campaign_threshold",
+            title: `Threshold reached but pie is not frozen — please distribute manually for campaign "${campaign.title}"`,
+            link: `/quests/${questId}/settings`,
+            entity_type: "quest",
+            entity_id: questId,
+          });
+        }
+        return;
+      }
+    }
+
+    // Get contributors
+    const { data: logs } = await supabase
+      .from("contribution_logs" as any)
+      .select("user_id, fmv_value")
+      .eq("quest_id", questId)
+      .eq("status", "verified");
+    if (!logs || (logs as any[]).length === 0) return;
+
+    const byUser = new Map<string, number>();
+    for (const l of logs as any[]) {
+      byUser.set(l.user_id, (byUser.get(l.user_id) ?? 0) + (l.fmv_value ?? 0));
+    }
+    const totalFmv = Array.from(byUser.values()).reduce((s, v) => s + v, 0);
+    const userIds = Array.from(byUser.keys());
+    const n = userIds.length;
+    if (n === 0) return;
+
+    const recipients = userIds.map((uid) => {
+      const pct = mode === "auto_pie" ? ((byUser.get(uid) ?? 0) / totalFmv) * 100 : 100 / n;
+      const amount = mode === "auto_pie"
+        ? Math.round((pct / 100) * raisedAmount * 100) / 100
+        : Math.floor((raisedAmount / n) * 100) / 100;
+      return { user_id: uid, amount, pct };
+    });
+
+    // Insert distribution
+    await supabase.from("quest_distributions" as any).insert({
+      quest_id: questId,
+      distribution_mode: mode === "auto_pie" ? "ocu_pie" : "equal",
+      currency: cur,
+      total_amount: raisedAmount,
+      distributed_by: null,
+      recipient_snapshot: { recipients: recipients.map((r) => ({ ...r, [`amount_${cur}`]: r.amount, basis: mode })) },
+    });
+
+    // Credit each recipient
+    const balField = cur === "coins" ? "coins_balance" : "ctg_balance";
+    const txTable = cur === "coins" ? "coin_transactions" : "ctg_transactions";
+    for (const r of recipients) {
+      if (r.amount <= 0) continue;
+      await supabase.from(txTable as any).insert({
+        user_id: r.user_id,
+        amount: r.amount,
+        type: "QUEST_DISTRIBUTION",
+        ...(cur === "coins" ? { quest_id: questId } : { related_entity_id: questId, related_entity_type: "quest" }),
+      });
+      const { data: prof } = await supabase.from("profiles").select(balField).eq("user_id", r.user_id).single();
+      if (prof) {
+        await supabase.from("profiles").update({ [balField]: Number((prof as any)[balField] ?? 0) + r.amount } as any).eq("user_id", r.user_id);
+      }
+      await supabase.from("notifications" as any).insert({
+        user_id: r.user_id,
+        type: "quest_distribution",
+        title: `💰 You received ${cur === "coins" ? `🟩 ${r.amount} Coins` : `🌱 ${r.amount} $CTG`} from campaign "${campaign.title}"`,
+        link: `/quests/${questId}`,
+        entity_type: "quest",
+        entity_id: questId,
+      });
+    }
+
+    // Mark campaign dispatched
+    await supabase.from("quest_campaigns" as any).update({
+      dispatched_at: new Date().toISOString(),
+      status: "COMPLETED",
+    }).eq("id", campaign.id);
+
+    // Notify quest admin
+    const { data: quest } = await supabase.from("quests").select("created_by_user_id, title").eq("id", questId).single();
+    if (quest) {
+      await supabase.from("notifications" as any).insert({
+        user_id: quest.created_by_user_id,
+        type: "campaign_auto_dispatch",
+        title: `Campaign "${campaign.title}" auto-dispatched ${raisedAmount} ${cur === "coins" ? "Coins" : "$CTG"} to ${n} contributors`,
+        link: `/quests/${questId}`,
+        entity_type: "quest",
+        entity_id: questId,
+      });
+    }
+  };
+
   const currency: "coins" | "ctg" = selectedCampaign?.campaign_currency === "ctg" ? "ctg" : "coins";
   const balanceField = currency === "coins" ? "coins_balance" : "ctg_balance";
   const userBalance = (userProfile as any)?.[balanceField] ?? 0;
@@ -105,10 +215,16 @@ export function FundQuestCard({ questId, className }: Props) {
     const newRaised = (Number(selectedCampaign.raised_amount) || 0) + numAmount;
     const thresholdAmount = Number(selectedCampaign.threshold_amount) || Number(selectedCampaign.goal_amount) || 0;
     const campaignUpdate: any = { raised_amount: newRaised };
-    if (thresholdAmount > 0 && newRaised >= thresholdAmount && !selectedCampaign.threshold_reached_at) {
+    const thresholdJustReached = thresholdAmount > 0 && newRaised >= thresholdAmount && !selectedCampaign.threshold_reached_at;
+    if (thresholdJustReached) {
       campaignUpdate.threshold_reached_at = new Date().toISOString();
     }
     await supabase.from("quest_campaigns" as any).update(campaignUpdate).eq("id", selectedCampaign.id);
+
+    // Auto-dispatch logic
+    if (thresholdJustReached && selectedCampaign.dispatch_mode && selectedCampaign.dispatch_mode !== "manual") {
+      await handleAutoDispatch(selectedCampaign, currency, newRaised);
+    }
 
     // 5. Update quest escrow
     const escrowField = currency === "coins" ? "coins_escrow" : "ctg_escrow";

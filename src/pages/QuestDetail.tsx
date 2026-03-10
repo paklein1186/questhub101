@@ -47,6 +47,7 @@ import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
 import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
+import { DistributionPanel } from "@/components/ocu/DistributionPanel";
 import { ContractTab } from "@/components/ocu/ContractTab";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
@@ -1315,6 +1316,17 @@ export default function QuestDetail() {
           <DistributeCompensation
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+
+          {/* New dual-currency distribution panel */}
+          <DistributionPanel
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            isParticipant={isParticipant}
             onEnableOCU={async () => {
               await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
               qc.invalidateQueries({ queryKey: ["quest", quest.id] });
