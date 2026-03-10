@@ -52,7 +52,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
         .select("id, title")
         .eq("quest_id", questId)
         .order("order_index");
-      return (data || []) as { id: string; title: string }[];
+      return (data || []) as unknown as { id: string; title: string }[];
     },
     enabled: open,
   });
