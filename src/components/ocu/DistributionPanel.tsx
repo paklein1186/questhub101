@@ -194,7 +194,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
             amount: r.amount_coins,
             type: "QUEST_DISTRIBUTION",
             quest_id: quest.id,
-            source: `quest_distribution:${distRecord?.id}`,
+            source: `quest_distribution:${distId}`,
           });
           // Update balance
           const { data: prof } = await supabase
