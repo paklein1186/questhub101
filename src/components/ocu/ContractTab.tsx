@@ -395,7 +395,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
         });
 
         toast({ title: "Amendment rejected", description: "A discussion thread has been created." });
-      } else if (accepts >= totalSignatories) {
+      } else if (isAccepted) {
         // All accepted
         await supabase
           .from("contract_amendments")
