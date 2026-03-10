@@ -45,6 +45,7 @@ import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
 import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
+import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
