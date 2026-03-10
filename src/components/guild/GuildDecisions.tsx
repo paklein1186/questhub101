@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Vote, Plus, Check, X, AlertTriangle, Clock, Archive,
   ChevronDown, ChevronUp, BarChart3, Users, Pencil, Loader2,
-  MessageSquare, ThumbsUp, ThumbsDown, Minus, CircleDot,
+  MessageSquare, ThumbsUp, ThumbsDown, Minus, CircleDot, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ import { AudiencePicker } from "@/components/guild/AudiencePicker";
 import { useEntityRoles, type EntityRole } from "@/hooks/useEntityRoles";
 import type { AudienceType, PermissionContext } from "@/lib/permissions";
 import { evaluateDecisionPermissions } from "@/lib/permissions";
+import { computeVoteWeights, GOVERNANCE_MODELS, type GovernanceModel } from "@/lib/governanceWeights";
 
 /* ───────── Types ───────── */
 type DecisionType = "POLL" | "VOTE_SIMPLE" | "MULTI_OPTION" | "CONSENT";
@@ -460,6 +462,7 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
                 quorumReached={quorumReached}
                 onRefresh={onRefresh}
                 currentUserId={currentUserId}
+                guildId={guildId}
               />
 
               {/* Comments */}
@@ -488,22 +491,40 @@ function DecisionCard({ decision: d, isAdmin, isMember, currentUserId, currentUs
 }
 
 /* ═══════════ Voting Section ═══════════ */
-function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen, totalVotes, memberCount, quorumReached, onRefresh, currentUserId }: {
-  decision: any; type: DecisionType; options: Option[]; votes: any[]; myVote: any; canVote: boolean; isOpen: boolean; totalVotes: number; memberCount: number; quorumReached: boolean; onRefresh: () => void; currentUserId: string;
+function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen, totalVotes, memberCount, quorumReached, onRefresh, currentUserId, guildId }: {
+  decision: any; type: DecisionType; options: Option[]; votes: any[]; myVote: any; canVote: boolean; isOpen: boolean; totalVotes: number; memberCount: number; quorumReached: boolean; onRefresh: () => void; currentUserId: string; guildId: string;
 }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { grantXp } = useXpCredits();
   const [objReason, setObjReason] = useState("");
 
+  // Fetch guild governance model for display
+  const { data: guildData } = useQuery({
+    queryKey: ["guild-governance", guildId],
+    queryFn: async () => {
+      const { data } = await supabase.from("guilds").select("governance_model").eq("id", guildId).single();
+      return data;
+    },
+  });
+  const govModel = ((guildData as any)?.governance_model ?? "1h1v") as GovernanceModel;
+  const govInfo = GOVERNANCE_MODELS[govModel] ?? GOVERNANCE_MODELS["1h1v"];
+
   const castVote = async (optionIndex: number, value?: string, objectionReason?: string) => {
+    // Compute weights
+    const { raw_weight, applied_weight } = await computeVoteWeights(guildId, currentUserId);
+
     if (myVote) {
       if (!decision.allow_vote_change) { toast({ title: "Vote change not allowed" }); return; }
-      // Update existing vote
-      await supabase.from("decision_poll_votes").update({ option_index: optionIndex, value: value || null, objection_reason: objectionReason || null } as any).eq("id", myVote.id);
+      await supabase.from("decision_poll_votes").update({
+        option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
+        raw_weight, applied_weight,
+      } as any).eq("id", myVote.id);
     } else {
       await supabase.from("decision_poll_votes").insert({
-        poll_id: decision.id, user_id: currentUserId, option_index: optionIndex, value: value || null, objection_reason: objectionReason || null,
+        poll_id: decision.id, user_id: currentUserId, option_index: optionIndex,
+        value: value || null, objection_reason: objectionReason || null,
+        raw_weight, applied_weight,
       } as any);
 
       // Notify decision creator about the new vote (fire-and-forget)
@@ -541,9 +562,14 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
     toast({ title: "Vote recorded" });
   };
 
-  // Tally per option
+  // Tally per option (raw count and weighted)
   const tally = options.map((_: any, i: number) => votes.filter((v: any) => v.option_index === i).length);
+  const weightedTally = options.map((_: any, i: number) =>
+    votes.filter((v: any) => v.option_index === i).reduce((sum: number, v: any) => sum + (v.applied_weight ?? 1), 0)
+  );
+  const totalWeight = votes.reduce((sum: number, v: any) => sum + (v.applied_weight ?? 1), 0);
   const maxTally = Math.max(...tally, 1);
+  const isWeighted = govModel !== "1h1v";
 
   // For consent type
   const consentCount = votes.filter((v: any) => v.value === "CONSENT" || v.option_index === 0).length;
@@ -552,6 +578,18 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 
   return (
     <div className="space-y-3">
+      {/* Governance model badge */}
+      {isWeighted && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant="outline" className="text-[10px] gap-1 cursor-help">
+              <Info className="h-2.5 w-2.5" /> Weighted by: {govInfo.label}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent className="text-xs max-w-xs">{govInfo.description}</TooltipContent>
+        </Tooltip>
+      )}
+
       {/* Vote buttons for VOTE_SIMPLE */}
       {type === "VOTE_SIMPLE" && (
         <div className="space-y-2">
@@ -569,7 +607,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
             </div>
           )}
           {!canVote && myVote && <p className="text-xs text-muted-foreground">You voted: <strong>{["Yes", "No", "Abstain"][myVote.option_index]}</strong></p>}
-          <ResultBars options={[{ label: "Yes" }, { label: "No" }, { label: "Abstain" }]} tally={tally} total={totalVotes} passThreshold={decision.pass_threshold} />
+          <ResultBars options={[{ label: "Yes" }, { label: "No" }, { label: "Abstain" }]} tally={tally} weightedTally={weightedTally} total={totalVotes} totalWeight={totalWeight} isWeighted={isWeighted} passThreshold={decision.pass_threshold} />
         </div>
       )}
 
@@ -586,9 +624,12 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium truncate">{opt.label}</span>
-                  <span className="text-xs text-muted-foreground shrink-0">{tally[i]} vote{tally[i] !== 1 ? "s" : ""}</span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                    {isWeighted && totalWeight > 0 && ` (${Math.round((weightedTally[i] / totalWeight) * 100)}%w)`}
+                  </span>
                 </div>
-                <Progress value={totalVotes > 0 ? (tally[i] / totalVotes) * 100 : 0} className="h-1.5 mt-1" />
+                <Progress value={isWeighted && totalWeight > 0 ? (weightedTally[i] / totalWeight) * 100 : totalVotes > 0 ? (tally[i] / totalVotes) * 100 : 0} className="h-1.5 mt-1" />
               </div>
             </div>
           ))}
@@ -638,18 +679,26 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 }
 
 /* ═══════════ Result Bars ═══════════ */
-function ResultBars({ options, tally, total, passThreshold }: { options: Option[]; tally: number[]; total: number; passThreshold?: number }) {
+function ResultBars({ options, tally, weightedTally, total, totalWeight, isWeighted, passThreshold }: {
+  options: Option[]; tally: number[]; weightedTally?: number[]; total: number; totalWeight?: number; isWeighted?: boolean; passThreshold?: number;
+}) {
   return (
     <div className="space-y-1.5">
       {options.map((opt, i) => {
         const pct = total > 0 ? Math.round((tally[i] / total) * 100) : 0;
+        const wPct = isWeighted && totalWeight && totalWeight > 0 && weightedTally
+          ? Math.round((weightedTally[i] / totalWeight) * 100) : null;
         return (
           <div key={i}>
             <div className="flex items-center justify-between text-sm mb-0.5">
               <span>{opt.label}</span>
-              <span className="text-xs text-muted-foreground">{tally[i]} ({pct}%)</span>
+              <span className="text-xs text-muted-foreground">
+                {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                {wPct !== null && ` = ${weightedTally![i].toFixed(1)}w = ${wPct}%`}
+                {wPct === null && ` (${pct}%)`}
+              </span>
             </div>
-            <Progress value={pct} className="h-2" />
+            <Progress value={wPct ?? pct} className="h-2" />
           </div>
         );
       })}
