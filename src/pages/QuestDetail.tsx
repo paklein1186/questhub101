@@ -1286,6 +1286,16 @@ export default function QuestDetail() {
               qc.invalidateQueries({ queryKey: ["quest", quest.id] });
             }}
           />
+
+          {/* OCU Compensation Distribution (admin only) */}
+          <DistributeCompensation
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
         </TabsContent>
 
         {/* ── Contribution Pie ── */}
