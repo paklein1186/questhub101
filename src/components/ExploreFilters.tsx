@@ -63,6 +63,10 @@ export interface ExploreFilterValues {
   questType: string;
   missionOnly: boolean;
   hasBudget: boolean;
+  hasCoins: boolean;
+  hasCtg: boolean;
+  isFundraising: boolean;
+  hasOcu: boolean;
 }
 
 export const defaultFilters: ExploreFilterValues = {
@@ -79,6 +83,10 @@ export const defaultFilters: ExploreFilterValues = {
   questType: "all",
   missionOnly: false,
   hasBudget: false,
+  hasCoins: false,
+  hasCtg: false,
+  isFundraising: false,
+  hasOcu: false,
 };
 
 // Which filter sections to show per page
