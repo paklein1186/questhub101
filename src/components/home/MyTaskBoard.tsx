@@ -288,11 +288,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
   const { data: mySubtasks = [], isLoading: loadingSubtasks } = useQuery({
     queryKey: ["my-subtasks-home", userId],
     queryFn: async () => {
-      // 1. Subtasks explicitly assigned to user
+      // 1. Subtasks explicitly assigned to user (via array column)
       const { data: assigned, error: e1 } = await supabase
         .from("quest_subtasks" as any)
-        .select("id, title, status, quest_id, assignee_user_id, priority")
-        .eq("assignee_user_id", userId)
+        .select("id, title, status, quest_id, assignee_user_id, assignee_user_ids, priority")
+        .contains("assignee_user_ids", [userId])
         .order("created_at", { ascending: false })
         .limit(100);
       if (e1) throw e1;
