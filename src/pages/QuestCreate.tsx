@@ -294,8 +294,8 @@ export default function QuestCreate() {
     if (!aiSuggestion) return;
     setRewardXp(String(aiSuggestion.rewardXp));
     if (aiSuggestion.creditBudget > 0) {
-      setCreditBudget(String(aiSuggestion.creditBudget));
-      setOpenForProposals(true);
+      setCoinsBudget(String(aiSuggestion.creditBudget));
+      setCoinsEnabled(true);
     }
     if (aiSuggestion.fundingGoal) {
       setFundingGoalCredits(String(aiSuggestion.fundingGoal));
