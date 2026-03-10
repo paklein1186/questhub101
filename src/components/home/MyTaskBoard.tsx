@@ -15,7 +15,7 @@ import {
   Plus, ListTodo, Compass, ChevronRight, ArrowUpRight,
   Trash2, Loader2, Rocket, ListChecks, Users, Building2, User,
   ChevronLeft, ArrowDownUp, Hash, MapPin, Search, X, Sun,
-  Circle, CircleDot, Timer, CheckCircle2, Scale,
+  Circle, CircleDot, Timer, CheckCircle2, Scale, Pencil,
 } from "lucide-react";
 import { ConfettiSpark } from "./ConfettiSpark";
 import {
@@ -27,6 +27,9 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -994,7 +997,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         user_id: userId,
         quest_id: questId,
         contribution_type: "other",
-        title: "Création de la quête depuis tâche personnelle",
+        title: "Quest created from personal task",
         task_type: "coordination",
         base_units: 1,
         weight_factor: 1.0,
@@ -1070,6 +1073,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           {(todoCount > 0 || inProgressCount > 0) && (
             <Badge variant="secondary" className="text-xs ml-1">
               {todoCount + inProgressCount} active
+            </Badge>
+          )}
+          {todayGoals.size > 0 && (
+            <Badge variant="outline" className="text-xs ml-1 border-amber-400/50 text-amber-600">
+              ☀ {todayGoals.size} today
             </Badge>
           )}
         </h2>
@@ -1186,13 +1194,25 @@ export function MyTaskBoard({ userId }: { userId: string }) {
           No active tasks. Add one above or create a quest!
         </p>
       ) : (
-        <div className="rounded-xl border border-border overflow-x-auto">
+        <>
+        {/* Desktop table */}
+        <div className="hidden sm:block rounded-xl border border-border overflow-x-auto">
           <table className="w-full text-xs sm:text-sm min-w-0">
             <thead className="bg-muted/50">
               <tr>
                 <th className="w-7 sm:w-8 px-1.5 sm:px-3 py-1.5 sm:py-2"></th>
-                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2" title="Today's goals — resets daily at 9am">
-                  <Sun className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-amber-500 mx-auto" />
+                <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex flex-col items-center gap-0.5 cursor-help">
+                        <Sun className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-amber-500" />
+                        <span className="text-[9px] text-amber-500 font-medium leading-none">Today</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs">
+                      Mark as today's focus — resets at 9am
+                    </TooltipContent>
+                  </Tooltip>
                 </th>
                 <th className="w-7 sm:w-8 px-1 py-1.5 sm:py-2"></th>
                 <th className="text-left px-1.5 sm:px-3 py-1.5 sm:py-2 font-medium">Task</th>
@@ -1202,21 +1222,44 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((task) => {
+              {(() => {
+                let lastGroup = "";
+                const STATUS_GROUP_LABELS: Record<string, { icon: string; label: string }> = {
+                  IN_PROGRESS: { icon: "●", label: "In Progress" },
+                  TODO: { icon: "○", label: "To Do" },
+                  BACKLOG: { icon: "·", label: "Backlog" },
+                  DONE: { icon: "✓", label: "Done" },
+                };
+                return paginated.flatMap((task) => {
                 const key = `${task.source}-${task.id}`;
                 const isDoneThisSession = sessionDone.has(key);
+                const rows: React.ReactNode[] = [];
+
+                // Group separator row
+                if (sortBy === "status" && task.workState !== lastGroup) {
+                  lastGroup = task.workState;
+                  const group = STATUS_GROUP_LABELS[task.workState] || { icon: "·", label: task.workState };
+                  rows.push(
+                    <tr key={`group-${task.workState}`} className="border-t border-border">
+                      <td colSpan={7} className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 py-1 bg-muted/20">
+                        {group.icon} {group.label}
+                      </td>
+                    </tr>
+                  );
+                }
 
                 if (isDoneThisSession) {
-                  return (
+                  rows.push(
                     <tr key={key} className="border-t border-border bg-muted/30">
                       <td colSpan={7} className="px-3 py-2.5">
                         <span className="text-sm text-muted-foreground line-through">{task.title}</span>
                       </td>
                     </tr>
                   );
+                  return rows;
                 }
 
-                return (
+                rows.push(
                 <tr key={key} className={cn("border-t border-border group hover:bg-accent/30 transition-colors", todayGoals.has(key) && "bg-amber-500/5")}>
                   <td className="px-1.5 sm:px-3 py-1.5 sm:py-2.5">
                     <Checkbox
@@ -1254,7 +1297,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         className="h-7 text-sm"
                       />
                     ) : (
-                      <>
+                      <div className="flex items-center gap-1">
                         <span
                           className={cn(
                             "text-xs sm:text-sm cursor-pointer line-clamp-2 break-words",
@@ -1264,13 +1307,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                         >
                           {task.title}
                         </span>
+                        <button
+                          onClick={() => startEditing(task)}
+                          className="opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity shrink-0"
+                          title="Edit title"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
                         {task.convertedToQuestId && (
                           <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Quest</Badge>
                         )}
                         {task.convertedToSubtaskId && (
                           <Badge variant="outline" className="ml-1 sm:ml-2 text-[9px] sm:text-[10px]">→ Subtask</Badge>
                         )}
-                      </>
+                      </div>
                     )}
                   </td>
                   <td className="px-3 py-2.5 hidden sm:table-cell max-w-[160px]">
@@ -1345,23 +1395,28 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <td className="px-0.5 sm:px-3 py-1.5 sm:py-2.5">
                     <div className="flex items-center gap-0.5">
                       {task.source === "personal" && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100">
-                              <ArrowUpRight className="h-3.5 w-3.5" />
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Convert to Quest"
+                            onClick={() => openUnitPicker(task)}
+                          >
+                            <Rocket className="h-3.5 w-3.5 text-primary/60" />
+                          </Button>
+                          {allQuestsForPicker.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100"
+                              title="Attach to Quest"
+                              onClick={() => { setQuestPickerTask(task); setQuestPickerOpen(true); setQuestPickerSearch(""); }}
+                            >
+                              <ListChecks className="h-3.5 w-3.5" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openUnitPicker(task)}>
-                              <Rocket className="h-3.5 w-3.5 mr-2" /> {task.convertedToQuestId ? "Reattach Quest to Guild" : "Convert to Quest"}
-                            </DropdownMenuItem>
-                            {allQuestsForPicker.length > 0 && (
-                              <DropdownMenuItem onClick={() => { setQuestPickerTask(task); setQuestPickerOpen(true); setQuestPickerSearch(""); }}>
-                                <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          )}
+                        </>
                       )}
                       {(task.source === "quest" || task.source === "subtask") && (
                         <Button
@@ -1385,7 +1440,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   </td>
                 </tr>
                 );
-              })}
+                return rows;
+              });
+              })()}
             </tbody>
           </table>
           {/* Pagination */}
@@ -1406,6 +1463,71 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             </div>
           )}
         </div>
+
+        {/* Mobile card view */}
+        <div className="sm:hidden space-y-2">
+          {paginated.map((task) => {
+            const key = `${task.source}-${task.id}`;
+            const isDoneThisSession = sessionDone.has(key);
+            if (isDoneThisSession) {
+              return (
+                <div key={key} className="rounded-lg border border-border p-3 bg-muted/30">
+                  <span className="text-sm text-muted-foreground line-through">{task.title}</span>
+                </div>
+              );
+            }
+            return (
+              <div key={key} className={cn("rounded-lg border border-border p-3 flex items-start gap-2 group", todayGoals.has(key) && "bg-amber-500/5")}>
+                <Checkbox
+                  checked={task.workState === "DONE"}
+                  onCheckedChange={(checked) => handleCheckboxToggle(task, !!checked)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium line-clamp-2">{task.title}</span>
+                  {task.sourceLabel && <span className="text-[10px] text-muted-foreground block mt-0.5">{task.sourceLabel}</span>}
+                </div>
+                <Select value={task.workState} onValueChange={(v) => handleStatusChange(task, v)}>
+                  <SelectTrigger className={cn(
+                    "h-7 w-8 text-[10px] font-medium px-1.5 py-0 border-none shadow-none rounded-full [&>svg:last-child]:hidden",
+                    STATUS_COLORS[task.workState] || STATUS_COLORS.TODO,
+                  )}>
+                    <span className="flex items-center justify-center">
+                      {task.workState === "BACKLOG" && <Circle className="h-3.5 w-3.5" />}
+                      {task.workState === "TODO" && <CircleDot className="h-3.5 w-3.5" />}
+                      {task.workState === "IN_PROGRESS" && <Timer className="h-3.5 w-3.5" />}
+                      {task.workState === "DONE" && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BACKLOG"><span className="flex items-center gap-1.5"><Circle className="h-3 w-3" /> Backlog</span></SelectItem>
+                    <SelectItem value="TODO"><span className="flex items-center gap-1.5"><CircleDot className="h-3 w-3" /> To do next</span></SelectItem>
+                    <SelectItem value="IN_PROGRESS"><span className="flex items-center gap-1.5"><Timer className="h-3 w-3" /> In progress</span></SelectItem>
+                    <SelectItem value="DONE"><span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Done</span></SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })}
+          {/* Mobile pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-1 py-2">
+              <span className="text-xs text-muted-foreground">
+                {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
+                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        </>
       )}
 
       {/* Unit picker dialog */}
@@ -1524,7 +1646,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back
                 </Button>
                 <Button size="sm" onClick={() => setConvertStep("budget")} className="flex-1">
-                  Suivant →
+                  Next →
                 </Button>
               </div>
             </div>
@@ -1534,7 +1656,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <div className="space-y-4 py-2">
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
-                Budget & Répartition de valeur
+                Budget & Value Split
               </h3>
 
               <div className="space-y-1.5">
@@ -1552,27 +1674,27 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part Guilde</Label>
+                    <Label className="text-xs">Guild share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertGuildPercent}%</span>
                   </div>
                   <Slider min={0} max={30} step={1} value={[convertGuildPercent]} onValueChange={([v]) => setConvertGuildPercent(v)} />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part Territoire</Label>
+                    <Label className="text-xs">Territory share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertTerritoryPercent}%</span>
                   </div>
                   <Slider min={0} max={20} step={1} value={[convertTerritoryPercent]} onValueChange={([v]) => setConvertTerritoryPercent(v)} />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part $CTG</Label>
+                    <Label className="text-xs">Commons share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertCtgPercent}%</span>
                   </div>
                   <Slider min={0} max={15} step={1} value={[convertCtgPercent]} onValueChange={([v]) => setConvertCtgPercent(v)} />
                 </div>
                 <p className="text-sm font-bold text-emerald-600">
-                  Part contributeurs : {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
+                  Contributor share: {100 - convertGuildPercent - convertTerritoryPercent - convertCtgPercent}%
                 </p>
               </div>
 
@@ -1593,7 +1715,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   disabled={converting}
                   className="text-xs text-muted-foreground"
                 >
-                  Passer
+                  Skip
                 </Button>
                 <Button size="sm" onClick={finalizeConvertToQuest} disabled={converting} className="flex-1">
                   {converting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Rocket className="h-3.5 w-3.5 mr-1" />}
