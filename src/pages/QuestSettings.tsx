@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
-  Plus, Pencil, X, Lightbulb, Globe, Link2,
+  Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
