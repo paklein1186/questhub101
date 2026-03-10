@@ -104,10 +104,16 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] });
   };
 
-  const commitSubtaskDone = useCallback((subtaskId: string) => {
-    updateStatus(subtaskId, "DONE");
+  const commitSubtaskDone = useCallback(async (subtaskId: string) => {
+    // Optimistically update the cache so the checkbox shows DONE immediately
+    qc.setQueryData(["quest-subtasks", questId], (old: any[] | undefined) =>
+      (old || []).map((s: any) => s.id === subtaskId ? { ...s, status: "DONE" } : s)
+    );
     setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     pendingTimers.current.delete(subtaskId);
+
+    // Persist to DB
+    await updateStatus(subtaskId, "DONE");
 
     // Grant XP and credits to the assignee
     const subtask = subtasks.find((s: any) => s.id === subtaskId);
