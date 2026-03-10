@@ -621,6 +621,9 @@ export default function GuildDetail() {
           <GraphView centerType="guild" centerId={guild.id} height={700} />
         </TabsContent>
 
+        <TabsContent value="contribution-map" className="mt-6">
+          <GuildContributionMap guildId={guild.id} />
+        </TabsContent>
 
         <TabsContent value="members" className="mt-6 space-y-4">
           <TopTrustedMembers
