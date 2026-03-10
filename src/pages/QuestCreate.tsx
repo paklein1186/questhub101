@@ -825,17 +825,30 @@ export default function QuestCreate() {
                     {aiSubtasks.map((s, i) => (
                       <div
                         key={i}
-                        className={`flex items-start gap-2 p-2 rounded-md text-sm cursor-pointer transition-colors ${
+                        className={`flex items-start gap-2 p-2 rounded-md text-sm transition-colors ${
                           s.accepted ? "bg-primary/10" : "bg-muted/50 opacity-60"
                         }`}
-                        onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}
                       >
-                        <div className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 ${s.accepted ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                        <div
+                          className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center shrink-0 cursor-pointer ${s.accepted ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}
+                          onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}
+                        >
                           {s.accepted && <Check className="h-3 w-3" />}
                         </div>
-                        <div>
+                        <div className="flex-1 cursor-pointer" onClick={() => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, accepted: !st.accepted } : st))}>
                           <span className="font-medium">{s.title}</span>
                           {s.description && <p className="text-xs text-muted-foreground">{s.description}</p>}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-[10px] text-muted-foreground">🌱</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={s.ctg_reward}
+                            onChange={(e) => setAiSubtasks(prev => prev.map((st, idx) => idx === i ? { ...st, ctg_reward: Number(e.target.value) || 0 } : st))}
+                            className="h-6 w-14 text-xs px-1 text-center"
+                          />
                         </div>
                       </div>
                     ))}
