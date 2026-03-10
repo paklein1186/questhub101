@@ -87,18 +87,24 @@ export function ContributionCard({ contribution, currentUserId, onReview, showRe
             <span>{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span>
           </div>
 
-          {/* Compensation indicator */}
-          {(compensationStatus !== "none" || coinsCompensated > 0) && (
+          {/* Compensation badge */}
+          {fmvValue > 0 && (
             <div className="flex items-center gap-2 mt-1 text-[10px]">
-              {coinsCompensated > 0 && (
-                <span className="text-emerald-600 font-medium">
-                  🟡 {coinsCompensated} paid
-                </span>
+              {coinsCompensated >= fmvValue ? (
+                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30">
+                  🟢 Compensated
+                </Badge>
+              ) : coinsCompensated > 0 ? (
+                <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30">
+                  🟡 Partial (€{coinsCompensated} / €{fmvValue})
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] bg-red-500/10 text-red-700 border-red-500/30">
+                  🔴 Uncompensated
+                </Badge>
               )}
-              {compensationStatus === "pending_compensation" && fmvValue > coinsCompensated && (
-                <span className="text-amber-600">
-                  🟡 {fmvValue - coinsCompensated} pending
-                </span>
+              {compensationStatus === "fiat_external" && (
+                <span className="text-muted-foreground italic">€ paid externally</span>
               )}
             </div>
           )}
