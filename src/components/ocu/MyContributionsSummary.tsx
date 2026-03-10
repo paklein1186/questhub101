@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Badge } from "@/components/ui/badge";
 import { Coins } from "lucide-react";
+import { ContributorExitCards } from "./ContributorExitCards";
 
 interface QuestSummary {
   quest_id: string;

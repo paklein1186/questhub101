@@ -599,6 +599,26 @@ export function QuestPiePanel({ quest, isAdmin, onEnableOCU }: Props) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Initiate Exit Dialog */}
+        {exitTarget && guildSettings && (
+          <InitiateExitDialog
+            open={!!exitTarget}
+            onOpenChange={(open) => { if (!open) setExitTarget(null); }}
+            contributor={exitTarget}
+            quest={quest}
+            guildSettings={{
+              exit_good_leaver_fmv_pct: guildSettings.exit_good_leaver_fmv_pct ?? 75,
+              exit_graceful_fmv_pct: guildSettings.exit_graceful_fmv_pct ?? 100,
+              exit_bad_leaver_fmv_pct: guildSettings.exit_bad_leaver_fmv_pct ?? 0,
+              exit_bad_leaver_decision: guildSettings.exit_bad_leaver_decision ?? "admin",
+              abandonment_threshold_days: guildSettings.abandonment_threshold_days ?? 60,
+            }}
+            allContributors={pieData}
+            isAbandonment={exitIsAbandonment}
+            activeContractId={activeContract?.id ?? null}
+          />
+        )}
       </div>
     </OCUFeatureGate>
   );
