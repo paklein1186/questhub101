@@ -1103,15 +1103,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
               <SelectItem value="subtask">Subtasks</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
-          >
-            <ArrowDownUp className="h-3.5 w-3.5" />
-            <span className="hidden xs:inline">{sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                onClick={() => setSortBy(sortBy === "status" ? "priority" : sortBy === "priority" ? "recent" : "status")}
+              >
+                <ArrowDownUp className="h-3.5 w-3.5" />
+                <span>{sortBy === "status" ? "Status" : sortBy === "priority" ? "Priority" : "Recent"}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sort tasks by status, priority, or date</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
