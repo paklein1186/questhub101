@@ -1312,7 +1312,18 @@ export default function QuestDetail() {
           />
         </TabsContent>
 
-        <TabsContent value="updates" className="mt-6 space-y-4">
+        {/* ── Contract ── */}
+        <TabsContent value="contract" className="mt-6">
+          <ContractTab
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+        </TabsContent>
+
           {canPostUpdate && (
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-muted-foreground">Share progress, milestones, and calls-to-action with your community.</p>
