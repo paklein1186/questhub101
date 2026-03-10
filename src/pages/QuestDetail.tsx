@@ -44,6 +44,7 @@ import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/Conte
 import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
+import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
