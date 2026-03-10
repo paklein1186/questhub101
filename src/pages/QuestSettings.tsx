@@ -8,6 +8,7 @@ import {
   PieChart, FileText, LogOut, Snowflake,
 } from "lucide-react";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
+import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
 import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
 import { WebVisibilityEditor } from "@/components/website/WebVisibilityEditor";
 import { ContractTab } from "@/components/ocu/ContractTab";
@@ -77,15 +78,8 @@ export default function QuestSettings() {
   return <QuestSettingsInner questId={quest.id} quest={quest} />;
 }
 
-/* ─── Campaign form state ─── */
-interface CampaignForm {
-  title: string;
-  goal_amount: string;
-  type: "CREDITS" | "FIAT";
-  currency: string;
-  status: string;
-}
-const emptyCampaign: CampaignForm = { title: "", goal_amount: "0", type: "CREDITS", currency: "EUR", status: "ACTIVE" };
+
+
 
 function QuestSettingsInner({ questId, quest }: { questId: string; quest: any }) {
   const currentUser = useCurrentUser();
@@ -175,42 +169,20 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     enabled: activeTab === "exit" && ocuEnabled,
   });
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<CampaignForm>(emptyCampaign);
-  const [saving, setSaving] = useState(false);
+  // ── Campaign dialog state ──
+  const [campaignDialogOpen, setCampaignDialogOpen] = useState(false);
+  const [campaignDialogCurrency, setCampaignDialogCurrency] = useState<"coins" | "ctg">("coins");
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
 
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyCampaign);
-    setDialogOpen(true);
+  const openNewCampaign = (currency: "coins" | "ctg") => {
+    setCampaignDialogCurrency(currency);
+    setEditingCampaign(null);
+    setCampaignDialogOpen(true);
   };
-  const openEdit = (c: any) => {
-    setEditingId(c.id);
-    setForm({ title: c.title || "", goal_amount: String(c.goal_amount), type: c.type, currency: c.currency || "EUR", status: c.status });
-    setDialogOpen(true);
-  };
-  const saveCampaign = async () => {
-    setSaving(true);
-    const payload: any = {
-      title: form.title,
-      goal_amount: Number(form.goal_amount) || 0,
-      type: form.type,
-      currency: form.currency,
-      status: form.status,
-    };
-    if (editingId) {
-      await supabase.from("quest_campaigns" as any).update(payload).eq("id", editingId);
-      toast({ title: "Campaign updated" });
-    } else {
-      payload.quest_id = questId;
-      payload.created_by_user_id = currentUser.id;
-      await supabase.from("quest_campaigns" as any).insert(payload);
-      toast({ title: "Campaign created" });
-    }
-    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
-    setSaving(false);
-    setDialogOpen(false);
+  const openEditCampaign = (campaign: any) => {
+    setCampaignDialogCurrency(campaign.campaign_currency || "coins");
+    setEditingCampaign(campaign);
+    setCampaignDialogOpen(true);
   };
   const deleteCampaign = async (id: string) => {
     if (!confirm("Delete this campaign?")) return;
@@ -218,6 +190,24 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
     qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
     toast({ title: "Campaign deleted" });
   };
+  const cancelCampaign = async (id: string) => {
+    if (!confirm("Cancel this campaign?")) return;
+    await supabase.from("quest_campaigns" as any).update({ status: "CANCELLED" }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
+    toast({ title: "Campaign cancelled" });
+  };
+  const dispatchCampaign = async (campaign: any) => {
+    if (!confirm("Dispatch funds from this campaign?")) return;
+    await supabase.from("quest_campaigns" as any).update({
+      dispatched_at: new Date().toISOString(),
+      dispatched_by: currentUser.id,
+      status: "COMPLETED",
+    }).eq("id", campaign.id);
+    qc.invalidateQueries({ queryKey: ["quest-campaigns", questId] });
+    toast({ title: "Campaign dispatched" });
+  };
+
+  const [saving, setSaving] = useState(false);
 
   // ── Features config state ──
   const defaultFeatures = { rituals: true, subtasks: true, discussion: true };
@@ -610,104 +600,70 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
 
               {/* ── Fundraising ── */}
               {activeTab === "fundraising" && (
-                <div className="space-y-5 max-w-lg">
-                  {/* Global settings card */}
-                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <div className="space-y-5 max-w-2xl">
+                  {/* Quick top-up */}
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-3">
                     <h3 className="font-display font-semibold flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-primary" /> Fundraising Settings
+                      <Coins className="h-4 w-4 text-primary" /> Direct Top-Up
                     </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Funding Type</label>
-                        <Select value={fundingType} onValueChange={(v) => setFundingType(v as "CREDITS" | "FIAT")}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="CREDITS">🌱 $CTG (contribution token)</SelectItem>
-                            <SelectItem value="FIAT">Fiat (€ via Stripe)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Funding Goal</label>
-                        <Input type="number" value={fundingGoal} onChange={e => setFundingGoal(e.target.value)} min={0} placeholder="Optional" />
-                        <p className="text-xs text-muted-foreground mt-1">Target {fundingType === "CREDITS" ? "$CTG" : "€"}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">{fundingType === "CREDITS" ? "🌱 $CTG Budget" : "Fiat Budget (€)"}</label>
-                        <Input type="number" value={creditBudget} onChange={e => setCreditBudget(e.target.value)} min={0} />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">🌱 $CTG Reward</label>
-                        <Input type="number" value={creditReward} onChange={e => setCreditReward(e.target.value)} min={0} />
-                        <p className="text-xs text-muted-foreground mt-1">Per participant on completion</p>
-                      </div>
+                    <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setAddCoinsOpen(true)}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🟩 Coins
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setAddCtgOpen(true)}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🌱 $CTG
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
+                      <p><strong>🟩 Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
+                      <p><strong>🌱 $CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Dual-currency campaigns */}
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {/* Coins Campaigns */}
+                    <CampaignSection
+                      emoji="🟩"
+                      label="Coins"
+                      campaigns={campaigns.filter((c: any) => (c.campaign_currency || "coins") === "coins" || (c.type === "FIAT" && !c.campaign_currency))}
+                      isLoading={campaignsLoading}
+                      coinsRate={coinsRate}
+                      onNew={() => openNewCampaign("coins")}
+                      onEdit={openEditCampaign}
+                      onDelete={deleteCampaign}
+                      onCancel={cancelCampaign}
+                      onDispatch={dispatchCampaign}
+                    />
+
+                    {/* $CTG Campaigns */}
+                    <CampaignSection
+                      emoji="🌱"
+                      label="$CTG"
+                      campaigns={campaigns.filter((c: any) => c.campaign_currency === "ctg" || (c.type === "CREDITS" && !c.campaign_currency))}
+                      isLoading={campaignsLoading}
+                      coinsRate={coinsRate}
+                      onNew={() => openNewCampaign("ctg")}
+                      onEdit={openEditCampaign}
+                      onDelete={deleteCampaign}
+                      onCancel={cancelCampaign}
+                      onDispatch={dispatchCampaign}
+                    />
+                  </div>
+
+                  {/* Fundraising toggle */}
+                  <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                    <div className="flex items-center gap-3">
                       <Switch id="settingsFundraising" checked={allowFundraising} onCheckedChange={setAllowFundraising} />
                       <label htmlFor="settingsFundraising" className="text-sm font-medium">Allow community fundraising</label>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      When enabled, any logged-in user can contribute to active campaigns on this quest's detail page.
+                    </p>
                     <Button size="sm" onClick={saveFundraising}>
-                      <Save className="h-4 w-4 mr-1" /> Save Settings
+                      <Save className="h-4 w-4 mr-1" /> Save
                     </Button>
-                  </div>
-
-                  {/* Campaigns list */}
-                  <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-display font-semibold flex items-center gap-2">
-                        <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
-                      </h3>
-                      <Button size="sm" variant="outline" onClick={openCreate}>
-                        <Plus className="h-4 w-4 mr-1" /> New Campaign
-                      </Button>
-                    </div>
-
-                    {campaignsLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                    ) : campaigns.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">No funding campaigns yet.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {campaigns.map((c: any) => {
-                          const pct = c.goal_amount > 0 ? Math.min(100, Math.round((c.raised_amount / c.goal_amount) * 100)) : 0;
-                          return (
-                            <div key={c.id} className="rounded-lg border border-border bg-background p-3 space-y-2">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-medium text-sm">{c.title || "Untitled campaign"}</span>
-                                    <Badge variant="outline" className={`text-xs ${statusColor(c.status)}`}>{c.status}</Badge>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    Goal: {c.goal_amount} {c.type === "FIAT" ? (c.currency || "EUR") : "$CTG"} · Raised: {c.raised_amount}
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(c)}>
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deleteCampaign(c.id)}>
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                              </div>
-                              {c.goal_amount > 0 && (
-                                <div className="w-full bg-muted rounded-full h-2">
-                                  <div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${pct}%` }} />
-                                </div>
-                              )}
-                              <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}{c.goal_amount > 0 ? ` · ${pct}% funded` : ""}</p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>Coins in escrow:</strong> {coinsEscrow.toLocaleString()}</p>
-                      <p><strong>$CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
-                      <p><strong>Fundraising:</strong> {(quest as any).allow_fundraising ? "Open" : "Closed"}{(quest as any).fundraising_cancelled ? " (Cancelled)" : ""}</p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -832,60 +788,14 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
       </div>
 
       {/* ── Campaign Create/Edit Dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Campaign" : "New Funding Campaign"}</DialogTitle>
-            <DialogDescription>
-              {editingId ? "Update the campaign details." : "Create a new funding campaign with a goal to reach."}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Campaign Title</label>
-              <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Seed round, Community fund…" />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Goal Amount</label>
-              <Input type="number" min={0} value={form.goal_amount} onChange={e => setForm(f => ({ ...f, goal_amount: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Type</label>
-                <Select value={form.type} onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CREDITS">$CTG</SelectItem>
-                    <SelectItem value="FIAT">Fiat</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Currency</label>
-                <Input value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))} placeholder="EUR" />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Status</label>
-              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveCampaign} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              {editingId ? "Update" : "Create"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateCampaignDialog
+        open={campaignDialogOpen}
+        onOpenChange={setCampaignDialogOpen}
+        currency={campaignDialogCurrency}
+        questId={questId}
+        ocuEnabled={ocuEnabled}
+        editingCampaign={editingCampaign}
+      />
 
       {/* ── Add Coins Dialog ── */}
       <Dialog open={addCoinsOpen} onOpenChange={setAddCoinsOpen}>
@@ -957,5 +867,115 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
         </DialogContent>
       </Dialog>
     </PageShell>
+  );
+}
+
+/* ─── Campaign Section (used in Fundraising tab) ─── */
+function CampaignSection({
+  emoji, label, campaigns, isLoading, coinsRate, onNew, onEdit, onDelete, onCancel, onDispatch,
+}: {
+  emoji: string; label: string; campaigns: any[]; isLoading: boolean; coinsRate: number;
+  onNew: () => void; onEdit: (c: any) => void; onDelete: (id: string) => void;
+  onCancel: (id: string) => void; onDispatch: (c: any) => void;
+}) {
+  const statusStyle = (s: string) => {
+    if (s === "ACTIVE") return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
+    if (s === "COMPLETED") return "bg-primary/10 text-primary border-primary/30";
+    if (s === "CANCELLED") return "bg-muted text-muted-foreground border-border";
+    return "bg-muted text-muted-foreground";
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display font-semibold text-sm flex items-center gap-2">
+          <span className="text-lg">{emoji}</span> {label} Campaigns
+        </h3>
+        <Button size="sm" variant="outline" onClick={onNew}>
+          <Plus className="h-3.5 w-3.5 mr-1" /> New
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+      ) : campaigns.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">No {label} campaigns yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {campaigns.map((c: any) => {
+            const threshold = Number(c.threshold_amount) || Number(c.goal_amount) || 0;
+            const raised = Number(c.raised_amount) || 0;
+            const pct = threshold > 0 ? Math.min(100, Math.round((raised / threshold) * 100)) : 0;
+            const isThresholdReached = !!c.threshold_reached_at;
+            const isDispatched = !!c.dispatched_at;
+            const isActive = c.status === "ACTIVE";
+
+            let statusLabel = c.status;
+            if (isDispatched) statusLabel = "DISPATCHED";
+            else if (isThresholdReached) statusLabel = "THRESHOLD REACHED";
+
+            return (
+              <div key={c.id} className="rounded-lg border border-border bg-background p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm">{c.title || `${label} campaign`}</span>
+                      <Badge variant="outline" className={`text-[10px] ${statusStyle(statusLabel)}`}>
+                        {statusLabel}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {raised.toLocaleString()} / {threshold.toLocaleString()} {label} — {pct}%
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isActive && (
+                      <>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(c)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onCancel(c.id)}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    )}
+                    {!isActive && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDelete(c.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {threshold > 0 && (
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div className="bg-primary rounded-full h-1.5 transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                )}
+
+                {isThresholdReached && !isDispatched && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      ✅ Threshold reached {c.threshold_reached_at ? new Date(c.threshold_reached_at).toLocaleDateString() : ""}
+                    </span>
+                    {c.dispatch_mode === "manual" && (
+                      <Button size="sm" variant="default" className="h-6 text-xs" onClick={() => onDispatch(c)}>
+                        Dispatch
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {isDispatched && (
+                  <p className="text-xs text-muted-foreground">
+                    📦 Dispatched {c.dispatched_at ? new Date(c.dispatched_at).toLocaleDateString() : ""}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

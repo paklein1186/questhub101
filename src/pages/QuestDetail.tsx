@@ -6,6 +6,7 @@ import { autoFollowEntity } from "@/hooks/useFollow";
 import { motion } from "framer-motion";
 import { ArrowLeft, Zap, Users, Sparkles, Megaphone, BookOpen, MessageCircle, Trophy, Plus, Heart, CircleDot, Building2, UserPlus, Pencil, Send, Coins, CreditCard, Lock, ListChecks, FileText, Bot, Brain, MoreHorizontal, TrendingDown, Handshake, Trash2, Hash, MapPin, Star, Mail, Loader2, Ban, Clock, AlertTriangle, Calendar, Puzzle, Save, Settings, Globe, Lightbulb, Shield, PieChart } from "lucide-react";
 import { CommissionEstimator } from "@/components/quest/CommissionEstimator";
+import { FundQuestCard } from "@/components/quest/FundQuestCard";
 import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
@@ -212,7 +213,7 @@ export default function QuestDetail() {
   const { grantXp, grantCredits, spendCredits } = useXpCredits();
   const { isFollowing, toggle: toggleFollow } = useFollow(FollowTargetType.QUEST, id!);
   const { notifyQuestUpdate, notifyFollowersQuestCreated } = useNotifications();
-  const { toCoins } = useCoinsRate();
+  const { toCoins, rate: coinsRate } = useCoinsRate();
   const navigate = useNavigate();
 
   const { data: creator } = usePublicProfile(quest?.created_by_user_id);
@@ -715,7 +716,21 @@ export default function QuestDetail() {
               </div>
             )}
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
-            {(quest as any).credit_budget > 0 && (
+            {Number((quest as any).coins_budget ?? 0) > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">🟩 Coins Pool</p>
+                <p className="text-lg font-bold">{Number((quest as any).coins_escrow ?? 0).toLocaleString()} Coins</p>
+                <p className="text-[10px] text-muted-foreground">≈ €{(Number((quest as any).coins_escrow ?? 0) * coinsRate).toFixed(2)} in escrow</p>
+              </div>
+            )}
+            {Number((quest as any).ctg_budget ?? 0) > 0 && (
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">🌱 $CTG Pool</p>
+                <p className="text-lg font-bold">{Number((quest as any).ctg_escrow ?? 0).toLocaleString()} $CTG</p>
+                <p className="text-[10px] text-muted-foreground">❄️ Frozen in escrow</p>
+              </div>
+            )}
+            {(quest as any).credit_budget > 0 && Number((quest as any).coins_budget ?? 0) === 0 && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">🏦 $CTG Budget</p>
                 <p className="text-lg font-bold">{(quest as any).credit_budget} $CTG</p>
@@ -738,6 +753,13 @@ export default function QuestDetail() {
               budgetMax={String((quest as any).mission_budget_max ?? (quest as any).mission_budget_min ?? 0)}
               compact
             />
+          </div>
+        )}
+
+        {/* Fund this Quest — public campaign contributions */}
+        {(quest as any).allow_fundraising && (
+          <div className="mb-4">
+            <FundQuestCard questId={quest.id} />
           </div>
         )}
 
