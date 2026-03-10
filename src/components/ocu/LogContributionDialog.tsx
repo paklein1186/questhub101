@@ -79,7 +79,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
         title: title.trim(),
         description: description.trim() || null,
         deliverable_url: deliverableUrl.trim() || null,
-        subtask_id: subtaskId || null,
+        subtask_id: (subtaskId && subtaskId !== "__none__") ? subtaskId : null,
         half_days: parsedHalfDays,
         difficulty: difficulty,
         fmv_value: fmvValue,
