@@ -582,7 +582,7 @@ export function WorkTasksTab() {
 
   const convertToSubtask = async (task: UnifiedTask, questId: string) => {
     const { data, error } = await supabase.from("quest_subtasks" as any).insert({
-      quest_id: questId, title: task.title, assignee_user_id: userId, status: "TODO", order_index: 0,
+      quest_id: questId, title: task.title, assignee_user_id: userId, assignee_user_ids: [userId], status: "TODO", order_index: 0,
     } as any).select("id").single();
     if (error) { toast({ title: "Failed to create subtask", variant: "destructive" }); return; }
     await supabase.from("personal_tasks" as any).update({ converted_to_subtask_id: (data as any).id } as any).eq("id", task.id);
