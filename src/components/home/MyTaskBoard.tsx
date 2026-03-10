@@ -1614,7 +1614,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs">Part Territoire</Label>
+                    <Label className="text-xs">Territory share</Label>
                     <span className="text-xs font-medium text-muted-foreground">{convertTerritoryPercent}%</span>
                   </div>
                   <Slider min={0} max={20} step={1} value={[convertTerritoryPercent]} onValueChange={([v]) => setConvertTerritoryPercent(v)} />
