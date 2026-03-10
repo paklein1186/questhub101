@@ -628,6 +628,69 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     </Button>
                   </Section>
 
+                  <Separator />
+
+                  {/* ── Contribution Accounting ── */}
+                  <Section title="Contribution Accounting" icon={<Settings className="h-5 w-5" />}>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Label className="text-sm font-medium">FMV Rate (€ per half-day)</Label>
+                          <span
+                            className="text-muted-foreground cursor-help"
+                            title="Fair Market Value rate used to calculate contribution value in the OCU system."
+                          >
+                            <AlertCircle className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                        <Input
+                          type="number"
+                          min={10}
+                          max={5000}
+                          defaultValue={(guild as any).fmv_rate_per_half_day ?? 200}
+                          onChange={async (e) => {
+                            const val = Math.max(10, Math.min(5000, Number(e.target.value) || 200));
+                            await supabase.from("guilds").update({ fmv_rate_per_half_day: val } as any).eq("id", guildId);
+                            qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                          }}
+                          className="max-w-[200px]"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Default: 200 €. Range: 10–5 000 €.</p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Label className="text-sm font-medium">Governance Model</Label>
+                          <span
+                            className="text-muted-foreground cursor-help"
+                            title="This governs how contribution % translates to voting power in guild decisions, contract amendments, and distribution proposals."
+                          >
+                            <AlertCircle className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                        <Select
+                          defaultValue={(guild as any).governance_model ?? "1h1v"}
+                          onValueChange={async (v) => {
+                            await supabase.from("guilds").update({ governance_model: v } as any).eq("id", guildId);
+                            qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                            toast({ title: "Governance model updated" });
+                          }}
+                        >
+                          <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1h1v">1 Human, 1 Vote</SelectItem>
+                            <SelectItem value="soft_log">Soft Logarithmic</SelectItem>
+                            <SelectItem value="strong_log">Strong Logarithmic</SelectItem>
+                            <SelectItem value="pure_pct">Pure Percentage</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Controls how contribution share translates to voting weight.
+                        </p>
+                      </div>
+                    </div>
+                  </Section>
+
                   <SourceRoleTransfer
                     entityType="guild"
                     entityId={guildId}
