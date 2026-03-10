@@ -134,10 +134,12 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     // Auto-insert contribution log with deduplication
     (async () => {
       try {
-        const baseUnits = subtask?.credit_reward > 0 ? Number(subtask.credit_reward) : 1;
-        const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
-        const weightedUnits = baseUnits * weightFactor;
         const logTitle = "✓ " + (subtask?.title || "");
+        const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
+        // Default to 1 half-day (editable later via Log Contribution modal)
+        const halfDays = 1;
+        const baseUnits = halfDays;
+        const weightedUnits = baseUnits * weightFactor;
 
         // Deduplication guard
         const { data: existing } = await supabase
@@ -145,8 +147,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           .select("id")
           .eq("quest_id", questId)
           .eq("user_id", assigneeId)
-          .eq("contribution_type", "subtask_completed")
-          .eq("title", logTitle)
+          .eq("subtask_id", subtaskId)
           .limit(1);
 
         if (!existing || existing.length === 0) {
@@ -155,9 +156,10 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             quest_id: questId,
             guild_id: guildId || null,
             subtask_id: subtaskId,
-            contribution_type: "subtask_completed",
+            contribution_type: "TIME",
             title: logTitle,
             task_type: "general",
+            half_days: halfDays,
             base_units: baseUnits,
             weight_factor: weightFactor,
             weighted_units: weightedUnits,
@@ -179,9 +181,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
 
         // CTG emission is handled automatically by the DB trigger
         // trg_emit_ctg_on_contribution (fires on contribution_logs INSERT).
-        // No need to call emit_ctg_for_contribution manually here.
 
-        // Log CTG earned to activity_log
+        // Log to activity_log
         const ctgAmount = subtask?.ctg_reward ?? 1.0;
         await supabase.from("activity_log").insert({
           actor_user_id: assigneeId,
