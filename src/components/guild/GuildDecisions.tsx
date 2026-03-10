@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Vote, Plus, Check, X, AlertTriangle, Clock, Archive,
   ChevronDown, ChevronUp, BarChart3, Users, Pencil, Loader2,
-  MessageSquare, ThumbsUp, ThumbsDown, Minus, CircleDot,
+  MessageSquare, ThumbsUp, ThumbsDown, Minus, CircleDot, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ import { AudiencePicker } from "@/components/guild/AudiencePicker";
 import { useEntityRoles, type EntityRole } from "@/hooks/useEntityRoles";
 import type { AudienceType, PermissionContext } from "@/lib/permissions";
 import { evaluateDecisionPermissions } from "@/lib/permissions";
+import { computeVoteWeights, GOVERNANCE_MODELS, type GovernanceModel } from "@/lib/governanceWeights";
 
 /* ───────── Types ───────── */
 type DecisionType = "POLL" | "VOTE_SIMPLE" | "MULTI_OPTION" | "CONSENT";
