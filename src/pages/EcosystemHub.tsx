@@ -9,10 +9,12 @@ const CreditEconomyPage = lazy(() => import("@/pages/CreditEconomyPage"));
 const GovernancePage = lazy(() => import("@/pages/GovernancePage"));
 const TrustGraphPage = lazy(() => import("@/pages/TrustGraphPage"));
 const OpenValueNetworkPage = lazy(() => import("@/pages/OpenValueNetworkPage"));
+const QuestFundingPage = lazy(() => import("@/pages/QuestFundingPage"));
 
 const TABS = [
   { value: "revenue", labelKey: "hubs.tabs.revenue" },
   { value: "credits", labelKey: "hubs.tabs.credits" },
+  { value: "funding", labelKey: "hubs.tabs.funding" },
   { value: "trust", labelKey: "hubs.tabs.trustGraph" },
   { value: "governance", labelKey: "hubs.tabs.governance" },
   { value: "ovn", labelKey: "hubs.tabs.ovn" },
@@ -39,6 +41,7 @@ export default function EcosystemHub() {
           <Suspense fallback={<div className="py-12 text-center text-muted-foreground text-sm">{t("common.loading")}</div>}>
             <TabsContent value="revenue"><RevenueModelsPage embedded /></TabsContent>
             <TabsContent value="credits"><CreditEconomyPage embedded /></TabsContent>
+            <TabsContent value="funding"><QuestFundingPage embedded /></TabsContent>
             <TabsContent value="trust"><TrustGraphPage embedded /></TabsContent>
             <TabsContent value="governance"><GovernancePage embedded /></TabsContent>
             <TabsContent value="ovn"><OpenValueNetworkPage embedded /></TabsContent>
