@@ -46,6 +46,7 @@ import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
 import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
 import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
+import { ContractTab } from "@/components/ocu/ContractTab";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
@@ -1042,6 +1043,7 @@ export default function QuestDetail() {
             {quest.status === "COMPLETED" && <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>}
             <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
             {(quest as any).ocu_enabled && <TabsTrigger value="pie"><PieChart className="h-3.5 w-3.5 mr-1" /> Pie</TabsTrigger>}
+            {(quest as any).ocu_enabled && <TabsTrigger value="contract"><FileText className="h-3.5 w-3.5 mr-1" /> Contract</TabsTrigger>}
           </TabsList>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -1301,6 +1303,18 @@ export default function QuestDetail() {
         {/* ── Contribution Pie ── */}
         <TabsContent value="pie" className="mt-6">
           <QuestPiePanel
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+        </TabsContent>
+
+        {/* ── Contract ── */}
+        <TabsContent value="contract" className="mt-6">
+          <ContractTab
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
             onEnableOCU={async () => {

@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, Send, DollarSign } from "lucide-react";
+import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
 import { OCUFeatureGate } from "./OCUFeatureGate";
 
 interface ContributorSummary {
@@ -97,6 +97,21 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
+  // Check for active contract
+  const { data: activeContract } = useQuery({
+    queryKey: ["quest-active-contract", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("quest_contracts")
+        .select("id, status, title")
+        .eq("quest_id", quest.id)
+        .in("status", ["active", "amended"])
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const totalRemaining = contributors.reduce((s, c) => s + c.remaining, 0);
 
   const getDistributionPreview = () => {
@@ -161,6 +176,23 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             .eq("id", log.id);
           remaining -= apply;
         }
+      }
+
+      // Log to activity_log if contract is active
+      if (activeContract) {
+        await supabase.from("activity_log").insert({
+          actor_user_id: currentUser.id,
+          action_type: "ocu_distribution",
+          target_type: "quest",
+          target_id: quest.id,
+          target_name: quest.title,
+          metadata: {
+            contract_id: activeContract.id,
+            distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
+            mode: compensationMode,
+            note,
+          },
+        });
       }
 
       toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
@@ -238,6 +270,19 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             🟡 {totalRemaining.toFixed(0)} outstanding
           </Badge>
         </div>
+
+        {/* Contract governance warning */}
+        {activeContract && (
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-xs">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <span className="font-medium text-amber-700">Active contract: {activeContract.title}</span>
+              <p className="text-muted-foreground mt-0.5">
+                Distributions should match the pie % defined in the contract. Deviations will be logged.
+              </p>
+            </div>
+          </div>
+        )}
 
         {contributors.length === 0 ? (
           <p className="text-sm text-muted-foreground">No verified contributions to compensate yet.</p>
