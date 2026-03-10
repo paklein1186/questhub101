@@ -1006,11 +1006,26 @@ export default function QuestCreate() {
                     calculate each contributor's share, and govern distribution via a live pie.
                   </p>
                 </div>
-                <Switch checked={ocuEnabled} onCheckedChange={setOcuEnabled} />
+                <Switch checked={ocuEnabled} onCheckedChange={(checked) => {
+                  setOcuEnabled(checked);
+                  // If enabling OCU on a guild quest & guild doesn't have default yet, offer to homogenize
+                  if (checked && effectiveGuildId && guild && !(guild as any).ocu_default_enabled) {
+                    if (confirm("Do you want to enable OCU by default for all future quests in this guild?")) {
+                      supabase.from("guilds").update({ ocu_default_enabled: true } as any).eq("id", effectiveGuildId).then(() => {
+                        toast({ title: "🧮 OCU default enabled", description: "All future guild quests will have OCU active." });
+                      });
+                    }
+                  }
+                }} />
               </div>
               <Label className="text-xs text-muted-foreground">
                 Enable OCU (can also be activated later in Quest Settings)
               </Label>
+              {(guild as any)?.ocu_default_enabled && (
+                <p className="text-xs text-muted-foreground/80 rounded-md bg-muted px-3 py-1.5">
+                  ℹ️ OCU is enabled by default for this guild's quests. You can change this in Guild Settings → Quests & Pods Defaults.
+                </p>
+              )}
               {ocuEnabled && (
                 <p className="text-xs text-primary rounded-md bg-primary/10 px-3 py-2">
                   ✅ OCU active — contributors will log work, earn Coins from the pool,

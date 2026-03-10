@@ -1063,7 +1063,26 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                     <p className="text-xs text-muted-foreground mt-1">{defaultQuestTerritories.length} selected</p>
                   </Section>
 
-                  <Button onClick={() => toast({ title: "Quest & pod defaults saved!" })}><Save className="h-4 w-4 mr-2" /> Save defaults</Button>
+                  <Separator />
+
+                  <Section title="OCU Default for New Quests" icon={<Settings className="h-5 w-5" />}>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      When enabled, all new quests created from this guild will have the Open Contributive Unit (OCU) module activated by default.
+                    </p>
+                    <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-card">
+                      <div>
+                        <p className="text-sm font-medium">🧮 Enable OCU by default</p>
+                        <p className="text-xs text-muted-foreground">Homogenize contribution tracking across guild quests</p>
+                      </div>
+                      <Switch checked={ocuDefaultEnabled} onCheckedChange={setOcuDefaultEnabled} />
+                    </div>
+                  </Section>
+
+                  <Button onClick={async () => {
+                    await supabase.from("guilds").update({ ocu_default_enabled: ocuDefaultEnabled } as any).eq("id", guildId);
+                    qc.invalidateQueries({ queryKey: ["guild-settings", guildId] });
+                    toast({ title: "Quest & pod defaults saved!" });
+                  }}><Save className="h-4 w-4 mr-2" /> Save defaults</Button>
                 </div>
               )}
 
