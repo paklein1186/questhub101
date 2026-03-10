@@ -122,6 +122,19 @@ export function EntityQuestsFilters({ quests, children }: EntityQuestsFiltersPro
           </button>
         )}
 
+        {/* OCU toggle chip */}
+        <button
+          onClick={() => setOcuFilter(!ocuFilter)}
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border transition-all',
+            ocuFilter
+              ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300'
+              : 'border-border text-muted-foreground hover:border-amber-400/40 hover:text-foreground'
+          )}
+        >
+          🧮 OCU
+        </button>
+
         <div className="ml-auto flex items-center gap-1.5">
           {/* Sort toggle */}
           <Button
