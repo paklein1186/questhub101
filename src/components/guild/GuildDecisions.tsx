@@ -676,18 +676,26 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
 }
 
 /* ═══════════ Result Bars ═══════════ */
-function ResultBars({ options, tally, total, passThreshold }: { options: Option[]; tally: number[]; total: number; passThreshold?: number }) {
+function ResultBars({ options, tally, weightedTally, total, totalWeight, isWeighted, passThreshold }: {
+  options: Option[]; tally: number[]; weightedTally?: number[]; total: number; totalWeight?: number; isWeighted?: boolean; passThreshold?: number;
+}) {
   return (
     <div className="space-y-1.5">
       {options.map((opt, i) => {
         const pct = total > 0 ? Math.round((tally[i] / total) * 100) : 0;
+        const wPct = isWeighted && totalWeight && totalWeight > 0 && weightedTally
+          ? Math.round((weightedTally[i] / totalWeight) * 100) : null;
         return (
           <div key={i}>
             <div className="flex items-center justify-between text-sm mb-0.5">
               <span>{opt.label}</span>
-              <span className="text-xs text-muted-foreground">{tally[i]} ({pct}%)</span>
+              <span className="text-xs text-muted-foreground">
+                {tally[i]} vote{tally[i] !== 1 ? "s" : ""}
+                {wPct !== null && ` = ${weightedTally![i].toFixed(1)}w = ${wPct}%`}
+                {wPct === null && ` (${pct}%)`}
+              </span>
             </div>
-            <Progress value={pct} className="h-2" />
+            <Progress value={wPct ?? pct} className="h-2" />
           </div>
         );
       })}
