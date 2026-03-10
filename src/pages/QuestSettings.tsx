@@ -274,8 +274,6 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   </div>
                 </div>
               )}
-                <QuestAffiliationsTab questId={questId} quest={quest} />
-              )}
 
               {/* ── Fundraising ── */}
               {activeTab === "fundraising" && (
