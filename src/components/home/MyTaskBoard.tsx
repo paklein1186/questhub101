@@ -1426,7 +1426,9 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   </td>
                 </tr>
                 );
-              })}
+                return rows;
+              });
+              })()}
             </tbody>
           </table>
           {/* Pagination */}
