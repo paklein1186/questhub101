@@ -263,7 +263,7 @@ export default function NetworkDashboardTab() {
   const { data: ocuAlerts = [], isLoading: loadingOcu } = useOcuInconsistencyAlerts(adminEntities);
   const [dismissedOcuAlerts, setDismissedOcuAlerts] = useState<Set<string>>(new Set());
 
-  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships;
+  const isLoading = loadingEntities || loadingApps || loadingReports || loadingDecisions || loadingPartnerships || loadingOcu;
 
   if (isLoading) {
     return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
