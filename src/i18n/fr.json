@@ -1436,7 +1436,7 @@
     "creditsDeepDive": "Crédits : Carburant de Collaboration",
     "creditsIntro": "Les crédits récompensent la contribution au-delà de l'échange financier. Ce sont des <strong>unités de coordination internes non convertibles</strong> conçues pour faciliter la participation et l'activation collaborative.",
     "creditsEarnedBy": "Les crédits sont gagnés par :",
-    "creditsEarnedItems": ["L'accomplissement de missions bénévoles", "L'aide sans transaction fiat", "La publication de contenu à haute valeur (pondéré par l'admin)", "L'intégration d'organisations", "L'activation de territoires", "Petit mint mensuel universel (tous les utilisateurs actifs)"],
+    "creditsEarnedItems": ["Plans d'abonnement", "Bonus d'intégration", "Achats de recharge optionnels", "Petit mint mensuel universel (tous les utilisateurs actifs)"],
     "creditsSpentOn": "Les crédits sont dépensés pour :",
     "creditsSpentItems": ["Booster la visibilité des quêtes", "Jeton de commission réduite (mission unique)", "Insights IA avancés sur les territoires", "Mettre en avant son profil", "Soumettre des propositions de gouvernance", "Réductions événements et outils territoriaux premium"],
     "creditsMustFeel": "Les crédits doivent être utiles mais pas financiers.",
