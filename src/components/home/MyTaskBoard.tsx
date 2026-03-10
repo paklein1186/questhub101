@@ -581,7 +581,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
     const { data, error } = await supabase.from("personal_tasks" as any).insert({
       user_id: userId,
       title: newTitle.trim(),
-      status: "BACKLOG",
+      status: "TODO",
     } as any).select("id").single();
     if (error) { toast({ title: "Failed to add task", variant: "destructive" }); }
     else {
