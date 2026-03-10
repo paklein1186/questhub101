@@ -595,7 +595,7 @@ function VotingSection({ decision, type, options, votes, myVote, canVote, isOpen
             </div>
           )}
           {!canVote && myVote && <p className="text-xs text-muted-foreground">You voted: <strong>{["Yes", "No", "Abstain"][myVote.option_index]}</strong></p>}
-          <ResultBars options={[{ label: "Yes" }, { label: "No" }, { label: "Abstain" }]} tally={tally} total={totalVotes} passThreshold={decision.pass_threshold} />
+          <ResultBars options={[{ label: "Yes" }, { label: "No" }, { label: "Abstain" }]} tally={tally} weightedTally={weightedTally} total={totalVotes} totalWeight={totalWeight} isWeighted={isWeighted} passThreshold={decision.pass_threshold} />
         </div>
       )}
 
