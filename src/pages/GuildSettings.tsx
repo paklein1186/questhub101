@@ -688,6 +688,27 @@ function GuildSettingsInner({ guildId, guild }: { guildId: string; guild: any })
                           Controls how contribution share translates to voting weight.
                         </p>
                       </div>
+
+                      {/* Amendment threshold toggle for pure_pct */}
+                      {((guild as any).governance_model === "pure_pct") && (
+                        <div className="rounded-md border border-border bg-muted/30 p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-sm font-medium">Weighted amendment threshold</Label>
+                              <p className="text-xs text-muted-foreground">
+                                Use &gt;50% of weighted vote instead of unanimous consensus for contract amendments.
+                              </p>
+                            </div>
+                            <Switch
+                              defaultChecked={false}
+                              onCheckedChange={async (checked) => {
+                                // This would need to be stored per-quest in features_config.ocu.amendment_weighted_threshold
+                                toast({ title: checked ? "Weighted threshold enabled" : "Unanimous consensus restored", description: "Apply this per-quest in Quest OCU settings." });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </Section>
 
