@@ -755,6 +755,13 @@ export default function QuestDetail() {
           </div>
         )}
 
+        {/* Fund this Quest — public campaign contributions */}
+        {(quest as any).allow_fundraising && (
+          <div className="mb-4">
+            <FundQuestCard questId={quest.id} />
+          </div>
+        )}
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3 flex-wrap">
           {/* Hosts display */}
           {resolvedHosts && resolvedHosts.length > 0 ? (
