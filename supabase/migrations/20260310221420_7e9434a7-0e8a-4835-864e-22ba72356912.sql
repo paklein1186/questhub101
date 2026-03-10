@@ -1,0 +1,1 @@
+UPDATE public.quest_subtasks SET assignee_user_ids = ARRAY[assignee_user_id] WHERE assignee_user_id IS NOT NULL AND (assignee_user_ids = '{}' OR assignee_user_ids IS NULL);
