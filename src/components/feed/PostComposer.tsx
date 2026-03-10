@@ -238,11 +238,14 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
         p_related_entity_type: contextType || 'user',
       } as any).then(() => {});
 
-      // Notify entity members + followers for guild/company posts
-      if ((contextType === "GUILD" || contextType === "COMPANY") && contextId) {
+      // Notify entity members + followers for guild/company/discussion posts
+      const baseType = contextType.replace("_DISCUSSION", "");
+      if ((baseType === "GUILD" || baseType === "COMPANY" || contextType === "QUEST_DISCUSSION") && contextId) {
         try {
-          const tbl = contextType === "GUILD" ? "guilds" : "companies";
-          const { data: entity } = await supabase.from(tbl).select("name").eq("id", contextId).maybeSingle();
+          const tbl = baseType === "GUILD" ? "guilds" : baseType === "COMPANY" ? "companies" : null;
+          const entity = tbl
+            ? (await supabase.from(tbl).select("name").eq("id", contextId).maybeSingle()).data
+            : null;
           // Get the created post ID
           const { data: latestPost } = await supabase.from("feed_posts").select("id").eq("author_user_id", currentUser.id).order("created_at", { ascending: false }).limit(1).single();
           if (latestPost?.id) {
