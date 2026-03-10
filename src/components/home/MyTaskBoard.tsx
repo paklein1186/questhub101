@@ -1589,7 +1589,7 @@ export function MyTaskBoard({ userId }: { userId: string }) {
             <div className="space-y-4 py-2">
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <Scale className="h-4 w-4 text-primary" />
-                Budget & Répartition de valeur
+                Budget & Value Split
               </h3>
 
               <div className="space-y-1.5">
