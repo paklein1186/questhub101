@@ -254,6 +254,19 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           </Badge>
         </div>
 
+        {/* Contract governance warning */}
+        {activeContract && (
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-xs">
+            <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <span className="font-medium text-amber-700">Active contract: {activeContract.title}</span>
+              <p className="text-muted-foreground mt-0.5">
+                Distributions should match the pie % defined in the contract. Deviations will be logged.
+              </p>
+            </div>
+          </div>
+        )}
+
         {contributors.length === 0 ? (
           <p className="text-sm text-muted-foreground">No verified contributions to compensate yet.</p>
         ) : (
