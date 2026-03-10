@@ -1139,6 +1139,18 @@ export function MyTaskBoard({ userId }: { userId: string }) {
         </div>
       )}
 
+      {/* Backlog toggle */}
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="show-backlog"
+          checked={!hideBacklog}
+          onCheckedChange={(checked) => setHideBacklog(!checked)}
+        />
+        <label htmlFor="show-backlog" className="text-xs text-muted-foreground cursor-pointer select-none">
+          Show backlog tasks
+        </label>
+      </div>
+
       {/* Entity filter chips */}
       {entityOptions.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
