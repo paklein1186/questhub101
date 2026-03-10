@@ -177,17 +177,12 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           }
         }
 
-        // Emit $CTG for subtask completion using ctg_reward field
-        const ctgAmount = subtask?.ctg_reward ?? 1.0;
-        await supabase.rpc('emit_ctg_for_contribution', {
-          p_user_id: assigneeId,
-          p_contribution_type: 'subtask_completed',
-          p_related_entity_id: subtaskId,
-          p_related_entity_type: 'quest_subtask',
-          p_note: subtask?.title ?? null,
-        } as any);
+        // CTG emission is handled automatically by the DB trigger
+        // trg_emit_ctg_on_contribution (fires on contribution_logs INSERT).
+        // No need to call emit_ctg_for_contribution manually here.
 
         // Log CTG earned to activity_log
+        const ctgAmount = subtask?.ctg_reward ?? 1.0;
         await supabase.from("activity_log").insert({
           actor_user_id: assigneeId,
           action_type: "ctg_earned_subtask",
@@ -196,23 +191,6 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           target_name: subtask?.title || "Subtask",
           metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
         });
-
-        // Mark contribution_log ctg_emitted
-        if (!existing || existing.length === 0) {
-          // The log was just inserted above — find it
-          const { data: newLog } = await supabase
-            .from("contribution_logs" as any)
-            .select("id")
-            .eq("quest_id", questId)
-            .eq("user_id", assigneeId)
-            .eq("subtask_id", subtaskId)
-            .limit(1);
-          if (newLog && newLog.length > 0) {
-            await supabase.from("contribution_logs" as any)
-              .update({ ctg_emitted: ctgAmount } as any)
-              .eq("id", (newLog[0] as any).id);
-          }
-        }
       } catch (e) {
         console.error("Failed to log contribution from subtask", e);
       }
