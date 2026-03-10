@@ -47,12 +47,12 @@ function useRecentValuePieQuests() {
     queryFn: async () => {
       const { data } = await supabase
         .from("quests")
-        .select("id, title, created_at, coin_budget")
+        .select("id, title, created_at, coins_budget")
         .eq("value_pie_calculated", true as any)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(3);
-      return (data || []) as { id: string; title: string; created_at: string; coin_budget: number }[];
+      return (data || []) as { id: string; title: string; created_at: string; coins_budget: number }[];
     },
   });
 }
