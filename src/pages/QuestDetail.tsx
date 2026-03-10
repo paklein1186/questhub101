@@ -1324,6 +1324,7 @@ export default function QuestDetail() {
           />
         </TabsContent>
 
+        <TabsContent value="updates" className="mt-6 space-y-4">
           {canPostUpdate && (
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-muted-foreground">Share progress, milestones, and calls-to-action with your community.</p>
