@@ -120,11 +120,13 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
     // Persist to DB
     await updateStatus(subtaskId, "DONE");
 
-    // Grant XP and credits to all assignees
+    // Grant XP/credits and log contributions for all assignees
     const subtask = subtasks.find((s: any) => s.id === subtaskId);
-    const assigneeIds: string[] = subtask?.assignee_user_ids?.length > 0 ? subtask.assignee_user_ids : (subtask?.assignee_user_id ? [subtask.assignee_user_id] : [currentUser.id].filter(Boolean));
+    const assigneeIds: string[] = subtask?.assignee_user_ids?.length > 0
+      ? subtask.assignee_user_ids
+      : (subtask?.assignee_user_id ? [subtask.assignee_user_id] : [currentUser.id].filter(Boolean));
+
     for (const assigneeId of assigneeIds) {
-    if (assigneeId) {
       grantXp(assigneeId, {
         type: XP_EVENT_TYPES.SUBTASK_COMPLETED,
         relatedEntityType: "quest_subtask",
@@ -141,73 +143,66 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           relatedEntityId: subtaskId,
         }, true);
       }
-    }
 
-    // Auto-insert contribution log with deduplication
-    (async () => {
-      try {
-        const logTitle = "✓ " + (subtask?.title || "");
-        const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
-        // Default to 1 half-day (editable later via Log Contribution modal)
-        const halfDays = 1;
-        const baseUnits = halfDays;
-        const weightedUnits = baseUnits * weightFactor;
+      // Auto-insert contribution log with deduplication
+      (async () => {
+        try {
+          const logTitle = "✓ " + (subtask?.title || "");
+          const weightFactor = subtask?.contribution_weight > 0 ? Number(subtask.contribution_weight) : 1.0;
+          const halfDays = 1;
+          const baseUnits = halfDays;
+          const weightedUnits = baseUnits * weightFactor;
 
-        // Deduplication guard
-        const { data: existing } = await supabase
-          .from("contribution_logs" as any)
-          .select("id")
-          .eq("quest_id", questId)
-          .eq("user_id", assigneeId)
-          .eq("subtask_id", subtaskId)
-          .limit(1);
+          const { data: existing } = await supabase
+            .from("contribution_logs" as any)
+            .select("id")
+            .eq("quest_id", questId)
+            .eq("user_id", assigneeId)
+            .eq("subtask_id", subtaskId)
+            .limit(1);
 
-        if (!existing || existing.length === 0) {
-          await supabase.from("contribution_logs" as any).insert({
-            user_id: assigneeId,
-            quest_id: questId,
-            guild_id: guildId || null,
-            subtask_id: subtaskId,
-            contribution_type: "TIME",
-            title: logTitle,
-            task_type: "general",
-            half_days: halfDays,
-            base_units: baseUnits,
-            weight_factor: weightFactor,
-            weighted_units: weightedUnits,
-            ip_licence: "CC-BY-SA",
-          } as any);
-          qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
+          if (!existing || existing.length === 0) {
+            await supabase.from("contribution_logs" as any).insert({
+              user_id: assigneeId,
+              quest_id: questId,
+              guild_id: guildId || null,
+              subtask_id: subtaskId,
+              contribution_type: "TIME",
+              title: logTitle,
+              task_type: "general",
+              half_days: halfDays,
+              base_units: baseUnits,
+              weight_factor: weightFactor,
+              weighted_units: weightedUnits,
+              ip_licence: "CC-BY-SA",
+            } as any);
+            qc.invalidateQueries({ queryKey: ["contribution-logs", questId] });
 
-          // Notify the contributor if it's not the current user
-          if (assigneeId !== currentUser.id) {
-            notifyContributionLogged({
-              contributorUserId: assigneeId,
-              questTitle: subtask?.title || "a subtask",
-              amount: weightedUnits,
-              unit: "WU",
-              entityName: guildId || questId,
-            });
+            if (assigneeId !== currentUser.id) {
+              notifyContributionLogged({
+                contributorUserId: assigneeId,
+                questTitle: subtask?.title || "a subtask",
+                amount: weightedUnits,
+                unit: "WU",
+                entityName: guildId || questId,
+              });
+            }
           }
+
+          const ctgAmount = subtask?.ctg_reward ?? 1.0;
+          await supabase.from("activity_log").insert({
+            actor_user_id: assigneeId,
+            action_type: "ctg_earned_subtask",
+            target_type: "quest_subtask",
+            target_id: subtaskId,
+            target_name: subtask?.title || "Subtask",
+            metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
+          });
+        } catch (e) {
+          console.error("Failed to log contribution from subtask", e);
         }
-
-        // CTG emission is handled automatically by the DB trigger
-        // trg_emit_ctg_on_contribution (fires on contribution_logs INSERT).
-
-        // Log to activity_log
-        const ctgAmount = subtask?.ctg_reward ?? 1.0;
-        await supabase.from("activity_log").insert({
-          actor_user_id: assigneeId,
-          action_type: "ctg_earned_subtask",
-          target_type: "quest_subtask",
-          target_id: subtaskId,
-          target_name: subtask?.title || "Subtask",
-          metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
-        });
-      } catch (e) {
-        console.error("Failed to log contribution from subtask", e);
-      }
-    })();
+      })();
+    }
 
     // Invalidate contribution logs
     qc.invalidateQueries({ queryKey: ["contribution-logs"] });
