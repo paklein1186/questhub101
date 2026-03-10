@@ -1231,6 +1231,20 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 return paginated.flatMap((task) => {
                 const key = `${task.source}-${task.id}`;
                 const isDoneThisSession = sessionDone.has(key);
+                const rows: React.ReactNode[] = [];
+
+                // Group separator row
+                if (sortBy === "status" && task.workState !== lastGroup) {
+                  lastGroup = task.workState;
+                  const group = STATUS_GROUP_LABELS[task.workState] || { icon: "·", label: task.workState };
+                  rows.push(
+                    <tr key={`group-${task.workState}`} className="border-t border-border">
+                      <td colSpan={7} className="text-[10px] uppercase tracking-wider text-muted-foreground/60 px-3 py-1 bg-muted/20">
+                        {group.icon} {group.label}
+                      </td>
+                    </tr>
+                  );
+                }
 
                 if (isDoneThisSession) {
                   return (
