@@ -429,6 +429,29 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
+            {/* $CTG reward input */}
+            {canManage ? (
+              <div className="flex items-center gap-0.5">
+                <Sprout className="h-3 w-3 text-emerald-600" />
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={subtask.ctg_reward ?? 1.0}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value) || 1.0;
+                    supabase.from("quest_subtasks" as any).update({ ctg_reward: v } as any).eq("id", subtask.id)
+                      .then(() => qc.invalidateQueries({ queryKey: ["quest-subtasks", questId] }));
+                  }}
+                  className="w-14 h-6 text-[10px] text-center p-0"
+                  title="$CTG reward on completion"
+                />
+              </div>
+            ) : (
+              <span className="text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                🌱 {subtask.ctg_reward ?? 1.0} $CTG
+              </span>
+            )}
             {/* $CTG weight input */}
             {canManage && (
               <div className="flex items-center gap-0.5">
