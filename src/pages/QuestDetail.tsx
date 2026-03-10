@@ -45,6 +45,7 @@ import { QuestProposals } from "@/components/quest/QuestProposals";
 import { ContributionLogPanel } from "@/components/quest/ContributionLogPanel";
 import { OCUContributionsList } from "@/components/ocu/OCUContributionsList";
 import { QuestPiePanel } from "@/components/ocu/QuestPiePanel";
+import { DistributeCompensation } from "@/components/ocu/DistributeCompensation";
 import { UnitChat } from "@/components/UnitChat";
 import { MatchmakerPanel } from "@/components/MatchmakerPanel";
 import { UnitAgentsTab } from "@/components/UnitAgentsTab";
@@ -1278,6 +1279,16 @@ export default function QuestDetail() {
 
           {/* OCU Contributions (shown when OCU is enabled) */}
           <OCUContributionsList
+            quest={quest}
+            isAdmin={isOwner || isGuildAdmin}
+            onEnableOCU={async () => {
+              await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
+              qc.invalidateQueries({ queryKey: ["quest", quest.id] });
+            }}
+          />
+
+          {/* OCU Compensation Distribution (admin only) */}
+          <DistributeCompensation
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
             onEnableOCU={async () => {

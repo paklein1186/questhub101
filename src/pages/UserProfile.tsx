@@ -52,6 +52,7 @@ import { GraphView } from "@/components/graph/GraphView";
 import { ProfileCTGStats } from "@/components/ctg/CTGIntegrationWidgets";
 import { LivingTab } from "@/components/living/LivingTab";
 import { Leaf } from "lucide-react";
+import { MyContributionsSummary } from "@/components/ocu/MyContributionsSummary";
 
 // ─── Persona badge helper ──────────────────────────────────
 const PERSONA_META: Record<string, { label: string; color: string }> = {
@@ -631,6 +632,7 @@ export default function UserProfile() {
           <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
           <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
+          {isOwnProfile && <TabsTrigger value="contributions"><Coins className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 
@@ -989,6 +991,13 @@ export default function UserProfile() {
         <TabsContent value="graph" className="mt-6 -mx-3 sm:-mx-4">
           <GraphView centerType="user" centerId={profile.userId} height={700} />
         </TabsContent>
+
+        {/* ─── My Contributions ─── */}
+        {isOwnProfile && (
+          <TabsContent value="contributions">
+            <MyContributionsSummary />
+          </TabsContent>
+        )}
 
         {/* ─── Matchmaker ─── */}
         {isOwnProfile && (
