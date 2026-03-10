@@ -1393,23 +1393,28 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                   <td className="px-0.5 sm:px-3 py-1.5 sm:py-2.5">
                     <div className="flex items-center gap-0.5">
                       {task.source === "personal" && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100">
-                              <ArrowUpRight className="h-3.5 w-3.5" />
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Convert to Quest"
+                            onClick={() => openUnitPicker(task)}
+                          >
+                            <Rocket className="h-3.5 w-3.5 text-primary/60" />
+                          </Button>
+                          {allQuestsForPicker.length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 sm:opacity-0 sm:group-hover:opacity-100"
+                              title="Attach to Quest"
+                              onClick={() => { setQuestPickerTask(task); setQuestPickerOpen(true); setQuestPickerSearch(""); }}
+                            >
+                              <ListChecks className="h-3.5 w-3.5" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openUnitPicker(task)}>
-                              <Rocket className="h-3.5 w-3.5 mr-2" /> {task.convertedToQuestId ? "Reattach Quest to Guild" : "Convert to Quest"}
-                            </DropdownMenuItem>
-                            {allQuestsForPicker.length > 0 && (
-                              <DropdownMenuItem onClick={() => { setQuestPickerTask(task); setQuestPickerOpen(true); setQuestPickerSearch(""); }}>
-                                <ListChecks className="h-3.5 w-3.5 mr-2" /> Attach to Quest…
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          )}
+                        </>
                       )}
                       {(task.source === "quest" || task.source === "subtask") && (
                         <Button
