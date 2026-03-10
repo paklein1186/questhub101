@@ -79,7 +79,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
         title: title.trim(),
         description: description.trim() || null,
         deliverable_url: deliverableUrl.trim() || null,
-        subtask_id: subtaskId || null,
+        subtask_id: (subtaskId && subtaskId !== "__none__") ? subtaskId : null,
         half_days: parsedHalfDays,
         difficulty: difficulty,
         fmv_value: fmvValue,
@@ -99,7 +99,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
     }
 
     // If subtask linked, emit 1 $CTG
-    if (subtaskId) {
+    if (subtaskId && subtaskId !== "__none__") {
       await supabase.from("ctg_transactions" as any).insert({
         user_id: currentUser.id,
         amount: 1,
@@ -217,7 +217,7 @@ export function LogContributionDialog({ open, onOpenChange, questId, guildId, te
                   <SelectValue placeholder="Select a subtask…" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {subtasks.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>
                   ))}
