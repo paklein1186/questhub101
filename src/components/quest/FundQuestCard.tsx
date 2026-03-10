@@ -105,10 +105,16 @@ export function FundQuestCard({ questId, className }: Props) {
     const newRaised = (Number(selectedCampaign.raised_amount) || 0) + numAmount;
     const thresholdAmount = Number(selectedCampaign.threshold_amount) || Number(selectedCampaign.goal_amount) || 0;
     const campaignUpdate: any = { raised_amount: newRaised };
-    if (thresholdAmount > 0 && newRaised >= thresholdAmount && !selectedCampaign.threshold_reached_at) {
+    const thresholdJustReached = thresholdAmount > 0 && newRaised >= thresholdAmount && !selectedCampaign.threshold_reached_at;
+    if (thresholdJustReached) {
       campaignUpdate.threshold_reached_at = new Date().toISOString();
     }
     await supabase.from("quest_campaigns" as any).update(campaignUpdate).eq("id", selectedCampaign.id);
+
+    // Auto-dispatch logic
+    if (thresholdJustReached && selectedCampaign.dispatch_mode && selectedCampaign.dispatch_mode !== "manual") {
+      await handleAutoDispatch(selectedCampaign, currency, newRaised);
+    }
 
     // 5. Update quest escrow
     const escrowField = currency === "coins" ? "coins_escrow" : "ctg_escrow";
