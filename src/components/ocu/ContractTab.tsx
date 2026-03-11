@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DOMPurify from "dompurify";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -473,7 +474,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
             {/* Contract body */}
             <div
               className="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-border bg-card p-4"
-              dangerouslySetInnerHTML={{ __html: (contract.content as any)?.html ?? "" }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((contract.content as any)?.html ?? "") }}
             />
 
             {/* ── Signatories ── */}
@@ -547,7 +548,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                       <CollapsibleContent className="px-2 pb-2">
                         <div
                           className="prose prose-sm dark:prose-invert max-w-none rounded border border-border bg-muted/30 p-3 mt-1"
-                          dangerouslySetInnerHTML={{ __html: (a.content as any)?.html ?? "" }}
+                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((a.content as any)?.html ?? "") }}
                         />
                         <div className="text-[10px] text-muted-foreground mt-1">
                           Votes: {aVotes.filter((v) => v.vote === "accept").length} accept / {aVotes.filter((v) => v.vote === "reject").length} reject
