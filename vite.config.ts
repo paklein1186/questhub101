@@ -12,7 +12,19 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    mode === "development" && componentTagger(),
+    // Run `ANALYZE=true bun run build` to generate bundle analysis
+    mode === "production" && process.env.ANALYZE && import("rollup-plugin-visualizer").then(m => m.visualizer({ open: true, filename: "dist/bundle-stats.html" })).catch(() => null),
+  ].filter(Boolean),
+  build: {
+    rollupOptions: {
+      // These are optional runtime dependencies loaded via dynamic import().
+      // Mark them external so Rollup doesn't fail when they're not installed.
+      external: ["@sentry/react", "web-vitals"],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
