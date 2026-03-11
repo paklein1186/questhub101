@@ -163,7 +163,7 @@ import NaturalSystemPage from "./pages/NaturalSystemPage";
 
 const queryClient = new QueryClient();
 
-function ScrollToTop() {
+function ScrollToTop(): null {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);

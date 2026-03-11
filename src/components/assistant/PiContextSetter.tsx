@@ -11,7 +11,7 @@ export function PiContextSetter({
 }: {
   contextType: "guild" | "quest" | "territory";
   contextId?: string | null;
-}) {
+}): null {
   const { setContext } = usePiPanel();
 
   useEffect(() => {

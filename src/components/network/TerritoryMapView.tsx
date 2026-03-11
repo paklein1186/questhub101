@@ -39,7 +39,7 @@ function radiusForLevel(level: string | undefined): number {
   }
 }
 
-function FitBounds({ positions }: { positions: [number, number][] }) {
+function FitBounds({ positions }: { positions: [number, number][] }): null {
   const map = useMap();
   useEffect(() => {
     if (positions.length > 0) {

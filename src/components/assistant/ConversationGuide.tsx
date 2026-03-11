@@ -579,7 +579,7 @@ export default function ConversationGuide({
             ? {
                 ...m,
                 pendingConfirmation: false,
-                proposedActions: undefined,
+                proposedActions: undefined as undefined,
                 meta: {
                   createdEntities: data.createdEntities || [],
                   updatedEntities: data.updatedEntities || [],
