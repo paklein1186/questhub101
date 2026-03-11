@@ -26,6 +26,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { GuestOnboardingAssistant } from "@/components/GuestOnboardingAssistant";
 import { ShareLinkButton } from "@/components/ShareLinkButton";
+import { logger } from "@/lib/logger";
 
 const PENDING_BOOKING_KEY = "pendingBookingSlot";
 
@@ -79,11 +80,11 @@ export default function PublicBooking() {
         .select("start_at, end_at, source_calendar_id, connection_id")
         .eq("user_id", providerUserId);
       if (busyErr) {
-        console.error("[PublicBooking] Failed to fetch busy events:", busyErr);
+        logger.error("[PublicBooking] Failed to fetch busy events:", busyErr);
         return [];
       }
       if (!busyEvents || busyEvents.length === 0) {
-        console.log("[PublicBooking] No busy events found for provider", providerUserId);
+        logger.debug("[PublicBooking] No busy events found for provider", providerUserId);
         return [];
       }
       const connectionIds = [...new Set(busyEvents.map(e => e.connection_id))];
@@ -93,7 +94,7 @@ export default function PublicBooking() {
         .eq("user_id", providerUserId)
         .in("connection_id", connectionIds);
       if (prefsErr) {
-        console.warn("[PublicBooking] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
+        logger.warn("[PublicBooking] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
         return busyEvents;
       }
       const disabledSet = new Set<string>();
@@ -105,7 +106,7 @@ export default function PublicBooking() {
       const filtered = busyEvents.filter((e: any) =>
         !e.source_calendar_id || !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`)
       );
-      console.log(`[PublicBooking] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering`);
+      logger.debug(`[PublicBooking] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering`);
       return filtered;
     },
     enabled: !!providerUserId,

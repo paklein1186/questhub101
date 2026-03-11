@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { MentionTextarea, renderMentions } from "@/components/MentionTextarea";
+import { logger } from "@/lib/logger";
 
 const URL_REGEX = /https?:\/\/[^\s<]+/gi;
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -310,7 +311,7 @@ export default function InboxPage() {
         qc.invalidateQueries({ queryKey: ["conversation-messages", activeConvId] });
         qc.invalidateQueries({ queryKey: ["conversations", userId] });
       } catch (e: any) {
-        console.error("Pulse bot error:", e);
+        logger.error("Pulse bot error:", e);
         toast({ title: "Pulse couldn't respond", description: e?.message || "Try again in a moment", variant: "destructive" });
       } finally {
         setPulseLoading(false);

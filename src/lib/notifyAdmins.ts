@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 export async function notifyPlatformAdmins(params: {
   type: string;
@@ -27,6 +28,6 @@ export async function notifyPlatformAdmins(params: {
     }));
     await supabase.from("notifications").insert(rows);
   } catch (err) {
-    console.error("[notifyPlatformAdmins]", err);
+    logger.error("[notifyPlatformAdmins]", err);
   }
 }

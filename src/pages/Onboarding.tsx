@@ -34,6 +34,7 @@ import {
   CREATIVE_HOUSE_KEYS,
   type PersonaType,
 } from "@/lib/personaLabels";
+import { logger } from "@/lib/logger";
 
 // ─── Step config ──────────────────────────────────────────────
 // Creative: 0=entry, 1=houses, 2=ground, 3=essence, 4=languages, 5=affiliations, 6=review, 7=people, 8=project, 9=service, 10=done
@@ -315,7 +316,7 @@ export default function Onboarding() {
         );
       }
     } catch (e: any) {
-      console.error("AI suggestions error:", e);
+      logger.error("AI suggestions error:", e);
       toast({ title: "AI suggestions unavailable", description: "You can add everything manually later.", variant: "default" });
     } finally {
       setAiLoading(false);
@@ -359,7 +360,7 @@ export default function Onboarding() {
         await saveSpokenLanguages(spokenLangCodes);
       }
     } catch (e) {
-      console.error("Incremental save error:", e);
+      logger.error("Incremental save error:", e);
     }
   }, [authUser?.id, name, headline, avatarUrl, bio, location, affLinks, personaType, selectedTopics, selectedTerritories, spokenLangCodes, saveSpokenLanguages]);
 
@@ -676,7 +677,7 @@ export default function Onboarding() {
         setSuggestedPeople(sorted);
       }
     } catch (e) {
-      console.error("Failed to fetch suggested people:", e);
+      logger.error("Failed to fetch suggested people:", e);
     } finally {
       setSuggestedPeopleLoading(false);
     }

@@ -16,6 +16,7 @@ import {
   ChevronRight, Leaf, Building2, Target, MapPin, Lightbulb,
   Loader2, FileText,
 } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 /* ─── Types ─── */
 interface EnrichmentResult {
@@ -123,7 +124,7 @@ export default function ProfileEnrichment() {
       setAcceptedTerritories(new Set(data.suggestedTerritories || []));
       setStep("review");
     } catch (err: any) {
-      console.error("Enrichment error:", err);
+      logger.error("Enrichment error:", err);
       toast.error(err?.message || "Failed to analyze your profile");
       setStep("input");
     } finally {

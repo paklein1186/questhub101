@@ -16,6 +16,7 @@ import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale, Sprout }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
+import { logger } from "@/lib/logger";
 
 interface QuestSubtasksProps {
   questId: string;
@@ -215,7 +216,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             metadata: { subtask_id: subtaskId, quest_id: questId, ctg_amount: ctgAmount },
           });
         } catch (e) {
-          console.error("Failed to log contribution from subtask", e);
+          logger.error("Failed to log contribution from subtask", e);
         }
       })();
     }

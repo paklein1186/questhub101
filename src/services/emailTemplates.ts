@@ -13,6 +13,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Booking, Quest, QuestUpdate, Service } from "@/types";
+import { logger } from "@/lib/logger";
 
 export interface EmailMessage {
   to: string;
@@ -141,7 +142,7 @@ export function questDigestEmail(
 // For server-side (edge functions), use Resend directly with RESEND_API_KEY.
 
 export async function sendEmail(email: EmailMessage): Promise<void> {
-  console.log(`📧 [EMAIL] Sending to: ${email.to} | Subject: ${email.subject}`);
+  logger.debug(`📧 [EMAIL] Sending to: ${email.to} | Subject: ${email.subject}`);
 
   try {
     const { error } = await supabase.functions.invoke("send-notification-email", {
@@ -153,13 +154,13 @@ export async function sendEmail(email: EmailMessage): Promise<void> {
     });
 
     if (error) {
-      console.error("📧 [EMAIL] Edge function error:", error);
+      logger.error("📧 [EMAIL] Edge function error:", error);
       throw error;
     }
 
-    console.log(`📧 [EMAIL] Successfully queued for ${email.to}`);
+    logger.debug(`📧 [EMAIL] Successfully queued for ${email.to}`);
   } catch (err) {
-    console.error("📧 [EMAIL] Failed to send:", err);
+    logger.error("📧 [EMAIL] Failed to send:", err);
     // Log but don't throw — email failures shouldn't break app flow
   }
 }

@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { EntityCreationWizard } from "@/components/EntityCreationWizard";
+import { logger } from "@/lib/logger";
 
 const ORG_TYPES = [
   { value: "public_sector", label: "Public Sector", icon: Landmark, desc: "Government, municipality, public institution" },
@@ -130,7 +131,7 @@ export default function OrganizationOnboarding() {
         setScraped(true);
       }
     } catch (e) {
-      console.error("Scrape error:", e);
+      logger.error("Scrape error:", e);
       toast({ title: "Couldn't scrape the URL, please fill in manually.", variant: "destructive" });
     } finally {
       setScraping(false);
@@ -187,7 +188,7 @@ export default function OrganizationOnboarding() {
       toast({ title: "Organization created successfully!" });
       navigate(`/organizations/${companyId}/next-steps`);
     } catch (e: any) {
-      console.error(e);
+      logger.error(e);
       toast({ title: "Failed to create organization", description: e.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);

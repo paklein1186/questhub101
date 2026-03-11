@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCreatePartnership } from "@/hooks/usePartnerships";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 
 interface Props {
   open: boolean;
@@ -96,7 +97,7 @@ export function ProposePartnershipDialog({ open, onOpenChange, fromEntityType, f
           });
         }
       } catch (e) {
-        console.warn("[partnership-notif] Failed to notify target admins", e);
+        logger.warn("[partnership-notif] Failed to notify target admins", e);
       }
 
       setSelectedId(null);

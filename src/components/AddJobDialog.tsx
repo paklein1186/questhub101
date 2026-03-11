@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SearchableTagPicker } from "@/components/SearchableTagPicker";
+import { logger } from "@/lib/logger";
 
 const CONTRACT_TYPES = [
   { value: "full-time", label: "Full-time" },
@@ -61,7 +62,7 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
 
   useEffect(() => {
     if (open) {
-      console.log("[AddJobDialog] opened — territories:", allTerritories.length, "loading:", terrLoading, "error:", terrError);
+      logger.debug("[AddJobDialog] opened — territories:", allTerritories.length, "loading:", terrLoading, "error:", terrError);
     }
   }, [open, allTerritories.length, terrLoading, terrError]);
 
@@ -205,7 +206,7 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
         toast({ title: "Info extracted", description: "Review and edit the pre-filled fields." });
       }
     } catch (e) {
-      console.error("Extraction failed:", e);
+      logger.error("Extraction failed:", e);
       toast({ title: "Extraction failed", description: "Fill the form manually.", variant: "destructive" });
     } finally {
       setExtracting(false);
@@ -267,7 +268,7 @@ export function AddJobDialog({ open, onOpenChange, editJob }: Props) {
   const toggleTopic = (id: string) =>
     setSelectedTopics(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
   const toggleTerritory = (id: string) => {
-    console.log("[AddJobDialog] toggleTerritory called:", id, "allTerritories count:", allTerritories.length);
+    logger.debug("[AddJobDialog] toggleTerritory called:", id, "allTerritories count:", allTerritories.length);
     setSelectedTerritories(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
   };
 

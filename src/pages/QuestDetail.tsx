@@ -83,6 +83,7 @@ import { QuestLivingTab } from "@/components/living/QuestLivingTab";
 import { ExternalLinksPanel, type ExternalLinkItem } from "@/components/guild/ExternalLinksPanel";
 import { Leaf } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { logger } from "@/lib/logger";
 
 const updateIcons: Record<string, typeof Sparkles> = {
   MILESTONE: Sparkles,
@@ -610,7 +611,7 @@ export default function QuestDetail() {
         _quest_id: quest.id,
       });
       if (refundError) {
-        console.error("Refund error:", refundError.message);
+        logger.error("Refund error:", refundError.message);
         toast({ title: "Refund failed", description: refundError.message, variant: "destructive" });
       } else {
         const result = refundResult?.[0] || refundResult;

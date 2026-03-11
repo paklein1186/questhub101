@@ -26,6 +26,7 @@ import { GuildType, GuildJoinPolicy, PodType, CompanySize } from "@/types/enums"
 import { normalizeUrl } from "@/components/SocialLinks";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/logger";
 
 type EntityKind = "guild" | "pod" | "company";
 
@@ -203,7 +204,7 @@ export function EntityCreationWizard({ open, onOpenChange, initialKind }: Entity
         toast({ title: "Website data imported!", description: `${pagesMsg}${matched || "Review and adjust the pre-filled fields."}` });
       }
     } catch (err) {
-      console.error("Scrape error:", err);
+      logger.error("Scrape error:", err);
       toast({ title: "Could not extract data", description: "You can fill in the details manually.", variant: "destructive" });
     } finally {
       setScraping(false);
@@ -258,7 +259,7 @@ Respond ONLY in this exact JSON format, no markdown:
         }
       }
     } catch (err) {
-      console.error("AI assist error:", err);
+      logger.error("AI assist error:", err);
       toast({ title: "AI assist unavailable", description: "You can fill in the details manually.", variant: "destructive" });
     } finally {
       setAiLoading(false);

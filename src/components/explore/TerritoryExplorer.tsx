@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { usePersona } from "@/hooks/usePersona";
 import { useTerritories, useTopics } from "@/hooks/useSupabaseData";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // ─── Types ───────────────────────────────────────────────────
 type AnalysisMode = "compare" | "aggregate";
@@ -218,7 +219,7 @@ export function TerritoryExplorer() {
       // Auto-trigger AI synthesis
       runSynthesis(tIds);
     } catch (e) {
-      console.error("Territory analysis failed", e);
+      logger.error("Territory analysis failed", e);
     } finally {
       setAnalysisLoading(false);
     }

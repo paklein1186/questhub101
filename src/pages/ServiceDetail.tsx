@@ -65,7 +65,7 @@ async function insertBookingNotification(params: {
     data: { bookingId: params.bookingId } as any,
   });
   if (notifErr) {
-    console.error("[BOOKING-NOTIF] Failed to insert notification:", notifErr.message, notifErr.code, notifErr.details);
+    logger.error("[BOOKING-NOTIF] Failed to insert notification:", notifErr.message, notifErr.code, notifErr.details);
   }
 }
 import { XpLevelBadge } from "@/components/XpLevelBadge";
@@ -74,6 +74,7 @@ import { canManageServiceSync } from "@/lib/serviceOwnership";
 import { TrustTab } from "@/components/trust/TrustTab";
 import { useTrustSummary } from "@/hooks/useTrustSummary";
 import { TrustSummaryBadge } from "@/components/trust/TrustSummaryBadge";
+import { logger } from "@/lib/logger";
 
 export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -136,11 +137,11 @@ export default function ServiceDetail() {
         .eq("user_id", providerIdForBusy);
 
       if (busyErr) {
-        console.error("[ServiceDetail] Failed to fetch busy events:", busyErr);
+        logger.error("[ServiceDetail] Failed to fetch busy events:", busyErr);
         return [];
       }
       if (!busyEvents || busyEvents.length === 0) {
-        console.log("[ServiceDetail] No busy events found for provider", providerIdForBusy);
+        logger.debug("[ServiceDetail] No busy events found for provider", providerIdForBusy);
         return [];
       }
 
@@ -153,9 +154,9 @@ export default function ServiceDetail() {
         .in("connection_id", connectionIds);
 
       if (prefsErr) {
-        console.warn("[ServiceDetail] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
+        logger.warn("[ServiceDetail] Could not fetch subcalendar prefs, using all busy events:", prefsErr);
         // Safe default: include all busy events (more restrictive for booking)
-        console.log(`[ServiceDetail] Returning all ${busyEvents.length} busy events (no pref filtering)`);
+        logger.debug(`[ServiceDetail] Returning all ${busyEvents.length} busy events (no pref filtering)`);
         return busyEvents;
       }
 
@@ -175,7 +176,7 @@ export default function ServiceDetail() {
         return !disabledSet.has(`${e.connection_id}::${e.source_calendar_id}`);
       });
 
-      console.log(`[ServiceDetail] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering (${disabledSet.size} disabled subcals)`);
+      logger.debug(`[ServiceDetail] Busy events: ${busyEvents.length} total, ${filtered.length} after filtering (${disabledSet.size} disabled subcals)`);
       return filtered;
     },
     enabled: !!providerIdForBusy,

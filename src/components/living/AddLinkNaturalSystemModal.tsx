@@ -17,6 +17,7 @@ import {
 import type { NsLinkType, NaturalSystemKingdom, NaturalSystemTypeV2 } from "@/types/naturalSystems";
 import { KINGDOM_LABELS, SYSTEM_TYPE_LABELS } from "@/types/naturalSystems";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 type Step = "choose" | "create" | "link";
 
@@ -111,7 +112,7 @@ function LinkForm({ linkedType, linkedId, onDone, onBack }: {
       await linkMutation.mutateAsync({ natural_system_id: systemId, linked_type: linkedType, linked_id: linkedId });
       onDone();
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast({ title: "Failed to link system", description: err.message, variant: "destructive" });
     }
   };

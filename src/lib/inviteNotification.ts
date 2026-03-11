@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 type EntityType = "quest" | "guild" | "pod" | "company";
 
@@ -62,6 +63,6 @@ export async function sendInviteNotification(params: {
       deep_link_url: DEEP_LINKS[params.entityType](params.entityId),
     });
   } catch (err) {
-    console.error("[InviteNotification] Failed:", err);
+    logger.error("[InviteNotification] Failed:", err);
   }
 }

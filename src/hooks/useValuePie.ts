@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useCallback } from "react";
+import { logger } from "@/lib/logger";
 
 // ── Types ────────────────────────────────────────────────────
 export interface GuildWeight {
@@ -183,7 +184,7 @@ export function useValuePieActions() {
             related_entity_id: params.questId,
           } as any);
         } catch (e) {
-          console.error("Contributor payout failed for", entry.contributor_id, e);
+          logger.error("Contributor payout failed for", entry.contributor_id, e);
         }
       }
 
@@ -221,7 +222,7 @@ export function useValuePieActions() {
             related_entity_id: params.questId,
           } as any);
         } catch (e) {
-          console.error("Guild pool distribution failed", e);
+          logger.error("Guild pool distribution failed", e);
         }
       }
 
@@ -249,7 +250,7 @@ export function useValuePieActions() {
             .update({ coins_balance: currBal + tAmt } as any)
             .eq("id", params.territoryId);
         } catch (e) {
-          console.error("Territory pool distribution failed", e);
+          logger.error("Territory pool distribution failed", e);
         }
       }
 
@@ -267,7 +268,7 @@ export function useValuePieActions() {
             related_entity_id: params.questId,
           } as any);
         } catch (e) {
-          console.error("CTG platform fee recording failed", e);
+          logger.error("CTG platform fee recording failed", e);
         }
       }
 
