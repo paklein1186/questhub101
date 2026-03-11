@@ -474,7 +474,7 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
             {/* Contract body */}
             <div
               className="prose prose-sm dark:prose-invert max-w-none rounded-lg border border-border bg-card p-4"
-              dangerouslySetInnerHTML={{ __html: (contract.content as any)?.html ?? "" }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((contract.content as any)?.html ?? "") }}
             />
 
             {/* ── Signatories ── */}
