@@ -402,7 +402,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       {/* Coins pool */}
                       <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🟩</span>
+                          <CurrencyIcon currency="coins" className="h-5 w-5" />
                           <span className="text-sm font-semibold">Coins Pool</span>
                         </div>
                         <p className="text-2xl font-bold">{coinsEscrow.toLocaleString()}</p>
