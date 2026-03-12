@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Wallet, Coins, Zap, CreditCard, Package, Crown, Compass,
+  Wallet, CreditCard, Package, Crown, Compass,
   ArrowRight, ExternalLink, Loader2, History, Info,
   ArrowUpRight, ArrowDownRight, Filter, Send, Recycle, Timer,
-  Shield, Star, Banknote, Leaf, Download,
+  Shield, Banknote, Download,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
