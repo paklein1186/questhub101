@@ -336,7 +336,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
                     <th className="text-right p-2 font-medium">
-                      <span className="inline-flex items-center gap-1">Owed <CurrencyIcon currency="coins" size="xs" showTooltip /></span>
+                      <span className="inline-flex items-center gap-1">Owed <CurrencyIcon currency="coins" className="h-3 w-3" showTooltip /></span>
                     </th>
                     <th className="text-right p-2 font-medium">Paid</th>
                     <th className="text-right p-2 font-medium">Remaining</th>
