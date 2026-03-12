@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCoinsRate } from "@/hooks/useCoinsRate";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,11 +40,12 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
   const currentUser = useCurrentUser();
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { rate: coinsRate } = useCoinsRate();
   const [mode, setMode] = useState<"proportional" | "individual">("proportional");
   const [totalAmount, setTotalAmount] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [individualAmount, setIndividualAmount] = useState("");
-  const [compensationMode, setCompensationMode] = useState<"coins" | "fiat" | "mixed">("coins");
+  const [compensationMode, setCompensationMode] = useState<"coins" | "ctg" | "fiat" | "mixed">("coins");
   const [currency, setCurrency] = useState("EUR");
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -206,21 +208,69 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     setSubmitting(true);
     try {
       const preview = getDistributionPreview();
+      const isCtgMode = compensationMode === "ctg";
+      const isFiatMode = compensationMode === "fiat";
+
       for (const entry of preview) {
-        // Write compensation record
+        const coinAmount = (isFiatMode || isCtgMode) ? 0 : entry.distribution;
+        const ctgAmount = isCtgMode ? entry.distribution : 0;
+
+        // 1. Write compensation record
         await supabase.from("contribution_compensations" as any).insert({
-          contribution_id: quest.id, // use quest_id as grouping key
+          contribution_id: quest.id,
           quest_id: quest.id,
           user_id: entry.user_id,
-          amount_coins: compensationMode === "fiat" ? 0 : entry.distribution,
-          amount_fiat: compensationMode === "coins" ? null : entry.distribution,
+          amount_coins: coinAmount + ctgAmount, // store total distributed
+          amount_fiat: isFiatMode ? entry.distribution : (coinAmount > 0 ? coinAmount * coinsRate : null),
           compensation_mode: compensationMode,
           currency,
           note: note || null,
           compensated_by: currentUser.id,
         });
 
-        // Update contribution_logs for this user+quest
+        // 2a. Credit recipient wallet (Coins)
+        if (coinAmount > 0) {
+          await supabase.from("coin_transactions" as any).insert({
+            user_id: entry.user_id,
+            amount: coinAmount,
+            type: "QUEST_DISTRIBUTION",
+            quest_id: quest.id,
+            source: `compensation:${quest.id}`,
+          });
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("coins_balance")
+            .eq("user_id", entry.user_id)
+            .single();
+          if (prof) {
+            await supabase.from("profiles").update({
+              coins_balance: Number((prof as any).coins_balance ?? 0) + coinAmount,
+            } as any).eq("user_id", entry.user_id);
+          }
+        }
+
+        // 2b. Credit recipient wallet ($CTG)
+        if (ctgAmount > 0) {
+          await supabase.from("ctg_transactions" as any).insert({
+            user_id: entry.user_id,
+            amount: ctgAmount,
+            type: "QUEST_DISTRIBUTION",
+            related_entity_id: quest.id,
+            related_entity_type: "quest",
+          });
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("ctg_balance")
+            .eq("user_id", entry.user_id)
+            .single();
+          if (prof) {
+            await supabase.from("profiles").update({
+              ctg_balance: Number((prof as any).ctg_balance ?? 0) + ctgAmount,
+            } as any).eq("user_id", entry.user_id);
+          }
+        }
+
+        // 3. Update contribution_logs for this user+quest
         const { data: userLogs } = await supabase
           .from("contribution_logs" as any)
           .select("id, fmv_value, coins_compensated")
@@ -245,28 +295,56 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             .eq("id", log.id);
           remaining -= apply;
         }
-      }
 
-      // Log to activity_log if contract is active
-      if (activeContract) {
-        await supabase.from("activity_log").insert({
-          actor_user_id: currentUser.id,
-          action_type: "ocu_distribution",
-          target_type: "quest",
-          target_id: quest.id,
-          target_name: quest.title,
-          metadata: {
-            contract_id: activeContract.id,
-            distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
-            mode: compensationMode,
-            note,
-          },
+        // 4. Notify recipient
+        await supabase.from("notifications" as any).insert({
+          user_id: entry.user_id,
+          type: "quest_distribution",
+          title: `💰 You received ${coinAmount > 0 ? `${coinAmount} Coins` : ""}${ctgAmount > 0 ? `${coinAmount > 0 ? " + " : ""}${ctgAmount} $CTG` : ""} from quest "${quest.title}"`,
+          link: `/quests/${quest.id}`,
+          entity_type: "quest",
+          entity_id: quest.id,
         });
       }
 
+      // 5. Update quest escrow
+      const totalDistributed = preview.reduce((s, p) => s + p.distribution, 0);
+      if (!isFiatMode && totalDistributed > 0) {
+        const questUpdate: any = {};
+        if (isCtgMode) {
+          const currentCtgEscrow = Number((quest as any).ctg_escrow ?? 0);
+          const newCtg = Math.max(0, currentCtgEscrow - totalDistributed);
+          questUpdate.ctg_escrow = newCtg;
+          if (newCtg <= 0) questUpdate.ctg_escrow_status = "released";
+        } else {
+          const currentEscrow = Number((quest as any).coins_escrow ?? 0);
+          const newEscrow = Math.max(0, currentEscrow - totalDistributed);
+          questUpdate.coins_escrow = newEscrow;
+          if (newEscrow <= 0) questUpdate.coins_escrow_status = "released";
+        }
+        await supabase.from("quests").update(questUpdate as any).eq("id", quest.id);
+      }
+
+      // 6. Activity log
+      await supabase.from("activity_log").insert({
+        actor_user_id: currentUser.id,
+        action_type: "ocu_distribution",
+        target_type: "quest",
+        target_id: quest.id,
+        target_name: quest.title,
+        metadata: {
+          contract_id: activeContract?.id ?? null,
+          distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
+          mode: compensationMode,
+          note,
+        },
+      });
+
       toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
+      qc.invalidateQueries({ queryKey: ["compensation-history", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+      qc.invalidateQueries({ queryKey: ["quest", quest.id] });
       setConfirmOpen(false);
       setTotalAmount("");
       setIndividualAmount("");
@@ -467,9 +545,10 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="coins" className="text-xs">🟡 Coins (platform)</SelectItem>
-                    <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
-                    <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
+                     <SelectItem value="coins" className="text-xs">🪙 Coins (platform)</SelectItem>
+                     <SelectItem value="ctg" className="text-xs">🌱 $CTG</SelectItem>
+                     <SelectItem value="fiat" className="text-xs">💶 Fiat (external)</SelectItem>
+                     <SelectItem value="mixed" className="text-xs">Mixed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Input

@@ -157,8 +157,8 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
   const preview = computePreview();
   const totalCoins = preview.reduce((s, c) => s + c.coins_amount, 0);
   const totalCtg = preview.reduce((s, c) => s + c.ctg_amount, 0);
-  const overCoins = totalCoins > coinsEscrow;
-  const overCtg = totalCtg > ctgEscrow;
+  const overCoins = totalCoins > coinsEscrow + 0.01;
+  const overCtg = totalCtg > ctgEscrow + 0.01;
 
   const handleConfirm = async () => {
     if (preview.length === 0) return;
