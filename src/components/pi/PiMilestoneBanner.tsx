@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, Zap, Coins } from "lucide-react";
+import { X, Trophy } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
 import { usePersona } from "@/hooks/usePersona";
