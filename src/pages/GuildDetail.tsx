@@ -303,13 +303,18 @@ export default function GuildDetail() {
   const [showGuildXpDialog, setShowGuildXpDialog] = useState(false);
   const [guildSp, setGuildSp] = useSearchParams();
   const legacyTabMap: Record<string, string> = { discussion: "human-interactions", docs: "human-interactions", decisions: "human-interactions", rituals: "human-interactions", "ai-chat": "ai", facilitator: "ai", memory: "ai", agents: "ai", "ai-guidance": "ai", board: "overview", monetization: "agent-settings", "agent-revenue": "agent-settings" };
-  const rawTab = guildSp.get("tab") || "overview";
+  const { getLastTab: getLastGuildTab, saveLastTab: saveLastGuildTab } = useLastTab("guild");
+  const urlTab = guildSp.get("tab");
+  const rawTab = urlTab || getLastGuildTab(id, "overview");
   const activeTab = legacyTabMap[rawTab] || rawTab;
-  const setActiveTab = (v: string) => setGuildSp(prev => {
-    const next = new URLSearchParams(prev);
-    if (v === "overview") next.delete("tab"); else next.set("tab", v);
-    return next;
-  }, { replace: true });
+  const setActiveTab = (v: string) => {
+    saveLastGuildTab(id, v);
+    setGuildSp(prev => {
+      const next = new URLSearchParams(prev);
+      if (v === "overview") next.delete("tab"); else next.set("tab", v);
+      return next;
+    }, { replace: true });
+  };
   const [editSvcId, setEditSvcId] = useState<string | null>(null);
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
   const [authPromptAction, setAuthPromptAction] = useState("");

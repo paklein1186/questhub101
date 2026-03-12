@@ -330,12 +330,17 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
-  const activeTab = searchParams.get("tab") || "overview";
-  const setActiveTab = (v: string) => setSearchParams(prev => {
-    const next = new URLSearchParams(prev);
-    if (v === "overview") next.delete("tab"); else next.set("tab", v);
-    return next;
-  }, { replace: true });
+  const { getLastTab: getLastQuestTab, saveLastTab: saveLastQuestTab } = useLastTab("quest");
+  const urlTab = searchParams.get("tab");
+  const activeTab = urlTab || getLastQuestTab(id, "overview");
+  const setActiveTab = (v: string) => {
+    saveLastQuestTab(id, v);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (v === "overview") next.delete("tab"); else next.set("tab", v);
+      return next;
+    }, { replace: true });
+  };
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
 
   const [podOpen, setPodOpen] = useState(false);
