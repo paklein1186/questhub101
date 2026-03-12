@@ -274,7 +274,7 @@ export function FundQuestCard({ questId, className }: Props) {
             return (
               <CampaignRow
                 key={c.id}
-                emoji="🟩"
+                emoji="🪙"
                 title={c.title || "Coins Campaign"}
                 raised={raised}
                 threshold={threshold}
