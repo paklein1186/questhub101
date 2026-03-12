@@ -78,8 +78,8 @@ export function XpSpendDialog({
             {ctgBalance && ctgBalance > 0 ? (
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Leaf className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <p className="text-sm font-medium">
+                   <CurrencyIcon currency="ctg" className="h-4 w-4" />
+                   <p className="text-sm font-medium">
                     You have {ctgBalance.toLocaleString()} $CTG
                   </p>
                 </div>
