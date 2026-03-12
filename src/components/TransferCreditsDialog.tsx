@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Send, Loader2, Users, Shield, Coins } from "lucide-react";
+import { Send, Loader2, Users, Shield } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
