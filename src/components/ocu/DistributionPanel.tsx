@@ -447,7 +447,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <div className="flex gap-4">
                 {showCoins && (
                   <span className={overCoins ? "text-destructive font-medium" : ""}>
-                    Total 🟩: {totalCoins.toLocaleString()} / {coinsEscrow.toLocaleString()}
+                    Total Coins: {totalCoins.toLocaleString()} / {coinsEscrow.toLocaleString()}
                   </span>
                 )}
                 {showCtg && (
