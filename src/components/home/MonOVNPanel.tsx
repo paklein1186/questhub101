@@ -167,7 +167,7 @@ export function MonOVNPanel({ userId }: Props) {
           </Card>
           <Card className="border-emerald-500/20">
             <CardContent className="p-4 text-center">
-              <Coins className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+              <CurrencyIcon currency="coins" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-emerald-600">{data.totalTokens.toFixed(0)}</p>
               <p className="text-[10px] text-muted-foreground">🟩 Coins received</p>
             </CardContent>
