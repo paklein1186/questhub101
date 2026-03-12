@@ -359,7 +359,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   if (questIds.length === 0) {
     return (
       <div className="text-center py-12">
-        <Scale className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+        <CurrencyIcon currency="weight" className="h-10 w-10" colorClassName="text-muted-foreground" />
         <p className="text-muted-foreground">No quests linked to this guild yet.</p>
         <p className="text-xs text-muted-foreground mt-1">When quests are hosted by or affiliated with this guild, their contribution metrics will appear here.</p>
       </div>
