@@ -563,7 +563,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
 
       <div className="flex gap-4 text-xs">
         {distribution.currency !== "ctg" && (
-          <span>🟩 {recipients.reduce((s: number, r: any) => s + (r.amount_coins ?? 0), 0).toLocaleString()} Coins</span>
+          <span>{recipients.reduce((s: number, r: any) => s + (r.amount_coins ?? 0), 0).toLocaleString()} Coins</span>
         )}
         {distribution.currency !== "coins" && (
           <span>🌱 {recipients.reduce((s: number, r: any) => s + (r.amount_ctg ?? 0), 0).toLocaleString()} $CTG</span>
