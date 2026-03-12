@@ -21,11 +21,15 @@ function rule(weekday: number, start: string, end: string, serviceId?: string): 
   return {
     id: crypto.randomUUID(),
     userId: "user-1",
+    providerUserId: "user-1",
     weekday,
     startTime: start,
     endTime: end,
     isActive: true,
     serviceId: serviceId ?? null,
+    timezone: "UTC",
+    createdAt: FIXED_NOW.toISOString(),
+    updatedAt: FIXED_NOW.toISOString(),
   } as AvailabilityRule;
 }
 
@@ -42,10 +46,12 @@ function exception(date: string, isAvailable: boolean, startTime?: string, endTi
   return {
     id: crypto.randomUUID(),
     userId: "user-1",
+    providerUserId: "user-1",
     date,
     isAvailable,
     startTime: startTime ?? null,
     endTime: endTime ?? null,
+    createdAt: FIXED_NOW.toISOString(),
   } as AvailabilityException;
 }
 
