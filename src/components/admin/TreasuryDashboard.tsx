@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, TrendingUp, Users, Heart, Coins, BarChart3, Recycle, Zap, Globe, Loader2 } from "lucide-react";
+import { Building2, TrendingUp, Users, Heart, BarChart3, Recycle, Zap, Globe, Loader2 } from "lucide-react";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { TREASURY_ALLOCATION } from "@/lib/xpCreditsConfig";
 import { PlatformGiveBackAdmin } from "@/components/giveback/GiveBackHistory";
 import { useAuth } from "@/hooks/useAuth";
@@ -97,7 +98,7 @@ export function TreasuryDashboard() {
             Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)
           ) : (
             <>
-              <StatCard icon={Coins} label="GMV (30d)" value={`€${(econStats?.gmv ?? 0).toLocaleString()}`} color="text-primary" />
+              <StatCard icon={getCurrencyConfig("coins").icon} label="GMV (30d)" value={`€${(econStats?.gmv ?? 0).toLocaleString()}`} color="text-primary" />
               <StatCard icon={TrendingUp} label="Commission Rev." value={`€${(econStats?.commissionRevenue ?? 0).toLocaleString()}`} color="text-emerald-500" />
               <StatCard icon={Users} label="Active Holders" value={String(econStats?.activeHolders ?? 0)} color="text-blue-500" />
               <StatCard icon={Zap} label="Platform Credit Velocity" value={`${econStats?.velocity ?? 0}%`} color="text-amber-500" />
@@ -116,8 +117,8 @@ export function TreasuryDashboard() {
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)
           ) : (
             <>
-              <StatCard icon={Coins} label="Platform Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
-              <StatCard icon={Coins} label="Platform Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
+              <StatCard icon={getCurrencyConfig("credits").icon} label="Platform Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
+              <StatCard icon={getCurrencyConfig("credits").icon} label="Platform Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
               <StatCard icon={Recycle} label="Platform Credits Faded" value={String(econStats?.monthlyFaded ?? 0)} color="text-rose-500" />
             </>
           )}
@@ -257,7 +258,7 @@ function CommonsWalletAdmin({ userId, pulsing, setPulsing, qc }: { userId?: stri
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <StatCard icon={Globe} label="Commons Balance" value={`${Math.round(commons?.balance ?? 0)} $CTG`} color="text-emerald-500" />
-        <StatCard icon={Coins} label="Lifetime Received" value={`${Math.round(commons?.lifetime_received ?? 0)} $CTG`} color="text-emerald-600" />
+        <StatCard icon={getCurrencyConfig("ctg").icon} label="Lifetime Received" value={`${Math.round(commons?.lifetime_received ?? 0)} $CTG`} color="text-emerald-600" />
         <Card className="border-border/50 bg-muted/30">
           <CardContent className="p-4 flex flex-col items-center text-center gap-2">
             <Button

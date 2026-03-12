@@ -5,8 +5,9 @@ import {
   MapPin, Search, X, Brain, Loader2, BarChart3, Layers,
   Compass, Shield, CircleDot, Building2, Briefcase, GraduationCap,
   Calendar, Clock, Hash, Play, AlertCircle, Sparkles, RefreshCw,
-  TrendingUp, AlertTriangle, Users, Coins, Lightbulb,
+  TrendingUp, AlertTriangle, Users, Lightbulb,
 } from "lucide-react";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -610,10 +611,10 @@ export function TerritoryExplorer() {
 
                 {/* Funding Priorities */}
                 {synthesisData.fundingPriorities?.length > 0 && (
-                  <SynthesisSection icon={Coins} title="Funding Priorities">
+                  <SynthesisSection icon={getCurrencyConfig("coins").icon} title="Funding Priorities">
                     {synthesisData.fundingPriorities.map((f: any, i: number) => (
                       <div key={i} className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
-                        <Coins className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        <CurrencyIcon currency="coins" className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">{f.area}</p>
                           <p className="text-xs text-muted-foreground">{f.reason}</p>

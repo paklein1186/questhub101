@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Coins, History, Loader2, Package, Filter,
+  History, Loader2, Package, Filter,
   ArrowDownRight, ArrowUpRight, Info, Send,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -81,10 +82,10 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
   return (
     <div className="space-y-6 max-w-lg">
       {/* Balance */}
-      <Section title="Unit Credits" icon={<Coins className="h-5 w-5" />}>
+      <Section title="Unit Credits" icon={<CurrencyIcon currency="credits" className="h-5 w-5" />}>
         <div className="flex flex-wrap items-center gap-4 mb-3">
           <div className="inline-flex items-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 px-6 py-3">
-            <Coins className="h-6 w-6 text-primary" />
+            <CurrencyIcon currency="credits" className="h-6 w-6" />
             <div>
               <p className="text-2xl font-bold">{creditsBalance}</p>
               <p className="text-xs text-muted-foreground">Credits</p>
@@ -123,7 +124,7 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
               <p className="text-lg font-bold">€{b.priceEur}</p>
               <p className="text-xs text-muted-foreground mb-2">€{(b.priceEur / b.credits).toFixed(3)}/credit</p>
               <Button size="sm" className="w-full" onClick={() => handleBuyCredits(b.code)} disabled={!!buyLoading}>
-                {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4 mr-1" />}
+                {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <CurrencyIcon currency="credits" className="h-4 w-4 mr-1" />}
                 {buyLoading === b.code ? "Processing…" : "Buy"}
               </Button>
             </div>

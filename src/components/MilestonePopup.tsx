@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, ArrowRight, Sparkles, Coins, Zap } from "lucide-react";
+import { X, Trophy, ArrowRight, Sparkles } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
@@ -101,13 +102,13 @@ export function MilestonePopup() {
                 <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
                   {current.reward_type === "XP" && (
                     <>
-                      <Zap className="h-4 w-4 text-amber-500" />
+                      <CurrencyIcon currency="xp" className="h-4 w-4" />
                       <span className="text-sm font-semibold">+{current.reward_amount} XP</span>
                     </>
                   )}
                   {current.reward_type === "CREDITS" && (
                     <>
-                      <Coins className="h-4 w-4 text-emerald-500" />
+                      <CurrencyIcon currency="credits" className="h-4 w-4" />
                       <span className="text-sm font-semibold">+{current.reward_amount} Credits</span>
                     </>
                   )}

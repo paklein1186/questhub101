@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  Users, Zap, Shield, Leaf, Coins, BarChart3, Scale, Heart,
+  Users, Zap, Shield, Leaf, BarChart3, Heart,
   Network, Target, FileText, ArrowRight, Globe, Sparkles, Activity
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface Props {
   embedded?: boolean;
@@ -125,10 +126,10 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
           <p className="mt-4">Each node carries:</p>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2">
             {[
-              { icon: <Zap className="h-4 w-4 text-primary" />, label: "⭐ XP", desc: "Reputation & trust level" },
+              { icon: <CurrencyIcon currency="xp" className="h-4 w-4" />, label: "⭐ XP", desc: "Reputation & trust level" },
               { icon: <Shield className="h-4 w-4 text-primary" />, label: "Trust Index", desc: "Reliability" },
-              { icon: <Coins className="h-4 w-4 text-primary" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
-              { icon: <Leaf className="h-4 w-4 text-primary" />, label: "🌱 $CTG", desc: "Contribution to commons" },
+              { icon: <CurrencyIcon currency="credits" className="h-4 w-4" />, label: "🔷 Platform Credits", desc: "Feature fuel" },
+              { icon: <CurrencyIcon currency="ctg" className="h-4 w-4" />, label: "🌱 $CTG", desc: "Contribution to commons" },
               { icon: <FileText className="h-4 w-4 text-primary" />, label: "History", desc: "Proof of work" },
             ].map((v) => (
               <div key={v.label} className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
@@ -206,7 +207,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="4"
           title="Value Layers: Coins, $CTG & Credits"
-          icon={<Coins className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="coins" className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
@@ -244,7 +245,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="4b"
           title="Open Contributive Units (OCU) — Fair Value Distribution"
-          icon={<Scale className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
         >
           <p className="text-muted-foreground text-sm mb-3">
             The OCU module is changethegame's implementation of a Slicing Pie-style
@@ -290,7 +291,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="6"
           title="Governance Anchored in Community"
-          icon={<Scale className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
         >
           <p>CTG uses multi-layer governance to ensure fairness:</p>
           <div className="flex flex-wrap gap-2 mt-3">

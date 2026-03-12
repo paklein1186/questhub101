@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Coins, Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info, Leaf, RefreshCw, Zap } from "lucide-react";
+import { Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info, RefreshCw } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -135,7 +136,7 @@ export default function BuyXpPage() {
           <p className="text-muted-foreground">Credits are platform utility — use them for boosts, extra capacity, and AI features.</p>
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2">
-              <Coins className="h-5 w-5 text-primary" />
+              <CurrencyIcon currency="credits" className="h-5 w-5" />
               <span className="text-lg font-bold">{userCredits}</span>
               <span className="text-sm text-muted-foreground">Credits</span>
             </div>
@@ -157,7 +158,7 @@ export default function BuyXpPage() {
             className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6 mb-6"
           >
             <div className="flex items-center gap-3 mb-3">
-              <Leaf className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <CurrencyIcon currency="ctg" className="h-6 w-6" />
               <div>
                 <h3 className="font-display text-lg font-bold flex items-center gap-2">
                   Exchange your $CTG for Credits
@@ -182,7 +183,7 @@ export default function BuyXpPage() {
 
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
-                <Leaf className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                <CurrencyIcon currency="ctg" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4" />
                 <Input
                   type="number"
                   placeholder="Amount to exchange"
@@ -243,7 +244,7 @@ export default function BuyXpPage() {
                 {loading === bundle.code ? (
                   <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Processing…</>
                 ) : (
-                  <><Coins className="h-4 w-4 mr-1" /> Buy {bundle.credits} Credits</>
+                  <><CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> Buy {bundle.credits} Credits</>
                 )}
               </Button>
             </motion.div>

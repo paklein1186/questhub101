@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Scale, Coins, TrendingUp, CalendarCheck, Share2, Check, Copy } from "lucide-react";
+import { CalendarCheck, Share2, Check, Copy } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from "recharts";
 import { Link } from "react-router-dom";
 import { useTrustSummary } from "@/hooks/useTrustSummary";
@@ -135,7 +136,7 @@ export function MonOVNPanel({ userId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Scale className="h-5 w-5 text-primary" /> My Contributions
+          <CurrencyIcon currency="weight" className="h-5 w-5" /> My Contributions
         </h3>
         <Button size="sm" variant="outline" onClick={handleCopyPassport}>
           {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
@@ -152,21 +153,21 @@ export function MonOVNPanel({ userId }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <Card>
             <CardContent className="p-4 text-center">
-              <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
+              <CurrencyIcon currency="xp" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-primary">{Math.round(data.totalXp)}</p>
               <p className="text-[10px] text-muted-foreground">XP Total</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <Scale className="h-4 w-4 text-primary mx-auto mb-1" />
+              <CurrencyIcon currency="weight" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-primary">{data.totalWu.toFixed(1)}</p>
               <p className="text-[10px] text-muted-foreground">Weighted Units</p>
             </CardContent>
           </Card>
           <Card className="border-emerald-500/20">
             <CardContent className="p-4 text-center">
-              <Coins className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+              <CurrencyIcon currency="coins" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-emerald-600">{data.totalTokens.toFixed(0)}</p>
               <p className="text-[10px] text-muted-foreground">🟩 Coins received</p>
             </CardContent>

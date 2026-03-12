@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, Coins, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks, Target, HandCoins } from "lucide-react";
+import { Compass, Zap, Building2, Plus, Users, ChevronRight, Loader2, CreditCard, MapPin, Lock, Tag, EyeOff, ListChecks, Target, HandCoins } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Progress } from "@/components/ui/progress";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
 import { Badge } from "@/components/ui/badge";
@@ -259,7 +260,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {creditBudget > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Coins className="h-3 w-3 text-primary" /> {creditBudget} Credits
+                            <CurrencyIcon currency="credits" className="h-3 w-3" /> {creditBudget} Credits
                           </Badge>
                         )}
                         {ctg > 0 && (

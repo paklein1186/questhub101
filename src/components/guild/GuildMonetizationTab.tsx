@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Coins, Shield, TrendingUp, Settings } from "lucide-react";
+import { Bot, Shield, TrendingUp, Settings } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -99,7 +100,7 @@ export function GuildMonetizationTab({ guildId, guildName, isAdmin }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <Coins className="h-5 w-5 mx-auto mb-1 text-primary" />
+            <CurrencyIcon currency="credits" className="h-5 w-5 mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{revenueData?.total?.toFixed(0) || 0}</p>
             <p className="text-[10px] text-muted-foreground">Credits earned (last 30 days)</p>
           </CardContent>

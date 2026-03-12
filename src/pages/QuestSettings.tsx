@@ -2,11 +2,12 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
+  ArrowLeft, Save, Trash2, Puzzle, Calendar,
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
   Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
   PieChart, FileText, LogOut, Snowflake,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { QuestNeedsManager } from "@/components/quest/QuestNeedsManager";
 import { CreateCampaignDialog } from "@/components/quest/CreateCampaignDialog";
 import { QuestAffiliationsTab } from "@/components/quest/QuestAffiliationsTab";
@@ -37,7 +38,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 const ALL_TABS = [
   { key: "affiliations", label: "Affiliations", icon: Link2 },
   { key: "contributions", label: "Contributions", icon: PieChart },
-  { key: "fundraising", label: "Fundraising", icon: Coins },
+  { key: "fundraising", label: "Fundraising", icon: PieChart },
   { key: "contract", label: "Contract", icon: FileText },
   { key: "exit", label: "Exit Protocol", icon: LogOut },
   { key: "needs", label: "Needs", icon: Lightbulb },
@@ -526,7 +527,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   {ocuEnabled && (
                     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                       <h3 className="font-display font-semibold flex items-center gap-2">
-                        <Coins className="h-4 w-4 text-primary" /> OCU Envelope
+                        <CurrencyIcon currency="coins" className="h-4 w-4" /> OCU Envelope
                       </h3>
 
                       <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
@@ -604,7 +605,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   {/* Quick top-up */}
                   <div className="rounded-xl border border-border bg-card p-5 space-y-3">
                     <h3 className="font-display font-semibold flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-primary" /> Direct Top-Up
+                      <CurrencyIcon currency="coins" className="h-4 w-4" /> Direct Top-Up
                     </h3>
                     <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
                     <div className="flex flex-wrap gap-2">

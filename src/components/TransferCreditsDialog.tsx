@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Send, Loader2, Users, Shield, Coins } from "lucide-react";
+import { Send, Loader2, Users, Shield } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,7 +132,7 @@ export function TransferCreditsDialog({
               From: <strong>{isGuildSource ? sourceGuildName : "Your wallet"}</strong>
             </span>
             <span className="text-sm font-bold flex items-center gap-1">
-              <Coins className="h-4 w-4 text-primary" /> {currentBalance}
+              <CurrencyIcon currency="credits" className="h-4 w-4" /> {currentBalance}
             </span>
           </div>
 
