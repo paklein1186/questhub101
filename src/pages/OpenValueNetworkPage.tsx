@@ -211,7 +211,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         >
           <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Mission Value</p>
+              <p className="font-medium text-foreground mb-2">Coins — Fiat-Backed Mission Value</p>
               <p className="text-xs text-muted-foreground mb-2">Fund quests and pay contributors. Pre-funded by creator or raised via campaigns. Distributed via OCU pie, equal split, or manually. Withdrawable to €.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
                 {["Quest creator pre-funds pool at creation", "Public fundraising campaigns (Coins or $CTG)", "OCU pie distribution — proportional to contribution", "Equal split or manual dispatch", "No demurrage — holds full value in escrow", "Withdrawable to real € via Stripe Connect"].map((s) => (
