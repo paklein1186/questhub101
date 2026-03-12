@@ -402,7 +402,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       {/* Coins pool */}
                       <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg">🟩</span>
+                          <CurrencyIcon currency="coins" className="h-5 w-5" />
                           <span className="text-sm font-semibold">Coins Pool</span>
                         </div>
                         <p className="text-2xl font-bold">{coinsEscrow.toLocaleString()}</p>
@@ -610,15 +610,15 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => setAddCoinsOpen(true)}>
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🟩 Coins
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add Coins
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setAddCtgOpen(true)}>
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🌱 $CTG
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add $CTG
                       </Button>
                     </div>
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>🟩 Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
-                      <p><strong>🌱 $CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
+                      <p><strong>Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
+                      <p><strong>$CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
                     </div>
                   </div>
 
@@ -626,7 +626,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   <div className="grid gap-5 md:grid-cols-2">
                     {/* Coins Campaigns */}
                     <CampaignSection
-                      emoji="🟩"
+                      emoji="🪙"
                       label="Coins"
                       campaigns={campaigns.filter((c: any) => (c.campaign_currency || "coins") === "coins" || (c.type === "FIAT" && !c.campaign_currency))}
                       isLoading={campaignsLoading}
@@ -807,7 +807,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Your balance: <strong>{((userProfile as any)?.coins_balance ?? 0).toLocaleString()}</strong> 🟩 Coins
+              Your balance: <strong>{((userProfile as any)?.coins_balance ?? 0).toLocaleString()}</strong> Coins
             </p>
             <Input
               type="number"

@@ -95,7 +95,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
              </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🟩" />
+            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🌱" />
             <StatCard label="Value Pie Quests" value={stats?.questCount ?? 0} icon="🥧" />
             <StatCard label="Contributors this month" value={stats?.distinctUsers ?? 0} icon="👥" />
             <StatCard label="Active guilds" value={stats?.guildCount ?? 0} icon="⚔️" />
@@ -199,7 +199,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
             />
           </div>
           <p className="mt-3 text-muted-foreground">
-            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG) + 🟩 Mission Value (Coins)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
+            Together, <strong className="text-foreground">⭐ Reputation (XP) + 🤝 Trust Index + 🌱 Commons Output ($CTG) + Mission Value (Coins)</strong> form your <strong className="text-foreground">Contributor Profile</strong>.
           </p>
         </Section>
 
@@ -211,7 +211,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         >
           <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="font-medium text-foreground mb-2">🟩 Coins — Fiat-Backed Mission Value</p>
+              <p className="font-medium text-foreground mb-2">Coins — Fiat-Backed Mission Value</p>
               <p className="text-xs text-muted-foreground mb-2">Fund quests and pay contributors. Pre-funded by creator or raised via campaigns. Distributed via OCU pie, equal split, or manually. Withdrawable to €.</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
                 {["Quest creator pre-funds pool at creation", "Public fundraising campaigns (Coins or $CTG)", "OCU pie distribution — proportional to contribution", "Equal split or manual dispatch", "No demurrage — holds full value in escrow", "Withdrawable to real € via Stripe Connect"].map((s) => (
@@ -392,7 +392,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
                     <span>{format(new Date(q.created_at), "dd MMM yyyy")}</span>
                     {q.coins_budget > 0 && (
                       <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600">
-                        🟩 {q.coins_budget}
+                        {q.coins_budget}
                       </Badge>
                     )}
                   </div>
@@ -487,7 +487,7 @@ function TokenFlowDiagram() {
             Quest Budget
           </text>
           <text x={cx} y={cy + 10} textAnchor="middle" className="text-[12px]">
-            🟩
+            🪙
           </text>
         </svg>
       </div>

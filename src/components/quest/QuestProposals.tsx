@@ -346,7 +346,7 @@ export function QuestProposals({
           {(campaigns as any[]).map((campaign: any) => {
             const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
             const isActive = campaign.status === "ACTIVE";
-            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "🟩 Tokens";
+            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "Tokens";
             return (
               <div key={campaign.id} className={`rounded-xl border bg-card p-5 ${campaign.status === "CANCELLED" ? "border-destructive/30 opacity-70" : "border-border"}`}>
                 <div className="flex items-center justify-between mb-2">
@@ -355,7 +355,7 @@ export function QuestProposals({
                     <Badge variant="outline" className={`text-xs ${campaign.status === "ACTIVE" ? "bg-green-500/10 text-green-700 border-green-500/30" : campaign.status === "COMPLETED" ? "bg-blue-500/10 text-blue-700 border-blue-500/30" : "bg-orange-500/10 text-orange-700 border-orange-500/30"}`}>
                       {campaign.status}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "🟩 $CTG"}</Badge>
+                    <Badge variant="secondary" className="text-xs">{campaign.type === "FIAT" ? `Fiat (${campaign.currency || "€"})` : "$CTG"}</Badge>
                   </div>
                   <span className="text-lg font-bold text-primary">
                     {campaign.raised_amount} / {campaign.goal_amount} {unit}
@@ -428,7 +428,7 @@ export function QuestProposals({
                   <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CREDITS">🟩 $CTG only</SelectItem>
+                      <SelectItem value="CREDITS">$CTG only</SelectItem>
                       <SelectItem value="FIAT">Fiat (€) only</SelectItem>
                       <SelectItem value="BOTH">$CTG + Fiat (€)</SelectItem>
                     </SelectContent>

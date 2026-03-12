@@ -714,7 +714,7 @@ export default function QuestDetail() {
               <div>
                 <p className="text-xs text-muted-foreground font-medium">💰 Mission Budget</p>
                 <p className="text-lg font-bold">
-                  🟩 {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
+                  {toCoins((quest as any).mission_budget_min ?? 0).toLocaleString()} – {toCoins((quest as any).mission_budget_max ?? 0).toLocaleString()} Coins
                 </p>
                 <p className="text-[10px] text-muted-foreground">≈ €{(quest as any).mission_budget_min ?? 0} – €{(quest as any).mission_budget_max ?? 0} • {(quest as any).payment_type || "INVOICE"}</p>
               </div>
@@ -739,7 +739,7 @@ export default function QuestDetail() {
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {Number((quest as any).coins_budget ?? 0) > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">🟩 Coins Pool</p>
+                <p className="text-xs text-muted-foreground font-medium">Coins Pool</p>
                 <p className="text-lg font-bold">{Number((quest as any).coins_escrow ?? 0).toLocaleString()} Coins</p>
                 <p className="text-[10px] text-muted-foreground">≈ €{(Number((quest as any).coins_escrow ?? 0) * coinsRate).toFixed(2)} in escrow</p>
               </div>
@@ -796,7 +796,7 @@ export default function QuestDetail() {
           <span>·</span>
           <Badge variant="outline" className="capitalize">{quest.status.toLowerCase().replace(/_/g, " ")}</Badge>
           {quest.price_fiat > 0 && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins (≈ €{(quest.price_fiat / 100).toFixed(2)})</Badge>
+            <Badge className="bg-amber-500/10 text-amber-600 border-0"><CreditCard className="h-3 w-3 mr-1" /> Paid — {toCoins(quest.price_fiat / 100).toLocaleString()} Coins (≈ €{(quest.price_fiat / 100).toFixed(2)})</Badge>
           )}
           {quest.monetization_type === "FREE" && quest.price_fiat === 0 && (
             <Badge variant="secondary" className="capitalize">Free</Badge>
@@ -841,7 +841,7 @@ export default function QuestDetail() {
                 if (!isLoggedIn) { setAuthPromptAction("join this quest"); setAuthPromptOpen(true); return; }
                 joinQuest();
               }}>
-                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — 🟩 {toCoins(quest.price_fiat / 100).toLocaleString()} Coins</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
+                {isPaidQuest ? <><Lock className="h-4 w-4 mr-1" /> Pay & Join — {toCoins(quest.price_fiat / 100).toLocaleString()} Coins</> : <><UserPlus className="h-4 w-4 mr-1" /> Join Quest</>}
               </Button>
             )}
             <ShareLinkButton entityType="quest" entityId={quest.id} entityName={quest.title} />

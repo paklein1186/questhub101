@@ -362,13 +362,13 @@ export function WalletTab() {
         {/* ═══ COINS WALLET ═══ */}
         {activeWallet === "coins" && (
           <>
-            <Section title="🟩 Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
+            <Section title="Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Coins Balance</p>
-                      <p className="text-2xl font-bold">{coinsBal} 🟩</p>
+                      <p className="text-2xl font-bold">{coinsBal}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
@@ -411,7 +411,7 @@ export function WalletTab() {
                         className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/30 p-3 text-center hover:bg-teal-100 dark:hover:bg-teal-950/50 transition-colors disabled:opacity-50"
                       >
                         <p className="text-sm font-bold text-teal-700 dark:text-teal-300">
-                          🟩 {opt.coins.toLocaleString()}
+                          {opt.coins.toLocaleString()}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
                           ≈ €{(opt.coins * COIN_EUR_RATE).toFixed(0)}

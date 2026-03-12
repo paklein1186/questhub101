@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Search, X, ArrowDownUp, LayoutGrid, LayoutList, Columns3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   DRAFT: { label: "Draft", color: "bg-muted text-muted-foreground" },
@@ -270,8 +271,8 @@ function KanbanView({ quests }: { quests: any[] }) {
                       </Badge>
                     )}
                     {Number((q as any).coins_budget ?? (q as any).coin_budget) > 0 && (
-                      <Badge className="bg-teal-500/10 text-teal-700 border-teal-500/20 border text-[10px]">
-                        🟩
+                      <Badge className="bg-amber-500/10 text-amber-700 border-amber-500/20 border text-[10px] flex items-center gap-0.5">
+                        <CurrencyIcon currency="coins" className="h-2.5 w-2.5" />
                       </Badge>
                     )}
                     {Number((q as any).ctg_budget) > 0 && (

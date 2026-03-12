@@ -15,7 +15,7 @@ const CURRENCY_MAP: Record<CurrencyType, CurrencyConfig> = {
   coins: {
     icon: CircleDollarSign,
     label: "Coins",
-    tooltip: "🟩 Coins — fiat-backed mission currency (1 Coin ≈ €0.04)",
+    tooltip: "Coins — fiat-backed mission currency (1 Coin ≈ €0.04)",
     colorClass: "text-amber-600 dark:text-amber-400",
   },
   ctg: {

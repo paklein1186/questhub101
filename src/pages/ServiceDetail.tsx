@@ -42,7 +42,7 @@ async function insertBookingNotification(params: {
   const timeSummary = params.startDateTime
     ? `\n📅 ${new Date(params.startDateTime).toLocaleString()}${params.endDateTime ? ` – ${new Date(params.endDateTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}`
     : "";
-  const priceSummary = params.amount && params.amount > 0 ? `\n🟩 ${Math.round(params.amount / 0.04).toLocaleString()} Coins (≈ €${params.amount})` : "";
+  const priceSummary = params.amount && params.amount > 0 ? `\n${Math.round(params.amount / 0.04).toLocaleString()} Coins (≈ €${params.amount})` : "";
   const bodyMap: Record<string, string> = {
     requested: `${params.requesterName} requested "${params.serviceTitle}"${timeSummary}${priceSummary}`,
     confirmed: `Your session for "${params.serviceTitle}" is confirmed${timeSummary}`,
@@ -391,7 +391,7 @@ export default function ServiceDetail() {
           {svc.price_amount != null && (
             <>
               <Badge className="bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
-                {svc.price_amount === 0 ? "Free" : `🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins`}
+                {svc.price_amount === 0 ? "Free" : `${toCoins(svc.price_amount).toLocaleString()} Coins`}
               </Badge>
               {svc.price_amount > 0 && <span className="text-[11px] text-muted-foreground">≈ €{svc.price_amount}</span>}
             </>
@@ -453,7 +453,7 @@ export default function ServiceDetail() {
                   )
                 ) : <p className="text-sm text-muted-foreground">Service availability not configured.</p>}
                 <div><label className="text-sm font-medium mb-1 block">Notes (optional)</label><Textarea value={bookNotes} onChange={e => setBookNotes(e.target.value)} maxLength={500} className="resize-none" /></div>
-                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`) : isFree ? "Confirm (Free)" : `Book & Pay (🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins)`}</Button>
+                <Button onClick={createBooking} className="w-full" disabled={!selectedSlot}><Send className="h-4 w-4 mr-1" />{requiresApproval ? (isFree ? "Submit request (Free)" : `Submit request (${toCoins(svc.price_amount).toLocaleString()} Coins)`) : isFree ? "Confirm (Free)" : `Book & Pay (${toCoins(svc.price_amount).toLocaleString()} Coins)`}</Button>
               </div>
             </DialogContent>
           </Dialog>

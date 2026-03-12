@@ -109,7 +109,7 @@ export function MyContributionsSummary() {
         <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="Quests" value={questCount} />
         <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Contributions" value={totalContributions} />
         <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="⭐ XP Earned" value={totalXp} />
-        <StatCard icon={<span className="text-sm">🟩</span>} label="Coins Received" value={totalCoins} accent="teal" />
+        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Coins Received" value={totalCoins} accent="teal" />
         <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
         <StatCard icon={<span className="text-sm">🟡</span>} label="Outstanding FMV" value={totalOutstanding} accent="amber" />
       </div>
@@ -128,7 +128,7 @@ export function MyContributionsSummary() {
                 <th className="text-center p-2 font-medium w-12">#</th>
                 <th className="text-right p-2 font-medium">⭐ XP</th>
                 <th className="text-right p-2 font-medium">FMV 🟡</th>
-                <th className="text-right p-2 font-medium">🟩 Coins</th>
+                <th className="text-right p-2 font-medium">Coins</th>
                 <th className="text-right p-2 font-medium">🌱 $CTG</th>
                 <th className="text-right p-2 font-medium">Outstanding</th>
               </tr>
@@ -181,7 +181,7 @@ export function MyContributionsSummary() {
                 <td className="p-2 text-center">{totalContributions}</td>
                 <td className="p-2 text-right text-yellow-600 dark:text-yellow-400">⭐ {totalXp.toFixed(0)}</td>
                 <td className="p-2 text-right text-primary">🟡 {totalFmv.toFixed(0)}</td>
-                <td className="p-2 text-right text-teal-600 dark:text-teal-400">🟩 {totalCoins.toFixed(0)}</td>
+                <td className="p-2 text-right text-teal-600 dark:text-teal-400">{totalCoins.toFixed(0)}</td>
                 <td className="p-2 text-right text-emerald-600 dark:text-emerald-400">🌱 {totalCtg.toFixed(0)}</td>
                 <td className="p-2 text-right text-amber-600 dark:text-amber-400">
                   🟡 {totalOutstanding.toFixed(0)}

@@ -145,7 +145,7 @@ export function FundQuestCard({ questId, className }: Props) {
       await supabase.from("notifications" as any).insert({
         user_id: r.user_id,
         type: "quest_distribution",
-        title: `💰 You received ${cur === "coins" ? `🟩 ${r.amount} Coins` : `🌱 ${r.amount} $CTG`} from campaign "${campaign.title}"`,
+        title: `💰 You received ${cur === "coins" ? `${r.amount} Coins` : `${r.amount} $CTG`} from campaign "${campaign.title}"`,
         link: `/quests/${questId}`,
         entity_type: "quest",
         entity_id: questId,
@@ -274,7 +274,7 @@ export function FundQuestCard({ questId, className }: Props) {
             return (
               <CampaignRow
                 key={c.id}
-                emoji="🟩"
+                emoji="🪙"
                 title={c.title || "Coins Campaign"}
                 raised={raised}
                 threshold={threshold}
@@ -309,7 +309,7 @@ export function FundQuestCard({ questId, className }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Contribute {currency === "coins" ? "🟩 Coins" : "🌱 $CTG"}
+              Contribute {currency === "coins" ? "Coins" : "$CTG"}
             </DialogTitle>
             <DialogDescription>
               {selectedCampaign?.title || "Campaign"}
@@ -320,7 +320,7 @@ export function FundQuestCard({ questId, className }: Props) {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Your balance: <strong>{userBalance.toLocaleString()}</strong> {currency === "coins" ? "🟩 Coins" : "🌱 $CTG"}
+              Your balance: <strong>{userBalance.toLocaleString()}</strong> {currency === "coins" ? "Coins" : "$CTG"}
             </p>
             <Input
               type="number"

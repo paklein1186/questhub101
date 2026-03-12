@@ -353,7 +353,7 @@ export const HINTS = {
       id: "wallet-first-visit",
       variant: "economy" as const,
       title: "The platform has 5 value layers",
-      body: "Fiat €, 🟩 Coins (fiat-backed), 🔷 Credits (platform utility, fades 1%/month), 🌱 $CTG (earned by contribution, has 1%/month demurrage), and ⭐ XP (reputation, permanent). Each works differently.",
+      body: "Fiat €, Coins (fiat-backed), Credits (platform utility, fades 1%/month), $CTG (earned by contribution, has 1%/month demurrage), and XP (reputation, permanent). Each works differently.",
       cta: { label: "See how value flows", to: "/ecosystem?tab=ovn" },
     },
 
@@ -455,7 +455,7 @@ export const HINTS = {
       learnMore: "/ecosystem/ovn",
     },
     coins: {
-      content: "🟩 Coins are fiat-backed mission units. Earned from funded quests, withdrawable to your bank via Stripe Connect.",
+      content: "Coins are fiat-backed mission units. Earned from funded quests, withdrawable to your bank via Stripe Connect.",
     },
     shares: {
       content: "Shares represent long-term commitment to the platform's mission. They give governance weight and dividend eligibility, but cannot be traded.",
