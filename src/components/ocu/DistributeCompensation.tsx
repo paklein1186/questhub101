@@ -17,7 +17,6 @@ import { Banknote, Send, DollarSign, AlertTriangle, History, Flag } from "lucide
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { OCUFeatureGate } from "./OCUFeatureGate";
 import { ReportConcernDialog } from "./ReportConcernDialog";
-import { Avatar, AvatarFallback, AvatarImage as AvatarImg } from "@/components/ui/avatar";
 
 interface ContributorSummary {
   user_id: string;
