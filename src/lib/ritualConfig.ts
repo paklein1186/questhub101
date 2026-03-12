@@ -13,11 +13,11 @@ export const RITUAL_SESSION_TYPES = {
     facilitatorBonus: 0,
     governanceImpact: "low",
     defaultProgram: [
-      { title: "Open arrival", minutes: 10, role: null },
-      { title: "2-min personal check-in", minutes: 15, role: null },
-      { title: "Free conversation", minutes: 30, role: null },
-      { title: "Emergent topic clusters", minutes: 15, role: null },
-      { title: "Light closing round", minutes: 5, role: null },
+      { title: "Open arrival", minutes: 10, role: null as null },
+      { title: "2-min personal check-in", minutes: 15, role: null as null },
+      { title: "Free conversation", minutes: 30, role: null as null },
+      { title: "Emergent topic clusters", minutes: 15, role: null as null },
+      { title: "Light closing round", minutes: 5, role: null as null },
     ],
   },
   EMOTIONAL_CHECKIN: {
@@ -31,11 +31,11 @@ export const RITUAL_SESSION_TYPES = {
     facilitatorBonus: 5,
     governanceImpact: "indirect",
     defaultProgram: [
-      { title: "Silence arrival", minutes: 2, role: null },
-      { title: "1-word emotional state", minutes: 5, role: null },
+      { title: "Silence arrival", minutes: 2, role: null as null },
+      { title: "1-word emotional state", minutes: 5, role: null as null },
       { title: "Structured round (3 min/person)", minutes: 40, role: "facilitator" },
       { title: "Reflection synthesis", minutes: 8, role: "facilitator" },
-      { title: "Closing breath", minutes: 5, role: null },
+      { title: "Closing breath", minutes: 5, role: null as null },
     ],
   },
   GUILD_ASSEMBLY: {
@@ -50,11 +50,11 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "high",
     defaultProgram: [
       { title: "Metrics review", minutes: 15, role: "admin" },
-      { title: "Quest updates", minutes: 20, role: null },
-      { title: "Proposal presentations", minutes: 25, role: null },
+      { title: "Quest updates", minutes: 20, role: null as null },
+      { title: "Proposal presentations", minutes: 25, role: null as null },
       { title: "Decision block", minutes: 25, role: "admin" },
       { title: "Assignment of responsibilities", minutes: 15, role: "admin" },
-      { title: "Closing alignment", minutes: 5, role: null },
+      { title: "Closing alignment", minutes: 5, role: null as null },
     ],
   },
   MASTERMIND: {
@@ -69,11 +69,11 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "medium",
     defaultProgram: [
       { title: "Presenter framing", minutes: 10, role: "presenter" },
-      { title: "Clarifying questions", minutes: 15, role: null },
-      { title: "Silent reflection", minutes: 5, role: null },
-      { title: "Feedback round", minutes: 30, role: null },
+      { title: "Clarifying questions", minutes: 15, role: null as null },
+      { title: "Silent reflection", minutes: 5, role: null as null },
+      { title: "Feedback round", minutes: 30, role: null as null },
       { title: "Integration plan", minutes: 15, role: "presenter" },
-      { title: "Closing reflection", minutes: 5, role: null },
+      { title: "Closing reflection", minutes: 5, role: null as null },
     ],
   },
   LEARNING_LAB: {
@@ -88,9 +88,9 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "low",
     defaultProgram: [
       { title: "Input presentation", minutes: 30, role: "teacher" },
-      { title: "Application breakout", minutes: 20, role: null },
-      { title: "Collective reflection", minutes: 15, role: null },
-      { title: "Next-step commitments", minutes: 10, role: null },
+      { title: "Application breakout", minutes: 20, role: null as null },
+      { title: "Collective reflection", minutes: 15, role: null as null },
+      { title: "Next-step commitments", minutes: 10, role: null as null },
     ],
   },
   SPRINT_ALIGNMENT: {
@@ -105,9 +105,9 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "operational",
     defaultProgram: [
       { title: "Objective reminder", minutes: 5, role: "admin" },
-      { title: "Quick updates (2 min/person)", minutes: 25, role: null },
-      { title: "Blockers surfaced", minutes: 10, role: null },
-      { title: "Next week commitments", minutes: 10, role: null },
+      { title: "Quick updates (2 min/person)", minutes: 25, role: null as null },
+      { title: "Blockers surfaced", minutes: 10, role: null as null },
+      { title: "Next week commitments", minutes: 10, role: null as null },
     ],
   },
   CONFLICT_RESOLUTION: {
@@ -123,8 +123,8 @@ export const RITUAL_SESSION_TYPES = {
     defaultProgram: [
       { title: "Mediator introduction", minutes: 5, role: "facilitator" },
       { title: "Structured speaking turns", minutes: 30, role: "facilitator" },
-      { title: "Acknowledgment phase", minutes: 15, role: null },
-      { title: "Commitment phase", minutes: 15, role: null },
+      { title: "Acknowledgment phase", minutes: 15, role: null as null },
+      { title: "Commitment phase", minutes: 15, role: null as null },
       { title: "Follow-up date", minutes: 10, role: "facilitator" },
     ],
   },
@@ -140,10 +140,10 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "strategic",
     defaultProgram: [
       { title: "Future scenario framing", minutes: 15, role: "facilitator" },
-      { title: "Silent writing", minutes: 15, role: null },
-      { title: "Collective synthesis", minutes: 30, role: null },
+      { title: "Silent writing", minutes: 15, role: null as null },
+      { title: "Collective synthesis", minutes: 30, role: null as null },
       { title: "Roadmap extraction", minutes: 25, role: "admin" },
-      { title: "Closing alignment", minutes: 5, role: null },
+      { title: "Closing alignment", minutes: 5, role: null as null },
     ],
   },
   CROSS_GUILD_FEDERATION: {
@@ -158,10 +158,10 @@ export const RITUAL_SESSION_TYPES = {
     governanceImpact: "high",
     defaultProgram: [
       { title: "Shared metrics", minutes: 15, role: "admin" },
-      { title: "Cross-quest mapping", minutes: 20, role: null },
-      { title: "Federation decisions", minutes: 30, role: null },
-      { title: "Resource pooling discussion", minutes: 20, role: null },
-      { title: "Closing", minutes: 5, role: null },
+      { title: "Cross-quest mapping", minutes: 20, role: null as null },
+      { title: "Federation decisions", minutes: 30, role: null as null },
+      { title: "Resource pooling discussion", minutes: 20, role: null as null },
+      { title: "Closing", minutes: 5, role: null as null },
     ],
   },
   CELEBRATION: {
@@ -175,10 +175,10 @@ export const RITUAL_SESSION_TYPES = {
     facilitatorBonus: 3,
     governanceImpact: "cultural",
     defaultProgram: [
-      { title: "Storytelling", minutes: 15, role: null },
+      { title: "Storytelling", minutes: 15, role: null as null },
       { title: "Acknowledgments", minutes: 15, role: "admin" },
-      { title: "Highlight quests", minutes: 15, role: null },
-      { title: "Gratitude round", minutes: 15, role: null },
+      { title: "Highlight quests", minutes: 15, role: null as null },
+      { title: "Gratitude round", minutes: 15, role: null as null },
     ],
   },
 } as const;
