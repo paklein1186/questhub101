@@ -531,7 +531,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   {ocuEnabled && (
                     <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                       <h3 className="font-display font-semibold flex items-center gap-2">
-                        <Coins className="h-4 w-4 text-primary" /> OCU Envelope
+                        <CurrencyIcon currency="coins" className="h-4 w-4" /> OCU Envelope
                       </h3>
 
                       <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
