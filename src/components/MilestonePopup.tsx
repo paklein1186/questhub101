@@ -102,7 +102,7 @@ export function MilestonePopup() {
                 <div className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
                   {current.reward_type === "XP" && (
                     <>
-                      <Zap className="h-4 w-4 text-amber-500" />
+                      <CurrencyIcon currency="xp" className="h-4 w-4" />
                       <span className="text-sm font-semibold">+{current.reward_amount} XP</span>
                     </>
                   )}
