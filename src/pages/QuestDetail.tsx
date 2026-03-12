@@ -29,6 +29,7 @@ import { DraftBanner } from "@/components/DraftBanner";
 import { PiContextSetter } from "@/components/assistant/PiContextSetter";
 import { useFollow } from "@/hooks/useFollow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useLastTab } from "@/hooks/useLastTab";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
