@@ -1379,16 +1379,42 @@ export default function QuestDetail() {
         </TabsContent>
 
         <TabsContent value="updates" className="mt-6 space-y-4">
-          {canPostUpdate && (
-            <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">Share progress, milestones, and calls-to-action with your community.</p>
-              <Button size="sm" onClick={() => { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUpdateOpen(true); }}>
-                <Send className="h-4 w-4 mr-1" /> Create Update
-              </Button>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-md border border-border overflow-hidden">
+                <button
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${updateSort === "recent" ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:bg-muted"}`}
+                  onClick={() => setUpdateSort("recent")}
+                >
+                  Most Recent
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${updateSort === "upvoted" ? "bg-primary text-primary-foreground" : "bg-muted/30 text-muted-foreground hover:bg-muted"}`}
+                  onClick={() => setUpdateSort("upvoted")}
+                >
+                  <Heart className="h-3 w-3 inline mr-1" />Most Upvoted
+                </button>
+              </div>
+              {canPostUpdate && (
+                <Button size="sm" onClick={() => { setEditingUpdateId(null); setUTitle(""); setUContent(""); setUType("GENERAL"); setUImageUrl(undefined); setUDraft(false); setUVisibility("PUBLIC"); setUpdateOpen(true); }}>
+                  <Send className="h-4 w-4 mr-1" /> Create Update
+                </Button>
+              )}
+            </div>
+          </div>
           {(updates || []).length === 0 && <div className="text-center py-10"><p className="text-muted-foreground">No updates yet.</p>{canPostUpdate && <p className="text-sm text-muted-foreground mt-1">Share your first progress update.</p>}</div>}
-          {(updates || []).map((update: any, i: number) => {
+          {[...(updates || [])]
+            .sort((a: any, b: any) => {
+              // Pinned always first
+              if (a.pinned && !b.pinned) return -1;
+              if (!a.pinned && b.pinned) return 1;
+              if (updateSort === "upvoted") return (b.upvote_count ?? 0) - (a.upvote_count ?? 0);
+              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            })
+            .map((update: any, i: number) => {
             const Icon = updateIcons[update.type] || MessageCircle;
             const isUpdateAuthor = currentUser.id === update.author_id;
             const canEdit = isUpdateAuthor || isOwner;
@@ -1415,6 +1441,21 @@ export default function QuestDetail() {
                     <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
                     {update.image_url && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.image_url} alt={`Image for update: ${update.title}`} className="w-full h-auto" /></div>}
                     <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
+                    {/* Upvote button */}
+                    <div className="mt-2 flex items-center gap-2">
+                      <button
+                        onClick={() => toggleUpdateUpvote(update.id, update.user_upvoted)}
+                        className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                          update.user_upvoted
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/50 hover:text-primary"
+                        }`}
+                      >
+                        <Heart className={`h-3.5 w-3.5 ${update.user_upvoted ? "fill-primary" : ""}`} />
+                        {(update.upvote_count ?? 0) > 0 && <span className="font-medium">{update.upvote_count}</span>}
+                        {!update.upvote_count && <span>Like</span>}
+                      </button>
+                    </div>
                   </div>
                   {canEdit && (
                     <DropdownMenu>
