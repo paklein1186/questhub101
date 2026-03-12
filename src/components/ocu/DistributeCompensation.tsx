@@ -506,6 +506,34 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           </>
         )}
 
+        {/* Distribution History */}
+        {compensationHistory.length > 0 && (
+          <div className="space-y-3 mt-2">
+            <h4 className="text-sm font-semibold flex items-center gap-1.5">
+              <History className="h-4 w-4" /> Distribution History
+            </h4>
+            <div className="rounded-lg border border-border overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-muted/50 border-b border-border">
+                    <th className="text-left p-2 font-medium">Date</th>
+                    <th className="text-left p-2 font-medium">Recipient</th>
+                    <th className="text-left p-2 font-medium">Distributed by</th>
+                    <th className="text-right p-2 font-medium">Amount</th>
+                    <th className="text-left p-2 font-medium">Note</th>
+                    <th className="p-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {compensationHistory.map((h: any) => (
+                    <CompensationHistoryRow key={h.id} entry={h} questId={quest.id} questTitle={quest.title} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Confirm Dialog */}
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogContent className="max-w-sm">
