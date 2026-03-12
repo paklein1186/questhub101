@@ -455,7 +455,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
                       : 'border-border text-muted-foreground hover:border-teal-400/40 hover:text-foreground'
                   )}
                 >
-                  🟩 Paid in Coins
+                  Paid in Coins
                 </button>
                 <button
                   onClick={() => set({ hasCtg: !filters.hasCtg })}
