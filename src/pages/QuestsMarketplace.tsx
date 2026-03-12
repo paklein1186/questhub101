@@ -116,7 +116,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
     if (filters.monetization !== "all" && q.monetization_type !== filters.monetization) return false;
     if (filters.questType !== "all" && (q as any).quest_nature !== filters.questType) return false;
     if (filters.missionOnly && !isMission(q as any)) return false;
-    // 🟩 Has Coins pool
+    // Has Coins pool
     if (filters.hasCoins) {
       const pool = Number((q as any).coins_budget ?? (q as any).coin_budget ?? 0);
       const escrow = Number((q as any).coins_escrow ?? 0);
