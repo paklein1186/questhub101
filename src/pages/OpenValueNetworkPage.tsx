@@ -487,7 +487,7 @@ function TokenFlowDiagram() {
             Quest Budget
           </text>
           <text x={cx} y={cy + 10} textAnchor="middle" className="text-[12px]">
-            🟩
+            🪙
           </text>
         </svg>
       </div>

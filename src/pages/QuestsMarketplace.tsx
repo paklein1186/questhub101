@@ -214,7 +214,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                     {(() => {
                       const coins = Number((quest as any).coin_budget) || 0;
                       const fi = Number((quest as any).budget_min) || 0;
-                      if (coins > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-emerald-600">🟩 {coins}</span>;
+                      if (coins > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-amber-600"><CurrencyIcon currency="coins" className="h-4 w-4" /> {coins}</span>;
                       if (fi > 0) return <span className="flex items-center gap-1 text-sm font-semibold text-primary"><CreditCard className="h-4 w-4" /> {fi}€</span>;
                       return null;
                     })()}

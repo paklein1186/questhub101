@@ -455,7 +455,7 @@ export const HINTS = {
       learnMore: "/ecosystem/ovn",
     },
     coins: {
-      content: "🟩 Coins are fiat-backed mission units. Earned from funded quests, withdrawable to your bank via Stripe Connect.",
+      content: "Coins are fiat-backed mission units. Earned from funded quests, withdrawable to your bank via Stripe Connect.",
     },
     shares: {
       content: "Shares represent long-term commitment to the platform's mission. They give governance weight and dividend eligibility, but cannot be traded.",

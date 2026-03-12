@@ -19,7 +19,7 @@ export default function QuestsInfoPage() {
           Every Project or Ongoing Mission quest can hold two independent value pools:
         </p>
         <ContentList items={[
-          "🟩 Coins — fiat-backed mission value. Pre-funded by the creator or raised via campaigns. Distributed to contributors via OCU pie, equal split, or manual dispatch. Withdrawable to €.",
+          "Coins — fiat-backed mission value. Pre-funded by the creator or raised via campaigns. Distributed to contributors via OCU pie, equal split, or manual dispatch. Withdrawable to €.",
           "🌱 $CTG — contribution token. Also fundable into quest escrow as an incentive. Frozen from demurrage while in escrow. Resumes 1%/month decay on distribution.",
         ]} />
         <p className="text-sm text-muted-foreground mt-2 font-medium">

@@ -304,7 +304,7 @@ export function EconomyModal({ open, onClose, persona = "UNSET", mode = "full" }
                 <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-border/50">
                   {layer.withdrawable && (
                     <span className="text-xs text-muted-foreground">
-                      🟩 → 💶 Withdrawable to fiat
+                      🪙 → 💶 Withdrawable to fiat
                     </span>
                   )}
                   {layer.decays && (

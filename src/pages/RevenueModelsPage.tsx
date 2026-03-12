@@ -210,7 +210,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-4 text-sm leading-relaxed">
-              <p className="font-semibold text-foreground">🟩 Coins are fiat-backed mission units.</p>
+              <p className="font-semibold text-foreground">Coins are fiat-backed mission units.</p>
               <p className="text-muted-foreground mt-1">
                 Quest creators pre-fund a Coins pool at creation or top it up anytime.
                 Others can contribute via fundraising campaigns.

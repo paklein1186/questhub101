@@ -145,7 +145,7 @@ export function FundQuestCard({ questId, className }: Props) {
       await supabase.from("notifications" as any).insert({
         user_id: r.user_id,
         type: "quest_distribution",
-        title: `💰 You received ${cur === "coins" ? `🟩 ${r.amount} Coins` : `🌱 ${r.amount} $CTG`} from campaign "${campaign.title}"`,
+        title: `💰 You received ${cur === "coins" ? `${r.amount} Coins` : `${r.amount} $CTG`} from campaign "${campaign.title}"`,
         link: `/quests/${questId}`,
         entity_type: "quest",
         entity_id: questId,

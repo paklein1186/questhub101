@@ -277,7 +277,7 @@ export default function PlansPage() {
               <p className="text-muted-foreground text-xs">Mission payments &amp; services. Real-world income via Stripe.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-teal-200 dark:border-teal-800">
-              <p className="font-semibold text-teal-700 dark:text-teal-300 mb-1">🟩 Coins</p>
+              <p className="font-semibold text-teal-700 dark:text-teal-300 mb-1">Coins</p>
               <p className="text-muted-foreground text-xs">Fiat-backed internal units for quest pots and payouts. Withdrawable.</p>
             </div>
             <div className="p-3 rounded-lg bg-card border border-emerald-200 dark:border-emerald-800">
