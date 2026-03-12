@@ -87,7 +87,7 @@ const ECONOMY_LAYERS: EconomyLayer[] = [
   },
   {
     key: "coins",
-    emoji: "🟩",
+    emoji: "🪙",
     label: "Coins — Fiat-Backed Mission Value",
     color: "bg-teal-100 dark:bg-teal-950/40",
     textColor: "text-teal-700 dark:text-teal-300",
