@@ -560,7 +560,7 @@ export function WalletTab() {
               {ctgBal > 0 ? (
                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 mb-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <CurrencyIcon currency="ctg" className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium">
                         Exchange $CTG → Credits
