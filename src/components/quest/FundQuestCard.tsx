@@ -309,7 +309,7 @@ export function FundQuestCard({ questId, className }: Props) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Contribute {currency === "coins" ? "🟩 Coins" : "🌱 $CTG"}
+              Contribute {currency === "coins" ? "Coins" : "$CTG"}
             </DialogTitle>
             <DialogDescription>
               {selectedCampaign?.title || "Campaign"}
