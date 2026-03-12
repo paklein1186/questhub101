@@ -391,7 +391,7 @@ export default function ServiceDetail() {
           {svc.price_amount != null && (
             <>
               <Badge className="bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800">
-                {svc.price_amount === 0 ? "Free" : `🟩 ${toCoins(svc.price_amount).toLocaleString()} Coins`}
+                {svc.price_amount === 0 ? "Free" : `${toCoins(svc.price_amount).toLocaleString()} Coins`}
               </Badge>
               {svc.price_amount > 0 && <span className="text-[11px] text-muted-foreground">≈ €{svc.price_amount}</span>}
             </>
