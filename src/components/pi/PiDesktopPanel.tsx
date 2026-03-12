@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Sparkles, ChevronDown, ChevronUp, Coins } from "lucide-react";
+import { X, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { useQuery } from "@tanstack/react-query";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { useAuth } from "@/hooks/useAuth";
