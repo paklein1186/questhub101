@@ -155,6 +155,33 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     },
   });
 
+  // Fetch distribution history
+  const { data: compensationHistory = [] } = useQuery({
+    queryKey: ["compensation-history", quest.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contribution_compensations" as any)
+        .select("*")
+        .eq("quest_id", quest.id)
+        .order("compensated_at", { ascending: false });
+      if (!data || data.length === 0) return [];
+
+      const userIds = [...new Set((data as any[]).flatMap((d: any) => [d.user_id, d.compensated_by].filter(Boolean)))];
+      const { data: profiles } = await supabase
+        .from("profiles_public")
+        .select("user_id, name, avatar_url")
+        .in("user_id", userIds);
+      const pMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+
+      return (data as any[]).map((d: any) => ({
+        ...d,
+        recipient_name: pMap.get(d.user_id)?.name ?? "Unknown",
+        recipient_avatar: pMap.get(d.user_id)?.avatar_url ?? null,
+        distributor_name: pMap.get(d.compensated_by)?.name ?? "Unknown",
+      }));
+    },
+  });
+
   const totalRemaining = contributors.reduce((s, c) => s + c.remaining, 0);
 
   const getDistributionPreview = () => {
