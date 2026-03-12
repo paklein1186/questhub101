@@ -27,6 +27,7 @@ import { IncomingBookings } from "@/components/home/IncomingBookings"; // kept f
 import { SectionBanner, HintTooltip, HINTS } from "@/components/onboarding/ContextualHint";
 import { PathwayCards } from "@/components/onboarding/EconomyOnboarding";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { logger } from "@/lib/logger";
 
 
 /* ───────── Persona-specific config ───────── */
@@ -334,7 +335,7 @@ export default function HomeFeed() {
       if (error) throw error;
       setResult(data);
     } catch (e: any) {
-      console.error(e);
+      logger.error(e);
       toast.error(e?.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -395,7 +396,7 @@ export default function HomeFeed() {
       // Release the stream immediately — we only needed the permission grant
       stream.getTracks().forEach((t) => t.stop());
     } catch (e: any) {
-      console.error("[STT] Microphone permission denied:", e);
+      logger.error("[STT] Microphone permission denied:", e);
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
         toast.error("Microphone permission denied. Please allow access in your browser settings, or open the app in a new tab.");
       } else {
@@ -413,7 +414,7 @@ export default function HomeFeed() {
     let finalTranscript = "";
 
     recognition.onstart = () => {
-      console.log("[STT] Recognition started");
+      logger.debug("[STT] Recognition started");
       isListeningRef.current = true;
       setIsListening(true);
     };
@@ -432,7 +433,7 @@ export default function HomeFeed() {
     };
 
     recognition.onend = () => {
-      console.log("[STT] Recognition ended, wasListening:", isListeningRef.current);
+      logger.debug("[STT] Recognition ended, wasListening:", isListeningRef.current);
       if (isListeningRef.current && !finalTranscript.trim()) {
         // Auto-restart if user hasn't spoken yet (browser timeout)
         try {recognition.start();} catch (_) {/* ignore */}
@@ -447,7 +448,7 @@ export default function HomeFeed() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error("[STT] Error:", event.error);
+      logger.error("[STT] Error:", event.error);
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
         isListeningRef.current = false;
         setIsListening(false);
@@ -466,7 +467,7 @@ export default function HomeFeed() {
     try {
       recognition.start();
     } catch (e: any) {
-      console.error("[STT] Start failed:", e);
+      logger.error("[STT] Start failed:", e);
       toast.error("Failed to start voice capture. Try opening the app in a new tab.");
     }
   };

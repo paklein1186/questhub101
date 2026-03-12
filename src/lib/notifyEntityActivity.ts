@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 export async function notifyEntityFollowersAndMembers({
   entityType, entityId, entityName, actorUserId, notifType, title, body, deepLinkUrl,
@@ -30,14 +31,14 @@ export async function notifyEntityFollowersAndMembers({
     });
 
     if (error) {
-      console.error("[notifyEntityFollowersAndMembers] Edge function error, falling back to client-side:", error);
+      logger.error("[notifyEntityFollowersAndMembers] Edge function error, falling back to client-side:", error);
       // Fallback to client-side dispatch if edge function fails
       await clientSideFallback({ entityType, entityId, actorUserId, notifType, title, body, deepLinkUrl, followersOnly });
     } else if (data?.skipped) {
-      console.info("[notifyEntityFollowersAndMembers] Skipped:", data.reason);
+      logger.info("[notifyEntityFollowersAndMembers] Skipped:", data.reason);
     }
   } catch (err) {
-    console.error("[notifyEntityFollowersAndMembers] Error, falling back:", err);
+    logger.error("[notifyEntityFollowersAndMembers] Error, falling back:", err);
     await clientSideFallback({ entityType, entityId, actorUserId, notifType, title, body, deepLinkUrl, followersOnly });
   }
 }
@@ -104,6 +105,6 @@ async function clientSideFallback({
       await supabase.from("notifications").insert(rows);
     }
   } catch (err) {
-    console.error("[notifyEntityFollowersAndMembers fallback]", err);
+    logger.error("[notifyEntityFollowersAndMembers fallback]", err);
   }
 }

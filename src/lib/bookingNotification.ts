@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 export async function insertBookingNotification(params: {
   recipientUserId: string; bookingId: string; serviceTitle: string; requesterName?: string; action: string;
@@ -36,6 +37,6 @@ export async function insertBookingNotification(params: {
     data: { bookingId: params.bookingId } as any,
   });
   if (notifErr) {
-    console.error("[BOOKING-NOTIF] Failed to insert notification:", notifErr.message, notifErr.code, notifErr.details);
+    logger.error("[BOOKING-NOTIF] Failed to insert notification:", notifErr.message, notifErr.code, notifErr.details);
   }
 }

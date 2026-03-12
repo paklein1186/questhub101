@@ -22,6 +22,7 @@ import {
   ACCEPTED_DOC_TYPES,
 } from "@/lib/postHelpers";
 import { OntologyPicker } from "@/components/feed/OntologyPicker";
+import { logger } from "@/lib/logger";
 
 interface PendingFile {
   file: File;
@@ -317,7 +318,7 @@ export function PostComposer({ contextType, contextId, showVisibilityPicker = fa
             }
           }
         } catch (e) {
-          console.warn("[post-notif] Failed to notify", e);
+          logger.warn("[post-notif] Failed to notify", e);
         }
       }
 

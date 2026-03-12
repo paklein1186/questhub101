@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { RITUAL_SESSION_TYPES, type RitualSessionTypeKey } from "@/lib/ritualConfig";
+import { logger } from "@/lib/logger";
 
 // ─── Jitsi Embed (JaaS – 8x8.vc) ────────────────────────────
 
@@ -120,7 +121,7 @@ function JitsiEmbed({
         script.onerror = () => { setFailed(true); onError(); };
         document.head.appendChild(script);
       } catch (e) {
-        console.error("JaaS init error:", e);
+        logger.error("JaaS init error:", e);
         if (!cancelled) { setFailed(true); onError(); }
       }
     }

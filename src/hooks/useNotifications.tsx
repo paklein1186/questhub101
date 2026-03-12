@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyEntityFollowersAndMembers } from "@/lib/notifyEntityActivity";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/lib/logger";
 
 // ─── Notification Preferences ───────────────────────────────
 
@@ -336,12 +337,12 @@ async function insertNotification(params: {
       data: params.data as any || null,
     });
     if (error) {
-      console.error("[Notifications] Insert failed:", error.message);
+      logger.error("[Notifications] Insert failed:", error.message);
       return false;
     }
     return true;
   } catch (err) {
-    console.error("[Notifications] Insert exception:", err);
+    logger.error("[Notifications] Insert exception:", err);
     return false;
   }
 }
@@ -491,7 +492,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       .update({ is_read: true })
       .eq("id", id)
       .eq("user_id", userId);
-    if (error) console.error("[Notifications] markAsRead failed:", error.message);
+    if (error) logger.error("[Notifications] markAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
@@ -505,7 +506,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
       .update({ is_read: true })
       .eq("user_id", userId)
       .eq("is_read", false);
-    if (error) console.error("[Notifications] markAllAsRead failed:", error.message);
+    if (error) logger.error("[Notifications] markAllAsRead failed:", error.message);
     qc.invalidateQueries({ queryKey: ["notifications", userId] });
   }, [userId, qc]);
 
@@ -668,7 +669,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      console.error("[Notifications] notifyQuestUpdate error:", err);
+      logger.error("[Notifications] notifyQuestUpdate error:", err);
     }
   }, [userId, addNotification]);
 
@@ -772,7 +773,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         }
       }
     } catch (err) {
-      console.error("[Notifications] notifyGuildQuestCreated error:", err);
+      logger.error("[Notifications] notifyGuildQuestCreated error:", err);
     }
   }, [userId, addNotification]);
 
@@ -813,7 +814,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      console.error("[Notifications] notifyPodMessage error:", err);
+      logger.error("[Notifications] notifyPodMessage error:", err);
     }
   }, [addNotification]);
 
@@ -933,7 +934,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         deepLinkUrl: deepLink,
       });
     } catch (err) {
-      console.error("[Notifications] notifyDecisionCreated error:", err);
+      logger.error("[Notifications] notifyDecisionCreated error:", err);
     }
   }, []);
 
@@ -953,7 +954,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         deepLinkUrl: deepLink,
       });
     } catch (err) {
-      console.error("[Notifications] notifyRitualCreated error:", err);
+      logger.error("[Notifications] notifyRitualCreated error:", err);
     }
   }, []);
 
@@ -1000,7 +1001,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         if (uniqueIds.length > 200 && i % 10 === 9) await new Promise(r => setTimeout(r, 10));
       }
     } catch (err) {
-      console.error("[Notifications] notifyBulkMention error:", err);
+      logger.error("[Notifications] notifyBulkMention error:", err);
     }
   }, [addNotification]);
 
@@ -1026,7 +1027,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         });
       }
     } catch (err) {
-      console.error("[Notifications] notifyFollowersQuestCreated error:", err);
+      logger.error("[Notifications] notifyFollowersQuestCreated error:", err);
     }
   }, [userId, addNotification]);
 
@@ -1069,7 +1070,7 @@ export function NotificationProvider({ children, currentUserId }: { children: Re
         await addNotification({ userId: f.follower_id, type: NotificationType.FOLLOWED_ENTITY_NEW_POST, title: `New post in ${entityName}`, body: resolvedBody, relatedEntityType: entityType as any, relatedEntityId: postId, deepLinkUrl: resolvedLink });
       }
     } catch (err) {
-      console.error("[Notifications] notifyFollowedEntityNewPost:", err);
+      logger.error("[Notifications] notifyFollowedEntityNewPost:", err);
     }
   }, [userId, addNotification]);
 

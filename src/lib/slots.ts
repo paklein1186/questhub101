@@ -1,5 +1,6 @@
 import type { AvailabilityRule, AvailabilityException, Booking } from "@/types";
 import { BookingStatus } from "@/types/enums";
+import { logger } from "@/lib/logger";
 
 export interface TimeSlot {
   startDateTime: string; // ISO
@@ -30,9 +31,9 @@ export function generateSlots(
   calendarBusyEvents: { start_at: string; end_at: string }[] = [],
 ): TimeSlot[] {
   const slots: TimeSlot[] = [];
-  console.log(`[generateSlots] calendarBusyEvents count: ${calendarBusyEvents.length}, range: ${startDate} to ${endDate}, duration: ${durationMinutes}min`);
+  logger.debug(`[generateSlots] calendarBusyEvents count: ${calendarBusyEvents.length}, range: ${startDate} to ${endDate}, duration: ${durationMinutes}min`);
   if (calendarBusyEvents.length > 0) {
-    console.log(`[generateSlots] First busy event: ${calendarBusyEvents[0].start_at} – ${calendarBusyEvents[0].end_at}`);
+    logger.debug(`[generateSlots] First busy event: ${calendarBusyEvents[0].start_at} – ${calendarBusyEvents[0].end_at}`);
   }
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -105,7 +106,7 @@ export function generateSlots(
             return isOverlap;
           });
           if (calBusy) {
-            console.log(`[generateSlots] Slot ${slotStart.toISOString()} excluded by calendar busy event`);
+            logger.debug(`[generateSlots] Slot ${slotStart.toISOString()} excluded by calendar busy event`);
             continue;
           }
 

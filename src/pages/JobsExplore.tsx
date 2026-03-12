@@ -16,6 +16,7 @@ import { ExploreFilters, defaultFilters, applySortBy, type ExploreFilterValues }
 import { useHouseFilter } from "@/hooks/useHouseFilter";
 import { usePersona } from "@/hooks/usePersona";
 import { defaultUniverseForPersona, type UniverseMode } from "@/lib/universeMapping";
+import { logger } from "@/lib/logger";
 
 const CONTRACT_OPTIONS = [
   { value: "all", label: "All types" },
@@ -88,7 +89,7 @@ export default function JobsExplore({ bare }: Props) {
       await deleteJob.mutateAsync({ id: jobId, companyId: companyId || "" });
       toast({ title: "Job deleted" });
     } catch (err: any) {
-      console.error("Delete job error:", err);
+      logger.error("Delete job error:", err);
       toast({ title: "Error deleting job", description: err?.message, variant: "destructive" });
     }
   };

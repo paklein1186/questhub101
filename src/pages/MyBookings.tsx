@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { GiveBackModal } from "@/components/giveback/GiveBackModal";
+import { logger } from "@/lib/logger";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-warning/10 text-warning",
@@ -79,7 +80,7 @@ export default function MyBookings({ bare }: { bare?: boolean }) {
             deep_link_url: `/bookings/${bookingId}`,
             data: { bookingId, serviceTitle: svc?.title, startDateTime: booking.start_date_time, endDateTime: booking.end_date_time, amount: booking.amount, currency: booking.currency, callUrl: booking.call_url } as any,
           });
-          if (notifErr) console.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
+          if (notifErr) logger.error("[BOOKING-NOTIF] Insert failed:", notifErr.message);
           // Email is triggered automatically by DB trigger trg_send_notification_email
         }
       },

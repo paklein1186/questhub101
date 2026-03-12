@@ -13,6 +13,7 @@ import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
 import { PiActionPaths } from "./PiActionPaths";
 import { useUserEntities } from "@/hooks/useUserEntities";
+import { logger } from "@/lib/logger";
 
 // ---------- Types ----------
 type EntityRef = { type: string; id: string };
@@ -540,7 +541,7 @@ export default function ConversationGuide({
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (e: any) {
-      console.error("Pi error:", e);
+      logger.error("Pi error:", e);
       setMessages((prev) => [
         ...prev,
         {
@@ -591,7 +592,7 @@ export default function ConversationGuide({
         )
       );
     } catch (e: any) {
-      console.error("Execute error:", e);
+      logger.error("Execute error:", e);
     } finally {
       setIsLoading(false);
     }
@@ -635,7 +636,7 @@ export default function ConversationGuide({
         )
       );
     } catch (e: any) {
-      console.error("Undo error:", e);
+      logger.error("Undo error:", e);
     } finally {
       setIsLoading(false);
     }
