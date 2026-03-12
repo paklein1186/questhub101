@@ -21,11 +21,15 @@ function rule(weekday: number, start: string, end: string, serviceId?: string): 
   return {
     id: crypto.randomUUID(),
     userId: "user-1",
+    providerUserId: "user-1",
     weekday,
     startTime: start,
     endTime: end,
     isActive: true,
     serviceId: serviceId ?? null,
+    timezone: "UTC",
+    createdAt: FIXED_NOW.toISOString(),
+    updatedAt: FIXED_NOW.toISOString(),
   } as AvailabilityRule;
 }
 
