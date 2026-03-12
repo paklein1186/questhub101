@@ -443,7 +443,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </div>
             ) : (subtask.credit_reward ?? 0) > 0 ? (
               <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
-                <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
+                <CurrencyIcon currency="coins" className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
             {/* $CTG reward input */}
