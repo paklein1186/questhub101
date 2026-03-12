@@ -207,7 +207,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="4"
           title="Value Layers: Coins, $CTG & Credits"
-          icon={<Coins className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="coins" className="h-5 w-5" />}
         >
           <div className="grid sm:grid-cols-3 gap-4 mt-2">
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
