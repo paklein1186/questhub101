@@ -297,7 +297,7 @@ export function WalletTab() {
           </ValueTile>
 
           {/* XP */}
-          <ValueTile icon={<Star className="h-5 w-5" />} label="XP Level" emoji="⭐"
+          <ValueTile icon={<CurrencyIcon currency="xp" className="h-5 w-5" />} label="XP Level" emoji="⭐"
             value={`Lv. ${limits.userLevel}`} subValue={`${limits.userXp} XP`}
             tooltip={ECONOMY_LABELS.xpNature}>
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" asChild>
