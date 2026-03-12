@@ -464,7 +464,7 @@ export function WalletTab() {
         {/* ═══ PLATFORM CREDITS WALLET ═══ */}
         {activeWallet === "platform" && (
           <>
-            <Section title="🔷 Platform Credits — Feature Fuel" icon={<Coins className="h-5 w-5" />}>
+            <Section title="🔷 Platform Credits — Feature Fuel" icon={<CurrencyIcon currency="credits" className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
