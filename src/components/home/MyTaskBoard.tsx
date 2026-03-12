@@ -1437,11 +1437,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Previous page" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Next page" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -1501,11 +1501,11 @@ export function MyTaskBoard({ userId }: { userId: string }) {
                 {safeP * PAGE_SIZE + 1}–{Math.min((safeP + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
               </span>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Previous page" disabled={safeP === 0} onClick={() => setPage(safeP - 1)}>
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 <span className="text-xs text-muted-foreground px-1">{safeP + 1}/{totalPages}</span>
-                <Button variant="ghost" size="icon" className="h-7 w-7" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Next page" disabled={safeP >= totalPages - 1} onClick={() => setPage(safeP + 1)}>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>

@@ -79,7 +79,7 @@ export default function CourseDetail() {
 
       {course.cover_image_url && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-          <img src={course.cover_image_url} alt="" className="w-full h-full object-cover" />
+          <img src={course.cover_image_url} alt={`Cover image for ${course.title}`} className="w-full h-full object-cover" />
         </div>
       )}
 

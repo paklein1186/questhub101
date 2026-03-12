@@ -664,7 +664,7 @@ export default function QuestDetail() {
 
       {quest.cover_image_url && (
         <div className="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6">
-          <img src={quest.cover_image_url} alt="" className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
+          <img src={quest.cover_image_url} alt={`Cover image for ${quest.title}`} className="w-full h-full object-cover" style={{ objectPosition: `center ${(quest as any).cover_focal_y ?? 50}%` }} />
         </div>
       )}
 
@@ -1392,7 +1392,7 @@ export default function QuestDetail() {
                     </div>
                     <h4 className="font-display font-semibold mt-1">{update.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{update.content}</p>
-                    {update.image_url && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.image_url} alt="" className="w-full h-auto" /></div>}
+                    {update.image_url && <div className="mt-3 rounded-lg overflow-hidden border border-border max-w-lg"><img src={update.image_url} alt={`Image for update: ${update.title}`} className="w-full h-auto" /></div>}
                     <div className="mt-2"><AttachmentList targetType={AttachmentTargetType.QUEST_UPDATE} targetId={update.id} /></div>
                   </div>
                   {canEdit && (
@@ -1423,7 +1423,7 @@ export default function QuestDetail() {
             const memberCount = (pod.pod_members || []).length;
             return (
               <Link key={pod.id} to={`/pods/${pod.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                {pod.image_url && <div className="h-28 w-full"><img src={pod.image_url} alt="" className="w-full h-full object-cover" /></div>}
+                {pod.image_url && <div className="h-28 w-full"><img src={pod.image_url} alt={`${pod.name} pod`} className="w-full h-full object-cover" /></div>}
                 <div className="p-4">
                   <div className="flex items-center justify-between"><h4 className="font-display font-semibold">{pod.name}</h4><span className="text-xs text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {memberCount}</span></div>
                   <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{pod.description}</p>
