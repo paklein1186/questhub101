@@ -441,13 +441,13 @@ export default function GuildDetail() {
 
       {guild.banner_url && (
         <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden mb-6">
-          <img src={guild.banner_url} alt="" className="w-full h-full object-cover" />
+          <img src={guild.banner_url} alt={`${guild.name} banner`} className="w-full h-full object-cover" />
         </div>
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
-          {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt="" />}
+          {guild.logo_url && <img src={guild.logo_url} className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl" alt={`${guild.name} logo`} />}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="font-display text-2xl sm:text-3xl font-bold truncate">{guild.name}</h1>
@@ -722,7 +722,7 @@ export default function GuildDetail() {
                 <div className={viewMode === "grid" ? "grid gap-3 sm:grid-cols-2 lg:grid-cols-3" : "space-y-3"}>
                   {filtered.map((q: any) => (
                     <Link key={q.id} to={`/quests/${q.id}`} className="block rounded-lg border border-border bg-card hover:border-primary/30 transition-all overflow-hidden">
-                      {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt="" className="w-full h-full object-cover" /></div>}
+                      {q.cover_image_url && <div className={viewMode === "grid" ? "h-28 w-full" : "h-32 w-full"}><img src={q.cover_image_url} alt={`${q.title} cover`} className="w-full h-full object-cover" /></div>}
                       <div className="p-4">
                         <div className="flex items-center justify-between"><h4 className="font-display font-semibold truncate">{q.title}</h4><Badge className="bg-primary/10 text-primary border-0 shrink-0">{q.reward_xp} XP</Badge></div>
                         {viewMode === "list" && <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{q.description}</p>}

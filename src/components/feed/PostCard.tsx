@@ -96,7 +96,7 @@ function ImageGrid({ images }: { images: PostAttachment[] }) {
       </div>
       <Dialog open={!!lightbox} onOpenChange={() => setLightbox(null)}>
         <DialogContent className="max-w-4xl p-0 bg-black/90 border-0">
-          {lightbox && <img src={lightbox} alt="" className="w-full max-h-[85vh] object-contain" />}
+          {lightbox && <img src={lightbox} alt="Post attachment" className="w-full max-h-[85vh] object-contain" />}
         </DialogContent>
       </Dialog>
     </>
@@ -515,10 +515,10 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
         </div>
         {isOwn && !editing && (
           <div className="flex items-center gap-0.5">
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => { setEditContent(post.content || ""); setEditTerritoryIds((post.post_territories ?? []).map(pt => pt.territory_id)); setEditTopicIds((post.post_topics ?? []).map(pt => pt.topic_id)); setEditing(true); }}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" aria-label="Edit post" onClick={() => { setEditContent(post.content || ""); setEditTerritoryIds((post.post_territories ?? []).map(pt => pt.territory_id)); setEditTopicIds((post.post_topics ?? []).map(pt => pt.topic_id)); setEditing(true); }}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={handleDelete} disabled={isDeleting}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" aria-label="Delete post" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
             </Button>
           </div>
@@ -564,7 +564,7 @@ export function PostCard({ post, hasUpvoted = false, allowComments = true, guild
             <div className="grid grid-cols-3 gap-2">
               {editFiles.map((f, i) => f.type === "IMAGE" && (
                 <div key={i} className="relative group rounded-lg overflow-hidden aspect-video bg-muted">
-                  <img src={f.previewUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={f.previewUrl} alt="Post attachment" className="w-full h-full object-cover" />
                   <button onClick={() => setEditFiles(prev => { URL.revokeObjectURL(prev[i].previewUrl); return prev.filter((_, idx) => idx !== i); })}
                     className="absolute top-1 right-1 h-5 w-5 rounded-full bg-background/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <XIcon className="h-3 w-3" />
