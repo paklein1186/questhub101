@@ -610,7 +610,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                     <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => setAddCoinsOpen(true)}>
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Add 🟩 Coins
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Add Coins
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setAddCtgOpen(true)}>
                         <Plus className="h-3.5 w-3.5 mr-1" /> Add 🌱 $CTG
