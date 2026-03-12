@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Wallet, Award, Gauge, TrendingUp } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 
 interface ValueIndicatorsProps {
   coins: number;
@@ -32,13 +32,13 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
             onClick={onNavigate}
             className={`inline-flex items-center gap-1 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 ${px} ${text} hover:opacity-80 transition-opacity`}
           >
-            <Wallet className="h-3 w-3" />
+            <CurrencyIcon currency="coins" className="h-3 w-3" colorClassName="text-current" />
             <span className="font-semibold">{coins.toLocaleString()}</span>
             {!compact && <span className="text-[10px] opacity-70">coins</span>}
           </Link>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          🟩 Coins — fiat-backed mission currency (1 Coin ≈ €0.04)
+          {getCurrencyConfig("coins").tooltip}
         </TooltipContent>
       </Tooltip>
 
@@ -50,13 +50,13 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
             onClick={onNavigate}
             className={`inline-flex items-center gap-1 rounded-full border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 ${px} ${text} hover:opacity-80 transition-opacity`}
           >
-            <Award className="h-3 w-3" />
+            <CurrencyIcon currency="ctg" className="h-3 w-3" colorClassName="text-current" />
             <span className="font-semibold">{ctg.toLocaleString()}</span>
             {!compact && <span className="text-[10px] opacity-70">$CTG</span>}
           </Link>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          🌱 $CTG — earned by contributing to the commons. Fades 1%/month.
+          {getCurrencyConfig("ctg").tooltip}
         </TooltipContent>
       </Tooltip>
 
@@ -68,7 +68,7 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
             onClick={onNavigate}
             className={`inline-flex items-center gap-1 rounded-md bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-400 ${px} ${text} hover:opacity-80 transition-opacity relative overflow-hidden`}
           >
-            <Gauge className="h-3 w-3 relative z-10" />
+            <CurrencyIcon currency="credits" className="h-3 w-3 relative z-10" colorClassName="text-current" />
             <span className="font-semibold relative z-10">{credits.toLocaleString()}</span>
             {!compact && <span className="text-[10px] opacity-70 relative z-10">cr</span>}
             <span
@@ -78,7 +78,7 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
           </Link>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          🔷 Credits — platform utility fuel. Spend on boosts, tools & capacity.
+          {getCurrencyConfig("credits").tooltip}
         </TooltipContent>
       </Tooltip>
 
@@ -90,7 +90,7 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
             onClick={onNavigate}
             className={`inline-flex items-center gap-1 rounded-md bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 ${px} ${text} hover:opacity-80 transition-opacity relative overflow-hidden`}
           >
-            <TrendingUp className="h-3 w-3 relative z-10" />
+            <CurrencyIcon currency="xp" className="h-3 w-3 relative z-10" colorClassName="text-current" />
             <span className="font-semibold relative z-10">{xp.toLocaleString()}</span>
             {!compact && <span className="text-[10px] opacity-70 relative z-10">XP</span>}
             <span
@@ -100,7 +100,7 @@ export function ValueIndicators({ coins, ctg, credits, xp, compact, onNavigate }
           </Link>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
-          ⭐ XP — your permanent reputation score. Never decays.
+          {getCurrencyConfig("xp").tooltip}
         </TooltipContent>
       </Tooltip>
     </div>
