@@ -383,7 +383,7 @@ export function QuestProposals({
                         </div>
                         <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
                         <Button onClick={() => fundQuest(Number(fundAmount) || 0, campaign)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
-                          <Coins className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
+                          <CurrencyIcon currency="ctg" className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
                         </Button>
                       </div>
                     </DialogContent>
