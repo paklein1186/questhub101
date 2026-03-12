@@ -362,25 +362,25 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           </div>
           {questRewardXp > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="xp" size="xs" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
+              <CurrencyIcon currency="xp" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
               <span className="text-muted-foreground">per participant</span>
             </div>
           )}
           {questCreditReward > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" size="xs" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
+              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
               <span className="text-muted-foreground">per participant</span>
             </div>
           )}
           {questCoinsBudget > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="coins" size="xs" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
+              <CurrencyIcon currency="coins" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
               <span className="text-muted-foreground">budget</span>
             </div>
           )}
           {questCtgBudget > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" size="xs" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
+              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
               <span className="text-muted-foreground">budget</span>
             </div>
           )}
@@ -646,17 +646,17 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
                 <div className="flex flex-wrap gap-3 mt-2">
                   {(confirmSubtask.credit_reward ?? 0) > 0 && (
                     <span className="flex items-center gap-1 text-xs">
-                      <CurrencyIcon currency="coins" size="xs" /> {confirmSubtask.credit_reward} Coins
+                      <CurrencyIcon currency="coins" className="h-3.5 w-3.5" /> {confirmSubtask.credit_reward} Coins
                     </span>
                   )}
                   <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="ctg" size="xs" /> {confirmSubtask.ctg_reward ?? 1} $CTG
+                    <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" /> {confirmSubtask.ctg_reward ?? 1} $CTG
                   </span>
                   <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="xp" size="xs" /> XP
+                    <CurrencyIcon currency="xp" className="h-3.5 w-3.5" /> XP
                   </span>
                   <span className="flex items-center gap-1 text-xs">
-                    <CurrencyIcon currency="weight" size="xs" /> ×{confirmSubtask.contribution_weight ?? 1}
+                    <CurrencyIcon currency="weight" className="h-3.5 w-3.5" /> ×{confirmSubtask.contribution_weight ?? 1}
                   </span>
                 </div>
                 {(confirmSubtask.assignee_user_ids?.length ?? 0) > 0 && (
