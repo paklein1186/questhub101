@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Trophy, CheckCircle2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
@@ -27,6 +28,10 @@ interface QuestSubtasksProps {
   questCoinBudget?: number;
   valuePieCalculated?: boolean;
   coinBudget?: number;
+  questRewardXp?: number;
+  questCreditReward?: number;
+  questCoinsBudget?: number;
+  questCtgBudget?: number;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -36,6 +41,8 @@ const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: "bg-primary/10 text-primary",
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
+
+const DONE_COOLDOWN_MS = 30_000; // 30 seconds before DONE can be reverted
 
 export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
