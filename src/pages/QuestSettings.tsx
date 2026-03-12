@@ -617,8 +617,8 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                       </Button>
                     </div>
                     <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground space-y-1">
-                      <p><strong>🟩 Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
-                      <p><strong>🌱 $CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
+                      <p><strong>Coins in escrow:</strong> {coinsEscrow.toLocaleString()} (≈ €{(coinsEscrow * coinsRate).toFixed(2)})</p>
+                      <p><strong>$CTG in escrow:</strong> {ctgEscrow.toLocaleString()}</p>
                     </div>
                   </div>
 
