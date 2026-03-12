@@ -315,7 +315,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
           </h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-xs text-muted-foreground">🟩 Coins available</p>
+              <p className="text-xs text-muted-foreground">Coins available</p>
               <p className="text-lg font-bold">{coinsEscrow.toLocaleString()}</p>
               <p className="text-[10px] text-muted-foreground">≈ €{(coinsEscrow * coinsRate).toFixed(2)}</p>
             </div>
