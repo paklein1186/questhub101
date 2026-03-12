@@ -108,7 +108,7 @@ export function MilestonePopup() {
                   )}
                   {current.reward_type === "CREDITS" && (
                     <>
-                      <Coins className="h-4 w-4 text-emerald-500" />
+                      <CurrencyIcon currency="credits" className="h-4 w-4" />
                       <span className="text-sm font-semibold">+{current.reward_amount} Credits</span>
                     </>
                   )}

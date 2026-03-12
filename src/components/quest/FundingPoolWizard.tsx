@@ -44,7 +44,7 @@ export function FundingPoolWizard({
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-emerald-500" />
+              <CurrencyIcon currency="coins" className="h-4 w-4" />
               <Label className="text-sm font-semibold">🟩 Coins Pool</Label>
             </div>
             <Switch checked={coinsEnabled} onCheckedChange={setCoinsEnabled} />

@@ -472,7 +472,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             {/* $CTG weight input */}
             {canManage && (
               <div className="flex items-center gap-0.5" title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)">
-                <Scale className="h-3 w-3 text-violet-500" />
+                <CurrencyIcon currency="weight" className="h-3 w-3" />
                 <Input
                   type="number"
                   min={0.5}

@@ -105,7 +105,7 @@ export function XpSpendDialog({
                 <Link to="/plans">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
               <Button asChild>
-                <Link to="/me/credits"><Coins className="h-4 w-4 mr-1" /> Buy Credits</Link>
+                <Link to="/me/credits"><CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> Buy Credits</Link>
               </Button>
             </DialogFooter>
           </div>
