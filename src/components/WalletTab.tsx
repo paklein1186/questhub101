@@ -362,7 +362,7 @@ export function WalletTab() {
         {/* ═══ COINS WALLET ═══ */}
         {activeWallet === "coins" && (
           <>
-            <Section title="🟩 Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
+            <Section title="Coins — Mission Payouts" icon={<Banknote className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
                   <div className="flex items-center justify-between mb-3">
