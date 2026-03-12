@@ -84,7 +84,7 @@ export function FundingPoolWizard({
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-lime-500" />
+              <CurrencyIcon currency="ctg" className="h-4 w-4" />
               <Label className="text-sm font-semibold">🌱 $CTG Pool</Label>
             </div>
             <Switch checked={ctgEnabled} onCheckedChange={setCtgEnabled} />

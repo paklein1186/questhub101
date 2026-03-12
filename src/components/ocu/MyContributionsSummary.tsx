@@ -117,7 +117,7 @@ export function MyContributionsSummary() {
       {/* ─── Quest table ─── */}
       <div>
         <h3 className="font-display font-semibold text-sm flex items-center gap-1.5 mb-2">
-          <Coins className="h-4 w-4" /> Contribution Ledger
+          <CurrencyIcon currency="coins" className="h-4 w-4" /> Contribution Ledger
         </h3>
 
         <div className="rounded-lg border border-border overflow-hidden overflow-x-auto">
