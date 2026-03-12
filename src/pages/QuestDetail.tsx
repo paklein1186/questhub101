@@ -1301,6 +1301,10 @@ export default function QuestDetail() {
             questOwnerId={quest.created_by_user_id}
             guildId={quest.guild_id}
             canManage={isOwner || isCollaborator}
+            questRewardXp={quest.reward_xp ?? 0}
+            questCreditReward={quest.credit_reward ?? 0}
+            questCoinsBudget={Number((quest as any).coins_budget ?? 0)}
+            questCtgBudget={Number((quest as any).credit_budget ?? 0)}
           />
           <ContributionLogPanel
             questId={quest.id}

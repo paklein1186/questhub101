@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Trophy, CheckCircle2 } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
@@ -27,6 +28,10 @@ interface QuestSubtasksProps {
   questCoinBudget?: number;
   valuePieCalculated?: boolean;
   coinBudget?: number;
+  questRewardXp?: number;
+  questCreditReward?: number;
+  questCoinsBudget?: number;
+  questCtgBudget?: number;
 }
 
 const STATUS_OPTIONS = ["BACKLOG", "TODO", "IN_PROGRESS", "DONE"] as const;
@@ -37,7 +42,9 @@ const STATUS_COLORS: Record<string, string> = {
   DONE: "bg-emerald-500/10 text-emerald-600",
 };
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
+const DONE_COOLDOWN_MS = 30_000; // 30 seconds before DONE can be reverted
+
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0, questRewardXp = 0, questCreditReward = 0, questCoinsBudget = 0, questCtgBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -51,6 +58,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [editingTitle, setEditingTitle] = useState("");
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [confirmDoneId, setConfirmDoneId] = useState<string | null>(null);
+  const [doneCooldowns, setDoneCooldowns] = useState<Map<string, number>>(new Map()); // id -> timestamp when DONE was committed
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
@@ -260,14 +269,33 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     }
 
+    // Prevent reverting from DONE during cooldown period
+    if (currentStatus === "DONE" && newStatus !== "DONE") {
+      const doneAt = doneCooldowns.get(subtaskId);
+      if (doneAt && Date.now() - doneAt < DONE_COOLDOWN_MS) {
+        const remaining = Math.ceil((DONE_COOLDOWN_MS - (Date.now() - doneAt)) / 1000);
+        toast({ title: `Please wait ${remaining}s before reverting`, description: "This prevents accidental status changes after rewards have been distributed.", variant: "destructive" });
+        return;
+      }
+    }
+
     if (newStatus === "DONE") {
-      setPendingDone((prev) => new Map(prev).set(subtaskId, currentStatus));
-      const timer = setTimeout(() => commitSubtaskDone(subtaskId), 5000);
-      pendingTimers.current.set(subtaskId, timer);
+      // Open confirmation dialog instead of immediate pending
+      setConfirmDoneId(subtaskId);
       return;
     }
 
     updateStatus(subtaskId, newStatus);
+  };
+
+  const confirmAndCommitDone = (subtaskId: string) => {
+    setConfirmDoneId(null);
+    setPendingDone((prev) => new Map(prev).set(subtaskId, "IN_PROGRESS"));
+    const timer = setTimeout(() => {
+      commitSubtaskDone(subtaskId);
+      setDoneCooldowns((prev) => new Map(prev).set(subtaskId, Date.now()));
+    }, 5000);
+    pendingTimers.current.set(subtaskId, timer);
   };
 
   const toggleAssignee = async (subtaskId: string, userId: string) => {
@@ -321,8 +349,45 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading subtasks…</p>;
 
+  const confirmSubtask = confirmDoneId ? subtasks.find((s: any) => s.id === confirmDoneId) : null;
+  const hasAnyReward = questRewardXp > 0 || questCreditReward > 0 || questCoinsBudget > 0 || questCtgBudget > 0;
+
   return (
     <div className="space-y-3">
+      {/* Quest-level rewards summary */}
+      {hasAnyReward && (
+        <div className="rounded-lg border border-border bg-muted/30 p-3 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Trophy className="h-3.5 w-3.5" /> Quest Rewards
+          </div>
+          {questRewardXp > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="xp" size="xs" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
+              <span className="text-muted-foreground">per participant</span>
+            </div>
+          )}
+          {questCreditReward > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="ctg" size="xs" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
+              <span className="text-muted-foreground">per participant</span>
+            </div>
+          )}
+          {questCoinsBudget > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="coins" size="xs" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
+              <span className="text-muted-foreground">budget</span>
+            </div>
+          )}
+          {questCtgBudget > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="ctg" size="xs" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
+              <span className="text-muted-foreground">budget</span>
+            </div>
+          )}
+          <span className="text-[10px] text-muted-foreground ml-auto">Distributed when quest is completed</span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold text-sm flex items-center gap-2">
           Subtasks
@@ -562,6 +627,57 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       {totalCount > 0 && doneCount === totalCount && (
         <p className="text-xs text-emerald-600 font-medium">✓ All subtasks completed! Consider marking this quest as completed.</p>
       )}
+
+      {/* Completion confirmation dialog */}
+      <Dialog open={!!confirmDoneId} onOpenChange={(open) => !open && setConfirmDoneId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Mark as Done?
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Completing this subtask will automatically log a contribution and distribute any associated rewards.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmSubtask && (
+            <div className="space-y-3">
+              <div className="rounded-md border border-border bg-muted/30 p-3">
+                <p className="text-sm font-medium">{confirmSubtask.title}</p>
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {(confirmSubtask.credit_reward ?? 0) > 0 && (
+                    <span className="flex items-center gap-1 text-xs">
+                      <CurrencyIcon currency="coins" size="xs" /> {confirmSubtask.credit_reward} Coins
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="ctg" size="xs" /> {confirmSubtask.ctg_reward ?? 1} $CTG
+                  </span>
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="xp" size="xs" /> XP
+                  </span>
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="weight" size="xs" /> ×{confirmSubtask.contribution_weight ?? 1}
+                  </span>
+                </div>
+                {(confirmSubtask.assignee_user_ids?.length ?? 0) > 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    Rewards distributed to {confirmSubtask.assignee_user_ids.length} assignee{confirmSubtask.assignee_user_ids.length > 1 ? "s" : ""}
+                  </p>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                You'll have 5 seconds to undo after confirming. After that, a 30-second cooldown prevents accidental reverts.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setConfirmDoneId(null)}>Cancel</Button>
+                <Button size="sm" className="gap-1.5" onClick={() => confirmAndCommitDone(confirmDoneId!)}>
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Confirm Completion
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
