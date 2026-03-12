@@ -2,7 +2,12 @@ import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Save, Trash2, Coins, Puzzle, Calendar,
+  ArrowLeft, Save, Trash2, Puzzle, Calendar,
+  ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
+  Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
+  PieChart, FileText, LogOut, Snowflake,
+} from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
   ListChecks, MessageCircle, AlertTriangle, Ban, Loader2,
   Plus, Pencil, X, Lightbulb, Globe, Link2, Info,
   PieChart, FileText, LogOut, Snowflake,
