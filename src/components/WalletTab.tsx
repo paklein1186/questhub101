@@ -281,7 +281,7 @@ export function WalletTab() {
           </ValueTile>
 
           {/* Platform Credits (🔷) */}
-          <ValueTile icon={<Coins className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Platform Credits <HintTooltip {...HINTS.tooltips.creditFade} /></span>} emoji="🔷"
+          <ValueTile icon={<CurrencyIcon currency="credits" className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Platform Credits <HintTooltip {...HINTS.tooltips.creditFade} /></span>} emoji="🔷"
             value={limits.userCredits}
             tooltip="Non-monetary utility credits for platform features and quotas. Subject to 1%/month fade to encourage circulation.">
             <p className="text-[10px] text-muted-foreground mt-1">Utility fuel</p>
