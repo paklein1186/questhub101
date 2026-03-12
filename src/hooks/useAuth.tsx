@@ -1,3 +1,16 @@
+/**
+ * Authentication provider and hook for the application.
+ *
+ * Wraps Supabase Auth and provides session/user state, plus
+ * sign-up, sign-in, sign-out, password reset, and profile refresh methods.
+ *
+ * @example
+ * // In a component:
+ * const { user, signOut } = useAuth();
+ * if (!user) return <LoginPrompt />;
+ *
+ * @module useAuth
+ */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import i18n from "i18next";
