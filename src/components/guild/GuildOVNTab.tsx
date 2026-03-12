@@ -627,7 +627,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Leaf className="h-4 w-4" /> By Territory
+                <CurrencyIcon currency="ctg" className="h-4 w-4" /> By Territory
               </CardTitle>
             </CardHeader>
             <CardContent>
