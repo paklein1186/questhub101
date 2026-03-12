@@ -588,12 +588,13 @@ export function ContractTab({ quest, isAdmin, onEnableOCU }: Props) {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium">Contract Body (HTML)</label>
-                <Textarea
-                  value={contractBody}
-                  onChange={(e) => setContractBody(e.target.value)}
-                  className="text-xs mt-1 font-mono min-h-[300px]"
-                />
+                <label className="text-xs font-medium">Contract Body</label>
+                <div className="mt-1">
+                  <ContractRichEditor
+                    initialContent={contractBody}
+                    onChange={setContractBody}
+                  />
+                </div>
               </div>
 
               {/* Signatory selection */}
