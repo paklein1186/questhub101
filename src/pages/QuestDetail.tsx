@@ -739,7 +739,7 @@ export default function QuestDetail() {
             <CTGEstimateBlock subtaskCount={subtaskCounts?.total ?? 0} />
             {Number((quest as any).coins_budget ?? 0) > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground font-medium">🟩 Coins Pool</p>
+                <p className="text-xs text-muted-foreground font-medium">Coins Pool</p>
                 <p className="text-lg font-bold">{Number((quest as any).coins_escrow ?? 0).toLocaleString()} Coins</p>
                 <p className="text-[10px] text-muted-foreground">≈ €{(Number((quest as any).coins_escrow ?? 0) * coinsRate).toFixed(2)} in escrow</p>
               </div>
