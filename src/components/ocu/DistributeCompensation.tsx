@@ -208,26 +208,27 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     setSubmitting(true);
     try {
       const preview = getDistributionPreview();
-      const isCoins = compensationMode === "coins" || compensationMode === "mixed";
-      const isCtg = compensationMode === "mixed"; // future: add ctg mode
+      const isCtgMode = compensationMode === "ctg";
+      const isFiatMode = compensationMode === "fiat";
 
       for (const entry of preview) {
-        const coinAmount = compensationMode === "fiat" ? 0 : entry.distribution;
+        const coinAmount = (isFiatMode || isCtgMode) ? 0 : entry.distribution;
+        const ctgAmount = isCtgMode ? entry.distribution : 0;
 
         // 1. Write compensation record
         await supabase.from("contribution_compensations" as any).insert({
           contribution_id: quest.id,
           quest_id: quest.id,
           user_id: entry.user_id,
-          amount_coins: coinAmount,
-          amount_fiat: compensationMode === "coins" ? (coinAmount * coinsRate) : entry.distribution,
+          amount_coins: coinAmount + ctgAmount, // store total distributed
+          amount_fiat: isFiatMode ? entry.distribution : (coinAmount > 0 ? coinAmount * coinsRate : null),
           compensation_mode: compensationMode,
           currency,
           note: note || null,
           compensated_by: currentUser.id,
         });
 
-        // 2. Credit recipient wallet (Coins)
+        // 2a. Credit recipient wallet (Coins)
         if (coinAmount > 0) {
           await supabase.from("coin_transactions" as any).insert({
             user_id: entry.user_id,
@@ -236,7 +237,6 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             quest_id: quest.id,
             source: `compensation:${quest.id}`,
           });
-          // Update balance
           const { data: prof } = await supabase
             .from("profiles")
             .select("coins_balance")
@@ -245,6 +245,27 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
           if (prof) {
             await supabase.from("profiles").update({
               coins_balance: Number((prof as any).coins_balance ?? 0) + coinAmount,
+            } as any).eq("user_id", entry.user_id);
+          }
+        }
+
+        // 2b. Credit recipient wallet ($CTG)
+        if (ctgAmount > 0) {
+          await supabase.from("ctg_transactions" as any).insert({
+            user_id: entry.user_id,
+            amount: ctgAmount,
+            type: "QUEST_DISTRIBUTION",
+            related_entity_id: quest.id,
+            related_entity_type: "quest",
+          });
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("ctg_balance")
+            .eq("user_id", entry.user_id)
+            .single();
+          if (prof) {
+            await supabase.from("profiles").update({
+              ctg_balance: Number((prof as any).ctg_balance ?? 0) + ctgAmount,
             } as any).eq("user_id", entry.user_id);
           }
         }
