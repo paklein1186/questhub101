@@ -244,7 +244,7 @@ export default function BuyXpPage() {
                 {loading === bundle.code ? (
                   <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Processing…</>
                 ) : (
-                  <><Coins className="h-4 w-4 mr-1" /> Buy {bundle.credits} Credits</>
+                  <><CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> Buy {bundle.credits} Credits</>
                 )}
               </Button>
             </motion.div>

@@ -1093,7 +1093,7 @@ export default function QuestDetail() {
                     <Brain className="h-4 w-4 mr-2" /> Memory
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setActiveTab("fundraising-ai")}>
-                    <Coins className="h-4 w-4 mr-2" /> Fundraising AI
+                    <CurrencyIcon currency="coins" className="h-4 w-4 mr-2" /> Fundraising AI
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={`/quests/${quest.id}/settings`}><Puzzle className="h-4 w-4 mr-2" /> Settings</Link>

@@ -633,7 +633,7 @@ export default function UserProfile() {
           <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
           <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="contributions"><Coins className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="contributions"><CurrencyIcon currency="coins" className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 

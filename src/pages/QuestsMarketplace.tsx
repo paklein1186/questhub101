@@ -260,7 +260,7 @@ export default function QuestsMarketplace({ bare, statusFilter: externalStatusFi
                       <div className="flex flex-wrap gap-1.5 mb-3">
                         {creditBudget > 0 && (
                           <Badge variant="secondary" className="text-[10px] gap-0.5">
-                            <Coins className="h-3 w-3 text-primary" /> {creditBudget} Credits
+                            <CurrencyIcon currency="credits" className="h-3 w-3" /> {creditBudget} Credits
                           </Badge>
                         )}
                         {ctg > 0 && (

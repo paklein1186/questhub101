@@ -291,7 +291,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="6"
           title="Governance Anchored in Community"
-          icon={<Scale className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
         >
           <p>CTG uses multi-layer governance to ensure fairness:</p>
           <div className="flex flex-wrap gap-2 mt-3">
