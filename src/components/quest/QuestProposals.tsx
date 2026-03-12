@@ -341,7 +341,7 @@ export function QuestProposals({
       {(campaigns as any[]).length > 0 ? (
         <div className="space-y-3">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
+            <CurrencyIcon currency="coins" className="h-4 w-4" /> Funding Campaigns
           </h3>
           {(campaigns as any[]).map((campaign: any) => {
             const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
