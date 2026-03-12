@@ -573,7 +573,7 @@ function DistributionCard({ distribution, quest, currentUserId, isAdmin }: {
       {myAlloc && (
         <div className="rounded-md bg-primary/5 border border-primary/20 p-2 text-xs">
           <span>You received: </span>
-          {myAlloc.amount_coins > 0 && <span>🟩 {myAlloc.amount_coins.toLocaleString()} Coins </span>}
+          {myAlloc.amount_coins > 0 && <span>{myAlloc.amount_coins.toLocaleString()} Coins </span>}
           {myAlloc.amount_ctg > 0 && <span>🌱 {myAlloc.amount_ctg.toLocaleString()} $CTG</span>}
         </div>
       )}
