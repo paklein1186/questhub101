@@ -320,7 +320,7 @@ export function FundQuestCard({ questId, className }: Props) {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Your balance: <strong>{userBalance.toLocaleString()}</strong> {currency === "coins" ? "🟩 Coins" : "🌱 $CTG"}
+              Your balance: <strong>{userBalance.toLocaleString()}</strong> {currency === "coins" ? "Coins" : "$CTG"}
             </p>
             <Input
               type="number"

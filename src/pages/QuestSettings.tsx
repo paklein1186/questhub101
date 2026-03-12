@@ -807,7 +807,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Your balance: <strong>{((userProfile as any)?.coins_balance ?? 0).toLocaleString()}</strong> 🟩 Coins
+              Your balance: <strong>{((userProfile as any)?.coins_balance ?? 0).toLocaleString()}</strong> Coins
             </p>
             <Input
               type="number"
