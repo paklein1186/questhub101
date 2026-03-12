@@ -109,7 +109,7 @@ export function MyContributionsSummary() {
         <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="Quests" value={questCount} />
         <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Contributions" value={totalContributions} />
         <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="⭐ XP Earned" value={totalXp} />
-        <StatCard icon={<span className="text-sm">🟩</span>} label="Coins Received" value={totalCoins} accent="teal" />
+        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Coins Received" value={totalCoins} accent="teal" />
         <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
         <StatCard icon={<span className="text-sm">🟡</span>} label="Outstanding FMV" value={totalOutstanding} accent="amber" />
       </div>
