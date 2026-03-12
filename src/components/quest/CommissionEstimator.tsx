@@ -95,7 +95,7 @@ export function CommissionEstimator({ budgetMin, budgetMax, compact }: Commissio
         {creditSteps > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-1">
-              <Coins className="h-3 w-3" /> Credit reduction ({creditsNeeded} credits)
+              <CurrencyIcon currency="credits" className="h-3 w-3" /> Credit reduction ({creditsNeeded} credits)
             </span>
             <span className="font-medium text-primary">-{creditSteps}%</span>
           </div>
