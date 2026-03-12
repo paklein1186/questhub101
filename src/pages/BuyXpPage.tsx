@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Coins, Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info, Leaf, RefreshCw, Zap } from "lucide-react";
+import { Package, ArrowLeft, CheckCircle, Loader2, ArrowRight, Info, RefreshCw } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
