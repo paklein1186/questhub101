@@ -490,7 +490,16 @@ export default function QuestDetail() {
     toast({ title: currentPinned ? "Unpinned" : "Pinned!" });
   };
 
-  const createPod = async () => {
+  const toggleUpdateUpvote = async (updateId: string, currentlyUpvoted: boolean) => {
+    if (!currentUser?.id) return;
+    if (currentlyUpvoted) {
+      await supabase.from("quest_update_upvotes" as any).delete().eq("update_id", updateId).eq("user_id", currentUser.id);
+    } else {
+      await supabase.from("quest_update_upvotes" as any).insert({ update_id: updateId, user_id: currentUser.id } as any);
+    }
+    qc.invalidateQueries({ queryKey: ["quest-updates", id] });
+  };
+
     if (!podName.trim()) return;
     const { data: pod, error } = await supabase.from("pods").insert({ name: podName.trim(), description: podDesc.trim() || null, image_url: podImageUrl || null, type: "QUEST_POD" as any, quest_id: quest.id, creator_id: currentUser.id, start_date: podStart || null, end_date: podEnd || null }).select().single();
     if (error) { toast({ title: "Failed to create pod", variant: "destructive" }); return; }
