@@ -95,7 +95,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
              </Badge>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🟩" />
+            <StatCard label="$CTG distributed" value={stats?.totalTokens ?? 0} icon="🌱" />
             <StatCard label="Value Pie Quests" value={stats?.questCount ?? 0} icon="🥧" />
             <StatCard label="Contributors this month" value={stats?.distinctUsers ?? 0} icon="👥" />
             <StatCard label="Active guilds" value={stats?.guildCount ?? 0} icon="⚔️" />
