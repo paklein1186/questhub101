@@ -60,7 +60,7 @@ const userIcon = new L.DivIcon({
   iconAnchor: [14, 14],
 });
 
-function FitView({ center, zoom }: { center: [number, number]; zoom: number }) {
+function FitView({ center, zoom }: { center: [number, number]; zoom: number }): null {
   const map = useMap();
   useEffect(() => {
     // Fix grey tiles by forcing a resize recalculation

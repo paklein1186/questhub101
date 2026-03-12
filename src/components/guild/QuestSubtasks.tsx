@@ -12,7 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, GripVertical, Trash2, CalendarDays, Undo2, Coins, Scale, Sprout } from "lucide-react";
+import { Plus, GripVertical, Trash2, CalendarDays, Undo2 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PriorityPicker, type Priority } from "@/components/PriorityPicker";
 import { AIWriterButton } from "@/components/AIWriterButton";
@@ -431,7 +432,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             {/* Credit reward indicator */}
             {canManage ? (
               <div className="flex items-center gap-0.5" title="🟩 Coins — fiat-backed reward for completing this subtask">
-                <Coins className="h-3 w-3 text-amber-500" />
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
                 <Input
                   type="number"
                   min="0"
@@ -443,13 +444,13 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
               </div>
             ) : (subtask.credit_reward ?? 0) > 0 ? (
               <Badge variant="outline" className="text-[10px] gap-0.5 text-amber-600">
-                <Coins className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
+                <CurrencyIcon currency="coins" className="h-2.5 w-2.5" />{subtask.credit_reward} Cr
               </Badge>
             ) : null}
             {/* $CTG reward input */}
             {canManage ? (
               <div className="flex items-center gap-0.5" title="🌱 $CTG — contribution token reward on completion">
-                <Sprout className="h-3 w-3 text-emerald-600" />
+                <CurrencyIcon currency="ctg" className="h-3 w-3" />
                 <Input
                   type="number"
                   min={0}
@@ -472,7 +473,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             {/* $CTG weight input */}
             {canManage && (
               <div className="flex items-center gap-0.5" title="⚖️ Contribution weight — multiplier in the Value Pie (0.5–5.0)">
-                <Scale className="h-3 w-3 text-violet-500" />
+                <CurrencyIcon currency="weight" className="h-3 w-3" />
                 <Input
                   type="number"
                   min={0.5}

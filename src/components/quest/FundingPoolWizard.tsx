@@ -3,7 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Coins, Leaf } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface FundingPoolWizardProps {
   coinsBudget: string;
@@ -43,7 +44,7 @@ export function FundingPoolWizard({
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Coins className="h-4 w-4 text-emerald-500" />
+              <CurrencyIcon currency="coins" className="h-4 w-4" />
               <Label className="text-sm font-semibold">🟩 Coins Pool</Label>
             </div>
             <Switch checked={coinsEnabled} onCheckedChange={setCoinsEnabled} />
@@ -83,7 +84,7 @@ export function FundingPoolWizard({
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-lime-500" />
+              <CurrencyIcon currency="ctg" className="h-4 w-4" />
               <Label className="text-sm font-semibold">🌱 $CTG Pool</Label>
             </div>
             <Switch checked={ctgEnabled} onCheckedChange={setCtgEnabled} />

@@ -19,7 +19,7 @@ const ROUTE_MAP: Record<string, string> = {
  * When the _redirects proxy doesn't intercept (e.g. in SPA mode),
  * this component redirects the user to the correct app route.
  */
-const ShareRedirect = () => {
+const ShareRedirect = (): null => {
   const { type, id } = useParams<{ type: string; id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();

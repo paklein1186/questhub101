@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Wallet, Coins, Zap, CreditCard, Package, Crown, Compass,
+  Wallet, CreditCard, Package, Crown, Compass,
   ArrowRight, ExternalLink, Loader2, History, Info,
   ArrowUpRight, ArrowDownRight, Filter, Send, Recycle, Timer,
-  Shield, Star, Banknote, Leaf, Download,
+  Shield, Banknote, Download,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -280,14 +281,14 @@ export function WalletTab() {
           </ValueTile>
 
           {/* Platform Credits (🔷) */}
-          <ValueTile icon={<Coins className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Platform Credits <HintTooltip {...HINTS.tooltips.creditFade} /></span>} emoji="🔷"
+          <ValueTile icon={<CurrencyIcon currency="credits" className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">Platform Credits <HintTooltip {...HINTS.tooltips.creditFade} /></span>} emoji="🔷"
             value={limits.userCredits}
             tooltip="Non-monetary utility credits for platform features and quotas. Subject to 1%/month fade to encourage circulation.">
             <p className="text-[10px] text-muted-foreground mt-1">Utility fuel</p>
           </ValueTile>
 
           {/* $CTG Token (🟡) */}
-          <ValueTile icon={<Leaf className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🌱"
+          <ValueTile icon={<CurrencyIcon currency="ctg" className="h-5 w-5" />} label={<span className="inline-flex items-center gap-1">$CTG Token <HintTooltip {...HINTS.tooltips.ctgToken} /></span>} emoji="🌱"
             value={ctgBal}
             tooltip="🌱 $CTG = what you produce for the commons. Earned through contributions (quests, rituals, governance, documentation). Fades 1%/month. Cannot be purchased. Transfer to collaborators or exchange for Credits.">
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" onClick={() => setActiveWallet("ctg")}>
@@ -296,7 +297,7 @@ export function WalletTab() {
           </ValueTile>
 
           {/* XP */}
-          <ValueTile icon={<Star className="h-5 w-5" />} label="XP Level" emoji="⭐"
+          <ValueTile icon={<CurrencyIcon currency="xp" className="h-5 w-5" />} label="XP Level" emoji="⭐"
             value={`Lv. ${limits.userLevel}`} subValue={`${limits.userXp} XP`}
             tooltip={ECONOMY_LABELS.xpNature}>
             <Button variant="ghost" size="sm" className="w-full mt-1 text-xs p-0 h-auto" asChild>
@@ -463,7 +464,7 @@ export function WalletTab() {
         {/* ═══ PLATFORM CREDITS WALLET ═══ */}
         {activeWallet === "platform" && (
           <>
-            <Section title="🔷 Platform Credits — Feature Fuel" icon={<Coins className="h-5 w-5" />}>
+            <Section title="🔷 Platform Credits — Feature Fuel" icon={<CurrencyIcon currency="credits" className="h-5 w-5" />}>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
@@ -559,7 +560,7 @@ export function WalletTab() {
               {ctgBal > 0 ? (
                 <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 mb-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <CurrencyIcon currency="ctg" className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium">
                         Exchange $CTG → Credits
@@ -575,7 +576,7 @@ export function WalletTab() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-border bg-muted/30 p-3 mb-4 flex items-start gap-2.5 text-xs text-muted-foreground">
-                  <Leaf className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CurrencyIcon currency="ctg" className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
                     Earn $CTG by completing quests and contributions — then exchange for Credits
                     without paying €.{" "}
@@ -594,7 +595,7 @@ export function WalletTab() {
                     <p className="text-lg font-bold">€{b.priceEur}</p>
                     <p className="text-xs text-muted-foreground mb-2">€{(b.priceEur / b.credits).toFixed(3)}/credit</p>
                     <Button size="sm" className="w-full" onClick={() => handleBuyCredits(b.code)} disabled={!!buyLoading}>
-                      {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4 mr-1" />}
+                      {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <CurrencyIcon currency="credits" className="h-4 w-4 mr-1" />}
                       {buyLoading === b.code ? "Processing…" : "Buy"}
                     </Button>
                   </div>

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Trophy, CheckCircle, Circle, Zap, Coins, ArrowRight,
-  Sparkles, Lock, Star,
+  Trophy, CheckCircle, Circle, ArrowRight,
+  Sparkles, Lock,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -61,12 +62,12 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {m.reward_type === "XP" && (
               <Badge variant="secondary" className="text-[10px] gap-1">
-                <Zap className="h-3 w-3 text-amber-500" /> +{m.reward_amount} XP
+                <CurrencyIcon currency="xp" className="h-3 w-3" /> +{m.reward_amount} XP
               </Badge>
             )}
             {m.reward_type === "CREDITS" && (
               <Badge variant="secondary" className="text-[10px] gap-1">
-                <Coins className="h-3 w-3 text-emerald-500" /> +{m.reward_amount} Credits
+                <CurrencyIcon currency="credits" className="h-3 w-3" /> +{m.reward_amount} Credits
               </Badge>
             )}
             {m.reward_type === "BADGE" && (
@@ -145,13 +146,13 @@ export default function MilestonesHub() {
             <div className="text-right space-y-1">
               {xpEarned > 0 && (
                 <div className="flex items-center gap-1.5 justify-end">
-                  <Zap className="h-4 w-4 text-amber-500" />
+                  <CurrencyIcon currency="xp" className="h-4 w-4" />
                   <span className="text-sm font-semibold">{xpEarned} XP earned</span>
                 </div>
               )}
               {creditsEarned > 0 && (
                 <div className="flex items-center gap-1.5 justify-end">
-                  <Coins className="h-4 w-4 text-emerald-500" />
+                  <CurrencyIcon currency="credits" className="h-4 w-4" />
                   <span className="text-sm font-semibold">{creditsEarned} Credits earned</span>
                 </div>
               )}
