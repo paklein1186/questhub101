@@ -111,7 +111,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
   const overviewBoxes = [
     { icon: Landmark, title: t("revenuePage.ownership"), desc: t("revenuePage.ownershipDesc") },
-    { icon: Leaf, title: "🟩 Coins", desc: "Fiat-backed. Fund quests, earn from contributions, withdraw to €." },
+    { icon: Leaf, title: "Coins", desc: "Fiat-backed. Fund quests, earn from contributions, withdraw to €." },
     { icon: Sprout, title: "🌱 $CTG", desc: "Contribution token. Frozen in quest escrow, circulates with demurrage." },
     { icon: Coins, title: "🔷 Platform Credits", desc: "Feature fuel only. Never used for quest compensation." },
     { icon: Star, title: t("revenuePage.xpLabel"), desc: t("revenuePage.xpDesc") },
