@@ -335,7 +335,9 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
-                    <th className="text-right p-2 font-medium">FMV 🟡</th>
+                    <th className="text-right p-2 font-medium">
+                      <span className="inline-flex items-center gap-1">Owed <CurrencyIcon currency="coins" size="xs" showTooltip /></span>
+                    </th>
                     <th className="text-right p-2 font-medium">Paid</th>
                     <th className="text-right p-2 font-medium">Remaining</th>
                     <th className="p-2 font-medium w-24">Progress</th>
@@ -353,9 +355,14 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
                           <span className="font-medium">{c.name}</span>
                         </div>
                       </td>
-                      <td className="p-2 text-right text-primary font-medium">{c.total_fmv.toFixed(0)}</td>
-                      <td className="p-2 text-right text-emerald-600">{c.total_compensated.toFixed(0)}</td>
-                      <td className="p-2 text-right text-amber-600">{c.remaining.toFixed(0)}</td>
+                      <td className="p-2 text-right font-medium">
+                        {c.total_fmv > 0
+                          ? <span className="text-primary">{c.total_fmv.toFixed(0)}</span>
+                          : <span className="text-muted-foreground italic">No contributions</span>
+                        }
+                      </td>
+                      <td className="p-2 text-right text-emerald-600">{c.total_compensated > 0 ? c.total_compensated.toFixed(0) : "—"}</td>
+                      <td className="p-2 text-right text-amber-600">{c.remaining > 0 ? c.remaining.toFixed(0) : "—"}</td>
                       <td className="p-2">
                         <Progress value={c.pct_compensated} className="h-1.5" />
                       </td>
