@@ -245,7 +245,7 @@ export default function OpenValueNetworkPage({ embedded }: Props) {
         <Section
           number="4b"
           title="Open Contributive Units (OCU) — Fair Value Distribution"
-          icon={<Scale className="h-5 w-5" />}
+          icon={<CurrencyIcon currency="weight" className="h-5 w-5" />}
         >
           <p className="text-muted-foreground text-sm mb-3">
             The OCU module is changethegame's implementation of a Slicing Pie-style
