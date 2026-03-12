@@ -62,7 +62,7 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {m.reward_type === "XP" && (
               <Badge variant="secondary" className="text-[10px] gap-1">
-                <Zap className="h-3 w-3 text-amber-500" /> +{m.reward_amount} XP
+                <CurrencyIcon currency="xp" className="h-3 w-3" /> +{m.reward_amount} XP
               </Badge>
             )}
             {m.reward_type === "CREDITS" && (
