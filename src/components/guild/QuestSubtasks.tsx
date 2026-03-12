@@ -349,8 +349,45 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading subtasks…</p>;
 
+  const confirmSubtask = confirmDoneId ? subtasks.find((s: any) => s.id === confirmDoneId) : null;
+  const hasAnyReward = questRewardXp > 0 || questCreditReward > 0 || questCoinsBudget > 0 || questCtgBudget > 0;
+
   return (
     <div className="space-y-3">
+      {/* Quest-level rewards summary */}
+      {hasAnyReward && (
+        <div className="rounded-lg border border-border bg-muted/30 p-3 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <Trophy className="h-3.5 w-3.5" /> Quest Rewards
+          </div>
+          {questRewardXp > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="xp" size="xs" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
+              <span className="text-muted-foreground">per participant</span>
+            </div>
+          )}
+          {questCreditReward > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="ctg" size="xs" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
+              <span className="text-muted-foreground">per participant</span>
+            </div>
+          )}
+          {questCoinsBudget > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="coins" size="xs" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
+              <span className="text-muted-foreground">budget</span>
+            </div>
+          )}
+          {questCtgBudget > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <CurrencyIcon currency="ctg" size="xs" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
+              <span className="text-muted-foreground">budget</span>
+            </div>
+          )}
+          <span className="text-[10px] text-muted-foreground ml-auto">Distributed when quest is completed</span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="font-display font-semibold text-sm flex items-center gap-2">
           Subtasks
