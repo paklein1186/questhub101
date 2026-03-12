@@ -136,7 +136,7 @@ export function MonOVNPanel({ userId }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Scale className="h-5 w-5 text-primary" /> My Contributions
+          <CurrencyIcon currency="weight" className="h-5 w-5" /> My Contributions
         </h3>
         <Button size="sm" variant="outline" onClick={handleCopyPassport}>
           {copied ? <Check className="h-4 w-4 mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
