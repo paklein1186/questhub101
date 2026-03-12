@@ -1372,10 +1372,11 @@ export default function QuestDetail() {
             isGuildAdmin={isGuildAdmin}
           />
 
-          {/* OCU Section — single gate for all OCU components */}
+          {/* OCU Section — bypass gate if quest already has budget or contributions */}
           <OCUFeatureGate
             quest={quest}
             isAdmin={isOwner || isGuildAdmin}
+            bypassWhenActive={Number((quest as any).coins_budget ?? 0) > 0 || Number((quest as any).ctg_budget ?? 0) > 0}
             onEnable={async () => {
               await supabase.from("quests").update({ ocu_enabled: true } as any).eq("id", quest.id);
               qc.invalidateQueries({ queryKey: ["quest", quest.id] });
