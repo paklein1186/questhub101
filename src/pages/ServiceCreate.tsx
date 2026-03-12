@@ -321,7 +321,7 @@ export default function ServiceCreate() {
             <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} min={15} max={480} />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1 block">Price (€) — shown as 🟩 Coins to clients</label>
+            <label className="text-sm font-medium mb-1 block">Price (€) — shown as Coins to clients</label>
             <Input type="number" value={price} onChange={(e) => setPrice(e.target.value)} min={0} step={5} />
             <p className="text-[11px] text-muted-foreground mt-1">
               A price of €{price || 45} displays as 🟩 {Math.round(Number(price || 45) / 0.04).toLocaleString()} Coins to clients.
