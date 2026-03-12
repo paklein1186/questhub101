@@ -609,7 +609,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   {/* Quick top-up */}
                   <div className="rounded-xl border border-border bg-card p-5 space-y-3">
                     <h3 className="font-display font-semibold flex items-center gap-2">
-                      <Coins className="h-4 w-4 text-primary" /> Direct Top-Up
+                      <CurrencyIcon currency="coins" className="h-4 w-4" /> Direct Top-Up
                     </h3>
                     <p className="text-sm text-muted-foreground">Add funds directly to the quest pool without a campaign.</p>
                     <div className="flex flex-wrap gap-2">

@@ -660,7 +660,7 @@ export default function LeaderboardTab() {
         <UserSection
           title="⭐ XP Leaders"
           subtitle={period === "all" ? "Highest reputation by experience points." : `Most XP earned${subtitleSuffix}.`}
-          icon={<Star className="h-5 w-5 text-primary" />}
+          icon={<CurrencyIcon currency="xp" className="h-5 w-5" />}
           accentClass="bg-primary/5"
           isLoading={xpLoading}
           entries={xpLeaders}

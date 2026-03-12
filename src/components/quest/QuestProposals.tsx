@@ -498,7 +498,7 @@ export function QuestProposals({
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     {proposal.requested_credits > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        <Coins className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits
+                        <CurrencyIcon currency="credits" className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits
                       </Badge>
                     )}
                     {(proposal.requested_fiat > 0) && (
