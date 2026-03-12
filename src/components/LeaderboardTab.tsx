@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Trophy, MapPin, Star, Handshake, Loader2, RefreshCw, Clock,
-  Calendar, CalendarDays, Shield, Coins, TrendingUp, Crown,
+  Trophy, MapPin, Handshake, Loader2, RefreshCw, Clock,
+  Calendar, CalendarDays, Shield, Crown,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
