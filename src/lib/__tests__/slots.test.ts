@@ -46,10 +46,12 @@ function exception(date: string, isAvailable: boolean, startTime?: string, endTi
   return {
     id: crypto.randomUUID(),
     userId: "user-1",
+    providerUserId: "user-1",
     date,
     isAvailable,
     startTime: startTime ?? null,
     endTime: endTime ?? null,
+    createdAt: FIXED_NOW.toISOString(),
   } as AvailabilityException;
 }
 
