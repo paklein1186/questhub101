@@ -200,7 +200,7 @@ export default function RevenueModelsPage({ embedded }: { embedded?: boolean }) 
 
         {/* COINS & $CTG */}
         <section>
-          <SectionHeader id="coins-ctg" title="🟩 Coins & 🌱 $CTG — Quest Value Layer" icon={Leaf} />
+          <SectionHeader id="coins-ctg" title="Coins & $CTG — Quest Value Layer" icon={Leaf} />
           <Prose>
             <p>
               Two distinct currencies power quest value flows on changethegame.
