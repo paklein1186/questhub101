@@ -246,7 +246,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
         await supabase.from("notifications" as any).insert({
           user_id: r.user_id,
           type: "quest_distribution",
-          title: `💰 You received ${r.amount_coins > 0 ? `🟩 ${r.amount_coins} Coins` : ""}${r.amount_coins > 0 && r.amount_ctg > 0 ? " + " : ""}${r.amount_ctg > 0 ? `🌱 ${r.amount_ctg} $CTG` : ""} from quest "${quest.title}"`,
+          title: `💰 You received ${r.amount_coins > 0 ? `${r.amount_coins} Coins` : ""}${r.amount_coins > 0 && r.amount_ctg > 0 ? " + " : ""}${r.amount_ctg > 0 ? `${r.amount_ctg} $CTG` : ""} from quest "${quest.title}"`,
           link: `/quests/${quest.id}`,
           entity_type: "quest",
           entity_id: quest.id,
