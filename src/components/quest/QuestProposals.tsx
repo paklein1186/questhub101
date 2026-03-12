@@ -346,7 +346,7 @@ export function QuestProposals({
           {(campaigns as any[]).map((campaign: any) => {
             const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
             const isActive = campaign.status === "ACTIVE";
-            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "🟩 Tokens";
+            const unit = campaign.type === "FIAT" ? (campaign.currency || "€") : "Tokens";
             return (
               <div key={campaign.id} className={`rounded-xl border bg-card p-5 ${campaign.status === "CANCELLED" ? "border-destructive/30 opacity-70" : "border-border"}`}>
                 <div className="flex items-center justify-between mb-2">
