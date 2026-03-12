@@ -500,6 +500,7 @@ export default function QuestDetail() {
     qc.invalidateQueries({ queryKey: ["quest-updates", id] });
   };
 
+  const createPod = async () => {
     if (!podName.trim()) return;
     const { data: pod, error } = await supabase.from("pods").insert({ name: podName.trim(), description: podDesc.trim() || null, image_url: podImageUrl || null, type: "QUEST_POD" as any, quest_id: quest.id, creator_id: currentUser.id, start_date: podStart || null, end_date: podEnd || null }).select().single();
     if (error) { toast({ title: "Failed to create pod", variant: "destructive" }); return; }
