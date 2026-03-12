@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { OCUFeatureGate } from "./OCUFeatureGate";
 
 interface ContributorSummary {
