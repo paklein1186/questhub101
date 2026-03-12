@@ -43,7 +43,7 @@ export function XpSpendDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {canAfford
-              ? <><Coins className="h-5 w-5 text-primary" /> Spend Credits to continue</>
+              ? <><CurrencyIcon currency="credits" className="h-5 w-5" /> Spend Credits to continue</>
               : <><AlertTriangle className="h-5 w-5 text-warning" /> Limit reached</>}
           </DialogTitle>
           <DialogDescription>
