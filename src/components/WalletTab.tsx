@@ -368,7 +368,7 @@ export function WalletTab() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Coins Balance</p>
-                      <p className="text-2xl font-bold">{coinsBal} 🟩</p>
+                      <p className="text-2xl font-bold">{coinsBal}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Fiat value (est.)</p>
