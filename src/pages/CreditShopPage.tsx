@@ -122,7 +122,7 @@ export default function CreditShopPage() {
           {/* Balance */}
           <div className="flex items-center justify-center gap-3 pt-2">
             <Badge variant="outline" className="text-base px-4 py-1.5 gap-2 font-semibold">
-              <Coins className="h-4 w-4 text-primary" />
+              <CurrencyIcon currency="credits" className="h-4 w-4" />
               {userCredits.toLocaleString()} Credits
             </Badge>
             <Link to="/me/credits">
