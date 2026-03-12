@@ -5,7 +5,8 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { calculateCommission, CREDIT_COST_PER_1_PERCENT_REDUCTION, COMMISSION_FLOOR, MAX_CREDIT_REDUCTION_RATIO, type CommissionRule } from "@/lib/commissionCalc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coins, TrendingDown, Info, Minus, Plus } from "lucide-react";
+import { TrendingDown, Info, Minus, Plus } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface CommissionEstimatorProps {
   budgetMin: string;
