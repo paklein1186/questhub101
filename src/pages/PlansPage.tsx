@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Coins, Building2, Sparkles, Eye, ArrowRight, TrendingDown } from "lucide-react";
+import { Check, Zap, ArrowLeft, Loader2, Crown, CheckCircle, ExternalLink, Building2, Sparkles, Eye, ArrowRight, TrendingDown } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
