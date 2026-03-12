@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Coins, Building2, Recycle, TrendingUp, Users, Zap } from "lucide-react";
+import { Building2, Recycle, Users } from "lucide-react";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";

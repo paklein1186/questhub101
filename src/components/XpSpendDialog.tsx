@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Coins, AlertTriangle, ArrowRight, Leaf, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowRight, RefreshCw } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {

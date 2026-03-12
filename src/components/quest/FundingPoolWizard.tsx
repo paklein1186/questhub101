@@ -3,7 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Coins, Leaf } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface FundingPoolWizardProps {
   coinsBudget: string;
