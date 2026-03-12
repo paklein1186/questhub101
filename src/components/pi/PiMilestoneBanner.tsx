@@ -98,7 +98,7 @@ export function PiMilestoneBanner() {
               <div className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-muted/50 rounded text-xs font-medium">
                 {current.reward_type === "XP" && (
                   <>
-                    <Zap className="h-3 w-3 text-amber-500" />
+                    <CurrencyIcon currency="xp" className="h-3 w-3" />
                     <span>+{current.reward_amount} XP</span>
                   </>
                 )}
