@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Coins, Shield, TrendingUp, Settings } from "lucide-react";
+import { Bot, Shield, TrendingUp, Settings } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
