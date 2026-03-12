@@ -627,6 +627,57 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       {totalCount > 0 && doneCount === totalCount && (
         <p className="text-xs text-emerald-600 font-medium">✓ All subtasks completed! Consider marking this quest as completed.</p>
       )}
+
+      {/* Completion confirmation dialog */}
+      <Dialog open={!!confirmDoneId} onOpenChange={(open) => !open && setConfirmDoneId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" /> Mark as Done?
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Completing this subtask will automatically log a contribution and distribute any associated rewards.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmSubtask && (
+            <div className="space-y-3">
+              <div className="rounded-md border border-border bg-muted/30 p-3">
+                <p className="text-sm font-medium">{confirmSubtask.title}</p>
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {(confirmSubtask.credit_reward ?? 0) > 0 && (
+                    <span className="flex items-center gap-1 text-xs">
+                      <CurrencyIcon currency="coins" size="xs" /> {confirmSubtask.credit_reward} Coins
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="ctg" size="xs" /> {confirmSubtask.ctg_reward ?? 1} $CTG
+                  </span>
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="xp" size="xs" /> XP
+                  </span>
+                  <span className="flex items-center gap-1 text-xs">
+                    <CurrencyIcon currency="weight" size="xs" /> ×{confirmSubtask.contribution_weight ?? 1}
+                  </span>
+                </div>
+                {(confirmSubtask.assignee_user_ids?.length ?? 0) > 0 && (
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    Rewards distributed to {confirmSubtask.assignee_user_ids.length} assignee{confirmSubtask.assignee_user_ids.length > 1 ? "s" : ""}
+                  </p>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                You'll have 5 seconds to undo after confirming. After that, a 30-second cooldown prevents accidental reverts.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setConfirmDoneId(null)}>Cancel</Button>
+                <Button size="sm" className="gap-1.5" onClick={() => confirmAndCommitDone(confirmDoneId!)}>
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Confirm Completion
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
