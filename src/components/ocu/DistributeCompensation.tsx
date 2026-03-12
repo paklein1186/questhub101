@@ -45,7 +45,7 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
   const [totalAmount, setTotalAmount] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [individualAmount, setIndividualAmount] = useState("");
-  const [compensationMode, setCompensationMode] = useState<"coins" | "fiat" | "mixed">("coins");
+  const [compensationMode, setCompensationMode] = useState<"coins" | "ctg" | "fiat" | "mixed">("coins");
   const [currency, setCurrency] = useState("EUR");
   const [note, setNote] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
