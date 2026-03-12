@@ -44,7 +44,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 const DONE_COOLDOWN_MS = 30_000; // 30 seconds before DONE can be reverted
 
-export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0 }: QuestSubtasksProps) {
+export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, questCoinBudget = 0, valuePieCalculated = false, coinBudget = 0, questRewardXp = 0, questCreditReward = 0, questCoinsBudget = 0, questCtgBudget = 0 }: QuestSubtasksProps) {
   const currentUser = useCurrentUser();
   const { toast } = useToast();
   const { grantXp, grantCredits } = useXpCredits();
@@ -58,6 +58,8 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
   const [editingTitle, setEditingTitle] = useState("");
   const [pendingDone, setPendingDone] = useState<Map<string, string>>(new Map()); // id -> prevStatus
   const pendingTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const [confirmDoneId, setConfirmDoneId] = useState<string | null>(null);
+  const [doneCooldowns, setDoneCooldowns] = useState<Map<string, number>>(new Map()); // id -> timestamp when DONE was committed
 
   const { data: subtasks = [], isLoading } = useQuery({
     queryKey: ["quest-subtasks", questId],
