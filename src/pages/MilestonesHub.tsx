@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Trophy, CheckCircle, Circle, Zap, Coins, ArrowRight,
-  Sparkles, Lock, Star,
+  Trophy, CheckCircle, Circle, ArrowRight,
+  Sparkles, Lock,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
