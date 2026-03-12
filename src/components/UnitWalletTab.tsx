@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Coins, History, Loader2, Package, Filter,
+  History, Loader2, Package, Filter,
   ArrowDownRight, ArrowUpRight, Info, Send,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
