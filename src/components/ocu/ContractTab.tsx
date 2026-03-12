@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ContractRichEditor } from "./ContractRichEditor";
 import { OCUFeatureGate } from "./OCUFeatureGate";
 import { FileText, Check, X, Clock, ChevronDown, Plus, AlertTriangle, Pencil, Info } from "lucide-react";
 import { computeVoteWeights, GOVERNANCE_MODELS, type GovernanceModel } from "@/lib/governanceWeights";
