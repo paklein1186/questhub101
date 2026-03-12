@@ -208,21 +208,48 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     setSubmitting(true);
     try {
       const preview = getDistributionPreview();
+      const isCoins = compensationMode === "coins" || compensationMode === "mixed";
+      const isCtg = compensationMode === "mixed"; // future: add ctg mode
+
       for (const entry of preview) {
-        // Write compensation record
+        const coinAmount = compensationMode === "fiat" ? 0 : entry.distribution;
+
+        // 1. Write compensation record
         await supabase.from("contribution_compensations" as any).insert({
-          contribution_id: quest.id, // use quest_id as grouping key
+          contribution_id: quest.id,
           quest_id: quest.id,
           user_id: entry.user_id,
-          amount_coins: compensationMode === "fiat" ? 0 : entry.distribution,
-          amount_fiat: compensationMode === "coins" ? null : entry.distribution,
+          amount_coins: coinAmount,
+          amount_fiat: compensationMode === "coins" ? (coinAmount * coinsRate) : entry.distribution,
           compensation_mode: compensationMode,
           currency,
           note: note || null,
           compensated_by: currentUser.id,
         });
 
-        // Update contribution_logs for this user+quest
+        // 2. Credit recipient wallet (Coins)
+        if (coinAmount > 0) {
+          await supabase.from("coin_transactions" as any).insert({
+            user_id: entry.user_id,
+            amount: coinAmount,
+            type: "QUEST_DISTRIBUTION",
+            quest_id: quest.id,
+            source: `compensation:${quest.id}`,
+          });
+          // Update balance
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("coins_balance")
+            .eq("user_id", entry.user_id)
+            .single();
+          if (prof) {
+            await supabase.from("profiles").update({
+              coins_balance: Number((prof as any).coins_balance ?? 0) + coinAmount,
+            } as any).eq("user_id", entry.user_id);
+          }
+        }
+
+        // 3. Update contribution_logs for this user+quest
         const { data: userLogs } = await supabase
           .from("contribution_logs" as any)
           .select("id, fmv_value, coins_compensated")
@@ -247,28 +274,48 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
             .eq("id", log.id);
           remaining -= apply;
         }
-      }
 
-      // Log to activity_log if contract is active
-      if (activeContract) {
-        await supabase.from("activity_log").insert({
-          actor_user_id: currentUser.id,
-          action_type: "ocu_distribution",
-          target_type: "quest",
-          target_id: quest.id,
-          target_name: quest.title,
-          metadata: {
-            contract_id: activeContract.id,
-            distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
-            mode: compensationMode,
-            note,
-          },
+        // 4. Notify recipient
+        await supabase.from("notifications" as any).insert({
+          user_id: entry.user_id,
+          type: "quest_distribution",
+          title: `💰 You received ${coinAmount > 0 ? `${coinAmount} Coins` : ""} from quest "${quest.title}"`,
+          link: `/quests/${quest.id}`,
+          entity_type: "quest",
+          entity_id: quest.id,
         });
       }
 
+      // 5. Update quest escrow if coins were distributed
+      const totalDistributed = preview.reduce((s, p) => s + (compensationMode === "fiat" ? 0 : p.distribution), 0);
+      if (totalDistributed > 0) {
+        const currentEscrow = Number((quest as any).coins_escrow ?? 0);
+        const newEscrow = Math.max(0, currentEscrow - totalDistributed);
+        const questUpdate: any = { coins_escrow: newEscrow };
+        if (newEscrow <= 0) questUpdate.coins_escrow_status = "released";
+        await supabase.from("quests").update(questUpdate as any).eq("id", quest.id);
+      }
+
+      // 6. Activity log
+      await supabase.from("activity_log").insert({
+        actor_user_id: currentUser.id,
+        action_type: "ocu_distribution",
+        target_type: "quest",
+        target_id: quest.id,
+        target_name: quest.title,
+        metadata: {
+          contract_id: activeContract?.id ?? null,
+          distributions: preview.map((p) => ({ user_id: p.user_id, amount: p.distribution })),
+          mode: compensationMode,
+          note,
+        },
+      });
+
       toast({ title: "Compensation distributed", description: `${preview.length} contributor(s) compensated.` });
       qc.invalidateQueries({ queryKey: ["compensation-summary", quest.id] });
+      qc.invalidateQueries({ queryKey: ["compensation-history", quest.id] });
       qc.invalidateQueries({ queryKey: ["contribution-logs"] });
+      qc.invalidateQueries({ queryKey: ["quest", quest.id] });
       setConfirmOpen(false);
       setTotalAmount("");
       setIndividualAmount("");
