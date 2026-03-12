@@ -127,7 +127,7 @@ export function FundingPoolWizard({
         <div className="rounded-md bg-muted/50 p-3 text-sm">
           <p>
             This quest will hold:
-            {coinsVal > 0 && <> 🟩 <span className="font-semibold">{coinsVal}</span> Coins</>}
+            {coinsVal > 0 && <> <CurrencyIcon currency="coins" className="h-3.5 w-3.5 inline" /> <span className="font-semibold">{coinsVal}</span> Coins</>}
             {coinsVal > 0 && ctgVal > 0 && "  +  "}
             {ctgVal > 0 && <> 🌱 <span className="font-semibold">{ctgVal}</span> $CTG</>}
           </p>

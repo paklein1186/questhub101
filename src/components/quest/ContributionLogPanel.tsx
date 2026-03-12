@@ -354,7 +354,7 @@ export function ContributionLogPanel({
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Contributor pool</p>
-                <p className="font-bold text-emerald-600">{previewContributorPool} 🟩</p>
+                <p className="font-bold text-emerald-600">{previewContributorPool} Coins</p>
               </div>
               <div className="rounded-md bg-muted/50 p-2">
                 <p className="text-muted-foreground">Guild ({guildPercent}%)</p>
