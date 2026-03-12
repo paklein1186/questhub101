@@ -136,7 +136,7 @@ export default function BuyXpPage() {
           <p className="text-muted-foreground">Credits are platform utility — use them for boosts, extra capacity, and AI features.</p>
           <div className="mt-4 flex items-center justify-center gap-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-5 py-2">
-              <Coins className="h-5 w-5 text-primary" />
+              <CurrencyIcon currency="credits" className="h-5 w-5" />
               <span className="text-lg font-bold">{userCredits}</span>
               <span className="text-sm text-muted-foreground">Credits</span>
             </div>
