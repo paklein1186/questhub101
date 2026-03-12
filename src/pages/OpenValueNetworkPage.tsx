@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
-  Users, Zap, Shield, Leaf, Coins, BarChart3, Scale, Heart,
+  Users, Zap, Shield, Leaf, BarChart3, Heart,
   Network, Target, FileText, ArrowRight, Globe, Sparkles, Activity
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface Props {
   embedded?: boolean;
