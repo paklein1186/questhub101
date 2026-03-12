@@ -97,7 +97,6 @@ export function CreateCampaignDialog({
     onOpenChange(false);
   };
 
-  const currencyEmoji = currency === "coins" ? "🟩" : "🌱";
   const currencyLabel = currency === "coins" ? "Coins" : "$CTG";
 
   return (

@@ -50,7 +50,7 @@ export function MyQuestsTab({ userId }: { userId: string }) {
               <p className="text-sm font-medium">{q.title}</p>
               <div className="flex items-center gap-2 flex-wrap">
                 <p className="text-xs text-muted-foreground">{q.reward_xp} XP reward</p>
-                {q.coin_budget > 0 && <Badge variant="outline" className="text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800 text-[10px]">🟩 {q.coin_budget.toLocaleString()} Coins</Badge>}
+                {q.coin_budget > 0 && <Badge variant="outline" className="text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 text-[10px] gap-0.5"><CurrencyIcon currency="coins" className="h-2.5 w-2.5" /> {q.coin_budget.toLocaleString()} Coins</Badge>}
                 {q.credit_budget > 0 && <Badge variant="outline" className="text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-[10px]">🌱 {q.credit_budget} $CTG</Badge>}
               </div>
             </div>

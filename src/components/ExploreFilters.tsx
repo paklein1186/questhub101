@@ -683,7 +683,7 @@ export function ExploreFilters({ filters, onChange, config, houseFilter, univers
           )}
           {filters.hasCoins && (
             <Badge variant="secondary" className="text-[10px] gap-1">
-              🟩 Paid in Coins
+              Paid in Coins
               <button onClick={() => set({ hasCoins: false })} className="ml-0.5"><X className="h-2.5 w-2.5" /></button>
             </Badge>
           )}

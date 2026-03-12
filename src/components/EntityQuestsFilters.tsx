@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Search, X, ArrowDownUp, LayoutGrid, LayoutList, Columns3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UnitCoverImage } from "@/components/UnitCoverImage";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   DRAFT: { label: "Draft", color: "bg-muted text-muted-foreground" },

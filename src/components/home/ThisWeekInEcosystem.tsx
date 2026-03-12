@@ -77,7 +77,7 @@ export function ThisWeekInEcosystem() {
                   className="block rounded-xl border border-border bg-card p-4 hover:shadow-md hover:border-primary/30 transition-all h-full">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <Badge className="bg-primary/10 text-primary border-0 text-xs">{q.reward_xp} XP</Badge>
-                    {q.coin_budget > 0 && <Badge variant="outline" className="text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-800 text-[10px]">🟩 {q.coin_budget.toLocaleString()} Coins</Badge>}
+                    {q.coin_budget > 0 && <Badge variant="outline" className="text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 text-[10px] gap-0.5"><CurrencyIcon currency="coins" className="h-2.5 w-2.5" /> {q.coin_budget.toLocaleString()} Coins</Badge>}
                     {q.credit_budget > 0 && <Badge variant="outline" className="text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 text-[10px]">🌱 {q.credit_budget} $CTG</Badge>}
                     {q.is_featured && <Star className="h-3.5 w-3.5 text-warning" />}
                   </div>

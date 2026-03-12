@@ -13,6 +13,7 @@ import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ValuePieChart } from "./ValuePieChart";
 import { LogContributionDialog } from "@/components/ocu/LogContributionDialog";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 // ── Contribution type enum (matches DB enum) ──
 type ContributionTypeEnum =
