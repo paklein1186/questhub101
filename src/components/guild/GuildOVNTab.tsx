@@ -396,7 +396,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="border-emerald-500/20">
           <CardContent className="p-4 text-center">
-            <Coins className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
+            <CurrencyIcon currency="ctg" className="h-5 w-5 mx-auto mb-1" />
             <p className="text-2xl font-bold text-emerald-600">{totalCoins.toFixed(0)}</p>
             <p className="text-[10px] text-muted-foreground">🌱 $CTG Distributed</p>
           </CardContent>

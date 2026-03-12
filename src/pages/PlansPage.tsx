@@ -216,7 +216,7 @@ export default function PlansPage() {
                   </div>
 
                   <ul className="space-y-1.5 mb-4 flex-1 text-xs">
-                    <PlanFeature icon={<Coins className="h-3 w-3" />} label={`${plan.monthly_included_credits} credits/mo`} />
+                    <PlanFeature icon={<CurrencyIcon currency="credits" className="h-3 w-3" />} label={`${plan.monthly_included_credits} credits/mo`} />
                     <PlanFeature label={`${plan.free_quests_per_week >= 30 ? "∞" : plan.free_quests_per_week} quests/week`} />
                     <PlanFeature label={plan.max_guild_memberships === null ? "∞ guilds" : `${plan.max_guild_memberships} guilds`} />
                     <PlanFeature label={plan.max_pods === null ? "∞ pods" : `${plan.max_pods} pods`} />

@@ -111,7 +111,7 @@ export function CommissionEstimator({ budgetMin, budgetMax, compact }: Commissio
       {maxSteps > 0 && (
         <div className="rounded-md bg-muted/50 p-3 space-y-2">
           <p className="text-xs font-medium flex items-center gap-1">
-            <Coins className="h-3 w-3 text-primary" /> Reduce commission with credits
+            <CurrencyIcon currency="credits" className="h-3 w-3" /> Reduce commission with credits
           </p>
           <div className="flex items-center gap-2">
             <Button

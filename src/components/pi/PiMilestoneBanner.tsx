@@ -104,7 +104,7 @@ export function PiMilestoneBanner() {
                 )}
                 {current.reward_type === "CREDITS" && (
                   <>
-                    <Coins className="h-3 w-3 text-emerald-500" />
+                    <CurrencyIcon currency="credits" className="h-3 w-3" />
                     <span>+{current.reward_amount} Credits</span>
                   </>
                 )}
