@@ -67,7 +67,7 @@ function MilestoneCard({ m }: { m: MilestoneWithProgress }) {
             )}
             {m.reward_type === "CREDITS" && (
               <Badge variant="secondary" className="text-[10px] gap-1">
-                <Coins className="h-3 w-3 text-emerald-500" /> +{m.reward_amount} Credits
+                <CurrencyIcon currency="credits" className="h-3 w-3" /> +{m.reward_amount} Credits
               </Badge>
             )}
             {m.reward_type === "BADGE" && (
