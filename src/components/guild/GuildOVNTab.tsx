@@ -433,7 +433,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
       {/* Velocity indicator */}
       <div className="flex items-center gap-2 text-xs">
-        <Gauge className="h-4 w-4 text-muted-foreground" />
+        <CurrencyIcon currency="credits" className="h-4 w-4" colorClassName="text-muted-foreground" />
         <span className="text-muted-foreground">Velocity:</span>
         <span className={`font-semibold ${velocityTrend === "up" ? "text-emerald-600" : velocityTrend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
           {currentVelocity.toFixed(1)} wu/week
