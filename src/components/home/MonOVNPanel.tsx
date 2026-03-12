@@ -153,7 +153,7 @@ export function MonOVNPanel({ userId }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <Card>
             <CardContent className="p-4 text-center">
-              <TrendingUp className="h-4 w-4 text-primary mx-auto mb-1" />
+              <CurrencyIcon currency="xp" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-primary">{Math.round(data.totalXp)}</p>
               <p className="text-[10px] text-muted-foreground">XP Total</p>
             </CardContent>
