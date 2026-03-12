@@ -5,8 +5,9 @@ import {
   MapPin, Search, X, Brain, Loader2, BarChart3, Layers,
   Compass, Shield, CircleDot, Building2, Briefcase, GraduationCap,
   Calendar, Clock, Hash, Play, AlertCircle, Sparkles, RefreshCw,
-  TrendingUp, AlertTriangle, Users, Coins, Lightbulb,
+  TrendingUp, AlertTriangle, Users, Lightbulb,
 } from "lucide-react";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
