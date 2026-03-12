@@ -626,7 +626,7 @@ function QuestSettingsInner({ questId, quest }: { questId: string; quest: any })
                   <div className="grid gap-5 md:grid-cols-2">
                     {/* Coins Campaigns */}
                     <CampaignSection
-                      emoji="🟩"
+                      emoji="🪙"
                       label="Coins"
                       campaigns={campaigns.filter((c: any) => (c.campaign_currency || "coins") === "coins" || (c.type === "FIAT" && !c.campaign_currency))}
                       isLoading={campaignsLoading}
