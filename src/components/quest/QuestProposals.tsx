@@ -428,7 +428,7 @@ export function QuestProposals({
                   <Select value={propCurrency} onValueChange={(v) => setPropCurrency(v as "CREDITS" | "FIAT" | "BOTH")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CREDITS">🟩 $CTG only</SelectItem>
+                      <SelectItem value="CREDITS">$CTG only</SelectItem>
                       <SelectItem value="FIAT">Fiat (€) only</SelectItem>
                       <SelectItem value="BOTH">$CTG + Fiat (€)</SelectItem>
                     </SelectContent>
