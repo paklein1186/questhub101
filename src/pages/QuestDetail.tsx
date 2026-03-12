@@ -210,7 +210,7 @@ export default function QuestDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: quest, isLoading } = useQuestById(id);
   const { data: participants } = useQuestParticipants(id);
-  const { data: updates } = useQuestUpdates(id);
+  const { data: updates } = useQuestUpdates(id, currentUser?.id);
   const { data: questPods } = usePodsForQuest(id);
   const currentUser = useCurrentUser();
   const { toast } = useToast();
