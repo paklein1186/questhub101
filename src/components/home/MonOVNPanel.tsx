@@ -160,7 +160,7 @@ export function MonOVNPanel({ userId }: Props) {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <Scale className="h-4 w-4 text-primary mx-auto mb-1" />
+              <CurrencyIcon currency="weight" className="h-4 w-4 mx-auto mb-1" />
               <p className="text-2xl font-bold text-primary">{data.totalWu.toFixed(1)}</p>
               <p className="text-[10px] text-muted-foreground">Weighted Units</p>
             </CardContent>
