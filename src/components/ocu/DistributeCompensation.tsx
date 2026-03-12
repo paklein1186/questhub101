@@ -13,9 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Banknote, Send, DollarSign, AlertTriangle } from "lucide-react";
+import { Banknote, Send, DollarSign, AlertTriangle, History, Flag } from "lucide-react";
 import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { OCUFeatureGate } from "./OCUFeatureGate";
+import { ReportConcernDialog } from "./ReportConcernDialog";
+import { Avatar, AvatarFallback, AvatarImage as AvatarImg } from "@/components/ui/avatar";
 
 interface ContributorSummary {
   user_id: string;
