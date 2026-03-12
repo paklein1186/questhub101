@@ -576,7 +576,7 @@ export function WalletTab() {
                 </div>
               ) : (
                 <div className="rounded-lg border border-border bg-muted/30 p-3 mb-4 flex items-start gap-2.5 text-xs text-muted-foreground">
-                  <Leaf className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <CurrencyIcon currency="ctg" className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
                     Earn $CTG by completing quests and contributions — then exchange for Credits
                     without paying €.{" "}

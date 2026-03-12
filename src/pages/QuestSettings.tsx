@@ -38,7 +38,7 @@ import { isAdmin as checkIsGlobalAdmin } from "@/lib/admin";
 const ALL_TABS = [
   { key: "affiliations", label: "Affiliations", icon: Link2 },
   { key: "contributions", label: "Contributions", icon: PieChart },
-  { key: "fundraising", label: "Fundraising", icon: Coins },
+  { key: "fundraising", label: "Fundraising", icon: PieChart },
   { key: "contract", label: "Contract", icon: FileText },
   { key: "exit", label: "Exit Protocol", icon: LogOut },
   { key: "needs", label: "Needs", icon: Lightbulb },
