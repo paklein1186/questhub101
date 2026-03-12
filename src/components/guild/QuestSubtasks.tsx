@@ -269,14 +269,33 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
       setPendingDone((prev) => { const next = new Map(prev); next.delete(subtaskId); return next; });
     }
 
+    // Prevent reverting from DONE during cooldown period
+    if (currentStatus === "DONE" && newStatus !== "DONE") {
+      const doneAt = doneCooldowns.get(subtaskId);
+      if (doneAt && Date.now() - doneAt < DONE_COOLDOWN_MS) {
+        const remaining = Math.ceil((DONE_COOLDOWN_MS - (Date.now() - doneAt)) / 1000);
+        toast({ title: `Please wait ${remaining}s before reverting`, description: "This prevents accidental status changes after rewards have been distributed.", variant: "destructive" });
+        return;
+      }
+    }
+
     if (newStatus === "DONE") {
-      setPendingDone((prev) => new Map(prev).set(subtaskId, currentStatus));
-      const timer = setTimeout(() => commitSubtaskDone(subtaskId), 5000);
-      pendingTimers.current.set(subtaskId, timer);
+      // Open confirmation dialog instead of immediate pending
+      setConfirmDoneId(subtaskId);
       return;
     }
 
     updateStatus(subtaskId, newStatus);
+  };
+
+  const confirmAndCommitDone = (subtaskId: string) => {
+    setConfirmDoneId(null);
+    setPendingDone((prev) => new Map(prev).set(subtaskId, "IN_PROGRESS"));
+    const timer = setTimeout(() => {
+      commitSubtaskDone(subtaskId);
+      setDoneCooldowns((prev) => new Map(prev).set(subtaskId, Date.now()));
+    }, 5000);
+    pendingTimers.current.set(subtaskId, timer);
   };
 
   const toggleAssignee = async (subtaskId: string, userId: string) => {
