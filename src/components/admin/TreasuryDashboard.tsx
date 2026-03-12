@@ -258,7 +258,7 @@ function CommonsWalletAdmin({ userId, pulsing, setPulsing, qc }: { userId?: stri
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <StatCard icon={Globe} label="Commons Balance" value={`${Math.round(commons?.balance ?? 0)} $CTG`} color="text-emerald-500" />
-        <StatCard icon={Coins} label="Lifetime Received" value={`${Math.round(commons?.lifetime_received ?? 0)} $CTG`} color="text-emerald-600" />
+        <StatCard icon={getCurrencyConfig("ctg").icon} label="Lifetime Received" value={`${Math.round(commons?.lifetime_received ?? 0)} $CTG`} color="text-emerald-600" />
         <Card className="border-border/50 bg-muted/30">
           <CardContent className="p-4 flex flex-col items-center text-center gap-2">
             <Button

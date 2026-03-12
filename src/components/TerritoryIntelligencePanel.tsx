@@ -4,7 +4,7 @@ import {
   Brain, Compass, Shield, AlertTriangle, TrendingUp,
   Users, Loader2, AlertCircle, RefreshCw, Lightbulb, MapPin,
 } from "lucide-react";
-import { CurrencyIcon } from "@/components/CurrencyIcon";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";

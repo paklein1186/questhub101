@@ -146,7 +146,7 @@ export default function MilestonesHub() {
             <div className="text-right space-y-1">
               {xpEarned > 0 && (
                 <div className="flex items-center gap-1.5 justify-end">
-                  <Zap className="h-4 w-4 text-amber-500" />
+                  <CurrencyIcon currency="xp" className="h-4 w-4" />
                   <span className="text-sm font-semibold">{xpEarned} XP earned</span>
                 </div>
               )}
