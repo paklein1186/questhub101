@@ -368,7 +368,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
               <div className="flex flex-wrap gap-2">
                 {coinsEscrow > 0 && (
                   <Button size="sm" variant={currencyMode === "coins" ? "default" : "outline"} className="text-xs h-8" onClick={() => setCurrencyMode("coins")}>
-                    🟩 Coins
+                    🪙 Coins
                   </Button>
                 )}
                 {ctgEscrow > 0 && (
