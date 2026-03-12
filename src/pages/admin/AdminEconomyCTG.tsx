@@ -221,7 +221,7 @@ function CTGExchangeRatesTab() {
       const userIds = [...new Set((data ?? []).map((r) => r.set_by_user_id))];
       const { data: profiles } = userIds.length
         ? await supabase.from("profiles").select("user_id, name").in("user_id", userIds)
-        : { data: [] };
+        : { data: [] as Array<{ user_id: string; name: string }> };
       const nameMap = Object.fromEntries((profiles ?? []).map((p) => [p.user_id, p.name]));
       return {
         rows: (data ?? []).map((r) => ({ ...r, setterName: nameMap[r.set_by_user_id] ?? r.set_by_user_id })),

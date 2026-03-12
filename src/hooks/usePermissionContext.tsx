@@ -23,8 +23,8 @@ export function usePermissionContext(
         isSource: false,
         isMember: false,
         isFollower: false,
-        userRoleIds: [],
-        userRoleNames: [],
+        userRoleIds: [] as string[],
+        userRoleNames: [] as string[],
         isAuthenticated: !!currentUserId,
       };
     }

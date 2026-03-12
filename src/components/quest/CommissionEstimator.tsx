@@ -5,7 +5,8 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { calculateCommission, CREDIT_COST_PER_1_PERCENT_REDUCTION, COMMISSION_FLOOR, MAX_CREDIT_REDUCTION_RATIO, type CommissionRule } from "@/lib/commissionCalc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coins, TrendingDown, Info, Minus, Plus } from "lucide-react";
+import { TrendingDown, Info, Minus, Plus } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 
 interface CommissionEstimatorProps {
   budgetMin: string;
@@ -94,7 +95,7 @@ export function CommissionEstimator({ budgetMin, budgetMax, compact }: Commissio
         {creditSteps > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground flex items-center gap-1">
-              <Coins className="h-3 w-3" /> Credit reduction ({creditsNeeded} credits)
+              <CurrencyIcon currency="credits" className="h-3 w-3" /> Credit reduction ({creditsNeeded} credits)
             </span>
             <span className="font-medium text-primary">-{creditSteps}%</span>
           </div>
@@ -110,7 +111,7 @@ export function CommissionEstimator({ budgetMin, budgetMax, compact }: Commissio
       {maxSteps > 0 && (
         <div className="rounded-md bg-muted/50 p-3 space-y-2">
           <p className="text-xs font-medium flex items-center gap-1">
-            <Coins className="h-3 w-3 text-primary" /> Reduce commission with credits
+            <CurrencyIcon currency="credits" className="h-3 w-3" /> Reduce commission with credits
           </p>
           <div className="flex items-center gap-2">
             <Button

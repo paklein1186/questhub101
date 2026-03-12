@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Coins, Rocket, Star, Sparkles, ShieldCheck, Eye,
+  ArrowLeft, Rocket, Star, Sparkles, ShieldCheck, Eye,
   Megaphone, GraduationCap, Store, Percent, Bot, Zap, ArrowRight,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/PageShell";
@@ -121,7 +122,7 @@ export default function CreditShopPage() {
           {/* Balance */}
           <div className="flex items-center justify-center gap-3 pt-2">
             <Badge variant="outline" className="text-base px-4 py-1.5 gap-2 font-semibold">
-              <Coins className="h-4 w-4 text-primary" />
+              <CurrencyIcon currency="credits" className="h-4 w-4" />
               {userCredits.toLocaleString()} Credits
             </Badge>
             <Link to="/me/credits">
@@ -191,7 +192,7 @@ export default function CreditShopPage() {
           className="rounded-xl border border-border bg-muted/30 p-5 space-y-3"
         >
           <h3 className="font-display font-semibold text-sm flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> How to get Credits
+            <CurrencyIcon currency="credits" className="h-4 w-4" /> How to get Credits
           </h3>
           <div className="grid sm:grid-cols-3 gap-3 text-xs text-muted-foreground">
             <div className="flex items-start gap-2">

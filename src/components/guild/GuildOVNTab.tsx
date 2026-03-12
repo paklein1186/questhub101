@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { Coins, Users, Scale, TrendingUp, TrendingDown, Leaf, PieChart as PieIcon, BarChart3, Gauge } from "lucide-react";
+import { Users, TrendingUp, TrendingDown, PieChart as PieIcon, BarChart3 } from "lucide-react";
+import { CurrencyIcon, getCurrencyConfig } from "@/components/CurrencyIcon";
 import { useState, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -358,7 +359,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
   if (questIds.length === 0) {
     return (
       <div className="text-center py-12">
-        <Scale className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+        <CurrencyIcon currency="weight" className="h-10 w-10" colorClassName="text-muted-foreground" />
         <p className="text-muted-foreground">No quests linked to this guild yet.</p>
         <p className="text-xs text-muted-foreground mt-1">When quests are hosted by or affiliated with this guild, their contribution metrics will appear here.</p>
       </div>
@@ -395,7 +396,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="border-emerald-500/20">
           <CardContent className="p-4 text-center">
-            <Coins className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
+            <CurrencyIcon currency="ctg" className="h-5 w-5 mx-auto mb-1" />
             <p className="text-2xl font-bold text-emerald-600">{totalCoins.toFixed(0)}</p>
             <p className="text-[10px] text-muted-foreground">🌱 $CTG Distributed</p>
           </CardContent>
@@ -409,7 +410,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Scale className="h-5 w-5 text-primary mx-auto mb-1" />
+            <CurrencyIcon currency="weight" className="h-5 w-5 mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{totalWeightedUnits.toFixed(0)}</p>
             <p className="text-[10px] text-muted-foreground">Total Weighted Units</p>
           </CardContent>
@@ -432,7 +433,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
 
       {/* Velocity indicator */}
       <div className="flex items-center gap-2 text-xs">
-        <Gauge className="h-4 w-4 text-muted-foreground" />
+        <CurrencyIcon currency="credits" className="h-4 w-4" colorClassName="text-muted-foreground" />
         <span className="text-muted-foreground">Velocity:</span>
         <span className={`font-semibold ${velocityTrend === "up" ? "text-emerald-600" : velocityTrend === "down" ? "text-red-500" : "text-muted-foreground"}`}>
           {currentVelocity.toFixed(1)} wu/week
@@ -626,7 +627,7 @@ export function GuildOVNTab({ guildId, guildName, isMember, currentUserId }: Pro
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Leaf className="h-4 w-4" /> By Territory
+                <CurrencyIcon currency="ctg" className="h-4 w-4" /> By Territory
               </CardTitle>
             </CardHeader>
             <CardContent>

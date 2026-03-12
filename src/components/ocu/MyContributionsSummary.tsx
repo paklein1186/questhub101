@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Star, Sprout, ExternalLink, TrendingUp } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link } from "react-router-dom";
 import { ContributorExitCards } from "./ContributorExitCards";
 
@@ -95,7 +96,7 @@ export function MyContributionsSummary() {
   if (summaries.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-6 text-center">
-        <Coins className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+        <CurrencyIcon currency="coins" className="h-8 w-8 mx-auto text-muted-foreground mb-2" colorClassName="text-muted-foreground" />
         <p className="text-sm text-muted-foreground">No verified contributions yet.</p>
       </div>
     );
@@ -105,18 +106,18 @@ export function MyContributionsSummary() {
     <div className="space-y-5">
       {/* ─── Stats banner ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<TrendingUp className="h-4 w-4" />} label="Quests" value={questCount} />
-        <StatCard icon={<Coins className="h-4 w-4" />} label="Contributions" value={totalContributions} />
-        <StatCard icon={<Star className="h-4 w-4 text-yellow-500" />} label="⭐ XP Earned" value={totalXp} />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="Quests" value={questCount} />
+        <StatCard icon={<CurrencyIcon currency="coins" className="h-4 w-4" />} label="Contributions" value={totalContributions} />
+        <StatCard icon={<CurrencyIcon currency="xp" className="h-4 w-4" />} label="⭐ XP Earned" value={totalXp} />
         <StatCard icon={<span className="text-sm">🟩</span>} label="Coins Received" value={totalCoins} accent="teal" />
-        <StatCard icon={<Sprout className="h-4 w-4 text-emerald-500" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
+        <StatCard icon={<CurrencyIcon currency="ctg" className="h-4 w-4" />} label="🌱 $CTG Earned" value={totalCtg} accent="emerald" />
         <StatCard icon={<span className="text-sm">🟡</span>} label="Outstanding FMV" value={totalOutstanding} accent="amber" />
       </div>
 
       {/* ─── Quest table ─── */}
       <div>
         <h3 className="font-display font-semibold text-sm flex items-center gap-1.5 mb-2">
-          <Coins className="h-4 w-4" /> Contribution Ledger
+          <CurrencyIcon currency="coins" className="h-4 w-4" /> Contribution Ledger
         </h3>
 
         <div className="rounded-lg border border-border overflow-hidden overflow-x-auto">

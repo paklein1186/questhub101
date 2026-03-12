@@ -127,7 +127,7 @@ export function MentionTextarea({
           ...(usersRes.data ?? []).map((u: any) => ({ entityType: "user" as const, id: u.user_id, name: u.name, avatar_url: u.avatar_url })),
           ...(guildsRes.data ?? []).map((g: any) => ({ entityType: "guild" as const, id: g.id, name: g.name, avatar_url: g.logo_url })),
           ...(companiesRes.data ?? []).map((c: any) => ({ entityType: "company" as const, id: c.id, name: c.name, avatar_url: c.logo_url })),
-          ...(questsRes.data ?? []).map((q: any) => ({ entityType: "quest" as const, id: q.id, name: q.title, avatar_url: null })),
+          ...(questsRes.data ?? []).map((q: any) => ({ entityType: "quest" as const, id: q.id, name: q.title, avatar_url: null as null })),
         );
 
         setSuggestions(items);

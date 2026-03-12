@@ -6,9 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Zap, MapPin, Hash, UserPlus, UserMinus,
-  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban, Coins,
+  Briefcase, Shield, Compass, CircleDot, Pencil, Users, Ban,
   Plus, ExternalLink, Sparkles, Settings, Globe, Twitter, Linkedin, Instagram, Building2, Map as MapIcon, Star,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -632,7 +633,7 @@ export default function UserProfile() {
           <TabsTrigger value="trust"><Shield className="h-3.5 w-3.5 mr-1" /> Trust</TabsTrigger>
           <TabsTrigger value="living"><Leaf className="h-3.5 w-3.5 mr-1" /> Living</TabsTrigger>
           <TabsTrigger value="graph"><Compass className="h-3.5 w-3.5 mr-1" /> Graph</TabsTrigger>
-          {isOwnProfile && <TabsTrigger value="contributions"><Coins className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
+          {isOwnProfile && <TabsTrigger value="contributions"><CurrencyIcon currency="coins" className="h-3.5 w-3.5 mr-1" /> Contributions</TabsTrigger>}
           {isOwnProfile && <TabsTrigger value="matchmaker"><Sparkles className="h-3.5 w-3.5 mr-1" /> Matchmaker</TabsTrigger>}
         </TabsList>
 

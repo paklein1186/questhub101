@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Sparkles, ChevronDown, ChevronUp, Coins } from "lucide-react";
+import { X, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { useQuery } from "@tanstack/react-query";
 import { usePiPanel } from "@/hooks/usePiPanel";
 import { useAuth } from "@/hooks/useAuth";
@@ -128,7 +129,7 @@ export function PiDesktopPanel() {
               <PiModelSelector />
               {creditsBalance != null && (
                 <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
-                  <Coins className="h-3 w-3" />
+                  <CurrencyIcon currency="credits" className="h-3 w-3" />
                   <span>{creditsBalance > 9999 ? "9999+" : creditsBalance}</span>
                 </div>
               )}

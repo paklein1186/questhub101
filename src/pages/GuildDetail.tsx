@@ -8,8 +8,9 @@ import {
   Shield, Users, Compass, ArrowLeft, Heart, Briefcase, Star, Handshake,
   CircleDot, MapPin, Hash, CheckCircle, AlertCircle, Plus, Clock, Euro, Video,
   UserMinus, Settings, LayoutGrid, FileText, CalendarDays, Bot, Sparkles, Brain,
-  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks, Coins, Wallet, Calendar,
+  MoreHorizontal, Pencil, Trash2, Vote, MessageCircle, ListChecks, Wallet, Calendar,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

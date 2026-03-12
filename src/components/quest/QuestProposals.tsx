@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ThumbsUp, Send, Coins, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare, CreditCard, ExternalLink, Lightbulb } from "lucide-react";
+import { ThumbsUp, Send, Plus, Check, X, ArrowUp, TrendingDown, MessageSquare, CreditCard, ExternalLink, Lightbulb } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CommentThread } from "@/components/CommentThread";
 import { CommentTargetType } from "@/types/enums";
@@ -340,7 +341,7 @@ export function QuestProposals({
       {(campaigns as any[]).length > 0 ? (
         <div className="space-y-3">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> Funding Campaigns
+            <CurrencyIcon currency="coins" className="h-4 w-4" /> Funding Campaigns
           </h3>
           {(campaigns as any[]).map((campaign: any) => {
             const pct = campaign.goal_amount > 0 ? Math.min(100, Math.round((campaign.raised_amount / campaign.goal_amount) * 100)) : 0;
@@ -382,7 +383,7 @@ export function QuestProposals({
                         </div>
                         <Input type="number" placeholder="Custom amount" value={fundAmount} onChange={e => setFundAmount(e.target.value)} min={1} />
                         <Button onClick={() => fundQuest(Number(fundAmount) || 0, campaign)} disabled={!fundAmount || Number(fundAmount) <= 0} className="w-full">
-                          <Coins className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
+                          <CurrencyIcon currency="ctg" className="h-4 w-4 mr-1" /> Contribute {fundAmount || 0} $CTG
                         </Button>
                       </div>
                     </DialogContent>
@@ -497,7 +498,7 @@ export function QuestProposals({
                   <div className="flex items-center gap-3 mt-2 flex-wrap">
                     {proposal.requested_credits > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        <Coins className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits
+                        <CurrencyIcon currency="credits" className="h-3 w-3 mr-1" /> {proposal.requested_credits} Credits
                       </Badge>
                     )}
                     {(proposal.requested_fiat > 0) && (

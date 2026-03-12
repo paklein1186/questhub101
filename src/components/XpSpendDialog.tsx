@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Coins, AlertTriangle, ArrowRight, Leaf, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowRight, RefreshCw } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +43,7 @@ export function XpSpendDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {canAfford
-              ? <><Coins className="h-5 w-5 text-primary" /> Spend Credits to continue</>
+              ? <><CurrencyIcon currency="credits" className="h-5 w-5" /> Spend Credits to continue</>
               : <><AlertTriangle className="h-5 w-5 text-warning" /> Limit reached</>}
           </DialogTitle>
           <DialogDescription>
@@ -63,7 +64,7 @@ export function XpSpendDialog({
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button onClick={handleConfirm} disabled={confirming}>
-                <Coins className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} Credits`}
+                <CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} Credits`}
               </Button>
             </DialogFooter>
           </div>
@@ -77,8 +78,8 @@ export function XpSpendDialog({
             {ctgBalance && ctgBalance > 0 ? (
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Leaf className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <p className="text-sm font-medium">
+                   <CurrencyIcon currency="ctg" className="h-4 w-4" />
+                   <p className="text-sm font-medium">
                     You have {ctgBalance.toLocaleString()} $CTG
                   </p>
                 </div>
@@ -104,7 +105,7 @@ export function XpSpendDialog({
                 <Link to="/plans">See plans <ArrowRight className="h-3.5 w-3.5 ml-1" /></Link>
               </Button>
               <Button asChild>
-                <Link to="/me/credits"><Coins className="h-4 w-4 mr-1" /> Buy Credits</Link>
+                <Link to="/me/credits"><CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> Buy Credits</Link>
               </Button>
             </DialogFooter>
           </div>

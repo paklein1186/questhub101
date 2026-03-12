@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Trophy, MapPin, Star, Handshake, Loader2, RefreshCw, Clock,
-  Calendar, CalendarDays, Shield, Coins, TrendingUp, Crown,
+  Trophy, MapPin, Handshake, Loader2, RefreshCw, Clock,
+  Calendar, CalendarDays, Shield, Crown,
 } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -640,7 +641,7 @@ export default function LeaderboardTab() {
         <UserSection
           title="🌱 $CTG Champions"
           subtitle={period === "all" ? "Top contributors by $CTG token balance." : `Top $CTG earned${subtitleSuffix}.`}
-          icon={<Coins className="h-5 w-5 text-amber-500" />}
+          icon={<CurrencyIcon currency="ctg" className="h-5 w-5" />}
           accentClass="bg-amber-500/5"
           isLoading={ctgLoading}
           entries={ctgLeaders}
@@ -659,7 +660,7 @@ export default function LeaderboardTab() {
         <UserSection
           title="⭐ XP Leaders"
           subtitle={period === "all" ? "Highest reputation by experience points." : `Most XP earned${subtitleSuffix}.`}
-          icon={<Star className="h-5 w-5 text-primary" />}
+          icon={<CurrencyIcon currency="xp" className="h-5 w-5" />}
           accentClass="bg-primary/5"
           isLoading={xpLoading}
           entries={xpLeaders}

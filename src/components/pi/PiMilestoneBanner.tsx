@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trophy, Zap, Coins } from "lucide-react";
+import { X, Trophy } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { Badge } from "@/components/ui/badge";
 import { useMilestones, type MilestoneWithProgress } from "@/hooks/useMilestones";
 import { usePersona } from "@/hooks/usePersona";
@@ -97,13 +98,13 @@ export function PiMilestoneBanner() {
               <div className="flex items-center gap-1.5 mt-1.5 px-2 py-1 bg-muted/50 rounded text-xs font-medium">
                 {current.reward_type === "XP" && (
                   <>
-                    <Zap className="h-3 w-3 text-amber-500" />
+                    <CurrencyIcon currency="xp" className="h-3 w-3" />
                     <span>+{current.reward_amount} XP</span>
                   </>
                 )}
                 {current.reward_type === "CREDITS" && (
                   <>
-                    <Coins className="h-3 w-3 text-emerald-500" />
+                    <CurrencyIcon currency="credits" className="h-3 w-3" />
                     <span>+{current.reward_amount} Credits</span>
                   </>
                 )}
