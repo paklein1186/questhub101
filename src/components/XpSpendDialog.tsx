@@ -64,7 +64,7 @@ export function XpSpendDialog({
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button onClick={handleConfirm} disabled={confirming}>
-                <Coins className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} Credits`}
+                <CurrencyIcon currency="credits" className="h-4 w-4 mr-1" /> {confirming ? "Spending…" : `Spend ${xpCost} Credits`}
               </Button>
             </DialogFooter>
           </div>
