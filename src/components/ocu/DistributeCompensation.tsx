@@ -595,3 +595,64 @@ export function DistributeCompensation({ quest, isAdmin, onEnableOCU }: Props) {
     </OCUFeatureGate>
   );
 }
+
+/* ─── Compensation History Row ─── */
+function CompensationHistoryRow({ entry, questId, questTitle }: {
+  entry: any; questId: string; questTitle: string;
+}) {
+  const [reportOpen, setReportOpen] = useState(false);
+  const date = new Date(entry.compensated_at);
+
+  return (
+    <>
+      <tr className="border-b border-border last:border-0 hover:bg-muted/30">
+        <td className="p-2 text-muted-foreground whitespace-nowrap">
+          {date.toLocaleDateString()} <span className="text-[10px]">{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        </td>
+        <td className="p-2">
+          <div className="flex items-center gap-1.5">
+            <Avatar className="h-4 w-4">
+              <AvatarImage src={entry.recipient_avatar ?? undefined} />
+              <AvatarFallback className="text-[7px]">{entry.recipient_name?.[0]}</AvatarFallback>
+            </Avatar>
+            <span className="font-medium">{entry.recipient_name}</span>
+          </div>
+        </td>
+        <td className="p-2 text-muted-foreground">{entry.distributor_name}</td>
+        <td className="p-2 text-right">
+          <div className="flex items-center justify-end gap-1">
+            {entry.amount_coins > 0 && (
+              <span className="flex items-center gap-0.5">
+                <CurrencyIcon currency="coins" className="h-3 w-3" />
+                {Number(entry.amount_coins).toLocaleString()}
+              </span>
+            )}
+            {entry.amount_fiat > 0 && (
+              <span className="text-muted-foreground ml-1">(€{Number(entry.amount_fiat).toFixed(2)})</span>
+            )}
+          </div>
+        </td>
+        <td className="p-2 text-muted-foreground truncate max-w-[120px]" title={entry.note}>
+          {entry.note || "—"}
+        </td>
+        <td className="p-2">
+          <button
+            onClick={() => setReportOpen(true)}
+            className="text-muted-foreground hover:text-destructive transition-colors"
+            title="Report a concern"
+          >
+            <Flag className="h-3.5 w-3.5" />
+          </button>
+        </td>
+      </tr>
+      <ReportConcernDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        distributionId={entry.id}
+        questId={questId}
+        questTitle={questTitle}
+        distributionDate={entry.compensated_at}
+      />
+    </>
+  );
+}
