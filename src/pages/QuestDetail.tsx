@@ -331,6 +331,7 @@ export default function QuestDetail() {
   const [uImageUrl, setUImageUrl] = useState<string | undefined>();
   const [uDraft, setUDraft] = useState(false);
   const [uVisibility, setUVisibility] = useState("PUBLIC");
+  const [updateSort, setUpdateSort] = useState<"recent" | "upvoted">("recent");
   const { getLastTab: getLastQuestTab, saveLastTab: saveLastQuestTab } = useLastTab("quest");
   const urlTab = searchParams.get("tab");
   const activeTab = urlTab || getLastQuestTab(id, "overview");
