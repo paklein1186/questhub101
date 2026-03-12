@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRightLeft, Coins, Search, User, Users } from "lucide-react";
+import { ArrowRightLeft, Search, User, Users } from "lucide-react";
+import { CurrencyIcon } from "@/components/CurrencyIcon";
 import { format } from "date-fns";
 
 type TxFilter = "ALL" | "GIFT_SENT" | "GIFT_RECEIVED" | "PURCHASE" | "DEMURRAGE_FADE" | "INITIAL_GRANT" | "QUEST_REWARD" | "ADMIN_GRANT";
