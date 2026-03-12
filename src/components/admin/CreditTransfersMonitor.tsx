@@ -133,7 +133,7 @@ export function CreditTransfersMonitor() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <Card className="border-border/50 bg-muted/30">
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Coins className="h-5 w-5 text-primary" />
+            <CurrencyIcon currency="credits" className="h-5 w-5" />
             <p className="text-xl font-bold">{loadingBalances ? "…" : totalCreditsInCirculation.toLocaleString()}</p>
             <p className="text-[10px] text-muted-foreground">Total in circulation (top 50)</p>
           </CardContent>

@@ -192,7 +192,7 @@ export default function CreditShopPage() {
           className="rounded-xl border border-border bg-muted/30 p-5 space-y-3"
         >
           <h3 className="font-display font-semibold text-sm flex items-center gap-2">
-            <Coins className="h-4 w-4 text-primary" /> How to get Credits
+            <CurrencyIcon currency="credits" className="h-4 w-4" /> How to get Credits
           </h3>
           <div className="grid sm:grid-cols-3 gap-3 text-xs text-muted-foreground">
             <div className="flex items-start gap-2">

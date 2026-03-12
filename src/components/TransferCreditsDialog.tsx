@@ -132,7 +132,7 @@ export function TransferCreditsDialog({
               From: <strong>{isGuildSource ? sourceGuildName : "Your wallet"}</strong>
             </span>
             <span className="text-sm font-bold flex items-center gap-1">
-              <Coins className="h-4 w-4 text-primary" /> {currentBalance}
+              <CurrencyIcon currency="credits" className="h-4 w-4" /> {currentBalance}
             </span>
           </div>
 

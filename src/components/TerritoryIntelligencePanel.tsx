@@ -158,7 +158,7 @@ export function TerritoryIntelligencePanel({ territoryId, territoryName, compact
       <IntelSection icon={Coins} title="Funding Priorities" items={data.fundingPriorities} renderItem={(f: any, i: number) => (
         <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
           className="flex items-start gap-2 rounded-lg border border-border bg-background p-2.5">
-          <Coins className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+          <CurrencyIcon currency="coins" className="h-3.5 w-3.5 mt-0.5 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">{f.area}</p>
             <p className="text-xs text-muted-foreground">{f.reason}</p>

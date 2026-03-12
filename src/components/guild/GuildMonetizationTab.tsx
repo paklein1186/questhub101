@@ -100,7 +100,7 @@ export function GuildMonetizationTab({ guildId, guildName, isAdmin }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <Coins className="h-5 w-5 mx-auto mb-1 text-primary" />
+            <CurrencyIcon currency="credits" className="h-5 w-5 mx-auto mb-1" />
             <p className="text-2xl font-bold text-primary">{revenueData?.total?.toFixed(0) || 0}</p>
             <p className="text-[10px] text-muted-foreground">Credits earned (last 30 days)</p>
           </CardContent>

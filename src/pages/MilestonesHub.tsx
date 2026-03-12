@@ -152,7 +152,7 @@ export default function MilestonesHub() {
               )}
               {creditsEarned > 0 && (
                 <div className="flex items-center gap-1.5 justify-end">
-                  <Coins className="h-4 w-4 text-emerald-500" />
+                  <CurrencyIcon currency="credits" className="h-4 w-4" />
                   <span className="text-sm font-semibold">{creditsEarned} Credits earned</span>
                 </div>
               )}

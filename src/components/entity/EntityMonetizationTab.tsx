@@ -73,7 +73,7 @@ export default function EntityMonetizationTab({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Coins className="h-4 w-4" /> Revenue This Month
+            <CurrencyIcon currency="credits" className="h-4 w-4" /> Revenue This Month
           </div>
           <p className="text-2xl font-bold">{totalEarned.toFixed(1)} <span className="text-sm font-normal text-muted-foreground">credits</span></p>
         </Card>

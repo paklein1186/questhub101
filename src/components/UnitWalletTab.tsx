@@ -124,7 +124,7 @@ export function UnitWalletTab({ unitType, unitId, unitName, creditsBalance }: Un
               <p className="text-lg font-bold">€{b.priceEur}</p>
               <p className="text-xs text-muted-foreground mb-2">€{(b.priceEur / b.credits).toFixed(3)}/credit</p>
               <Button size="sm" className="w-full" onClick={() => handleBuyCredits(b.code)} disabled={!!buyLoading}>
-                {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <Coins className="h-4 w-4 mr-1" />}
+                {buyLoading === b.code ? <Loader2 className="h-4 w-4 animate-spin" /> : <CurrencyIcon currency="credits" className="h-4 w-4 mr-1" />}
                 {buyLoading === b.code ? "Processing…" : "Buy"}
               </Button>
             </div>

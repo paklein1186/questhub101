@@ -117,8 +117,8 @@ export function TreasuryDashboard() {
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)
           ) : (
             <>
-              <StatCard icon={Coins} label="Platform Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
-              <StatCard icon={Coins} label="Platform Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
+              <StatCard icon={getCurrencyConfig("credits").icon} label="Platform Credits Minted" value={String(econStats?.creditsMinted ?? 0)} color="text-emerald-500" />
+              <StatCard icon={getCurrencyConfig("credits").icon} label="Platform Credits Spent" value={String(econStats?.creditsSpent ?? 0)} color="text-orange-500" />
               <StatCard icon={Recycle} label="Platform Credits Faded" value={String(econStats?.monthlyFaded ?? 0)} color="text-rose-500" />
             </>
           )}
