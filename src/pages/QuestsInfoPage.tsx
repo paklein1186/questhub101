@@ -11,7 +11,7 @@ export default function QuestsInfoPage() {
       </ContentSection>
 
       <ContentSection title="What You Can Do">
-        <ContentList items={["Create quests", "Join quests", "Propose contributions", "Earn XP (reputation) for every contribution", "Earn 🟩 Coins from funded quest pools and 🌱 $CTG for commons contributions", "Fund and support quests"]} />
+        <ContentList items={["Create quests", "Join quests", "Propose contributions", "Earn XP (reputation) for every contribution", "Earn Coins from funded quest pools and $CTG for commons contributions", "Fund and support quests"]} />
       </ContentSection>
 
       <ContentSection title="Quest Funding Pools">
