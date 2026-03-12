@@ -641,7 +641,7 @@ export default function LeaderboardTab() {
         <UserSection
           title="🌱 $CTG Champions"
           subtitle={period === "all" ? "Top contributors by $CTG token balance." : `Top $CTG earned${subtitleSuffix}.`}
-          icon={<Coins className="h-5 w-5 text-amber-500" />}
+          icon={<CurrencyIcon currency="ctg" className="h-5 w-5" />}
           accentClass="bg-amber-500/5"
           isLoading={ctgLoading}
           entries={ctgLeaders}
