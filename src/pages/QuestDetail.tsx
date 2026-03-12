@@ -707,6 +707,52 @@ export default function QuestDetail() {
           </div>
         </div>
 
+        {/* Prominent Budget Indicators */}
+        {(Number((quest as any).coins_budget ?? 0) > 0 || Number((quest as any).ctg_budget ?? 0) > 0 || Number((quest as any).coins_escrow ?? 0) > 0 || Number((quest as any).ctg_escrow ?? 0) > 0) && (
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            {Number((quest as any).coins_escrow ?? (quest as any).coins_budget ?? 0) > 0 && (() => {
+              const escrow = Number((quest as any).coins_escrow ?? 0);
+              const budget = Number((quest as any).coins_budget ?? 0);
+              const display = escrow > 0 ? escrow : budget;
+              const pct = budget > 0 ? Math.round((escrow / budget) * 100) : 100;
+              return (
+                <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5">
+                  <CurrencyIcon currency="coins" className="h-5 w-5" />
+                  <div>
+                    <p className="text-sm font-bold">{display.toLocaleString()} Coins</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      ≈ €{(display * coinsRate).toFixed(2)} {escrow > 0 && escrow < budget ? `• ${pct}% remaining` : "in escrow"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+            {Number((quest as any).ctg_escrow ?? (quest as any).ctg_budget ?? 0) > 0 && (() => {
+              const escrow = Number((quest as any).ctg_escrow ?? 0);
+              const budget = Number((quest as any).ctg_budget ?? 0);
+              const display = escrow > 0 ? escrow : budget;
+              return (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5">
+                  <CurrencyIcon currency="ctg" className="h-5 w-5" />
+                  <div>
+                    <p className="text-sm font-bold">{display.toLocaleString()} $CTG</p>
+                    <p className="text-[10px] text-muted-foreground">❄️ Frozen in escrow</p>
+                  </div>
+                </div>
+              );
+            })()}
+            {quest.credit_reward > 0 && (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5">
+                <CurrencyIcon currency="ctg" className="h-4 w-4" />
+                <div>
+                  <p className="text-sm font-bold">+{quest.credit_reward} $CTG</p>
+                  <p className="text-[10px] text-muted-foreground">per participant</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Mission Budget & Economy Bar */}
         {((quest as any).mission_budget_min || (quest as any).mission_budget_max || quest.credit_reward > 0 || (quest as any).credit_budget > 0) && (
           <div className="rounded-lg border border-border bg-muted/30 p-4 mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
