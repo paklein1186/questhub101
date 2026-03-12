@@ -362,25 +362,25 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
           </div>
           {questRewardXp > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="xp" size="xs" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
+              <CurrencyIcon currency="xp" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">+{questRewardXp} XP</span>
               <span className="text-muted-foreground">per participant</span>
             </div>
           )}
           {questCreditReward > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" size="xs" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
+              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCreditReward} $CTG</span>
               <span className="text-muted-foreground">per participant</span>
             </div>
           )}
           {questCoinsBudget > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="coins" size="xs" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
+              <CurrencyIcon currency="coins" className="h-3.5 w-3.5" showTooltip /> <span className="font-semibold">{questCoinsBudget.toLocaleString()}</span>
               <span className="text-muted-foreground">budget</span>
             </div>
           )}
           {questCtgBudget > 0 && (
             <div className="flex items-center gap-1 text-xs">
-              <CurrencyIcon currency="ctg" size="xs" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
+              <CurrencyIcon currency="ctg" className="h-3.5 w-3.5" /> <span className="font-semibold">{questCtgBudget.toLocaleString()} $CTG</span>
               <span className="text-muted-foreground">budget</span>
             </div>
           )}
