@@ -45,7 +45,7 @@ export function FundingPoolWizard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CurrencyIcon currency="coins" className="h-4 w-4" />
-              <Label className="text-sm font-semibold">🟩 Coins Pool</Label>
+              <Label className="text-sm font-semibold">Coins Pool</Label>
             </div>
             <Switch checked={coinsEnabled} onCheckedChange={setCoinsEnabled} />
           </div>
