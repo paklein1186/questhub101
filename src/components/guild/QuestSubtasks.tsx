@@ -449,7 +449,7 @@ export function QuestSubtasks({ questId, questOwnerId, guildId, canManage, quest
             {/* $CTG reward input */}
             {canManage ? (
               <div className="flex items-center gap-0.5" title="🌱 $CTG — contribution token reward on completion">
-                <Sprout className="h-3 w-3 text-emerald-600" />
+                <CurrencyIcon currency="ctg" className="h-3 w-3" />
                 <Input
                   type="number"
                   min={0}
