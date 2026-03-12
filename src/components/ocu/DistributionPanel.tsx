@@ -500,7 +500,7 @@ export function DistributionPanel({ quest, isAdmin, isParticipant, onEnableOCU }
                 <thead>
                   <tr className="bg-muted/50 border-b border-border">
                     <th className="text-left p-2 font-medium">Contributor</th>
-                    {showCoins && <th className="text-right p-2 font-medium">🟩 Coins</th>}
+                    {showCoins && <th className="text-right p-2 font-medium">Coins</th>}
                     {showCtg && <th className="text-right p-2 font-medium">🌱 $CTG</th>}
                   </tr>
                 </thead>
