@@ -19,6 +19,7 @@ import { GuestBauhausShape } from "@/components/GuestBauhausShape";
 import { BugReportBubble } from "@/components/BugReportBubble";
 import { HarvestWindowBanner } from "@/components/ctg/HarvestWindowBanner";
 import { RequireAuth, RedirectIfAuthed } from "@/components/AuthGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
@@ -193,6 +194,7 @@ const App = () => (
             <PiFloatingButton />
             <BugReportBubble />
             <HarvestWindowBanner />
+              <ErrorBoundary label="App">
               <Routes>
                 {/* Auth pages — redirect away if already logged in */}
                 <Route path="/login" element={<RedirectIfAuthed><Login /></RedirectIfAuthed>} />
@@ -315,7 +317,7 @@ const App = () => (
                 <Route path="/plans" element={<RequireAuth><PlansPage /></RequireAuth>} />
                 <Route path="/shares" element={<RequireAuth><SharesPage /></RequireAuth>} />
                 <Route path="/notifications" element={<RequireAuth><NotificationsCenter /></RequireAuth>} />
-                <Route path="/admin" element={<RequireAuth><Suspense fallback={null}><AdminLayout /></Suspense></RequireAuth>}>
+                <Route path="/admin" element={<RequireAuth><ErrorBoundary label="Admin"><Suspense fallback={null}><AdminLayout /></Suspense></ErrorBoundary></RequireAuth>}>
                   <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
                   <Route path="community/users" element={<Suspense fallback={null}><AdminCommunityUsers /></Suspense>} />
                   <Route path="community/guilds" element={<Suspense fallback={null}><AdminCommunityGuilds /></Suspense>} />
@@ -361,6 +363,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </ErrorBoundary>
             </BrowserRouter>
             </PiPanelProvider>
             </ChatBubbleProvider>
