@@ -321,9 +321,9 @@ export function ContributionLogPanel({
           {/* Value Pie */}
           <ValuePieChart questId={questId} />
 
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1 flex-wrap">
             All contributions are attributed under CC-BY-SA.
-            🟩 Coins are distributed proportionally via the OCU pie.
+            <CurrencyIcon currency="coins" className="h-3 w-3 inline" /> Coins are distributed proportionally via the OCU pie.
             🌱 $CTG is emitted per contribution to the commons.
           </p>
         </>
